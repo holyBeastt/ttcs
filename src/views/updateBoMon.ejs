@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar-top ">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner">
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom">
+    <div class="" style="width: 100%;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" style="width: 100%;" id="navbarNav">
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin"><i class="bi bi-house"></i></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="ThongTinTK" href="/thongTinTK">Thông Tin Tài Khoản </a>       
+               </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="NhanVien" href="/nhanVien">Nhân Viên </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link" id="PhongBan" href="/phongBan">Phòng Ban </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link active" id="BoMon" href="/boMon">Bộ Môn </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link" id="NamHoc" href="/namHoc">Năm học </a>        
+                 </li>
+            </ul>
+          </div>
+            
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                Hi, ADMIN
+                </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+              </div>
+            </div>
+        </div>
+    </div>
+  </nav>
+  <div class="container my-5 box">
+    <h2>Sửa Bộ Môn </h2>
+    <form id="updateBoMon" action="/updateBoMon/<%= boMon.id_BoMon %>" method="POST">
+      <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="MaPhongBan" class="form-label">Mã Phòng Ban</label>
+          <select class="form-control" id="MaPhongBan" name="MaPhongBan">
+            <option value="">Chọn Mã Phòng Ban</option> <!-- Option mặc định -->
+          </select>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="MaBoMon" class="form-label">Mã bộ môn</label>
+          <input
+            type="text"
+            class="form-control"
+            id="MaBoMon"
+            name="MaBoMon" value="<%= boMon.MaBoMon %>"
+             required
+          />
+        </div>
+      </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            
+            <label for="TenBoMon" class="form-label">Tên bộ môn</label>
+            <input type="text" class="form-control" id="TenBoMon" name="TenBoMon" value="<%= boMon.TenBoMon %>"  required/>
+            
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="TruongBoMon" class="form-label">Trưởng bộ môn</label>
+            <input type="text" class="form-control" id="TruongBoMon" name="TruongBoMon" value="<%= boMon.TruongBoMon %>"  />            
+          </div>
+        </div>
+        <button type="submit" class="btn">Sửa Bộ Môn</button>
+        <button type="button" class="btn mx-5" onclick="window.location.href='/boMon'" >Trở về</button>
+    </form>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+
+if (tenDangNhap) {
+    // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+    window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+} else {
+    alert("Không tìm thấy TenDangNhap trong localStorage.");
+}
+});
+</script>
+<script>
+    $(document).ready(function() {
+        $('#MaPhongBan option[value=""]').remove();
+      // Gọi AJAX để lấy dữ liệu JSON từ API
+      $.ajax({
+        url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+        method: 'GET',
+        success: function(response) {
+          // Kiểm tra nếu response thành công
+          if (response.success) {
+            const boMonMaPhongBan = '<%= boMon.MaPhongBan %>'; // Lấy giá trị boMon.MaPhongBan từ EJS
+            console.log(boMonMaPhongBan);
+
+            // Lặp qua từng mục trong mảng MaPhongBan
+            response.MaPhongBan.forEach(function(item) {
+              // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+              console.log(item);
+              if (item.MaPhongBan === boMonMaPhongBan) {
+                $('#MaPhongBan').prepend(
+                  `<option value="${item.MaPhongBan}" selected>${item.MaPhongBan}</option>`
+                );
+              } else {
+                // Nếu không, thêm vào cuối
+                $('#MaPhongBan').append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
+              }
+            });
+
+            // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+            if (!$('#MaPhongBan option:selected').length) {
+              $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
+            }
+          } else {
+            console.error("Không lấy được dữ liệu phongBan:", response.message);
+          }
+        },
+        error: function(error) {
+          console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+        }
+      });
+    });
+</script>
+
+</body>
+
+</html>

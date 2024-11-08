@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/table.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar-top ">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner">
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom">
+    <div class="" style="width: 100%;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" style="width: 100%;" id="navbarNav">
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin"><i class="bi bi-house"></i></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="ThongTinTK" href="/thongTinTK">Thông Tin Tài Khoản </a>       
+               </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="NhanVien" href="/nhanVien">Nhân Viên </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link active" id="PhongBan" href="/phongBan">Phòng Ban </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>        
+                 </li>
+                 <li class="nav-item">
+                  <a class="nav-link" id="NamHoc" href="/namHoc">Năm học </a>        
+                 </li>
+            </ul>
+          </div>
+            
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                Hi, ADMIN
+                </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+              </div>
+            </div>
+        </div>
+    </div>
+  </nav>
+  <div class="container my-5 box">
+      <div class="d-flex justify-content-start mb-3">
+
+        <!-- Nút Lọc màu giống nút Hiển thị -->
+
+        <button id="createPB" class="btn">
+          <i class="bi bi-plus-circle"></i> Thêm Phòng Ban
+      </button>
+      <script>
+          document.getElementById('createPB').addEventListener('click', function() {
+              window.location.href = '/themPhongBan';
+          });
+      </script>
+      </div>
+      <div class="pb-3">
+        <table id="phongBanTable" class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Mã phòng ban</th>
+              <th>Tên phòng ban</th>
+              <th>Ghi chú </th>
+              <th>Là Khoa</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="data-table-body">
+            <% if (departmentLists && departmentLists.length > 0) { %>
+              <% for (var i = 0; i < departmentLists.length; i++) { %>
+                <tr>
+                  <td><%= departmentLists[i].MaPhongBan %></td>
+                  <td><%= departmentLists[i].TenPhongBan %></td>
+                  <td><%= departmentLists[i].GhiChu %></td>
+                  <td><%= departmentLists[i].isKhoa %></td>
+                  <td class="d-flex" style="border: none;">
+                    <button class="action-button edit"
+                        onclick="editPhongBan(this, '<%= departmentLists[i].MaPhongBan %>')">
+                        ✏️
+                      </button>
+                  </td>
+
+                </tr>
+              <% } %>
+            <% } else { %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+  </div>
+  <!-- // hiển thị danh sách phòng ban -->
+  <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+<!-- <script>
+    $(document).ready(function() {
+        console.log('Document ready - Phòng Ban');
+        $('#btnHienThiPhongBan').on('click', function() {
+            console.log('Button clicked - Phòng Ban');
+            $.ajax({
+                url: '/api/phongban',
+                type: 'GET',
+                success: function(data) {
+                    console.log('Data received:', data);
+                    let tableBody = $('#phongBanTable tbody');
+                    tableBody.empty();
+
+                    if (data.length === 0) {
+                        console.log('No data received');
+                        tableBody.append('<tr><td colspan="4">Không có dữ liệu</td></tr>');
+                        return;
+                    }
+
+                    data.forEach(function(phongBan) {
+                        let row = `<tr>
+                          <td></td>
+                            <td>${phongBan.maPhongBan || ''}</td>
+                            <td>${phongBan.tenPhongBan || ''}</td>
+                            <td>${phongBan.ghiChu || ''}</td>
+                            <td>${phongBan.isKhoa ? 'Có' : 'Không'}</td>
+                        </tr>`;
+                        tableBody.append(row);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', xhr.responseText);
+                    alert('Có lỗi xảy ra khi tải danh sách phòng ban.');
+                }
+            });
+        });
+    });
+</script> -->
+<script>
+  function editPhongBan(button, MaPhongBan) {
+    console.log(MaPhongBan);
+  hre = '/updatePhongBan/' + MaPhongBan;
+  window.location.href = hre;
+
+}
+</script>
+<script>
+  document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+if (tenDangNhap) {
+    // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+    window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+} else {
+    alert("Không tìm thấy TenDangNhap trong localStorage.");
+}
+});
+</script>
+</body>
+
+</html>

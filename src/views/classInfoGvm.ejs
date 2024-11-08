@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/table.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/gvmList.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+  <style>
+    /* nmsvbmbvsmnvds */
+    .teacher-group {
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+      border-collapse: separate;
+      margin-bottom: 10px;
+    }
+
+    .teacher-group td,
+    .teacher-group th {
+      padding: 8px;
+      text-align: left;
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+    }
+  </style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .class-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      table-layout: auto;
+      /* Cho phép bảng tự điều chỉnh kích thước cột */
+    }
+
+    .class-table th,
+    .class-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      white-space: normal;
+      /* Cho phép xuống dòng */
+      word-wrap: break-word;
+      /* Chia từ và xuống dòng khi cần */
+    }
+
+    .class-table th {
+      background-color: #007BFF;
+      /* Đổi màu nền tiêu đề thành xanh dương */
+      color: white;
+      font-weight: bold;
+    }
+
+    .class-table tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    .class-table tbody tr:hover {
+      background-color: #ddd;
+    }
+
+    .action-button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .action-button:hover {
+      background-color: #45a049;
+    }
+
+    /* Điều chỉnh kích thước các cột */
+    .class-table th,
+    .class-table td {
+      min-width: 50px;
+      /* Đặt kích thước tối thiểu cho cột để không bị quá hẹp */
+    }
+  </style>
+
+  <style>
+    /* phần css cho label tổng số tiết ki*/
+    .total-label {
+      margin-left: auto;
+      /* Căn phải cho thẻ total-label */
+      margin-right: 0;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 8px;
+      width: fit-content;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: block;
+      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+    }
+
+    .total-label label {
+      font-weight: bold;
+      /* Giữ chữ in đậm */
+      color: #000;
+      /* Màu chữ đen */
+      margin-right: 8px;
+      /* Thêm khoảng cách bên phải */
+      cursor: pointer;
+      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
+      padding: 5px 10px;
+      /* Thêm padding cho label để tạo không gian */
+      border: 1px solid #ccc;
+      /* Khung cho label */
+      border-radius: 4px;
+      /* Bo góc cho khung */
+    }
+
+    .total-label label,
+    .total-label label span {
+      background-color: #007BFF;
+      /* Màu nền khi hover */
+      color: #fff;
+      /* Màu chữ trắng khi hover */
+    }
+
+    .total-label span {
+      font-weight: bold;
+      /* Giữ chữ trong span cũng in đậm */
+      color: #333;
+      /* Màu chữ đậm cho giá trị */
+    }
+
+    /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
+    input[type="date"],
+    input[type="text"] {
+      width: 120px;
+      /* Điều chỉnh giá trị này theo mong muốn */
+      box-sizing: border-box;
+      padding: 5px;
+      /* Giữ padding như cũ */
+    }
+  </style>
+  <!-- Phân quyền -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      //const role = localStorage.getItem("userRole");
+      const MaPhongBan = localStorage.getItem("MaPhongBan");
+      // Ẩn phần lọc khoa nếu role là Khoa
+      const departmentFilter = document.getElementById("departmentFilter");
+
+      if (
+        !MaPhongBan.includes("DAOTAO") &&
+        !MaPhongBan.includes("TAICHINH")
+      ) {
+        departmentFilter.style.display = "none";
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner" />
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+    <div class="" style="width: 100%">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+          </li>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Giảng Viên Mời
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời
+                  bằng file</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Bảng Quy Chuẩn
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Mời Giảng
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+
+                <a class="nav-link active" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
+                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
+                <li class="nav-item"></li>
+                <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
+                </li>
+                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Vượt Giờ
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Nghiên Cứu Khoa Học
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Đồ Án
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Thống Kê
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+              </div>
+            </div>
+
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hệ Thống
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="log">Xem File Log</a>
+              </div>
+            </div>
+          </div>
+        </ul>
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Hi, Lê Đức Thuận
+            </a>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+              <a class="dropdown-item" href="/">Đăng xuất</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="container-fluid m-4 box">
+    <div class="d-flex justify-content-center">
+      <!-- Main content -->
+      <div class="gvmList" style="width: 100%">
+        <div class="m-3">
+          <div class="">
+            <h1>THÔNG TIN CÁC LỚP GIẢNG VIÊN MỜI</h1>
+            <div class="header-actions" style="height: 45px;">
+
+              <!-- <button class="add-class" onclick="addClass()">+ Thêm giảng viên mời</button> -->
+              <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput"
+                onkeyup="searchClass()" />
+
+              <div class="loc d-flex">
+                <select class="selectop mx-1" id="combobox-dot">
+                  <option value="">Đợt</option>
+                </select>
+
+                <!-- Combo box kì -->
+                <select class="selectop mx-1" id="combobox-ki">
+                  <option value="">Kỳ</option>
+                </select>
+
+                <!-- Combo box Năm -->
+                <select class="selectop mx-1" id="NamHoc">
+                  <option value="">Năm học</option>
+                </select>
+                <select class="selectop mx-1" id="departmentFilter">
+                  <option value="">Chọn khoa</option>
+                </select>
+
+                <!-- <script>
+                  function filterTable() {
+                    // Get selected values
+                    let dot = document.getElementById("combobox-dot").value;
+                    let ki = document.getElementById("combobox-ki").value;
+                    let nam = document.getElementById("NamHoc").value;
+                    let department = document.getElementById("departmentFilter").value.trim();
+
+                    let tbody = document.getElementById("data-table-body");
+                    let rows = tbody.getElementsByTagName("tr");
+
+                    for (let i = 0; i < rows.length; i++) {
+                      let row = rows[i];
+                      let rowDepartment = row.getAttribute("data-department");
+                      let rowDot = row.getAttribute("data-dot");
+                      let rowKi = row.getAttribute("data-ki");
+                      let rowNam = row.getAttribute("data-nam");
+
+                      // Filtering logic
+                      let matchesDepartment = department === "" || rowDepartment === department;
+                      let matchesDot = dot === "" || rowDot === dot;
+                      let matchesKi = ki === "" || rowKi === ki;
+                      let matchesNam = nam === "" || rowNam === nam;
+
+                      // Show or hide row based on filter results
+                      if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+                        row.style.display = ""; // Show row
+                      } else {
+                        row.style.display = "none"; // Hide row
+                      }
+                    }
+                  }
+                </script> -->
+
+                <script>
+                  function filterTable() {
+                    // thừa hàm ở đây này, src đời đầu của anh viết ko khác gì tôi đou :)
+                    console.log('filterTable')
+                    // Get selected values
+                    let dot = document.getElementById("combobox-dot").value;
+                    let ki = document.getElementById("combobox-ki").value;
+                    let nam = document.getElementById("NamHoc").value;
+                    let department = document.getElementById("departmentFilter").value.trim();
+
+                    let tbody = document.getElementById("data-table-body");
+                    let rows = tbody.getElementsByTagName("tr");
+
+                    for (let i = 0; i < rows.length; i++) {
+                      let row = rows[i];
+                      let rowDepartment = row.getAttribute("data-department");
+                      let rowDot = row.getAttribute("data-dot");
+                      let rowKi = row.getAttribute("data-ki");
+                      let rowNam = row.getAttribute("data-nam");
+
+                      // Filtering logic
+                      let matchesDepartment = department === "" || rowDepartment === department;
+                      let matchesDot = dot === "" || rowDot === dot;
+                      let matchesKi = ki === "" || rowKi === ki;
+                      let matchesNam = nam === "" || rowNam === nam;
+
+                      // Show or hide row based on filter results
+                      if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+                        row.style.display = ""; // Show row
+                      } else {
+                        row.style.display = "none"; // Hide row
+                      }
+                    }
+                  }
+                </script>
+
+                <button class="btn text-nowrap mx-2" id="render" style="height: 45px;" onclick="filterTable()">Hiển thị
+                </button>
+              </div>
+            </div>
+
+            <table class="class-table" id="classTable">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Giảng viên</th>
+                  <th>Môn học</th>
+                  <th>Tên lớp</th>
+                  <th>Số tín chỉ</th>
+                  <th>Đợt</th>
+                  <th>Kỳ</th>
+                  <th>Năm</th>
+                  <th>Ngày bắt đầu</th>
+                  <th>Ngày kết thúc</th>
+                  <th>Số tiết</th>
+                  <th>Tổng số tiết</th>
+                  <th>Khoa</th>
+                  <!-- Cột Khoa -->
+                  <th>Chi tiết giảng viên mời</th>
+                </tr>
+              </thead>
+              <tbody class="teacher-group" id="data-table-body">
+                <% let index=1; %>
+                  <% for (let teacher of Object.keys(GiangDay)) { %>
+                    <% let courses=GiangDay[teacher]; %>
+                      <% let totalSoTiet=courses.reduce((total, course)=> total + course.QuyChuan, 0); %>
+                        <tr class="teacher-group" data-department="<%= courses[0].MaPhongBan %>"
+                          data-dot="<%= courses[0].Dot %>" data-ki="<%= courses[0].KiHoc %>"
+                          data-nam="<%= courses[0].NamHoc %>">
+                          <% courses.forEach((course, courseIndex)=> { %>
+                        <tr data-department="<%= course.MaPhongBan  %>" data-dot="<%= course.Dot %>"
+                          data-ki="<%= course.KiHoc %>" data-nam="<%= course.NamHoc %>">
+                          <% if (courseIndex===0) { %>
+                            <td rowspan="<%= courses.length %>">
+                              <%= index %>
+                            </td>
+                            <td rowspan="<%= courses.length %>">
+                              <!-- <%= course.GiaoVienGiangDay %> -->
+                              <%= course.GiaoVienGiangDay.split(' - ')[0] %>
+                            </td>
+                            <% index++; %>
+                              <% } %>
+                                <td>
+                                  <%= course.LopHocPhan %>
+                                </td>
+                                <td>
+                                  <%= course.TenLop %>
+                                </td>
+                                <td>
+                                  <%= course.SoTinChi %>
+                                </td>
+                                <td>
+                                  <%= course.Dot %>
+                                </td>
+                                <td>
+                                  <%= course.KiHoc %>
+                                </td>
+                                <td>
+                                  <%= course.NamHoc %>
+                                </td>
+                                <% function formatDate(dateStr) { %>
+                                  <% if (!dateStr) return ' N/A' ; %>
+                                <% const date=new Date(dateStr); %>
+                                  <% if (isNaN(date.getTime())) return 'N/A' ; %>
+                                    <% const day=String(date.getDate()).padStart(2, '0' ); %>
+                                      <% const month=String(date.getMonth() + 1).padStart(2, '0' ); %>
+                                        <% const year=date.getFullYear(); %>
+                                          <% return `${day}/${month}/${year}`; %>
+                                            <% } %>
+
+                            <td>
+                              <%= formatDate(course.NgayBatDau) %>
+                            </td>
+                            <td>
+                              <%= formatDate(course.NgayKetThuc) %>
+                            </td>
+                            <td>
+                              <%= course.QuyChuan %>
+                            </td>
+
+                            <% if (courseIndex===0) { %>
+                              <td rowspan="<%= courses.length %>">
+                                <%= totalSoTiet %>
+                              </td>
+                              <td rowspan="<%= courses.length %>">
+                                <!-- <%= course.Khoa %> -->
+                                <%= course.MaPhongBan %>
+                              </td>
+                              <td rowspan="<%= courses.length %>">
+                                <button class="action-button view"
+                                  onclick="viewClass(this, '<%= parseInt(course.id_Gvm) - 1 %>')">👁️</button>
+                              </td>
+                              <% } %>
+                        </tr>
+                        <% }); %>
+                          </tr>
+                          <% } %>
+              </tbody>
+
+            </table>
+            <!-- tổng tiết -->
+            <!-- Label tổng số tiết tách riêng với bảng -->
+            <div class="total-label">
+              <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
+              <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
+            </div>
+            <!-- <div class="pagination">
+                              <span>10 / trang</span>
+                              <button class="page-button">1</button>
+                            </div> -->
+          </div>
+
+          <div id="modal" class="modal" style="display: none">
+            <div class="modal-content">
+              <span class="close-button" onclick="closeModal()">×</span>
+              <h2 id="modal-title">Chi tiết giảng viên mời</h2>
+              <br />
+              <p>
+                <strong>Mã giảng viên:</strong> <span id="modal-ma-gv"></span>
+              </p>
+              <p><strong>Họ tên:</strong> <span id="modal-ho-ten"></span></p>
+              <p>
+                <strong>Ngày sinh:</strong> <span id="modal-ngay-sinh"></span>
+              </p>
+              <p><strong>CCCD:</strong> <span id="modal-cccd"></span></p>
+              <p>
+                <strong>Ngày cấp CCCD:</strong>
+                <span id="modal-ngay-cap"></span>
+              </p>
+              <p>
+                <strong>Nơi cấp CCCD:</strong>
+                <span id="modal-noi-cap"></span>
+              </p>
+              <p>
+                <strong>Địa chỉ theo CCCD:</strong>
+                <span id="modal-dia-chi-cccd"></span>
+              </p>
+              <p>
+                <strong>Số tài khoản:</strong> <span id="modal-so-tk"></span>
+              </p>
+              <p>
+                <strong>Ngân hàng:</strong> <span id="modal-ngan-hang"></span>
+              </p>
+              <p><strong>Email:</strong> <span id="modal-email"></span></p>
+              <p>
+                <strong>Hệ số lương:</strong>
+                <span id="modal-heso-luong"></span>
+              </p>
+              <p>
+                <strong>Nơi công tác:</strong>
+                <span id="modal-noi-cong-tac"></span>
+              </p>
+              <p>
+                <strong>Chức vụ:</strong> <span id="modal-chuc-vu"></span>
+              </p>
+              <p>
+                <strong>Mã số thuế:</strong>
+                <span id="modal-ma-so-thue"></span>
+              </p>
+              <p>
+                <strong>Tốt nghiệp loại:</strong>
+                <span id="modal-tot-nghiep-loai"></span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- 
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Khởi tạo tổng số tiết Quy Chuẩn và tổng số tiết Lên Lớp
+      let totalQC = 0;
+      let totalLL = 0; // Giả sử tổng số tiết Lên Lớp cũng được tính riêng.
+
+      // Lấy tất cả các hàng trong bảng có chứa dữ liệu số tiết Quy Chuẩn
+      const rows = document.querySelectorAll('#data-table-body tr'); // Lấy tất cả các hàng <tr> trong tbody.
+      // console.log(rows)
+      rows.forEach(row => {
+        // Lấy giá trị của ô chứa số tiết Quy Chuẩn trong hàng
+        const qcCell = row.querySelector('td:nth-last-child(12)'); // Thay đổi vị trí cột nếu cần.
+        console.log(qcCell);
+        if (qcCell) {
+          // Chuyển giá trị từ text sang số và cộng dồn vào tổng
+          const qcValue = parseFloat(qcCell.textContent.trim());
+          if (!isNaN(qcValue)) {
+            totalQC += qcValue;
+          }
+        }
+
+        // (Tùy chọn) Tính tổng số tiết Lên Lớp nếu có
+        // const llCell = row.querySelector('td:nth-last-child(X)'); // Thay X bằng vị trí cột tương ứng
+        // if (llCell) {
+        //   const llValue = parseFloat(llCell.textContent.trim());
+        //   if (!isNaN(llValue)) {
+        //     totalLL += llValue;
+        //   }
+        // }
+      });
+
+      // Hiển thị tổng số tiết Quy Chuẩn trên phần tử có id #totalQC
+      document.getElementById('totalQC').textContent = totalQC;
+
+      // (Tùy chọn) Hiển thị tổng số tiết Lên Lớp trên phần tử có id #totalLL
+      // document.getElementById('totalLL').textContent = totalLL;
+    });
+
+  </script> -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let totalQC = 0;
+
+      // Chọn tất cả các hàng chứa dữ liệu
+      const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
+
+      rows.forEach(row => {
+        // Kiểm tra xem hàng có hiển thị hay không
+        const isVisible = row.style.display != 'none';
+
+        if (isVisible) {
+          // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
+          const qcCell = row.querySelector('td:nth-child(12)');
+          if (qcCell) {
+            const qcValue = parseInt(qcCell.textContent.trim());
+            if (!isNaN(qcValue)) {
+              // console.log(totalQC)
+              totalQC += qcValue;
+            }
+          }
+        }
+      });
+
+      // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
+      document.getElementById('totalQC').textContent = totalQC;
+    });
+
+
+  </script>
+
+  <!-- <script>
+        function filterGvmByDepartment() {
+          var filter = document.getElementById("departmentFilter").value;
+          var table = document.getElementById("classTable");
+          var tbody = document.getElementById("teacher-group");
+          var rows = tbody.getElementsByTagName("tr");
+
+          for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var department = row.getAttribute("data-department");
+
+            if (filter === "" || department === filter) {
+              row.style.display = "";
+            } else {
+              row.style.display = "none";
+            }
+          }
+        }
+      </script> -->
+
+  <script>
+    // tổng quy chuẩn
+    function calculateTotals() {
+      let totalQC = 0;
+
+      // Chọn tất cả các hàng chứa dữ liệu
+      const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
+
+      rows.forEach(row => {
+        // Kiểm tra xem hàng có hiển thị hay không
+        const isVisible = row.style.display != 'none';
+
+        if (isVisible) {
+          // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
+          const qcCell = row.querySelector('td:nth-child(12)');
+          if (qcCell) {
+            const qcValue = parseInt(qcCell.textContent.trim());
+            if (!isNaN(qcValue)) {
+              console.log(totalQC)
+              totalQC += qcValue;
+            }
+          }
+        }
+      });
+
+      // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
+      document.getElementById('totalQC').textContent = totalQC;
+    }
+
+    // Tìm kiếm giảng viên mời theo tên
+    function searchClass() {
+      let input = document.getElementById("searchInput").value.toLowerCase();
+      let table = document.getElementById("classTable");
+      let rows = table.getElementsByTagName("tr");
+
+      let currentGroup = null;
+      let groupVisible = false;
+
+      for (let i = 1; i < rows.length; i++) {
+        // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+        let row = rows[i];
+
+        if (row.classList.contains("teacher-group")) {
+          // Đây là hàng đầu tiên của một nhóm giảng viên mới
+          if (currentGroup) {
+            // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+            setGroupVisibility(currentGroup, groupVisible);
+          }
+
+          currentGroup = [];
+          groupVisible = false;
+        }
+
+        currentGroup.push(row);
+
+        let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
+        if (teacherNameCell) {
+          let teacherName = teacherNameCell.textContent.toLowerCase();
+          if (teacherName.includes(input)) {
+            groupVisible = true;
+          }
+        }
+      }
+
+      // Xử lý nhóm cuối cùng
+      if (currentGroup) {
+        setGroupVisibility(currentGroup, groupVisible);
+      }
+      calculateTotals();
+    }
+
+    function setGroupVisibility(group, isVisible) {
+      for (let row of group) {
+        row.style.display = isVisible ? "" : "none";
+      }
+    }
+
+    async function fetchGVMLists() {
+      try {
+        const response = await fetch("/api/classInfoGvm");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const gvmLists = await response.json();
+        return gvmLists;
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    function viewClass(button, index) {
+      var hre = "/viewGvm/" + index;
+      window.location.href = hre;
+    }
+
+
+    // Đóng modal
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+
+    // Thêm sự kiện khi nhấn ra ngoài modal để đóng modal
+    window.onclick = function (event) {
+      let modal = document.getElementById("modal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    };
+  </script>
+
+  <script>
+    // Lấy query string từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get("message");
+
+    // Lấy phần tử div để hiển thị thông báo
+    const messageDiv = document.getElementById("message");
+
+    // console.log(message)
+    // Hiển thị thông báo dựa trên giá trị của message
+    if (message === "insertSuccess") {
+      alert("Update Success");
+    } else if (message === "insertFalse") {
+      alert("Update False");
+    }
+
+    // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+    if (message) {
+      // Sử dụng window.history để xóa query string mà không refresh lại trang
+      const newUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  </script>
+
+  <!-- Phần phân quyền -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+      ThongTinGD.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/info2";
+        } else {
+          window.location.href = "/info";
+        }
+      });
+
+      // Thêm sự kiện click cho phần tử có id="Home"
+
+      const Home = document.getElementById("Home");
+
+      Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+      });
+    });
+  </script>
+
+  <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      let Role = localStorage.getItem("userRole");
+      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+        Role = 'LĐK';
+      }
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector(
+          ".fullname"
+        ).innerText = `${TenNhanVien} - ${Role}`;
+      } else {
+        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+      }
+      //document.querySelector(".role").innerText = `${Role}`;
+    };
+
+
+  </script>
+  <script>
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+      if (tenDangNhap) {
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+      } else {
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
+      }
+    });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('actionButton');
+            const actionButton1 = document.getElementById('actionButton1');
+            const actionButton2 = document.getElementById('actionButton2');
+
+        if (isKhoa == 0) {
+            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+            if (role.trim().toLocaleLowerCase() == "thường"){
+              actionButton2.style.display = 'none'; // Hiện actionButton2
+            }
+        } else {
+            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+            actionButton2.style.display = 'none'; // Ẩn actionButton2
+            
+        }
+      });
+</script>
+
+  <script>
+    $(document).ready(function () {
+      $('#NamHoc option[value=""]').remove();
+      $('#combobox-ki option[value=""]').remove();
+      $('#combobox-dot option[value=""]').remove();
+
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+
+            response.NamHoc.forEach(function (item) {
+              console.log(item.NamHoc);
+              $('#NamHoc').append(
+                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+              );
+            });
+
+            response.Ki.forEach(function (item) {
+              console.log(item.Ki);
+              $('#combobox-ki').append(
+                `<option value="${item.value}">${item.Ki}</option>`
+              );
+            });
+            response.Dot.forEach(function (item) {
+              console.log(item.Dot);
+              $('#combobox-dot').append(
+                `<option value="${item.value}">${item.Dot}</option>`
+              );
+            });
+          } else {
+            console.error("Không lấy được dữ liệu năm học:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        }
+      });
+    });
+  </script>
+
+  <script>
+    function filterTable() {
+      // Get selected values
+      let dot = document.getElementById("combobox-dot").value;
+      let ki = document.getElementById("combobox-ki").value;
+      let nam = document.getElementById("NamHoc").value;
+      let department = document.getElementById("departmentFilter").value.trim();
+
+      let tbody = document.getElementById("data-table-body");
+      let rows = tbody.getElementsByTagName("tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows[i];
+        let rowDepartment = row.getAttribute("data-department");
+        let rowDot = row.getAttribute("data-dot");
+        let rowKi = row.getAttribute("data-ki");
+        let rowNam = row.getAttribute("data-nam");
+
+        // Filtering logic
+        let matchesDepartment = department === "ALL" || department === "" || rowDepartment.includes(department); // Kiểm tra nếu chọn "ALL"
+        let matchesDot = dot === "" || rowDot === dot;
+        let matchesKi = ki === "" || rowKi === ki;
+        let matchesNam = nam === "" || rowNam === nam;
+
+        // Show or hide row based on filter results
+        if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+          row.style.display = ""; // Show row
+        } else {
+          row.style.display = "none"; // Hide row
+        }
+      }
+      calculateTotals();
+    }
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      $('#departmentFilter option[value=""]').remove();
+      // Gọi AJAX để lấy dữ liệu JSON từ API
+      $.ajax({
+        url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+        method: 'GET',
+        success: function (response) {
+          // Kiểm tra nếu response thành công
+          const MaPhongBan = response.MaPhongBan;
+          if (response.success) {
+            $('#departmentFilter').prepend('<option value="ALL">Tất cả khoa</option>');
+            // Lặp qua từng mục trong mảng MaPhongBan
+            response.MaPhongBan.forEach(function (item) {
+              // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+              console.log(item);
+              $('#departmentFilter').append(
+                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+              );
+            }
+            );
+
+            // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+            if (!$('#departmentFilter option:selected').length) {
+              $('#departmentFilter').prepend('<option value="">Chọn Phòng Ban</option>');
+            }
+          } else {
+            console.error("Không lấy được dữ liệu phongBan:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

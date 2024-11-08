@@ -1,0 +1,278 @@
+.gvmList * {
+  margin: 0;
+  /* padding: 0; */
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.gvmList body {
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.gvmList .container {
+  /* max-width: 2000px; */
+  max-width: 1090px;
+  width: 1000px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.gvmList h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+.gvmList .header-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.gvmList .add-class {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.gvmList .search {
+  padding: 8px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.gvmList .filter {
+  padding: 8px;
+  border: 2px solid #2c9caf;
+  border-radius: 4px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.gvmList .class-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.gvmList .class-table thead {
+  background-color: #f1f1f1;
+}
+
+.gvmList .class-table th,
+.gvmList .class-table td {
+  text-align: left;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.gvmList .class-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.gvmList .action-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.gvmList .edit {
+  color: #007bff;
+}
+
+.gvmList .view {
+  color: #17a2b8;
+}
+
+.gvmList .delete {
+  color: #dc3545;
+}
+
+.gvmList .pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.gvmList .pagination span {
+  margin-right: 10px;
+}
+
+.gvmList .page-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Modal Styles */
+.gvmList .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gvmList .modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.gvmList .close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}
+.gvmList .export {
+  background-color: #4CAF50; /* Giữ nguyên màu nền */
+  color: #ffffff; /* Giữ nguyên màu chữ */
+  border: none;
+  padding: 6px 12px; /* Giảm padding */
+  font-size: 16px; /* Giảm kích thước chữ */
+  cursor: pointer;
+  border-radius: 4px; /* Giảm độ cong của góc */
+  margin-left: 10px; /* Giữ nguyên khoảng cách */
+  height: 40px; /* Giảm chiều cao */
+  line-height: 1; /* Đảm bảo text căn giữa theo chiều dọc */
+}
+
+.gvmList .export:hover {
+  background-color: #3e8e41; /* Màu xanh lá cây đậm hơn */
+}
+.add-taikhoan {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 
+ */
+ .modal {
+  display: none; /* Modal không hiển thị mặc định */
+  position: fixed; /* Giữ modal ở vị trí cố định trên màn hình */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Màu nền tối phía sau modal */
+  z-index: 1050; /* Đảm bảo modal luôn hiển thị trên tất cả các thành phần khác */
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  z-index: 1060; /* Đảm bảo nội dung modal cũng có độ ưu tiên hiển thị cao */
+  position: relative;
+}
+
+
+.close-button {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+.gvmList .view {
+  background-color: #4CAF50; /* Giữ nguyên màu nền */
+  color: #ffffff; /* Giữ nguyên màu chữ */
+  border: none;
+  padding: 6px 12px; /* Giảm padding */
+  font-size: 16px; /* Giảm kích thước chữ */
+  cursor: pointer;
+  border-radius: 4px; /* Giảm độ cong của góc */
+  margin-left: 10px; /* Giữ nguyên khoảng cách */
+  height: 40px; /* Giảm chiều cao */
+  line-height: 1; /* Đảm bảo text căn giữa theo chiều dọc */
+}
+
+.gvmList .view:hover {
+  background-color: #3e8e41; /* Màu xanh lá cây đậm hơn */
+}
+.controls-container {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.gvmList {
+  padding: 20px;
+}
+
+.controls-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.form-select {
+  width: auto;
+}
+
+.action-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.view {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.export {
+  background-color: #008CBA;
+  color: white;
+}
+
+#tableContainer {
+  margin-top: 20
+}
+input{
+  border: 2px solid #2c9caf;
+  border-radius: 5px;
+  background-color: #FAF7F0;
+}

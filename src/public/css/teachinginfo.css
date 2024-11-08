@@ -1,0 +1,174 @@
+.background-image {
+  background: url('../../picture/OIP.jfif') no-repeat center center;
+  background-size: cover;
+}
+
+.grid-center {
+  display: grid;
+  place-items: center;
+}
+
+.home-link {
+  color: white;
+  text-decoration: none;
+}
+
+.w-20 {
+  width: 20% !important;
+}
+
+.header-container,
+.row-container {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.column {
+  padding: 5px;
+}
+
+/* Bố cục hàng ngang cho mỗi dòng */
+.row-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+/* Căn chỉnh cho mỗi cột trong dòng */
+.column {
+  flex: 1;
+  padding: 0 10px;
+}
+
+/* Đặt chiều rộng cho các cột */
+.column input[type="text"] {
+  width: 100%;
+  padding: 5px;
+}
+
+
+/* css của tên cột */
+.header-container {
+  display: flex;
+  /* Sử dụng flexbox để sắp xếp hàng tiêu đề trên một dòng */
+  font-weight: bold;
+  /* Để làm nổi bật hàng tiêu đề */
+  margin-bottom: 10px;
+  padding: 10px;
+  border-bottom: 2px solid #000;
+  /* Đường viền dưới hàng tiêu đề */
+  flex-wrap: nowrap;
+  /* Đảm bảo không xuống dòng */
+}
+
+.header-cell {
+  flex: 1;
+  /* Mỗi cột tiêu đề sẽ chiếm cùng một tỷ lệ chiều rộng */
+  padding: 0 10px;
+  /* Thêm khoảng cách bên trái và bên phải */
+  white-space: nowrap;
+  /* Ngăn không cho văn bản xuống dòng */
+}
+
+/* Bố cục hàng ngang cho mỗi dòng */
+.row-container {
+  display: flex;
+  /* Sử dụng flexbox để sắp xếp các cột của dòng */
+  align-items: center;
+  /* Căn giữa các phần tử theo chiều dọc */
+  justify-content: center;
+  /* Đảm bảo các cột có khoảng cách đều nhau */
+  margin-bottom: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  /* Đường viền cho mỗi dòng */
+}
+
+
+.row-container .column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Căn chỉnh cho mỗi cột trong dòng */
+.column {
+  flex: 1;
+  /* Mỗi cột sẽ chiếm cùng một tỷ lệ chiều rộng */
+  padding: 5px;
+  /* Thêm khoảng cách bên trái và bên phải */
+}
+
+/* Đặt chiều rộng cho các cột */
+.column input[type="text"] {
+  width: 200%;
+  /* Đảm bảo ô input chiếm đầy chiều rộng của cột */
+  padding-right: 5px;
+  /* Thêm padding cho ô input */
+  box-sizing: border-box;
+  /* Đảm bảo padding được tính vào tổng chiều rộng */
+}
+
+/* Căn chỉnh chiều cao cho các cột */
+.row-container .column,
+.header-cell {
+  display: flex;
+  /* Sử dụng flex để căn chỉnh nội dung bên trong */
+  align-items: center;
+  /* Căn giữa theo chiều dọc */
+}
+
+.SapXep {
+  background-color: #216dab;
+  /* Màu xanh lá cây */
+  color: #ffffff;
+  /* Màu trắng */
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 10px;
+  /* Khoảng cách giữa nút xuất dữ liệu và nút thêm giảng viên mời */
+}
+
+.SapXep:hover {
+  background-color: #1231ac;
+  /* Màu xanh lá cây đậm hơn */
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.sort-icon i {
+  cursor: pointer;
+}
+
+.table {
+  width: 100%;
+  /* Đảm bảo bảng chiếm toàn bộ chiều rộng */
+}
+
+.table th,
+.table td {
+  /* Để các cột tự động điều chỉnh độ rộng theo nội dung */
+  text-align: center;
+  /* Canh giữa nội dung cho đồng bộ */
+}
+
+table caption {
+  padding: .5em 0;
+}
+
+@media screen and (max-width: 767px) {
+  table caption {
+    display: none;
+  }
+}

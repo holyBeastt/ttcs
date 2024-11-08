@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../../bootstrap-5.3.3-dist/bootstrap-icons-1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <style>
+    .card-item {
+      width: 30%;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Phần trên của navbar chứa logo và tiêu đề -->
+  <nav class="navbar-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner" />
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+    <div class="" style="width: 100%;">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse " style="width: 100%;" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+          </li>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Giảng Viên Mời
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bằng file</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Bảng Quy Chuẩn
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown" style="width: max-content;">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Mời Giảng
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+                <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
+                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
+                <li class="nav-item"></li>
+                <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
+                </li>
+                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Vượt Giờ
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Nghiên Cứu Khoa Học
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Đồ Án
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Thống Kê
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hệ Thống
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/log">Xem File Log</a>
+              </div>
+            </div>
+          </div>
+
+        </ul>
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Hi, Lê Đức Thuận
+            </a>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- 2. Tổng quan -->
+  <div class="container-fluid m-4">
+    <div class="card-container d-flex flex-wrap justify-content-between">
+      <div class="card-item">
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Tổng số học viên</h5>
+            <p class="card-text">200 Học viên</p>
+          </div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card text-white bg-success mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Môn học đang hoạt động</h5>
+            <p class="card-text">15 Môn học</p>
+          </div>
+        </div>
+      </div>
+      <div class="card-item">
+        <div class="card text-white bg-warning mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Giảng viên</h5>
+            <p class="card-text">30 Giảng viên</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Danh sách Môn học -->
+  <div class="container-fluid m-4">
+    <h3>Danh sách Môn học</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tên Môn học</th>
+          <th>Thời gian</th>
+          <th>Giảng viên phụ trách</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">1</th>
+          <td>Môn học Lập trình Web</td>
+          <td>3 tháng</td>
+          <td>Nguyễn Văn A</td>
+        </tr>
+        <tr>
+          <th scope="row">2</th>
+          <td>Môn học Lập trình Python</td>
+          <td>2 tháng</td>
+          <td>Trần Văn B</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. Danh sách học viên -->
+  <div class="container-fluid m-4">
+    <h3>Danh sách học viên</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tên học viên</th>
+          <th>Môn học</th>
+          <th>Tiến độ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">1</th>
+          <td>Nguyễn Văn C</td>
+          <td>Lập trình Web</td>
+          <td>70%</td>
+        </tr>
+        <tr>
+          <th scope="row">2</th>
+          <td>Trần Thị D</td>
+          <td>Lập trình Python</td>
+          <td>50%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. Danh sách Giảng viên -->
+  <div class="container-fluid m-4">
+    <h3>Danh sách Giảng viên</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Tên Giảng viên</th>
+          <th>Số Môn học phụ trách</th>
+          <th>Tổng số giờ dạy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">1</th>
+          <td>Nguyễn Văn A</td>
+          <td>5</td>
+          <td>150 giờ</td>
+        </tr>
+        <tr>
+          <th scope="row">2</th>
+          <td>Trần Văn B</td>
+          <td>3</td>
+          <td>100 giờ</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. Lịch học -->
+  <div class="container-fluid m-4">
+    <h3>Lịch học</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Môn học</th>
+          <th>Giờ học</th>
+          <th>Phòng</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>15/10/2024</td>
+          <td>Lập trình Web</td>
+          <td>8:00 - 10:00</td>
+          <td>Phòng 101</td>
+        </tr>
+        <tr>
+          <td>16/10/2024</td>
+          <td>Lập trình Python</td>
+          <td>10:00 - 12:00</td>
+          <td>Phòng 102</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. Báo cáo và thống kê -->
+  <div class="container-fluid m-4">
+    <h3>Báo cáo và thống kê</h3>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Số lượng học viên theo từng tháng</h5>
+            <canvas id="studentChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Tỷ lệ hoàn thành Môn học</h5>
+            <canvas id="completionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('actionButton');
+            const actionButton1 = document.getElementById('actionButton1');
+            const actionButton2 = document.getElementById('actionButton2');
+
+        if (isKhoa == 0) {
+            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+            if (role.trim().toLocaleLowerCase() == "thường"){
+              actionButton2.style.display = 'none'; // Hiện actionButton2
+            }
+        } else {
+            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+            actionButton2.style.display = 'none'; // Ẩn actionButton2
+            
+        }
+      });
+</script>
+  <!-- 
+  <script>
+    // handle event click
+    const Import = (href) => {
+      window.location.href = href;
+    };
+
+    const ThongTinGD = (href) => {
+      window.location.href = href;
+    };
+  </script> -->
+  <script>
+    // 7. Báo cáo và thống kê - Vẽ biểu đồ (Sử dụng Chart.js)
+    var ctx1 = document.getElementById("studentChart").getContext("2d");
+    var studentChart = new Chart(ctx1, {
+      type: "line",
+      data: {
+        labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4"],
+        datasets: [
+          {
+            label: "Học viên",
+            data: [50, 100, 150, 200],
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+    });
+
+    var ctx2 = document.getElementById("completionChart").getContext("2d");
+    var completionChart = new Chart(ctx2, {
+      type: "pie",
+      data: {
+        labels: ["Hoàn thành", "Chưa hoàn thành"],
+        datasets: [
+          {
+            data: [75, 25],
+            backgroundColor: [
+              "rgba(75, 192, 192, 1)",
+              "rgba(255, 99, 132, 1)",
+            ],
+            borderWidth: 1,
+          },
+        ],
+      },
+    });
+  </script>
+  <!-- 8. Chữ mờ và nút quay về đầu trang -->
+  <div class="container-fluid m-4">
+    <footer class="text-center">
+      <p class="text-muted">
+        © 2024 Phòng Đào Tạo. Tất cả các quyền được bảo lưu.
+      </p>
+      <button onclick="topFunction()" id="backToTopBtn" class="btn ">
+        Quay về đầu trang
+      </button>
+    </footer>
+  </div>
+
+  <script>
+    // Nút quay về đầu trang
+    var backToTopBtn = document.getElementById("backToTopBtn");
+
+    // Khi nhấn vào nút, cuộn về đầu trang
+    function topFunction() {
+      document.body.scrollTop = 0; // Cho Safari
+      document.documentElement.scrollTop = 0; // Cho Chrome, Firefox, IE và Opera
+    }
+  </script>
+
+  <!-- Phần phân quyền -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+      ThongTinGD.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/info2";
+        } else {
+          window.location.href = "/info";
+        }
+      });
+
+      // Thêm sự kiện click cho phần tử có id="Home"
+
+      const Home = document.getElementById("Home");
+
+      Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+      });
+    });
+  </script>
+
+  <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      const Role = localStorage.getItem("userRole");
+
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector(
+          ".fullname"
+        ).innerText = `${TenNhanVien} - ${Role}`;
+      } else {
+        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+      }
+
+      document.querySelector(".role").innerText = `${Role}`;
+    };
+  </script>
+  <script>
+    document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+  event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+  const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+  if (tenDangNhap) {
+      // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+      window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+  } else {
+      alert("Không tìm thấy TenDangNhap trong localStorage.");
+  }
+});
+  </script>
+</body>
+
+</html>
