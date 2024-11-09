@@ -228,48 +228,94 @@ const TaiChinhCheckAll = async (req, Dot, KiHoc, NamHoc) => {
 const renderInfoWithValueKhoa = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body; // Lấy giá trị Khoa, Dot, Ki, Nam từ body của yêu cầu
   const tableName = process.env.DB_TABLE_QC; // Bảng cần truy vấn
-  let query = ""; // Khởi tạo query
 
   // Gọi hàm KhoaCheckAll để kiểm tra điều kiện duyệt
-  const kq = await KhoaCheckAll(req, Dot, Ki, Nam);
+  //const kq = await KhoaCheckAll(req, Dot, Ki, Nam);
 
   // Kiểm tra nếu "TAICHINH" không có trong kết quả, trả về thông báo chưa duyệt
-
   // if (!kq.includes("TAICHINH")) {
-  //   return res
-  //     .status(403)
-  //     .json({ message: "Quy chuẩn chưa được duyệt bởi Tài chính" });
+  //   return res.status(403).json({ message: "Quy chuẩn chưa được duyệt bởi Tài chính" });
   // }
 
   // Xác định query SQL với điều kiện WHERE cho Khoa, Dot, Ki, Nam
-  query = `
+  const query = `
     SELECT * FROM ${tableName} 
     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?`;
 
-  console.log({ Khoa, Dot, Ki, Nam }); // Log the incoming request parameters for debugging
+  console.log({ Khoa, Dot, Ki, Nam }); // Log các tham số để kiểm tra
 
-  // Lấy connection từ pool hoặc createConnection
-  connection.query(
-    query,
-    [Khoa, Dot, Ki, Nam], // Truyền các tham số an toàn vào query
-    (error, results) => {
-      if (error) {
-        // Trả về lỗi nếu có vấn đề trong truy vấn SQL
-        return res.status(500).json({ error: "Lỗi truy vấn" });
-      }
+  let connection;
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
 
-      if (results.length === 0) {
-        // Trả về thông báo nếu không tìm thấy dữ liệu
-        return res.status(404).json({ message: "Không có dữ liệu" });
-      }
+    // Thực hiện truy vấn với kết nối đã lấy từ pool và truyền tham số an toàn
+    const [results] = await connection.query(query, [Khoa, Dot, Ki, Nam]);
 
-      // Trả về kết quả truy vấn dưới dạng JSON
-      return res.status(200).json({
-        results, // Trả về kết quả từ query
-      });
+    if (results.length === 0) {
+      // Trả về thông báo nếu không tìm thấy dữ liệu
+      return res.status(404).json({ message: "Không có dữ liệu" });
     }
-  );
+
+    // Trả về kết quả truy vấn dưới dạng JSON
+    return res.status(200).json({
+      results, // Trả về kết quả từ query
+    });
+  } catch (error) {
+    // Xử lý lỗi trong trường hợp truy vấn thất bại
+    console.error(error);
+    return res.status(500).json({ error: "Lỗi truy vấn" });
+  } finally {
+    // Đảm bảo giải phóng kết nối khi xong
+    if (connection) connection.release();
+  }
 };
+
+// const renderInfoWithValueKhoa = async (req, res) => {
+//   const { Khoa, Dot, Ki, Nam } = req.body; // Lấy giá trị Khoa, Dot, Ki, Nam từ body của yêu cầu
+//   const tableName = process.env.DB_TABLE_QC; // Bảng cần truy vấn
+//   let query = ""; // Khởi tạo query
+
+//   // Gọi hàm KhoaCheckAll để kiểm tra điều kiện duyệt
+//   const kq = await KhoaCheckAll(req, Dot, Ki, Nam);
+
+//   // Kiểm tra nếu "TAICHINH" không có trong kết quả, trả về thông báo chưa duyệt
+
+//   // if (!kq.includes("TAICHINH")) {
+//   //   return res
+//   //     .status(403)
+//   //     .json({ message: "Quy chuẩn chưa được duyệt bởi Tài chính" });
+//   // }
+
+//   // Xác định query SQL với điều kiện WHERE cho Khoa, Dot, Ki, Nam
+//   query = `
+//     SELECT * FROM ${tableName}
+//     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?`;
+
+//   console.log({ Khoa, Dot, Ki, Nam }); // Log the incoming request parameters for debugging
+
+//   // Lấy connection từ pool hoặc createConnection
+//   connection.query(
+//     query,
+//     [Khoa, Dot, Ki, Nam], // Truyền các tham số an toàn vào query
+//     (error, results) => {
+//       if (error) {
+//         // Trả về lỗi nếu có vấn đề trong truy vấn SQL
+//         return res.status(500).json({ error: "Lỗi truy vấn" });
+//       }
+
+//       if (results.length === 0) {
+//         // Trả về thông báo nếu không tìm thấy dữ liệu
+//         return res.status(404).json({ message: "Không có dữ liệu" });
+//       }
+
+//       // Trả về kết quả truy vấn dưới dạng JSON
+//       return res.status(200).json({
+//         results, // Trả về kết quả từ query
+//       });
+//     }
+//   );
+// };
 
 // cũ
 // const renderInfo = async (req, res) => {
@@ -356,7 +402,7 @@ const renderInfo = async (req, res) => {
   const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, Ki, Nam);
   const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, Ki, Nam);
 
-  const connection = await createConnection(); // Tạo kết nối cơ sở dữ liệu
+  const connection = await createPoolConnection(); // Tạo kết nối cơ sở dữ liệu
 
   try {
     // Thực hiện truy vấn với tham số an toàn
@@ -380,7 +426,7 @@ const renderInfo = async (req, res) => {
     // Xử lý lỗi trong trường hợp truy vấn thất bại
     return res.status(500).json({ error: "Internal server error" });
   } finally {
-    await connection.end(); // Đảm bảo đóng kết nối sau khi hoàn tất
+    if (connection) connection.release();
   }
 };
 

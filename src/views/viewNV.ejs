@@ -274,13 +274,19 @@
                 type="text"
                 class="form-control text-center"
                 value="<%= role.MaPhongBan %>"
-                style="width: 150px;"
+                style="width: 150px"
                 readonly
               />
             </div>
             <div>
               <label for="Quyen" class="form-label">Quyền</label>
-              <input type="text" class="form-control text-center" value="<%= role.Quyen %>" style="width: 250px;" readonly />
+              <input
+                type="text"
+                class="form-control text-center"
+                value="<%= role.Quyen %>"
+                style="width: 250px"
+                readonly
+              />
             </div>
           </div>
           <div class="col-md-4 input-wrapper">
@@ -420,7 +426,7 @@
           document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
         }
 
-        document.querySelector(".role").innerText = `${Role}`;
+        //document.querySelector(".role").innerText = `${Role}`;
       };
     </script>
     <script>
