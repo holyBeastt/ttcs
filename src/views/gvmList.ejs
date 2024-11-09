@@ -254,7 +254,7 @@
             </select>
             <script>
               // Hàm lọc chung
-              function filterClasses() {
+              function filterTable() {
                 let nameInput = document.getElementById("searchInput").value.toLowerCase();
                 let boMonInput = document.getElementById('searchBoMon').value.toLowerCase();
                 let departmentFilter = document.getElementById("filterByDepartment").value.trim();
@@ -287,9 +287,9 @@
               }
 
               // Gọi hàm lọc khi có thay đổi trong các ô tìm kiếm
-              document.getElementById("searchInput").addEventListener("keyup", filterClasses);
-              document.getElementById("searchBoMon").addEventListener("keyup", filterClasses);
-              document.getElementById("filterByDepartment").addEventListener("change", filterClasses);
+              document.getElementById("searchInput").addEventListener("keyup", filterTable);
+              document.getElementById("searchBoMon").addEventListener("keyup", filterTable);
+              document.getElementById("filterByDepartment").addEventListener("change", filterTable);
             </script>
           </div>
           <table class="class-table" id="classTable">
@@ -650,7 +650,7 @@
       input.value = processedName;
 
       // Gọi hàm tìm kiếm ngay sau khi chọn gợi ý
-      searchBoMon(); // Gọi hàm lọc bảng
+      filterTable(); // Gọi hàm lọc bảng
 
       hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
     };
