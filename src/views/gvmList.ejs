@@ -243,7 +243,7 @@
             </button>
             <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
             <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon"
-              onkeyup="searchBoMon(); showSuggestionsBoMon(this);" onclick="showSuggestionsBoMon(this)" />
+              onkeyup="searchBoMon(); showSuggestionsBoMon(this);" onchange="searchBoMon();" onclick="showSuggestionsBoMon(this)" />
             <select id="filterByDepartment" class="filter">
               <option value="all">Tất cả</option>
               <% phongBanList.forEach(function(phongBan) { %>
