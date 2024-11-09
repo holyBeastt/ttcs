@@ -256,49 +256,87 @@ const exportMultipleContracts = async (req, res) => {
 
     connection = await createPoolConnection();
 
-    let query = ` SELECT
-                MaHopDong,
-                id_Gvm,
-                DienThoai,
-                Email,
-                MaSoThue,
-                DanhXung,
-                HoTen,
-                NgaySinh,
-                HocVi,
-                ChucVu,
-                HSL,
-                CCCD,
-                NoiCapCCCD,
-                DiaChi,
-                STK,
-                NganHang,
-                MIN(NgayBatDau) AS NgayBatDau,
-                MAX(NgayKetThuc) AS NgayKetThuc,
-                SUM(SoTiet) AS SoTiet,
-                SoTien,
-                TruThue,
-                NgayCap,
-                ThucNhan,
-                NgayNghiemThu,
-                Dot,
-                KiHoc,
-                NamHoc,
-                MaPhongBan,
-                MaBoMon
-            FROM
-                hopdonggvmoi
-            WHERE
-                Dot = ? AND KiHoc = ? AND NamHoc = ?
-            GROUP BY
-                HoTen`;
+    let query = `SELECT
+              id_Gvm,
+              DienThoai,
+              Email,
+              MaSoThue,
+              DanhXung,
+              HoTen,
+              NgaySinh,
+              HocVi,
+              ChucVu,
+              HSL,
+              CCCD,
+              NoiCapCCCD,
+              DiaChi,
+              STK,
+              NganHang,
+              MIN(NgayBatDau) AS NgayBatDau,
+              MAX(NgayKetThuc) AS NgayKetThuc,
+              SUM(SoTiet) AS SoTiet,
+              SoTien,
+              TruThue,
+              NgayCap,
+              ThucNhan,
+              NgayNghiemThu,
+              Dot,
+              KiHoc,
+              NamHoc,
+              MaPhongBan,
+              MaBoMon
+          FROM
+              hopdonggvmoi
+          WHERE
+              Dot = ? AND KiHoc = ? AND NamHoc = ?
+          GROUP BY
+              HoTen, id_Gvm, DienThoai, Email, MaSoThue, DanhXung, NgaySinh, HocVi, ChucVu,
+              HSL, CCCD, NoiCapCCCD, DiaChi, STK, NganHang, SoTien, TruThue, NgayCap, ThucNhan, 
+              NgayNghiemThu, Dot, KiHoc, NamHoc, MaPhongBan, MaBoMon
+          `;
+
+    // let query = ` SELECT
+    //             MaHopDong,
+    //             id_Gvm,
+    //             DienThoai,
+    //             Email,
+    //             MaSoThue,
+    //             DanhXung,
+    //             HoTen,
+    //             NgaySinh,
+    //             HocVi,
+    //             ChucVu,
+    //             HSL,
+    //             CCCD,
+    //             NoiCapCCCD,
+    //             DiaChi,
+    //             STK,
+    //             NganHang,
+    //             MIN(NgayBatDau) AS NgayBatDau,
+    //             MAX(NgayKetThuc) AS NgayKetThuc,
+    //             SUM(SoTiet) AS SoTiet,
+    //             SoTien,
+    //             TruThue,
+    //             NgayCap,
+    //             ThucNhan,
+    //             NgayNghiemThu,
+    //             Dot,
+    //             KiHoc,
+    //             NamHoc,
+    //             MaPhongBan,
+    //             MaBoMon
+    //         FROM
+    //             hopdonggvmoi
+    //         WHERE
+    //             Dot = ? AND KiHoc = ? AND NamHoc = ?
+    //         GROUP BY
+    //             HoTen`;
 
     let params = [dot, ki, namHoc];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
       query = ` SELECT
-                MaHopDong,
                 id_Gvm,
                 DienThoai,
                 Email,
@@ -332,7 +370,9 @@ const exportMultipleContracts = async (req, res) => {
             WHERE
                 Dot = ? AND KiHoc = ? AND NamHoc = ? AND MaPhongBan like ?
             GROUP BY
-                HoTen`;
+              HoTen, id_Gvm, DienThoai, Email, MaSoThue, DanhXung, NgaySinh, HocVi, ChucVu,
+              HSL, CCCD, NoiCapCCCD, DiaChi, STK, NganHang, SoTien, TruThue, NgayCap, ThucNhan, 
+              NgayNghiemThu, Dot, KiHoc, NamHoc, MaPhongBan, MaBoMon`;
       //query += " AND MaPhongBan = ?";
       //params.push(khoa);
       params = [dot, ki, namHoc, `%${khoa}%`];
@@ -340,43 +380,80 @@ const exportMultipleContracts = async (req, res) => {
     }
 
     if (teacherName) {
-      query = ` SELECT
-                MaHopDong,
-                id_Gvm,
-                DienThoai,
-                Email,
-                MaSoThue,
-                DanhXung,
-                HoTen,
-                NgaySinh,
-                HocVi,
-                ChucVu,
-                HSL,
-                CCCD,
-                NoiCapCCCD,
-                DiaChi,
-                STK,
-                NganHang,
-                MIN(NgayBatDau) AS NgayBatDau,
-                MAX(NgayKetThuc) AS NgayKetThuc,
-                SUM(SoTiet) AS SoTiet,
-                SoTien,
-                TruThue,
-                NgayCap,
-                ThucNhan,
-                NgayNghiemThu,
-                Dot,
-                KiHoc,
-                NamHoc,
-                MaPhongBan,
-                MaBoMon
-            FROM
-                hopdonggvmoi
-            WHERE
-                Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen LIKE ?
-            GROUP BY
-                HoTen`;
-      //query += " AND HoTen LIKE ?";
+      query = `SELECT
+              id_Gvm,
+              DienThoai,
+              Email,
+              MaSoThue,
+              DanhXung,
+              HoTen,
+              NgaySinh,
+              HocVi,
+              ChucVu,
+              HSL,
+              CCCD,
+              NoiCapCCCD,
+              DiaChi,
+              STK,
+              NganHang,
+              MIN(NgayBatDau) AS NgayBatDau,
+              MAX(NgayKetThuc) AS NgayKetThuc,
+              SUM(SoTiet) AS SoTiet,
+              SoTien,
+              TruThue,
+              NgayCap,
+              ThucNhan,
+              NgayNghiemThu,
+              Dot,
+              KiHoc,
+              NamHoc,
+              MaPhongBan,
+              MaBoMon
+          FROM
+              hopdonggvmoi
+          WHERE
+              Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen LIKE ?
+          GROUP BY
+              HoTen, id_Gvm, DienThoai, Email, MaSoThue, DanhXung, NgaySinh, HocVi, ChucVu,
+              HSL, CCCD, NoiCapCCCD, DiaChi, STK, NganHang, SoTien, TruThue, NgayCap, ThucNhan, 
+              NgayNghiemThu, Dot, KiHoc, NamHoc, MaPhongBan, MaBoMon
+          `;
+      // query = ` SELECT
+      //           MaHopDong,
+      //           id_Gvm,
+      //           DienThoai,
+      //           Email,
+      //           MaSoThue,
+      //           DanhXung,
+      //           HoTen,
+      //           NgaySinh,
+      //           HocVi,
+      //           ChucVu,
+      //           HSL,
+      //           CCCD,
+      //           NoiCapCCCD,
+      //           DiaChi,
+      //           STK,
+      //           NganHang,
+      //           MIN(NgayBatDau) AS NgayBatDau,
+      //           MAX(NgayKetThuc) AS NgayKetThuc,
+      //           SUM(SoTiet) AS SoTiet,
+      //           SoTien,
+      //           TruThue,
+      //           NgayCap,
+      //           ThucNhan,
+      //           NgayNghiemThu,
+      //           Dot,
+      //           KiHoc,
+      //           NamHoc,
+      //           MaPhongBan,
+      //           MaBoMon
+      //       FROM
+      //           hopdonggvmoi
+      //       WHERE
+      //           Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen LIKE ?
+      //       GROUP BY
+      //           HoTen`;
       params = [dot, ki, namHoc, `%${teacherName}%`];
       //params.push(`%${teacherName}%`);
     }
