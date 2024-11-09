@@ -563,7 +563,7 @@ const AdminController = {
       return res.redirect(
         `/changePassword?tenDangNhap=${encodeURIComponent(
           TenDangNhap
-        )}&message=updateSuccess`
+        )}&message=updateSuccess&passwordChanged=true`
       );
     } catch (error) {
       console.error("Lỗi khi cập nhật mật khẩu:", error);
