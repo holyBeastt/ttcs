@@ -333,7 +333,7 @@ const renderInfo = async (req, res) => {
   const MaPhongBan = req.session.MaPhongBan;
   console.log("Mã phòng ban = ", MaPhongBan);
 
-  if (typeof MaPhongBan === 'undefined') {
+  if (typeof MaPhongBan === "undefined") {
     console.log("ok");
     return res.status(500).json({ error: "Vui lòng đăng nhập lại!" });
   }
@@ -632,6 +632,8 @@ const SaveNote = async (req, res) => {
   try {
     const { id, ghiChu, deadline } = req.body;
     const HoanThanh = false;
+    const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
+
     console.log(id, ghiChu, deadline, HoanThanh);
 
     const query = `
@@ -639,7 +641,7 @@ const SaveNote = async (req, res) => {
         SET GhiChu = ?, Deadline = ?, HoanThanh = ?
         WHERE ID = ?
       `;
-    await connection.query(query, [ghiChu, deadline, HoanThanh, id]);
+    await connection.query(query, [ghiChu, deadlineValue, HoanThanh, id]);
     res.json({ success: true, message: "Ghi chú đã được lưu thành công" });
   } catch (error) {
     console.error("Lỗi khi lưu dữ liệu vào bảng quychuan:", error);
@@ -654,6 +656,7 @@ const DoneNote = async (req, res) => {
     const { id, ghiChu, deadline } = req.body;
     const HoanThanh = true;
     const mGhiChu = ghiChu + " Đã sửa";
+    const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
 
     console.log(id, ghiChu, mGhiChu, deadline, HoanThanh);
     const query = `
@@ -661,7 +664,7 @@ const DoneNote = async (req, res) => {
           SET GhiChu = ?, Deadline = ?, HoanThanh = ? 
           WHERE ID = ?
       `;
-      await connection.query(query, [mGhiChu, deadline, HoanThanh, id]);
+    await connection.query(query, [mGhiChu, deadlineValue, HoanThanh, id]);
     res.json({ success: true, message: "Ghi chú đã được lưu thành công" });
   } catch (error) {
     console.error("Lỗi khi lưu dữ liệu vào bảng quychuan:", error);
