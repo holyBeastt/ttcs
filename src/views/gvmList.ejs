@@ -387,30 +387,25 @@
       // }
 
       // // Tìm kiếm theo bộ môn
-      // function searchBoMon() {
-      //   const input = document.getElementById('searchBoMon');
-      //   const filter = input.value.trim().toLowerCase(); // Bỏ khoảng trắng và chuyển chữ thường
-      //   const tableRows = document.querySelectorAll('#classTable tr');
+      function searchBoMon() {
+        const input = document.getElementById('searchBoMon');
+        const filter = input.value.trim().toLowerCase(); // Bỏ khoảng trắng và chuyển chữ thường
+        const tableRows = document.querySelectorAll('#classTable tr');
 
-      //   tableRows.forEach(row => {
-      //     //if (row.style.display === 'none') return;
+        tableRows.forEach(row => {
+          const nameCell = row.querySelector('td:nth-child(6)'); // Lấy ô chứa bộ môn ở cột thứ 6
 
-      //     const nameCell = row.querySelector('td:nth-child(6)'); // Lấy ô chứa bộ môn ở cột thứ 7
-      //     const checkbox = row.querySelector('input[type="checkbox"]');
+          if (nameCell) {
+            const name = nameCell.textContent.trim().toLowerCase(); // Lấy nội dung text của ô bộ môn
 
-      //     if (nameCell) {
-      //       const name = nameCell.textContent.trim().toLowerCase(); // Lấy nội dung text của ô bộ môn
-
-      //       if (filter === '' || name.includes(filter)) {
-      //         row.style.display = ''; // Hiện hàng nếu khớp hoặc filter trống
-      //         if (checkbox) checkbox.disabled = false; // Kích hoạt checkbox nếu có
-      //       } else {
-      //         row.style.display = 'none'; // Ẩn hàng nếu không khớp
-      //         if (checkbox) checkbox.disabled = true; // Vô hiệu hóa checkbox nếu có
-      //       }
-      //     }
-      //   });
-      // }
+            if (filter === '' || name.includes(filter)) {
+              row.style.display = ''; // Hiện hàng nếu khớp hoặc filter trống
+            } else {
+              row.style.display = 'none'; // Ẩn hàng nếu không khớp
+            }
+          }
+        });
+      }
 
 
       // Thêm lớp học
@@ -591,83 +586,85 @@
 
       // Hàm gợi ý bộ môn ở ô nhập 
       function showSuggestionsBoMon(input) {
-        const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-        hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
+  const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+  hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
 
-        // Tạo thẻ div chứa gợi ý
-        const suggestionsContainer = document.createElement('div');
-        suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
+  // Tạo thẻ div chứa gợi ý
+  const suggestionsContainer = document.createElement('div');
+  suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
 
-        // Đặt vị trí cho suggestionsContainer
-        const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-        suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-        suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-        suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-        suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-        suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-        suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-        suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
+  // Đặt vị trí cho suggestionsContainer
+  const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
+  suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
+  suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
+  suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
+  suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
+  suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
+  suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
+  suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
 
-        // Thêm suggestionsContainer vào DOM
-        document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
+  // Thêm suggestionsContainer vào DOM
+  document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
 
-        let suggestions = []; // Khởi tạo mảng gợi ý
+  let suggestions = []; // Khởi tạo mảng gợi ý
 
-        // Lấy dữ liệu từ localStorage
-        const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
-        console.log(boMon)
+  // Lấy dữ liệu từ localStorage
+  const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
+  console.log(boMon)
 
-        suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
+  suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
 
-        // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-        if (value) {
-          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-        }
+  // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
+  if (value) {
+    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+  }
 
-        // Nếu không có gợi ý, ẩn container
-        if (suggestions.length === 0) {
-          suggestionsContainer.remove();
-          return; // Kết thúc hàm nếu không có gợi ý
-        }
+  // Nếu không có gợi ý, ẩn container
+  if (suggestions.length === 0) {
+    suggestionsContainer.remove();
+    return; // Kết thúc hàm nếu không có gợi ý
+  }
 
-        // Tạo gợi ý dưới dạng danh sách (list)
-        suggestions.forEach(name => {
-          const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-          suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-          suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
+  // Tạo gợi ý dưới dạng danh sách (list)
+  suggestions.forEach(name => {
+    const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
+    suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
+    suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
 
-          // Thêm sự kiện click để điền tên vào ô input
-          suggestionItem.onclick = function () {
-            const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
+    // Thêm sự kiện click để điền tên vào ô input
+    suggestionItem.onclick = function () {
+      const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
 
-            // Tìm vị trí của dấu "-" trong chuỗi
-            const dashIndex = name.indexOf("-");
+      // Tìm vị trí của dấu "-" trong chuỗi
+      const dashIndex = name.indexOf("-");
 
-            // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-            let processedName = name;
+      // Nếu không có dấu "-", sử dụng tên gợi ý gốc
+      let processedName = name;
 
-            if (dashIndex !== -1) {
-              // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
-            }
-
-            // Điền tên gợi ý đã xử lý vào ô input
-            input.value = processedName;
-            searchBoMon();
-            hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
-          };
-
-          suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-        });
-
-        // Ẩn gợi ý khi input không còn focus
-        input.onblur = function () {
-          setTimeout(() => {
-            hideSuggestionsBoMon();
-          }, 100); // Thời gian chờ để nhận diện click
-        };
+      if (dashIndex !== -1) {
+        // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
+        processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
       }
 
+      // Điền tên gợi ý đã xử lý vào ô input
+      input.value = processedName;
+
+      // Gọi hàm tìm kiếm ngay sau khi chọn gợi ý
+      searchBoMon(); // Gọi hàm lọc bảng
+
+      hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
+    };
+
+    suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
+  });
+
+  // Ẩn gợi ý khi input không còn focus
+  input.onblur = function () {
+    setTimeout(() => {
+      hideSuggestionsBoMon();
+    }, 100); // Thời gian chờ để nhận diện click
+  };
+}
       // Hàm ẩn gợi ý
       function hideSuggestionsBoMon() {
         const existingSuggestions = document.querySelectorAll('.suggestions');
