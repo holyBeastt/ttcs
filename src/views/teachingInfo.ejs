@@ -320,11 +320,13 @@
 
       <div class="d-flex my-3" style="height: 70px;">
         <!-- Tìm kiếm theo giảng viên -->
-        <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search" style="width: 200px;"/>
-        <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search" style="width: 200px;"/>
+        <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
+          style="width: 200px;" />
+        <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
+          style="width: 200px;" />
         <!-- Tìm kiếm theo bộ môn -->
         <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" onclick="showSuggestionsBoMon(this)"
-          class="form-control m-2 search" style="width: 200px;"/>
+          class="form-control m-2 search" style="width: 200px;" />
 
         <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
           <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
@@ -364,39 +366,39 @@
             tableBody.innerHTML = ''; // Xóa các hàng hiện có
             dataRows.forEach(row => tableBody.appendChild(row)); // Chèn lại các hàng dữ liệu đã sắp xếp
           }
-          
+
         </script>
         <script>
           // Hàm kiểm tra và lọc hàng trong bảng
           function filterTable() {
-              const nameFilter = document.getElementById('filterName').value.toLowerCase();
-              const classFilter = document.getElementById('filterClass').value.toLowerCase();
-              const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
-              const tableRows = document.querySelectorAll('#tableBody tr');
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const classFilter = document.getElementById('filterClass').value.toLowerCase();
+            const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
+            const tableRows = document.querySelectorAll('#tableBody tr');
 
-              tableRows.forEach(row => {
-                  const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-                  const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-                  const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
+            tableRows.forEach(row => {
+              const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
+              const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
+              const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
 
-                  const name = nameCell ? nameCell.textContent.toLowerCase() : '';
-                  const className = classCell ? classCell.textContent.toLowerCase() : '';
-                  const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
+              const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+              const className = classCell ? classCell.textContent.toLowerCase() : '';
+              const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
 
-                  // Kiểm tra điều kiện lọc
-                  const matchesName = name.includes(nameFilter);
-                  const matchesClass = className.includes(classFilter);
-                  const matchesBoMon = boMon.includes(boMonFilter);
+              // Kiểm tra điều kiện lọc
+              const matchesName = name.includes(nameFilter);
+              const matchesClass = className.includes(classFilter);
+              const matchesBoMon = boMon.includes(boMonFilter);
 
-                  // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-                  if (matchesName && matchesClass && matchesBoMon) {
-                      row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
-                  } else {
-                      row.style.display = 'none'; // Ẩn hàng nếu không khớp
-                  }
-              });
+              // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+              if (matchesName && matchesClass && matchesBoMon) {
+                row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
+              } else {
+                row.style.display = 'none'; // Ẩn hàng nếu không khớp
+              }
+            });
 
-              calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
+            calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
           }
 
           // Gán sự kiện cho các input filter
@@ -601,12 +603,12 @@
           }
 
           // Lấy id của hàng từ thuộc tính data-id
-          let rowId = parseInt(row.getAttribute('data-id'), 10); // Chuyển đổi rowId thành số nguyên
-          rowId -= 1;
+          // console.log(row)
+          let rowId = parseInt(row.getAttribute('data-id', 10)); // Chuyển đổi rowId thành số nguyên
           // console.log('id trong bảng đang hiển thị : ', rowId);
 
           // Tìm đối tượng trong localStorage có id trùng với hàng hiện tại
-          let item = data.find(d => parseInt(d.id) === parseInt(rowId));
+          let item = data.find(d => parseInt(d.ID) === parseInt(rowId));
           // console.log('id trong bảng dữ liệu chính : ', item.id);
 
           // Nếu tìm thấy đối tượng và KhoaDuyet == 0
@@ -773,7 +775,7 @@
           localStorage.setItem("check", check);
 
           // Kiểm tra dữ liệu trong localStorage
-          let cachedData = localStorage.getItem('tableData');
+          // let cachedData = localStorage.getItem('tableData');
 
           // // Nếu có dữ liệu trong localStorage
           // if (cachedData) {
@@ -797,10 +799,10 @@
           localStorage.setItem('nameGvm', JSON.stringify(nameGvmNew));
 
           // thêm id vào bảng local
-          globalDataNew = globalDataNew.map((item, index) => ({
-            ...item,
-            id: index // hoặc một ID khác tùy theo logic bạn muốn
-          }));
+          // globalDataNew = globalDataNew.map((item, index) => ({
+          //   ...item,
+          //   id: index // hoặc một ID khác tùy theo logic bạn muốn
+          // }));
           // đẩy vào bảng local
           localStorage.setItem('tableData', JSON.stringify(globalDataNew));
 
@@ -827,7 +829,7 @@
           const tableRow = document.createElement('tr');
 
 
-          // Gán id vào thuộc tính data-id của hàng
+          // Gán ID trong csdl thành attribute của từng hàng
           tableRow.setAttribute("data-id", row.ID);
 
           const lopHocPhanTd = document.createElement('td');
@@ -958,7 +960,7 @@
               } else {
                 ghiChuTd.innerHTML = `📜 <span class="bi bi-circle" style="color: red;"></span>`; // Hiển thị biểu tượng ghi chú và chấm đỏ
               }
-              
+
             } else {
               ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu không có ghi chú
             }
@@ -1580,6 +1582,7 @@
 
     function openNoteForm(row, GhiChu, Deadline) {
       currentRow = row; // Lưu hàng hiện tại
+      // alert(row.getAttribute('data-id'))
       console.log(formatInputDate(Deadline));
       document.getElementById("noteForm").style.display = "block"; // Hiển thị form
       document.getElementById("modalBackdrop").style.display = "block"; // Hiển thị nền tối
@@ -1607,7 +1610,8 @@
 
       if (currentRow) {
         const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
-
+        // const id2 = parseInt(id) + 1
+        // alert(id2);
         // Kiểm tra ID có tồn tại
         if (id) {
 
@@ -1646,6 +1650,7 @@
 
       if (currentRow) {
         const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+        // alert(id);
 
         // Kiểm tra ID có tồn tại
         if (id) {
