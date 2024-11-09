@@ -76,6 +76,7 @@
 // module.exports = login;
 const createPoolConnection = require("../config/databasePool");
 require("dotenv").config();
+
 const createTrigger = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
   const dropTriggerQuery = `DROP TRIGGER IF EXISTS log_changes;`;
@@ -153,14 +154,18 @@ END;
 
   `;
   try {
-    // Tạo trigger sau khi đăng nhập thành công
-    await connection.query(dropTriggerQuery);
-    await connection.query(triggerQuery);
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
   } catch (error) {
     console.error("Lỗi khi tạo trigger:", error.message);
   }
-
-  // Thực thi câu lệnh tạo trigger
 };
 
 const login = async (req, res) => {
