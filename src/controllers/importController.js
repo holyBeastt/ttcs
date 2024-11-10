@@ -1336,9 +1336,7 @@ const deleteFile = async (req, res) => {
     const sql = `DELETE FROM ${tableName} WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
 
     // Thực hiện truy vấn
-    const [results] = await connection
-      .promise()
-      .query(sql, [Khoa, Dot, Ki, Nam]);
+    const [results] = await connection.query(sql, [Khoa, Dot, Ki, Nam]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
@@ -1352,6 +1350,7 @@ const deleteFile = async (req, res) => {
     if (connection) connection.release(); // Trả kết nối về pool
   }
 };
+
 
 // const updateChecked = async (req, res) => {
 //   const role = req.session.role;
