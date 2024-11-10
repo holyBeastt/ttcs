@@ -769,11 +769,23 @@ const updateBanHanh = async (req, res) => {
 
 const validateAndConvertData = (data) => {
   // Danh sách các khóa cần kiểu số
-  const requiredNumericKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "Số tiết lên lớp giờ HC", "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ", "Hệ số lớp đông", "QC"];
+  const requiredNumericKeys = [
+    "Số TC",
+    "Số tiết theo CTĐT",
+    "Số SV",
+    "Số tiết lên lớp giờ HC",
+    "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+    "Hệ số lớp đông",
+    "QC",
+  ];
 
   // Duyệt qua từng khóa và kiểm tra kiểu dữ liệu
   requiredNumericKeys.forEach((key) => {
-    if (data[key] === undefined || data[key] === null || data[key].toString().trim() === "") {
+    if (
+      data[key] === undefined ||
+      data[key] === null ||
+      data[key].toString().trim() === ""
+    ) {
       // Nếu giá trị rỗng hoặc chỉ chứa khoảng trắng, đặt thành 0
       data[key] = 0;
     } else if (typeof data[key] === "string") {
@@ -783,7 +795,9 @@ const validateAndConvertData = (data) => {
       if (!isNaN(converted)) {
         data[key] = converted;
       } else {
-        console.warn(`Warning: Key "${key}" không thể chuyển đổi thành số từ giá trị "${data[key]}"`);
+        console.warn(
+          `Warning: Key "${key}" không thể chuyển đổi thành số từ giá trị "${data[key]}"`
+        );
         data[key] = 0; // Đặt giá trị thành 0 nếu không thể chuyển đổi
       }
     }
@@ -797,7 +811,7 @@ const importTableTam = async (jsonData) => {
 
   // validate lại dữ liệu đầu vào
   const data = validateAndConvertData(jsonData);
-  console.log('dữ liệu đầu vào : ', data);
+  console.log("dữ liệu đầu vào : ", data);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -2307,7 +2321,7 @@ const insertGiangDay = async (req, res) => {
 
           const DaLuu = 1;
           // Thêm Đã lưu = 1 vào quy chuẩn
-          const updateQuery = `UPDATE QuyChuan SET DaLuu = ? WHERE ID = ?;`;
+          const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
           await connection.promise().query(updateQuery, [DaLuu, ID]);
 
           // Kiểm tra môn học đã tồn tại chưa
@@ -2439,7 +2453,7 @@ const insertGiangDay2 = async (req, res) => {
 
           const DaLuu = 1;
           // Thêm Đã lưu = 1 vào quy chuẩn
-          const updateQuery = `UPDATE QuyChuan SET DaLuu = ? WHERE ID = ?;`;
+          const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
           await connection.promise().query(updateQuery, [DaLuu, ID]);
 
           const exists = await hocPhanDaTonTai(TenHocPhan);
