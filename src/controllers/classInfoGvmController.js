@@ -33,6 +33,8 @@ const getClassInfoGvm = async (req, res) => {
     connection = await createPoolConnection();
     const [results, fields] = await connection.query(query);
 
+    console.log("danh sách các lớp: ", results);
+
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = results.reduce((acc, current) => {
       const teacher = current.GiaoVienGiangDay;
@@ -42,6 +44,8 @@ const getClassInfoGvm = async (req, res) => {
       acc[teacher].push(current);
       return acc;
     }, {});
+
+    console.log("Danh sách giảng dạy theo giảng viên ", groupedByTeacher);
 
     res.render("classInfoGvm.ejs", { GiangDay: groupedByTeacher });
   } catch (error) {
