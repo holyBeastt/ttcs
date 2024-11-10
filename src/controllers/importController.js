@@ -2087,46 +2087,74 @@ const updateAllTeachingInfo = async (req, res) => {
   const { dot, ki, namHoc } = req.body;
   console.log("Nhận dữ liệu từ client:", dot, ki, namHoc);
 
-  const query2 = `
-SELECT
-    qc.*,                 
-    gvmoi.*,              
-    SUM(qc.QuyChuan) AS TongSoTiet,     
-    MIN(qc.NgayBatDau) AS NgayBatDau,   
-    MAX(qc.NgayKetThuc) AS NgayKetThuc  
-FROM 
-    quychuan qc
-JOIN 
-    gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-GROUP BY 
-    gvmoi.HoTen;
+  // const query2 = `
+  // SELECT
+  //     qc.*,
+  //     gvmoi.*,
+  //     SUM(qc.QuyChuan) AS TongSoTiet,
+  //     MIN(qc.NgayBatDau) AS NgayBatDau,
+  //     MAX(qc.NgayKetThuc) AS NgayKetThuc
+  // FROM
+  //     quychuan qc
+  // JOIN
+  //     gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+  // WHERE
+  //     qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+  // GROUP BY
+  //     gvmoi.HoTen;
 
-`;
+  // `;
+
+  const query2 = `
+    SELECT
+        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+        SUM(qc.QuyChuan) AS TongSoTiet,
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc
+    FROM
+        quychuan qc
+    JOIN
+        gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+    WHERE
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ?
+    GROUP BY
+        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+    `;
+
   const value = [dot, ki, namHoc];
 
   try {
     const [dataJoin] = await connection.promise().query(query2, value);
 
+    console.log("data = ", dataJoin);
+
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
+      console.log("Không có dữ liệu hợp đồng");
       return {
         success: false,
         message: "Không có dữ liệu để chèn.",
       };
     }
 
-    const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
+    //const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
 
     // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
+    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
+    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
+    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
 
-    const daDuyetHet = await TaiChinhCheckAll(dot, ki, nam);
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+    console.log("đauyet ", daDuyetHetArray.includes(dataJoin[0].MaPhongBan));
 
+    console.log("da duyet het ", daDuyetHetArray);
     // Chuẩn bị dữ liệu để chèn từng loạt
     //const insertValues = dataJoin.map((item) => {
     const insertValues = await Promise.all(
@@ -2135,11 +2163,10 @@ GROUP BY
           (item) =>
             item.TaiChinhDuyet != 0 &&
             item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
+            daDuyetHetArray.includes(item.MaPhongBan) // Kiểm tra sự tồn tại trong mảng
         ) // Loại bỏ các mục có TaiChinhDuyet = 0
         .map(async (item) => {
           const {
-            ID,
             id_Gvm,
             DienThoai,
             Email,
@@ -2170,6 +2197,8 @@ GROUP BY
           } = item;
 
           req.session.tmp++;
+
+          console.log("đã vào");
 
           const DanhXung = getDanhXung(GioiTinh);
           // const getDanhXung = (GioiTinh) => {
