@@ -2,7 +2,7 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-//const connection = require("../controllers/connectDB");
+const connection = require("../controllers/connectDB");
 const createPoolConnection = require("../config/databasePool");
 const { json, query } = require("express");
 const gvms = require("../services/gvmServices");
@@ -2044,17 +2044,9 @@ const TaiChinhCheckAll = async (Dot, KiHoc, NamHoc) => {
 //let tmp = 0;
 
 const updateAllTeachingInfo = async (req, res) => {
-  // const query2 = `
-  //     SELECT
-  //       qc.*,
-  //       gvmoi.*,
-  //       SUM(qc.QuyChuan) AS TongSoTiet,
-  //       SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
-  //     FROM quychuan qc
-  //     JOIN gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-  //     WHERE qc.DaLuu = 0
-  //     GROUP BY gvmoi.HoTen;
-  //   `;
+  const { dot, ki, namHoc } = req.body;
+  console.log("Nhận dữ liệu từ client:", dot, ki, namHoc);
+
   const query2 = `
 SELECT
     qc.*,                 
@@ -2067,13 +2059,15 @@ FROM
 JOIN 
     gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
 WHERE 
-    qc.DaLuu = 0
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
 GROUP BY 
     gvmoi.HoTen;
 
 `;
+  const value = [dot, ki, namHoc];
+
   try {
-    const [dataJoin] = await connection.promise().query(query2);
+    const [dataJoin] = await connection.promise().query(query2, value);
 
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
@@ -2215,6 +2209,8 @@ GROUP BY
 };
 
 const insertGiangDay = async (req, res) => {
+  const { dot, ki, namHoc } = req.body;
+
   const query2 = `
     SELECT
       qc.*, 
@@ -2222,19 +2218,23 @@ const insertGiangDay = async (req, res) => {
       SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
     FROM quychuan qc
     JOIN gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+    WHERE 
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
   `;
 
+  const value = [dot, ki, namHoc];
+
   try {
-    const [dataJoin] = await connection.promise().query(query2);
+    const [dataJoin] = await connection.promise().query(query2, value);
 
-    const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
+    // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
 
-    // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
+    // // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
+    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
+    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
+    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
 
-    const daDuyetHet = await TaiChinhCheckAll(dot, ki, nam);
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
     // Chuẩn bị dữ liệu để chèn từng loạt
@@ -2265,6 +2265,7 @@ const insertGiangDay = async (req, res) => {
             NamHoc,
             MaHocPhan,
             TenLop,
+            Dot,
           } = item;
 
           req.session.tmp++;
@@ -2288,9 +2289,6 @@ const insertGiangDay = async (req, res) => {
           console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
 
           if (exists === false) {
-            console.log("Ten hoc phan = ", TenHocPhan);
-            console.log("So tin", SoTinChi);
-            console.log("Khoa = ", Khoa);
             await themHocPhan(TenHocPhan, SoTinChi, Khoa);
           }
 
@@ -2311,6 +2309,7 @@ const insertGiangDay = async (req, res) => {
             NamHoc,
             MaHocPhan,
             TenLop,
+            Dot,
           ];
         })
     );
@@ -2324,7 +2323,7 @@ const insertGiangDay = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
       ) VALUES ?;
     `;
 
@@ -2342,6 +2341,8 @@ const insertGiangDay = async (req, res) => {
 };
 
 const insertGiangDay2 = async (req, res) => {
+  const { dot, ki, namHoc } = req.body;
+
   const query2 = `
     SELECT
       qc.*,
@@ -2349,19 +2350,22 @@ const insertGiangDay2 = async (req, res) => {
       SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
     FROM quychuan qc
     JOIN nhanvien ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = nhanvien.TenNhanVien
+    WHERE 
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
   `;
 
+  const value = [dot, ki, namHoc];
   try {
-    const [dataJoin] = await connection.promise().query(query2);
+    const [dataJoin] = await connection.promise().query(query2, value);
 
-    const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
+    // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
 
-    // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
+    // // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
+    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
+    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
+    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
 
-    const daDuyetHet = await TaiChinhCheckAll(dot, ki, nam);
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
     // Chuẩn bị dữ liệu để chèn từng loạt
@@ -2393,6 +2397,7 @@ const insertGiangDay2 = async (req, res) => {
             NamHoc,
             MaHocPhan,
             TenLop,
+            Dot,
           } = item;
 
           req.session.tmp++;
@@ -2435,6 +2440,7 @@ const insertGiangDay2 = async (req, res) => {
             NamHoc,
             MaHocPhan,
             TenLop,
+            Dot,
           ];
         })
     );
@@ -2448,7 +2454,7 @@ const insertGiangDay2 = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
       ) VALUES ?;
     `;
 

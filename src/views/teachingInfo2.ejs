@@ -363,6 +363,7 @@
           <select class="form-select w-100px mx-1 selectop custom-select" id="NamHoc">
             <option value="">Năm học</option>
           </select>
+
           <button id="infoGvm" class="btn text-nowrap mx-2" style="height: 45px;">Xem dữ liệu</button>
           <button onclick="submitData()" class="btn mx-2" id="update-qc" style="display: none; height: 45px;">
             Cập nhật
@@ -839,46 +840,6 @@
         tableBody.appendChild(tableRow); // Thêm hàng vào bảng
       });
     }
-    /*
-        function disableCheckAll(type) {
-          const checkAllCheckbox = document.getElementById(
-            `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-          );
-    
-          if (checkAllCheckbox) {
-            // Ngăn không cho người dùng thay đổi checkbox tổng
-            checkAllCheckbox.addEventListener("click", function (e) {
-              e.preventDefault(); // Ngăn thay đổi trạng thái
-            });
-          }
-        }
-    */
-
-    /* 
- function checkAll(type) {
-   alert("1")
-   const checkboxes = document.querySelectorAll(
-     `input[type="checkbox"][name="${type}"]`
-   );
-   const checkAllCheckbox = document.getElementById(
-     `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-   );
- 
-   for (const checkbox of checkboxes) {
-     if (checkbox.disabled || !checkbox.offsetParent) {
-       continue; // Bỏ qua checkbox bị vô hiệu hóa
-     }
- 
-     const row = checkbox.closest('tr');
-     if (row.style.display == 'none') { // Kiểm tra nếu dòng hiện trên màn hình
-       continue; // Gán trạng thái checkbox "Check All" cho checkbox hiển thị
-     }
- 
-     checkbox.checked = checkAllCheckbox.checked; // Gán giá trị checked cho checkbox không bị vô hiệu hóa
-   }
- }
- */
-
 
     async function submitData() {
       const role = localStorage.getItem("userRole");
@@ -950,35 +911,33 @@
         });
     }
 
-    // Phương
-    /*
     async function submitData2() {
-      fetch("/submitData2", {
-        method: "POST", // Dùng POST nếu bạn muốn gửi tín hiệu theo yêu cầu HTTP POST
-        //headers: {
-        //  'Content-Type': 'application/json'
-        //}
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          alert("Lưu dữ liệu thành công!");
-          // Xử lý phản hồi từ server, ví dụ: hiển thị thông báo thành công
-        })
-        .catch((error) => {
-          console.error("Error sending signal:", error);
-          // Xử lý lỗi, ví dụ: hiển thị thông báo lỗi
-        });
-    }
-        */
-    // Phương
+      
+      // Lấy giá trị từ các combo box
+      const dot = document.getElementById('combobox-dot').value;  // Giá trị từ combo box Đợt
+      const ki = document.getElementById('combobox-ki').value;    // Giá trị từ combo box Kì
+      const namHoc = document.getElementById('NamHoc').value;      // Giá trị từ combo box Năm học
 
-    async function submitData2() {
+      // Tạo đối tượng chứa dữ liệu cần gửi
+      const duLieu = {
+        dot: dot,
+        ki: ki,
+        namHoc: namHoc
+      };
+
+      // Kiểm tra giá trị của các biến
+      console.log("data = ", duLieu)
+      console.log('Đợt:', dot);
+      console.log('Kì:', ki);
+      console.log('Năm học:', namHoc);
+
       try {
         const response = await fetch("/submitData2", {
           method: "POST", // Dùng POST nếu bạn muốn gửi tín hiệu theo yêu cầu HTTP POST
-          //headers: {
-          //  'Content-Type': 'application/json'
-          //}
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(duLieu) // Chuyển đối tượng dữ liệu thành chuỗi JSON
         });
 
         if (!response.ok) {
