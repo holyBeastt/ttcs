@@ -572,10 +572,11 @@
   <!-- phần chèn ngày, render bảng và và các hàm liên quan -->
   <script>
 
+    var totalLL;
+    var totalQC;
+    var globalData = [];
+
     document.addEventListener('DOMContentLoaded', function () {
-      var totalLL;
-      var totalQC;
-      var globalDataNew = [];
 
       // sự kiện click chèn ngày
       document.getElementById('fillDay').addEventListener('click', function () {
@@ -589,9 +590,9 @@
           return;
         }
 
-        // Lấy dữ liệu gốc từ localStorage
-        let data = JSON.parse(localStorage.getItem('tableData')) || [];
-        console.log('Dữ liệu ban đầu từ localStorage:', data);
+        // // Lấy dữ liệu gốc từ localStorage
+        // let data = JSON.parse(localStorage.getItem('tableData')) || [];
+        // console.log('Dữ liệu ban đầu từ localStorage:', data);
 
         // Lấy tất cả các dòng hiển thị trong bảng
         const rows = document.querySelectorAll('#tableBody tr');
@@ -608,7 +609,7 @@
           // console.log('id trong bảng đang hiển thị : ', rowId);
 
           // Tìm đối tượng trong localStorage có id trùng với hàng hiện tại
-          let item = data.find(d => parseInt(d.ID) === parseInt(rowId));
+          let item = globalData.find(d => parseInt(d.ID) === parseInt(rowId));
           // console.log('id trong bảng dữ liệu chính : ', item.id);
 
           // Nếu tìm thấy đối tượng và KhoaDuyet == 0
@@ -626,7 +627,7 @@
         });
 
         // Kiểm tra định dạng ngày và format lại nếu cần
-        data.forEach(item => {
+        globalData.forEach(item => {
           if (item.NgayBatDau && isISODate(item.NgayBatDau)) {
             item.NgayBatDau = format(item.NgayBatDau);
           }
@@ -639,7 +640,7 @@
         // localStorage.setItem('tableData', JSON.stringify(data));
 
         // Kiểm tra lại dữ liệu sau khi cập nhật
-        console.log('Dữ liệu sau khi chèn:', data);
+        console.log('Dữ liệu sau khi chèn:', globalData);
 
         // Gửi dữ liệu đã cập nhật lên server
         fetch('/check-teaching', {
@@ -647,7 +648,7 @@
           headers: {
             'Content-Type': 'application/json' // Định dạng gửi là JSON
           },
-          body: JSON.stringify(data) // Chuyển đổi data đã cập nhật thành chuỗi JSON
+          body: JSON.stringify(globalData) // Chuyển đổi data đã cập nhật thành chuỗi JSON
         })
           .then(response => {
             if (!response.ok) {
@@ -672,8 +673,8 @@
 
       // view data lấy dữ liệu từ storage
       function viewData() {
-        let data = JSON.parse(localStorage.getItem('tableData'));
-        renderTable(data);
+        // let data = JSON.parse(localStorage.getItem('tableData'));
+        renderTable(globalData);
         calculateTotals();
       }
 
@@ -768,8 +769,8 @@
           const rs = await teachingResponse.json();
 
           // Thêm check
-          globalDataNew = rs.results; // Dữ liệu kết quả
-          // globalData = globalDataNew;
+          globalData = rs.results; // Dữ liệu kết quả
+          // globalData = globalData;
           const check = rs.check; // Dữ liệu check
 
           localStorage.setItem("check", check);
@@ -781,7 +782,7 @@
           // if (cachedData) {
           //   cachedData = JSON.parse(cachedData);
           //   // So sánh dữ liệu mới với dữ liệu cũ
-          //   const isDataEqual = (JSON.stringify(cachedData) === JSON.stringify(globalDataNew));
+          //   const isDataEqual = (JSON.stringify(cachedData) === JSON.stringify(globalData));
 
           //   if (isDataEqual) {
           //     console.log('Dữ liệu không thay đổi, sử dụng dữ liệu từ localStorage');
@@ -799,16 +800,16 @@
           localStorage.setItem('nameGvm', JSON.stringify(nameGvmNew));
 
           // thêm id vào bảng local
-          // globalDataNew = globalDataNew.map((item, index) => ({
+          // globalData = globalData.map((item, index) => ({
           //   ...item,
           //   id: index // hoặc một ID khác tùy theo logic bạn muốn
           // }));
           // đẩy vào bảng local
-          localStorage.setItem('tableData', JSON.stringify(globalDataNew));
+          // localStorage.setItem('tableData', JSON.stringify(globalData));
 
-          console.log('Bảng : ', globalDataNew);
+          console.log('Bảng : ', globalData);
 
-          viewData(globalDataNew);
+          viewData(globalData);
 
         } catch (error) {
           console.error('Đã có lỗi xảy ra:', error);
@@ -1366,12 +1367,8 @@
     }
 
     // Hàm xử lí : ấn lưu dữ liệu sẽ cập nhật vào localStorage, db chưa thay đổi
-    function updateLocalTable() {
+    function updateGlobalDataFromTable() {
       const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
-
-      // Lấy dữ liệu từ localStorage nếu có
-      let data = localStorage.getItem('tableData');
-      let localData = JSON.parse(data);
 
       rows.forEach((row, index) => {
         // Bỏ qua các hàng đang bị ẩn
@@ -1389,7 +1386,6 @@
         const giaoVienGiangDay = giaoVienGiangDayInput ? giaoVienGiangDayInput.value : '';
         const boMon = boMonInput ? boMonInput.value : '';
 
-
         // Lấy trạng thái của checkbox "Khoa" và "Đào Tạo"
         const khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false;
         const moiGiang = moiGiangCheckbox ? moiGiangCheckbox.checked : false;
@@ -1401,31 +1397,30 @@
         const ngayBatDauValue = ngayBatDauInput ? ngayBatDauInput.value : '';
         const ngayKetThucValue = ngayKetThucInput ? ngayKetThucInput.value : '';
 
-
         // So sánh và cập nhật nếu cần
-        const currentNgayBatDau = localData[index].NgayBatDau || '';
-        const currentNgayKetThuc = localData[index].NgayKetThuc || '';
+        const currentNgayBatDau = globalData[index].NgayBatDau || '';
+        const currentNgayKetThuc = globalData[index].NgayKetThuc || '';
 
-        // Cập nhật vào dữ liệu cục bộ 
+        // Cập nhật vào dữ liệu toàn cục (globalData)
         if (currentNgayBatDau == '' || currentNgayBatDau != ngayBatDauValue) {
-          localData[index].NgayBatDau = ngayBatDauValue; // Cập nhật ngày bắt đầu nếu cần
+          globalData[index].NgayBatDau = ngayBatDauValue; // Cập nhật ngày bắt đầu nếu cần
         }
 
         if (currentNgayKetThuc == '' || currentNgayKetThuc != ngayKetThucValue) {
-          localData[index].NgayKetThuc = ngayKetThucValue; // Cập nhật ngày kết thúc nếu cần
+          globalData[index].NgayKetThuc = ngayKetThucValue; // Cập nhật ngày kết thúc nếu cần
         }
 
         // Cập nhật các giá trị khác không thay đổi
-        localData[index].GiaoVienGiangDay = giaoVienGiangDay;
-        localData[index].KhoaDuyet = khoaDuyet;
-        localData[index].MoiGiang = moiGiang;
-        localData[index].BoMon = boMon;
+        globalData[index].GiaoVienGiangDay = giaoVienGiangDay;
+        globalData[index].KhoaDuyet = khoaDuyet;
+        globalData[index].MoiGiang = moiGiang;
+        globalData[index].BoMon = boMon;
       });
 
-      // Cập nhật lại localStorage với dữ liệu mới
-      localStorage.setItem('tableData', JSON.stringify(localData));
-      console.log('Cập nhật vào tableData : ', localData)
-      // Hiển thị thông báo thành công
+      // In kết quả ra console để kiểm tra dữ liệu đã được cập nhật vào globalData
+      console.log('Cập nhật vào globalData: ', globalData);
+
+      // Hiển thị thông báo thành công nếu cần
       // alert('Lưu cục bộ thành công');
       // window.location.reload();
     }
@@ -1512,30 +1507,23 @@
     // Hàm đẩy dữ liệu lên server
     function submitData() {
 
-      // gọi hàm này để lưu vào local storage trước
-      updateLocalTable();
+      // Lưu bảng hiện có vào biến globalData
+      updateGlobalDataFromTable();
 
-      // Lấy bảng tableData từ localStorage
-      const tableData = JSON.parse(localStorage.getItem('tableData'));
-
-      // Kiểm tra xem dữ liệu có tồn tại hay không
-      if (!tableData) {
-        alert('Không tìm thấy dữ liệu trong localStorage.');
-        return;
-      }
-
-      // Giả sử tableData là một mảng các đối tượng và mỗi đối tượng có các thuộc tính startDate và endDate
-      tableData.forEach(item => {
+      // Fomart lại ngày tháng năm
+      globalData.forEach(item => {
         item.NgayBatDau = format(item.NgayBatDau); // Định dạng ngày bắt đầu
         item.NgayKetThuc = format(item.NgayKetThuc); // Định dạng ngày bắt đầu
       });
+
+      console.log('Dữ liệu khi click Cập nhật : ', globalData);
       // Gửi dữ liệu lên server
       fetch('/check-teaching', {
         method: 'POST', // Phương thức POST
         headers: {
           'Content-Type': 'application/json' // Định dạng gửi là JSON
         },
-        body: JSON.stringify(tableData) // Chuyển đổi globalData thành chuỗi JSON
+        body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
       })
         .then(response => {
           if (!response.ok) {
@@ -1546,10 +1534,7 @@
         .then(data => {
           // Hiển thị thông báo từ server
           alert(data.message);
-          console.log(data.message);
-
-          // Load lại trang sau khi nhận được phản hồi
-          //location.reload();
+          // console.log(data.message);
         })
         .catch(error => {
           console.error('Có lỗi xảy ra:', error);
@@ -1576,6 +1561,7 @@
 
 
   </script>
+
   <script>
     let currentRow; // Biến toàn cục để lưu hàng hiện tại
 
