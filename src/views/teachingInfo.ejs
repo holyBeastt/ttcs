@@ -1318,11 +1318,10 @@
           // Điền tên gợi ý đã xử lý vào ô input
           input.value = processedName;
           if (input.id == 'filterBoMon') {
-            filterBoMon();
+            filterTable();
           }
           hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
         };
-
 
         suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
       });

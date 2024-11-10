@@ -385,7 +385,7 @@
       </div>
       <script>
         // Hàm lọc chung
-        function filterClasses() {
+        function filterTable() {
           const nameInput = document.getElementById("filterName").value.toLowerCase();
           const classInput = document.getElementById("filterClass").value.toLowerCase();
           const departmentInput = document.getElementById("filterKhoa").value.toLowerCase();
@@ -423,10 +423,10 @@
         }
 
         // Gọi hàm lọc khi có thay đổi trong các ô tìm kiếm
-        document.getElementById("filterName").addEventListener("input", filterClasses);
-        document.getElementById("filterClass").addEventListener("input", filterClasses);
-        document.getElementById("filterKhoa").addEventListener("input", filterClasses);
-        document.getElementById("filterBoMon").addEventListener("input", filterClasses);
+        document.getElementById("filterName").addEventListener("input", filterTable);
+        document.getElementById("filterClass").addEventListener("input", filterTable);
+        document.getElementById("filterKhoa").addEventListener("input", filterTable);
+        document.getElementById("filterBoMon").addEventListener("input", filterTable);
       </script>
       <div id="renderInfo" class="fixed-section">
         <table class="text-center" style="width: 100%">
@@ -1383,7 +1383,7 @@
           input.value = processedName;
           // filterBoMon();
           if (input.id == 'filterKhoa') {
-            filterKhoa();
+            filterTable();
           }
           hideSuggestionsKhoa(); // Ẩn gợi ý sau khi chọn
         };
@@ -1504,7 +1504,7 @@
           input.value = processedName;
           // filterBoMon();
           if (input.id == 'filterBoMon') {
-            filterBoMon();
+            filterTable();
           }
           hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
         };
