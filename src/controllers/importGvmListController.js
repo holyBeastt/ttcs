@@ -12,7 +12,7 @@ const getImportGvmList = (req, res) => {
 };
 
 // Cấu hình multer để lưu file tải lên trong thư mục 'uploads'
-const upload = multer({ dest: "uploads/" });
+//const upload = multer({ dest: "uploads/" });
 
 // Đường dẫn đến thư mục cha
 const parentDir = path.join(__dirname, "..");
@@ -20,7 +20,9 @@ const p = path.join(parentDir, "..");
 
 let duLieu;
 const convertExcelToJSON = (req, res) => {
-  const filePath = path.join(p, "/uploads", req.file.filename);
+  console.log("parent = ", parentDir);
+  console.log("p = ", p);
+  const filePath = path.join(p, "uploads", req.file.filename);
 
   // Đọc file Excel
   readXlsxFile(filePath)

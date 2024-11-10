@@ -1318,11 +1318,10 @@
           // Điền tên gợi ý đã xử lý vào ô input
           input.value = processedName;
           if (input.id == 'filterBoMon') {
-            filterBoMon();
+            filterTable();
           }
           hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
         };
-
 
         suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
       });
@@ -1513,7 +1512,6 @@
     // Hàm đẩy dữ liệu lên server
     function submitData() {
 
-      alert("gà")
       // gọi hàm này để lưu vào local storage trước
       updateLocalTable();
 
@@ -1615,8 +1613,6 @@
         // alert(id2);
         // Kiểm tra ID có tồn tại
         if (id) {
-          alert("gà")
-          debugger;
 
           // Gửi dữ liệu đến API để lưu vào CSDL
           try {
