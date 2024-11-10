@@ -431,6 +431,7 @@
               if (!data || data.length === 0) {
                 throw new Error("Dữ liệu trả về trống");
               }
+              console.log('dữ liệu thô từ server : ', data);
 
               // Tạo bảng HTML từ dữ liệu JSON, bỏ qua cột "Ghi chú"
               let tableHtml =
@@ -438,7 +439,7 @@
 
               // Lấy tiêu đề từ đối tượng JSON đầu tiên (trừ "Ghi chú")
               const headers = Object.keys(data[0]).filter(
-                (key) => key !== "Ghi chú" || key !== "TT"
+                (key) => key !== "Ghi chú"
               );
               headers.forEach((header) => {
                 tableHtml += `<th>${header}</th>`;
@@ -462,6 +463,7 @@
 
               // Lưu dữ liệu JSON để sử dụng sau
               dataTam = data; // Lưu vào biến toàn cục
+              // console.log('dữ liệu bảng : ', dataTam);
             })
             .catch((error) => {
               document.getElementById("uploadStatus").innerHTML = `
