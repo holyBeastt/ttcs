@@ -767,9 +767,37 @@ const updateBanHanh = async (req, res) => {
 //   return results;
 // };
 
+const validateAndConvertData = (data) => {
+  // Danh sách các khóa cần kiểu số
+  const requiredNumericKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "Số tiết lên lớp giờ HC", "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ", "Hệ số lớp đông", "QC"];
+
+  // Duyệt qua từng khóa và kiểm tra kiểu dữ liệu
+  requiredNumericKeys.forEach((key) => {
+    if (data[key] === undefined || data[key] === null || data[key].toString().trim() === "") {
+      // Nếu giá trị rỗng hoặc chỉ chứa khoảng trắng, đặt thành 0
+      data[key] = 0;
+    } else if (typeof data[key] === "string") {
+      // Nếu là chuỗi, thử chuyển sang số sau khi trim
+      const trimmedValue = data[key].trim();
+      const converted = parseFloat(trimmedValue);
+      if (!isNaN(converted)) {
+        data[key] = converted;
+      } else {
+        console.warn(`Warning: Key "${key}" không thể chuyển đổi thành số từ giá trị "${data[key]}"`);
+        data[key] = 0; // Đặt giá trị thành 0 nếu không thể chuyển đổi
+      }
+    }
+  });
+
+  return data;
+};
+
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
 
+  // validate lại dữ liệu đầu vào
+  const data = validateAndConvertData(jsonData);
+  console.log('dữ liệu đầu vào : ', data);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -785,12 +813,11 @@ const importTableTam = async (jsonData) => {
       HeSoT7CN, 
       SoSinhVien, 
       HeSoLopDong, 
-      QuyChuan, 
-      GhiChu
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      QuyChuan
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
-  const insertPromises = jsonData.map(async (item) => {
+  const insertPromises = data.map(async (item) => {
     const connection = await createPoolConnection();
     try {
       const values = [
@@ -807,7 +834,6 @@ const importTableTam = async (jsonData) => {
         item["Số SV"],
         item["Hệ số lớp đông"],
         item["QC"],
-        item["Ghi chú"],
       ];
 
       await connection.query(query, values);
