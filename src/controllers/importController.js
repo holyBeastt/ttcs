@@ -2345,6 +2345,9 @@ const insertGiangDay = async (req, res) => {
           let id_Gvm = 1;
           let id_User = 1;
 
+          // Tạo giá trị cho Mã Học Phần
+          const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
+
           // Lấy id_Gvm khi giảng viên mới giảng
           id_Gvm = await getGvmId(gv1[0]);
 
@@ -2376,7 +2379,7 @@ const insertGiangDay = async (req, res) => {
             QuyChuan,
             KiHoc,
             NamHoc,
-            MaHocPhan,
+            maHocPhan,
             TenLop,
             Dot,
           ];
@@ -2478,6 +2481,9 @@ const insertGiangDay2 = async (req, res) => {
           let id_Gvm = 1;
           let id_User = 1;
 
+          // Tạo giá trị cho Mã Học Phần
+          const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
+
           id_User = await getNhanvienId(gv1[0]);
 
           const DaLuu = 1;
@@ -2507,7 +2513,7 @@ const insertGiangDay2 = async (req, res) => {
             QuyChuan,
             KiHoc,
             NamHoc,
-            MaHocPhan,
+            maHocPhan,
             TenLop,
             Dot,
           ];
