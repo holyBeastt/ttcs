@@ -23,10 +23,11 @@ const getClassInfoGvm = async (req, res) => {
     ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen;
     `;
   } else {
-    query = `SELECT * 
+    query = `
+    SELECT * 
     FROM quychuan 
     JOIN gvmoi ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen
-    WHERE MaHocPhan LIKE '${MaPhongBan}%'`;
+    WHERE MaPhongBan LIKE '%${MaPhongBan}%'`;
   }
 
   try {

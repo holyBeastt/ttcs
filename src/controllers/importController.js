@@ -4,6 +4,7 @@ require("dotenv").config();
 const path = require("path");
 const connection = require("../controllers/connectDB");
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 const { json, query } = require("express");
 const gvms = require("../services/gvmServices");
 const nhanviens = require("../services/nhanvienServices");
@@ -1436,7 +1437,6 @@ const deleteFile = async (req, res) => {
   }
 };
 
-
 // const updateChecked = async (req, res) => {
 //   const role = req.session.role;
 
@@ -2171,24 +2171,6 @@ const updateAllTeachingInfo = async (req, res) => {
   const { dot, ki, namHoc } = req.body;
   console.log("Nhận dữ liệu từ client:", dot, ki, namHoc);
 
-  // const query2 = `
-  // SELECT
-  //     qc.*,
-  //     gvmoi.*,
-  //     SUM(qc.QuyChuan) AS TongSoTiet,
-  //     MIN(qc.NgayBatDau) AS NgayBatDau,
-  //     MAX(qc.NgayKetThuc) AS NgayKetThuc
-  // FROM
-  //     quychuan qc
-  // JOIN
-  //     gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-  // WHERE
-  //     qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-  // GROUP BY
-  //     gvmoi.HoTen;
-
-  // `;
-
   const query2 = `
     SELECT
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
@@ -2214,9 +2196,7 @@ const updateAllTeachingInfo = async (req, res) => {
   const value = [dot, ki, namHoc];
 
   try {
-    const [dataJoin] = await connection.promise().query(query2, value);
-
-    console.log("data = ", dataJoin);
+    const [dataJoin] = await pool.query(query2, value);
 
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
@@ -2226,13 +2206,6 @@ const updateAllTeachingInfo = async (req, res) => {
         message: "Không có dữ liệu để chèn.",
       };
     }
-
-    //const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
-
-    // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
 
     const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
@@ -2281,8 +2254,6 @@ const updateAllTeachingInfo = async (req, res) => {
           } = item;
 
           req.session.tmp++;
-
-          console.log("đã vào");
 
           const DanhXung = getDanhXung(GioiTinh);
           // const getDanhXung = (GioiTinh) => {
@@ -2348,7 +2319,7 @@ const updateAllTeachingInfo = async (req, res) => {
     `;
 
     // Thực hiện câu lệnh chèn
-    await connection.promise().query(queryInsert, [insertValues]);
+    await pool.query(queryInsert, [insertValues]);
 
     // Trả về kết quả thành công
     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
@@ -2378,7 +2349,7 @@ const insertGiangDay = async (req, res) => {
   const value = [dot, ki, namHoc];
 
   try {
-    const [dataJoin] = await connection.promise().query(query2, value);
+    const [dataJoin] = await pool.query(query2, value);
 
     // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
 
@@ -2438,7 +2409,7 @@ const insertGiangDay = async (req, res) => {
           const DaLuu = 1;
           // Thêm Đã lưu = 1 vào quy chuẩn
           const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          await connection.promise().query(updateQuery, [DaLuu, ID]);
+          await pool.query(updateQuery, [DaLuu, ID]);
 
           // Kiểm tra môn học đã tồn tại chưa
           const exists = await hocPhanDaTonTai(TenHocPhan);
@@ -2484,7 +2455,7 @@ const insertGiangDay = async (req, res) => {
     `;
 
     // Thực hiện câu lệnh chèn
-    await connection.promise().query(queryInsert, [insertValues]);
+    await pool.query(queryInsert, [insertValues]);
     // Trả về kết quả thành công
     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
   } catch (err) {
@@ -2512,7 +2483,7 @@ const insertGiangDay2 = async (req, res) => {
 
   const value = [dot, ki, namHoc];
   try {
-    const [dataJoin] = await connection.promise().query(query2, value);
+    const [dataJoin] = await pool.query(query2, value);
 
     // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
 
@@ -2573,7 +2544,7 @@ const insertGiangDay2 = async (req, res) => {
           const DaLuu = 1;
           // Thêm Đã lưu = 1 vào quy chuẩn
           const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          await connection.promise().query(updateQuery, [DaLuu, ID]);
+          await pool.query(updateQuery, [DaLuu, ID]);
 
           const exists = await hocPhanDaTonTai(TenHocPhan);
           console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
@@ -2618,7 +2589,7 @@ const insertGiangDay2 = async (req, res) => {
     `;
 
     // Thực hiện câu lệnh chèn
-    await connection.promise().query(queryInsert, [insertValues]);
+    await pool.query(queryInsert, [insertValues]);
     // Trả về kết quả thành công
     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
   } catch (err) {
