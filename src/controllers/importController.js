@@ -768,38 +768,123 @@ const updateBanHanh = async (req, res) => {
 //   return results;
 // };
 
+// validate version 1
+// const validateAndConvertData = (data) => {
+//   // Danh sách các khóa cần chuyển đổi thành số nguyên
+//   const integerKeys = [
+//     "Số TC",
+//     "Số tiết theo CTĐT",
+//     "Số SV",
+//     "QC"
+//   ];
+
+//   // Danh sách các khóa cần chuyển đổi thành số thực
+//   const floatKeys = [
+//     "Số tiết lên lớp giờ HC",
+//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     "Hệ số lớp đông"
+//   ];
+
+//   // Hàm kiểm tra và chuyển đổi số nguyên
+//   integerKeys.forEach((key) => {
+//     if (
+//       data[key] === undefined ||
+//       data[key] === null ||
+//       data[key].toString().trim() === ""
+//     ) {
+//       data[key] = 0; // Đặt giá trị mặc định thành 0 nếu không hợp lệ
+//     } else if (typeof data[key] === "string") {
+//       // Nếu là chuỗi, thử chuyển sang số nguyên
+//       const trimmedValue = data[key].trim();
+//       const converted = parseInt(trimmedValue, 10);
+//       if (!isNaN(converted)) {
+//         data[key] = converted;
+//       } else {
+//         console.warn(
+//           `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
+//         );
+//         data[key] = 0;
+//       }
+//     }
+//   });
+
+//   // Hàm kiểm tra và chuyển đổi số thực
+//   floatKeys.forEach((key) => {
+//     if (
+//       data[key] === undefined ||
+//       data[key] === null ||
+//       data[key].toString().trim() === ""
+//     ) {
+//       data[key] = 0.0; // Đặt giá trị mặc định thành 0.0 nếu không hợp lệ
+//     } else if (typeof data[key] === "string") {
+//       // Nếu là chuỗi, thử chuyển sang số thực
+//       const trimmedValue = data[key].trim();
+//       const converted = parseFloat(trimmedValue);
+//       if (!isNaN(converted)) {
+//         data[key] = converted;
+//       } else {
+//         console.warn(
+//           `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
+//         );
+//         data[key] = 0.0;
+//       }
+//     }
+//   });
+
+//   return data;
+// };
+
+// validate thêm trường hợp nếu như không tồn tại key trong dữ liệu đầu vào
 const validateAndConvertData = (data) => {
-  // Danh sách các khóa cần kiểu số
-  const requiredNumericKeys = [
-    "Số TC",
-    "Số tiết theo CTĐT",
-    "Số SV",
+  // Danh sách các khóa cần chuyển đổi thành số nguyên
+  const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "QC"];
+
+  // Danh sách các khóa cần chuyển đổi thành số thực
+  const floatKeys = [
     "Số tiết lên lớp giờ HC",
     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-    "Hệ số lớp đông",
-    "QC",
+    "Hệ số lớp đông"
   ];
 
-  // Duyệt qua từng khóa và kiểm tra kiểu dữ liệu
-  requiredNumericKeys.forEach((key) => {
-    if (
-      data[key] === undefined ||
-      data[key] === null ||
-      data[key].toString().trim() === ""
-    ) {
-      // Nếu giá trị rỗng hoặc chỉ chứa khoảng trắng, đặt thành 0
-      data[key] = 0;
+  const sanitizeValue = (value) => {
+    return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
+  };
+
+  // Đảm bảo tất cả các khóa yêu cầu đều có trong đối tượng `data`
+  integerKeys.forEach((key) => {
+    if (!(key in data)) {
+      data[key] = 0; // Đặt giá trị mặc định nếu khóa không tồn tại
+    } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
+      data[key] = 0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
     } else if (typeof data[key] === "string") {
-      // Nếu là chuỗi, thử chuyển sang số sau khi trim
-      const trimmedValue = data[key].trim();
+      const trimmedValue = sanitizeValue(data[key].trim());
+      const converted = parseInt(trimmedValue, 10);
+      if (!isNaN(converted)) {
+        data[key] = converted;
+      } else {
+        console.warn(
+          `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
+        );
+        data[key] = 0;
+      }
+    }
+  });
+
+  floatKeys.forEach((key) => {
+    if (!(key in data)) {
+      data[key] = 0.0; // Đặt giá trị mặc định nếu khóa không tồn tại
+    } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
+      data[key] = 0.0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
+    } else if (typeof data[key] === "string") {
+      const trimmedValue = sanitizeValue(data[key].trim());
       const converted = parseFloat(trimmedValue);
       if (!isNaN(converted)) {
         data[key] = converted;
       } else {
         console.warn(
-          `Warning: Key "${key}" không thể chuyển đổi thành số từ giá trị "${data[key]}"`
+          `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
         );
-        data[key] = 0; // Đặt giá trị thành 0 nếu không thể chuyển đổi
+        data[key] = 0.0;
       }
     }
   });
