@@ -1310,7 +1310,7 @@
 
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    const phongBanData = <% - JSON.stringify(phongBanList) %>
+    const phongBanData = <%- JSON.stringify(phongBanList) %>
       localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
 
