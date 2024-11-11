@@ -835,6 +835,66 @@ const updateBanHanh = async (req, res) => {
 // };
 
 // validate thêm trường hợp nếu như không tồn tại key trong dữ liệu đầu vào
+// const validateAndConvertData = (data) => {
+//   // Danh sách các khóa cần chuyển đổi thành số nguyên
+//   const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV"];
+
+//   // Danh sách các khóa cần chuyển đổi thành số thực
+//   const floatKeys = [
+//     "Số tiết lên lớp giờ HC",
+//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     "Hệ số lớp đông",
+//     "QC"
+//   ];
+
+//   const sanitizeValue = (value) => {
+//     return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
+//   };
+
+//   // Đảm bảo tất cả các khóa yêu cầu đều có trong đối tượng `data`
+//   integerKeys.forEach((key) => {
+//     if (!(key in data)) {
+//       data[key] = 0; // Đặt giá trị mặc định nếu khóa không tồn tại
+//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
+//       data[key] = 0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
+//     } else if (typeof data[key] === "string") {
+//       const trimmedValue = sanitizeValue(data[key].trim());
+//       const converted = parseInt(trimmedValue, 10);
+//       if (!isNaN(converted)) {
+//         data[key] = converted;
+//       } else {
+//         console.warn(
+//           `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
+//         );
+//         data[key] = 0;
+//       }
+//     }
+//   });
+
+//   floatKeys.forEach((key) => {
+//     if (!(key in data)) {
+//       data[key] = 0.0; // Đặt giá trị mặc định nếu khóa không tồn tại
+//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
+//       data[key] = 0.0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
+//     } else if (typeof data[key] === "string") {
+//       const trimmedValue = sanitizeValue(data[key].trim());
+//       const converted = parseFloat(trimmedValue);
+//       if (!isNaN(converted)) {
+//         data[key] = converted;
+//       } else {
+//         console.warn(
+//           `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
+//         );
+//         data[key] = 0.0;
+//       }
+//     }
+//   });
+
+//   console.log("Dữ liệu sau khi validate : ", data);
+//   return data;
+// };
+
+// validate ver3 : chuyển thành includes các key, key QC xử lí 2 TH
 const validateAndConvertData = (data) => {
   // Danh sách các khóa cần chuyển đổi thành số nguyên
   const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "QC"];
@@ -846,11 +906,30 @@ const validateAndConvertData = (data) => {
     "Hệ số lớp đông"
   ];
 
+  // Danh sách các khóa cần có mặc định nếu thiếu
+  const requiredKeys = [
+    "Số tiết theo CTĐT",
+    "Số TC",
+    "Số SV",
+    "QC",
+    "Số tiết lên lớp giờ HC",
+    "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+    "Hệ số lớp đông"
+  ];
+
   const sanitizeValue = (value) => {
     return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
   };
 
-  // Đảm bảo tất cả các khóa yêu cầu đều có trong đối tượng `data`
+  // Đảm bảo các khóa yêu cầu có trong data và gán giá trị mặc định 0 nếu thiếu
+  requiredKeys.forEach((key) => {
+    key = sanitizeValue(key)
+    if (!(key in data)) {
+      data[key] = 0;  // Nếu thiếu khóa, thêm vào và gán giá trị mặc định là 0
+    }
+  });
+
+  // Đảm bảo tất cả các khóa cần số nguyên đều có trong đối tượng `data`
   integerKeys.forEach((key) => {
     if (!(key in data)) {
       data[key] = 0; // Đặt giá trị mặc định nếu khóa không tồn tại
@@ -870,6 +949,7 @@ const validateAndConvertData = (data) => {
     }
   });
 
+  // Đảm bảo tất cả các khóa cần số thực đều có trong đối tượng `data`
   floatKeys.forEach((key) => {
     if (!(key in data)) {
       data[key] = 0.0; // Đặt giá trị mặc định nếu khóa không tồn tại
@@ -889,15 +969,18 @@ const validateAndConvertData = (data) => {
     }
   });
 
+  console.log("Dữ liệu sau khi validate : ", data);
   return data;
 };
+
+
+
 
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
 
   // validate lại dữ liệu đầu vào
   const data = validateAndConvertData(jsonData);
-  console.log("dữ liệu đầu vào : ", data);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (

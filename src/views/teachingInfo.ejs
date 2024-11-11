@@ -872,12 +872,12 @@
           tableRow.appendChild(giaoVienGiangDayTd);
           giaoVienGiangDayInput.onclick = () => {
             const moiGiang = inviteCheckbox.checked;
-            showSuggestions(giaoVienGiangDayInput, moiGiang, row.id);
+            showSuggestions(giaoVienGiangDayInput, moiGiang, row.ID);
           };
 
           giaoVienGiangDayInput.oninput = () => {
             const moiGiang = inviteCheckbox.checked;
-            showSuggestions(giaoVienGiangDayInput, moiGiang, row.id);
+            showSuggestions(giaoVienGiangDayInput, moiGiang, row.ID);
           };
 
           giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
@@ -1091,9 +1091,9 @@
       // Hàm hiển thị gợi ý đã được cập nhật
       function showSuggestions(input, moiGiang, id) {
         const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
-        console.log('Dữ liệu bộ môn theo giảng viên :', boMonTheoGiangVien);
+        // console.log('Dữ liệu bộ môn theo giảng viên :', boMonTheoGiangVien);
 
-        const bangDuLieu = JSON.parse(localStorage.getItem("tableData")) || [];
+        const bangDuLieu = globalData;
 
         const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
         hideSuggestions(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý
@@ -1149,8 +1149,8 @@
           suggestionItem.onclick = function () {
             // input.value = name; // Điền tên gợi ý vào ô input
 
-            // Tìm kiếm trong bangDuLieu
-            const itemIndex = bangDuLieu.findIndex(item => item.id === id); // Tìm chỉ số của item trong bangDuLieu
+            // Tìm kiếm trong bangDuLieum, so sánh id của input truyền vào (id) với ID trong bảng ( ID )
+            const itemIndex = bangDuLieu.findIndex(item => item.ID === id); // Tìm chỉ số của item trong bangDuLieu
 
             // Lấy tên giảng viên từ gợi ý đã chọn
             const selectedName = name.split(" - ")[0]; // Tách tên ra khỏi mã phòng ban
