@@ -230,7 +230,7 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
               </div>
             </div>
           </div>
@@ -521,7 +521,7 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+        body: JSON.stringify({ maPhongBan2 }) // Gửi MaPhongBan trong thân yêu cầu
       });
 
       if (!response.ok) {
@@ -659,7 +659,7 @@
 
       const data = await response.json(); // Chuyển đổi dữ liệu JSON
       localStorage.setItem('boMonTheoGiangVien', JSON.stringify(data));
-      const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
+      const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || []
       console.log('Giảng viên - bộ môn : ', boMonTheoGiangVien);
       // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
 
@@ -681,7 +681,6 @@
       }
       // alert(MaPhongBan)
       const data = await response.json(); // Chuyển đổi dữ liệu JSON
-      localStorage.setItem('boMon', JSON.stringify(data));
       // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
 
     } catch (error) {

@@ -2985,6 +2985,7 @@ const insertGiangDay = async (req, res) => {
             maHocPhan,
             TenLop,
             Dot,
+            Khoa,
           ];
         })
     );
@@ -2998,7 +2999,7 @@ const insertGiangDay = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
       ) VALUES ?;
     `;
 
@@ -3119,6 +3120,7 @@ const insertGiangDay2 = async (req, res) => {
             maHocPhan,
             TenLop,
             Dot,
+            Khoa,
           ];
         })
     );
@@ -3132,7 +3134,7 @@ const insertGiangDay2 = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
       ) VALUES ?;
     `;
 
