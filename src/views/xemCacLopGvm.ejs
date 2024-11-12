@@ -464,6 +464,7 @@
 
 <!-- auto fill  -->
 <script>
+
   var boMon = [];
   async function loadData() {
     const MaPhongBan = localStorage.getItem("MaPhongBan");
@@ -482,8 +483,9 @@
       }
 
       const data = await response.json(); // Chuyển đổi dữ liệu JSON
-      localStorage.setItem('boMon', JSON.stringify(data));
+      boMon = data;
       // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+
 
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
@@ -513,7 +515,6 @@
       console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
     }
 
-    const MaPhongBan = localStorage.getItem("MaPhongBan");
     try {
       const response = await fetch('/bo-mon', {
         method: 'POST', // Thay đổi thành POST
