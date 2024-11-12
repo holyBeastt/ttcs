@@ -348,8 +348,11 @@ button#render:hover::before,
 
 #combobox-dot,
 #combobox-ki,
+#HocKi,
 #NamHoc,
 #MaPhongBan,
+#SoTietCTDT,
+#SoTietKT,
 #departmentFilter {
   width: 150px;
   color: #5476f0;
