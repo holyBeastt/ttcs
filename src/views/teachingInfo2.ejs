@@ -582,6 +582,31 @@
     }
 
     async function loadData() {
+
+      const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+    try {
+      const response = await fetch('/bo-mon', {
+        method: 'POST', // Thay đổi thành POST
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json(); // Chuyển đổi dữ liệu JSON
+      localStorage.setItem('boMon', JSON.stringify(data));
+      // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+    }
+
+
       try {
         // Lấy giá trị từ các combobox
         const dotValue = document.getElementById("combobox-dot").value;
@@ -642,7 +667,7 @@
         console.error("Đã có lỗi xảy ra:", error);
       }
     }
-
+    
     // Hàm render bảng
     function renderTable(data) {
       const tableBody = document.getElementById("tableBody");

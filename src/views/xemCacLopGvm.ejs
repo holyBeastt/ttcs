@@ -465,6 +465,30 @@
 <!-- auto fill  -->
 <script>
   async function loadData() {
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+    try {
+      const response = await fetch('/bo-mon', {
+        method: 'POST', // Thay đổi thành POST
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json(); // Chuyển đổi dữ liệu JSON
+      localStorage.setItem('boMon', JSON.stringify(data));
+      // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+    }
+
+
     try {
       const response = await fetch('/bo-mon-theo-gv', {
         method: 'GET', // Thay đổi thành POST
@@ -490,6 +514,57 @@
   }
   loadData();
 </script>
+
+<!-- <script>
+  async function loadData() {
+    try {
+      const response = await fetch('/bo-mon-theo-gv', {
+        method: 'GET', // Thay đổi thành POST
+        // headers: {
+        //   'Content-Type': 'application/json'
+        // },
+        // body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+      });
+
+      if (!response.ok) {
+        throw new Error(Error: ${response.status} - ${response.statusText});
+      }
+
+      const data = await response.json(); // Chuyển đổi dữ liệu JSON
+      localStorage.setItem('boMonTheoGiangVien', JSON.stringify(data));
+      const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
+      console.log(boMonTheoGiangVien);
+      // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+    }
+
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+    try {
+      const response = await fetch('/bo-mon', {
+        method: 'POST', // Thay đổi thành POST
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+      });
+
+      if (!response.ok) {
+        throw new Error(Error: ${response.status} - ${response.statusText});
+      }
+
+      const data = await response.json(); // Chuyển đổi dữ liệu JSON
+      localStorage.setItem('boMon', JSON.stringify(data));
+      // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+      console.log('Dữ liệu bộ môn : ', data)
+
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+    }
+  }
+  loadData();
+</script> -->
 
 <script>
   $(document).ready(function () {

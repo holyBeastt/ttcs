@@ -545,7 +545,6 @@
       document.getElementById("changePasswordLink").addEventListener("click", function (event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
         const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-        alert(tenDangNhap);
 
         if (tenDangNhap) {
           // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
