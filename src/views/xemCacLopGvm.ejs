@@ -230,7 +230,7 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
               </div>
             </div>
           </div>
@@ -464,6 +464,7 @@
 
 <!-- auto fill  -->
 <script>
+
   var boMon = [];
   async function loadData() {
     const MaPhongBan = localStorage.getItem("MaPhongBan");
@@ -482,8 +483,9 @@
       }
 
       const data = await response.json(); // Chuyển đổi dữ liệu JSON
-      localStorage.setItem('boMon', JSON.stringify(data));
+      boMon = data;
       // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+
 
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
@@ -512,8 +514,6 @@
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
     }
-
-    const MaPhongBan2 = localStorage.getItem("MaPhongBan");
 
     try {
       const response = await fetch('/bo-mon', {
