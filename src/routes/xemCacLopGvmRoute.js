@@ -7,8 +7,13 @@ const path = require("path");
 var appRoot = require("app-root-path");
 const router = express.Router();
 
-const { getClassInfoGvm } = require("../controllers/xemCacLopGvmController");
+const {
+  getClassInfoGvm,
+  updateQCGvm,
+} = require("../controllers/xemCacLopGvmController");
 
 router.get("/xemCacLopGvm", getClassInfoGvm);
+
+router.post("/check-teaching-gvm", updateQCGvm);
 
 module.exports = router;

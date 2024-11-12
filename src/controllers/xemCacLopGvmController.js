@@ -202,4 +202,142 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
   }
 };
 
-module.exports = { getClassInfoGvm };
+const updateQCGvm = async (req, res) => {
+  const isKhoa = req.session.isKhoa;
+  console.log("vào uopdtea");
+  console.log("isKhoa = ", isKhoa);
+  const tableName = process.env.DB_TABLE_QC;
+  const jsonData = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ createPoolConnection
+    connection = await createPoolConnection();
+
+    // Duyệt qua từng phần tử trong jsonData
+    for (let item of jsonData) {
+      const {
+        ID,
+        Khoa,
+        Dot,
+        KiHoc,
+        NamHoc,
+        GiaoVien,
+        GiaoVienGiangDay,
+        MoiGiang,
+        SoTinChi,
+        MaHocPhan,
+        LopHocPhan,
+        TenLop,
+        BoMon,
+        LL,
+        SoTietCTDT,
+        HeSoT7CN,
+        SoSinhVien,
+        HeSoLopDong,
+        QuyChuan,
+        GhiChu,
+        KhoaDuyet,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
+        NgayBatDau,
+        NgayKetThuc,
+      } = item;
+
+      if (KhoaDuyet == 1) {
+        if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
+          return res.status(200).json({
+            message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên`,
+          });
+        }
+      }
+
+      let updateQuery, updateValues;
+      if (isKhoa == 1) {
+        // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+        updateQuery = `
+      UPDATE ${tableName}
+      SET 
+        Khoa = ?, 
+        Dot = ?, 
+        KiHoc = ?, 
+        NamHoc = ?, 
+        GiaoVien = ?, 
+        GiaoVienGiangDay = ?, 
+        MoiGiang = ?, 
+        SoTinChi = ?, 
+        MaHocPhan = ?, 
+        LopHocPhan = ?, 
+        TenLop = ?, 
+        BoMon = ?, 
+        LL = ?, 
+        SoTietCTDT = ?, 
+        HeSoT7CN = ?, 
+        SoSinhVien = ?, 
+        HeSoLopDong = ?, 
+        QuyChuan = ?, 
+        GhiChu = ?,
+        KhoaDuyet = ?,
+        DaoTaoDuyet = ?,
+        TaiChinhDuyet = ?,
+        NgayBatDau = ?,
+        NgayKetThuc = ?
+      WHERE ID = ?
+    `;
+
+        updateValues = [
+          Khoa,
+          Dot,
+          KiHoc,
+          NamHoc,
+          GiaoVien,
+          GiaoVienGiangDay,
+          MoiGiang,
+          SoTinChi,
+          MaHocPhan,
+          LopHocPhan,
+          TenLop,
+          BoMon,
+          LL,
+          SoTietCTDT,
+          HeSoT7CN,
+          SoSinhVien,
+          HeSoLopDong,
+          QuyChuan,
+          GhiChu,
+          KhoaDuyet,
+          DaoTaoDuyet,
+          TaiChinhDuyet,
+          NgayBatDau,
+          NgayKetThuc,
+          ID,
+        ];
+      } else {
+        console.log("tep");
+        // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+        updateQuery = `
+      UPDATE ${tableName}
+      SET 
+        KhoaDuyet = ?,
+        DaoTaoDuyet = ?,
+        TaiChinhDuyet = ?
+      WHERE ID = ?
+    `;
+
+        updateValues = [KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, ID];
+      }
+
+      await connection.query(updateQuery, updateValues);
+    }
+
+    res.status(200).json({ message: "Cập nhật thành công" });
+  } catch (error) {
+    console.error("Lỗi cập nhật:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
+module.exports = { getClassInfoGvm, updateQCGvm };
