@@ -804,107 +804,102 @@ const updateBanHanh = async (req, res) => {
 // };
 
 
-// // validate ver4 
-// const validateAndConvertData = (data) => {
-//   // Định nghĩa các key cần kiểm tra và chuyển đổi
-//   const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV"];
-//   const floatKeys = [
-//     "Số tiết lên lớp giờ HC",
-//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-//     "Hệ số lớp đông"
-//   ];
+//  validate dữ liệu file quy chuẩn
+const validateAndConvertData = (data) => {
+  // Định nghĩa các key cần kiểm tra và chuyển đổi
+  const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "Số tiết lên lớp giờ HC"];
+  const floatKeys = [
+    "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+    "Hệ số lớp đông"
+  ];
 
-//   // Các key bắt buộc phải có trong dữ liệu
-//   const requiredKeys = [
-//     "Số tiết theo CTĐT",
-//     "Số TC",
-//     "Số SV",
-//     "QC",
-//     "Số tiết lên lớp giờ HC",
-//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-//     "Hệ số lớp đông"
-//   ];
+  // Hàm chuẩn hóa giá trị (loại bỏ khoảng trắng)
+  const sanitizeValue = (value) => {
+    return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng trong giá trị
+  };
 
-//   // Hàm chuẩn hóa giá trị (loại bỏ khoảng trắng)
-//   const sanitizeValue = (value) => {
-//     return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
-//   };
+  // Hàm chuẩn hóa key để loại bỏ khoảng trắng thừa
+  const normalizeKey = (key) => {
+    return key.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng trong key
+  };
 
-//   // Kiểm tra và bổ sung key thiếu vào đối tượng `data`
-//   requiredKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       console.log(`Key "${key}" thiếu, sẽ thêm vào với giá trị mặc định.`);
-//       data[key] = 0; // Gán giá trị mặc định nếu key thiếu
-//     } else {
-//       console.log(`Key "${key}" có mặt, chuẩn hóa giá trị.`);
-//       data[key] = sanitizeValue(data[key].toString().trim()); // Chuẩn hóa nếu key tồn tại
-//     }
-//   });
+  // Hàm tìm kiếm key chính xác trong data dựa vào key đã chuẩn hóa
+  const findKey = (data, targetKey) => {
+    const normalizedTarget = normalizeKey(targetKey);
+    for (const key in data) {
+      if (normalizeKey(key) === normalizedTarget) {
+        return key; // Trả về key thực tế trong data
+      }
+    }
+    return null; // Trả về null nếu không tìm thấy
+  };
 
-//   // Chuyển đổi các key thành số nguyên
-//   integerKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0; // Gán mặc định nếu thiếu
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0; // Gán mặc định nếu giá trị rỗng
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseInt(trimmedValue, 10);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(`Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`);
-//         data[key] = 0; // Gán giá trị mặc định nếu không thể chuyển đổi
-//       }
-//     }
-//   });
+  // Chuyển đổi các key thành số nguyên
+  integerKeys.forEach((key) => {
+    const actualKey = findKey(data, key);
+    if (actualKey !== null) {
+      if (data[actualKey] === undefined || data[actualKey] === null || sanitizeValue(data[actualKey].toString()) === "") {
+        data[actualKey] = 0; // Gán mặc định nếu giá trị rỗng
+      } else if (typeof data[actualKey] === "string") {
+        const trimmedValue = sanitizeValue(data[actualKey].trim());
+        const converted = parseInt(trimmedValue, 10);
+        if (!isNaN(converted)) {
+          data[actualKey] = converted;
+        } else {
+          console.warn(`Warning: Key "${actualKey}" không thể chuyển đổi thành số nguyên từ giá trị "${data[actualKey]}"`);
+          data[actualKey] = 0; // Gán giá trị mặc định nếu không thể chuyển đổi
+        }
+      }
+    }
+  });
 
-//   // Chuyển đổi các key thành số thực (float)
-//   floatKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0.0; // Gán mặc định nếu thiếu
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0.0; // Gán mặc định nếu giá trị rỗng
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseFloat(trimmedValue);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(`Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`);
-//         data[key] = 0.0; // Gán giá trị mặc định nếu không thể chuyển đổi
-//       }
-//     }
-//   });
+  // Chuyển đổi các key thành số thực (float)
+  floatKeys.forEach((key) => {
+    const actualKey = findKey(data, key);
+    if (actualKey !== null) {
+      if (data[actualKey] === undefined || data[actualKey] === null || sanitizeValue(data[actualKey].toString()) === "") {
+        data[actualKey] = 0.0; // Gán mặc định nếu giá trị rỗng
+      } else if (typeof data[actualKey] === "string") {
+        const trimmedValue = sanitizeValue(data[actualKey].trim());
+        const converted = parseFloat(trimmedValue);
+        if (!isNaN(converted)) {
+          data[actualKey] = converted;
+        } else {
+          console.warn(`Warning: Key "${actualKey}" không thể chuyển đổi thành số thực từ giá trị "${data[actualKey]}"`);
+          data[actualKey] = 0.0; // Gán giá trị mặc định nếu không thể chuyển đổi
+        }
+      }
+    }
+  });
 
-//   // Xử lý riêng cho QC (có thể là số nguyên hoặc số thực)
-//   if ("QC" in data) {
-//     const qcValue = sanitizeValue(data["QC"].toString().trim());
-//     const intConverted = parseInt(qcValue, 10);
-//     const floatConverted = parseFloat(qcValue);
+  // Xử lý riêng cho QC (có thể là số nguyên hoặc số thực)
+  if ("QC" in data) {
+    const qcValue = sanitizeValue(data["QC"].toString().trim());
+    const intConverted = parseInt(qcValue, 10);
+    const floatConverted = parseFloat(qcValue);
 
-//     if (!isNaN(intConverted) && intConverted == floatConverted) {
-//       data["QC"] = intConverted; // QC là số nguyên
-//     } else if (!isNaN(floatConverted)) {
-//       data["QC"] = floatConverted; // QC là số thực
-//     } else {
-//       console.warn(`Warning: Key "QC" không thể chuyển đổi thành số từ giá trị "${data["QC"]}"`);
-//       data["QC"] = 0; // Gán mặc định nếu không hợp lệ
-//     }
-//   } else {
-//     data["QC"] = 0; // Nếu không có QC, gán mặc định
-//   }
+    if (!isNaN(intConverted) && intConverted == floatConverted) {
+      data["QC"] = intConverted; // QC là số nguyên
+    } else if (!isNaN(floatConverted)) {
+      data["QC"] = floatConverted; // QC là số thực
+    } else {
+      console.warn(`Warning: Key "QC" không thể chuyển đổi thành số từ giá trị "${data["QC"]}"`);
+      data["QC"] = 0; // Gán mặc định nếu không hợp lệ
+    }
+  }
 
-//   // console.log("Dữ liệu sau khi validate và chuyển đổi: ", data);
-//   return data;
-// };
+  return data;
+};
+
+
 
 
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
 
   // validate lại dữ liệu đầu vào
-  // const data = validateAndConvertData(jsonData);
+  const data = validateAndConvertData(jsonData);
+  console.log('dữ liệu sau khi validate : ', data);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -924,7 +919,7 @@ const importTableTam = async (jsonData) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
-  const insertPromises = jsonData.map(async (item) => {
+  const insertPromises = data.map(async (item) => {
     const connection = await createPoolConnection();
     try {
       const values = [
