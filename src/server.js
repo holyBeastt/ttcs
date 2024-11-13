@@ -29,6 +29,7 @@ const phuLucHDRoute = require("./routes/phuLucHDRoute");
 const exportHDRoute = require("./routes/exportHDRoute");
 const logRoute = require("./routes/logRoute");
 const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
+const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -84,6 +85,7 @@ app.use("/", exportHDRoute);
 app.use("/", logRoute);
 app.use("/", xemCacLopGvmRoute);
 app.use("/", xemCacLopMoiRoute);
+app.use("/", vuotGioAddClassRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);

@@ -279,7 +279,7 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                <a class="nav-link" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>
               </div>
             </div>
           </div>
@@ -575,6 +575,7 @@
     let nameGv = []; // Biến toàn cục để lưu tất cả tên giảng viên
     let nameGvm = []; // Biến toàn cục để lưu tên giảng viên theo khoa
     let rs = [];
+    var boMon = [];
 
     //  Hàm khởi động ứng dụng
     function init() {
@@ -582,6 +583,30 @@
     }
 
     async function loadData() {
+
+      const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+      try {
+        const response = await fetch('/bo-mon', {
+          method: 'POST', // Thay đổi thành POST
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ MaPhongBan }) // Gửi MaPhongBan trong thân yêu cầu
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json(); // Chuyển đổi dữ liệu JSON
+        boMon = data;
+        console.log('Bộ môn : ', boMon)
+
+      } catch (error) {
+        console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+      }
+
       try {
         // Lấy giá trị từ các combobox
         const dotValue = document.getElementById("combobox-dot").value;
@@ -642,7 +667,7 @@
         console.error("Đã có lỗi xảy ra:", error);
       }
     }
-
+    
     // Hàm render bảng
     function renderTable(data) {
       const tableBody = document.getElementById("tableBody");
@@ -912,7 +937,7 @@
     }
 
     async function submitData2() {
-      
+
       // Lấy giá trị từ các combo box
       const dot = document.getElementById('combobox-dot').value;  // Giá trị từ combo box Đợt
       const ki = document.getElementById('combobox-ki').value;    // Giá trị từ combo box Kì
@@ -1310,7 +1335,7 @@
 
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    const phongBanData = <%- JSON.stringify(phongBanList) %>
+    const phongBanData = <% - JSON.stringify(phongBanList) %>
       localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
 
@@ -1460,7 +1485,6 @@
       let suggestions = []; // Khởi tạo mảng gợi ý
 
       // Lấy dữ liệu từ localStorage
-      const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
       console.log(boMon)
 
       suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);

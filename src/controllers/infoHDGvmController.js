@@ -6,14 +6,11 @@ const router = express.Router();
 const mysql = require("mysql2/promise");
 const xlsx = require("xlsx");
 const path = require("path"); // Thêm dòng này
-const fs = require('fs'); // Thêm dòng này
-
-
+const fs = require("fs"); // Thêm dòng này
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
 }
-
 
 const getGvm = async (req, res) => {
   try {
@@ -102,7 +99,6 @@ const exportHDGvmToExcel = async (req, res) => {
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/infoHDGvm';</script>"
       );
     }
-
 
     // Tạo workbook và worksheet
     const workbook = new ExcelJS.Workbook();
@@ -201,7 +197,6 @@ const exportHDGvmToExcel = async (req, res) => {
       });
     });
 
-   
     let fileName = `ThongTinHopDong_${namHoc}_Dot${dot}_Ki${ki}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
@@ -209,7 +204,7 @@ const exportHDGvmToExcel = async (req, res) => {
     fileName += ".xlsx";
 
     // Ghi file Excel
-    const filePath = path.join(__dirname, '../public/exports', fileName);
+    const filePath = path.join(__dirname, "../public/exports", fileName);
     await workbook.xlsx.writeFile(filePath);
 
     // Gửi file để download
@@ -221,7 +216,6 @@ const exportHDGvmToExcel = async (req, res) => {
       // Xóa file sau khi đã gửi
       fs.unlinkSync(filePath);
     });
-
   } catch (error) {
     console.error("Error exporting data:", error);
     return res.status(500).json({
@@ -338,7 +332,6 @@ const getHDGvmData = async (req, res) => {
     const ki = req.query.ki;
     const khoa = req.query.khoa;
 
-
     let query = `
     SELECT
       MIN(NgayBatDau) AS NgayBatDau,
@@ -364,21 +357,23 @@ const getHDGvmData = async (req, res) => {
       NamHoc = ? AND Dot = ? AND KiHoc = ?
   `;
 
-  const queryParams = [namHoc, dot, ki];
+    const queryParams = [namHoc, dot, ki];
 
-  // Thêm điều kiện lọc theo khoa nếu có
-  if (khoa && khoa !== 'ALL') {
-    query += ` AND MaPhongBan = ?`;
-    queryParams.push(khoa);
-  }
+    // Thêm điều kiện lọc theo khoa nếu có
+    if (khoa && khoa !== "ALL") {
+      query += ` AND MaPhongBan = ?`;
+      queryParams.push(khoa);
+    }
 
-  query += `
+    query += `
     GROUP BY
       HoTen, KiHoc, DanhXung, NgaySinh, CCCD, NoiCapCCCD, Email,
       MaSoThue, HocVi, ChucVu, HSL, DienThoai, STK, NganHang
   `;
 
-  const [rows] = await connection.execute(query, queryParams);
+    const [rows] = await connection.execute(query, queryParams);
+
+    console.log("row = ", rows);
 
     res.json(rows);
   } catch (error) {
@@ -398,36 +393,73 @@ const getHopDongDuKienData = async (req, res) => {
     const dot = req.query.dot;
     const ki = req.query.ki;
 
-    const [rows] = await connection.execute(
-      `SELECT
-          MIN(qc.NgayBatDau) AS NgayBatDau,
-          MAX(qc.NgayKetThuc) AS NgayKetThuc,
-          qc.KiHoc,
-          gv.GioiTinh,
-          gv.HoTen,
-          gv.NgaySinh,
-          gv.CCCD,
-          gv.NoiCapCCCD,
-          gv.Email,
-          gv.MaSoThue,
-          gv.HocVi,
-          gv.ChucVu,
-          gv.HSL,
-          gv.DienThoai,
-          gv.STK,
-          gv.NganHang,
-          gv.MaPhongBan,
-          SUM(qc.QuyChuan) AS SoTiet
-      FROM 
-    quychuan qc
-      JOIN 
-    gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-      WHERE
-          NamHoc = ? AND Dot = ? AND KiHoc = ?
-      GROUP BY
-          gv.HoTen;`,
-      [namHoc, dot, ki]
-    );
+    const khoa = req.query.khoa;
+    console.log("Khoa = ", khoa == undefined);
+
+    let rows;
+    if (khoa == undefined) {
+      [rows] = await connection.execute(
+        `SELECT
+            MIN(qc.NgayBatDau) AS NgayBatDau,
+            MAX(qc.NgayKetThuc) AS NgayKetThuc,
+            qc.KiHoc,
+            gv.GioiTinh,
+            gv.HoTen,
+            gv.NgaySinh,
+            gv.CCCD,
+            gv.NoiCapCCCD,
+            gv.Email,
+            gv.MaSoThue,
+            gv.HocVi,
+            gv.ChucVu,
+            gv.HSL,
+            gv.DienThoai,
+            gv.STK,
+            gv.NganHang,
+            gv.MaPhongBan,
+            SUM(qc.QuyChuan) AS SoTiet
+        FROM 
+      quychuan qc
+        JOIN 
+      gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        WHERE
+            NamHoc = ? AND Dot = ? AND KiHoc = ?
+        GROUP BY
+            gv.HoTen;`,
+        [namHoc, dot, ki]
+      );
+    } else {
+      [rows] = await connection.execute(
+        `SELECT
+            MIN(qc.NgayBatDau) AS NgayBatDau,
+            MAX(qc.NgayKetThuc) AS NgayKetThuc,
+            qc.KiHoc,
+            gv.GioiTinh,
+            gv.HoTen,
+            gv.NgaySinh,
+            gv.CCCD,
+            gv.NoiCapCCCD,
+            gv.Email,
+            gv.MaSoThue,
+            gv.HocVi,
+            gv.ChucVu,
+            gv.HSL,
+            gv.DienThoai,
+            gv.STK,
+            gv.NganHang,
+            gv.MaPhongBan,
+            SUM(qc.QuyChuan) AS SoTiet
+        FROM 
+      quychuan qc
+        JOIN 
+      gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        WHERE
+            NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
+        GROUP BY
+            gv.HoTen;`,
+        [namHoc, dot, ki, khoa]
+      );
+    }
 
     res.json(rows);
   } catch (error) {

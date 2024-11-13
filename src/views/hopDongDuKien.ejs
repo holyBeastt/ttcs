@@ -160,7 +160,7 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                <a class="nav-link" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>
               </div>
             </div>
           </div>
@@ -345,7 +345,7 @@
         return;
       }
 
-      let url = `/api/hdgvm?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}`;
+      let url = `/hop-dong-du-kien?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}`;
       if (khoa && khoa !== 'ALL') {
         url += `&khoa=${encodeURIComponent(khoa)}`;
       }
@@ -365,7 +365,7 @@
         const row = tbody.insertRow();
         row.insertCell(0).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
         row.insertCell(1).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
-        row.insertCell(2).textContent = item.DanhXung;
+        row.insertCell(2).textContent = item.GioiTinh.toLowerCase() == 'nam' ? 'Ông' : 'Bà';
         row.insertCell(3).textContent = item.HoTen;
         row.insertCell(4).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
         row.insertCell(5).textContent = item.CCCD;

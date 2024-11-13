@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/forminput.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+
+</head>
+<body>
+   
+    <nav class="navbar-top ">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+            <div class="navbar-title">
+              <img src="/dongchu_banner.png" alt="banner">
+            </div>
+          </a>
+        </div>
+      </nav>
+    
+      <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+      <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+        <div class="" style="width: 100%;">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" style="width: 100%;" id="navbarNav">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+              </li>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Giảng Viên Mời
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                    <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bằng file</a>
+                  </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Bảng Quy Chuẩn
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                    <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                    <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
+                  </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Mời Giảng
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+                    <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
+                    <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                    <a  class="nav-link " href="/infoHDGvm" role="button">Thông tin hợp đồng</a>   
+                    <li class="nav-item"></li>
+                      <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
+                    </li>
+                    <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+
+                  </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Vượt Giờ
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link active" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>              
+                  </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Nghiên Cứu Khoa Học
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>              </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Đồ Án
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>              </div>
+                </div>
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Thống Kê
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                  </div>
+                </div>
+             
+              </div>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                     Hệ Thống
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="nav-link" id="" href="log">Xem File Log</a>
+                  </div>
+                </div>
+              </div>
+            </ul>
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    Hi, Lê Đức Thuận
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                    <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                    <a class="dropdown-item" href="/">Đăng xuất</a>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </nav>
+      <div class="m-3">
+        <h1 class="d-flex justify-content-center">Thêm các lớp giảng dạy</h1>
+        <form action="/addclass" class="form" method="POST">
+          <fieldset>
+            <div id="add">
+              <h6>Nhập thông tin lớp:</h6>
+              <div class="row mb-3 d-flex">
+                <input type="text" id="GiangVien" name="GiangVien" hidden>
+                <input type="text" id="index" name="index" value="1" hidden>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="TenHocPhan1">Tên học phần*</label>
+                    <input class="form-control" type="text" name="TenHocPhan1" id="TenHocPhan1" required>
+                  </div>
+                  <div>
+                    <label for="HinhThucKTGiuaKy1">Hình thức kiểm tra giữa kì:</label>
+                    <select class="form-control" name="HinhThucKTGiuaKy1" id="HinhThucKTGiuaKy1">
+                      <option value="none">None</option>
+                      <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
+                      <option value="Coi, chấm viết">Coi, chấm tự luận</option>
+                      <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
+                      <option value="Coi, chấm TH">Coi, chấm thực hành</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="Lop1">Mã lớp*</label>
+                    <input type="text" class="form-control" name="Lop1" id="Lop1" required>
+                  </div>
+                  <div>
+                    <label for="LoaiHinhDaoTao1">Loại hình đào tạo*</label>
+                    <input class="form-control" type="text" name="LoaiHinhDaoTao1" id="LoaiHinhDaoTao1" required>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoTC1">Số tín chỉ</label>
+                    <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
+                  </div>
+                  <div>
+                    <label for="HeSoLopDong1">Hệ số lớp đông</label>
+                    <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoTietCTDT1">Số tiết TKB</label>
+                    <input type="text" class="form-control" name="SoTietCTDT1" id="SoTietCTDT1" style="width: 100px;">
+                  </div>
+                  <div>
+                    <label for="HeSoT7CN1">Hệ số T7CN</label>
+                    <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
+                      <option value="Không">Không</option>
+                      <option value="Cuối tuần">Cuối tuần</option>
+                      <option value="Tối">Tối</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="QuyChuan1">Số tiết QC*</label>
+                    <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
+                  </div>
+                  <div>
+                    <label for="SoSV1">Số SV*</label>
+                    <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="HocKy1">Học kì:</label>
+                    <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
+                      <option value="1">Học kỳ 1</option>
+                      <option value="2">Học kỳ 2</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="NamHoc1">Năm học:</label>
+                    <select class="form-control" name="NamHoc1" id="NamHoc1">
+                    </select>
+                  </div>
+                </div>
+              </div>    
+            </div>        
+            <div class="justify-content-between">
+              <button class="btn" id="submit">Yêu cầu xác nhận</button>
+              <button class="btn" id="return" type="button" onclick="goBack()">Quay lại</button>
+              <button class="btn" type="button" onclick="addInputFields()">Thêm lớp mới</button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('actionButton');
+            const actionButton1 = document.getElementById('actionButton1');
+    const actionButton2 = document.getElementById('actionButton2');
+
+    if (isKhoa == 0) {
+            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+            
+        } else {
+            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+            actionButton2.style.display = 'none'; // Ẩn actionButton2
+            
+        }
+      });
+</script>
+<script>
+    const Home = document.getElementById("Home");
+    Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa")
+
+        if (isKhoa==0) { // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+    });
+</script>
+<script>
+    window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        let Role = localStorage.getItem("userRole");
+        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA'){
+          Role = 'LĐK';
+        }      
+        if (TenNhanVien) {
+          document.getElementById("GiangVien").value = TenNhanVien;
+            // Hiển thị tên người dùng trên phần tử HTML
+          document.querySelector(".fullname").innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+            document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
+        }      
+        //document.querySelector('.role').innerText = `${Role}`;      
+        };
+</script>
+<script>
+    let counter = 2;
+    function addInputFields() {
+        const container = document.getElementById("add");
+        const newDiv = document.createElement("div");
+        newDiv.className = "row mb-3 d-flex";
+
+        newDiv.innerHTML = `
+              <h6>Nhập thông tin lớp:</h6>
+              <div style="width: max-content;">
+                  <div>
+                    <label for="TenHocPhan${counter}">Tên học phần*</label>
+                    <input required class="form-control" type="text" name="TenHocPhan${counter}" id="TenHocPhan${counter}">
+                  </div>
+                  <div>
+                    <label for="HinhThucKTGiuaKy${counter}">Hình thức kiểm tra giữa kì</label>
+                    <select class="form-control" name="HinhThucKTGiuaKy${counter}" id="HinhThucKTGiuaKy${counter}">
+                      <option value="none">None</option>
+                      <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
+                      <option value="Coi, chấm viết">Coi, chấm tự luận</option>
+                      <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
+                      <option value="Coi, chấm TH">Coi, chấm thực hành</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="Lop${counter}">Lớp học phần*</label>
+                    <input type="text" class="form-control" name="Lop${counter}" id="Lop${counter}" required>
+                  </div>
+                  <div>
+                    <label for="LoaiHinhDaoTao${counter}">Loại hình đào tạo</label>
+                    <input class="form-control" type="text" name="LoaiHinhDaoTao${counter}" id="LoaiHinhDaoTao${counter}">
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoTC${counter}">Số tín chỉ</label>
+                    <input type="text" class="form-control" name="SoTC${counter}" style="width: 100px;" id="SoTC${counter}">
+                  </div>
+                  <div>
+                    <label for="HeSoLopDong${counter}">Hệ số lớp đông</label>
+                    <input type="text" class="form-control" name="HeSoLopDong${counter}" id="HeSoLopDong${counter}" style="width: 100px;">
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoTietCTDT${counter}">Số tiết TKB</label>
+                    <input type="text" class="form-control" name="SoTietCTDT${counter}" id="SoTietCTDT${counter}" style="width: 100px;">
+                  </div>
+                  <div>
+                    <label for="HeSoT7CN${counter}">Hệ số T7CN</label>
+                    <select class="form-control" name="HeSoT7CN${counter}" id="HeSoT7CN${counter}">
+                      <option value="Không">Không</option>
+                      <option value="Cuối tuần">Cuối tuần</option>
+                      <option value="Tối">Tối</option>
+                    </select>                    
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="QuyChuan${counter}">Số tiết QC*</label>
+                    <input type="text" class="form-control" name="QuyChuan${counter}" id="QuyChuan${counter}" style="width: 100px;" required>
+                  </div>
+                  <div>
+                    <label for="SoSV${counter}">Số SV*</label>
+                    <input type="text" class="form-control" name="SoSV${counter}" id="SoSV${counter}" style="width: 100px;" required>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="HocKy${counter}">Học kì</label>
+                    <select class="form-control" name="HocKy${counter}" id="HocKy${counter}" style="width: 100px;">
+                      <option value="1">Học kỳ 1</option>
+                      <option value="2">Học kỳ 2</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="NamHoc${counter}">Năm học</label>
+                    <select class="form-control" name="NamHoc${counter}" id="NamHoc${counter}">
+                    </select>
+                  </div>
+                </div>
+              <button type="button" class="btn btn-danger" onclick="removeField(this)" style="margin-bottom: 0px; width: 100px;">Xóa</button>
+        `;
+
+        container.appendChild(newDiv);
+        document.getElementById("index").value = counter;
+        updateNamHocOptions(`NamHoc${counter}`);
+        counter++;
+    }
+    function removeField(button) {
+    // Tìm đến phần tử `newDiv` chứa các trường và nút "Xóa"
+    const fieldDiv = button.parentElement;
+    fieldDiv.remove();  // Xóa `newDiv` khỏi DOM
+    }
+    function updateNamHocOptions(id) {
+    $.ajax({
+      url: '/getNamHoc',
+      method: 'GET',
+      success: function (response) {
+        if (response.success) {
+          const currentYear = new Date().getFullYear();
+          response.NamHoc.forEach(function (item) {
+            const isSelected = currentYear === item.NamHoc ? 'selected' : '';
+            $(`#${id}`).append(
+              `<option value="${item.NamHoc}" ${isSelected}>${item.NamHoc}</option>`
+            );
+          });
+        } else {
+          console.error("Không lấy được dữ liệu năm học:", response.message);
+        }
+      },
+      error: function (error) {
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      }
+    });
+  }
+
+  // $(document).ready(function () {
+  //   updateNamHocOptions('NamHoc1');
+  // });
+</script>
+<script>
+  $(document).ready(function () {
+    $.ajax({
+      url: '/getNamHoc',
+      method: 'GET',
+      success: function (response) {
+        if (response.success) {
+          const currentYear = new Date().getFullYear();
+          response.NamHoc.forEach(function (item) {
+            console.log(item.NamHoc);
+            const isSelected = currentYear === item.NamHoc ? 'selected' : '';
+            $(`#NamHoc1`).append(
+              `<option value="${item.NamHoc}" ${isSelected}>${item.NamHoc}</option>`
+            );
+          });
+        } else {
+          console.error("Không lấy được dữ liệu năm học:", response.message);
+        }
+      },
+      error: function (error) {
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      }
+    });
+  });
+</script>
+</body>
+</html>
+

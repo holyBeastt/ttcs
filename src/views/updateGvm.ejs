@@ -85,7 +85,7 @@
                     Vượt Giờ
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>              </div>
+                    <a class="nav-link" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>              </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -155,7 +155,7 @@
        <label for="gioitinh">Giới tính:</label>
        <select class="form-control" name="GioiTinh" id="gioitinh" >
            <option value="Nam" <%= value.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
-           <option value="Nu" <%= value.GioiTinh === 'Nu' ? 'selected' : '' %>>Nữ</option>
+           <option value="Nu" <%= value.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
        </select>
    </div>
    <div class="col-md-4">
@@ -464,7 +464,7 @@ hideButton();
         document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
       }
   
-      document.querySelector('.role').innerText = `${Role}`;
+      //document.querySelector('.role').innerText = `${Role}`;
   
     };
   </script>
