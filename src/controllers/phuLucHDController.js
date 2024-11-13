@@ -263,7 +263,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       ]);
       titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
+      worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
       // Định nghĩa tiêu đề cột
       const header = [
@@ -359,7 +359,7 @@ worksheet.getColumn(14).width = 15; // Còn lại
          // Chuyển đổi Học kỳ sang số La Mã
   const hocKyLaMa = convertToRoman(item.HocKy);
   // Viết tắt Học vị
-  const hocViVietTat = item.HocVi === "Tiến sĩ" ? "Ts" : item.HocVi === "Thạc sĩ" ? "Ths" : item.HocVi;
+  const hocViVietTat = item.HocVi === "Tiến sĩ" ? "TS" : item.HocVi === "Thạc sĩ" ? "ThS" : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
