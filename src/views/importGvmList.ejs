@@ -95,7 +95,9 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
               </div>
             </div>
           </div>
@@ -165,7 +167,7 @@
   <div class="container-fluid m-4 box">
     <div class="mx-5">
       <div class="d-flex justify-content-between">
-        <form class="d-flex" action="/postImportGvmList" method="post" enctype="multipart/form-data">
+        <form class="d-flex" action="/postImportGvmList" method="post" enctype="multipart/form-data" id="uploadForm">
           <input type="file" name="file" class="file-button mx-3" id="fileInput" />
           <button class="btn" id="chosseFile">
             Chọn file
@@ -212,6 +214,19 @@
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+ <!-- Check xem đã chọn file chưa -->
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", function(event) {
+      var fileInput = document.getElementById("fileInput");
+  
+      if (!fileInput.files.length) { // Kiểm tra xem người dùng đã chọn file chưa
+        event.preventDefault(); // Ngừng gửi form
+        alert("Vui lòng chọn một file để tải lên!"); // Hiển thị thông báo lỗi
+      }
+    });
+  </script>
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const isKhoa = localStorage.getItem("isKhoa");
@@ -220,6 +235,7 @@
       const actionButton = document.getElementById('actionButton');
       const actionButton1 = document.getElementById('actionButton1');
       const actionButton2 = document.getElementById('actionButton2');
+      const actionButton3 = document.getElementById('actionButton3');
 
       if (isKhoa == 0) {
         actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
@@ -230,6 +246,13 @@
         actionButton2.style.display = 'none'; // Ẩn actionButton2
 
       }
+      //Ẩn site duyệt lớp gk
+      const Quyen = localStorage.getItem("userRole");
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton3.style.display = '';
+        } else {
+          actionButton3.style.display = 'none';
+        }
     });
   </script>
 

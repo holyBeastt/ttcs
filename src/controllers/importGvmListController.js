@@ -20,6 +20,13 @@ const p = path.join(parentDir, "..");
 
 let duLieu;
 const convertExcelToJSON = (req, res) => {
+  // Kiểm tra xem file đã được tải lên chưa
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ message: "No file uploaded", status: "error" });
+  }
+
   const filePath = path.join(p, "uploads", req.file.filename);
 
   // Đọc file Excel
