@@ -1,77 +1,86 @@
 const express = require('express');
 const router = express.Router();
-const AdminController = require('../controllers/adminController');
-const GetTable = require('../controllers/admin');
-const { postUpdateGvm, postUpdateNV, postDeleteNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
-
+const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhongBan, themNhanVien, getNhanVien,
+        getListNhanVien, getPhongBan, getListPhongBan, getUpdateNV, getViewNV, getUpdateTK, getthemTaiKhoan, postthemTK,
+        getTenNhanVien, getQuyenByPhongBan, themBoMon, getNamHoc, getBoMonList, suggest,
+        infome,
+        updateMe
+        } = require('../controllers/adminController');
+const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
+        getchangePassword, updatePassword, postNamHoc, deleteNamHoc
+        } = require('../controllers/admin');
+const { postUpdateNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
 router.get('/admin', (req, res) => {
     res.render('admin');
 });
 
-router.get('/thongTinTK', GetTable.getaccountList);
+router.get('/thongTinTK', getaccountList);
 
 
-router.get('/nhanVien', GetTable.getnhanvienList);
-router.get('/phongBan', GetTable.getdepartmentList)
-router.get('/themNhanVien', GetTable.getMaPhongBanList);
+router.get('/nhanVien', getnhanvienList);
+router.get('/phongBan', getdepartmentList)
+router.get('/themNhanVien', getMaPhongBanList);
 
 
 // thao tác thêm
-router.get('/themPhongBan', AdminController.showThemPhongBan);
-router.post('/themPhongBan', AdminController.themPhongBan);
+router.get('/themPhongBan', showThemPhongBan);
+router.post('/themPhongBan',  themPhongBan);
 // router.post('/themTK', );
-router.get('/themNhanVien', AdminController.showThemNhanVien);
-router.post('/themNhanVien', AdminController.themNhanVien);
+router.get('/themNhanVien',  showThemNhanVien);
+router.post('/themNhanVien',  themNhanVien);
 
 
 // hiển thị danh sách
-router.get('/nhanVien', AdminController.getNhanVien);
-router.get('/api/nhanvien', AdminController.getListNhanVien);
+router.get('/nhanVien',  getNhanVien);
+router.get('/api/nhanvien',  getListNhanVien);
 
-router.get('/phongBan', AdminController.getPhongBan);
-router.get('/api/phongban', AdminController.getListPhongBan);
+router.get('/phongBan',  getPhongBan);
+router.get('/api/phongban',  getListPhongBan);
 
 //Nhân viên
-router.get('/updateNV/:id',AdminController.getUpdateNV );
+router.get('/updateNV/:id', getUpdateNV );
 router.post('/updateNV/:id',postUpdateNV);
-router.get('/viewNV/:id',AdminController.getViewNV );
+router.get('/viewNV/:id', getViewNV );
 
 //Phòng ban
-router.get('/updatePhongBan/:MaPhongBan', GetTable.getUpdatePhongBan);
+router.get('/updatePhongBan/:MaPhongBan', getUpdatePhongBan);
 router.post('/updatePhongBan/:MaPhongBan', postUpdatePhongBan);
 //Tài khoản
-router.get('/updateTK/:TenDangNhap', AdminController.getUpdateTK);
+router.get('/updateTK/:TenDangNhap',  getUpdateTK);
 router.post('/updateTK/:TenDangNhap', postUpdateTK);
-router.get('/themTK', AdminController.getthemTaiKhoan);
-router.post('/themTK', AdminController.postthemTK);
-router.get("/getTenNhanVien", AdminController.getTenNhanVien);
-router.get("/getQuyenByPhongBan", AdminController.getQuyenByPhongBan);
+router.get('/themTK',  getthemTaiKhoan);
+router.post('/themTK',  postthemTK);
+router.get("/getTenNhanVien",  getTenNhanVien);
+router.get("/getQuyenByPhongBan",  getQuyenByPhongBan);
 
 //Bộ môn
-router.get("/boMon", AdminController.getBoMon);
-// router.get("/themBoMon", AdminController.getPhongBan);
-router.get("/getPhongBan", AdminController.getPhongBan);
+router.get("/boMon", getBoMon);
+router.get("/getPhongBan",  getPhongBan);
 router.get('/themBoMon', (req, res) => {
     res.render('themBoMon');
 });
-router.post("/themBoMon", AdminController.themBoMon);
-router.get('/updateBoMon/:id_BoMon', GetTable.getupdateBoMon);
+router.post("/themBoMon",  themBoMon);
+router.get('/updateBoMon/:id_BoMon', getupdateBoMon);
 router.post('/updateBoMon/:id_BoMon',postUpdateBoMon );
 
 //Đổi mật khẩu
-router.get('/changePassword', GetTable.getchangePassword);
-router.post('/changePassword', AdminController.updatePassword);
+router.get('/changePassword', getchangePassword);
+router.post('/changePassword',  updatePassword);
 
 //Năm học
-router.get('/namHoc', GetTable.getNamHoc);
-router.post('/namHoc', GetTable.postNamHoc);
-router.delete('/namHoc/:NamHoc', GetTable.deleteNamHoc);
+router.get('/namHoc', getNamHoc);
+router.post('/namHoc', postNamHoc);
+router.delete('/namHoc/:NamHoc', deleteNamHoc);
 
 //lấy dữ liệu hiển thị vào thẻ select
-router.get('/getNamHoc', AdminController.getNamHoc);
+router.get('/getNamHoc',  getNamHoc);
 
-router.get('/getMaBoMon/:maPhongBan', AdminController.getBoMonList);
+router.get('/getMaBoMon/:maPhongBan',  getBoMonList);
 
-router.get('/suggest/:query', AdminController.suggest);
+router.get('/suggest/:query',  suggest);
+
+//Nhân viên tự sửa thông tin
+router.get('/infome/:id_User', infome);
+router.post('/infome/:id_User', updateMe);
 
 module.exports = router;

@@ -19,123 +19,7 @@ const AdminController = {
   showThemPhongBan: (req, res) => {
     res.render("themPhongBan", { title: "Thêm Phòng Ban" });
   },
-
-  // themNhanVien: async (req, res) => {
-  //   const {
-  //     TenNhanVien,
-  //     NgaySinh,
-  //     GioiTinh,
-  //     DienThoai,
-  //     HocVi,
-  //     CCCD,
-  //     NgayCapCCCD,
-  //     NoiCapCCCD,
-  //     DiaChiCCCD,
-  //     DiaChiHienNay,
-  //     ChucVu,
-  //     NoiCongTac,
-  //     MaPhongBan,
-  //     MaSoThue,
-  //     SoTaiKhoan,
-  //     NganHang,
-  //     ChiNhanh,
-  //     MonGiangDayChinh,
-  //     CacMonLienQuan,
-  //     MatKhau, // Lấy từ form
-  //     Quyen,
-  //     HSL, // Lấy từ form
-  //   } = req.body;
-  //   let TenDangNhap = req.body.TenDangNhap; // Lấy từ form
-
-  //   try {
-  //     // Đầu tiên, chèn dữ liệu vào CSDL mà không cần MaNhanVien
-  //     const queryInsert = `
-  //         INSERT INTO nhanvien (
-  //             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
-  //             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
-  //             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
-  //             MonGiangDayChinh, CacMonLienQuan,HSL
-  //         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
-  //     `;
-
-  //     const valuesInsert = [
-  //       TenNhanVien,
-  //       NgaySinh,
-  //       GioiTinh,
-  //       DienThoai,
-  //       HocVi,
-  //       CCCD,
-  //       NgayCapCCCD,
-  //       NoiCapCCCD,
-  //       DiaChiHienNay,
-  //       DiaChiCCCD,
-  //       ChucVu,
-  //       NoiCongTac,
-  //       MaPhongBan,
-  //       MaSoThue,
-  //       SoTaiKhoan,
-  //       NganHang,
-  //       ChiNhanh,
-  //       MonGiangDayChinh,
-  //       CacMonLienQuan,
-  //       HSL,
-  //     ];
-
-  //     console.log(MaPhongBan);
-  //     // Chèn nhân viên và lấy id_User vừa tạo
-  //     const [result] = await connection
-  //       .promise()
-  //       .query(queryInsert, valuesInsert);
-  //     const id_User = result.insertId; // Lấy id_User vừa được tạo
-
-  //     // Tạo MaNhanVien bằng cách ghép MaPhongBan với id_User
-  //     const MaNhanVien = `${MaPhongBan}${id_User}`;
-
-  //     // Cập nhật lại MaNhanVien trong CSDL
-  //     const queryUpdate = `UPDATE nhanvien SET MaNhanVien = ? WHERE id_User = ?`;
-  //     await connection.promise().query(queryUpdate, [MaNhanVien, id_User]);
-
-  //     if (!TenDangNhap) {
-  //       TenDangNhap = `${MaPhongBan}${id_User}`;
-  //     }
-
-  //     const queryInsertTaiKhoanNguoiDung = `
-  //       INSERT INTO taikhoannguoidung (TenDangNhap, MatKhau, id_User)
-  //       VALUES (?, ?, ?)
-  //     `;
-  //     await connection
-  //       .promise()
-  //       .query(queryInsertTaiKhoanNguoiDung, [TenDangNhap, MatKhau, id_User]);
-
-  //     // Truy vấn lấy isKhoa từ bảng phongban dựa trên MaPhongBan
-  //     const querySelectIsKhoa =
-  //       "SELECT isKhoa FROM phongban WHERE MaPhongBan = ?";
-  //     const [resultIsKhoa] = await connection
-  //       .promise()
-  //       .query(querySelectIsKhoa, [MaPhongBan]);
-  //     const isKhoa = resultIsKhoa.length > 0 ? resultIsKhoa[0].isKhoa : 0;
-
-  //     // Chèn dữ liệu vào bảng role
-  //     const queryInsertRole = `
-  //       INSERT INTO role (TenDangNhap, MaPhongBan, Quyen, isKhoa)
-  //       VALUES (?, ?, ?, ?)
-  //     `;
-  //     await connection
-  //       .promise()
-  //       .query(queryInsertRole, [TenDangNhap, MaPhongBan, Quyen, isKhoa]);
-
-  //     res
-  //       .status(200)
-  //       .json({ message: "Thêm nhân viên thành công", MaNhanVien: MaNhanVien });
-  //   } catch (error) {
-  //     console.error("Lỗi khi thêm nhân viên:", error);
-  //     res.status(500).json({
-  //       message: "Đã xảy ra lỗi khi thêm nhân viên",
-  //       error: error.message,
-  //     });
-  //   }
-  // },
-
+  
   // phần thêm
   themNhanVien: async (req, res) => {
     const {
@@ -738,7 +622,144 @@ const AdminController = {
       }
     }
   },
+  infome: async (req, res) => {
+    const id_User = req.params.id_User;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      
+      const query1 = "SELECT * FROM `nhanvien` WHERE id_User = ?";
+      const [results1] = await connection.query(query1, [id_User]);
+      let user = results1 && results1.length > 0 ? results1[0] : {};
 
+      // Lấy dữ liệu phòng ban
+      const query2 = "SELECT * FROM phongban";
+      const [results2] = await connection.query(query2);
+      let departmentLists = results2; // Gán kết quả vào departmentLists
+
+      // Lấy dữ liệu tài khoản
+      const query3 = "SELECT * FROM `taikhoannguoidung` WHERE id_User = ?";
+      const [results3] = await connection.query(query3, [id_User]);
+      let account = results3 && results3.length > 0 ? results3[0] : {};
+      let TenDangNhap = account.TenDangNhap || "";
+
+      // Lấy dữ liệu role
+      const query4 = "SELECT * FROM `role` WHERE TenDangNhap = ?";
+      const [results4] = await connection.query(query4, [TenDangNhap]);
+      let role = results4 && results4.length > 0 ? results4[0] : {};
+
+      // Render trang với 2 biến: value và departmentLists
+      res.render("thongTinCaNhan.ejs", {
+        user: user,
+        departmentLists: departmentLists,
+        account: account,
+        role: role,
+      });
+    } catch (error) {
+      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
+      res.status(500).send("Lỗi server");
+    }finally{
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  updateMe: async (req, res) => {
+    // Lấy các thông tin từ form
+    let connection; // Khai báo biến connection
+  
+    const {
+      TenNhanVien,
+      GioiTinh,
+      NgaySinh,
+      CCCD,
+      NgayCapCCCD,
+      NoiCapCCCD,
+      DiaChiHienNay,
+      DienThoai,
+      MaSoThue,
+      HocVi,
+      ChucVu,
+      SoTaiKhoan,
+      NganHang,
+      ChiNhanh,
+      MaPhongBan,
+      Id_User,
+      TenDangNhap,
+      Quyen,
+      HSL,
+    } = req.body;
+  
+    const MaNhanVien = `${MaPhongBan}${Id_User}`;
+    try {
+      connection = await createPoolConnection(); // Lấy kết nối từ pool
+  
+      // Truy vấn để update dữ liệu vào cơ sở dữ liệu
+      const query = `UPDATE nhanvien SET 
+        TenNhanVien = ?,
+        GioiTinh = ?,
+        NgaySinh = ?,
+        CCCD = ?,
+        NgayCapCCCD = ?,
+        NoiCapCCCD = ?,
+        DiaChiHienNay = ?,
+        DienThoai = ?,
+        MaSoThue = ?,
+        HocVi = ?,
+        ChucVu = ?,
+        SoTaiKhoan = ?,
+        NganHang = ?,
+        ChiNhanh = ?,
+        MaPhongBan = ?,
+        NoiCongTac = ?,
+        DiaChiCCCD = ?,
+        MonGiangDayChinh = ?,
+        CacMonLienQuan = ?,
+        MaNhanVien = ?,
+        HSL = ?
+        WHERE id_User = ?`;
+  
+      const [updateResult] = await connection.query(query, [
+        TenNhanVien,
+        GioiTinh,
+        NgaySinh,
+        CCCD,
+        NgayCapCCCD,
+        NoiCapCCCD,
+        DiaChiHienNay,
+        DienThoai,
+        MaSoThue,
+        HocVi,
+        ChucVu,
+        SoTaiKhoan,
+        NganHang,
+        ChiNhanh,
+        MaPhongBan,
+        req.body.NoiCongTac, // Lấy từ req.body
+        req.body.DiaChiCCCD, // Lấy từ req.body
+        req.body.MonGiangDayChinh, // Lấy từ req.body
+        req.body.CacMonLienQuan, // Lấy từ req.body
+        MaNhanVien,
+        HSL,
+        Id_User,
+      ]);
+  
+      // Cập nhật bảng role sau khi cập nhật nhân viên thành công
+      // const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
+      // const [roleUpdateResult] = await connection.query(queryRole, [
+      //   MaPhongBan,
+      //   Quyen,
+      //   TenDangNhap,
+      // ]);
+  
+      console.log("Nhân viên đã được cập nhật:", updateResult);
+      // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
+    } catch (error) {
+      console.error("Error executing query: ", error);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  },
   // Other methods can be added here as needed...
 };
 
