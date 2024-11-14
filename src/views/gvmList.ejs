@@ -71,6 +71,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const isKhoa = localStorage.getItem("isKhoa");
+      const role = localStorage.getItem("userRole");
 
       // Ẩn button ngay khi trang được tải
       const createGvm = document.getElementById("createGvm");
@@ -78,7 +79,7 @@
       const filterByDepartment =
         document.getElementById("filterByDepartment");
 
-      if (isKhoa == 0) {
+      if (isKhoa == 0 || role.toLowerCase() == 'thường') {
         createGvm.style.display = "none"; // Ẩn button
       } else {
         filterByDepartment.style.display = "none";
