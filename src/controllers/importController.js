@@ -242,100 +242,224 @@ function tachGiaoVien(giaoVienInput) {
 }
 
 // gộp dữ liệu giảng viên có trong DB và file quy chuẩn để có dữ liệu giảng viên giảng dạy
+// const duLieuGiangVienGiangDay = async (jsonData) => {
+//   // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
+//   const tongHopGiangVien = await tongHopDuLieuGiangVien();
+
+//   // Khởi tạo mảng giangVienGiangDay để lưu kết quả giảng viên giảng dạy
+//   const giangVienGiangDay = [];
+
+//   // Duyệt qua từng phần tử trong jsonData
+//   for (const item of jsonData) {
+//     // Lấy giá trị của key GiaoVien từ item và tách thông tin giảng viên
+//     const giaoVienInput = item.GiaoVien;
+//     const tenGiaoVienList = tachGiaoVien(giaoVienInput);
+
+//     // Duyệt qua từng tên giảng viên trong tenGiaoVienList để so sánh với tongHopGiangVien
+//     for (const { GiaoVienGiangDay: tenGiaoVien } of tenGiaoVienList) {
+//       const giangVienFound = tongHopGiangVien.find(
+//         (gv) => gv.HoTen.trim() === tenGiaoVien.trim()
+//       );
+
+//       // Nếu tìm thấy giảng viên có tên trùng, thêm vào giangVienGiangDay
+//       if (giangVienFound) {
+//         giangVienGiangDay.push({
+//           HoTen: giangVienFound.HoTen.trim(),
+//           MonGiangDayChinh: giangVienFound.MonGiangDayChinh,
+//         });
+//       }
+//     }
+//   }
+
+//   return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
+// };
+
 const duLieuGiangVienGiangDay = async (jsonData) => {
-  const allResults = []; // Mảng để chứa tất cả kết quả
+  // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
+  const tongHopGiangVien = await tongHopDuLieuGiangVien();
 
+  // Khởi tạo mảng giangVienGiangDay để lưu kết quả giảng viên giảng dạy
+  const giangVienGiangDay = [];
+
+  // Duyệt qua từng phần tử trong jsonData
   for (const item of jsonData) {
-    const giaoVienInput = item.GiaoVien; // Lấy giá trị GiaoVien từ từng đối tượng
-    const lecturerInfo = tachGiaoVien(giaoVienInput); // Tách thông tin giảng viên
+    // Lấy giá trị của key GiaoVien từ item và tách thông tin giảng viên
+    const giaoVienInput = item.GiaoVien;
+    const tenGiaoVienList = tachGiaoVien(giaoVienInput);
 
-    // Lấy tên giảng viên từ kết quả
-    const lecturers = lecturerInfo
-      .map((info) => info.GiaoVienGiangDay)
-      .filter(Boolean);
+    // Duyệt qua từng tên giảng viên trong tenGiaoVienList để so sánh với tongHopGiangVien
+    for (const { GiaoVienGiangDay: tenGiaoVien } of tenGiaoVienList) {
+      const giangVienFound = tongHopGiangVien.find(
+        (gv) => gv.HoTen.trim() === tenGiaoVien.trim()
+      );
 
-    // Nếu không có giảng viên nào, bỏ qua vòng lặp
-    if (lecturers.length === 0) {
-      continue;
+      // Nếu tìm thấy giảng viên có tên trùng, thêm vào giangVienGiangDay
+      if (giangVienFound) {
+        giangVienGiangDay.push({
+          HoTen: giangVienFound.HoTen.trim(),
+          MonGiangDayChinh: giangVienFound.MonGiangDayChinh,
+        });
+      }
     }
-
-    // Gọi hàm tongHopDuLieuGiangVien để lấy thông tin chi tiết giảng viên từ cơ sở dữ liệu
-    const boMonResults = await tongHopDuLieuGiangVien(lecturers);
-
-    // Ánh xạ kết quả từ cơ sở dữ liệu thành các đối tượng và thêm vào mảng allResults
-    boMonResults.forEach((item) => {
-      allResults.push({
-        HoTen: item.HoTen.trim(), // Tên giảng viên
-        MonGiangDayChinh: item.MonGiangDayChinh, // Môn giảng dạy chính
-      });
-    });
   }
 
-  // console.log(allResults);
-  console.log("Dữ liệu giảng viên giảng dạy sau khi gộp từ file Quy Chuẩn và CSDL : ", allResults);
-  return allResults; // Trả về mảng chứa tất cả thông tin giảng viên
+  return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
 };
+
 
 // lấy dữ liệu giảng viên mời và giảng viên cơ hữu trong DB
-const tongHopDuLieuGiangVien = async (lecturers) => {
-  const query1 =
-    "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` WHERE HoTen = ?";
-  const query2 =
-    "SELECT TenNhanVien, MonGiangDayChinh FROM `nhanvien` WHERE TenNhanVien = ?";
+// const tongHopDuLieuGiangVien = async () => {
+//   // Truy vấn lấy dữ liệu từ bảng gvmoi
+//   const query1 =
+//     "SELECT HoTen, MonGiangDayChinh FROM gvmoi";
 
-  const lecturerPromises = lecturers.map(async (lecturerName) => {
-    if (!lecturerName) return null;
+//   // Truy vấn lấy dữ liệu từ bảng nhanvien
+//   const query2 =
+//     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien";
 
-    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+//   const connection = await createPoolConnection(); // Tạo kết nối từ pool
+//   // Thực hiện các truy vấn cho tất cả giảng viên trong 2 bảng
+//   const [results1] = await connection.execute(query1);
+//   const [results2] = await connection.execute(query2);
+//   const allResults = results1.concat(results2);
 
-    try {
-      // Sử dụng connection pool thay vì tạo connection trực tiếp
-      const [results1] = await connection.execute(query1, [lecturerName]);
-      const [results2] = await connection.execute(query2, [lecturerName]);
+//   connection.release();
+//   return allResults.length > 0 ? allResults : [];
 
-      // Tạo mảng để lưu kết quả
-      const allResults = [];
-
-      // Ánh xạ kết quả từ bảng `gvmoi`
-      results1.forEach((item) => {
-        allResults.push({
-          HoTen: item.HoTen, // Tên giảng viên từ bảng gvmoi
-          MonGiangDayChinh: item.MonGiangDayChinh, // Môn giảng dạy chính
-        });
-      });
-
-      // Ánh xạ kết quả từ bảng `nhanvien`
-      results2.forEach((item) => {
-        allResults.push({
-          HoTen: item.TenNhanVien, // Sử dụng TenNhanVien cho trường HoTen
-          MonGiangDayChinh: item.MonGiangDayChinh, // Môn giảng dạy chính
-        });
-      });
-
-      return allResults.length > 0 ? allResults : null;
-    } catch (error) {
-      console.error("Error fetching lecturer info:", error);
-      return null;
-    } finally {
-      connection.release(); // Giải phóng kết nối sau khi sử dụng
-    }
-  });
+// };
+const tongHopDuLieuGiangVien = async () => {
+  const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
   try {
-    const results = await Promise.all(lecturerPromises);
-    return results.filter(Boolean).flat(); // Gộp các kết quả lại
+    // Thực hiện hai truy vấn song song bằng Promise.all
+    const [results1, results2] = await Promise.all([
+      connection.execute("SELECT HoTen, MonGiangDayChinh FROM gvmoi"),
+      connection.execute("SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien")
+    ]);
+
+    // Kết hợp kết quả từ hai truy vấn thành một mảng duy nhất
+    const allResults = results1[0].concat(results2[0]);
+
+    return allResults;
   } catch (error) {
-    console.error("Error during processing lecturer promises:", error);
-    return [];
+    console.error("Error while fetching lecturer data:", error);
+    return []; // Trả về mảng rỗng nếu có lỗi
+  } finally {
+    connection.release(); // Giải phóng kết nối sau khi hoàn thành
   }
 };
 
+
 // lưu file quy chuẩn vào bảng quychuan
+// const importTableQC = async (jsonData) => {
+//   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
+
+//   const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
+//   console.log(dataGiangVien);
+
+//   const queryInsert = `INSERT INTO ${tableName} (
+//     Khoa,
+//     Dot,
+//     KiHoc,
+//     NamHoc,
+//     GiaoVien,
+//     GiaoVienGiangDay,
+//     MoiGiang,
+//     SoTinChi,
+//     MaHocPhan,
+//     LopHocPhan,
+//     TenLop,
+//     BoMon,
+//     LL,
+//     SoTietCTDT,
+//     HeSoT7CN,
+//     SoSinhVien,
+//     HeSoLopDong,
+//     QuyChuan,
+//     GhiChu
+//   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+
+//   const insertPromises = jsonData.flatMap((item) => {
+//     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
+//     const giangVienArray = tachGiaoVien(item["GiaoVien"]);
+
+//     return giangVienArray.map(async ({ MoiGiang, GiaoVienGiangDay }) => {
+//       const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+//       try {
+//         const boMonFound = dataGiangVien.find(
+//           (dataGiangVien) => dataGiangVien.HoTen === GiaoVienGiangDay
+//         );
+//         const giangVien = boMonFound ? boMonFound.HoTen : null; // Sử dụng null thay cho ""
+//         const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null; // Sử dụng null thay cho ""
+
+//         const values = [
+//           item["Khoa"] || null,
+//           item["Dot"] || null,
+//           item["Ki"] || null,
+//           item["Nam"] || null,
+//           item["GiaoVien"] || null,
+//           giangVien,
+//           MoiGiang || null,
+//           item["SoTinChi"] || null,
+//           item["MaHocPhan"] || null,
+//           TenLop || null,
+//           Lop || null,
+//           monGiangDayChinh,
+//           item["LL"] || null,
+//           item["SoTietCTDT"] || null,
+//           item["HeSoT7CN"] || null,
+//           item["SoSinhVien"] || null,
+//           item["HeSoLopDong"] || null,
+//           item["QuyChuan"] || null,
+//           item["GhiChu"] || null,
+//         ];
+
+//         await connection.execute(queryInsert, values); // Sử dụng execute thay vì query
+
+//       } catch (err) {
+//         console.error("Error:", err);
+//         throw err;
+//       } finally {
+//         connection.release(); // Giải phóng kết nối
+//       }
+//     });
+//   });
+
+
+//   let results = false;
+
+//   try {
+//     await Promise.all(insertPromises);
+
+//     // Chạy câu lệnh UPDATE sau khi INSERT thành công
+//     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
+
+//     const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+//     try {
+//       // Sử dụng trực tiếp await với connection.execute
+//       await connection.execute(queryUpdate);  // Không cần bọc trong new Promise nữa
+//       results = true; // Cập nhật thành công
+//     } catch (err) {
+//       console.error("Error while updating:", err);
+//     } finally {
+//       connection.release(); // Giải phóng kết nối sau khi thực thi
+//     }
+
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+
+//   return results;
+// };
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
   const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
+  console.log(dataGiangVien);
 
+  // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
     Dot,
@@ -356,82 +480,71 @@ const importTableQC = async (jsonData) => {
     HeSoLopDong,
     QuyChuan,
     GhiChu
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+  ) VALUES ?;`; // Dấu '?' cho phép chèn nhiều giá trị một lần
 
-  const insertPromises = jsonData.flatMap((item) => {
+  // Mảng để lưu tất cả giá trị cần chèn
+  const allValues = [];
+
+  // Chuẩn bị dữ liệu cho mỗi item trong jsonData
+  jsonData.forEach((item) => {
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
     const giangVienArray = tachGiaoVien(item["GiaoVien"]);
 
-    return giangVienArray.map(async ({ MoiGiang, GiaoVienGiangDay }) => {
-      const connection = await createPoolConnection(); // Tạo kết nối từ pool
+    // Với mỗi giảng viên, thêm giá trị vào mảng allValues
+    giangVienArray.forEach(({ MoiGiang, GiaoVienGiangDay }) => {
+      const boMonFound = dataGiangVien.find(
+        (dataGiangVien) => dataGiangVien.HoTen.trim() === GiaoVienGiangDay.trim()
+      );
+      const giangVien = boMonFound ? boMonFound.HoTen : null;
+      const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null;
 
-      try {
-        const boMonFound = dataGiangVien.find(
-          (dataGiangVien) => dataGiangVien.HoTen === GiaoVienGiangDay
-        );
-        const giangVien = boMonFound ? boMonFound.HoTen : null; // Sử dụng null thay cho ""
-        const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null; // Sử dụng null thay cho ""
-
-        const values = [
-          item["Khoa"] || null,
-          item["Dot"] || null,
-          item["Ki"] || null,
-          item["Nam"] || null,
-          item["GiaoVien"] || null,
-          giangVien,
-          MoiGiang || null,
-          item["SoTinChi"] || null,
-          item["MaHocPhan"] || null,
-          TenLop || null,
-          Lop || null,
-          monGiangDayChinh,
-          item["LL"] || null,
-          item["SoTietCTDT"] || null,
-          item["HeSoT7CN"] || null,
-          item["SoSinhVien"] || null,
-          item["HeSoLopDong"] || null,
-          item["QuyChuan"] || null,
-          item["GhiChu"] || null,
-        ];
-
-        await connection.execute(queryInsert, values); // Sử dụng execute thay vì query
-
-      } catch (err) {
-        console.error("Error:", err);
-        throw err;
-      } finally {
-        connection.release(); // Giải phóng kết nối
-      }
+      allValues.push([
+        item["Khoa"] || null,
+        item["Dot"] || null,
+        item["Ki"] || null,
+        item["Nam"] || null,
+        item["GiaoVien"] || null,
+        giangVien,
+        MoiGiang || null,
+        item["SoTinChi"] || null,
+        item["MaHocPhan"] || null,
+        TenLop || null,
+        Lop || null,
+        monGiangDayChinh,
+        item["LL"] || null,
+        item["SoTietCTDT"] || null,
+        item["HeSoT7CN"] || null,
+        item["SoSinhVien"] || null,
+        item["HeSoLopDong"] || null,
+        item["QuyChuan"] || null,
+        item["GhiChu"] || null,
+      ]);
     });
   });
 
+  // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
+  const connection = await createPoolConnection();
 
   let results = false;
 
   try {
-    await Promise.all(insertPromises);
+    // Thực hiện chèn tất cả giá trị cùng lúc
+    await connection.query(queryInsert, [allValues]);
+    results = true;
 
-    // Chạy câu lệnh UPDATE sau khi INSERT thành công
+    // Thực hiện cập nhật sau khi chèn
     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
-
-    const connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-    try {
-      // Sử dụng trực tiếp await với connection.execute
-      await connection.execute(queryUpdate);  // Không cần bọc trong new Promise nữa
-      results = true; // Cập nhật thành công
-    } catch (err) {
-      console.error("Error while updating:", err);
-    } finally {
-      connection.release(); // Giải phóng kết nối sau khi thực thi
-    }
-
+    await connection.execute(queryUpdate);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error while inserting data:", error);
+  } finally {
+    connection.release();
   }
 
   return results;
 };
+
+
 
 // 
 const updateBanHanh = async (req, res) => {
