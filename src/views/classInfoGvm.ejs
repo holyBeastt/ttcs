@@ -343,42 +343,6 @@
                   <option value="">Chọn khoa</option>
                 </select>
 
-                <!-- <script>
-                  function filterTable() {
-                    // thừa hàm ở đây này, src đời đầu của anh viết ko khác gì tôi đou :)
-                    console.log('filterTable')
-                    // Get selected values
-                    let dot = document.getElementById("combobox-dot").value;
-                    let ki = document.getElementById("combobox-ki").value;
-                    let nam = document.getElementById("NamHoc").value;
-                    let department = document.getElementById("departmentFilter").value.trim();
-
-                    let tbody = document.getElementById("data-table-body");
-                    let rows = tbody.getElementsByTagName("tr");
-
-                    for (let i = 0; i < rows.length; i++) {
-                      let row = rows[i];
-                      let rowDepartment = row.getAttribute("data-department");
-                      let rowDot = row.getAttribute("data-dot");
-                      let rowKi = row.getAttribute("data-ki");
-                      let rowNam = row.getAttribute("data-nam");
-
-                      // Filtering logic
-                      let matchesDepartment = department === "" || rowDepartment === department;
-                      let matchesDot = dot === "" || rowDot === dot;
-                      let matchesKi = ki === "" || rowKi === ki;
-                      let matchesNam = nam === "" || rowNam === nam;
-
-                      // Show or hide row based on filter results
-                      if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-                        row.style.display = ""; // Show row
-                      } else {
-                        row.style.display = "none"; // Hide row
-                      }
-                    }
-                  }
-                </script> -->
-
                 <button class="btn text-nowrap mx-2" id="render" style="height: 45px;" onclick="filterTable()">Hiển thị
                 </button>
               </div>
@@ -404,56 +368,8 @@
                   <th>Chi tiết giảng viên mời</th>
                 </tr>
               </thead>
-              <tbody class="teacher-group" id="data-table-body">
-                <% let index = 1; %>
-                <% for (let teacher of Object.keys(GiangDay)) { %>
-                  <% let courses = GiangDay[teacher]; %>
-                  <% let totalSoTiet = courses.reduce((total, course) => total + (parseFloat(course.QuyChuan) || 0), 0); %>
-                  <tr class="teacher-group" data-department="<%= courses[0].MaPhongBan %>"
-                      data-dot="<%= courses[0].Dot %>" data-ki="<%= courses[0].KiHoc %>"
-                      data-nam="<%= courses[0].NamHoc %>">
-                    <% courses.forEach((course, courseIndex) => { %>
-                      <tr data-department="<%= course.MaPhongBan %>" data-dot="<%= course.Dot %>"
-                          data-ki="<%= course.KiHoc %>" data-nam="<%= course.NamHoc %>">
-                        <% if (courseIndex === 0) { %>
-                          <td rowspan="<%= courses.length %>"><%= index %></td>
-                          <td rowspan="<%= courses.length %>"><%= course.GiaoVienGiangDay.split(' - ')[0] %></td>
-                          <% index++; %>
-                        <% } %>
-                        <td><%= course.LopHocPhan %></td>
-                        <td><%= course.TenLop %></td>
-                        <td><%= course.SoTinChi %></td>
-                        <td><%= course.Dot %></td>
-                        <td><%= course.KiHoc %></td>
-                        <td><%= course.NamHoc %></td>
-                        
-                        <% function formatDate(dateStr) { %>
-                          <% if (!dateStr) return 'N/A'; %>
-                          <% const date = new Date(dateStr); %>
-                          <% if (isNaN(date.getTime())) return 'N/A'; %>
-                          <% const day = String(date.getDate()).padStart(2, '0'); %>
-                          <% const month = String(date.getMonth() + 1).padStart(2, '0'); %>
-                          <% const year = date.getFullYear(); %>
-                          <% return `${day}/${month}/${year}`; %>
-                        <% } %>
-              
-                        <td><%= formatDate(course.NgayBatDau) %></td>
-                        <td><%= formatDate(course.NgayKetThuc) %></td>
-                        <td><%= course.QuyChuan %></td>
-              
-                        <% if (courseIndex === 0) { %>
-                          <td rowspan="<%= courses.length %>"><%= totalSoTiet.toFixed(2) %></td>
-                          <td rowspan="<%= courses.length %>"><%= course.MaPhongBan %></td>
-                          <td rowspan="<%= courses.length %>">
-                            <button class="action-button view" onclick="viewClass(this, '<%= parseInt(course.id_Gvm) - 1 %>')">👁️</button>
-                          </td>
-                        <% } %>
-                      </tr>
-                    <% }); %>
-                  </tr>
-                <% } %>
-              </tbody>
-              
+
+              <tbody class="teacher-group" id="data-table-body"></tbody>
 
             </table>
             <!-- tổng tiết -->
@@ -462,65 +378,8 @@
               <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
               <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
             </div>
-            <!-- <div class="pagination">
-                              <span>10 / trang</span>
-                              <button class="page-button">1</button>
-                            </div> -->
           </div>
 
-          <div id="modal" class="modal" style="display: none">
-            <div class="modal-content">
-              <span class="close-button" onclick="closeModal()">×</span>
-              <h2 id="modal-title">Chi tiết giảng viên mời</h2>
-              <br />
-              <p>
-                <strong>Mã giảng viên:</strong> <span id="modal-ma-gv"></span>
-              </p>
-              <p><strong>Họ tên:</strong> <span id="modal-ho-ten"></span></p>
-              <p>
-                <strong>Ngày sinh:</strong> <span id="modal-ngay-sinh"></span>
-              </p>
-              <p><strong>CCCD:</strong> <span id="modal-cccd"></span></p>
-              <p>
-                <strong>Ngày cấp CCCD:</strong>
-                <span id="modal-ngay-cap"></span>
-              </p>
-              <p>
-                <strong>Nơi cấp CCCD:</strong>
-                <span id="modal-noi-cap"></span>
-              </p>
-              <p>
-                <strong>Địa chỉ theo CCCD:</strong>
-                <span id="modal-dia-chi-cccd"></span>
-              </p>
-              <p>
-                <strong>Số tài khoản:</strong> <span id="modal-so-tk"></span>
-              </p>
-              <p>
-                <strong>Ngân hàng:</strong> <span id="modal-ngan-hang"></span>
-              </p>
-              <p><strong>Email:</strong> <span id="modal-email"></span></p>
-              <p>
-                <strong>Hệ số lương:</strong>
-                <span id="modal-heso-luong"></span>
-              </p>
-              <p>
-                <strong>Nơi công tác:</strong>
-                <span id="modal-noi-cong-tac"></span>
-              </p>
-              <p>
-                <strong>Chức vụ:</strong> <span id="modal-chuc-vu"></span>
-              </p>
-              <p>
-                <strong>Mã số thuế:</strong>
-                <span id="modal-ma-so-thue"></span>
-              </p>
-              <p>
-                <strong>Tốt nghiệp loại:</strong>
-                <span id="modal-tot-nghiep-loai"></span>
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -528,46 +387,115 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- 
+  <tbody style="display: none;" class="teacher-group" id="data-table-body"></tbody>
+
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Khởi tạo tổng số tiết Quy Chuẩn và tổng số tiết Lên Lớp
-      let totalQC = 0;
-      let totalLL = 0; // Giả sử tổng số tiết Lên Lớp cũng được tính riêng.
-
-      // Lấy tất cả các hàng trong bảng có chứa dữ liệu số tiết Quy Chuẩn
-      const rows = document.querySelectorAll('#data-table-body tr'); // Lấy tất cả các hàng <tr> trong tbody.
-      // console.log(rows)
-      rows.forEach(row => {
-        // Lấy giá trị của ô chứa số tiết Quy Chuẩn trong hàng
-        const qcCell = row.querySelector('td:nth-last-child(12)'); // Thay đổi vị trí cột nếu cần.
-        console.log(qcCell);
-        if (qcCell) {
-          // Chuyển giá trị từ text sang số và cộng dồn vào tổng
-          const qcValue = parseFloat(qcCell.textContent.trim());
-          if (!isNaN(qcValue)) {
-            totalQC += qcValue;
-          }
-        }
-
-        // (Tùy chọn) Tính tổng số tiết Lên Lớp nếu có
-        // const llCell = row.querySelector('td:nth-last-child(X)'); // Thay X bằng vị trí cột tương ứng
-        // if (llCell) {
-        //   const llValue = parseFloat(llCell.textContent.trim());
-        //   if (!isNaN(llValue)) {
-        //     totalLL += llValue;
-        //   }
-        // }
+    function filterTable() {
+      // Lấy giá trị lọc từ các dropdown
+      let dot = document.getElementById("combobox-dot").value;
+      let ki = document.getElementById("combobox-ki").value;
+      let nam = document.getElementById("NamHoc").value;
+      let department = document.getElementById("departmentFilter").value.trim();
+  
+      // Tạo dữ liệu gửi đến server
+      const filterData = {
+        dot: dot,
+        ki: ki,
+        nam: nam,
+        department: department
+      };
+  
+      // Gửi request tới server để lấy dữ liệu lọc
+      fetch('/api/getClassInfoGvmData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(filterData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Render lại bảng dựa trên dữ liệu trả về từ server
+        renderTable(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
       });
+    }
 
-      // Hiển thị tổng số tiết Quy Chuẩn trên phần tử có id #totalQC
-      document.getElementById('totalQC').textContent = totalQC;
-
-      // (Tùy chọn) Hiển thị tổng số tiết Lên Lớp trên phần tử có id #totalLL
-      // document.getElementById('totalLL').textContent = totalLL;
-    });
-
-  </script> -->
+    function renderTable(data) {
+      const tableBody = document.getElementById('data-table-body');
+      tableBody.innerHTML = ''; // Clear previous data
+    
+      let index = 1;
+    
+      // Duyệt qua tất cả các giảng viên trong groupedByTeacher
+      Object.keys(data).forEach(teacher => {
+        const courses = data[teacher];
+        const totalSoTiet = courses.reduce((total, course) => total + (parseFloat(course.QuyChuan) || 0), 0);
+    
+        // Duyệt qua từng khóa học của giảng viên
+        courses.forEach((course, courseIndex) => {
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-department', course.MaPhongBan);
+          tr.setAttribute('data-dot', course.Dot);
+          tr.setAttribute('data-ki', course.KiHoc);
+          tr.setAttribute('data-nam', course.NamHoc);
+    
+          // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
+          if (courseIndex === 0) {
+            tr.innerHTML = `
+              <td rowspan="${courses.length}">${index}</td>
+              <td rowspan="${courses.length}">${course.GiaoVienGiangDay.split(' - ')[0]}</td>
+            `;
+            index++; // Tăng index cho giảng viên tiếp theo
+          }
+    
+          // Thêm các ô dữ liệu cho từng môn học
+          tr.innerHTML += `
+            <td>${course.LopHocPhan}</td>
+            <td>${course.TenLop}</td>
+            <td>${course.SoTinChi}</td>
+            <td>${course.Dot}</td>
+            <td>${course.KiHoc}</td>
+            <td>${course.NamHoc}</td>
+            <td>${formatDate(course.NgayBatDau)}</td>
+            <td>${formatDate(course.NgayKetThuc)}</td>
+            <td>${course.QuyChuan}</td>
+          `;
+    
+          // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
+          if (courseIndex === 0) {
+            tr.innerHTML += `
+              <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
+              <td rowspan="${courses.length}">${course.MaPhongBan}</td>
+              <td rowspan="${courses.length}">
+                <button class="action-button view" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1}')">👁️</button>
+              </td>
+            `;
+          }
+    
+          // Thêm tr vào tbody
+          tableBody.appendChild(tr);
+        });
+      });
+    }
+  
+    // Hàm format ngày tháng
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'N/A';
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  
+    // Giả sử GiangDay đã được định nghĩa trước đó
+    renderTable(GiangDay);
+  </script>
+  
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -599,27 +527,6 @@
 
 
   </script>
-
-  <!-- <script>
-        function filterGvmByDepartment() {
-          var filter = document.getElementById("departmentFilter").value;
-          var table = document.getElementById("classTable");
-          var tbody = document.getElementById("teacher-group");
-          var rows = tbody.getElementsByTagName("tr");
-
-          for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            var department = row.getAttribute("data-department");
-
-            if (filter === "" || department === filter) {
-              row.style.display = "";
-            } else {
-              row.style.display = "none";
-            }
-          }
-        }
-      </script> -->
-
   <script>
     // tổng quy chuẩn
     function calculateTotals() {
@@ -894,41 +801,6 @@
 
   <!-- <script>
     function filterTable() {
-      // Get selected values
-      let dot = document.getElementById("combobox-dot").value;
-      let ki = document.getElementById("combobox-ki").value;
-      let nam = document.getElementById("NamHoc").value;
-      let department = document.getElementById("departmentFilter").value.trim();
-
-      let tbody = document.getElementById("data-table-body");
-      let rows = tbody.getElementsByTagName("tr");
-
-      for (let i = 0; i < rows.length; i++) {
-        let row = rows[i];
-        let rowDepartment = row.getAttribute("data-department");
-        let rowDot = row.getAttribute("data-dot");
-        let rowKi = row.getAttribute("data-ki");
-        let rowNam = row.getAttribute("data-nam");
-
-        // Filtering logic
-        let matchesDepartment = department === "ALL" || department === "" || rowDepartment.includes(department); // Kiểm tra nếu chọn "ALL"
-        let matchesDot = dot === "" || rowDot === dot;
-        let matchesKi = ki === "" || rowKi === ki;
-        let matchesNam = nam === "" || rowNam === nam;
-
-        // Show or hide row based on filter results
-        if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-          row.style.display = ""; // Show row
-        } else {
-          row.style.display = "none"; // Hide row
-        }
-      }
-      calculateTotals();
-    }
-  </script> -->
-
-  <script>
-    function filterTable() {
       // Lấy giá trị lọc
       let dot = document.getElementById("combobox-dot").value;
       let ki = document.getElementById("combobox-ki").value;
@@ -951,10 +823,15 @@
           let rowNam = courses.getAttribute("data-nam");
   
           // Kiểm tra các điều kiện lọc
-          let matchesDepartment = department === "ALL" || department === "" || rowDepartment === department;
-          let matchesDot = dot === "" || rowDot === dot;
-          let matchesKi = ki === "" || rowKi === ki;
-          let matchesNam = nam === "" || rowNam === nam;
+          let matchesDepartment = department === "ALL" || rowDepartment === department;
+          let matchesDot = rowDot === dot;
+          let matchesKi = rowKi === ki;
+          let matchesNam = rowNam === nam;
+
+          console.log("stt");
+          console.log("nam = ", nam);
+          console.log("row nam = ", rowNam);
+          console.log("matchesNam = ", matchesNam);
   
           // Nếu có môn học nào khớp với điều kiện lọc, hiển thị cả nhóm
           if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
@@ -982,10 +859,12 @@
           }
         }
       });
+      // Hiển thị lại tbody sau khi lọc
+      tbody.style.display = "table-row-group";  // Hiển thị lại tbody
   
       calculateTotals(); // Cập nhật lại tổng số sau khi lọc
     }
-  </script>
+  </script> -->
   
   
 
