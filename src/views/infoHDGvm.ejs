@@ -137,7 +137,9 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
               </div>
             </div>
           </div>
@@ -148,7 +150,7 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
             </div>
           </div>
@@ -159,7 +161,7 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
             </div>
           </div>
@@ -170,7 +172,7 @@
                 Thống Kê
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
             </div>
 
@@ -285,6 +287,7 @@
             const actionButton = document.getElementById('actionButton');
             const actionButton1 = document.getElementById('actionButton1');
             const actionButton2 = document.getElementById('actionButton2');
+            const actionButton3 = document.getElementById('actionButton3');
 
             if (actionButton1 && actionButton2) {
               if (isKhoa === "0") {
@@ -298,6 +301,13 @@
               }
             } else {
               console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
+            }
+            //Ẩn site duyệt lớp gk
+            const Quyen = localStorage.getItem("userRole");
+            if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+              actionButton3.style.display = '';
+            } else {
+              actionButton3.style.display = 'none';
             }
           }
         }

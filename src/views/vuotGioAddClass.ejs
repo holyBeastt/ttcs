@@ -89,7 +89,9 @@
                     Vượt Giờ
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link active" id="ThongTinGD" href="/addclass">Thêm lớp giảng dạy</a>              
+                    <a class="nav-link active" id="" href="/addclass">Thêm lớp giảng dạy</a>              
+                    <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                    <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
                   </div>
                 </div>
               </div>
@@ -100,7 +102,7 @@
                     Nghiên Cứu Khoa Học
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>              </div>
+                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -110,7 +112,7 @@
                     Đồ Án
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>              </div>
+                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -120,7 +122,7 @@
                     Thống Kê
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="ThongTinGD" href="#">COMING SOON</a>
+                    <a class="nav-link" id="" href="#">COMING SOON</a>
                   </div>
                 </div>
              
@@ -155,7 +157,7 @@
       </nav>
       <div class="m-3">
         <h1 class="d-flex justify-content-center">Thêm các lớp giảng dạy</h1>
-        <form action="/addclass" class="form" method="POST">
+        <form id="addClassForm" class="form" method="POST">
           <fieldset>
             <div id="add">
               <h6>Nhập thông tin lớp:</h6>
@@ -224,24 +226,29 @@
                 </div>
                 <div style="width: max-content;">
                   <div>
-                    <label for="HocKy1">Học kì:</label>
+                    <label for="HocKy1">Học kì</label>
                     <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
                       <option value="1">Học kỳ 1</option>
                       <option value="2">Học kỳ 2</option>
                     </select>
                   </div>
                   <div>
-                    <label for="NamHoc1">Năm học:</label>
+                    <label for="NamHoc1">Năm học</label>
                     <select class="form-control" name="NamHoc1" id="NamHoc1">
                     </select>
                   </div>
                 </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoDe1">Số đề</label>
+                    <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
+                  </div>
+                </div>
               </div>    
             </div>        
-            <div class="justify-content-between">
-              <button class="btn" id="submit">Yêu cầu xác nhận</button>
-              <button class="btn" id="return" type="button" onclick="goBack()">Quay lại</button>
-              <button class="btn" type="button" onclick="addInputFields()">Thêm lớp mới</button>
+            <div>
+              <button class="btn mx-5" id="submit">Thêm</button>
+              <button class="btn mx-5" type="button" onclick="addInputFields()">Thêm ô nhập lớp</button>
             </div>
           </fieldset>
         </form>
@@ -251,22 +258,38 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const isKhoa = localStorage.getItem("isKhoa");
+      const isKhoa = localStorage.getItem("isKhoa");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('actionButton');
-            const actionButton1 = document.getElementById('actionButton1');
-    const actionButton2 = document.getElementById('actionButton2');
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('actionButton');
+      const actionButton1 = document.getElementById('actionButton1');
+      const actionButton2 = document.getElementById('actionButton2');
+      const actionButton3 = document.getElementById('actionButton3');
 
-    if (isKhoa == 0) {
-            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+      if (isKhoa == 0) {
+        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
             
-        } else {
-            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-            actionButton2.style.display = 'none'; // Ẩn actionButton2
-            
-        }
+      } else {
+          actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+          actionButton2.style.display = 'none'; // Ẩn actionButton2
+      }
+      const MaPhongBan = localStorage.getItem("MaPhongBan");
+    
+      // Gán URL động vào thuộc tính action của form
+      if (MaPhongBan) {
+        document.getElementById("addClassForm").action = `/addclass/${MaPhongBan}`;
+      } else {
+        console.error("Không tìm thấy MaPhongBan trong localStorage");
+      }
+
+      //Ẩn site duyệt
+      const Quyen = localStorage.getItem("userRole");
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton3.style.display = '';
+      } else {
+        actionButton3.style.display = 'none';
+      }
       });
 </script>
 <script>
@@ -381,6 +404,12 @@
                     <label for="NamHoc${counter}">Năm học</label>
                     <select class="form-control" name="NamHoc${counter}" id="NamHoc${counter}">
                     </select>
+                  </div>
+                </div>
+                <div style="width: max-content;">
+                  <div>
+                    <label for="SoDe${counter}">Số đề</label>
+                    <input type="text" class="form-control" name="SoDe${counter}" id="SoDe${counter}" style="width: 100px;" required>
                   </div>
                 </div>
               <button type="button" class="btn btn-danger" onclick="removeField(this)" style="margin-bottom: 0px; width: 100px;">Xóa</button>
