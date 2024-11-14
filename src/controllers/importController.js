@@ -90,7 +90,11 @@ const validate = (data) => {
     // Duyệt qua từng key trong đối tượng
     Object.keys(record).forEach((key) => {
       // Trim giá trị và kiểm tra nếu nó là chuỗi rỗng hoặc undefined, null
-      if (record[key] === null || record[key] === undefined || String(record[key]).trim() === "") {
+      if (
+        record[key] === null ||
+        record[key] === undefined ||
+        String(record[key]).trim() === ""
+      ) {
         record[key] = 0; // Gán giá trị là 0 nếu không hợp lệ
       } else {
         // Nếu không rỗng, trim giá trị (nếu cần)
@@ -102,9 +106,6 @@ const validate = (data) => {
   // console.log("Dữ liệu đã được validate và chỉnh sửa");
   return data;
 };
-
-
-
 
 // const checkDataQC = async (req, res) => {
 //   const tableName = process.env.DB_TABLE_QC; // Lấy tên bảng từ biến môi trường
@@ -2423,8 +2424,6 @@ const updateAllTeachingInfo = async (req, res) => {
     //   };
     // }
 
-    console.log("insert = ", insertValues);
-
     // Định nghĩa câu lệnh chèn
     const queryInsert = `
       INSERT INTO hopdonggvmoi (
@@ -2650,7 +2649,7 @@ const getNvList = async (req, res) => {
 };
 
 const getHocPhanList = async (req, res) => {
-  const query = `SELECT * FROM hocphan`;
+  const query = `SELECT TenHocPhan FROM hocphan`;
 
   try {
     const [data] = await pool.query(query);
@@ -2663,7 +2662,13 @@ const getHocPhanList = async (req, res) => {
   }
 };
 
-const insertGiangDay = async (req, res, gvmList, daDuyetHetArray) => {
+const insertGiangDay = async (
+  req,
+  res,
+  gvmList,
+  hocPhanList,
+  daDuyetHetArray
+) => {
   const { dot, ki, namHoc } = req.body;
 
   const query2 = `
@@ -2681,13 +2686,6 @@ const insertGiangDay = async (req, res, gvmList, daDuyetHetArray) => {
 
   try {
     const [dataJoin] = await pool.query(query2, value);
-
-    // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
-
-    // // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
 
     // const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
     // const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
@@ -2730,6 +2728,7 @@ const insertGiangDay = async (req, res, gvmList, daDuyetHetArray) => {
           let gv = gv1[0];
           let id_Gvm = 1;
           let id_User = 1;
+          console.log("gà");
 
           // Tạo giá trị cho Mã Học Phần
           const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
@@ -2741,16 +2740,15 @@ const insertGiangDay = async (req, res, gvmList, daDuyetHetArray) => {
             }
           });
 
-          // const DaLuu = 1;
-          // // Thêm Đã lưu = 1 vào quy chuẩn
-          // const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          // await pool.query(updateQuery, [DaLuu, ID]);
+          console.log("id = ", id_Gvm);
 
-          // Kiểm tra môn học đã tồn tại chưa
-          const exists = await hocPhanDaTonTai(TenHocPhan);
-          console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
+          const exists = hocPhanList.some(
+            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          )
+            ? 1
+            : 0;
 
-          if (exists === false) {
+          if (exists == 0) {
             await themHocPhan(TenHocPhan, SoTinChi, Khoa);
           }
 
@@ -2803,7 +2801,13 @@ const insertGiangDay = async (req, res, gvmList, daDuyetHetArray) => {
   }
 };
 
-const insertGiangDay2 = async (req, res, nvList, daDuyetHetArray) => {
+const insertGiangDay2 = async (
+  req,
+  res,
+  nvList,
+  hocPhanList,
+  daDuyetHetArray
+) => {
   const { dot, ki, namHoc } = req.body;
 
   const query2 = `
@@ -2872,15 +2876,16 @@ const insertGiangDay2 = async (req, res, nvList, daDuyetHetArray) => {
             }
           });
 
-          // const DaLuu = 1;
-          // // Thêm Đã lưu = 1 vào quy chuẩn
-          // const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          // await pool.query(updateQuery, [DaLuu, ID]);
+          const exists = hocPhanList.some(
+            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          )
+            ? 1
+            : 0;
 
-          const exists = await hocPhanDaTonTai(TenHocPhan);
+          //const exists = await hocPhanDaTonTai(TenHocPhan);
           console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
 
-          if (exists === false) {
+          if (exists == 0) {
             await themHocPhan(TenHocPhan, SoTinChi, Khoa);
           }
 
@@ -2934,75 +2939,35 @@ const insertGiangDay2 = async (req, res, nvList, daDuyetHetArray) => {
 };
 
 const submitData2 = async (req, res) => {
-  const gvmList = await getGvmList(req, res);
-  const nvList = await getNvList(req, res);
-  const hocPhanList = await getHocPhanList(req, res);
-  const { dot, ki, namHoc } = req.body;
-  const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-  const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
-  console.log("mang = ", daDuyetHetArray);
-
   try {
-    let updateResult, update2, insertResult;
+    const gvmList = await getGvmList(req, res);
+    const nvList = await getNvList(req, res);
+    const hocPhanList = await getHocPhanList(req, res);
+    const { dot, ki, namHoc } = req.body;
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+    const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
 
-    try {
-      updateResult = await updateAllTeachingInfo(req, res); // Hàm thêm vào hợp đồng giảng viên mời
-    } catch (err) {
-      console.error("Lỗi trong updateAllTeachingInfo:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi cập nhật hợp đồng giảng viên mời." });
-    }
-
-    try {
-      update2 = await insertGiangDay2(
-        req,
-        res,
-        gvmList,
-        hocPhanList,
-        daDuyetHetArray
-      ); // Hàm thêm vào giảng dạy (nhân viên)
-    } catch (err) {
-      console.error("Lỗi trong insertGiangDay2:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (nhân viên)." });
-    }
-
-    try {
-      insertResult = await insertGiangDay(
-        req,
-        res,
-        nvList,
-        hocPhanList,
-        daDuyetHetArray
-      ); // Hàm thêm vào giảng dạy (giảng viên mời)
-    } catch (err) {
-      console.error("Lỗi trong insertGiangDay:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (giảng viên mời)." });
-    }
+    // Thực hiện các cập nhật và thêm dữ liệu song song
+    const [updateResult, update2, insertResult] = await Promise.all([
+      updateAllTeachingInfo(req, res),
+      insertGiangDay2(req, res, nvList, hocPhanList, daDuyetHetArray),
+      insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray),
+    ]);
 
     if (req.session.tmp == 0) {
       req.session.tmp = 0;
       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
     } else {
       const DaLuu = 1;
-      // Thêm Đã lưu = 1 vào quy chuẩn
-      // Lọc mảng để loại bỏ phần tử rỗng
-      const arr = daDuyetHetArray.filter((item) => item !== "");
-
-      // Duyệt qua các phần tử trong mảng đã lọc
-      for (const item of arr) {
-        const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa LIKE ?;`;
-        await pool.query(updateQuery, [DaLuu, item]); // Sử dụng `item` làm giá trị cho `Khoa`
-      }
+      const placeholders = daDuyetHetArray.map(() => "?").join(", ");
+      const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa IN (${placeholders});`;
+      await pool.query(updateQuery, [DaLuu, ...daDuyetHetArray]);
     }
 
     // Đặt lại giá trị cho req.session.tmp
     req.session.tmp = 0;
 
+    // Chỉ trả về dữ liệu
     res.json({
       message: "Lưu dữ liệu thành công",
       updateResult,
@@ -3016,16 +2981,74 @@ const submitData2 = async (req, res) => {
 };
 
 // const submitData2 = async (req, res) => {
+//   const gvmList = await getGvmList(req, res);
+//   const nvList = await getNvList(req, res);
+//   const hocPhanList = await getHocPhanList(req, res);
+//   const { dot, ki, namHoc } = req.body;
+//   const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+//   const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+//   console.log("mang = ", daDuyetHetArray);
+
 //   try {
-//     const updateResult = await updateAllTeachingInfo(); // Hàm thêm vào hợp đồng giảng viên mời
+//     let updateResult, update2, insertResult;
 
-//     const update2 = await insertGiangDay2(); // Hàm thêm vào giảng dạy (nhân viên)
-
-//     const insertResult = await insertGiangDay(); // Hàm thêm vào giảng dạy (giảng viên mời)
-
-//     if (tmp == 0) {
-//       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" }); // Trả về phản hồi khi tmp == 0
+//     try {
+//       updateResult = await updateAllTeachingInfo(req, res); // Hàm thêm vào hợp đồng giảng viên mời
+//     } catch (err) {
+//       console.error("Lỗi trong updateAllTeachingInfo:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi cập nhật hợp đồng giảng viên mời." });
 //     }
+
+//     try {
+//       update2 = await insertGiangDay2(
+//         req,
+//         res,
+//         gvmList,
+//         hocPhanList,
+//         daDuyetHetArray
+//       ); // Hàm thêm vào giảng dạy (nhân viên)
+//     } catch (err) {
+//       console.error("Lỗi trong insertGiangDay2:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (nhân viên)." });
+//     }
+
+//     try {
+//       insertResult = await insertGiangDay(
+//         req,
+//         res,
+//         nvList,
+//         hocPhanList,
+//         daDuyetHetArray
+//       ); // Hàm thêm vào giảng dạy (giảng viên mời)
+//     } catch (err) {
+//       console.error("Lỗi trong insertGiangDay:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (giảng viên mời)." });
+//     }
+
+//     if (req.session.tmp == 0) {
+//       req.session.tmp = 0;
+//       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
+//     } else {
+//       const DaLuu = 1;
+//       // Thêm Đã lưu = 1 vào quy chuẩn
+//       // Lọc mảng để loại bỏ phần tử rỗng
+//       const arr = daDuyetHetArray.filter((item) => item !== "");
+
+//       // Duyệt qua các phần tử trong mảng đã lọc
+//       for (const item of arr) {
+//         const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa LIKE ?;`;
+//         await pool.query(updateQuery, [DaLuu, item]); // Sử dụng `item` làm giá trị cho `Khoa`
+//       }
+//     }
+
+//     // Đặt lại giá trị cho req.session.tmp
+//     req.session.tmp = 0;
 
 //     res.json({
 //       message: "Lưu dữ liệu thành công",
@@ -3034,42 +3057,9 @@ const submitData2 = async (req, res) => {
 //       insertResult,
 //     });
 //   } catch (err) {
-//     console.error(err);
-//     console.log("gsgag");
+//     console.error("Lỗi không xác định:", err);
 //     return res.status(500).json({ error: "Đã xảy ra lỗi không xác định." });
 //   }
-// };
-
-// const submitData2 = async (req, res) => {
-//   try {
-//     const updateResult = await updateAllTeachingInfo(); // Hàm thêm vào hợp đồng giảng viên mời
-
-//     const update2 = await insertGiangDay2(); // Hàm thêm vào giảng dạy (nhân viên)
-
-//     if (updateResult.success) {
-//       const insertResult = await insertGiangDay(); // Hàm thêm vào giảng dạy (giảng viên mời)
-
-//       if (tmp == 3) {
-//         console.log("dã ok");
-//         return res.status(400).json({ message: updateResult.message });
-//       }
-//       if (insertResult.success) {
-//         return res.status(200).json({ message: insertResult.message });
-//       } else {
-//         return res.status(400).json({ message: insertResult.message });
-//       }
-//     } else {
-//       return res.status(400).json({ message: updateResult.message });
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ error: "Đã xảy ra lỗi không xác định." });
-//   }
-// };
-
-// const submitData2 = async (req, res) => {
-//   updateAllTeachingInfo(req, res);
-//   insertGiangDay(req, res);
 // };
 
 module.exports = {

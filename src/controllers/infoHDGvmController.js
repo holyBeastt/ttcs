@@ -52,32 +52,42 @@ const exportHDGvmToExcel = async (req, res) => {
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
     }
-
     let query = `
-      SELECT
-        MIN(NgayBatDau) AS NgayBatDau,
-        MAX(NgayKetThuc) AS NgayKetThuc,
-        KiHoc,
-        DanhXung,
-        HoTen,
-        NgaySinh,
-        CCCD,
-        NoiCapCCCD,
-        Email,
-        MaSoThue,
-        HocVi,
-        ChucVu,
-        HSL,
-        DienThoai,
-        STK,
-        NganHang,
-        SUM(SoTiet) AS SoTiet,
-        DiaChi
-      FROM
-        hopdonggvmoi
-      WHERE
-        NamHoc = ? AND Dot = ? AND KiHoc = ?
-    `;
+    SELECT
+      MIN(hd.NgayBatDau) AS NgayBatDau,
+      MAX(hd.NgayKetThuc) AS NgayKetThuc,
+      hd.KiHoc,
+      gv.GioiTinh,
+      hd.HoTen,
+      hd.NgaySinh,
+      gv.MaPhongBan,
+      gv.MonGiangDayChinh,
+      gv.BangTotNghiepLoai,
+      hd.CCCD,
+      hd.NoiCapCCCD,
+      hd.NgayCap,
+      hd.Email,
+      hd.MaSoThue,
+      hd.HocVi,
+      hd.ChucVu,
+      hd.HSL,
+      hd.DienThoai,
+      hd.STK,
+      hd.NganHang,
+      SUM(hd.SoTiet) AS SoTiet,
+      hd.DiaChi,
+      gv.NoiCongTac 
+    FROM
+      hopdonggvmoi hd
+    JOIN
+      gvmoi gv ON hd.HoTen = gv.HoTen  
+    WHERE
+      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?
+    GROUP BY
+      hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
+      hd.Email, hd.MaSoThue, hd.HocVi, hd.ChucVu, hd.HSL, hd.DienThoai, 
+      hd.STK, hd.NganHang, hd.DiaChi,hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, gv.MonGiangDayChinh, gv.BangTotNghiepLoai
+  `;
 
     let params = [namHoc, dot, ki];
 
@@ -86,11 +96,11 @@ const exportHDGvmToExcel = async (req, res) => {
       params.push(khoa);
     }
 
-    query += `
-      GROUP BY
-        HoTen, KiHoc, DanhXung, NgaySinh, CCCD, NoiCapCCCD, Email,
-        MaSoThue, HocVi, ChucVu, HSL, DienThoai, STK, NganHang, DiaChi
-    `;
+    // query += `
+    //   GROUP BY
+    //     HoTen, KiHoc, DanhXung, NgaySinh, CCCD, NoiCapCCCD, Email,
+    //     MaSoThue, HocVi, ChucVu, HSL, DienThoai, STK, NganHang, DiaChi
+    // `;
 
     const [rows] = await connection.execute(query, params);
 
@@ -106,23 +116,28 @@ const exportHDGvmToExcel = async (req, res) => {
 
     // Định nghĩa các cột và tiêu đề
     worksheet.columns = [
-      { header: "Ngày Bắt Đầu", key: "NgayBatDau", width: 15 },
-      { header: "Ngày Kết Thúc", key: "NgayKetThuc", width: 15 },
-      { header: "Kì Học", key: "KiHoc", width: 10 },
-      { header: "Danh Xưng", key: "DanhXung", width: 12 },
-      { header: "Họ Tên", key: "HoTen", width: 20 },
+      { header: "STT", key: "stt", width: 5 },
+      { header: "Họ và Tên", key: "HoTen", width: 20 },
+      { header: "Giới Tính", key: "GioiTinh", width: 12 },
       { header: "Ngày Sinh", key: "NgaySinh", width: 15 },
-      { header: "CCCD", key: "CCCD", width: 15 },
-      { header: "Nơi Cấp CCCD", key: "NoiCapCCCD", width: 15 },
-      { header: "Địa Chỉ Theo CCCD", key: "DiaChi", width: 20 },
+      { header: "Điện Thoại", key: "DienThoai", width: 15 },
       { header: "Email", key: "Email", width: 25 },
-      { header: "Mã Số Thuế", key: "MaSoThue", width: 15 },
       { header: "Học Vị", key: "HocVi", width: 10 },
       { header: "Chức Vụ", key: "ChucVu", width: 12 },
-      { header: "HSL", key: "HSL", width: 10 },
-      { header: "Điện Thoại", key: "DienThoai", width: 15 },
+      { header: "Hệ Số Lương", key: "HSL", width: 10 },
+      { header: "Nơi Công Tác", key: "NoiCongTac", width: 20 },
+      { header: "Số CCCD", key: "CCCD", width: 15 },
+      { header: "Ngày Cấp", key: "NgayCap", width: 15 },
+      { header: "Nơi Cấp", key: "NoiCapCCCD", width: 15 },
+      { header: "Địa Chỉ Theo CCCD", key: "DiaChi", width: 20 },
+      { header: "Mã Số Thuế", key: "MaSoThue", width: 15 },
       { header: "Số Tài Khoản", key: "STK", width: 15 },
-      { header: "Ngân Hàng", key: "NganHang", width: 20 },
+      { header: "Tại Ngân Hàng", key: "NganHang", width: 20 },
+      { header: "Khoa", key: "MaPhongBan", width: 20 },
+      { header: "Bộ Môn", key: "MonGiangDayChinh", width: 20 },
+      { header: "Ngày Ký Hợp Đồng", key: "NgayBatDau", width: 15 }, // Thêm cột Ngày Ký
+      { header: "Kỳ", key: "KiHoc", width: 10 },
+      { header: "Thời Gian Thực Hiện", key: "ThoiGianThucHien", width: 30 }, // Cập nhật ở đây
       { header: "Số Tiết", key: "SoTiet", width: 10 },
       {
         header: "Số Tiền",
@@ -149,7 +164,7 @@ const exportHDGvmToExcel = async (req, res) => {
     ];
 
     // Thêm dữ liệu vào bảng và tính toán các cột mới
-    rows.forEach((row) => {
+    rows.forEach((row, index) => {
       const soTien = row.SoTiet * 100000; // Số Tiền = Số Tiết * 100000
       const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
       const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
@@ -166,9 +181,15 @@ const exportHDGvmToExcel = async (req, res) => {
       const utcSinh = new Date(row.NgaySinh);
       row.NgaySinh = utcSinh.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
 
+
+      const thoiGianThucHien = `${utcBatDau.toLocaleDateString("vi-VN")} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
+
       // het
       worksheet.addRow({
+        stt: index + 1, // Thêm số thứ tự
+
         ...row,
+        ThoiGianThucHien: thoiGianThucHien, // Thêm cột Thời Gian Thực Hiện
         SoTien: soTien,
         BangChuSoTien: numberToWords(soTien), // Sử dụng hàm mới
         TruThue: truThue,
@@ -181,13 +202,14 @@ const exportHDGvmToExcel = async (req, res) => {
 
     // Định dạng tiêu đề (in đậm và căn giữa)
     worksheet.getRow(1).eachCell((cell) => {
-      cell.font = { bold: true };
+      cell.font = { name: "Times New Roman", size: 12, bold: true }; // Đặt kiểu chữ và cỡ chữ cho tiêu đề
       cell.alignment = { vertical: "middle", horizontal: "center" };
     });
-
     // Thêm border cho các ô trong bảng
     worksheet.eachRow({ includeEmpty: false }, (row) => {
       row.eachCell({ includeEmpty: false }, (cell) => {
+        cell.font = { name: "Times New Roman", size: 12 }; // Đặt kiểu chữ cho từng ô
+
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },
@@ -399,64 +421,119 @@ const getHopDongDuKienData = async (req, res) => {
     let rows;
     if (khoa == undefined) {
       [rows] = await connection.execute(
+        //   `SELECT
+        //       MIN(qc.NgayBatDau) AS NgayBatDau,
+        //       MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        //       qc.KiHoc,
+        //       gv.GioiTinh,
+        //       gv.HoTen,
+        //       gv.NgaySinh,
+        //       gv.CCCD,
+        //       gv.NoiCapCCCD,
+        //       gv.Email,
+        //       gv.MaSoThue,
+        //       gv.HocVi,
+        //       gv.ChucVu,
+        //       gv.HSL,
+        //       gv.DienThoai,
+        //       gv.STK,
+        //       gv.NganHang,
+        //       gv.MaPhongBan,
+        //       SUM(qc.QuyChuan) AS SoTiet
+        //   FROM
+        // quychuan qc
+        //   JOIN
+        // gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        //   WHERE
+        //       NamHoc = ? AND Dot = ? AND KiHoc = ?
+        //   GROUP BY
+        //       gv.HoTen;`,
         `SELECT
-            MIN(qc.NgayBatDau) AS NgayBatDau,
-            MAX(qc.NgayKetThuc) AS NgayKetThuc,
-            qc.KiHoc,
-            gv.GioiTinh,
-            gv.HoTen,
-            gv.NgaySinh,
-            gv.CCCD,
-            gv.NoiCapCCCD,
-            gv.Email,
-            gv.MaSoThue,
-            gv.HocVi,
-            gv.ChucVu,
-            gv.HSL,
-            gv.DienThoai,
-            gv.STK,
-            gv.NganHang,
-            gv.MaPhongBan,
-            SUM(qc.QuyChuan) AS SoTiet
-        FROM 
-      quychuan qc
-        JOIN 
-      gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        WHERE
-            NamHoc = ? AND Dot = ? AND KiHoc = ?
-        GROUP BY
-            gv.HoTen;`,
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        qc.KiHoc,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(qc.QuyChuan) AS SoTiet
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    WHERE
+        NamHoc = ? AND Dot = ? AND KiHoc = ?
+    GROUP BY
+        gv.HoTen,
+        qc.KiHoc,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan;`,
         [namHoc, dot, ki]
       );
     } else {
       [rows] = await connection.execute(
         `SELECT
-            MIN(qc.NgayBatDau) AS NgayBatDau,
-            MAX(qc.NgayKetThuc) AS NgayKetThuc,
-            qc.KiHoc,
-            gv.GioiTinh,
-            gv.HoTen,
-            gv.NgaySinh,
-            gv.CCCD,
-            gv.NoiCapCCCD,
-            gv.Email,
-            gv.MaSoThue,
-            gv.HocVi,
-            gv.ChucVu,
-            gv.HSL,
-            gv.DienThoai,
-            gv.STK,
-            gv.NganHang,
-            gv.MaPhongBan,
-            SUM(qc.QuyChuan) AS SoTiet
-        FROM 
-      quychuan qc
-        JOIN 
-      gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        WHERE
-            NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
-        GROUP BY
-            gv.HoTen;`,
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        qc.KiHoc,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(qc.QuyChuan) AS SoTiet
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    WHERE
+        NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
+    GROUP BY
+        gv.HoTen,
+        qc.KiHoc,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan;`,
         [namHoc, dot, ki, khoa]
       );
     }
