@@ -670,6 +670,7 @@
         localStorage.setItem("TaiChinhCheck", TaiChinhCheck);
 
 
+        console.log("Dữ liệu render bảng : ", globalData)
         renderTable(globalData); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
 
         calculateTotals();
@@ -677,7 +678,7 @@
         console.error("Đã có lỗi xảy ra:", error);
       }
     }
-    
+
     // Hàm render bảng
     function renderTable(data) {
       const tableBody = document.getElementById("tableBody");

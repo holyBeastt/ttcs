@@ -347,40 +347,6 @@
 
                 <!-- <script>
                   function filterTable() {
-                    // Get selected values
-                    let dot = document.getElementById("combobox-dot").value;
-                    let ki = document.getElementById("combobox-ki").value;
-                    let nam = document.getElementById("NamHoc").value;
-                    let department = document.getElementById("departmentFilter").value.trim();
-
-                    let tbody = document.getElementById("data-table-body");
-                    let rows = tbody.getElementsByTagName("tr");
-
-                    for (let i = 0; i < rows.length; i++) {
-                      let row = rows[i];
-                      let rowDepartment = row.getAttribute("data-department");
-                      let rowDot = row.getAttribute("data-dot");
-                      let rowKi = row.getAttribute("data-ki");
-                      let rowNam = row.getAttribute("data-nam");
-
-                      // Filtering logic
-                      let matchesDepartment = department === "" || rowDepartment === department;
-                      let matchesDot = dot === "" || rowDot === dot;
-                      let matchesKi = ki === "" || rowKi === ki;
-                      let matchesNam = nam === "" || rowNam === nam;
-
-                      // Show or hide row based on filter results
-                      if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-                        row.style.display = ""; // Show row
-                      } else {
-                        row.style.display = "none"; // Hide row
-                      }
-                    }
-                  }
-                </script> -->
-
-                <script>
-                  function filterTable() {
                     // thừa hàm ở đây này, src đời đầu của anh viết ko khác gì tôi đou :)
                     console.log('filterTable')
                     // Get selected values
@@ -413,7 +379,7 @@
                       }
                     }
                   }
-                </script>
+                </script> -->
 
                 <button class="btn text-nowrap mx-2" id="render" style="height: 45px;" onclick="filterTable()">Hiển thị
                 </button>
@@ -441,82 +407,55 @@
                 </tr>
               </thead>
               <tbody class="teacher-group" id="data-table-body">
-                <% let index=1; %>
-                  <% for (let teacher of Object.keys(GiangDay)) { %>
-                    <% let courses=GiangDay[teacher]; %>
-                      <% let totalSoTiet=courses.reduce((total, course)=> total + course.QuyChuan, 0); %>
-                        <tr class="teacher-group" data-department="<%= courses[0].MaPhongBan %>"
-                          data-dot="<%= courses[0].Dot %>" data-ki="<%= courses[0].KiHoc %>"
-                          data-nam="<%= courses[0].NamHoc %>">
-                          <% courses.forEach((course, courseIndex)=> { %>
-                        <tr data-department="<%= course.MaPhongBan  %>" data-dot="<%= course.Dot %>"
+                <% let index = 1; %>
+                <% for (let teacher of Object.keys(GiangDay)) { %>
+                  <% let courses = GiangDay[teacher]; %>
+                  <% let totalSoTiet = courses.reduce((total, course) => total + (parseFloat(course.QuyChuan) || 0), 0); %>
+                  <tr class="teacher-group" data-department="<%= courses[0].MaPhongBan %>"
+                      data-dot="<%= courses[0].Dot %>" data-ki="<%= courses[0].KiHoc %>"
+                      data-nam="<%= courses[0].NamHoc %>">
+                    <% courses.forEach((course, courseIndex) => { %>
+                      <tr data-department="<%= course.MaPhongBan %>" data-dot="<%= course.Dot %>"
                           data-ki="<%= course.KiHoc %>" data-nam="<%= course.NamHoc %>">
-                          <% if (courseIndex===0) { %>
-                            <td rowspan="<%= courses.length %>">
-                              <%= index %>
-                            </td>
-                            <td rowspan="<%= courses.length %>">
-                              <!-- <%= course.GiaoVienGiangDay %> -->
-                              <%= course.GiaoVienGiangDay.split(' - ')[0] %>
-                            </td>
-                            <% index++; %>
-                              <% } %>
-                                <td>
-                                  <%= course.LopHocPhan %>
-                                </td>
-                                <td>
-                                  <%= course.TenLop %>
-                                </td>
-                                <td>
-                                  <%= course.SoTinChi %>
-                                </td>
-                                <td>
-                                  <%= course.Dot %>
-                                </td>
-                                <td>
-                                  <%= course.KiHoc %>
-                                </td>
-                                <td>
-                                  <%= course.NamHoc %>
-                                </td>
-                                <% function formatDate(dateStr) { %>
-                                  <% if (!dateStr) return ' N/A' ; %>
-                                <% const date=new Date(dateStr); %>
-                                  <% if (isNaN(date.getTime())) return 'N/A' ; %>
-                                    <% const day=String(date.getDate()).padStart(2, '0' ); %>
-                                      <% const month=String(date.getMonth() + 1).padStart(2, '0' ); %>
-                                        <% const year=date.getFullYear(); %>
-                                          <% return `${day}/${month}/${year}`; %>
-                                            <% } %>
-
-                            <td>
-                              <%= formatDate(course.NgayBatDau) %>
-                            </td>
-                            <td>
-                              <%= formatDate(course.NgayKetThuc) %>
-                            </td>
-                            <td>
-                              <%= course.QuyChuan %>
-                            </td>
-
-                            <% if (courseIndex===0) { %>
-                              <td rowspan="<%= courses.length %>">
-                                <%= totalSoTiet %>
-                              </td>
-                              <td rowspan="<%= courses.length %>">
-                                <!-- <%= course.Khoa %> -->
-                                <%= course.MaPhongBan %>
-                              </td>
-                              <td rowspan="<%= courses.length %>">
-                                <button class="action-button view"
-                                  onclick="viewClass(this, '<%= parseInt(course.id_Gvm) - 1 %>')">👁️</button>
-                              </td>
-                              <% } %>
-                        </tr>
-                        <% }); %>
-                          </tr>
-                          <% } %>
+                        <% if (courseIndex === 0) { %>
+                          <td rowspan="<%= courses.length %>"><%= index %></td>
+                          <td rowspan="<%= courses.length %>"><%= course.GiaoVienGiangDay.split(' - ')[0] %></td>
+                          <% index++; %>
+                        <% } %>
+                        <td><%= course.LopHocPhan %></td>
+                        <td><%= course.TenLop %></td>
+                        <td><%= course.SoTinChi %></td>
+                        <td><%= course.Dot %></td>
+                        <td><%= course.KiHoc %></td>
+                        <td><%= course.NamHoc %></td>
+                        
+                        <% function formatDate(dateStr) { %>
+                          <% if (!dateStr) return 'N/A'; %>
+                          <% const date = new Date(dateStr); %>
+                          <% if (isNaN(date.getTime())) return 'N/A'; %>
+                          <% const day = String(date.getDate()).padStart(2, '0'); %>
+                          <% const month = String(date.getMonth() + 1).padStart(2, '0'); %>
+                          <% const year = date.getFullYear(); %>
+                          <% return `${day}/${month}/${year}`; %>
+                        <% } %>
+              
+                        <td><%= formatDate(course.NgayBatDau) %></td>
+                        <td><%= formatDate(course.NgayKetThuc) %></td>
+                        <td><%= course.QuyChuan %></td>
+              
+                        <% if (courseIndex === 0) { %>
+                          <td rowspan="<%= courses.length %>"><%= totalSoTiet.toFixed(2) %></td>
+                          <td rowspan="<%= courses.length %>"><%= course.MaPhongBan %></td>
+                          <td rowspan="<%= courses.length %>">
+                            <button class="action-button view" onclick="viewClass(this, '<%= parseInt(course.id_Gvm) - 1 %>')">👁️</button>
+                          </td>
+                        <% } %>
+                      </tr>
+                    <% }); %>
+                  </tr>
+                <% } %>
               </tbody>
+              
 
             </table>
             <!-- tổng tiết -->
@@ -964,7 +903,7 @@
     });
   </script>
 
-  <script>
+  <!-- <script>
     function filterTable() {
       // Get selected values
       let dot = document.getElementById("combobox-dot").value;
@@ -997,7 +936,69 @@
       }
       calculateTotals();
     }
+  </script> -->
+
+  <script>
+    function filterTable() {
+      // Lấy giá trị lọc
+      let dot = document.getElementById("combobox-dot").value;
+      let ki = document.getElementById("combobox-ki").value;
+      let nam = document.getElementById("NamHoc").value;
+      let department = document.getElementById("departmentFilter").value.trim();
+  
+      let tbody = document.getElementById("data-table-body");
+      let teacherGroups = tbody.querySelectorAll("tr.teacher-group"); // Chỉ lấy các dòng nhóm giảng viên
+  
+      // Duyệt qua từng nhóm giảng viên
+      teacherGroups.forEach((teacherGroupRow) => {
+        let courses = teacherGroupRow.nextElementSibling; // Lấy dòng môn học kế tiếp
+        let showGroup = false; // Đặt mặc định là ẩn
+  
+        // Duyệt qua từng dòng môn học thuộc nhóm giảng viên
+        while (courses && !courses.classList.contains("teacher-group")) {
+          let rowDepartment = courses.getAttribute("data-department");
+          let rowDot = courses.getAttribute("data-dot");
+          let rowKi = courses.getAttribute("data-ki");
+          let rowNam = courses.getAttribute("data-nam");
+  
+          // Kiểm tra các điều kiện lọc
+          let matchesDepartment = department === "ALL" || department === "" || rowDepartment === department;
+          let matchesDot = dot === "" || rowDot === dot;
+          let matchesKi = ki === "" || rowKi === ki;
+          let matchesNam = nam === "" || rowNam === nam;
+  
+          // Nếu có môn học nào khớp với điều kiện lọc, hiển thị cả nhóm
+          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+            showGroup = true;
+            break; // Thoát vòng lặp vì chỉ cần một môn học khớp
+          }
+  
+          courses = courses.nextElementSibling; // Tiếp tục sang dòng môn học tiếp theo
+        }
+  
+        // Hiển thị hoặc ẩn dòng nhóm giảng viên và các dòng môn học của nhóm
+        if (showGroup) {
+          teacherGroupRow.style.display = ""; // Hiển thị dòng nhóm giảng viên
+          let courseRow = teacherGroupRow.nextElementSibling;
+          while (courseRow && !courseRow.classList.contains("teacher-group")) {
+            courseRow.style.display = ""; // Hiển thị các dòng môn học
+            courseRow = courseRow.nextElementSibling;
+          }
+        } else {
+          teacherGroupRow.style.display = "none"; // Ẩn dòng nhóm giảng viên
+          let courseRow = teacherGroupRow.nextElementSibling;
+          while (courseRow && !courseRow.classList.contains("teacher-group")) {
+            courseRow.style.display = "none"; // Ẩn các dòng môn học
+            courseRow = courseRow.nextElementSibling;
+          }
+        }
+      });
+  
+      calculateTotals(); // Cập nhật lại tổng số sau khi lọc
+    }
   </script>
+  
+  
 
   <script>
     $(document).ready(function () {

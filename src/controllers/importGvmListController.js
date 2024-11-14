@@ -20,8 +20,13 @@ const p = path.join(parentDir, "..");
 
 let duLieu;
 const convertExcelToJSON = (req, res) => {
-  console.log("parent = ", parentDir);
-  console.log("p = ", p);
+  // Kiểm tra xem file đã được tải lên chưa
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ message: "No file uploaded", status: "error" });
+  }
+
   const filePath = path.join(p, "uploads", req.file.filename);
 
   // Đọc file Excel
@@ -49,9 +54,31 @@ const convertExcelToJSON = (req, res) => {
     });
 };
 
-function formatDateForMySQL(dateString) {
-  // Chuyển đổi từ định dạng ISO với thời gian sang chỉ ngày
-  return dateString.split("T")[0]; // '1985-09-13'
+// function formatDateForMySQL(dateString) {
+//   // Chuyển đổi từ định dạng ISO với thời gian sang chỉ ngày
+//   return dateString.split("T")[0]; // '1985-09-13'
+// }
+
+function formatDateForMySQL(date) {
+  if (!date) return null; // Kiểm tra giá trị null hoặc undefined
+
+  // Nếu ngày là chuỗi dạng DD/MM/YYYY
+  if (typeof date === "string" && date.includes("/")) {
+    const parts = date.split("/");
+    if (parts.length === 3) {
+      // Đổi thành 'YYYY-MM-DD'
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  // Nếu ngày là chuỗi ISO hoặc đối tượng Date
+  const dateObj = new Date(date);
+  if (!isNaN(dateObj)) {
+    // Trả về chuỗi 'YYYY-MM-DD' từ đối tượng Date
+    return dateObj.toISOString().split("T")[0];
+  }
+
+  return null; // Trả về null nếu định dạng không hợp lệ
 }
 
 // Xử lý
@@ -103,7 +130,7 @@ const saveToDB = async (req, res) => {
         const MaSoThue = row["Mã số thuế"] || " ";
         const HocVi = row["Học vị"] || " ";
         const ChucVu = row["Chức vụ"] || " ";
-        const HSL = row["Hệ số lương"] || " ";
+        let HSL = row["Hệ số lương"] || " ";
         const DienThoai = row["Điện thoại"] || " ";
         const STK = row["Số tài khoản"] || " ";
         const NganHang = row["Tại ngân hàng"] || " ";
@@ -113,7 +140,17 @@ const saveToDB = async (req, res) => {
         const dateSinh = row["Ngày sinh"]; // '1985-09-13T00:00:00.000Z'
         const NgaySinh = formatDateForMySQL(dateSinh); // Kết quả: '1985-09-13'
         const dateCap = row["Ngày cấp CCCD"]; // '1985-09-13T00:00:00.000Z'
+        console.log("date cấp = ", dateCap);
         const NgayCapCCCD = formatDateForMySQL(dateCap); // Kết quả: '1985-09-13'
+        console.log("Ngày cấp sau format", NgayCapCCCD);
+
+        // Xử lý nếu HSL có dấu ,
+        // Kiểm tra nếu HSL chỉ chứa khoảng trắng hoặc rỗng, gán giá trị mặc định là "0"
+        if (typeof HSL === "string" && HSL.includes(",")) {
+          HSL = parseFloat(HSL.replace(",", "."));
+        } else {
+          HSL = parseFloat(HSL); // Trường hợp HSL là số hoặc chuỗi đã chuẩn
+        }
 
         // Kiểm tra trùng CCCD
         for (const gvm of gvms) {

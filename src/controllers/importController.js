@@ -11,34 +11,100 @@ const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
 
 // Hàm chuyển đổi tệp Excel sang JSON
+// const convertExcelToJSON = (filePath) => {
+//   try {
+//     const workbook = XLSX.readFile(filePath);
+//     const sheetName = workbook.SheetNames[0];
+//     const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
+//     const data = worksheet;
+
+//     // Lấy tiêu đề từ đối tượng đầu tiên
+//     const header = data[0];
+//     const keys = Object.keys(header);
+//     const dataObjects = data.slice(1);
+
+//     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
+//     const jsonObjects = dataObjects.map((values) => {
+//       return keys.reduce((acc, key) => {
+//         acc[header[key]] = values[key];
+//         return acc;
+//       }, {});
+//     });
+
+//     console.log("import thành công");
+
+//     return jsonObjects;
+//   } catch (err) {
+//     throw new Error("Cannot read file!: " + err.message);
+//   }
+// };
+
 const convertExcelToJSON = (filePath) => {
   try {
+    console.log("Chuẩn bị convert dữ liệu quy chuẩn");
+    // Đọc tệp Excel
     const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
+    const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
 
     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
+
     const data = worksheet;
 
-    // Lấy tiêu đề từ đối tượng đầu tiên
+    // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
     const header = data[0];
     const keys = Object.keys(header);
-    const dataObjects = data.slice(1);
+    const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
 
     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
     const jsonObjects = dataObjects.map((values) => {
       return keys.reduce((acc, key) => {
-        acc[header[key]] = values[key];
+        // Nếu không có giá trị cho key, gán giá trị là 0
+        acc[header[key]] = values[key] !== undefined ? values[key] : 0;
         return acc;
       }, {});
     });
 
-    console.log("import thành công");
-
+    console.log("Chuẩn bị validate dữ liệu quy chuẩn");
+    validate(jsonObjects);
+    console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
   } catch (err) {
+    // Xử lý lỗi nếu có
     throw new Error("Cannot read file!: " + err.message);
   }
+};
+
+const validate = (data) => {
+  // Kiểm tra nếu dữ liệu trống
+  if (!data || data.length === 0) {
+    throw new Error("Dữ liệu đầu vào không hợp lệ: Dữ liệu trống");
+  }
+
+  // Duyệt qua từng đối tượng trong dữ liệu
+  for (let i = 0; i < data.length; i++) {
+    const record = data[i];
+
+    // Duyệt qua từng key trong đối tượng
+    Object.keys(record).forEach((key) => {
+      // Trim giá trị và kiểm tra nếu nó là chuỗi rỗng hoặc undefined, null
+      if (
+        record[key] === null ||
+        record[key] === undefined ||
+        String(record[key]).trim() === ""
+      ) {
+        record[key] = 0; // Gán giá trị là 0 nếu không hợp lệ
+      } else {
+        // Nếu không rỗng, trim giá trị (nếu cần)
+        record[key] = String(record[key]).trim();
+      }
+    });
+  }
+
+  // console.log("Dữ liệu đã được validate và chỉnh sửa");
+  return data;
 };
 
 // const checkDataQC = async (req, res) => {
@@ -768,211 +834,12 @@ const updateBanHanh = async (req, res) => {
 //   return results;
 // };
 
-// validate version 1
-const validateAndConvertData = (data) => {
-  // Danh sách các khóa cần chuyển đổi thành số nguyên
-  const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "QC"];
 
-  // Danh sách các khóa cần chuyển đổi thành số thực
-  const floatKeys = [
-    "Số tiết lên lớp giờ HC",
-    "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-    "Hệ số lớp đông",
-  ];
-
-  // Hàm kiểm tra và chuyển đổi số nguyên
-  integerKeys.forEach((key) => {
-    if (
-      data[key] === undefined ||
-      data[key] === null ||
-      data[key].toString().trim() === ""
-    ) {
-      data[key] = 0; // Đặt giá trị mặc định thành 0 nếu không hợp lệ
-    } else if (typeof data[key] === "string") {
-      // Nếu là chuỗi, thử chuyển sang số nguyên
-      const trimmedValue = data[key].trim();
-      const converted = parseInt(trimmedValue, 10);
-      if (!isNaN(converted)) {
-        data[key] = converted;
-      } else {
-        console.warn(
-          `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
-        );
-        data[key] = 0;
-      }
-    }
-  });
-
-  // Hàm kiểm tra và chuyển đổi số thực
-  floatKeys.forEach((key) => {
-    if (
-      data[key] === undefined ||
-      data[key] === null ||
-      data[key].toString().trim() === ""
-    ) {
-      data[key] = 0.0; // Đặt giá trị mặc định thành 0.0 nếu không hợp lệ
-    } else if (typeof data[key] === "string") {
-      // Nếu là chuỗi, thử chuyển sang số thực
-      const trimmedValue = data[key].trim();
-      const converted = parseFloat(trimmedValue);
-      if (!isNaN(converted)) {
-        data[key] = converted;
-      } else {
-        console.warn(
-          `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
-        );
-        data[key] = 0.0;
-      }
-    }
-  });
-
-  return data;
-};
-
-// validate thêm trường hợp nếu như không tồn tại key trong dữ liệu đầu vào
-// const validateAndConvertData = (data) => {
-//   // Danh sách các khóa cần chuyển đổi thành số nguyên
-//   const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV"];
-
-//   // Danh sách các khóa cần chuyển đổi thành số thực
-//   const floatKeys = [
-//     "Số tiết lên lớp giờ HC",
-//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-//     "Hệ số lớp đông",
-//     "QC"
-//   ];
-
-//   const sanitizeValue = (value) => {
-//     return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
-//   };
-
-//   // Đảm bảo tất cả các khóa yêu cầu đều có trong đối tượng `data`
-//   integerKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0; // Đặt giá trị mặc định nếu khóa không tồn tại
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseInt(trimmedValue, 10);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(
-//           `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
-//         );
-//         data[key] = 0;
-//       }
-//     }
-//   });
-
-//   floatKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0.0; // Đặt giá trị mặc định nếu khóa không tồn tại
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0.0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseFloat(trimmedValue);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(
-//           `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
-//         );
-//         data[key] = 0.0;
-//       }
-//     }
-//   });
-
-//   console.log("Dữ liệu sau khi validate : ", data);
-//   return data;
-// };
-
-// validate ver3 : chuyển thành includes các key, key QC xử lí 2 TH
-// const validateAndConvertData = (data) => {
-//   // Danh sách các khóa cần chuyển đổi thành số nguyên
-//   const integerKeys = ["Số TC", "Số tiết theo CTĐT", "Số SV", "QC"];
-
-//   // Danh sách các khóa cần chuyển đổi thành số thực
-//   const floatKeys = [
-//     "Số tiết lên lớp giờ HC",
-//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-//     "Hệ số lớp đông"
-//   ];
-
-//   // Danh sách các khóa cần có mặc định nếu thiếu
-//   const requiredKeys = [
-//     "Số tiết theo CTĐT",
-//     "Số TC",
-//     "Số SV",
-//     "QC",
-//     "Số tiết lên lớp giờ HC",
-//     "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-//     "Hệ số lớp đông"
-//   ];
-
-//   const sanitizeValue = (value) => {
-//     return value.replace(/\s/g, ""); // Loại bỏ tất cả khoảng trắng
-//   };
-
-//   // Đảm bảo các khóa yêu cầu có trong data và gán giá trị mặc định 0 nếu thiếu
-//   requiredKeys.forEach((key) => {
-//     key = sanitizeValue(key)
-//     if (!(key in data)) {
-//       data[key] = 0;  // Nếu thiếu khóa, thêm vào và gán giá trị mặc định là 0
-//     }
-//   });
-
-//   // Đảm bảo tất cả các khóa cần số nguyên đều có trong đối tượng `data`
-//   integerKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0; // Đặt giá trị mặc định nếu khóa không tồn tại
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseInt(trimmedValue, 10);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(
-//           `Warning: Key "${key}" không thể chuyển đổi thành số nguyên từ giá trị "${data[key]}"`
-//         );
-//         data[key] = 0;
-//       }
-//     }
-//   });
-
-//   // Đảm bảo tất cả các khóa cần số thực đều có trong đối tượng `data`
-//   floatKeys.forEach((key) => {
-//     if (!(key in data)) {
-//       data[key] = 0.0; // Đặt giá trị mặc định nếu khóa không tồn tại
-//     } else if (data[key] === undefined || data[key] === null || sanitizeValue(data[key].toString()) === "") {
-//       data[key] = 0.0; // Đặt giá trị mặc định nếu giá trị không hợp lệ
-//     } else if (typeof data[key] === "string") {
-//       const trimmedValue = sanitizeValue(data[key].trim());
-//       const converted = parseFloat(trimmedValue);
-//       if (!isNaN(converted)) {
-//         data[key] = converted;
-//       } else {
-//         console.warn(
-//           `Warning: Key "${key}" không thể chuyển đổi thành số thực từ giá trị "${data[key]}"`
-//         );
-//         data[key] = 0.0;
-//       }
-//     }
-//   });
-
-//   console.log("Dữ liệu sau khi validate : ", data);
-//   return data;
-// };
 
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
+  console.log(jsonData);
 
-  // validate lại dữ liệu đầu vào
-  const data = validateAndConvertData(jsonData);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -992,8 +859,8 @@ const importTableTam = async (jsonData) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
-  const insertPromises = data.map(async (item) => {
-    const connection = await createPoolConnection();
+  const insertPromises = jsonData.map(async (item) => {
+    const connection = await createPoolConnection(); // Lấy kết nối từ pool
     try {
       const values = [
         item["Khoa"],
@@ -1010,19 +877,20 @@ const importTableTam = async (jsonData) => {
         item["Hệ số lớp đông"],
         item["QC"],
       ];
+      console.log(item["QC"]);
 
       await connection.query(query, values);
     } catch (err) {
       console.error("Error:", err);
       throw err;
     } finally {
-      connection.release(); // Giải phóng kết nối
+      connection.release(); // Giải phóng kết nối sau khi hoàn thành
     }
   });
 
   let results = false;
   try {
-    await Promise.all(insertPromises);
+    await Promise.all(insertPromises); // Thực hiện tất cả các truy vấn song song
     results = true;
   } catch (error) {
     console.error("Error:", error);
@@ -1030,6 +898,7 @@ const importTableTam = async (jsonData) => {
 
   return results;
 };
+
 
 // const importJSONToDB = async (jsonData) => {
 //   const tableLopName = "lop"; // Tên bảng lop
@@ -2222,13 +2091,15 @@ const TaiChinhCheckAll = async (Dot, KiHoc, NamHoc) => {
       ]);
 
       let checkAll = true;
+
       for (let j = 0; j < check.length; j++) {
         if (check[j].TaiChinhDuyet == 0) {
           checkAll = false;
           break;
         }
       }
-      if (checkAll === true) {
+
+      if (checkAll === true && check.length > 0) {
         kq += MaPhongBan + ",";
       }
     }
@@ -2553,8 +2424,6 @@ const updateAllTeachingInfo = async (req, res) => {
     //   };
     // }
 
-    console.log("insert = ", insertValues);
-
     // Định nghĩa câu lệnh chèn
     const queryInsert = `
       INSERT INTO hopdonggvmoi (
@@ -2565,7 +2434,9 @@ const updateAllTeachingInfo = async (req, res) => {
     `;
 
     // Thực hiện câu lệnh chèn
-    await pool.query(queryInsert, [insertValues]);
+    if (insertValues.length > 0) {
+      await pool.query(queryInsert, [insertValues]);
+    }
 
     // Trả về kết quả thành công
     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
@@ -2749,7 +2620,55 @@ const updateAllTeachingInfo = async (req, res) => {
 //   }
 // };
 
-const insertGiangDay = async (req, res) => {
+const getGvmList = async (req, res) => {
+  const query = `SELECT * FROM gvmoi`;
+
+  try {
+    const [data] = await pool.query(query);
+    return data;
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Đã xảy ra lỗi trong quá trình lấy dữ liệu." });
+  }
+};
+
+const getNvList = async (req, res) => {
+  const query = `SELECT * FROM nhanvien`;
+
+  try {
+    const [data] = await pool.query(query);
+    return data;
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Đã xảy ra lỗi trong quá trình lấy dữ liệu." });
+  }
+};
+
+const getHocPhanList = async (req, res) => {
+  const query = `SELECT TenHocPhan FROM hocphan`;
+
+  try {
+    const [data] = await pool.query(query);
+    return data;
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Đã xảy ra lỗi trong quá trình lấy dữ liệu." });
+  }
+};
+
+const insertGiangDay = async (
+  req,
+  res,
+  gvmList,
+  hocPhanList,
+  daDuyetHetArray
+) => {
   const { dot, ki, namHoc } = req.body;
 
   const query2 = `
@@ -2768,15 +2687,8 @@ const insertGiangDay = async (req, res) => {
   try {
     const [dataJoin] = await pool.query(query2, value);
 
-    // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
-
-    // // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
-
-    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-    const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+    // const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+    // const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
@@ -2816,23 +2728,27 @@ const insertGiangDay = async (req, res) => {
           let gv = gv1[0];
           let id_Gvm = 1;
           let id_User = 1;
+          console.log("gà");
 
           // Tạo giá trị cho Mã Học Phần
           const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
 
-          // Lấy id_Gvm khi giảng viên mới giảng
-          id_Gvm = await getGvmId(gv1[0]);
+          // Dùng forEach để duyệt qua mảng và Lấy id_Gvm khi giảng viên mới giảng
+          gvmList.forEach((giangVien) => {
+            if (giangVien.HoTen === gv1[0]) {
+              id_Gvm = giangVien.id_Gvm; // Gán id
+            }
+          });
 
-          const DaLuu = 1;
-          // Thêm Đã lưu = 1 vào quy chuẩn
-          const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          await pool.query(updateQuery, [DaLuu, ID]);
+          console.log("id = ", id_Gvm);
 
-          // Kiểm tra môn học đã tồn tại chưa
-          const exists = await hocPhanDaTonTai(TenHocPhan);
-          console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
+          const exists = hocPhanList.some(
+            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          )
+            ? 1
+            : 0;
 
-          if (exists === false) {
+          if (exists == 0) {
             await themHocPhan(TenHocPhan, SoTinChi, Khoa);
           }
 
@@ -2854,6 +2770,7 @@ const insertGiangDay = async (req, res) => {
             maHocPhan,
             TenLop,
             Dot,
+            Khoa,
           ];
         })
     );
@@ -2867,7 +2784,7 @@ const insertGiangDay = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
       ) VALUES ?;
     `;
 
@@ -2884,7 +2801,13 @@ const insertGiangDay = async (req, res) => {
   }
 };
 
-const insertGiangDay2 = async (req, res) => {
+const insertGiangDay2 = async (
+  req,
+  res,
+  nvList,
+  hocPhanList,
+  daDuyetHetArray
+) => {
   const { dot, ki, namHoc } = req.body;
 
   const query2 = `
@@ -2901,16 +2824,6 @@ const insertGiangDay2 = async (req, res) => {
   const value = [dot, ki, namHoc];
   try {
     const [dataJoin] = await pool.query(query2, value);
-
-    // const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
-
-    // // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-    // const dot = firstItem.Dot; // Lấy thuộc tính Dot
-    // const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-    // const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
-
-    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-    const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
@@ -2956,17 +2869,23 @@ const insertGiangDay2 = async (req, res) => {
           // Tạo giá trị cho Mã Học Phần
           const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
 
-          id_User = await getNhanvienId(gv1[0]);
+          // Dùng forEach để duyệt qua mảng và Lấy id_Gvm khi giảng viên mới giảng
+          nvList.forEach((giangVien) => {
+            if (giangVien.HoTen === gv1[0]) {
+              id_User = giangVien.id_User; // Gán id
+            }
+          });
 
-          const DaLuu = 1;
-          // Thêm Đã lưu = 1 vào quy chuẩn
-          const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE ID = ?;`;
-          await pool.query(updateQuery, [DaLuu, ID]);
+          const exists = hocPhanList.some(
+            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          )
+            ? 1
+            : 0;
 
-          const exists = await hocPhanDaTonTai(TenHocPhan);
+          //const exists = await hocPhanDaTonTai(TenHocPhan);
           console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
 
-          if (exists === false) {
+          if (exists == 0) {
             await themHocPhan(TenHocPhan, SoTinChi, Khoa);
           }
 
@@ -2988,6 +2907,7 @@ const insertGiangDay2 = async (req, res) => {
             maHocPhan,
             TenLop,
             Dot,
+            Khoa,
           ];
         })
     );
@@ -3001,7 +2921,7 @@ const insertGiangDay2 = async (req, res) => {
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
       ) VALUES ?;
     `;
 
@@ -3020,43 +2940,34 @@ const insertGiangDay2 = async (req, res) => {
 
 const submitData2 = async (req, res) => {
   try {
-    let updateResult, update2, insertResult;
+    const gvmList = await getGvmList(req, res);
+    const nvList = await getNvList(req, res);
+    const hocPhanList = await getHocPhanList(req, res);
+    const { dot, ki, namHoc } = req.body;
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+    const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
 
-    try {
-      updateResult = await updateAllTeachingInfo(req, res); // Hàm thêm vào hợp đồng giảng viên mời
-    } catch (err) {
-      console.error("Lỗi trong updateAllTeachingInfo:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi cập nhật hợp đồng giảng viên mời." });
-    }
-
-    try {
-      update2 = await insertGiangDay2(req, res); // Hàm thêm vào giảng dạy (nhân viên)
-    } catch (err) {
-      console.error("Lỗi trong insertGiangDay2:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (nhân viên)." });
-    }
-
-    try {
-      insertResult = await insertGiangDay(req, res); // Hàm thêm vào giảng dạy (giảng viên mời)
-    } catch (err) {
-      console.error("Lỗi trong insertGiangDay:", err);
-      return res
-        .status(500)
-        .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (giảng viên mời)." });
-    }
+    // Thực hiện các cập nhật và thêm dữ liệu song song
+    const [updateResult, update2, insertResult] = await Promise.all([
+      updateAllTeachingInfo(req, res),
+      insertGiangDay2(req, res, nvList, hocPhanList, daDuyetHetArray),
+      insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray),
+    ]);
 
     if (req.session.tmp == 0) {
       req.session.tmp = 0;
       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
+    } else {
+      const DaLuu = 1;
+      const placeholders = daDuyetHetArray.map(() => "?").join(", ");
+      const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa IN (${placeholders});`;
+      await pool.query(updateQuery, [DaLuu, ...daDuyetHetArray]);
     }
 
     // Đặt lại giá trị cho req.session.tmp
     req.session.tmp = 0;
 
+    // Chỉ trả về dữ liệu
     res.json({
       message: "Lưu dữ liệu thành công",
       updateResult,
@@ -3070,16 +2981,74 @@ const submitData2 = async (req, res) => {
 };
 
 // const submitData2 = async (req, res) => {
+//   const gvmList = await getGvmList(req, res);
+//   const nvList = await getNvList(req, res);
+//   const hocPhanList = await getHocPhanList(req, res);
+//   const { dot, ki, namHoc } = req.body;
+//   const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+//   const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+//   console.log("mang = ", daDuyetHetArray);
+
 //   try {
-//     const updateResult = await updateAllTeachingInfo(); // Hàm thêm vào hợp đồng giảng viên mời
+//     let updateResult, update2, insertResult;
 
-//     const update2 = await insertGiangDay2(); // Hàm thêm vào giảng dạy (nhân viên)
-
-//     const insertResult = await insertGiangDay(); // Hàm thêm vào giảng dạy (giảng viên mời)
-
-//     if (tmp == 0) {
-//       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" }); // Trả về phản hồi khi tmp == 0
+//     try {
+//       updateResult = await updateAllTeachingInfo(req, res); // Hàm thêm vào hợp đồng giảng viên mời
+//     } catch (err) {
+//       console.error("Lỗi trong updateAllTeachingInfo:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi cập nhật hợp đồng giảng viên mời." });
 //     }
+
+//     try {
+//       update2 = await insertGiangDay2(
+//         req,
+//         res,
+//         gvmList,
+//         hocPhanList,
+//         daDuyetHetArray
+//       ); // Hàm thêm vào giảng dạy (nhân viên)
+//     } catch (err) {
+//       console.error("Lỗi trong insertGiangDay2:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (nhân viên)." });
+//     }
+
+//     try {
+//       insertResult = await insertGiangDay(
+//         req,
+//         res,
+//         nvList,
+//         hocPhanList,
+//         daDuyetHetArray
+//       ); // Hàm thêm vào giảng dạy (giảng viên mời)
+//     } catch (err) {
+//       console.error("Lỗi trong insertGiangDay:", err);
+//       return res
+//         .status(500)
+//         .json({ error: "Lỗi khi thêm dữ liệu giảng dạy (giảng viên mời)." });
+//     }
+
+//     if (req.session.tmp == 0) {
+//       req.session.tmp = 0;
+//       return res.json({ message: "Dữ liệu đã được cập nhật đầy đủ" });
+//     } else {
+//       const DaLuu = 1;
+//       // Thêm Đã lưu = 1 vào quy chuẩn
+//       // Lọc mảng để loại bỏ phần tử rỗng
+//       const arr = daDuyetHetArray.filter((item) => item !== "");
+
+//       // Duyệt qua các phần tử trong mảng đã lọc
+//       for (const item of arr) {
+//         const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa LIKE ?;`;
+//         await pool.query(updateQuery, [DaLuu, item]); // Sử dụng `item` làm giá trị cho `Khoa`
+//       }
+//     }
+
+//     // Đặt lại giá trị cho req.session.tmp
+//     req.session.tmp = 0;
 
 //     res.json({
 //       message: "Lưu dữ liệu thành công",
@@ -3088,42 +3057,9 @@ const submitData2 = async (req, res) => {
 //       insertResult,
 //     });
 //   } catch (err) {
-//     console.error(err);
-//     console.log("gsgag");
+//     console.error("Lỗi không xác định:", err);
 //     return res.status(500).json({ error: "Đã xảy ra lỗi không xác định." });
 //   }
-// };
-
-// const submitData2 = async (req, res) => {
-//   try {
-//     const updateResult = await updateAllTeachingInfo(); // Hàm thêm vào hợp đồng giảng viên mời
-
-//     const update2 = await insertGiangDay2(); // Hàm thêm vào giảng dạy (nhân viên)
-
-//     if (updateResult.success) {
-//       const insertResult = await insertGiangDay(); // Hàm thêm vào giảng dạy (giảng viên mời)
-
-//       if (tmp == 3) {
-//         console.log("dã ok");
-//         return res.status(400).json({ message: updateResult.message });
-//       }
-//       if (insertResult.success) {
-//         return res.status(200).json({ message: insertResult.message });
-//       } else {
-//         return res.status(400).json({ message: insertResult.message });
-//       }
-//     } else {
-//       return res.status(400).json({ message: updateResult.message });
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ error: "Đã xảy ra lỗi không xác định." });
-//   }
-// };
-
-// const submitData2 = async (req, res) => {
-//   updateAllTeachingInfo(req, res);
-//   insertGiangDay(req, res);
 // };
 
 module.exports = {
