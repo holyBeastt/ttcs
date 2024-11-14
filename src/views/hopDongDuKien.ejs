@@ -219,7 +219,7 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -338,66 +338,66 @@
       </script>
       <!-- phần dữ liệu để hiển thị trên bảng -->
       <script>
-      document.addEventListener('DOMContentLoaded', function () {
-  const viewDataBtn = document.getElementById('viewDataBtn');
-  const tableContainer = document.getElementById('tableContainer');
-  const dataTable = document.getElementById('dataTable');
+        document.addEventListener('DOMContentLoaded', function () {
+          const viewDataBtn = document.getElementById('viewDataBtn');
+          const tableContainer = document.getElementById('tableContainer');
+          const dataTable = document.getElementById('dataTable');
 
-  viewDataBtn.addEventListener('click', async function () {
-    try {
-      const namHoc = document.getElementById('NamHoc').value;
-      const dot = document.getElementById('combobox-dot').value;
-      const ki = document.getElementById('combobox-ki').value;
-      const khoa = document.getElementById('MaPhongBan').value;
+          viewDataBtn.addEventListener('click', async function () {
+            try {
+              const namHoc = document.getElementById('NamHoc').value;
+              const dot = document.getElementById('combobox-dot').value;
+              const ki = document.getElementById('combobox-ki').value;
+              const khoa = document.getElementById('MaPhongBan').value;
 
-      if (!namHoc || !dot || !ki) {
-        alert('Vui lòng chọn đầy đủ Năm học, Đợt và Kỳ');
-        return;
-      }
+              if (!namHoc || !dot || !ki) {
+                alert('Vui lòng chọn đầy đủ Năm học, Đợt và Kỳ');
+                return;
+              }
 
-      let url = `/hop-dong-du-kien?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}`;
-      if (khoa && khoa !== 'ALL') {
-        url += `&khoa=${encodeURIComponent(khoa)}`;
-      }
+              let url = `/hop-dong-du-kien?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}`;
+              if (khoa && khoa !== 'ALL') {
+                url += `&khoa=${encodeURIComponent(khoa)}`;
+              }
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
+              const response = await fetch(url);
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              const data = await response.json();
 
-      // Xóa dữ liệu cũ trong bảng
-      const tbody = dataTable.querySelector('tbody');
-      tbody.innerHTML = '';
+              // Xóa dữ liệu cũ trong bảng
+              const tbody = dataTable.querySelector('tbody');
+              tbody.innerHTML = '';
 
-      // Thêm dữ liệu mới vào bảng
-      data.forEach(item => {
-        const row = tbody.insertRow();
-        row.insertCell(0).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
-        row.insertCell(1).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
-        row.insertCell(2).textContent = item.GioiTinh.toLowerCase() == 'nam' ? 'Ông' : 'Bà';
-        row.insertCell(3).textContent = item.HoTen;
-        row.insertCell(4).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
-        row.insertCell(5).textContent = item.CCCD;
-        row.insertCell(6).textContent = item.HocVi;
-        row.insertCell(7).textContent = item.ChucVu;
-        row.insertCell(8).textContent = item.DienThoai;
-        row.insertCell(9).textContent = item.Email;
-        row.insertCell(10).textContent = item.STK;
-        row.insertCell(11).textContent = item.NganHang;
-        row.insertCell(12).textContent = item.MaSoThue;
-        row.insertCell(13).textContent = item.SoTiet;
-      });
+              // Thêm dữ liệu mới vào bảng
+              data.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
+                row.insertCell(1).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
+                row.insertCell(2).textContent = item.GioiTinh.toLowerCase() == 'nam' ? 'Ông' : 'Bà';
+                row.insertCell(3).textContent = item.HoTen;
+                row.insertCell(4).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
+                row.insertCell(5).textContent = item.CCCD;
+                row.insertCell(6).textContent = item.HocVi;
+                row.insertCell(7).textContent = item.ChucVu;
+                row.insertCell(8).textContent = item.DienThoai;
+                row.insertCell(9).textContent = item.Email;
+                row.insertCell(10).textContent = item.STK;
+                row.insertCell(11).textContent = item.NganHang;
+                row.insertCell(12).textContent = item.MaSoThue;
+                row.insertCell(13).textContent = item.SoTiet;
+              });
 
-      // Hiển thị bảng
-      tableContainer.style.display = 'block';
+              // Hiển thị bảng
+              tableContainer.style.display = 'block';
 
-      calculateTotals();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Đã xảy ra lỗi khi tải dữ liệu');
-    }
-  });
+              calculateTotals();
+            } catch (error) {
+              console.error('Error:', error);
+              alert('Đã xảy ra lỗi khi tải dữ liệu');
+            }
+          });
         });
       </script>
 
@@ -677,38 +677,38 @@
             } else {
               console.error("Không tìm thấy ô phòng ban ở hàng:", i);
             }
-        }
-      }
-
-
-      function calculateTotals() {
-        const table = document.getElementById('dataTable'); // Lấy bảng
-        const tbody = table.querySelector('tbody'); // Lấy phần thân bảng (tbody)
-
-        let total = 0; // Biến lưu trữ tổng số tiết
-
-        // Duyệt qua tất cả các hàng trong bảng
-        for (let row of tbody.rows) {
-
-          // Kiểm tra xem hàng có bị ẩn hay không
-          if (row.style.display === 'none') {
-            continue; // Bỏ qua hàng này nếu bị ẩn
-          }
-
-          const cell = row.cells[13]; // Cột số tiết là cột thứ 14 (chỉ số bắt đầu từ 0)
-          const soTiet = parseInt(cell.textContent, 10); // Chuyển giá trị trong ô thành số nguyên
-          console.log("gdsdg")
-          console.log("so teit ", soTiet)
-          if (!isNaN(soTiet)) { // Kiểm tra nếu giá trị hợp lệ
-            total += soTiet; // Cộng dồn vào tổng
           }
         }
 
-        // Hiển thị tổng số tiết
-        const totalElement = document.getElementById('totalQC'); // Giả sử có một phần tử để hiển thị tổng số tiết
-        totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${total}`; // Hiển thị tổng
-      }
-    </script>
+
+        function calculateTotals() {
+          const table = document.getElementById('dataTable'); // Lấy bảng
+          const tbody = table.querySelector('tbody'); // Lấy phần thân bảng (tbody)
+
+          let total = 0; // Biến lưu trữ tổng số tiết
+
+          // Duyệt qua tất cả các hàng trong bảng
+          for (let row of tbody.rows) {
+
+            // Kiểm tra xem hàng có bị ẩn hay không
+            if (row.style.display === 'none') {
+              continue; // Bỏ qua hàng này nếu bị ẩn
+            }
+
+            const cell = row.cells[13]; // Cột số tiết là cột thứ 14 (chỉ số bắt đầu từ 0)
+            const soTiet = parseInt(cell.textContent, 10); // Chuyển giá trị trong ô thành số nguyên
+            console.log("gdsdg")
+            console.log("so teit ", soTiet)
+            if (!isNaN(soTiet)) { // Kiểm tra nếu giá trị hợp lệ
+              total += soTiet; // Cộng dồn vào tổng
+            }
+          }
+
+          // Hiển thị tổng số tiết
+          const totalElement = document.getElementById('totalQC'); // Giả sử có một phần tử để hiển thị tổng số tiết
+          totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${totalQC.toFixed(2)}`; // Hiển thị tổng
+        }
+      </script>
       <script>
         $(document).ready(function () {
           $('#MaPhongBan option[value=""]').remove();
@@ -730,7 +730,7 @@
                   );
                 }
                 );
-    
+
                 // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
                 if (!$('#MaPhongBan option:selected').length) {
                   $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
@@ -746,18 +746,18 @@
         });
       </script>
       <script>
-        document.getElementById("infome").addEventListener("click", function(event) {
+        document.getElementById("infome").addEventListener("click", function (event) {
           event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
           const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
           if (id_User) {
-              // Chuyển hướng đến trang infome và truyền id_User trong URL
-              window.location.href = `/infome/${id_User}`;
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
           } else {
-              alert("Không tìm thấy id_User trong localStorage.");
+            alert("Không tìm thấy id_User trong localStorage.");
           }
         });
       </script>
-  
+
 </body>
 
 </html>
