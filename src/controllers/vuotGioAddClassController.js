@@ -301,13 +301,13 @@ const getLopGK = async (req,res) => {
     }
 };
 const updateKhoaDuyet = async (req, res) =>{
-    const {MaGiangDay, typeclass} = req.body;
+    const {MaGiangDay, typeclass, khoaDuyet} = req.body;
     let connection;
     try {
         connection = await createPoolConnection();
         if (typeclass === "Lớp ngoài quy chuẩn") {
-            const query = `UPDATE lopngoaiquychuan SET KhoaDuyet = 1 WHERE MaGiangDay = ?`;
-            await connection.query(query, [MaGiangDay]);
+            const query = `UPDATE lopngoaiquychuan SET KhoaDuyet = ? WHERE MaGiangDay = ?`;
+            await connection.query(query, [khoaDuyet, MaGiangDay]);
         } else {
             const query = `UPDATE giuaky SET KhoaDuyet = 1 WHERE MaGiangDay = ?`;
         await connection.query(query, [MaGiangDay]);
@@ -351,13 +351,54 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
     let connection;
     try {
         connection = await createPoolConnection();
-        const query = `SELECT * FROM lopngoaiquychuan WHERE MaPhongBan = ? AND HocKy = ? AND NamHoc = ?`;
-        const [rows] = await connection.query(query, [MaPhongBan, Ki, Nam]);
-        console.log(rows)
-        res.json({
-            success: true,
-            maBoMon: rows,
-          });
+        if (MaPhongBan ==="DAOTAO" || MaPhongBan === "TAICHINH") {
+            const query = `SELECT * FROM lopngoaiquychuan WHERE HocKy = ? AND NamHoc = ?`;
+            const [rows] = await connection.query(query, [ Ki, Nam]);
+            console.log(rows)
+            res.json({
+                success: true,
+                maBoMon: rows,
+            });
+        } else {
+            const query = `SELECT * FROM lopngoaiquychuan WHERE MaPhongBan = ? AND HocKy = ? AND NamHoc = ?`;
+            const [rows] = await connection.query(query, [MaPhongBan, Ki, Nam]);
+            console.log(rows)
+            res.json({
+                success: true,
+                maBoMon: rows,
+            });
+        }
+    } catch (error) {
+        console.error("Lỗi: ", error);
+        res.status(500).send("Đã có lỗi xảy ra");
+    } finally {
+        if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+    }
+};
+const updateDuyet = async (req, res) =>{
+    const {MaGiangDay, typeclass, KhoaDuyet, daoTaoDuyet, MaPhongBan} = req.body;
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        if (MaPhongBan === "DAOTAO") {
+            if (typeclass === "Lớp ngoài quy chuẩn") {
+                const query = `UPDATE lopngoaiquychuan SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
+                await connection.query(query, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
+            } else {
+                const query = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
+                await connection.query(query, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
+            }
+        };
+        if (MaPhongBan === "TAICHINH") {
+            if (typeclass === "Lớp ngoài quy chuẩn") {
+                const query = `UPDATE lopngoaiquychuan SET DaoTaoDuyet = ?, TaiChinhDuyet = ? WHERE MaGiangDay = ?`;
+                await connection.query(query, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
+            } else {
+                const query = `UPDATE giuaky SET DaoTaoDuyet = ?, TaiChinhDuyet = ? WHERE MaGiangDay = ?`;
+                await connection.query(query, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
+            }
+        }
+        res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
     } catch (error) {
         console.error("Lỗi: ", error);
         res.status(500).send("Đã có lỗi xảy ra");
@@ -376,4 +417,5 @@ module.exports = {
     updateKhoaDuyet,
     deleteLopGK,
     getLopNgoaiQuyChuan,
+    updateDuyet,
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan} = require('../controllers/vuotGioAddClassController');
+const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan, updateDuyet} = require('../controllers/vuotGioAddClassController');
 // const {
 //   getClassInfoGvm,
 // } = require("../controllers/xemCacLopGvmController");
@@ -32,5 +32,6 @@ router.get("/getLopGK/:maPhongBan/:Ki/:Nam", getLopGK);
 router.post("/updateKhoaDuyet", updateKhoaDuyet);
 router.post("/deleteLopGK", deleteLopGK);
 router.get("/getLopNgoaiQuyChuan/:MaPhongBan/:Ki/:Nam", getLopNgoaiQuyChuan);
+router.post("/updateDuyet", updateDuyet);
 
 module.exports = router;
