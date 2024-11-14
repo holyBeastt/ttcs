@@ -376,6 +376,7 @@
               <th style="width: 50px;">Hình thức thi giữa kỳ</th>
               <th style="width: 100px;">Hệ số T7CN</th>
               <th style="width: 50px;">Số đề</th>
+              <th style="width: 50px;">Số tiết KT</th>
               <th style="width: 50px;" id="note">Ghi chú</th>
               <th style="width: 80px; " id="select">
                 <div class="form-check d-flex justify-content-center" style="padding: 0px;">
@@ -440,6 +441,26 @@
     hideButton();
     const role = localStorage.getItem("userRole");
     console.log('Giá trị QUyền từ localStorage: ', role);
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+    if (isKhoa === "1") {
+      document.getElementById("khoaDuyet").style.display = '';
+      document.getElementById("daoTaoDuyet").style.display = 'none';
+      document.getElementById("taiChinhDuyet").style.display = 'none';
+
+    } else {
+      if (MaPhongBan === "DAOTAO") {
+        document.getElementById("select").style.display = 'none';
+        document.getElementById("khoaDuyet").style.display = '';
+        document.getElementById("daoTaoDuyet").style.display = '';
+        document.getElementById("taiChinhDuyet").style.display = 'none';
+      }
+      if (MaPhongBan === "TAICHINH") {
+        document.getElementById("select").style.display = 'none';
+        document.getElementById("khoaDuyet").style.display = 'none';
+        document.getElementById("daoTaoDuyet").style.display = '';
+        document.getElementById("taiChinhDuyet").style.display = '';
+      }
+    }
   });
 
   function hideButton() {
@@ -452,8 +473,6 @@
       const actionButton = document.getElementById('actionButton');
       const actionButton1 = document.getElementById('actionButton1');
       const actionButton2 = document.getElementById('actionButton2');
-      const actionButton3 = document.getElementById('actionButton3');
-
       if (actionButton1 && actionButton2) {
         if (isKhoa === "0") {
           actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
@@ -467,13 +486,6 @@
       } else {
         console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
       }
-      //Ẩn site duyệt lớp gk
-      const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-          actionButton3.style.display = '';
-        } else {
-          actionButton3.style.display = 'none';
-        }
     }
   }
 </script>
@@ -725,6 +737,11 @@
       soDe.textContent = row.SoDe;
       tableRow.appendChild(soDe);
 
+      //Số tiết kiểm tra
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = row.SoTietKT;
+      tableRow.appendChild(soTietKT);
+
       // Ghi chú
       const ghiChuTd = document.createElement("td");
       ghiChuTd.classList.add('ghichu');
@@ -802,6 +819,32 @@
       taiChinhDuyetCheckboxTd.appendChild(taiChinhDuyetCheckbox);
       tableRow.appendChild(taiChinhDuyetCheckboxTd);
 
+      //Ẩn check box
+      if (isKhoa === "1") {
+        daoTaoDuyetCheckboxTd.style.display = 'none';
+        taiChinhDuyetCheckboxTd.style.display = 'none';
+      } else {
+        if (MaPhongBan === "DAOTAO") {
+          selectCheckboxTd.style.display = 'none'
+          daoTaoDuyetCheckboxTd.style.display = '';
+          taiChinhDuyetCheckboxTd.style.display = 'none';
+          if (row.KhoaDuyet === 0) {
+            console.log("ẨN");
+            tableRow.style.display= 'none';
+          }
+        } else {
+          if (MaPhongBan === "TAICHINH") {
+            selectCheckboxTd.style.display = 'none';
+            khoaDuyetCheckboxTd.style.display = 'none'
+            if (row.DaoTaoDuyet === 0) {
+            console.log("ẨN");
+            tableRow.style.display= 'none';
+          }
+          }
+        }
+        
+      }
+
     });
     // Lưu dữ liệu với id vào localStorage
     localStorage.setItem('tableData', JSON.stringify(tableRowData));
@@ -849,31 +892,49 @@
     const rowCount = rows.length;
     const typeclass = document.getElementById("typeclass").value;
     rows.forEach((row, index) => {
+      if (row.style.display === "none") return;
       // Lấy giá trị của checkbox "select"
-        const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
-        const khoaDuyetCheckbox = row.querySelector('input[type="checkbox"][name="khoaDuyet"]');
-        let MaGiangDay = row.dataset.id; // Thêm thông tin index vào để theo dõi
+      const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
+      const khoaDuyetCheckbox = row.querySelector('input[type="checkbox"][name="khoaDuyet"]');
+      let MaGiangDay = row.dataset.id; // Thêm thông tin index vào để theo dõi
+      const daoTaoDuyetCheckbox = row.querySelector('input[type="checkbox"][name="daoTaoDuyet"]');
+      const taiChinhDuyetCheckbox = row.querySelector('input[type="checkbox"][name="taiChinhDuyet"]');
+
+
       // Lấy trạng thái của checkbox "select"
       let select = selectCheckbox ? selectCheckbox.checked : false;
       let khoaDuyet = khoaDuyetCheckbox ? khoaDuyetCheckbox.checked : false;
-      console.log(select, khoaDuyet, MaGiangDay, typeclass);
-      if (select) {
-        if (khoaDuyet) {
-            updateKhoaDuyet(MaGiangDay,typeclass );
+      let daoTaoDuyet = daoTaoDuyetCheckbox ? daoTaoDuyetCheckbox.checked : false;
+      let taiChinhDuyet = taiChinhDuyetCheckbox ? taiChinhDuyetCheckbox.checked : false;
+
+      if (isKhoa === "1") {
+        console.log(select, khoaDuyet, MaGiangDay, typeclass);
+        if (select) {
+          updateKhoaDuyet(MaGiangDay,typeclass, khoaDuyet );
+        } else{
+          deleteLopGK(MaGiangDay, typeclass);
         }
-      } else{
-        deleteLopGK(MaGiangDay, typeclass);
+      } else {
+        if (MaPhongBan === "DAOTAO") {
+          console.log(khoaDuyet, daoTaoDuyet, MaGiangDay, typeclass);
+          updateDuyet(MaGiangDay, typeclass, khoaDuyet, daoTaoDuyet, MaPhongBan);
+        }
+        if (MaPhongBan === "TAICHINH") {
+          console.log(daoTaoDuyet, taiChinhDuyet, MaGiangDay, typeclass);
+          updateDuyet(MaGiangDay, typeclass, daoTaoDuyet, taiChinhDuyet, MaPhongBan);
+        }
       }
+      
     });
   }
   // Gửi dữ liệu lên server
-  function updateKhoaDuyet(MaGiangDay, typeclass){
+  function updateKhoaDuyet(MaGiangDay, typeclass, khoaDuyet){
     fetch('/updateKhoaDuyet', {
       method: 'POST', 
       headers: {
         'Content-Type': 'application/json' 
       },
-      body: JSON.stringify({MaGiangDay, typeclass}) // Chuyển đổi globalData thành chuỗi JSON
+      body: JSON.stringify({MaGiangDay, typeclass, khoaDuyet}) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
@@ -898,6 +959,30 @@
         'Content-Type': 'application/json' 
       },
       body: JSON.stringify({MaGiangDay, typeclass}) // Chuyển đổi globalData thành chuỗi JSON
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
+          });
+        }
+        return response.json(); // Chuyển đổi phản hồi thành JSON
+      })
+      .then(data => {
+        console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+      })
+      .catch(error => {
+        console.error('Có lỗi xảy ra:', error);
+        console.log(error.message);
+      });
+  }
+  function updateDuyet(MaGiangDay, typeclass, KhoaDuyet, daoTaoDuyet, MaPhongBan){
+    fetch('/updateDuyet', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({MaGiangDay, typeclass, KhoaDuyet, daoTaoDuyet, MaPhongBan}) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
