@@ -482,7 +482,6 @@ worksheet.getColumn(14).width = 15; // Còn lại
       worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number}`);
       // Thêm hai dòng trống
       worksheet.addRow([]);
-      worksheet.addRow([]);
 
       // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
       // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
