@@ -11,6 +11,32 @@ const fs = require("fs"); // Thêm dòng này
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
 }
+function convertToRoman(num) {
+  const romanNumerals = {
+    1: "I",
+    2: "II",
+    3: "III",
+    4: "IV",
+    5: "V",
+    6: "VI",
+    7: "VII",
+    8: "VIII",
+    9: "IX",
+    10: "X",
+    11: "XI",
+    12: "XII",
+    13: "XIII",
+    14: "XIV",
+    15: "XV",
+    16: "XVI",
+    17: "XVII",
+    18: "XVIII",
+    19: "XIX",
+    20: "XX"
+  };
+  
+  return romanNumerals[num] || "Không xác định";
+}
 
 const getGvm = async (req, res) => {
   try {
@@ -180,6 +206,9 @@ const exportHDGvmToExcel = async (req, res) => {
       // Sửa lại ngày sinh
       const utcSinh = new Date(row.NgaySinh);
       row.NgaySinh = utcSinh.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
+   
+   
+      const kiLaMa = convertToRoman(row.KiHoc);
 
 
       const thoiGianThucHien = `${utcBatDau.toLocaleDateString("vi-VN")} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
@@ -189,6 +218,7 @@ const exportHDGvmToExcel = async (req, res) => {
         stt: index + 1, // Thêm số thứ tự
 
         ...row,
+        KiHoc: kiLaMa,
         ThoiGianThucHien: thoiGianThucHien, // Thêm cột Thời Gian Thực Hiện
         SoTien: soTien,
         BangChuSoTien: numberToWords(soTien), // Sử dụng hàm mới
