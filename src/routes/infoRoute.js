@@ -30,6 +30,9 @@ router.get("/index/name-gvm-khoa", (req, res) =>
 
 router.post("/check-teaching", (req, res) => obj3.updateQC(req, res));
 
+// Lưu chèn ngày all
+router.post("/updateDateAll", (req, res) => obj3.updateDateAll(req, res));
+
 router.post("/phong-ban-duyet", (req, res) => obj3.phongBanDuyet(req, res));
 
 router.get("/update-all-info", (req, res) =>

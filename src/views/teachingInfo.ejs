@@ -600,10 +600,6 @@
           return;
         }
 
-        // // Lấy dữ liệu gốc từ localStorage
-        // let data = JSON.parse(localStorage.getItem('tableData')) || [];
-        // console.log('Dữ liệu ban đầu từ localStorage:', data);
-
         // Lấy tất cả các dòng hiển thị trong bảng
         const rows = document.querySelectorAll('#tableBody tr');
 
@@ -627,12 +623,20 @@
             // Định dạng ngày trước khi lưu để tránh lỗi múi giờ
             item.NgayBatDau = format(globalStartDate);
             item.NgayKetThuc = format(globalEndDate);
+          }
+        });
 
-            // Cập nhật ngày trong hàng của bảng để hiển thị thay đổi
-            const ngayBatDauCell = row.querySelector('.ngay-bat-dau');
-            const ngayKetThucCell = row.querySelector('.ngay-ket-thuc');
-            if (ngayBatDauCell) ngayBatDauCell.textContent = item.NgayBatDau; // Hiển thị ngày đã định dạng
-            if (ngayKetThucCell) ngayKetThucCell.textContent = item.NgayKetThuc; // Hiển thị ngày đã định dạng
+        // Chèn ngày bắt đầu, bỏ qua các ô bị disable
+        document.querySelectorAll('[name="startDate"]').forEach(input => {
+          if (!input.disabled && input.offsetParent !== null) {
+            input.value = globalStartDate;
+          }
+        });
+
+        // Chèn ngày kết thúc, bỏ qua các ô bị disable
+        document.querySelectorAll('[name="endDate"]').forEach(input => {
+          if (!input.disabled && input.offsetParent !== null) {
+            input.value = globalEndDate;
           }
         });
 
@@ -646,14 +650,12 @@
           }
         });
 
-        // Lưu lại toàn bộ dữ liệu đã cập nhật vào localStorage
-        // localStorage.setItem('tableData', JSON.stringify(data));
 
         // Kiểm tra lại dữ liệu sau khi cập nhật
         console.log('Dữ liệu sau khi chèn:', globalData);
 
         // Gửi dữ liệu đã cập nhật lên server
-        fetch('/check-teaching', {
+        fetch('/updateDateAll', {
           method: 'POST', // Phương thức POST
           headers: {
             'Content-Type': 'application/json' // Định dạng gửi là JSON
@@ -670,14 +672,14 @@
             // Hiển thị thông báo từ server
             alert(data.message);
             console.log(data.message);
-            loadData();
-            viewData();
+
           })
           .catch(error => {
             console.error('Có lỗi xảy ra:', error);
             alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
           });
       });
+      
       // load data lấy dữ liệu từ server
       document.getElementById('getData').addEventListener('click', loadData);
 

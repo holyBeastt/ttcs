@@ -272,14 +272,16 @@ const duLieuGiangVienGiangDay = async (jsonData) => {
   }
 
   // console.log(allResults);
-  console.log("Dữ liệu giảng viên giảng dạy sau khi gộp từ file Quy Chuẩn và CSDL : ", allResults);
+  console.log(
+    "Dữ liệu giảng viên giảng dạy sau khi gộp từ file Quy Chuẩn và CSDL : ",
+    allResults
+  );
   return allResults; // Trả về mảng chứa tất cả thông tin giảng viên
 };
 
 // lấy dữ liệu giảng viên mời và giảng viên cơ hữu trong DB
 const tongHopDuLieuGiangVien = async (lecturers) => {
-  const query1 =
-    "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` WHERE HoTen = ?";
+  const query1 = "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` WHERE HoTen = ?";
   const query2 =
     "SELECT TenNhanVien, MonGiangDayChinh FROM `nhanvien` WHERE TenNhanVien = ?";
 
@@ -370,7 +372,9 @@ const importTableQC = async (jsonData) => {
           (dataGiangVien) => dataGiangVien.HoTen === GiaoVienGiangDay
         );
         const giangVien = boMonFound ? boMonFound.HoTen : null; // Sử dụng null thay cho ""
-        const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null; // Sử dụng null thay cho ""
+        const monGiangDayChinh = boMonFound
+          ? boMonFound.MonGiangDayChinh
+          : null; // Sử dụng null thay cho ""
 
         const values = [
           item["Khoa"] || null,
@@ -395,7 +399,6 @@ const importTableQC = async (jsonData) => {
         ];
 
         await connection.execute(queryInsert, values); // Sử dụng execute thay vì query
-
       } catch (err) {
         console.error("Error:", err);
         throw err;
@@ -404,7 +407,6 @@ const importTableQC = async (jsonData) => {
       }
     });
   });
-
 
   let results = false;
 
@@ -418,14 +420,13 @@ const importTableQC = async (jsonData) => {
 
     try {
       // Sử dụng trực tiếp await với connection.execute
-      await connection.execute(queryUpdate);  // Không cần bọc trong new Promise nữa
+      await connection.execute(queryUpdate); // Không cần bọc trong new Promise nữa
       results = true; // Cập nhật thành công
     } catch (err) {
       console.error("Error while updating:", err);
     } finally {
       connection.release(); // Giải phóng kết nối sau khi thực thi
     }
-
   } catch (error) {
     console.error("Error:", error);
   }
@@ -433,7 +434,7 @@ const importTableQC = async (jsonData) => {
   return results;
 };
 
-// 
+//
 const updateBanHanh = async (req, res) => {
   let connection;
   try {
@@ -538,7 +539,7 @@ const importTableTam = async (jsonData) => {
     console.error("Error:", error);
   }
 
-  console.log('Thêm file quy chuẩn vào bảng Tam thành công');
+  console.log("Thêm file quy chuẩn vào bảng Tam thành công");
   return results;
 };
 
@@ -700,7 +701,7 @@ const handleUploadAndRender = async (req, res) => {
 };
 
 const checkFile = async (req, res) => {
-  console.log("Thực hiện kiểm tra dữ liệu trong bảng Tam")
+  console.log("Thực hiện kiểm tra dữ liệu trong bảng Tam");
   const tableName = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
   const { Khoa, Dot, Ki, Nam } = req.body;
 
@@ -758,7 +759,9 @@ const deleteFile = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
     }
 
-    console.log("Xóa dữ liệu bảng Tam ( trường hợp khi tại dữ liệu cũ ) thành công")
+    console.log(
+      "Xóa dữ liệu bảng Tam ( trường hợp khi tại dữ liệu cũ ) thành công"
+    );
     return res.status(200).json({ message: "Xóa thành công" });
   } catch (err) {
     console.error(err);
@@ -1029,6 +1032,43 @@ const updateChecked = async (req, res) => {
     res
       .status(403)
       .json({ error: "Bạn không có quyền thực hiện hành động này" });
+  }
+};
+
+const updateDateAll = async (req, res) => {
+  const tableName = process.env.DB_TABLE_QC;
+  const jsonData = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ createPoolConnection
+    connection = await createPoolConnection();
+
+    // Duyệt qua từng phần tử trong jsonData
+    for (let item of jsonData) {
+      const { ID, NgayBatDau, NgayKetThuc } = item;
+
+      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+      const updateQuery = `
+        UPDATE ${tableName}
+        SET 
+          NgayBatDau = ?,
+          NgayKetThuc = ?
+        WHERE ID = ?
+      `;
+
+      const updateValues = [NgayBatDau, NgayKetThuc, ID];
+
+      await connection.query(updateQuery, updateValues);
+    }
+
+    res.status(200).json({ message: "Cập nhật thành công" });
+  } catch (error) {
+    console.error("Lỗi cập nhật:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
   }
 };
 
@@ -2380,4 +2420,5 @@ module.exports = {
   checkDataQC,
   phongBanDuyet,
   updateBanHanh,
+  updateDateAll,
 };

@@ -481,6 +481,8 @@
           tableBody.appendChild(tr);
         });
       });
+    
+      calculateTotals();
     }
   
     // Hàm format ngày tháng
@@ -537,6 +539,8 @@
       // Chọn tất cả các hàng chứa dữ liệu
       const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
 
+      debugger
+
       rows.forEach(row => {
         // Kiểm tra xem hàng có hiển thị hay không
         const isVisible = row.style.display != 'none';
@@ -545,7 +549,7 @@
           // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
           const qcCell = row.querySelector('td:nth-child(12)');
           if (qcCell) {
-            const qcValue = parseInt(qcCell.textContent.trim());
+            const qcValue = parseFloat(qcCell.textContent.trim());
             if (!isNaN(qcValue)) {
               console.log(totalQC)
               totalQC += qcValue;
