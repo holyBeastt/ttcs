@@ -305,7 +305,7 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -398,7 +398,7 @@
       let ki = document.getElementById("combobox-ki").value;
       let nam = document.getElementById("NamHoc").value;
       let department = document.getElementById("departmentFilter").value.trim();
-  
+
       // Tạo dữ liệu gửi đến server
       const filterData = {
         dot: dot,
@@ -406,7 +406,7 @@
         nam: nam,
         department: department
       };
-  
+
       // Gửi request tới server để lấy dữ liệu lọc
       fetch('/api/getClassInfoGvmData', {
         method: 'POST',
@@ -415,27 +415,27 @@
         },
         body: JSON.stringify(filterData)
       })
-      .then(response => response.json())
-      .then(data => {
-        // Render lại bảng dựa trên dữ liệu trả về từ server
-        renderTable(data);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          // Render lại bảng dựa trên dữ liệu trả về từ server
+          renderTable(data);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
     }
 
     function renderTable(data) {
       const tableBody = document.getElementById('data-table-body');
       tableBody.innerHTML = ''; // Clear previous data
-    
+
       let index = 1;
-    
+
       // Duyệt qua tất cả các giảng viên trong groupedByTeacher
       Object.keys(data).forEach(teacher => {
         const courses = data[teacher];
         const totalSoTiet = courses.reduce((total, course) => total + (parseFloat(course.QuyChuan) || 0), 0);
-    
+
         // Duyệt qua từng khóa học của giảng viên
         courses.forEach((course, courseIndex) => {
           const tr = document.createElement('tr');
@@ -443,7 +443,7 @@
           tr.setAttribute('data-dot', course.Dot);
           tr.setAttribute('data-ki', course.KiHoc);
           tr.setAttribute('data-nam', course.NamHoc);
-    
+
           // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
           if (courseIndex === 0) {
             tr.innerHTML = `
@@ -452,7 +452,7 @@
             `;
             index++; // Tăng index cho giảng viên tiếp theo
           }
-    
+
           // Thêm các ô dữ liệu cho từng môn học
           tr.innerHTML += `
             <td>${course.LopHocPhan}</td>
@@ -465,7 +465,7 @@
             <td>${formatDate(course.NgayKetThuc)}</td>
             <td>${course.QuyChuan}</td>
           `;
-    
+
           // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
           if (courseIndex === 0) {
             tr.innerHTML += `
@@ -476,15 +476,14 @@
               </td>
             `;
           }
-    
+
           // Thêm tr vào tbody
           tableBody.appendChild(tr);
         });
       });
-    
-      calculateTotals();
+      calculateTotals()
     }
-  
+
     // Hàm format ngày tháng
     function formatDate(dateStr) {
       if (!dateStr) return 'N/A';
@@ -495,15 +494,17 @@
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     }
-  
+
     // Giả sử GiangDay đã được định nghĩa trước đó
     renderTable(GiangDay);
   </script>
-  
+
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       let totalQC = 0;
+      // console.log(totalQC)
+
 
       // Chọn tất cả các hàng chứa dữ liệu
       const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
@@ -516,7 +517,7 @@
           // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
           const qcCell = row.querySelector('td:nth-child(12)');
           if (qcCell) {
-            const qcValue = parseInt(qcCell.textContent.trim());
+            const qcValue = parseFloat(qcCell.textContent.trim());
             if (!isNaN(qcValue)) {
               // console.log(totalQC)
               totalQC += qcValue;
@@ -526,7 +527,7 @@
       });
 
       // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
-      document.getElementById('totalQC').textContent = totalQC;
+      document.getElementById('totalQC').textContent = totalQC.toFixed(2);
     });
 
 
@@ -534,7 +535,9 @@
   <script>
     // tổng quy chuẩn
     function calculateTotals() {
+
       let totalQC = 0;
+      // console.log(totalQC)
 
       // Chọn tất cả các hàng chứa dữ liệu
       const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
@@ -559,7 +562,7 @@
       });
 
       // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
-      document.getElementById('totalQC').textContent = totalQC;
+      document.getElementById('totalQC').textContent = totalQC.toFixed(2);
     }
 
     // Tìm kiếm giảng viên mời theo tên
@@ -741,36 +744,36 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const isKhoa = localStorage.getItem("isKhoa");
-        const role = localStorage.getItem("userRole");
+      const isKhoa = localStorage.getItem("isKhoa");
+      const role = localStorage.getItem("userRole");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('actionButton');
-            const actionButton1 = document.getElementById('actionButton1');
-            const actionButton2 = document.getElementById('actionButton2');
-            const actionButton3 = document.getElementById('actionButton3');
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('actionButton');
+      const actionButton1 = document.getElementById('actionButton1');
+      const actionButton2 = document.getElementById('actionButton2');
+      const actionButton3 = document.getElementById('actionButton3');
 
-        if (isKhoa == 0) {
-            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-            if (role.trim().toLocaleLowerCase() == "thường"){
-              actionButton2.style.display = 'none'; // Hiện actionButton2
-            }
-        } else {
-            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-            actionButton2.style.display = 'none'; // Ẩn actionButton2
-            
+      if (isKhoa == 0) {
+        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+        if (role.trim().toLocaleLowerCase() == "thường") {
+          actionButton2.style.display = 'none'; // Hiện actionButton2
         }
+      } else {
+        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+        actionButton2.style.display = 'none'; // Ẩn actionButton2
 
-        //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-          actionButton3.style.display = '';
-        } else {
-          actionButton3.style.display = 'none';
-        }
-      });
-</script>
+      }
+
+      //Ẩn site duyệt lớp gk
+      const Quyen = localStorage.getItem("userRole");
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton3.style.display = '';
+      } else {
+        actionButton3.style.display = 'none';
+      }
+    });
+  </script>
 
   <script>
     $(document).ready(function () {
@@ -880,8 +883,8 @@
       calculateTotals(); // Cập nhật lại tổng số sau khi lọc
     }
   </script> -->
-  
-  
+
+
 
   <script>
     $(document).ready(function () {
@@ -917,6 +920,18 @@
           console.error("Lỗi khi lấy dữ liệu phongBan:", error);
         }
       });
+    });
+  </script>
+  <script>
+    document.getElementById("infome").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+      if (id_User) {
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
+      } else {
+        alert("Không tìm thấy id_User trong localStorage.");
+      }
     });
   </script>
 

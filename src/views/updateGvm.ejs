@@ -133,7 +133,7 @@
                   Hi, Lê Đức Thuận
                 </a>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                  <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
                   <a class="dropdown-item" href="/">Đăng xuất</a>
                 </div>
               </div>
@@ -539,6 +539,18 @@ hideButton();
       alert("Không tìm thấy TenDangNhap trong localStorage.");
   }
 });
+  </script>
+  <script>
+    document.getElementById("infome").addEventListener("click", function(event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+      if (id_User) {
+          // Chuyển hướng đến trang infome và truyền id_User trong URL
+          window.location.href = `/infome/${id_User}`;
+      } else {
+          alert("Không tìm thấy id_User trong localStorage.");
+      }
+    });
   </script>
 
 </body>

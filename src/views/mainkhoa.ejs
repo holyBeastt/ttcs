@@ -213,7 +213,7 @@
               </a>
               <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
                 <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
                 <a class="dropdown-item" href="/">Đăng xuất</a>
               </div>
@@ -303,8 +303,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
 
         // Ẩn button ngay khi trang được tải
@@ -396,24 +396,6 @@
     <!-- Phần phân quyền -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
- /*
-        const importLink = document.getElementById("Import");
-
-        importLink.addEventListener("click", function (event) {
-          event.preventDefault(); 
-          alert("gà")
-          alert("iskhoa = "+isKhoa)
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-        
-            window.location.href = "/import";
-          } else {
-          
-            window.location.href = "/importGvmList";
-          }
-        });
-        */
         // Thêm sự kiện click cho phần tử có id="ThongTinGD"
         const ThongTinGD = document.getElementById("ThongTinGD");
 
@@ -451,16 +433,28 @@
 
     <script>
       document.getElementById("changePasswordLink").addEventListener("click", function(event) {
-    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-    const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
-    if (tenDangNhap) {
-        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-    } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
-    }
-});
+        if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+        }
+      });
+    </script>
+    <script>
+      document.getElementById("infome").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+        if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+        } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+        }
+      });
     </script>
   </body>
 </html>

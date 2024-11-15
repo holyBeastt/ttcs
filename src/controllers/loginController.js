@@ -75,6 +75,7 @@
 
 // module.exports = login;
 const createPoolConnection = require("../config/databasePool");
+const { use } = require("../routes/adminRoute");
 require("dotenv").config();
 
 const createTrigger = async (connection, userId, tenNhanVien) => {
@@ -229,7 +230,7 @@ const login = async (req, res) => {
         // Trả về phản hồi thành công với url
         return res
           .status(200)
-          .json({ url, role, MaPhongBan, isKhoa, TenNhanVien, username });
+          .json({ url, role, MaPhongBan, isKhoa, TenNhanVien, username, id_User: user.id_User });
       } else {
         return res.status(401).json({ message: "Mật khẩu không chính xác" });
       }

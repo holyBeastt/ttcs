@@ -234,7 +234,7 @@
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
               </div>
-              
+
             </div>
           </div>
           <div class="navbar-nav">
@@ -290,7 +290,7 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -630,11 +630,11 @@
       }
       //Ẩn site duyệt lớp gk
       const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-          actionButton3.style.display = '';
-        } else {
-          actionButton3.style.display = 'none';
-        }
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton3.style.display = '';
+      } else {
+        actionButton3.style.display = 'none';
+      }
     }
   }
 </script>
@@ -1750,8 +1750,8 @@
     });
 
     // Cập nhật tổng số tiết vào HTML
-    document.getElementById('totalLL').textContent = totalLL;
-    document.getElementById('totalQC').textContent = totalQC;
+    document.getElementById('totalLL').textContent = totalLL.toFixed(2);
+    document.getElementById('totalQC').textContent = totalQC.toFixed(2);
   }
   /*
     function checkAll(type) {
@@ -2538,6 +2538,18 @@
     }
   });
 
+</script>
+<script>
+  document.getElementById("infome").addEventListener("click", function (event) {
+    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+    const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+    if (id_User) {
+      // Chuyển hướng đến trang infome và truyền id_User trong URL
+      window.location.href = `/infome/${id_User}`;
+    } else {
+      alert("Không tìm thấy id_User trong localStorage.");
+    }
+  });
 </script>
 
 
