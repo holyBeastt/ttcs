@@ -1310,6 +1310,51 @@ const updateQC = async (req, res) => {
   }
 };
 
+const capNhatTen_BoMon = async (req, res) => {
+  // console.log("Đang xử lý yêu cầu cập nhật...");
+
+  // Nhận dữ liệu từ client
+  const { GiaoVienGiangDay, BoMon, ID } = req.body;
+
+  // Kiểm tra dữ liệu đầu vào
+  if (!ID || !GiaoVienGiangDay || !BoMon) {
+    return res.status(400).json({ message: "ID, GiaoVienGiangDay và BoMon là bắt buộc!" });
+  }
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Câu lệnh SQL để cập nhật dữ liệu
+    const sql = `
+      UPDATE quychuan
+      SET GiaoVienGiangDay = ?, BoMon = ?
+      WHERE ID = ?
+    `;
+    const values = [GiaoVienGiangDay, BoMon, ID];
+
+    // Thực thi truy vấn
+    const [result] = await connection.execute(sql, values);
+
+    // Kiểm tra xem có dòng nào được cập nhật không
+    if (result.affectedRows > 0) {
+      return res.status(200).json({ message: "Cập nhật thành công!" });
+    } else {
+      return res.status(404).json({ message: "Không tìm thấy giảng viên với ID này!" });
+    }
+  } catch (error) {
+    console.error("Lỗi khi cập nhật giảng viên:", error);
+    return res.status(500).json({ message: "Có lỗi xảy ra khi cập nhật!" });
+  } finally {
+    // Trả kết nối về pool sau khi xử lý xong
+    if (connection) {
+      connection.release(); // Release kết nối lại về pool
+    }
+  }
+};
+
 // const updateQC = async (req, res) => {
 //   const role = req.session.role;
 //   const duyet = process.env.DUYET;
@@ -2527,6 +2572,7 @@ module.exports = {
   updateAllTeachingInfo,
   submitData2,
   updateQC,
+  capNhatTen_BoMon,
   checkDataQC,
   phongBanDuyet,
   updateBanHanh,
