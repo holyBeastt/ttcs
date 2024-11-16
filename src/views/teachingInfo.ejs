@@ -1161,7 +1161,6 @@
 
           // Thêm sự kiện click
           suggestionItem.onclick = function () {
-            input.value = name; // Điền tên gợi ý vào ô input
 
             // Tìm kiếm trong bangDuLieum, so sánh id của input truyền vào (id) với ID trong bảng ( ID )
             const itemID = bangDuLieu.find(item => item.ID === id)?.ID;
@@ -1169,6 +1168,7 @@
 
             // Lấy tên giảng viên từ gợi ý đã chọn
             const selectedName = name.split(" - ")[0]; // Tách tên ra khỏi mã phòng ban
+            // input.value = selectedName; // Điền tên gợi ý vào ô input
 
             // So sánh với boMonTheoGiangVien
             const lecturerFound = boMonTheoGiangVien.find(lecturer => lecturer.HoTen === selectedName.trim());
