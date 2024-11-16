@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 configViewEngine(app);
 
 // cấu hình session cho login
-app.use(express.urlencoded({ extended: true }));
+//app.use(express.urlencoded({ extended: true }));
 // app.use(
 //   session({
 //     secret: "your_secret_key",
@@ -67,8 +67,8 @@ app.use(
 );
 
 // config res.body
-app.use(express.json()); // for json
-app.use(express.urlencoded({ extended: true })); // for form data
+//app.use(express.json()); // for json
+//app.use(express.urlencoded({ extended: true })); // for form data
 
 // Khai bao route
 app.use("/", webRoutes);
@@ -113,7 +113,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public/js"))); // cấu hình tệp js
 // app.use(express.static(path.join(__dirname, "public"))); // cấu hình tệp js
 
-app.use(express.json()); // Thêm dòng này để xử lý JSON
+//app.use(express.json()); // Thêm dòng này để xử lý JSON
 
 const importFile = require("./routes/importRoute");
 const infoGvm = require("./routes/infoRoute");
