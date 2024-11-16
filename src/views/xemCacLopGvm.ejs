@@ -624,7 +624,7 @@
         } else {
           actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
           actionButton2.style.display = 'none'; // Ẩn actionButton2
-          if (Quyen.toLowerCase() == 'gv'){
+          if (Quyen.toLowerCase() == 'gv') {
             actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
           }
         }
@@ -1218,9 +1218,9 @@
 
         // alert(id)
         // Tìm kiếm trong bangDuLieu
-        const itemIndex = bangDuLieu.findIndex(item => item.id === id); // Tìm chỉ số của item trong bangDuLieu
-        // console.log(itemIndex);
-
+        const itemIndex = bangDuLieu.findIndex(item => item.id === id);
+        const ID = bangDuLieu[itemIndex].ID
+        console.log(ID, itemIndex);
         // Lấy tên giảng viên từ gợi ý đã chọn
         const selectedName = name.split(" - ")[0]; // Tách tên ra khỏi mã phòng ban
         // console.log(selectedName)
@@ -1229,30 +1229,33 @@
         const lecturerFound = boMonTheoGiangVien.find(lecturer => lecturer.HoTen === selectedName.trim());
         console.log(lecturerFound)
 
+
         if (lecturerFound) {
           // alert('Tìm thấy giảng viên : ' + lecturerFound.HoTen); // Hiển thị thông báo nếu tìm thấy
 
           if (itemIndex !== -1) { // Kiểm tra nếu có id
-            // alert('Tương ứng với id trong bảng  : ' + itemIndex); // Hiển thị thông báo nếu tìm thấy
-            // Cập nhật bảng
-            bangDuLieu[itemIndex].GiaoVienGiangDay = lecturerFound.HoTen; // Cập nhật thuộc tính BoMon của item
-            bangDuLieu[itemIndex].BoMon = lecturerFound.MonGiangDayChinh; // Cập nhật thuộc tính BoMon của item
-            console.log('Dữ liệu vừa cập nhật : ', bangDuLieu[itemIndex]);
 
-            // Format lại ngày
-            bangDuLieu.forEach(item => {
-              item.NgayBatDau = format(item.NgayBatDau); // Định dạng ngày bắt đầu
-              item.NgayKetThuc = format(item.NgayKetThuc); // Định dạng ngày bắt đầu
-            });
+            var data = {
+              GiaoVienGiangDay: lecturerFound.HoTen,
+              BoMon: lecturerFound.MonGiangDayChinh,
+              ID: ID
+            }
+
+            input.value = lecturerFound.HoTen;
+            const boMonInput = document.getElementById(`boMon_${itemIndex}`);
+            boMonInput.value = lecturerFound.MonGiangDayChinh;
+
+            console.log('Dữ liệu vừa cập nhật : ', data);
+
           }
 
           // Gửi dữ liệu đã cập nhật lên server
-          fetch('/check-teaching', {
+          fetch('/update-name', {
             method: 'POST', // Phương thức POST
             headers: {
               'Content-Type': 'application/json' // Định dạng gửi là JSON
             },
-            body: JSON.stringify(bangDuLieu) // Chuyển đổi data đã cập nhật thành chuỗi JSON
+            body: JSON.stringify(data) // Chuyển đổi data đã cập nhật thành chuỗi JSON
           })
             .then(response => {
               if (!response.ok) {
@@ -1269,7 +1272,7 @@
         }
 
         hideSuggestions(); // Ẩn gợi ý sau khi chọn
-        loadData(); // load lại data
+        // loadData(); // load lại data
         // viewData(); // hiển thị bảng
       };
 
