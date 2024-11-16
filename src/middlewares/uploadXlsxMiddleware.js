@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 500 * 1024 * 1024 }, // Giới hạn dung lượng 500MB
+  limits: { fileSize: 5000000000000000 * 1024 * 1024 }, // Giới hạn dung lượng 500MB
 });
 
 module.exports = upload;
