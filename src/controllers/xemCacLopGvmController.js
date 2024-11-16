@@ -204,7 +204,6 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
 
 const updateQCGvm = async (req, res) => {
   const isKhoa = req.session.isKhoa;
-  console.log("vào uopdtea");
   console.log("isKhoa = ", isKhoa);
   const tableName = process.env.DB_TABLE_QC;
   const jsonData = req.body;
@@ -309,8 +308,8 @@ const updateQCGvm = async (req, res) => {
           KhoaDuyet,
           DaoTaoDuyet,
           TaiChinhDuyet,
-          NgayBatDau,
-          NgayKetThuc,
+          isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+          isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
           ID,
         ];
       } else {

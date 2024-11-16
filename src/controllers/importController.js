@@ -1293,8 +1293,8 @@ const updateQC = async (req, res) => {
         KhoaDuyet,
         DaoTaoDuyet,
         TaiChinhDuyet,
-        NgayBatDau,
-        NgayKetThuc,
+        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
         ID,
       ];
 
@@ -1318,7 +1318,9 @@ const capNhatTen_BoMon = async (req, res) => {
 
   // Kiểm tra dữ liệu đầu vào
   if (!ID || !GiaoVienGiangDay || !BoMon) {
-    return res.status(400).json({ message: "ID, GiaoVienGiangDay và BoMon là bắt buộc!" });
+    return res
+      .status(400)
+      .json({ message: "ID, GiaoVienGiangDay và BoMon là bắt buộc!" });
   }
 
   let connection;
@@ -1342,7 +1344,9 @@ const capNhatTen_BoMon = async (req, res) => {
     if (result.affectedRows > 0) {
       return res.status(200).json({ message: "Cập nhật thành công!" });
     } else {
-      return res.status(404).json({ message: "Không tìm thấy giảng viên với ID này!" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy giảng viên với ID này!" });
     }
   } catch (error) {
     console.error("Lỗi khi cập nhật giảng viên:", error);
