@@ -879,7 +879,8 @@
           giaoVienGiangDayInput.type = 'text';
           giaoVienGiangDayInput.placeholder = 'Nhập tên giảng viên';
           giaoVienGiangDayInput.value = row.GiaoVienGiangDay || '';
-
+          // Gán id cho input
+          giaoVienGiangDayInput.id = `giaoVienGiangDayInput-${row.ID}`;
 
           giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
           tableRow.appendChild(giaoVienGiangDayTd);
@@ -909,6 +910,8 @@
           boMonInput.name = 'bomon';
           boMonInput.value = row.BoMon || '';
           boMonInput.placeholder = 'Nhập tên bộ môn';
+          // Tạo ID cho bộ môn
+          boMonInput.id = `boMonInput-${row.ID}`;
           boMonTd.appendChild(boMonInput);
           tableRow.appendChild(boMonTd);
 
@@ -1184,6 +1187,12 @@
                   ID: itemID
                 }
 
+                const giaoVienGiangDayInput = document.getElementById(`giaoVienGiangDayInput-${itemID}`);
+                giaoVienGiangDayInput.value = lecturerFound.HoTen;
+                const boMonInput = document.getElementById(`boMonInput-${itemID}`);
+                boMonInput.value = lecturerFound.MonGiangDayChinh;
+                debugger
+
                 console.log('Dữ liệu vừa cập nhật : ', bangDuLieu[itemID]);
               }
 
@@ -1210,8 +1219,8 @@
             }
 
             hideSuggestions(); // Ẩn gợi ý sau khi chọn
-            loadData(); // load lại data
-            viewData(); // hiển thị bảng
+            //loadData(); // load lại data
+            //viewData(); // hiển thị bảng
           };
 
           suggestionsContainer.appendChild(suggestionItem); // Thêm suggestionItem vào container
