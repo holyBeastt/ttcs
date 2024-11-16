@@ -2265,7 +2265,7 @@ const insertGiangDay = async (
     FROM quychuan qc
     JOIN gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 1
   `;
 
   const value = [dot, ki, namHoc];
@@ -2403,7 +2403,7 @@ const insertGiangDay2 = async (
     FROM quychuan qc
     JOIN nhanvien ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = nhanvien.TenNhanVien
     WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0
   `;
 
   const value = [dot, ki, namHoc];
@@ -2456,7 +2456,10 @@ const insertGiangDay2 = async (
 
           // Dùng forEach để duyệt qua mảng và Lấy id_Gvm khi giảng viên mới giảng
           nvList.forEach((giangVien) => {
-            if (giangVien.HoTen === gv1[0]) {
+            if (
+              giangVien.TenNhanVien.toLowerCase().trim() ==
+              gv1[0].toLowerCase().trim()
+            ) {
               id_User = giangVien.id_User; // Gán id
             }
           });
