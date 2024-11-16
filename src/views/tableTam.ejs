@@ -324,6 +324,7 @@
 
     function hideButton() {
       const isKhoa = localStorage.getItem("isKhoa");
+      const Quyen = localStorage.getItem("userRole");
       if (isKhoa === null) {
         console.log('Không tìm thấy giá trị isKhoa trong localStorage');
       } else {
@@ -338,17 +339,17 @@
           if (isKhoa === "0") {
             actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
             actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-            console.log('Nút actionButton1 đã được ẩn, actionButton2 đã được hiển thị');
           } else {
             actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
             actionButton2.style.display = 'none'; // Ẩn actionButton2
-            console.log('Nút actionButton1 đã được hiển thị, actionButton2 đã được ẩn');
+            if (Quyen.toLowerCase() == 'gv'){
+              actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+            }
           }
         } else {
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
         //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
         if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton3.style.display = '';
         } else {

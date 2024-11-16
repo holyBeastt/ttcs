@@ -313,6 +313,8 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
+        const Quyen = localStorage.getItem("userRole");
+
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('actionButton');
@@ -320,17 +322,20 @@
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
 
-    if (isKhoa == 0) {
-            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+        if (isKhoa == 0) {
+          actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+          actionButton2.style.display = 'inline-block'; // Hiện actionButton2
             
         } else {
-            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-            actionButton2.style.display = 'none'; // Ẩn actionButton2
+          actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+          actionButton2.style.display = 'none'; // Ẩn actionButton2
+
+          if (Quyen.toLowerCase() == 'gv'){
+              actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+          }
             
         }
     //Ẩn site duyệt lớp gk
-    const Quyen = localStorage.getItem("userRole");
       if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
         actionButton3.style.display = '';
       } else {
