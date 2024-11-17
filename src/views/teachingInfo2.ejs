@@ -1115,8 +1115,8 @@
       });
 
       // Cập nhật tổng số tiết vào HTML
-      document.getElementById('totalLL').textContent = totalLL;
-      document.getElementById('totalQC').textContent = totalQC;
+      document.getElementById('totalLL').textContent = totalLL.toFixed(2);
+      document.getElementById('totalQC').textContent = totalQC.toFixed(2);
     }
 
     function checkAll(type) {

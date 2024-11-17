@@ -755,48 +755,50 @@
             Nam: namValue,
           };
 
-          // Gọi API để lấy dữ liệu mới
-          console.log('Gọi API lấy dữ liệu mới...');
-
-          const [gvmResponse, khoaResponse, teachingResponse] = await Promise.all([
-            fetch('/gv-cohuu'),
-            fetch('/gv-moi'),
-            fetch('/thong-tin-giang-day', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestData),
-            }),
-          ]);
-
-          // Kiểm tra xem có lỗi trong các phản hồi không
-          if (!gvmResponse.ok || !khoaResponse.ok || !teachingResponse.ok) {
-            alert("Không tìm thấy dữ liệu!");
+          // Gọi API đầu tiên
+          console.log('Gọi API gv-cohuu...');
+          const giangVienRes = await fetch('/gv-cohuu');
+          if (!giangVienRes.ok) {
+            console.log('Không tìm thấy dữ liệu cho gv-cohuu!');
             return; // Dừng lại nếu có lỗi
           }
+          const giangVien = await giangVienRes.json();
+          localStorage.setItem('nameGv', JSON.stringify(giangVien));
 
-          // Lưu dữ liệu mới vào biến
-          const nameGvNew = await gvmResponse.json();
-          const nameGvmNew = await khoaResponse.json();
+          // Gọi API thứ hai
+          console.log('Gọi API gv-moi...');
+          const giangVienMoiRes = await fetch('/gv-moi');
+          if (!giangVienMoiRes.ok) {
+            console.log('Không tìm thấy dữ liệu cho gv-moi!');
+            return; // Dừng lại nếu có lỗi
+          }
+          const giangVienMoi = await giangVienMoiRes.json();
+          localStorage.setItem('nameGvm', JSON.stringify(giangVienMoi));
+
+          // Gọi API thứ ba
+          console.log('Gọi API thong-tin-giang-day...');
+          const teachingResponse = await fetch('/thong-tin-giang-day', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+          });
+          if (!teachingResponse.ok) {
+            console.log('Không tìm thấy dữ liệu cho thong-tin-giang-day!');
+            return; // Dừng lại nếu có lỗi
+          }
           const rs = await teachingResponse.json();
 
-          // Thêm check
+          // Lưu dữ liệu kết quả
           globalData = rs.results; // Dữ liệu kết quả
-          // globalData = globalData;
           const check = rs.check; // Dữ liệu check
+          localStorage.setItem('check', check);
 
-          localStorage.setItem("check", check);
+          console.log('Bảng: ', globalData);
 
-
-
-          localStorage.setItem('nameGv', JSON.stringify(nameGvNew));
-          localStorage.setItem('nameGvm', JSON.stringify(nameGvmNew));
-
-          console.log('Bảng : ', globalData);
-
+          // Hiển thị dữ liệu
           viewData(globalData);
-
         } catch (error) {
           console.error('Đã có lỗi xảy ra:', error);
         }

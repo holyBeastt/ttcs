@@ -492,8 +492,9 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
 
     // Truy vấn lấy các trường HoTen và MaPhongBan từ bảng gvmoi
     const queryGVM = `
-      SELECT gvmoi.HoTen, gvmoi.MaPhongBan
-      FROM gvmoi;
+     SELECT gvmoi.HoTen, gvmoi.MaPhongBan
+      FROM gvmoi
+      WHERE gvmoi.TinhTrangGiangDay = 1;
     `;
     const [gvmResults] = await connection.query(queryGVM);
 
