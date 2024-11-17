@@ -282,6 +282,8 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+
               </div>
             </div>
           </div>
@@ -338,7 +340,7 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -633,9 +635,9 @@
         // Fetch tên giảng viên mời
         const [gvmResponse, khoaResponse, teachingResponse] =
           await Promise.all([
-            fetch("/index/name-gvm"),
-            fetch("/index/name-gvm-khoa"),
-            fetch("/teaching-info", {
+            fetch("/gv-cohuu"),
+            fetch("/gv-moi"),
+            fetch("/thong-tin-giang-day", {
               method: "POST", // Sử dụng phương thức POST
               headers: {
                 "Content-Type": "application/json", // Đặt Content-Type là application/json
@@ -1115,8 +1117,8 @@
       });
 
       // Cập nhật tổng số tiết vào HTML
-      document.getElementById('totalLL').textContent = totalLL;
-      document.getElementById('totalQC').textContent = totalQC;
+      document.getElementById('totalLL').textContent = totalLL.toFixed(2);
+      document.getElementById('totalQC').textContent = totalQC.toFixed(2);
     }
 
     function checkAll(type) {
@@ -1346,8 +1348,8 @@
 
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    const phongBanData = <%- JSON.stringify(phongBanList) %>
-    localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
+    const phongBanData = <% - JSON.stringify(phongBanList) %>
+      localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
 
     // Hàm gợi ý bộ môn ở ô nhập 
@@ -1633,14 +1635,14 @@
     });
   </script>
   <script>
-    document.getElementById("infome").addEventListener("click", function(event) {
+    document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
       if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+        alert("Không tìm thấy id_User trong localStorage.");
       }
     });
   </script>

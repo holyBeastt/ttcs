@@ -233,6 +233,8 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+
               </div>
 
             </div>
@@ -717,8 +719,8 @@
 
       // Fetch tên giảng viên mời
       const [gvmResponse, khoaResponse, teachingResponse] = await Promise.all([
-        fetch('/index/name-gvm'),
-        fetch('/index/name-gvm-khoa'),
+        fetch('/gv-cohuu'),
+        fetch('/gv-moi'),
         fetch('/xemCacLopMoi', {
           method: 'POST', // Sử dụng phương thức POST
           headers: {
@@ -738,10 +740,12 @@
       console.log('Dữ liệu giảng viên trường :', nameGv); // Kiểm tra dữ liệu
 
       nameGvm = await khoaResponse.json();
-      console.log('Dữ liệu giảng viên mời theo khoa:', nameGvm);
+      console.log('Dữ liệu giảng viên mời :', nameGvm);
       localStorage.setItem('nameGvm', JSON.stringify(nameGvm));
 
+
       rs = await teachingResponse.json();
+      console.log(rs);
       // Thêm check
       globalData = rs.results.map(item => ({
         ...item,

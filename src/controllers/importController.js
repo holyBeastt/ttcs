@@ -332,7 +332,10 @@ const tongHopDuLieuGiangVien = async () => {
   try {
     // Thực hiện hai truy vấn song song bằng Promise.all
     const [results1, results2] = await Promise.all([
-      connection.execute("SELECT HoTen, MonGiangDayChinh FROM gvmoi"),
+      connection.execute(`SELECT HoTen, MonGiangDayChinh 
+          FROM gvmoi 
+          WHERE TinhTrangGiangDay = 1;
+      `),
       connection.execute(
         "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien"
       ),

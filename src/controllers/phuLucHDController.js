@@ -309,7 +309,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
       // Căn chỉnh độ rộng cột
      // Định dạng độ rộng cột, bao gồm cột STT
-worksheet.getColumn(1).width = 4; // STT
+worksheet.getColumn(1).width = 5; // STT
 worksheet.getColumn(2).width = 18; // Họ tên giảng viên
 worksheet.getColumn(3).width = 14; // Tên học phần
 worksheet.getColumn(4).width = 13; // Tên lớp

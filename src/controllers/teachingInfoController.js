@@ -374,21 +374,19 @@ const renderInfoWithValueKhoa = async (req, res) => {
 
 // mới
 const renderInfo = async (req, res) => {
-  const role = req.session.role;
   const isKhoa = req.session.isKhoa;
   const MaPhongBan = req.session.MaPhongBan;
-  console.log("Mã phòng ban = ", MaPhongBan);
 
-  if (typeof MaPhongBan === "undefined") {
-    console.log("ok");
-    return res.status(500).json({ error: "Vui lòng đăng nhập lại!" });
-  }
+  // if (typeof MaPhongBan === "undefined") {
+  //   // console.log("ok");
+  //   return res.status(500).json({ error: "Vui lòng đăng nhập lại!" });
+  // }
 
   const { Dot, Ki, Nam } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
   const tableName = process.env.DB_TABLE_QC;
   let query = "";
 
-  console.log(Dot, Ki, Nam);
+  console.log("Phòng ban " + MaPhongBan + ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`);
 
   // Xác định query SQL dựa trên isKhoa
   if (isKhoa == 1) {
@@ -429,26 +427,6 @@ const renderInfo = async (req, res) => {
     if (connection) connection.release();
   }
 };
-
-// const getNameGV = (req, res) => {
-//   let connection = createPoolConnection();
-
-//   // Truy vấn để lấy danh sách giảng viên mời
-//   const query = "SELECT DISTINCT TenNhanVien,MaPhongBan FROM nhanvien;";
-
-//   connection.query(query, (error, results) => {
-//     if (error) {
-//       return res.status(500).json({ error: "Internal server error" });
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).json({ message: "No teachers found" });
-//     }
-
-//     // Lấy đầy đủ tên giảng viên từ cột HoTen và trả về kết quả
-//     return res.status(200).json(results);
-//   });
-// };
 
 const getNameGV = async (req, res) => {
   let connection;
@@ -514,8 +492,9 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
 
     // Truy vấn lấy các trường HoTen và MaPhongBan từ bảng gvmoi
     const queryGVM = `
-      SELECT gvmoi.HoTen, gvmoi.MaPhongBan
-      FROM gvmoi;
+     SELECT gvmoi.HoTen, gvmoi.MaPhongBan
+      FROM gvmoi
+      WHERE gvmoi.TinhTrangGiangDay = 1;
     `;
     const [gvmResults] = await connection.query(queryGVM);
 
