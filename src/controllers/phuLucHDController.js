@@ -442,7 +442,7 @@ worksheet.getColumn(14).width = 15; // Còn lại
           }
         });
 
-        totalSoTiet += item.SoTiet;
+        totalSoTiet += parseFloat(item.SoTiet);
         totalSoTien += soTien;
         totalTruThue += truThue;
         totalThucNhan += thucNhan;
