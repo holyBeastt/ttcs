@@ -15,7 +15,8 @@ const upload = multer({
   storage,
   //limits: { fileSize: 5000000000000000 * 1024 * 1024 }, // Giới hạn dung lượng 500000000000000MB
   //limits: { fileSize: 9000000000 * 1024 * 1024 }, // Giới hạn dung lượng 9 PB
-  limits: { fileSize: Number.MAX_SAFE_INTEGER }, // ~9 petabytes
+  // limits: { fileSize: Number.MAX_SAFE_INTEGER }, // ~9 petabytes
+  limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn dung lượng 9 PB
 });
 
 module.exports = upload;
