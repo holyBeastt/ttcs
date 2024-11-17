@@ -2516,7 +2516,7 @@
   // Bây giờ bọc phần còn lại của mã trong DOMContentLoaded
   document.addEventListener("DOMContentLoaded", function () {
 
-    const phongBanData = <% - JSON.stringify(phongBanList) %>;
+    const phongBanData = <%- JSON.stringify(phongBanList) %>;
     console.log("Dữ liệu phòng ban:", phongBanData);
     localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
