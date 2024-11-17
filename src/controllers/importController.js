@@ -1171,7 +1171,12 @@ const updateDateAll = async (req, res) => {
         WHERE ID = ?
       `;
 
-      const updateValues = [NgayBatDau, NgayKetThuc, ID];
+      const updateValues = [
+        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+        ID,
+      ];
+      //const updateValues = [NgayBatDau, NgayKetThuc, ID];
 
       await connection.query(updateQuery, updateValues);
     }
