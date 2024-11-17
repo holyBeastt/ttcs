@@ -785,7 +785,7 @@
             body: JSON.stringify(requestData),
           });
           if (!teachingResponse.ok) {
-            console.log('Không tìm thấy dữ liệu cho thong-tin-giang-day!');
+            alert('Không tìm thấy dữ liệu');
             return; // Dừng lại nếu có lỗi
           }
           const rs = await teachingResponse.json();
