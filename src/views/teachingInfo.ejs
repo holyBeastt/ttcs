@@ -759,9 +759,9 @@
           console.log('Gọi API lấy dữ liệu mới...');
 
           const [gvmResponse, khoaResponse, teachingResponse] = await Promise.all([
-            fetch('/index/name-gvm'),
-            fetch('/index/name-gvm-khoa'),
-            fetch('/teaching-info', {
+            fetch('/gv-cohuu'),
+            fetch('/gv-moi'),
+            fetch('/thong-tin-giang-day', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -788,37 +788,10 @@
 
           localStorage.setItem("check", check);
 
-          // Kiểm tra dữ liệu trong localStorage
-          // let cachedData = localStorage.getItem('tableData');
 
-          // // Nếu có dữ liệu trong localStorage
-          // if (cachedData) {
-          //   cachedData = JSON.parse(cachedData);
-          //   // So sánh dữ liệu mới với dữ liệu cũ
-          //   const isDataEqual = (JSON.stringify(cachedData) === JSON.stringify(globalData));
 
-          //   if (isDataEqual) {
-          //     console.log('Dữ liệu không thay đổi, sử dụng dữ liệu từ localStorage');
-          //     console.log(cachedData)
-          //     // Render bảng từ dữ liệu đã cache
-          //     renderTable(cachedData);
-          //     calculateTotals();
-          //     window.location.reload();
-          //     return;
-          //   }
-          // }
-
-          // Nếu có sự thay đổi, cập nhật localStorage
           localStorage.setItem('nameGv', JSON.stringify(nameGvNew));
           localStorage.setItem('nameGvm', JSON.stringify(nameGvmNew));
-
-          // thêm id vào bảng local
-          // globalData = globalData.map((item, index) => ({
-          //   ...item,
-          //   id: index // hoặc một ID khác tùy theo logic bạn muốn
-          // }));
-          // đẩy vào bảng local
-          // localStorage.setItem('tableData', JSON.stringify(globalData));
 
           console.log('Bảng : ', globalData);
 

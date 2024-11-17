@@ -1,57 +1,54 @@
 const express = require("express");
 const router = express.Router();
 
-const obj = require("../controllers/teachingInfoController"); // Import hàm xử lý file từ controller
-const obj2 = require("../controllers/getTableDBController"); // Import hàm xử lý file từ controller
-const obj3 = require("../controllers/importController"); // Import hàm xử lý file từ controller
+const obj = require("../controllers/teachingInfoController"); // 
+const obj2 = require("../controllers/getTableDBController"); //
+const obj3 = require("../controllers/importController"); // 
 
-// render site info
+// render site info và info2
 router.get("/info", obj.getTeachingInfo1);
 router.get("/info2", obj.getTeachingInfo2);
-// router.get('/info', (req, res) => {
-//   res.render('teachingInfo');
-// });
 
-// router.get('/info2', (req, res) => {
-//   res.render('teachingInfo2');
-// });
+// thông tin đầy đủ của bảng quy chuẩn
+router.post("/thong-tin-giang-day", (req, res) => obj.renderInfo(req, res));
 
-// Đổi từ GET sang POST
-router.post("/teaching-info", (req, res) => obj.renderInfo(req, res));
-
+// thông tin bảng quy chuẩn dùng cho site quy chuẩn chính thức
 router.post("/quy-chuan-chinh-thuc", (req, res) => obj2.getTableQC(req, res));
 
-// gọi hàm lấy dữ liệu tên giảng giảng viên mời
-router.get("/index/name-gvm", (req, res) => obj.getNameGV(req, res));
+// thông tin giảng viên cơ hữu trong trường
+router.get("/gv-cohuu", (req, res) => obj.getNameGV(req, res));
 
-router.get("/index/name-gvm-khoa", (req, res) =>
-  obj.getKhoaAndNameGvmOfKhoa(req, res)
-);
+// thông tin giảng viên mời trong trường
+router.get("/gv-moi", (req, res) => obj.getKhoaAndNameGvmOfKhoa(req, res));
 
+// cập nhật khi duyệt
 router.post("/check-teaching", (req, res) => obj3.updateQC(req, res));
 
+// route dùng cho phần điền tên giảng viên và bộ môn
 router.post("/update-name", (req, res) => obj3.capNhatTen_BoMon(req, res));
 
-
-// Lưu chèn ngày all
+// chèn tất cả ngày bắt đầu, ngày kết thúc
 router.post("/updateDateAll", (req, res) => obj3.updateDateAll(req, res));
 
+// check duyệt của cac phòng ban
 router.post("/phong-ban-duyet", (req, res) => obj3.phongBanDuyet(req, res));
 
+// cập nhật tất cả dữ liệu 
 router.get("/update-all-info", (req, res) =>
   obj3.updateAllTeachingInfo(req, res)
 );
 
-// router.post("/bo-mon", (req, res) => obj.getBoMon(req, res));
+// lấy tất cả dữ liệu bộ môn
 router.post("/bo-mon", (req, res) => {
   obj.getBoMon(req, res);
 });
 
+// lấy dữ liệu bộ môn của giảng viên mời
 router.get("/bo-mon-theo-gv", (req, res) => {
   obj2.getBoMon2(req, res);
 });
 
-//Lưu note
+// phần note
 router.post("/savenote", obj.SaveNote);
 router.post("/donenote", obj.DoneNote);
 
