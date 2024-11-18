@@ -249,7 +249,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -391,7 +391,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <tbody style="display: none;" class="teacher-group" id="data-table-body"></tbody>
+  <!-- <tbody style="display: none;" class="teacher-group" id="data-table-body"></tbody> -->
 
   <script>
     function filterTable() {
@@ -543,9 +543,6 @@
 
       // Chọn tất cả các hàng chứa dữ liệu
       const rows = document.querySelectorAll('tbody.teacher-group tr[data-department]');
-
-      debugger
-
       rows.forEach(row => {
         // Kiểm tra xem hàng có hiển thị hay không
         const isVisible = row.style.display != 'none';
@@ -569,43 +566,58 @@
 
     // Tìm kiếm giảng viên mời theo tên
     function searchClass() {
-      let input = document.getElementById("searchInput").value.toLowerCase();
-      let table = document.getElementById("classTable");
-      let rows = table.getElementsByTagName("tr");
+      document.getElementById("searchInput").addEventListener("input", function () {
+        const input = this.value.toLowerCase(); // Lấy giá trị từ ô tìm kiếm
+        const rows = document.querySelectorAll("#data-table-body tr"); // Chọn tất cả các hàng trong bảng
 
-      let currentGroup = null;
-      let groupVisible = false;
+        rows.forEach(row => {
+          const secondColumn = row.querySelectorAll("td")[1]; // Lấy cột thứ 2 (nếu tồn tại)
 
-      for (let i = 1; i < rows.length; i++) {
-        // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-        let row = rows[i];
-
-        if (row.classList.contains("teacher-group")) {
-          // Đây là hàng đầu tiên của một nhóm giảng viên mới
-          if (currentGroup) {
-            // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
-            setGroupVisibility(currentGroup, groupVisible);
+          if (secondColumn) {
+            const secondColumnText = secondColumn.textContent.toLowerCase(); // Lấy nội dung của cột thứ 2
+            if (secondColumnText.includes(input)) {
+              row.style.display = ""; // Hiển thị hàng nếu phù hợp
+            } else {
+              row.style.display = "none"; // Ẩn hàng nếu không phù hợp
+            }
           }
+        });
+      });
+      // debugger
 
-          currentGroup = [];
-          groupVisible = false;
-        }
+      // let currentGroup = null;
+      // let groupVisible = false;
 
-        currentGroup.push(row);
+      // for (let i = 1; i < rows.length; i++) {
+      //   // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+      //   let row = rows[i];
 
-        let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
-        if (teacherNameCell) {
-          let teacherName = teacherNameCell.textContent.toLowerCase();
-          if (teacherName.includes(input)) {
-            groupVisible = true;
-          }
-        }
-      }
+      //   if (row.classList.contains("teacher-group")) {
+      //     // Đây là hàng đầu tiên của một nhóm giảng viên mới
+      //     if (currentGroup) {
+      //       // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+      //       setGroupVisibility(currentGroup, groupVisible);
+      //     }
 
-      // Xử lý nhóm cuối cùng
-      if (currentGroup) {
-        setGroupVisibility(currentGroup, groupVisible);
-      }
+      //     currentGroup = [];
+      //     groupVisible = false;
+      //   }
+
+      //   currentGroup.push(row);
+
+      //   let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
+      //   if (teacherNameCell) {
+      //     let teacherName = teacherNameCell.textContent.toLowerCase();
+      //     if (teacherName.includes(input)) {
+      //       groupVisible = true;
+      //     }
+      //   }
+      // }
+
+      // // Xử lý nhóm cuối cùng
+      // if (currentGroup) {
+      //   setGroupVisibility(currentGroup, groupVisible);
+      // }
       calculateTotals();
     }
 
@@ -766,7 +778,7 @@
         actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
         actionButton2.style.display = 'none'; // Ẩn actionButton2
 
-        if (Quyen.toLowerCase() == 'gv'){
+        if (Quyen.toLowerCase() == 'gv') {
           actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
         }
       }
