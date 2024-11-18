@@ -398,7 +398,7 @@
                 row.insertCell(10).textContent = item.STK;
                 row.insertCell(11).textContent = item.NganHang;
                 row.insertCell(12).textContent = item.MaSoThue;
-                row.insertCell(13).textContent = item.SoTiet;
+                row.insertCell(13).textContent = parseFloat(item.SoTiet).toFixed(2);
               });
 
               // Hiển thị bảng
