@@ -346,7 +346,7 @@
           style="width: 200px;" />
         <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
           style="width: 200px;" />
-        <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
+        <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)" onkeyup="showSuggestionsKhoa(this)"
           class="form-control m-2 search" style="width: 200px; display: none;" />
         <!-- <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
         class="form-control m-2 search" /> -->
@@ -359,25 +359,29 @@
         function filterTable() {
           const nameFilter = document.getElementById('filterName').value.toLowerCase();
           const classFilter = document.getElementById('filterClass').value.toLowerCase();
+          const departmentInput = document.getElementById("filterKhoa").value.toLowerCase();
           const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
           const tableRows = document.querySelectorAll('#tableBody tr');
 
           tableRows.forEach(row => {
             const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
             const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
+            const departmentCell = row.querySelector("td:nth-child(6)"); // Khoa
             const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
 
             const name = nameCell ? nameCell.textContent.toLowerCase() : '';
             const className = classCell ? classCell.textContent.toLowerCase() : '';
+            const departmentValue = departmentCell ? departmentCell.textContent.toLowerCase() : '';
             const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
 
             // Kiểm tra điều kiện lọc
             const matchesName = name.includes(nameFilter);
             const matchesClass = className.includes(classFilter);
+            const departmentMatch = departmentValue.includes(departmentInput);
             const matchesBoMon = boMon.includes(boMonFilter);
 
             // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-            if (matchesName && matchesClass && matchesBoMon) {
+            if (matchesName && matchesClass && departmentMatch && matchesBoMon) {
               row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
             } else {
               row.style.display = 'none'; // Ẩn hàng nếu không khớp
@@ -390,6 +394,7 @@
         // Gán sự kiện cho các input filter
         document.getElementById('filterName').addEventListener('input', filterTable);
         document.getElementById('filterClass').addEventListener('input', filterTable);
+        document.getElementById("filterKhoa").addEventListener("input", filterTable);
         document.getElementById('filterBoMon').addEventListener('input', filterTable);
       </script>
 
