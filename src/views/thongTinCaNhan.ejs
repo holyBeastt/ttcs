@@ -202,7 +202,7 @@
             <div class="navbar-nav">
               <div class="nav-item dropdown">
                 <a
-                  class="nav-link dropdown-toggle fullname"
+                  class="nav-link dropdown-toggle fullname active"
                   href="/login"
                   id="navbarDropdownUser"
                   data-bs-toggle="dropdown"
@@ -212,7 +212,7 @@
                 </a>
                 <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
+                  <a class="dropdown-item active" id="infome">Thông tin cá nhân</a>
                   <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
                   <a class="dropdown-item" href="/">Đăng xuất</a>
                 </div>
@@ -256,11 +256,12 @@
           </div>
           <div class="row mb-3">
             <div class="col-md-4 input-wrapper">
-              <label for="gioitinh">Giới tính*</label>
-              <select class="form-control" name="GioiTinh" id="gioitinh" >
+              <label for="gioitinh">Giới tính</label>
+              <!-- <select class="form-control" name="GioiTinh" id="gioitinh" >
                   <option value="Nam" <%= user.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
                   <option value="Nữ" <%= user.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
-              </select>
+              </select> -->
+              <input class="form-control text-center" type="text" name="GioiTinh" id="gioitinh" value="<%= user.GioiTinh%>" readonly>
             </div>
             <div class="col-md-4 input-wrapper">
               <label for="DienThoai" class="form-label">Điện Thoại*</label>
@@ -274,18 +275,8 @@
           <div class="row mb-3">
             <div class="col-md-4 input-wrapper">
                 <label for="ChucVu" class="form-label">Chức Vụ*</label>
-                <input type="text" class="form-control" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>" required>
+                <input type="text" class="form-control text-center" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>" required>
             </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="NoiCongTac" class="form-label">Nơi Công Tác*</label>
-                <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" value="<%= user.NoiCongTac %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
-              <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" value="<%= user.DiaChiHienNay %>" >
-            </div>
-          </div>
-          <div class="row mb-3">
             <div class="col-md-4 input-wrapper d-flex justify-content-between">
               <div>
                 <label for="MaPhongBan" class="form-label">Mã Phòng Ban*</label>
@@ -300,16 +291,14 @@
                     <% }); %>
                 </select>
               </div>
-              <!-- <div>
-                <label for="Quyen" class="form-label">Quyền*</label>
-                <select id="Quyen" class="form-control" name="Quyen" style="width: 250px;">
-                  <option value="<%= role.Quyen %>"><%= role.Quyen %></option>
-                </select>
-              </div> -->
+              <div class="">
+                <label for="HSL" class="form-label">Hệ số lương*</label>
+                <input type="text" class="form-control text-center" id="HSL" name="HSL" value="<%= user.HSL %>" required>
+              </div>
             </div>
             <div class="col-md-4 input-wrapper">
-              <label for="HSL" class="form-label">Hệ số lương*</label>
-              <input type="text" class="form-control" id="HSL" name="HSL" value="<%= user.HSL %>" required>
+              <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
+              <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" value="<%= user.DiaChiHienNay %>" >
             </div>
           </div>
           <div class="row mb-3">

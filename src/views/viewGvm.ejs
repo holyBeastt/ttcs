@@ -279,15 +279,7 @@
       <div class="row mb-3">
         <div class="col-md-4">
             <p style="margin-bottom: 8px;">Mã phòng ban:</p>
-            <label>
-                <input class="m-2" type="checkbox" name="maPhongBan" value="CNTT" style="cursor: pointer;" disabled <%= value.MaPhongBan.includes('CNTT') ? 'checked' : '' %> > CNTT
-            </label>
-            <label>
-                <input class="m-2" type="checkbox" name="maPhongBan" value="ATTT" style="cursor: pointer;" disabled <%= value.MaPhongBan.includes('ATTT') ? 'checked' : '' %> > ATTT
-            </label>
-            <label>
-                <input class="m-2" type="checkbox" name="maPhongBan" value="DTVT" style="cursor: pointer;" disabled <%= value.MaPhongBan.includes('DTVT') ? 'checked' : '' %> > DTVT
-            </label>
+            <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
         </div>
         <div class="col-md-4">
             <label for="tinhTrang">Tình trạng giảng dạy:</label>
@@ -303,7 +295,7 @@
         </div>
         <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
         <div class="col-md-4">
-            <button class="button-class bt" type="button" id="return" onclick="goBack()">Quay lại</button>
+            <button class="btn mt-3" type="button" id="return" onclick="goBack()">Quay lại</button>
         </div>
       </div>
     </fieldset>
@@ -359,34 +351,6 @@ hideButton();
         window.history.back();
     }
   </script>
-
-  <!-- <script>
-    // Lấy query string từ URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const message = urlParams.get('message');
-    // Lấy phần tử div để hiển thị thông báo
-    const messageDiv = document.getElementById('message');
-
-    // Hiển thị thông báo dựa trên giá trị của message
-    if (message === 'insertSuccess') {
-      alert("insertSuccess")
-    } else if (message === 'insertFalse') {
-      alert("insertFalse")
-    }
-      // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
-    if (message) {
-    // Sử dụng window.history để xóa query string mà không refresh lại trang
-        //const newUrl = window.location.origin + window.location.pathname;
-        //window.history.replaceState({}, document.title, newUrl);
-    }
-
-    // Quay lại trang cũ
-    // function goBack() {
-    //     window.history.back(); 
-    //   }
-
-  </script> -->
-
   <!-- Phần phân quyền -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {

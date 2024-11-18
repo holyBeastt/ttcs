@@ -248,7 +248,7 @@ const AdminController = {
   getUpdateNV: async (req, res) => {
     let connection = await createPoolConnection();
     try {
-      const id_User = parseInt(req.params.id) + 1;
+      const id_User = parseInt(req.params.id);
 
       // Lấy dữ liệu nhân viên
       const query1 = "SELECT * FROM `nhanvien` WHERE id_User = ?";

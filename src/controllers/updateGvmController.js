@@ -61,10 +61,16 @@ const getViewGvm = async (req, res) => {
     const query = "SELECT * FROM `gvmoi` WHERE id_Gvm = ?";
     const [results] = await connection.query(query, [id_Gvm]);
 
+    const query1 = `SELECT * FROM phongban`
+    const [phongban] = await connection.query(query1);
+
     let user = results && results.length > 0 ? results[0] : {};
     console.log("result = ", user);
     // Render trang viewGvm.ejs với dữ liệu người dùng
-    res.render("viewGvm.ejs", { value: user });
+    res.render("viewGvm.ejs", 
+      { value: user,
+        phongban: phongban
+      });
   } catch (err) {
     console.error(err);
     // Xử lý lỗi, có thể trả về phản hồi lỗi cho client
@@ -73,8 +79,6 @@ const getViewGvm = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
-
-module.exports = getViewGvm;
 
 const upload = multer().single("truocCCCD");
 

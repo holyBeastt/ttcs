@@ -1,11 +1,9 @@
 .navbar-nav .dropdown:hover .dropdown-menu {
     display: block;
-    right: 0;
-    left: auto;
+    /* right: 0;
+    left: auto; */
     margin-top: 0 !important;
-    /* Đảm bảo menu hiển thị ngay bên dưới */
     padding-top: 0 !important;
-    /* Xóa padding trên cùng nếu có */
   }
         .input-wrapper input {
           background-color: #FAF7F0;

@@ -277,13 +277,13 @@
               <td class="d-flex" style="border: none">
                 <button
                   class="action-button edit"
-                  onclick="editNV(this, <%= parseInt(nhanvienLists[i].id_User) - 1 %>)"
+                  onclick="editNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
                 >
                   ✏️
                 </button>
                 <button
                   class="action-button view"
-                  onclick="viewNV(this, <%= parseInt(nhanvienLists[i].id_User) - 1 %>)"
+                  onclick="viewNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
                 >
                   👁️
                 </button>
@@ -299,7 +299,7 @@
       </div>
     </div>
     <!-- Script xử lý checkbox -->
-    <script>
+    <!-- <script>
       document.addEventListener("DOMContentLoaded", function () {
         const selectAllCheckbox = document.getElementById("selectAll");
         const rowCheckboxes = document.querySelectorAll(".row-checkbox");
@@ -318,7 +318,7 @@
           });
         });
       });
-    </script>
+    </script> -->
     <script>
       function editNV(button, index) {
         hre = "/updateNV/" + index;
