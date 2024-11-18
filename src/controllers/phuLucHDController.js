@@ -312,13 +312,13 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
       worksheet.getColumn(3).width = 14; // Tên học phần
-      worksheet.getColumn(4).width = 13; // Tên lớp
+      worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
-      worksheet.getColumn(6).width = 15; // Thời gian thực hiện
-      worksheet.getColumn(7).width = 7; // Học kỳ
-      worksheet.getColumn(8).width = 15; // Địa Chỉ
-      worksheet.getColumn(9).width = 8; // Học vị
-      worksheet.getColumn(10).width = 8; // Hệ số lương
+      worksheet.getColumn(6).width = 16; // Thời gian thực hiện
+      worksheet.getColumn(7).width = 6; // Học kỳ
+      worksheet.getColumn(8).width = 16; // Địa Chỉ
+      worksheet.getColumn(9).width = 6; // Học vị
+      worksheet.getColumn(10).width = 7; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
       worksheet.getColumn(12).width = 15; // Thành tiền
       worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
@@ -447,7 +447,6 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
           }
         });
 
-        // totalSoTiet += item.SoTiet;
         totalSoTiet += parseFloat(item.SoTiet);
         totalSoTien += soTien;
         totalTruThue += truThue;
