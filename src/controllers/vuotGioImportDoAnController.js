@@ -6,7 +6,6 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const pdf = require("pdf-parse");
-const mammoth = require("mammoth");
 
 const parentDir = path.join(__dirname, "..");
 const p = path.join(parentDir, "..");
