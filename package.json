@@ -26,8 +26,10 @@
     "express-session": "^1.18.0",
     "fs": "^0.0.1-security",
     "jquery-ui": "^1.14.0",
+    "mammoth": "^1.8.0",
     "multer": "1.4.3",
     "mysql2": "2.3.3",
+    "pdf-parse": "^1.1.1",
     "pizzip": "^3.1.7",
     "read-excel-file": "^5.8.6",
     "xlsx": "^0.18.5"
