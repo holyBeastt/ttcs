@@ -163,7 +163,8 @@
   <!-- Main content -->
   <div class="container my-5 box">
     <h2>Sửa Nhân Viên</h2>
-    <form id="infome" action="/infome/:id_User" method="POST">
+    <!-- <form id="infome" action="/infome/:id_User" method="POST"> -->
+    <form id="formData">
       <div class="row mb-3">
         <input type="hidden" name="Id_User" value="<%= user.id_User %> ">
         <div class="col-md-4 input-wrapper">
@@ -281,7 +282,7 @@
             value="<%= user.CacMonLienQuan %>">
         </div>
       </div>
-      <button type="submit" class="btn" id="btnUpdateNV">Cập nhật</button>
+      <button type="submit" class="btn" id="submitBtn">Cập nhật</button>
       <button class="btn mx-5" type="button" onclick="window.history.back()">Trở về</button>
       <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin có thể thay đổi.</h6>
     </form>
@@ -561,7 +562,7 @@
       }
     });
   </script>
-  <script>
+  <!-- <script>
     document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
@@ -572,8 +573,60 @@
         alert("Không tìm thấy id_User trong localStorage.");
       }
     });
-  </script>
+  </script> -->
 
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Lắng nghe sự kiện click trên nút có id là submitBtn
+      document.getElementById("submitBtn").addEventListener("click", function (event) {
+        event.preventDefault();  // Ngừng hành vi gửi form mặc định
+
+        const form = document.getElementById("formData");  // Lấy form theo id
+
+        // Kiểm tra xem form có tồn tại không
+        if (form) {
+          // Tạo đối tượng FormData từ form
+          const formData = new FormData(form);
+
+          // Chuyển FormData thành một đối tượng JSON để dễ đọc và xử lý
+          const formObject = {};
+          formData.forEach((value, key) => {
+            formObject[key] = value;
+          });
+
+          // Lấy id_User từ dữ liệu trong form
+          const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
+
+          if (id_User) {
+            // Sử dụng fetch để gửi dữ liệu đến server
+            fetch(`/infome/${id_User}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
+              },
+              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
+            })
+              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
+              .then(data => {
+                console.log("Dữ liệu phản hồi từ server:", data);
+                alert(data.message)
+                // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
+              })
+              .catch(error => {
+                console.error("Có lỗi xảy ra:", error);
+                // Xử lý lỗi nếu có
+              });
+          } else {
+            alert("Không tìm thấy id_User trong form.");
+          }
+        } else {
+          console.log("Không tìm thấy form với id 'infome'.");
+        }
+      });
+    });
+
+
+  </script>
 </body>
 
 </html>

@@ -752,7 +752,7 @@ const AdminController = {
       //   TenDangNhap,
       // ]);
 
-      console.log(`${TenNhanVien} vừa thay đổi thông tin cá nhân`);
+      console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
       // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
       res.status(200).json({
         message: `Cập nhật thông tin thành công`,
