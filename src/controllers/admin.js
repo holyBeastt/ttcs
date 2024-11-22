@@ -267,6 +267,7 @@ const deleteNamHoc = async (req, res) => {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
 };
+
 module.exports = {
   getaccountList,
   getdepartmentList,

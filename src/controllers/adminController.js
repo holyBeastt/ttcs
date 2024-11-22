@@ -20,6 +20,10 @@ const AdminController = {
     res.render("themPhongBan", { title: "Thêm Phòng Ban" });
   },
 
+  showThemKyTuBD: (req, res) => {
+    res.render("themKyTuBD", { title: "Thêm Ký tự bắt đầu" });
+  },
+
   // phần thêm
   themNhanVien: async (req, res) => {
     const {
@@ -761,6 +765,103 @@ const AdminController = {
       console.error("Error executing query: ", error);
     } finally {
       if (connection) connection.release(); // Giải phóng kết nối
+    }
+  },
+  getKyTuBD: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
+      res.render('vuotGioKyTuBD', { 
+        kyTuBD,
+        message: req.query.success ? 'Thêm mới thành công!' : null 
+      });
+    } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).send("Đã xảy ra lỗi");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  postKyTuBD: async (req, res) => {
+    const { LopViDu, vietTat } = req.body;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+
+      const insertQuery = `
+        INSERT INTO hedonghocphi (LopViDu, vietTat) 
+        VALUES (?, ?)
+      `;
+      await connection.execute(insertQuery, [LopViDu, vietTat]);
+      
+      res.redirect('/kytubatdau?success=true');
+    } catch (error) {
+      console.error("Lỗi khi thêm ký tự bắt đầu:", error);
+      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
+      res.render('vuotGioKyTuBD', { 
+        kyTuBD,
+        message: 'Có lỗi xảy ra khi thêm mới!' 
+      });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  deleteKyTuBD: async (req, res) => {
+    const LopViDu = req.params.LopViDu;
+    const connection = await createPoolConnection();
+    try {
+      const query = `DELETE FROM hedonghocphi WHERE LopViDu = ?`;
+      const [results] = await connection.query(query, [LopViDu]);
+    
+      if (results.affectedRows > 0) {
+        res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
+      } else {
+        res.status(404).json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa dữ liệu: ", error);
+      res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" }); // Thông báo lỗi
+    } finally {
+      if (connection) connection.release(); // Trả lại connection cho pool
+    }
+  },
+  updateKyTuBD: async (req, res) => {
+    const oldLopViDu = req.params.LopViDu;
+    const { LopViDu, VietTat } = req.body;
+    let connection;
+    
+    try {
+        connection = await createPoolConnection();
+        const query = `
+            UPDATE hedonghocphi 
+            SET LopViDu = ?, VietTat = ?
+            WHERE LopViDu = ?
+        `;
+        
+        const [result] = await connection.execute(query, [LopViDu, VietTat, oldLopViDu]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy bản ghi để cập nhật"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật thành công"
+        });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi cập nhật"
+        });
+    } finally {
+        if (connection) connection.release();
     }
   },
   // Other methods can be added here as needed...

@@ -1244,8 +1244,8 @@ const updateQC = async (req, res) => {
       }
 
       // Truy vấn kiểm tra nếu bản ghi đã được duyệt đầy đủ
-      const approvalQuery = `SELECT KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet FROM ${tableName} WHERE ID = ?`;
-      const approvalResult = await connection.query(approvalQuery, [ID]);
+      //const approvalQuery = `SELECT KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet FROM ${tableName} WHERE ID = ?`;
+      //const approvalResult = await connection.query(approvalQuery, [ID]);
 
       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
       const updateQuery = `
@@ -1567,45 +1567,54 @@ const phongBanDuyet = async (req, res) => {
       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
 
-    // Xây dựng câu lệnh truy vấn
-    let updateQuery = `
-      UPDATE ${tableName}
-      SET 
-        KhoaDuyet = CASE
-    `;
+    // Giới hạn số lượng bản ghi mỗi batch (để tránh quá tải query)
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < jsonData.length; i += batchSize) {
+      batches.push(jsonData.slice(i, i + batchSize));
+    }
 
-    const updateValues = [];
-    const ids = [];
+    // Xử lý từng batch
+    for (const batch of batches) {
+      let updateQuery = `
+        UPDATE ${tableName}
+        SET 
+          KhoaDuyet = CASE
+      `;
 
-    jsonData.forEach((item) => {
-      const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
-      updateQuery += ` WHEN ID = ? THEN ?`;
-      updateValues.push(ID, KhoaDuyet);
-      ids.push(ID);
-    });
+      const updateValues = [];
+      const ids = [];
 
-    updateQuery += ` END, DaoTaoDuyet = CASE `;
+      batch.forEach((item) => {
+        const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
+        updateQuery += ` WHEN ID = ? THEN ?`;
+        updateValues.push(ID, KhoaDuyet);
+        ids.push(ID);
+      });
 
-    jsonData.forEach((item) => {
-      const { ID, DaoTaoDuyet } = item;
-      updateQuery += ` WHEN ID = ? THEN ?`;
-      updateValues.push(ID, DaoTaoDuyet);
-    });
+      updateQuery += ` END, DaoTaoDuyet = CASE `;
 
-    updateQuery += ` END, TaiChinhDuyet = CASE `;
+      batch.forEach((item) => {
+        const { ID, DaoTaoDuyet } = item;
+        updateQuery += ` WHEN ID = ? THEN ?`;
+        updateValues.push(ID, DaoTaoDuyet);
+      });
 
-    jsonData.forEach((item) => {
-      const { ID, TaiChinhDuyet } = item;
-      updateQuery += ` WHEN ID = ? THEN ?`;
-      updateValues.push(ID, TaiChinhDuyet);
-    });
+      updateQuery += ` END, TaiChinhDuyet = CASE `;
 
-    updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
+      batch.forEach((item) => {
+        const { ID, TaiChinhDuyet } = item;
+        updateQuery += ` WHEN ID = ? THEN ?`;
+        updateValues.push(ID, TaiChinhDuyet);
+      });
 
-    updateValues.push(...ids);
+      updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
 
-    // Thực hiện truy vấn cập nhật hàng loạt
-    await connection.query(updateQuery, updateValues);
+      updateValues.push(...ids);
+
+      // Thực hiện truy vấn cập nhật hàng loạt
+      await connection.query(updateQuery, updateValues);
+    }
 
     res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
