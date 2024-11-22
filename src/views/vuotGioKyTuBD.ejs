@@ -44,6 +44,7 @@
 .form-group{
   margin-bottom: 20px;
 }
+
 </style>
 <body>
 
@@ -96,7 +97,7 @@
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Hi, ADMIN
                 </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="right: 0; left: auto; z-index: 1000;">
                 <a class="dropdown-item" href="#">Thông tin cá nhân</a>
                 <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
                 <a class="dropdown-item" href="/">Đăng xuất</a>
@@ -120,7 +121,7 @@
         </div>
       </div>
       <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-100">Thêm mới</button>
+        <button type="submit" class="btn btn-primary w-100" style="z-index: -1;">Thêm mới</button>
       </div>
     </form>
         <!-- Nút Lọc màu giống nút Hiển thị -->
