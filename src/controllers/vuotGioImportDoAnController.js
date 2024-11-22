@@ -50,10 +50,6 @@ async function extractFileData(req, res) {
       message: "File uploaded and processed successfully",
       content: tableData,
     });
-
-    //res.render("vuotGioImportDoAn.ejs", { tableData: tableData });
-    // Bạn có thể lưu dữ liệu vào cơ sở dữ liệu ở đây
-    //res.json({ message: "Hoàn tất nhập dữ liệu!", data: tableData });
   } catch (err) {
     console.error("Lỗi khi xử lý file:", err);
     res.status(500).json({ message: "Lỗi khi xử lý file!", error: err });
