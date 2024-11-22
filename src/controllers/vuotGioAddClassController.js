@@ -22,38 +22,49 @@ const addClass = async (req, res) => {
                 [`SoTietCTDT${i}`]: SoTietCTDT = 0, 
                 [`HeSoT7CN${i}`]: HeSoT7CN,  // Gán giá trị mặc định là 0
                 [`SoSV${i}`]: SoSV = 0,  // Gán giá trị mặc định là 0
-                [`HeSoLopDong${i}`]: HeSoLopDong = 0, 
                 [`QuyChuan${i}`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
                 [`HocKy${i}`]: HocKy,  // Gán giá trị mặc định là chuỗi rỗng
                 [`NamHoc${i}`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
                 [`HinhThucKTGiuaKy${i}`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
                 [`Lop${i}`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
-                [`SoDe${i}`]: SoDe = ""
             } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
             
-            if ([SoTC, TenHocPhan, SoTietCTDT, SoSV, HeSoLopDong, QuyChuan, Lop].every(value => value === "" || value === 0)) {
+            if ([SoTC, TenHocPhan, SoTietCTDT, SoSV, QuyChuan, Lop].every(value => value === "" || value === 0)) {
                 console.log(`All data is default (empty or 0) for iteration ${i}`);
                 continue; // Bỏ qua lần lặp này nếu tất cả dữ liệu là mặc định
             }
             SoTC = SoTC || 0;
             SoTietCTDT = SoTietCTDT || 0;
-            HeSoLopDong = HeSoLopDong || 0;
-            let heSo = 1;
-            if (HeSoT7CN === "Không") {
-                heSo = 1;
+            let SoDe = 0, HeSoLopDong = 0;
+            if (SoSV >= 41 && SoSV <= 50) {
+                HeSoLopDong = 1.1;
+                SoDe = 3;
+            } else if (SoSV >= 51 && SoSV <= 65) {
+                HeSoLopDong = 1.2;
+                SoDe = 3;
+            } else if (SoSV >= 66 && SoSV <= 80) {
+                HeSoLopDong = 1.3;
+                SoDe = 3;
+            } else if (SoSV >= 81 && SoSV <= 100) {
+                HeSoLopDong = 1.4;
+                SoDe = 4;
+            } else if (SoSV >= 101) {
+                HeSoLopDong = 1.5;
+                SoDe = 4;
             } else {
-                heSo = 1.5
+                HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
+                SoDe = 2;
             }
             let SoTietKT = 0;
             if (HinhThucKTGiuaKy === "none") {
                 SoTietKT = 0;
             }
             if (HinhThucKTGiuaKy === "Coi, chấm TN" || HinhThucKTGiuaKy === "Coi, chấm viết" ) {
-                    let number = heSo*(0.05*SoSV +2);
+                    let number = HeSoT7CN*(0.05*SoSV +2);
                     SoTietKT = parseFloat(number.toFixed(2));
             }
             if (HinhThucKTGiuaKy === "Coi, chấm VĐ" || HinhThucKTGiuaKy === "Coi, chấm TH" ) {
-                    let number = heSo*(0.125*SoSV +2);
+                    let number = HeSoT7CN*(0.125*SoSV +2);
                     SoTietKT = parseFloat(number.toFixed(2));
             }
             console.log(SoTC,
@@ -224,16 +235,23 @@ const updateLopThiGk = async (req, res) => {
                 let row = rows[0];
             if (select) {
 
-                let heSo = (heSoT7CN === "Không") ? 1 : 1.5;
                 let SoTietKT = 0;
+                let SoDe = 0;
+                if (SoSV >= 41 && SoSV <= 80) {
+                    SoDe = 3;
+                } else if (SoSV >= 81) {
+                    SoDe = 4;
+                } else {
+                    SoDe = 2;
+                }
             
                 if (hinhThucKTGiuaKy === "none") {
                     SoTietKT = 0;
                 } else if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
-                    let number = heSo * (0.05 * row.SoSV + 2);
+                    let number = heSoT7CN * (0.05 * row.SoSV + 2);
                     SoTietKT = parseFloat(number.toFixed(2));
                 } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
-                    let number = heSo * (0.125 * row.SoSV + 2);
+                    let number = heSoT7CN * (0.125 * row.SoSV + 2);
                     SoTietKT = parseFloat(number.toFixed(2));
                 }
             
@@ -447,7 +465,6 @@ const deletelopngoaiquychuan = async (req, res) =>{
     }
 };
 const updatelopngoaiquychuan = async (req, res) =>{
-    const {tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay, soDe} = req.body;
     const globalData = req.body; // Lấy dữ liệu từ client gửi đến
     if (!globalData || globalData.length === 0) {
         return res.status(400).json({ message: 'Không có dữ liệu để cập nhật.' });
@@ -461,16 +478,23 @@ const updatelopngoaiquychuan = async (req, res) =>{
         for (let data of globalData) {
             const { tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay, soDe } = data;
         
-            let heSo = (heSoT7CN === "Không") ? 1 : 1.5;
             let SoTietKT = 0;
+            let SoDe = 0;
+            if (soSV >= 41 && soSV <= 80) {
+                SoDe = 3;
+            } else if (soSV >= 81) {
+                SoDe = 4;
+            } else {
+                SoDe = 2;
+            }
             
             if (hinhThucKTGiuaKy === "none") {
                 SoTietKT = 0;
             } else if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
-                let number = heSo * (0.05 * soSV + 2);
+                let number = heSoT7CN * (0.05 * soSV + 2);
                 SoTietKT = parseFloat(number.toFixed(2));
             } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
-                let number = heSo * (0.125 * soSV + 2);
+                let number = heSoT7CN * (0.125 * soSV + 2);
                 SoTietKT = parseFloat(number.toFixed(2));
             }
             

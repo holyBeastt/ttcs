@@ -214,8 +214,8 @@
                         <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
                       </div>
                       <div>
-                        <label for="HeSoLopDong1">Hệ số lớp đông</label>
-                        <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                        <label for="SoSV1">Số SV*</label>
+                        <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
                       </div>
                     </div>
                     <div style="width: max-content;">
@@ -226,9 +226,14 @@
                       <div>
                         <label for="HeSoT7CN1">Hệ số T7CN</label>
                         <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
-                          <option value="Không">Không</option>
-                          <option value="Cuối tuần">Cuối tuần</option>
-                          <option value="Tối">Tối</option>
+                          <option value="1.0">1.0</option>
+                          <option value="1.5">1.5</option>
+                          <option value="2.0">2.0</option>
+                          <option value="2.25">2.25</option>
+                          <option value="3.0">3.0</option>
+                          <option value="4.0">4.0</option>
+                          <option value="4.5">4.5</option>
+                          <option value="6.0">6.0</option>
                         </select>
                       </div>
                     </div>
@@ -238,28 +243,19 @@
                         <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
                       </div>
                       <div>
-                        <label for="SoSV1">Số SV*</label>
-                        <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
-                      </div>
-                    </div>
-                    <div style="width: max-content;">
-                      <div>
                         <label for="HocKy1">Học kì</label>
                         <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
                           <option value="1">Học kỳ 1</option>
                           <option value="2">Học kỳ 2</option>
                         </select>
                       </div>
+                    </div>
+                    <div style="width: max-content;">
+                      
                       <div>
                         <label for="NamHoc1">Năm học</label>
                         <select class="form-control" name="NamHoc1" id="NamHoc1">
                         </select>
-                      </div>
-                    </div>
-                    <div style="width: max-content;">
-                      <div hidden>
-                        <label for="SoDe1">Số đề</label>
-                        <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
                       </div>
                     </div>
                   </div>    
@@ -500,8 +496,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <input type="text" class="form-control" name="SoTC${counter}" style="width: 100px;" id="SoTC${counter}">
                   </div>
                   <div>
-                    <label for="HeSoLopDong${counter}">Hệ số lớp đông</label>
-                    <input type="text" class="form-control" name="HeSoLopDong${counter}" id="HeSoLopDong${counter}" style="width: 100px;">
+                    <label for="SoSV${counter}">Số SV*</label>
+                    <input type="text" class="form-control" name="SoSV${counter}" id="SoSV${counter}" style="width: 100px;" required>
                   </div>
                 </div>
                 <div style="width: max-content;">
@@ -512,9 +508,14 @@ document.addEventListener('DOMContentLoaded', function () {
                   <div>
                     <label for="HeSoT7CN${counter}">Hệ số T7CN</label>
                     <select class="form-control" name="HeSoT7CN${counter}" id="HeSoT7CN${counter}">
-                      <option value="Không">Không</option>
-                      <option value="Cuối tuần">Cuối tuần</option>
-                      <option value="Tối">Tối</option>
+                      <option value="1.0">1.0</option>
+                      <option value="1.5">1.5</option>
+                      <option value="2.0">2.0</option>
+                      <option value="2.25">2.25</option>
+                      <option value="3.0">3.0</option>
+                      <option value="4.0">4.0</option>
+                      <option value="4.5">4.5</option>
+                      <option value="6.0">6.0</option>
                     </select>                    
                   </div>
                 </div>
@@ -524,28 +525,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     <input type="text" class="form-control" name="QuyChuan${counter}" id="QuyChuan${counter}" style="width: 100px;" required>
                   </div>
                   <div>
-                    <label for="SoSV${counter}">Số SV*</label>
-                    <input type="text" class="form-control" name="SoSV${counter}" id="SoSV${counter}" style="width: 100px;" required>
-                  </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
                     <label for="HocKy${counter}">Học kì</label>
                     <select class="form-control" name="HocKy${counter}" id="HocKy${counter}" style="width: 100px;">
                       <option value="1">Học kỳ 1</option>
                       <option value="2">Học kỳ 2</option>
                     </select>
                   </div>
+                </div>
+                <div style="width: max-content;">
                   <div>
                     <label for="NamHoc${counter}">Năm học</label>
                     <select class="form-control" name="NamHoc${counter}" id="NamHoc${counter}">
                     </select>
-                  </div>
-                </div>
-                <div style="width: max-content;">
-                  <div hidden>
-                    <label for="SoDe${counter}">Số đề</label>
-                    <input type="text" class="form-control" name="SoDe${counter}" id="SoDe${counter}" style="width: 100px;" required>
                   </div>
                 </div>
               <button type="button" class="btn btn-danger" onclick="removeField(this)" style="margin-bottom: 0px; width: 100px;">Xóa</button>
@@ -829,9 +820,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
       const options1 = [
-        { value: 'Không', text: 'Không' },
-        { value: 'Cuối tuần', text: 'Cuối tuần' },
-        { value: 'Tối', text: 'Tối' }
+        { value: '1.0', text: '1.0' },
+        { value: '1.5', text: '1.5' },
+        { value: '2.0', text: '2.0' },
+        { value: '2.25', text: '2.25' },
+        { value: '3.0', text: '3.0' },
+        { value: '4.0', text: '4.0' },
+        { value: '4.5', text: '4.5' },
+        { value: '6.0', text: '6.0' }
       ];
 
       // Thêm các tùy chọn vào select
@@ -857,17 +853,7 @@ document.addEventListener('DOMContentLoaded', function () {
       soDeInput.type = 'text';
       soDeInput.name = 'soDe';
       soDeInput.classList.add('border-light');
-
-      // Gán giá trị dựa trên số sinh viên
-      if (row.SoSV < 40) {
-        soDeInput.value = 2; // Dưới 40 sinh viên: 2 đề
-      } else if (row.SoSV <= 80) {
-        soDeInput.value = 3; // Từ 41 đến 80 sinh viên: 3 đề
-      } else {
-        soDeInput.value = 4; // Trên 80 sinh viên: 4 đề
-      }
-
-      soDeInput.placeholder = ''; // Giữ nguyên placeholder nếu cần
+      soDeInput.value = row.SoDe;
       soDeInput.id = `soDe_${index}`; // Gắn id để tiện truy cập sau
       soDeTd.appendChild(soDeInput);
       tableRow.appendChild(soDeTd);

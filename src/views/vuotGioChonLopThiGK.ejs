@@ -738,9 +738,14 @@
 
       // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
       const options1 = [
-        { value: 'Không', text: 'Không' },
-        { value: 'Cuối tuần', text: 'Cuối tuần' },
-        { value: 'Tối', text: 'Tối' }
+        { value: '1.0', text: '1.0' },
+        { value: '1.5', text: '1.5' },
+        { value: '2.0', text: '2.0' },
+        { value: '2.25', text: '2.25' },
+        { value: '3.0', text: '3.0' },
+        { value: '4.0', text: '4.0' },
+        { value: '4.5', text: '4.5' },
+        { value: '6.0', text: '6.0' }
       ];
 
       // Thêm các tùy chọn vào select
@@ -748,7 +753,7 @@
         const option = document.createElement('option');
         option.value = optionData.value;
         option.textContent = optionData.text;
-        if (row.heSoT7CN === optionData.value) {
+        if (row.HeSoT7CN == optionData.value) {
           option.selected = true;
         }
         heSoT7CNSelect.appendChild(option);
