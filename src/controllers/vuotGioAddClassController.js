@@ -428,7 +428,84 @@ const updateDuyet = async (req, res) =>{
         if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
 };
+const deletelopngoaiquychuan = async (req, res) =>{
+    const {MaGiangDay} = req.body;
+    let connection
+    try {
+        connection = await createPoolConnection();
+        const query =  `DELETE FROM lopngoaiquychuan WHERE MaGiangDay = ?`;
+        await connection.query(query, [MaGiangDay]);
+        res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
+        res.json({
+            success: true,
+        });
+    } catch (error) {
+        console.error("Lỗi: ", error);
+        res.status(500).send("Đã có lỗi xảy ra");
+    }finally{
+        if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+    }
+};
+const updatelopngoaiquychuan = async (req, res) =>{
+    const {tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay, soDe} = req.body;
+    const globalData = req.body; // Lấy dữ liệu từ client gửi đến
+    if (!globalData || globalData.length === 0) {
+        return res.status(400).json({ message: 'Không có dữ liệu để cập nhật.' });
+    }
 
+    // Tạo kết nối tới database MySQL
+    const connection = await createPoolConnection();
+
+    try {
+        // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
+        for (let data of globalData) {
+            const { tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay, soDe } = data;
+        
+            let heSo = (heSoT7CN === "Không") ? 1 : 1.5;
+            let SoTietKT = 0;
+            
+            if (hinhThucKTGiuaKy === "none") {
+                SoTietKT = 0;
+            } else if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
+                let number = heSo * (0.05 * soSV + 2);
+                SoTietKT = parseFloat(number.toFixed(2));
+            } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
+                let number = heSo * (0.125 * soSV + 2);
+                SoTietKT = parseFloat(number.toFixed(2));
+            }
+            
+            // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
+            let valuesToInsert = [
+                tenHocPhan, 
+                heSoT7CN, 
+                soSV, 
+                hinhThucKTGiuaKy, 
+                SoTietKT, 
+                maLop, 
+                soDe,
+                soTC,
+                MaGiangDay
+            ];
+            
+            // Câu lệnh INSERT vào bảng giuaky
+            const query2 = `
+                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
+                WHERE MaGiangDay = ? 
+            `;
+            
+            // Thực hiện câu lệnh INSERT
+            await connection.query(query2, valuesToInsert);
+        }        
+
+        // Gửi phản hồi thành công
+        res.status(200).json({ message: "Cập nhật thành công" }); // Phản hồi thành công
+    } catch (error) {
+        console.error('Lỗi khi cập nhật dữ liệu:', error);
+        res.status(500).json({ message: 'Có lỗi xảy ra khi cập nhật dữ liệu.' });
+    } finally {
+        if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+    }
+};
 module.exports = {
     addClass,
     getLopGiuaKi,
@@ -440,4 +517,6 @@ module.exports = {
     deleteLopGK,
     getLopNgoaiQuyChuan,
     updateDuyet,
+    deletelopngoaiquychuan,
+    updatelopngoaiquychuan,
 };

@@ -8,9 +8,18 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/forminput.css">
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+  <style>
+    .tab-content {
+    display: none;
+    }
 
+    .tab-content.active-tab {
+        display: block;
+    }
+  </style>
 </head>
 <body>
    
@@ -158,107 +167,207 @@
         </div>
       </nav>
       <div>
-        <div class="tab-buttons">
-          <button class="tab-button active" data-tab="tab1">Tab 1</button>
-          <button class="tab-button" data-tab="tab2">Tab 2</button>
-        </div>
-        <div class="m-3 tab-content active-tab" id="tab1">
-          <h1 class="d-flex justify-content-center">Thêm các lớp giảng dạy</h1>
-          <form id="addClassForm" class="form" method="POST">
-            <fieldset>
-              <div id="add">
-                <h6>Nhập thông tin lớp:</h6>
-                <div class="row mb-3 d-flex">
-                  <input type="text" id="GiangVien" name="GiangVien" hidden>
-                  <input type="text" id="index" name="index" value="1" hidden>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="TenHocPhan1">Tên học phần*</label>
-                      <input class="form-control" type="text" name="TenHocPhan1" id="TenHocPhan1" required>
+        
+        <div class="m-3">
+          <h1 class="d-flex justify-content-center">Lớp giảng dạy ngoài quy chuẩn</h1>
+          <div class="tab-buttons">
+            <button class="btn tab-button active" data-tab="tab1">Thêm lớp</button>
+            <button class="btn tab-button" data-tab="tab2">Lớp của tôi</button>
+          </div>
+          <div class="tab-content active-tab" id="tab1">
+            <form id="addClassForm" class="form" method="POST">
+              <fieldset>
+                <div id="add">
+                  <h6>Nhập thông tin lớp:</h6>
+                  <div class="row mb-3 d-flex">
+                    <input type="text" id="GiangVien" name="GiangVien" hidden>
+                    <input type="text" id="index" name="index" value="1" hidden>
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="TenHocPhan1">Tên học phần*</label>
+                        <input class="form-control" type="text" name="TenHocPhan1" id="TenHocPhan1" required>
+                      </div>
+                      <div>
+                        <label for="HinhThucKTGiuaKy1">Hình thức kiểm tra giữa kì:</label>
+                        <select class="form-control" name="HinhThucKTGiuaKy1" id="HinhThucKTGiuaKy1">
+                          <option value="none">None</option>
+                          <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
+                          <option value="Coi, chấm viết">Coi, chấm tự luận</option>
+                          <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
+                          <option value="Coi, chấm TH">Coi, chấm thực hành</option>
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label for="HinhThucKTGiuaKy1">Hình thức kiểm tra giữa kì:</label>
-                      <select class="form-control" name="HinhThucKTGiuaKy1" id="HinhThucKTGiuaKy1">
-                        <option value="none">None</option>
-                        <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
-                        <option value="Coi, chấm viết">Coi, chấm tự luận</option>
-                        <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
-                        <option value="Coi, chấm TH">Coi, chấm thực hành</option>
-                      </select>
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="Lop1">Mã lớp*</label>
+                        <input type="text" class="form-control" name="Lop1" id="Lop1" required>
+                      </div>
+                      <div>
+                        <label for="LoaiHinhDaoTao1">Loại hình đào tạo*</label>
+                        <input class="form-control" type="text" name="LoaiHinhDaoTao1" id="LoaiHinhDaoTao1" required>
+                      </div>
                     </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="Lop1">Mã lớp*</label>
-                      <input type="text" class="form-control" name="Lop1" id="Lop1" required>
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="SoTC1">Số tín chỉ</label>
+                        <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
+                      </div>
+                      <div>
+                        <label for="HeSoLopDong1">Hệ số lớp đông</label>
+                        <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                      </div>
                     </div>
-                    <div>
-                      <label for="LoaiHinhDaoTao1">Loại hình đào tạo*</label>
-                      <input class="form-control" type="text" name="LoaiHinhDaoTao1" id="LoaiHinhDaoTao1" required>
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="SoTietCTDT1">Số tiết TKB</label>
+                        <input type="text" class="form-control" name="SoTietCTDT1" id="SoTietCTDT1" style="width: 100px;">
+                      </div>
+                      <div>
+                        <label for="HeSoT7CN1">Hệ số T7CN</label>
+                        <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
+                          <option value="Không">Không</option>
+                          <option value="Cuối tuần">Cuối tuần</option>
+                          <option value="Tối">Tối</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="SoTC1">Số tín chỉ</label>
-                      <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="QuyChuan1">Số tiết QC*</label>
+                        <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
+                      </div>
+                      <div>
+                        <label for="SoSV1">Số SV*</label>
+                        <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
+                      </div>
                     </div>
-                    <div>
-                      <label for="HeSoLopDong1">Hệ số lớp đông</label>
-                      <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                    <div style="width: max-content;">
+                      <div>
+                        <label for="HocKy1">Học kì</label>
+                        <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
+                          <option value="1">Học kỳ 1</option>
+                          <option value="2">Học kỳ 2</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="NamHoc1">Năm học</label>
+                        <select class="form-control" name="NamHoc1" id="NamHoc1">
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="SoTietCTDT1">Số tiết TKB</label>
-                      <input type="text" class="form-control" name="SoTietCTDT1" id="SoTietCTDT1" style="width: 100px;">
+                    <div style="width: max-content;">
+                      <div hidden>
+                        <label for="SoDe1">Số đề</label>
+                        <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
+                      </div>
                     </div>
-                    <div>
-                      <label for="HeSoT7CN1">Hệ số T7CN</label>
-                      <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
-                        <option value="Không">Không</option>
-                        <option value="Cuối tuần">Cuối tuần</option>
-                        <option value="Tối">Tối</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="QuyChuan1">Số tiết QC*</label>
-                      <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
-                    </div>
-                    <div>
-                      <label for="SoSV1">Số SV*</label>
-                      <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
-                    </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="HocKy1">Học kì</label>
-                      <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
-                        <option value="1">Học kỳ 1</option>
-                        <option value="2">Học kỳ 2</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label for="NamHoc1">Năm học</label>
-                      <select class="form-control" name="NamHoc1" id="NamHoc1">
-                      </select>
-                    </div>
-                  </div>
-                  <div style="width: max-content;">
-                    <div>
-                      <label for="SoDe1">Số đề</label>
-                      <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
-                    </div>
-                  </div>
-                </div>    
-              </div>        
-              <div>
-                <button class="btn mx-5" id="submit">Thêm</button>
-                <button class="btn mx-5" type="button" onclick="addInputFields()">Thêm ô nhập lớp</button>
+                  </div>    
+                </div>        
+                <div>
+                  <button class="btn mx-5" id="submit">Thêm</button>
+                  <button class="btn mx-5" type="button" onclick="addInputFields()">Thêm ô nhập lớp</button>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+          <div class="tab-content" id="tab2">
+            <div class="">
+              <div class="d-flex">
+                <div class="cbb d-flex" style="margin-top: 20px;">
+        
+                  <!-- Combo box Kỳ -->
+                  <select class="selectop mx-1" id="combobox-ki">
+                    <option value="">Kỳ</option>
+                  </select>
+        
+                  <!-- Combo box Năm -->
+                  <select class="selectop mx-1" id="NamHoc">
+                    <option value="">Năm học</option>
+                  </select>
+        
+                  <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
+                  <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
+                </div>
               </div>
-            </fieldset>
-          </form>
+        
+              <!-- Phần tìm kiếm xuống dưới -->
+              <div class="d-flex my-3" style="height: 70px;">
+                <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
+                  style="width: 200px;" />
+                <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
+                  style="width: 200px;" />
+              </div>
+              <script>
+                function filterTable() {
+                  const nameFilter = document.getElementById('filterName').value.toLowerCase();
+                  const classFilter = document.getElementById('filterClass').value.toLowerCase();
+                  const tableRows = document.querySelectorAll('#tableBody tr');
+        
+                  tableRows.forEach(row => {
+                    const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
+                    const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
+        
+                    const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+                    const className = classCell ? classCell.textContent.toLowerCase() : '';
+        
+                    // Kiểm tra điều kiện lọc
+                    const matchesName = name.includes(nameFilter);
+                    const matchesClass = className.includes(classFilter);
+        
+                    // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+                    if (matchesName && matchesClass) {
+                      row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
+                    } else {
+                      row.style.display = 'none'; // Ẩn hàng nếu không khớp
+                    }
+                  });
+                }
+        
+                // Gán sự kiện cho các input filter
+                document.getElementById('filterName').addEventListener('input', filterTable);
+                document.getElementById('filterClass').addEventListener('input', filterTable);
+              </script>
+        
+              <div id="renderInfo">
+                <table class=" text-center" style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th style="width: 200px;">Học phần</th>
+                      <th style="width: 50px;">Số TC</th>
+                      <th style="width: 200px;">GV giảng dạy</th>
+                      <th style="width: 50px;">Mã lớp</th>
+                      <th style="width: 100px;">Số SV</th>
+                      <th style="width: 50px;">Hình thức thi giữa kỳ</th>
+                      <th style="width: 100px;">Hệ số T7CN</th>
+                      <th style="width: 50px;">Số đề</th>
+                      <th style="width: 50px;">Ghi chú</th>
+                      <th style="width: 80px; " id="select">
+                        <label class="form-check-label" for="checkAllSelect" style="margin-left: 0px; margin-right: 0px;">Xoá lớp</label>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody">
+                    <!-- Dữ liệu sẽ được chèn vào đây -->
+                  </tbody>
+                </table>
+              </div>
+              <!-- Label tổng số tiết tách riêng với bảng -->
+            </div>
+          </div>
+        </div>
+        <!-- Modal form -->
+        <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
+        <div id="noteForm" style="display: none;">
+          <h3>Ghi chú</h3>
+          <label for="noteInput">Nội dung:</label>
+          <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
+          <br />
+          <div class="d-flex text-nowrap" style="text-align: right;">
+            <button onclick="saveNote()">Lưu</button>
+            <button onclick="doneNote()">Hoàn Thành</button>
+            <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+          </div>
         </div>
       </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -299,6 +408,25 @@
         actionButton3.style.display = 'none';
       }
       });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // Xóa trạng thái active khỏi tất cả các tab
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active-tab'));
+
+            // Kích hoạt tab được chọn
+            const tabId = this.dataset.tab;
+            document.getElementById(tabId).classList.add('active-tab');  // Hiển thị nội dung tab
+            this.classList.add('active');  // Thêm lớp active vào nút được chọn
+        });
+    });
+});
 </script>
 <script>
     const Home = document.getElementById("Home");
@@ -415,7 +543,7 @@
                   </div>
                 </div>
                 <div style="width: max-content;">
-                  <div>
+                  <div hidden>
                     <label for="SoDe${counter}">Số đề</label>
                     <input type="text" class="form-control" name="SoDe${counter}" id="SoDe${counter}" style="width: 100px;" required>
                   </div>
@@ -496,6 +624,546 @@
         alert("Không tìm thấy id_User trong localStorage.");
     }
   });
+</script>
+<script>
+  $(document).ready(function () {
+    $('#NamHoc option[value=""]').remove();
+    $('#combobox-ki option[value=""]').remove();
+    $('#combobox-dot option[value=""]').remove();
+
+    $.ajax({
+      url: '/getNamHoc',
+      method: 'GET',
+      success: function (response) {
+        if (response.success) {
+
+          response.NamHoc.forEach(function (item) {
+            console.log(item.NamHoc);
+            $('#NamHoc').append(
+              `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+            );
+          });
+
+          response.Ki.forEach(function (item) {
+            console.log(item.Ki);
+            $('#combobox-ki').append(
+              `<option value="${item.value}">${item.Ki}</option>`
+            );
+          });
+          response.Dot.forEach(function (item) {
+            console.log(item.Dot);
+            $('#combobox-dot').append(
+              `<option value="${item.value}">${item.Dot}</option>`
+            );
+          });
+        } else {
+          console.error("Không lấy được dữ liệu năm học:", response.message);
+        }
+      },
+      error: function (error) {
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      }
+    });
+  });
+</script>
+</script>
+<script>
+  document.getElementById('infoGvm').addEventListener('click', loadLopMoiData);
+
+  async function loadLopMoiData() {
+    const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    const Ki = document.getElementById('combobox-ki').value;
+    const Nam = document.getElementById('NamHoc').value;
+    let MoiGiang = 0;
+    if (!MaPhongBan) {
+      alert("Mã phòng ban không tồn tại!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/getLopNgoaiQuyChuan/${MaPhongBan}/${Ki}/${Nam}`, {
+        method: 'GET', // Gửi yêu cầu GET
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json(); // Lấy dữ liệu từ server
+      console.log(data);
+      if (data.success) {
+        if (data.maBoMon && data.maBoMon.length > 0) {
+          console.log('Dữ liệu bộ môn:', data);
+          renderTable(data);
+        } else {
+          alert("Dữ liệu trống!");
+        }
+      } else {
+        alert("Không tìm thấy dữ liệu!");
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+    }
+  }
+
+</script>
+<script>
+  function renderTable(data) {
+    const role = localStorage.getItem("userRole");
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+    const isKhoa = localStorage.getItem("isKhoa");
+    const TenNhanVien = localStorage.getItem("TenNhanVien");
+    console.log( TenNhanVien);
+    let tableRowData = [];
+
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = ''; // Xóa nội dung cũ
+    //let index = -1;
+    let filteredData = data.maBoMon;
+    
+    filteredData.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      // Lớp học phần
+      const tenHocPhanTd = document.createElement('td');
+      const tenHocPhanInput = document.createElement('input');
+      tenHocPhanInput.type = 'text'; // Loại input là text
+      tenHocPhanInput.value = row.TenHocPhan; // Gán giá trị ban đầu
+      tenHocPhanInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      tenHocPhanInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+
+      // Gắn input vào ô td
+      tenHocPhanTd.appendChild(tenHocPhanInput);
+      tenHocPhanInput.id = `tenHocPhanInput_${index}`;
+      tableRow.appendChild(tenHocPhanTd);
+      
+
+      // Số tín chỉ
+      const soTCTd = document.createElement('td');
+      const soTCInput = document.createElement('input');
+      soTCInput.type = 'text'; // Loại input là text
+      soTCInput.value = row.SoTC; // Gán giá trị ban đầu
+      soTCInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      soTCInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+      // Gắn input vào ô td
+      soTCTd.appendChild(soTCInput);
+      soTCInput.id = `soTCInput_${index}`;
+      tableRow.appendChild(soTCTd);
+
+      // Giảng viên giảng dạy
+      const giangVienTd = document.createElement('td');
+      giangVienTd.textContent = row.GiangVien;
+      tableRow.appendChild(giangVienTd);
+
+      // Mã lớp
+      const maLopTd = document.createElement('td');
+      const maLopInput = document.createElement('input');
+      maLopInput.type = 'text'; // Loại input là text
+      maLopInput.value = row.Lop; // Gán giá trị ban đầu
+      maLopInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      maLopInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+      // Gắn input vào ô td
+      maLopTd.appendChild(maLopInput);
+      maLopInput.id = `maLopInput_${index}`;
+      tableRow.appendChild(maLopTd);
+
+      // Số sinh viên
+      const soSVTd = document.createElement('td');
+      const soSVInput = document.createElement('input');
+      soSVInput.type = 'text'; // Loại input là text
+      soSVInput.value = row.SoSV; // Gán giá trị ban đầu
+      soSVInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      soSVInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+      // Gắn input vào ô td
+      soSVTd.appendChild(soSVInput);
+      soSVInput.id = `soSVInput_${index}`;
+      tableRow.appendChild(soSVTd);
+
+
+      //Thẻ select hình thức thi giữa kỳ
+      let hinhThucKTGiuaKyTd;
+      let hinhThucKTGiuaKySelect;
+      hinhThucKTGiuaKyTd = document.createElement('td');
+      hinhThucKTGiuaKySelect = document.createElement('select');
+      hinhThucKTGiuaKySelect.name = 'hinhThucKTGiuaKy';
+
+      // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+      const options = [
+        { value: 'none', text: 'None' },
+        { value: 'Coi, chấm TN', text: 'Coi, chấm trắc nghiệm trên giấy' },
+        { value: 'Coi, chấm viết', text: 'Coi, chấm tự luận' },
+        { value: 'Coi, chấm VĐ', text: 'Coi, chấm vấn đáp' },
+        { value: 'Coi, chấm TH', text: 'Coi, chấm thực hành' }
+      ];
+
+      // Thêm các tùy chọn vào select
+      options.forEach(optionData => {
+        const option = document.createElement('option');
+        option.value = optionData.value;
+        option.textContent = optionData.text;
+        if (row.HinhThucKTGiuaKy === optionData.value) {
+          option.selected = true;
+        }
+        hinhThucKTGiuaKySelect.appendChild(option);
+      });
+
+      hinhThucKTGiuaKyTd.appendChild(hinhThucKTGiuaKySelect);
+      // Thêm id để lấy dữ liệu 
+      hinhThucKTGiuaKySelect.id = `hinhThucKTGiuaKy_${index}`;
+      tableRow.appendChild(hinhThucKTGiuaKyTd);
+
+      // thẻ select hệ số t7CN
+      let heSoT7CNTd;
+      let heSoT7CNSelect;
+      heSoT7CNTd = document.createElement('td');
+      heSoT7CNSelect = document.createElement('select');
+      heSoT7CNSelect.name = 'heSoT7CN';
+
+      // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+      const options1 = [
+        { value: 'Không', text: 'Không' },
+        { value: 'Cuối tuần', text: 'Cuối tuần' },
+        { value: 'Tối', text: 'Tối' }
+      ];
+
+      // Thêm các tùy chọn vào select
+      options1.forEach(optionData => {
+        const option = document.createElement('option');
+        option.value = optionData.value;
+        option.textContent = optionData.text;
+        if (row.HeSoT7CN === optionData.value) {
+          option.selected = true;
+        }
+        heSoT7CNSelect.appendChild(option);
+      });
+
+      heSoT7CNTd.appendChild(heSoT7CNSelect);
+      // Thêm id để lấy dữ liệu 
+      heSoT7CNSelect.id = `heSoT7CN_${index}`;
+      tableRow.appendChild(heSoT7CNTd);
+
+      let soDeTd;
+      let soDeInput;
+      soDeTd = document.createElement('td');
+      soDeInput = document.createElement('input');
+      soDeInput.type = 'text';
+      soDeInput.name = 'soDe';
+      soDeInput.classList.add('border-light');
+
+      // Gán giá trị dựa trên số sinh viên
+      if (row.SoSV < 40) {
+        soDeInput.value = 2; // Dưới 40 sinh viên: 2 đề
+      } else if (row.SoSV <= 80) {
+        soDeInput.value = 3; // Từ 41 đến 80 sinh viên: 3 đề
+      } else {
+        soDeInput.value = 4; // Trên 80 sinh viên: 4 đề
+      }
+
+      soDeInput.placeholder = ''; // Giữ nguyên placeholder nếu cần
+      soDeInput.id = `soDe_${index}`; // Gắn id để tiện truy cập sau
+      soDeTd.appendChild(soDeInput);
+      tableRow.appendChild(soDeTd);
+
+
+      // Ghi chú
+      const ghiChuTd = document.createElement("td");
+      const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
+      const hoanThanh = row.HoanThanh;
+      if (role === 'GV' || role === 'Thường') {
+        ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
+        ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
+        ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
+      } else {
+
+        if (ghiChuValue) {
+          if (hoanThanh) {
+            ghiChuTd.innerHTML = `📜 <span class="bi bi-check2-circle" style="color: green;"></span>`; // Hiển thị biểu tượng ghi chú và chấm đỏ
+          } else {
+            ghiChuTd.innerHTML = `📜 <span class="bi bi-circle" style="color: red;"></span>`; // Hiển thị biểu tượng ghi chú và chấm đỏ
+          }
+
+        } else {
+          ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu không có ghi chú
+        }
+        ghiChuTd.style.cursor = "pointer"; // Thay đổi con trỏ chuột khi di chuột qua biểu tượng
+        ghiChuTd.onclick = () => openNoteForm(tableRow, ghiChuValue); // Gọi hàm mở form khi nhấn vào biểu tượng
+
+
+      }
+      tableRow.appendChild(ghiChuTd); // Thêm ô ghi chú vào hàng
+      tableBody.appendChild(tableRow);
+
+      //button xoá lớp
+      let deleteButtonTd, deleteButton;
+      deleteButtonTd = document.createElement('td');
+      deleteButton = document.createElement('button');
+      deleteButton.style.marginLeft = '30px'; // Canh chỉnh nút
+      deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
+      deleteButton.onclick = () => {
+          const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');
+          if (confirmed) {
+              tableRow.remove(); // Xóa dòng tương ứng
+              // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
+              deleteData(row.MaGiangDay); // Gọi hàm xóa dữ liệu trong database
+          }
+      };
+      deleteButtonTd.appendChild(deleteButton);
+      tableRow.appendChild(deleteButtonTd);
+
+
+      if(row.KhoaDuyet){
+        tenHocPhanInput.disabled = true;
+        soTCInput.disabled = true;
+        maLopInput.disabled = true;
+        soSVInput.disabled = true;
+        hinhThucKTGiuaKySelect.disabled = true;
+        soDeInput.disabled = true;
+        heSoT7CNSelect.disabled = true;
+        deleteButton.disabled = true;
+      }
+    });
+    // Lưu dữ liệu với id vào localStorage
+    localStorage.setItem('tableData', JSON.stringify(tableRowData));
+  }
+
+</script>
+<script>
+  async function submitData() {
+    const isKhoa = localStorage.getItem("isKhoa");
+    const role = localStorage.getItem("userRole");
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+    const GiangVien = localStorage.getItem("TenNhanVien");
+    const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
+    const rowCount = rows.length;
+    const globalData = [];
+    
+    rows.forEach((row, index) => {
+      // Lấy checkbox "select"
+      const update = row.querySelector('input[type="text"][name="hinhThucKTGiuaKy"]');
+      
+      // Kiểm tra nếu checkbox bị disable, bỏ qua dòng này
+      if (update && update.disabled) {
+        return; // Bỏ qua dòng này nếu checkbox bị disable
+      }
+      const tenHocPhanInput = document.getElementById(`tenHocPhanInput_${index}`);
+      const tenHocPhan = tenHocPhanInput ? tenHocPhanInput.value : '';
+
+      const soTCInput = document.getElementById(`soTCInput_${index}`);
+      const soTC = soTCInput ? soTCInput.value : '';
+
+      const maLopInput = document.getElementById(`maLopInput_${index}`);
+      const maLop = maLopInput ? maLopInput.value : '';
+
+      const soSVInput = document.getElementById(`soSVInput_${index}`);
+      const soSV = soSVInput ? soSVInput.value : '';
+
+      const hinhThucKTGiuaKyInput = document.getElementById(`hinhThucKTGiuaKy_${index}`);
+      const hinhThucKTGiuaKy = hinhThucKTGiuaKyInput ? hinhThucKTGiuaKyInput.value : '';
+
+      const heSoT7CNInput = document.getElementById(`heSoT7CN_${index}`);
+      const heSoT7CN = heSoT7CNInput ? heSoT7CNInput.value : '';
+
+      const soDeInput = document.getElementById(`soDe_${index}`);
+      const soDe = soDeInput ? soDeInput.value : '';
+
+      console.log(hinhThucKTGiuaKy);
+      console.log(heSoT7CN);
+      console.log(soDe);
+
+      
+      // Đẩy dữ liệu vào globalData
+      globalData.push({
+        tenHocPhan,
+        soTC,
+        maLop,
+        soSV,
+        hinhThucKTGiuaKy,
+        heSoT7CN,
+        MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
+        soDe,
+      });
+      console.log(globalData);
+    });
+
+    // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
+    update(globalData);
+  }
+
+  // Gửi dữ liệu lên server
+  function update(globalData) {
+    console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
+    fetch('/updatelopngoaiquychuan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
+          });
+        }
+        return response.json(); // Chuyển đổi phản hồi thành JSON
+      })
+      .then(data => {
+        console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+      })
+      .catch(error => {
+        console.error('Có lỗi xảy ra:', error);
+        console.log(error.message);
+      });
+  }
+  function deleteData(MaGiangDay) {
+    fetch('/deletelopngoaiquychuan', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ MaGiangDay }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Lỗi khi xóa dữ liệu');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('Xóa thành công!');
+            // Cập nhật giao diện, ví dụ: xóa hàng khỏi bảng
+            const row = document.querySelector(`tr[data-id="${MaGiangDay}"]`);
+            if (row) row.remove();
+        } else {
+            alert(`Lỗi: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Có lỗi xảy ra:', error);
+        alert(`Không thể xóa: ${error.message}`);
+    });
+  }
+</script>
+<script>
+  let currentRow; // Biến toàn cục để lưu hàng hiện tại
+  let typeclass = "Lớp ngoài quy chuẩn"
+
+  function openNoteForm(row, GhiChu) {
+    console.log(row, GhiChu);
+    currentRow = row; // Lưu hàng hiện tại
+    document.getElementById("noteForm").style.display = "block"; // Hiển thị form
+    document.getElementById("modalBackdrop").style.display = "block"; // Hiển thị nền tối
+
+    // Hiển thị giá trị ghi chú và hạn
+    document.getElementById("noteInput").value = GhiChu || ""; // Hiển thị ghi chú
+  }
+
+
+  function closeNoteForm() {
+    document.getElementById("noteForm").style.display = "none"; // Ẩn form
+    document.getElementById("modalBackdrop").style.display = "none"; // Ẩn nền tối
+  }
+  window.onclick = function (event) {
+    const modal = document.getElementById("noteForm");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    if (event.target === modalBackdrop) {
+      closeNoteForm();
+    }
+  }
+  async function saveNote() {
+    const note = document.getElementById("noteInput").value;
+    // const deadline = document.getElementById("deadlineInput").value;
+
+    if (currentRow) {
+      const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+
+      // Kiểm tra ID có tồn tại
+      if (id) {
+
+        // Gửi dữ liệu đến API để lưu vào CSDL
+        try {
+          const response = await fetch('/savenotegk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id, ghiChu: note, typeclass }),
+          });
+          const result = await response.json();
+          if (!result.success) {
+            alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+          } else {
+            alert("Cập nhật thành công");
+          }
+        } catch (error) {
+          alert("Lỗi khi gửi yêu cầu đến server: " + error);
+        }
+      } else {
+        alert("ID của hàng hiện tại không tồn tại.");
+      }
+    } else {
+      alert("currentRow không được xác định.");
+    }
+
+    closeNoteForm();
+  }
+  async function doneNote() {
+    const note = document.getElementById("noteInput").value;
+    // const deadline = document.getElementById("deadlineInput").value;
+
+    if (currentRow) {
+      const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+
+      // Kiểm tra ID có tồn tại
+      if (id) {
+
+
+        // Gửi dữ liệu đến API để lưu vào CSDL
+        try {
+          const response = await fetch('/donenotegk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id, ghiChu: note, typeclass }),
+          });
+          const result = await response.json();
+          if (!result.success) {
+            alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+          } else {
+            alert("Cập nhật thành công");
+          }
+        } catch (error) {
+          alert("Lỗi khi gửi yêu cầu đến server: " + error);
+        }
+      } else {
+        alert("ID của hàng hiện tại không tồn tại.");
+      }
+    } else {
+      alert("currentRow không được xác định.");
+    }
+
+    closeNoteForm();
+  }
+  // Sự kiện click ngoài modal để đóng modal
+  window.onclick = function (event) {
+    const modal = document.getElementById("noteForm");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    if (event.target === modalBackdrop) {
+      closeNoteForm();
+    }
+  }
 </script>
 </body>
 </html>
