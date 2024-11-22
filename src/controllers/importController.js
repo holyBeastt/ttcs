@@ -1514,43 +1514,105 @@ const capNhatTen_BoMon = async (req, res) => {
 // };
 
 // Phòng ban duyệt - teching info2
-const phongBanDuyet = async (req, res) => {
-  const role = req.session.role;
-  const duyet = process.env.DUYET;
+// const phongBanDuyet = async (req, res) => {
+//   const role = req.session.role;
+//   const duyet = process.env.DUYET;
 
-  const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
-  const jsonData = req.body; // Lấy dữ liệu từ req.body
+//   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
+//   const jsonData = req.body; // Lấy dữ liệu từ req.body
+
+//   // Lấy kết nối từ pool
+//   const connection = await createPoolConnection();
+
+//   try {
+//     // Duyệt qua từng phần tử trong jsonData
+//     for (let item of jsonData) {
+//       const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
+
+//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+//       const updateQuery = `
+//         UPDATE ${tableName}
+//         SET
+//           KhoaDuyet = ?,
+//           DaoTaoDuyet = ?,
+//           TaiChinhDuyet = ?
+//         WHERE ID = ?
+//       `;
+
+//       const updateValues = [KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, ID];
+
+//       await connection.query(updateQuery, updateValues);
+//     }
+
+//     // Nếu tất cả cập nhật thành công
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     connection.release(); // Trả kết nối về pool sau khi hoàn tất
+//   }
+// };
+
+const phongBanDuyet = async (req, res) => {
+  const tableName = process.env.DB_TABLE_QC; // Bảng cần cập nhật
+  const jsonData = req.body; // Dữ liệu đầu vào
 
   // Lấy kết nối từ pool
   const connection = await createPoolConnection();
 
   try {
-    // Duyệt qua từng phần tử trong jsonData
-    for (let item of jsonData) {
-      const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
-
-      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-      const updateQuery = `
-        UPDATE ${tableName}
-        SET 
-          KhoaDuyet = ?,
-          DaoTaoDuyet = ?,
-          TaiChinhDuyet = ?
-        WHERE ID = ?
-      `;
-
-      const updateValues = [KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, ID];
-
-      await connection.query(updateQuery, updateValues);
+    // Kiểm tra nếu không có dữ liệu thì không cần thực hiện gì
+    if (!jsonData || jsonData.length === 0) {
+      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
 
-    // Nếu tất cả cập nhật thành công
+    // Xây dựng câu lệnh truy vấn
+    let updateQuery = `
+      UPDATE ${tableName}
+      SET 
+        KhoaDuyet = CASE
+    `;
+
+    const updateValues = [];
+    const ids = [];
+
+    jsonData.forEach((item) => {
+      const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
+      updateQuery += ` WHEN ID = ? THEN ?`;
+      updateValues.push(ID, KhoaDuyet);
+      ids.push(ID);
+    });
+
+    updateQuery += ` END, DaoTaoDuyet = CASE `;
+
+    jsonData.forEach((item) => {
+      const { ID, DaoTaoDuyet } = item;
+      updateQuery += ` WHEN ID = ? THEN ?`;
+      updateValues.push(ID, DaoTaoDuyet);
+    });
+
+    updateQuery += ` END, TaiChinhDuyet = CASE `;
+
+    jsonData.forEach((item) => {
+      const { ID, TaiChinhDuyet } = item;
+      updateQuery += ` WHEN ID = ? THEN ?`;
+      updateValues.push(ID, TaiChinhDuyet);
+    });
+
+    updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
+
+    updateValues.push(...ids);
+
+    // Thực hiện truy vấn cập nhật hàng loạt
+    await connection.query(updateQuery, updateValues);
+
     res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
   } finally {
-    connection.release(); // Trả kết nối về pool sau khi hoàn tất
+    connection.release(); // Trả kết nối về pool
   }
 };
 
