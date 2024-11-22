@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan, updateDuyet} = require('../controllers/vuotGioAddClassController');
+const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan, updateDuyet, getLopGiuaKi} = require('../controllers/vuotGioAddClassController');
 // const {
 //   getClassInfoGvm,
 // } = require("../controllers/xemCacLopGvmController");
@@ -15,7 +15,7 @@ router.get("/addclassgiuaky", (req, res) => {
   res.render("vuotGioChonLopThiGK")
 });
 //Lấy thông tin lớp mời
-router.get("/getLopMoi/:maPhongBan/:Dot/:Ki/:Nam", getLopMoi);
+router.get("/getLopGiuaKi/:maPhongBan/:Dot/:Ki/:Nam/:MoiGiang", getLopGiuaKi);
 
 //ghinote
 router.post("/savenotegk", SaveNote);

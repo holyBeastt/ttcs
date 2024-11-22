@@ -81,19 +81,30 @@ const addClass = async (req, res) => {
     }
 };
 
-const getLopMoi = async (req,res) => {
+const getLopGiuaKi = async (req,res) => {
     const MaPhongBan = req.params.maPhongBan;
-    const {Dot, Ki, Nam} = req.params;
-    console.log(Dot, Ki, Nam);
+    const {Dot, Ki, Nam, MoiGiang} = req.params;
+    console.log(Dot, Ki, Nam, MoiGiang);
     let connection
     try {
         connection = await createPoolConnection();
-        const query = `SELECT * From giangday WHERE id_Gvm != "1" AND Khoa = ? AND Dot = ? AND HocKy = ? AND NamHoc = ? `;
-        const [result] = await connection.query(query, [MaPhongBan, Dot, Ki, Nam]);
-        res.json({
-            success: true,
-            maBoMon: result,
-          });
+        if (MoiGiang === '0') {
+            console.log("giảng dạy chính")
+            const query = `SELECT * From giangday WHERE id_Gvm = "1" AND Khoa = ? AND Dot = ? AND HocKy = ? AND NamHoc = ? `;
+            const [result] = await connection.query(query, [MaPhongBan, Dot, Ki, Nam]);
+            res.json({
+                success: true,
+                maBoMon: result,
+                });
+        } else {
+            console.log("lớp mời")
+            const query = `SELECT * From giangday WHERE id_Gvm != "1" AND Khoa = ? AND Dot = ? AND HocKy = ? AND NamHoc = ? `;
+            const [result] = await connection.query(query, [MaPhongBan, Dot, Ki, Nam]);
+            res.json({
+                success: true,
+                maBoMon: result,
+            });
+        }
     } catch (error) {
         console.error("Lỗi: ", error);
         res.status(500).send("Đã có lỗi xảy ra");
@@ -209,70 +220,77 @@ const updateLopThiGk = async (req, res) => {
                 console.log(`Không tìm thấy dữ liệu với MaGiangDay: ${MaGiangDay}`);
                 continue; // Bỏ qua phần tử này nếu không tìm thấy dữ liệu
             }
-        
             // Lấy dữ liệu của row đầu tiên (vì chỉ có 1 dòng dữ liệu trả về với mỗi MaGiangDay)
-            let row = rows[0];
-        
-            let heSo = (heSoT7CN === "Không") ? 1 : 1.5;
-            let SoTietKT = 0;
-        
-            if (hinhThucKTGiuaKy === "none") {
-                SoTietKT = 0;
-            } else if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
-                let number = heSo * (0.05 * row.SoSV + 2);
-                SoTietKT = parseFloat(number.toFixed(2));
-            } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
-                let number = heSo * (0.125 * row.SoSV + 2);
-                SoTietKT = parseFloat(number.toFixed(2));
-            }
-        
-            // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
-            let valuesToInsert = [
-                row.MaGiangDay, 
-                row.TenHocPhan, 
-                row.id_User, 
-                heSoT7CN, 
-                row.SoSV, 
-                row.HocKy, 
-                row.NamHoc, 
-                row.MaHocPhan, 
-                GiangVien, 
-                hinhThucKTGiuaKy, 
-                SoTietKT, 
-                row.Lop, 
-                soDe,
-                row.Khoa
-            ];
-        
-            // Câu lệnh INSERT vào bảng giuaky
-            const query2 = `
-                INSERT INTO giuaky (MaGiangDay, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                ON DUPLICATE KEY UPDATE
-                    TenHocPhan = VALUES(TenHocPhan),
-                    id_User = VALUES(id_User),
-                    HeSoT7CN = VALUES(HeSoT7CN),
-                    SoSV = VALUES(SoSV),
-                    HocKy = VALUES(HocKy),
-                    NamHoc = VALUES(NamHoc),
-                    MaHocPhan = VALUES(MaHocPhan),
-                    GiangVien = VALUES(GiangVien),
-                    HinhThucKTGiuaKy = VALUES(HinhThucKTGiuaKy),
-                    SoTietKT = VALUES(SoTietKT),
-                    Lop = VALUES(Lop),
-                    SoDe = VALUES(SoDe),
-                    Khoa = VALUES(Khoa);
-            `;
-        
-            // Thực hiện câu lệnh INSERT
-            await connection.query(query2, valuesToInsert);
+                let row = rows[0];
+            if (select) {
 
-            const query3 = `UPDATE giangday SET DaChon = 1 WHERE MaGiangDay = ?`;
-            await connection.query(query3, [MaGiangDay]);
+                let heSo = (heSoT7CN === "Không") ? 1 : 1.5;
+                let SoTietKT = 0;
+            
+                if (hinhThucKTGiuaKy === "none") {
+                    SoTietKT = 0;
+                } else if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
+                    let number = heSo * (0.05 * row.SoSV + 2);
+                    SoTietKT = parseFloat(number.toFixed(2));
+                } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
+                    let number = heSo * (0.125 * row.SoSV + 2);
+                    SoTietKT = parseFloat(number.toFixed(2));
+                }
+            
+                // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
+                let valuesToInsert = [
+                    row.MaGiangDay, 
+                    row.TenHocPhan, 
+                    row.id_User, 
+                    heSoT7CN, 
+                    row.SoSV, 
+                    row.HocKy, 
+                    row.NamHoc, 
+                    row.MaHocPhan, 
+                    GiangVien, 
+                    hinhThucKTGiuaKy, 
+                    SoTietKT, 
+                    row.Lop, 
+                    soDe,
+                    row.Khoa
+                ];
+            
+                // Câu lệnh INSERT vào bảng giuaky
+                const query2 = `
+                    INSERT INTO giuaky (MaGiangDay, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                    ON DUPLICATE KEY UPDATE
+                        TenHocPhan = VALUES(TenHocPhan),
+                        id_User = VALUES(id_User),
+                        HeSoT7CN = VALUES(HeSoT7CN),
+                        SoSV = VALUES(SoSV),
+                        HocKy = VALUES(HocKy),
+                        NamHoc = VALUES(NamHoc),
+                        MaHocPhan = VALUES(MaHocPhan),
+                        GiangVien = VALUES(GiangVien),
+                        HinhThucKTGiuaKy = VALUES(HinhThucKTGiuaKy),
+                        SoTietKT = VALUES(SoTietKT),
+                        Lop = VALUES(Lop),
+                        SoDe = VALUES(SoDe),
+                        Khoa = VALUES(Khoa);
+                `;
+            
+                // Thực hiện câu lệnh INSERT
+                await connection.query(query2, valuesToInsert);
+
+                const query3 = `UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy= ?, GiangVienCoiGK= ?  WHERE MaGiangDay = ?`;
+                await connection.query(query3, [hinhThucKTGiuaKy, GiangVien, MaGiangDay]); 
+            } else {
+                const query2 = `DELETE FROM giuaky WHERE MaGiangDay = ?`;
+                await connection.query(query2, [MaGiangDay]);
+                const query3 = `UPDATE giangday SET DaChon = 0, GiangVienCoiGK= NULL WHERE MaGiangDay = ?`;
+                await connection.query(query3, [MaGiangDay]);
+            }
+            
         }        
 
         // Gửi phản hồi thành công
-        res.json({ message: 'Cập nhật thành công!' });
+        res.status(200).json({ message: "Cập nhật thành công" }); // Phản hồi thành công
     } catch (error) {
         console.error('Lỗi khi cập nhật dữ liệu:', error);
         res.status(500).json({ message: 'Có lỗi xảy ra khi cập nhật dữ liệu.' });
@@ -302,6 +320,7 @@ const getLopGK = async (req,res) => {
 };
 const updateKhoaDuyet = async (req, res) =>{
     const {MaGiangDay, typeclass, khoaDuyet} = req.body;
+    console.log(khoaDuyet);
     let connection;
     try {
         connection = await createPoolConnection();
@@ -310,8 +329,11 @@ const updateKhoaDuyet = async (req, res) =>{
             await connection.query(query, [khoaDuyet, MaGiangDay]);
         } else {
             const query = `UPDATE giuaky SET KhoaDuyet = 1 WHERE MaGiangDay = ?`;
-        await connection.query(query, [MaGiangDay]);
+            await connection.query(query, [MaGiangDay]);
+            const query1 = `UPDATE giangday SET KhoaDuyet = 1 WHERE MaGiangDay = ?`;
+            await connection.query(query1, [MaGiangDay]);
         }
+            
         res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
     } catch (error) {
         console.error("Lỗi: ", error);
@@ -329,7 +351,7 @@ const deleteLopGK = async (req, res) =>{
             const query = `DELETE FROM lopngoaiquychuan WHERE MaGiangDay = ?`;
             await connection.query(query, [MaGiangDay]);
         } else {
-            const query1 = `UPDATE giangday SET DaChon = 0 WHERE MaGiangDay = ?`;
+            const query1 = `UPDATE giangday SET DaChon = 0, GiangVienCoiGK = NULL, KhoaDuyet = 0 WHERE MaGiangDay = ?`;
             await connection.query(query1, [MaGiangDay]);
             const query2 = `DELETE FROM giuaky WHERE MaGiangDay = ?`;
             await connection.query(query2, [MaGiangDay]);
@@ -409,7 +431,7 @@ const updateDuyet = async (req, res) =>{
 
 module.exports = {
     addClass,
-    getLopMoi,
+    getLopGiuaKi,
     SaveNote,
     DoneNote,
     updateLopThiGk,
