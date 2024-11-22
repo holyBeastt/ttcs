@@ -220,7 +220,7 @@ const getupdateBoMon = async (req, res) => {
   }
 };
 
-const getNamHoc = async (req, res) => {
+const getNamHocList = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -277,7 +277,7 @@ module.exports = {
   getchangePassword,
   updatePassword,
   getupdateBoMon,
-  getNamHoc,
+  getNamHocList,
   postNamHoc,
   deleteNamHoc,
 };

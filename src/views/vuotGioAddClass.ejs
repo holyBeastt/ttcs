@@ -157,103 +157,109 @@
           </div>
         </div>
       </nav>
-      <div class="m-3">
-        <h1 class="d-flex justify-content-center">Thêm các lớp giảng dạy</h1>
-        <form id="addClassForm" class="form" method="POST">
-          <fieldset>
-            <div id="add">
-              <h6>Nhập thông tin lớp:</h6>
-              <div class="row mb-3 d-flex">
-                <input type="text" id="GiangVien" name="GiangVien" hidden>
-                <input type="text" id="index" name="index" value="1" hidden>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="TenHocPhan1">Tên học phần*</label>
-                    <input class="form-control" type="text" name="TenHocPhan1" id="TenHocPhan1" required>
+      <div>
+        <div class="tab-buttons">
+          <button class="tab-button active" data-tab="tab1">Tab 1</button>
+          <button class="tab-button" data-tab="tab2">Tab 2</button>
+        </div>
+        <div class="m-3 tab-content active-tab" id="tab1">
+          <h1 class="d-flex justify-content-center">Thêm các lớp giảng dạy</h1>
+          <form id="addClassForm" class="form" method="POST">
+            <fieldset>
+              <div id="add">
+                <h6>Nhập thông tin lớp:</h6>
+                <div class="row mb-3 d-flex">
+                  <input type="text" id="GiangVien" name="GiangVien" hidden>
+                  <input type="text" id="index" name="index" value="1" hidden>
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="TenHocPhan1">Tên học phần*</label>
+                      <input class="form-control" type="text" name="TenHocPhan1" id="TenHocPhan1" required>
+                    </div>
+                    <div>
+                      <label for="HinhThucKTGiuaKy1">Hình thức kiểm tra giữa kì:</label>
+                      <select class="form-control" name="HinhThucKTGiuaKy1" id="HinhThucKTGiuaKy1">
+                        <option value="none">None</option>
+                        <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
+                        <option value="Coi, chấm viết">Coi, chấm tự luận</option>
+                        <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
+                        <option value="Coi, chấm TH">Coi, chấm thực hành</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label for="HinhThucKTGiuaKy1">Hình thức kiểm tra giữa kì:</label>
-                    <select class="form-control" name="HinhThucKTGiuaKy1" id="HinhThucKTGiuaKy1">
-                      <option value="none">None</option>
-                      <option value="Coi, chấm TN">Coi, chấm trắc nghiệm trên giấy</option>
-                      <option value="Coi, chấm viết">Coi, chấm tự luận</option>
-                      <option value="Coi, chấm VĐ">Coi, chấm vấn đáp</option>
-                      <option value="Coi, chấm TH">Coi, chấm thực hành</option>
-                    </select>
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="Lop1">Mã lớp*</label>
+                      <input type="text" class="form-control" name="Lop1" id="Lop1" required>
+                    </div>
+                    <div>
+                      <label for="LoaiHinhDaoTao1">Loại hình đào tạo*</label>
+                      <input class="form-control" type="text" name="LoaiHinhDaoTao1" id="LoaiHinhDaoTao1" required>
+                    </div>
                   </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="Lop1">Mã lớp*</label>
-                    <input type="text" class="form-control" name="Lop1" id="Lop1" required>
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="SoTC1">Số tín chỉ</label>
+                      <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
+                    </div>
+                    <div>
+                      <label for="HeSoLopDong1">Hệ số lớp đông</label>
+                      <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                    </div>
                   </div>
-                  <div>
-                    <label for="LoaiHinhDaoTao1">Loại hình đào tạo*</label>
-                    <input class="form-control" type="text" name="LoaiHinhDaoTao1" id="LoaiHinhDaoTao1" required>
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="SoTietCTDT1">Số tiết TKB</label>
+                      <input type="text" class="form-control" name="SoTietCTDT1" id="SoTietCTDT1" style="width: 100px;">
+                    </div>
+                    <div>
+                      <label for="HeSoT7CN1">Hệ số T7CN</label>
+                      <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
+                        <option value="Không">Không</option>
+                        <option value="Cuối tuần">Cuối tuần</option>
+                        <option value="Tối">Tối</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="SoTC1">Số tín chỉ</label>
-                    <input type="text" class="form-control" name="SoTC1" style="width: 100px;" id="SoTC1">
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="QuyChuan1">Số tiết QC*</label>
+                      <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
+                    </div>
+                    <div>
+                      <label for="SoSV1">Số SV*</label>
+                      <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
+                    </div>
                   </div>
-                  <div>
-                    <label for="HeSoLopDong1">Hệ số lớp đông</label>
-                    <input type="text" class="form-control" name="HeSoLopDong1" id="HeSoLopDong1" style="width: 100px;">
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="HocKy1">Học kì</label>
+                      <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
+                        <option value="1">Học kỳ 1</option>
+                        <option value="2">Học kỳ 2</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="NamHoc1">Năm học</label>
+                      <select class="form-control" name="NamHoc1" id="NamHoc1">
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="SoTietCTDT1">Số tiết TKB</label>
-                    <input type="text" class="form-control" name="SoTietCTDT1" id="SoTietCTDT1" style="width: 100px;">
+                  <div style="width: max-content;">
+                    <div>
+                      <label for="SoDe1">Số đề</label>
+                      <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
+                    </div>
                   </div>
-                  <div>
-                    <label for="HeSoT7CN1">Hệ số T7CN</label>
-                    <select class="form-control" name="HeSoT7CN1" id="HeSoT7CN1">
-                      <option value="Không">Không</option>
-                      <option value="Cuối tuần">Cuối tuần</option>
-                      <option value="Tối">Tối</option>
-                    </select>
-                  </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="QuyChuan1">Số tiết QC*</label>
-                    <input type="text" class="form-control" name="QuyChuan1" id="QuyChuan1" style="width: 100px;" required>
-                  </div>
-                  <div>
-                    <label for="SoSV1">Số SV*</label>
-                    <input type="text" class="form-control" name="SoSV1" id="SoSV1" style="width: 100px;" required>
-                  </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="HocKy1">Học kì</label>
-                    <select class="form-control" name="HocKy1" id="HocKy1" style="width: 100px;">
-                      <option value="1">Học kỳ 1</option>
-                      <option value="2">Học kỳ 2</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label for="NamHoc1">Năm học</label>
-                    <select class="form-control" name="NamHoc1" id="NamHoc1">
-                    </select>
-                  </div>
-                </div>
-                <div style="width: max-content;">
-                  <div>
-                    <label for="SoDe1">Số đề</label>
-                    <input type="text" class="form-control" name="SoDe1" id="SoDe1" style="width: 100px;" required>
-                  </div>
-                </div>
-              </div>    
-            </div>        
-            <div>
-              <button class="btn mx-5" id="submit">Thêm</button>
-              <button class="btn mx-5" type="button" onclick="addInputFields()">Thêm ô nhập lớp</button>
-            </div>
-          </fieldset>
-        </form>
+                </div>    
+              </div>        
+              <div>
+                <button class="btn mx-5" id="submit">Thêm</button>
+                <button class="btn mx-5" type="button" onclick="addInputFields()">Thêm ô nhập lớp</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
       </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

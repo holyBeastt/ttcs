@@ -306,6 +306,12 @@
     <div class="">
       <div class="d-flex">
         <div class="cbb d-flex" style="margin-top: 20px;">
+
+          <select class="selectop mx-1" id="typeclass">
+            <option value="Lớp giảng dạy chính">Lớp giảng dạy chính</option>
+            <option value="Lớp mời coi giữa kỳ">Lớp mời coi giữa kỳ</option>
+          </select>
+
           <select class="selectop mx-1" id="combobox-dot">
             <option value="">Đợt</option>
           </select>
@@ -592,16 +598,23 @@
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    const Typeclass = document.getElementById('typeclass').value;
     const Dot = document.getElementById('combobox-dot').value;
     const Ki = document.getElementById('combobox-ki').value;
     const Nam = document.getElementById('NamHoc').value;
+    let MoiGiang = 0;
     if (!MaPhongBan) {
       alert("Mã phòng ban không tồn tại!");
       return;
     }
 
     try {
-      const response = await fetch(`/getLopMoi/${MaPhongBan}/${Dot}/${Ki}/${Nam}`, {
+      if (Typeclass === "Lớp giảng dạy chính" ) {
+        MoiGiang = 0;
+      } else {
+        MoiGiang = 1;
+      }
+      const response = await fetch(`/getLopGiuaKi/${MaPhongBan}/${Dot}/${Ki}/${Nam}/${MoiGiang}`, {
         method: 'GET', // Gửi yêu cầu GET
       });
 
@@ -630,14 +643,22 @@
 <script>
   function renderTable(data) {
     const role = localStorage.getItem("userRole");
-    const MaPhongBan = localStorage.getItem("MaPhongBan")
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
     const isKhoa = localStorage.getItem("isKhoa");
+    const TenNhanVien = localStorage.getItem("TenNhanVien");
+    const typeclass = document.getElementById("typeclass").value;
+    console.log( TenNhanVien);
     let tableRowData = [];
 
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
-    data.maBoMon.forEach((row, index) => {
+    let filteredData = data.maBoMon;
+    if (typeclass === "Lớp giảng dạy chính") {
+      filteredData = data.maBoMon.filter(row => row.GiangVien.trim() === TenNhanVien.trim());
+    }
+    
+    filteredData.forEach((row, index) => {
 
       const tableRow = document.createElement('tr');
 
@@ -697,7 +718,7 @@
         const option = document.createElement('option');
         option.value = optionData.value;
         option.textContent = optionData.text;
-        if (row.hinhThucKTGiuaKy === optionData.value) {
+        if (row.HinhThucKTGiuaKy === optionData.value) {
           option.selected = true;
         }
         hinhThucKTGiuaKySelect.appendChild(option);
@@ -737,21 +758,6 @@
       // Thêm id để lấy dữ liệu 
       heSoT7CNSelect.id = `heSoT7CN_${index}`;
       tableRow.appendChild(heSoT7CNTd);
-
-
-      // let soDeTd;
-      // let soDeInput;
-      // soDeTd = document.createElement('td');
-      // soDeInput = document.createElement('input');
-      // soDeInput.type = 'text';
-      // soDeInput.name = 'soDe';
-      // soDeInput.value = row.soDe || '';
-      // soDeInput.placeholder = '';
-
-      // // Thêm id để lấy dữ liệu
-      // soDeInput.id = `soDe_${index}`;
-      // soDeTd.appendChild(soDeInput);
-      // tableRow.appendChild(soDeTd);
 
       let soDeTd;
       let soDeInput;
@@ -810,12 +816,28 @@
       selectCheckbox.type = 'checkbox';
       selectCheckbox.style.marginLeft = '30px';
       selectCheckbox.name = 'select'; // Thêm thuộc tính name
-      selectCheckbox.checked = row.selectDuyet || false; // Dùng một trường cho checkbox
+      selectCheckbox.checked = row.DaChon || false; // Dùng một trường cho checkbox
       selectCheckbox.onchange = () => updateCheckAll('select'); // Gọi hàm khi checkbox thay đổi
       selectCheckboxTd.appendChild(selectCheckbox);
       tableRow.appendChild(selectCheckboxTd);
 
-      if (row.DaChon) {
+
+      if(typeclass === "Lớp mời coi giữa kỳ") {
+        if(row.DaChon){
+          if(row.GiangVienCoiGK.trim() === TenNhanVien.trim()){
+            hinhThucKTGiuaKySelect.disabled = false;
+            soDeInput.disabled = false;
+            heSoT7CNSelect.disabled = false;
+            selectCheckbox.disabled = false;
+          }else{
+            hinhThucKTGiuaKySelect.disabled = true;
+            soDeInput.disabled = true;
+            heSoT7CNSelect.disabled = true;
+            selectCheckbox.disabled = true;
+          }
+        }
+      }
+      if(row.KhoaDuyet){
         hinhThucKTGiuaKySelect.disabled = true;
         soDeInput.disabled = true;
         heSoT7CNSelect.disabled = true;
@@ -860,14 +882,23 @@
 </script>
 <script>
   async function submitData() {
-    const isKhoa = localStorage.getItem("isKhoa")
-    const role = localStorage.getItem("userRole")
+    const isKhoa = localStorage.getItem("isKhoa");
+    const role = localStorage.getItem("userRole");
     const MaPhongBan = localStorage.getItem("MaPhongBan");
     const GiangVien = localStorage.getItem("TenNhanVien");
     const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
     const rowCount = rows.length;
     const globalData = [];
+    
     rows.forEach((row, index) => {
+      // Lấy checkbox "select"
+      const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
+      
+      // Kiểm tra nếu checkbox bị disable, bỏ qua dòng này
+      if (selectCheckbox && selectCheckbox.disabled) {
+        return; // Bỏ qua dòng này nếu checkbox bị disable
+      }
+      
       const hinhThucKTGiuaKyInput = document.getElementById(`hinhThucKTGiuaKy_${index}`);
       const hinhThucKTGiuaKy = hinhThucKTGiuaKyInput ? hinhThucKTGiuaKyInput.value : '';
 
@@ -881,25 +912,25 @@
       console.log(heSoT7CN);
       console.log(soDe);
 
-      // Lấy giá trị của checkbox "select"
-      const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
-
       // Lấy trạng thái của checkbox "select"
-      let select = selectCheckbox ? selectCheckbox.checked : false;
-      if (select) {
-        globalData.push({
-          hinhThucKTGiuaKy,
-          heSoT7CN,
-          select,
-          MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
-          soDe,
-          GiangVien,
-        });
-        console.log(globalData);
-        update(globalData);
-      }
+      const select = selectCheckbox ? selectCheckbox.checked : false;
+      
+      // Đẩy dữ liệu vào globalData
+      globalData.push({
+        hinhThucKTGiuaKy,
+        heSoT7CN,
+        select,
+        MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
+        soDe,
+        GiangVien,
+      });
+      console.log(globalData);
     });
+
+    // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
+    update(globalData);
   }
+
   // Gửi dữ liệu lên server
   function update(globalData) {
     console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
@@ -920,7 +951,6 @@
         return response.json(); // Chuyển đổi phản hồi thành JSON
       })
       .then(data => {
-        alert(data.message)
         console.log(data.message); // Thông báo khi dữ liệu gửi thành công
       })
       .catch(error => {
