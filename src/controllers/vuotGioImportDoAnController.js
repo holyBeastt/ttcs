@@ -6,6 +6,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const pdf = require("pdf-parse");
+const mammoth = require("mammoth"); // Sử dụng mammoth để đọc file Word
 
 const parentDir = path.join(__dirname, "..");
 const p = path.join(parentDir, "..");
@@ -33,10 +34,12 @@ async function extractFileData(req, res) {
       const dataBuffer = fs.readFileSync(filePath);
       const pdfData = await pdf(dataBuffer);
       content = pdfData.text; // Nội dung PDF dạng text
+
+      tableData = processTextData(content);
     } else if (fileExtension === ".docx") {
       // Xử lý file Word (DOCX)
-      const result = await mammoth.extractRawText({ path: filePath });
-      content = result.value; // Nội dung Word dạng text
+      content = await processWordFile(filePath);
+      tableData = processWordData(content);
     } else {
       return res
         .status(400)
@@ -44,22 +47,130 @@ async function extractFileData(req, res) {
     }
 
     // Xử lý văn bản để tách bảng dữ liệu
-    tableData = processTextData(content);
 
     res.json({
       message: "File uploaded and processed successfully",
       content: tableData,
     });
-
-    //res.render("vuotGioImportDoAn.ejs", { tableData: tableData });
-    // Bạn có thể lưu dữ liệu vào cơ sở dữ liệu ở đây
-    //res.json({ message: "Hoàn tất nhập dữ liệu!", data: tableData });
   } catch (err) {
     console.error("Lỗi khi xử lý file:", err);
     res.status(500).json({ message: "Lỗi khi xử lý file!", error: err });
   } finally {
     // Xóa file tạm
     fs.unlinkSync(filePath);
+  }
+}
+
+function processWordData(content) {
+  console.log("content = ", content);
+  const lines = content.split("\n");
+  const tableData = []; // Mảng để lưu dữ liệu của tất cả các sinh viên
+  let currentRow = {}; // Dòng hiện tại trong bảng
+  let headerCount = 0; // Biến đếm số dòng tiêu đề
+  let count = 0;
+
+  const headerKeywords = [
+    "TT",
+    "Sinh viên",
+    "Mã SV",
+    "Tên đề tài",
+    "Cán bộ Giảng viên hướng dẫn",
+  ];
+  lines.forEach((line) => {
+    line = line.trim(); // Xóa khoảng trắng thừa
+    if (!line) return; // Bỏ qua dòng trống
+
+    // Bỏ qua các dòng tiêu đề (5 dòng chứa từ khóa tiêu đề)
+    if (
+      headerCount < 5 &&
+      headerKeywords.some((keyword) => line.includes(keyword))
+    ) {
+      headerCount++;
+      return; // Bỏ qua dòng tiêu đề
+    }
+
+    // Nếu đã qua 5 dòng tiêu đề, bắt đầu xử lý bảng
+    if (headerCount >= 5) {
+      // Nếu dòng bắt đầu bằng số TT, đây là dòng mới
+      const matchTT = line.match(/^\d+$/); // Kiểm tra dòng chỉ có số
+      if (matchTT) {
+        // Lưu dòng trước đó (nếu có)
+        if (Object.keys(currentRow).length > 0) {
+          tableData.push(currentRow);
+        }
+
+        // Tách các phần của dòng hiện tại
+        currentRow = {
+          TT: line,
+          SinhVien: "", // Tên sinh viên
+          MaSV: "", // Mã sinh viên
+          TenDeTai: "", // Tên đề tài
+          GiangVien: [], // Danh sách Giảng viên
+        };
+        count = 1;
+        //
+      } else if (count == 1) {
+        currentRow.SinhVien = line;
+        count++;
+        // Kiểm tra xem MaSV có đúng định dạng không, chỉ gán nếu hợp lệ
+      } else if (count == 2) {
+        currentRow.MaSV = line;
+        count++;
+      } else if (count == 3) {
+        currentRow.TenDeTai = line;
+        count++;
+      } else if (
+        line.startsWith("1.") ||
+        line.startsWith("2.") ||
+        line.startsWith("TS.")
+      ) {
+        line = line.replace(
+          /^\d+\.\s*(KS|ThS|TS|PGS\.\s*TS)\.\s*|^(KS|ThS|TS|PGS\.\s*TS)\.\s*/i,
+          ""
+        );
+
+        // Đảm bảo GiangVien luôn là mảng trước khi push
+        if (!currentRow.GiangVien) {
+          currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
+        }
+
+        currentRow.GiangVien.push(line); // Thêm giảng viên vào danh sách
+      }
+    }
+  });
+
+  // Lưu dòng cuối cùng (nếu có)
+  if (Object.keys(currentRow).length > 0) {
+    tableData.push(currentRow);
+  }
+
+  console.log("tableData = ", tableData);
+
+  // Lưu dữ liệu theo từng đối tượng riêng biệt (key)
+  const result = tableData.map((row) => {
+    return {
+      TT: row.TT,
+      SinhVien: row.SinhVien,
+      MaSV: row.MaSV,
+      TenDeTai: row.TenDeTai,
+      GiangVien: row.GiangVien.join(", "), // Giảng viên là một chuỗi
+    };
+  });
+
+  return result;
+}
+
+// Xử lý file Word bằng Mammoth
+async function processWordFile(filePath) {
+  try {
+    const fileBuffer = fs.readFileSync(filePath);
+
+    // Chuyển file Word sang text
+    const result = await mammoth.extractRawText({ buffer: fileBuffer });
+    return result.value; // Nội dung văn bản
+  } catch (error) {
+    console.error("Lỗi khi đọc file Word:", error);
+    throw new Error("Không thể xử lý file Word.");
   }
 }
 
@@ -197,7 +308,13 @@ const saveToDB = async (req, res) => {
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
     const values = tableData.map((row) => {
       // Chuyển mảng GiangVien thành chuỗi
-      const giangVien = row.GiangVien.join(", ");
+
+      let giangVien = row.GiangVien;
+
+      if (Array.isArray(row.GiangVien)) {
+        giangVien = giangVien.join(",");
+      }
+
       const giangVienMang = giangVien.split(","); // Tách thành mảng
       const giangVien1 = giangVienMang[0].trim(); // Lấy phần tử đầu tiên và loại bỏ khoảng trắng
       const giangVien2 = giangVienMang[1] ? giangVienMang[1].trim() : null; // Kiểm tra và gán null nếu không có phần tử thứ hai

@@ -10,7 +10,7 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         updateKyTuBD
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
-        getchangePassword, updatePassword, postNamHoc, deleteNamHoc
+        getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList
         } = require('../controllers/admin');
 const { postUpdateNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
 router.get('/admin', (req, res) => {
@@ -71,7 +71,7 @@ router.get('/changePassword', getchangePassword);
 router.post('/changePassword',  updatePassword);
 
 //Năm học
-router.get('/namHoc', getNamHoc);
+router.get('/namHoc', getNamHocList);
 router.post('/namHoc', postNamHoc);
 router.delete('/namHoc/:NamHoc', deleteNamHoc);
 

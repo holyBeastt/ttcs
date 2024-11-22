@@ -99,17 +99,6 @@ app.listen(port, hostname, () => {
 app.use(express.static(path.join(__dirname, "../node_modules")));
 app.use(express.static(path.join(__dirname, "public/images")));
 
-// simple query
-// connection.query("SELECT * FROM `bomon`", function (err, results, fields) {
-//   // console.log("result = ", results); // results contains rows returned by server
-//   // console.log(fields); // fields contains extra meta data about results, if available
-//   // Chuyển đổi kết quả thành JSON
-//   // const jsonData = JSON.stringify(results);
-
-//   // // In ra dữ liệu dưới dạng JSON
-//   // console.log("Data in JSON format: ", jsonData);
-// });
-
 // == src of L ==
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
