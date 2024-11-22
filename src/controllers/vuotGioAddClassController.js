@@ -237,9 +237,9 @@ const updateLopThiGk = async (req, res) => {
 
                 let SoTietKT = 0;
                 let SoDe = 0;
-                if (SoSV >= 41 && SoSV <= 80) {
+                if (row.SoSV >= 41 && row.SoSV <= 80) {
                     SoDe = 3;
-                } else if (SoSV >= 81) {
+                } else if (row.SoSV >= 81) {
                     SoDe = 4;
                 } else {
                     SoDe = 2;
