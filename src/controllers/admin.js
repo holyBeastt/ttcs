@@ -220,7 +220,7 @@ const getupdateBoMon = async (req, res) => {
   }
 };
 
-const getNamHoc = async (req, res) => {
+const getNamHocList = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -267,6 +267,7 @@ const deleteNamHoc = async (req, res) => {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
 };
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -277,7 +278,7 @@ module.exports = {
   getchangePassword,
   updatePassword,
   getupdateBoMon,
-  getNamHoc,
+  getNamHocList,
   postNamHoc,
   deleteNamHoc,
 };

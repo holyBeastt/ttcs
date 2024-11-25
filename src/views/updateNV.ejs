@@ -87,8 +87,15 @@
                                     <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" required >
                                 </div>
                                 <div class="col-md-4 input-wrapper">
-                                    <label for="HocVi" class="form-label">Học Vị*</label>
-                                    <input type="text" class="form-control" id="HocVi" name="HocVi" value="<%= value.HocVi %>" required>
+                                    <label for="HocVi" class="form-label">Học Hàm/Học Vị*</label>
+                                    <select class="form-control" name="HocVi" id="HocVi">
+                                      <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+                                      <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+                                      <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+                                      <option value="Tiến sĩ" <%= value.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+                                      <option value="Phó giáo sư. Tiến sĩ" <%= value.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
+                                      <option value="Giáo sư. Tiến sĩ" <%= value.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
+                                    </select> 
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -275,54 +282,6 @@
     };
   </script>
   <script>
-    const imagetruocInput = document.getElementById('imgtruocinput');
-    const imagetruocPreview = document.getElementById('imgtruoc');
-
-    imagetruocInput.addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imagetruocPreview.src = e.target.result;
-          imagetruocPreview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
-  <script>
-    const imagesauInput = document.getElementById('sauCCCD');
-    const imagesauPreview = document.getElementById('imgsau');
-
-    imagesauInput.addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imagesauPreview.src = e.target.result;
-          imagesauPreview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
-  <script>
-    const imagebang = document.getElementById('bangTotNghiep');
-    const imagebangPreview = document.getElementById('imgbang');
-
-    imagebang.addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imagebangPreview.src = e.target.result;
-          imagebangPreview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
-      }
-    });
-  </script>
-  <script>
     function fetchQuyen() {
 const maPhongBan = document.getElementById('MaPhongBan').value;
 // Gọi API để lấy thông tin isKhoa
@@ -395,20 +354,23 @@ fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
               }
               
               maBoMonSelect.appendChild(option); // Thêm option vào select
-  
-              
             });
+            if (!foundMatch) {
+              alert("Không tồn tại mã bộ môn vui lòng sửa lại");
+            }
           } else {
             console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
           }
-  
           // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
-          if (!foundMatch) {
-                alert("Không tồn tại mã bộ môn vui lòng sửa lại");
-              }
-  
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+        console.error('Error:', error);
+        // Trong trường hợp lỗi, vẫn thêm tùy chọn mặc định để giao diện không bị trống
+        const maBoMonSelect = document.getElementById('MonGiangDayChinh');
+        if (maBoMonSelect) {
+          maBoMonSelect.innerHTML = '<option value="">Chọn bộ môn</option>';
+        }
+        });
     });
   </script>
   <script>

@@ -1,377 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
   <link rel="stylesheet" href="/css/admin.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
+
 <body>
-   
-    <nav class="navbar-top ">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">
-            <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
-            <div class="navbar-title">
-              <img src="/dongchu_banner.png" alt="banner">
-            </div>
-          </a>
+
+  <nav class="navbar-top ">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner">
         </div>
-      </nav>
-    
-      <!-- Phần dưới của navbar chứa các mục nằm ngang -->
-      <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
-        <div class="" style="width: 100%">
-          <button class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div
-            class="collapse navbar-collapse"
-            style="width: 100%"
-            id="navbarNav"
-          >
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link" id="Home" href=""
-                  ><i class="fa-solid fa-house"></i
-                ></a>
-              </li>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Giảng Viên Mời
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" href="/gvmList"
-                      >Danh sách giảng viên mời</a
-                    >
-                    <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bằng file</a>
-                  </div>
-                </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+    <div class="" style="width: 100%">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+          </li>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Giảng Viên Mời
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời
+                  bằng file</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Bảng Quy Chuẩn
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
-                    <a class="nav-link" href="/tableTam"
-                      >Bảng quy chuẩn dự kiến</a
-                    >
-                    <a class="nav-link" href="/tableQC"
-                      >Bảng quy chuẩn chính thức</a
-                    >
-                    <a class="nav-link" id="ThongTinGD" href=""
-                      >Thông tin giảng viên theo lớp</a
-                    >
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Bảng Quy Chuẩn
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Mời Giảng
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
-  
-                    <a class="nav-link" href="/classInfoGvm"
-                      >Thông tin lớp giảng viên mời</a
-                    >
-                    <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-  
-                    <a class="nav-link" href="/infoHDGvm" role="button"
-                      >Thông tin hợp đồng</a
-                    >
-                    <li class="nav-item"></li>
-                    <a class="nav-link" href="/phulucHD" >Phụ lục hợp đồng</a>
-                    </li>
-                    <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-  
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Mời Giảng
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+
+                <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
+                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
+                <li class="nav-item"></li>
+                <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
+                </li>
+                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Vượt Giờ
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
-                    <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                    <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Vượt Giờ
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Nghiên Cứu Khoa Học
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Nghiên Cứu Khoa Học
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Đồ Án
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Đồ Án
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a
-                    class="nav-link dropdown-toggle"
-                    href="/login"
-                    id="navbarDropdownUser"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Thống Kê
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Thống Kê
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
-              <div class="navbar-nav">
-                <div class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                     Hệ Thống
-                  </a>
-                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="log">Xem File Log</a>
-                  </div>
-                </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hệ Thống
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/log">Xem File Log</a>
               </div>
-            </ul>
-            <div class="navbar-nav">
-              <div class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle fullname"
-                  href="/login"
-                  id="navbarDropdownUser"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Hi, Lê Đức Thuận
-                </a>
-                <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
-                  <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                  <a class="dropdown-item" href="/">Đăng xuất</a>
-                </div>
-              </div>
+            </div>
+          </div>
+        </ul>
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fullname active" href="/login" id="navbarDropdownUser"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              Hi, Lê Đức Thuận
+            </a>
+            <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item active" id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+              <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
         </div>
-      </nav>
-      <!-- Main content -->
-      <div class="container my-5 box">
-        <h2>Sửa Nhân Viên</h2>
-        <form  id="infome" action="/infome/:id_User" method="POST">
-          <div class="row mb-3">
-            <input type="hidden" name="Id_User" value="<%= user.id_User %> ">
-            <div class="col-md-4 input-wrapper">
-              <label for="TenNhanVien" class="form-label">Tên Nhân Viên</label>
-              <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= user.TenNhanVien %> " readonly>
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="NgaySinh" class="form-label">Ngày Sinh</label>
-              <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date((user.NgaySinh).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0] %>" readonly >
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="HocVi" class="form-label">Học Vị*</label>
-              <input type="text" class="form-control" id="HocVi" name="HocVi" value="<%= user.HocVi %>">
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
-              <label for="CCCD" class="form-label">CCCD*</label>
-              <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= user.CCCD %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD*</label>
-              <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD" value="<%= new Date((user.NgayCapCCCD).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0] %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD*</label>
-              <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" value="<%= user.NoiCapCCCD %>">
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
-              <label for="gioitinh">Giới tính*</label>
-              <select class="form-control" name="GioiTinh" id="gioitinh" >
-                  <option value="Nam" <%= user.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
-                  <option value="Nữ" <%= user.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
-              </select>
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="DienThoai" class="form-label">Điện Thoại*</label>
-              <input type="tel" class="form-control" id="DienThoai" name="DienThoai" value="<%= user.DienThoai %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD*</label>
-                <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" value="<%= user.DiaChiCCCD %>" >
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
-                <label for="ChucVu" class="form-label">Chức Vụ*</label>
-                <input type="text" class="form-control" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>" required>
-            </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="NoiCongTac" class="form-label">Nơi Công Tác*</label>
-                <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" value="<%= user.NoiCongTac %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
-              <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" value="<%= user.DiaChiHienNay %>" >
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper d-flex justify-content-between">
-              <div>
-                <label for="MaPhongBan" class="form-label">Mã Phòng Ban*</label>
-                <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
-                  <!-- Option đầu tiên là giá trị hiện tại của role.MaPhongBan -->
-                  <option value="<%= role.MaPhongBan %>"><%= role.MaPhongBan %></option>
-                    <% departmentLists.forEach(function(department) { %>
-                      <% if (department.MaPhongBan !== role.MaPhongBan) { %>
-                        <!-- Chỉ thêm các giá trị khác với role.MaPhongBan -->
-                        <option value="<%= department.MaPhongBan %>"><%= department.MaPhongBan %></option>
-                      <% } %>
+      </div>
+    </div>
+  </nav>
+  <!-- Main content -->
+  <div class="container my-5 box">
+    <h2>Sửa Nhân Viên</h2>
+    <!-- <form id="infome" action="/infome/:id_User" method="POST"> -->
+    <form id="formData">
+      <div class="row mb-3">
+        <input type="hidden" name="Id_User" value="<%= user.id_User %> ">
+        <div class="col-md-4 input-wrapper">
+          <label for="TenNhanVien" class="form-label">Tên Nhân Viên</label>
+          <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= user.TenNhanVien %> "
+            readonly>
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="NgaySinh" class="form-label">Ngày Sinh</label>
+          <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(user.NgaySinh.getTime() - (new Date().getTimezoneOffset() * 60000))
+           .toISOString().split('T')[0] %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="HocVi" class="form-label">Học Hàm/Học Vị</label>
+          <select class="form-control" name="HocVi" id="HocVi">
+            <option value="Cử nhân" <%= user.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+            <option value="Kỹ sư" <%= user.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+            <option value="Thạc sĩ" <%= user.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+            <option value="Tiến sĩ" <%= user.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+            <option value="Phó giáo sư. Tiến sĩ" <%= user.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
+            <option value="Giáo sư. Tiến sĩ" <%= user.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
+          </select>        
+          <!-- <input type="text" class="form-control" id="HocVi" name="HocVi" value="<%= user.HocVi %>"> -->
+        </div>
+      </div>
+      <!-- <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="CCCD" class="form-label">CCCD</label>
+          <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= user.CCCD %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
+          <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD"
+            value="<%= new Date((user.NgayCapCCCD).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0] %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
+          <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" value="<%= user.NoiCapCCCD %>">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="gioitinh">Giới tính</label>
+          <input class="form-control text-center" type="text" name="GioiTinh" id="gioitinh" value="<%= user.GioiTinh%>"
+            readonly>
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="DienThoai" class="form-label">Điện Thoại</label>
+          <input type="tel" class="form-control" id="DienThoai" name="DienThoai" value="<%= user.DienThoai %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD</label>
+          <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" value="<%= user.DiaChiCCCD %>">
+        </div>
+      </div> -->
+      <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="ChucVu" class="form-label">Chức Vụ</label>
+          <input type="text" class="form-control text-center" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>"
+            required>
+        </div>
+        <div class="col-md-4 input-wrapper d-flex justify-content-between">
+          <!-- <div>
+            <label for="MaPhongBan" class="form-label">Mã Phòng Ban*</label>
+            <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
+              <option value="<%= role.MaPhongBan %>">
+                <%= role.MaPhongBan %>
+              </option>
+              <% departmentLists.forEach(function(department) { %>
+                <% if (department.MaPhongBan !==role.MaPhongBan) { %>
+                  <option value="<%= department.MaPhongBan %>">
+                    <%= department.MaPhongBan %>
+                  </option>
+                  <% } %>
                     <% }); %>
-                </select>
-              </div>
-              <!-- <div>
-                <label for="Quyen" class="form-label">Quyền*</label>
-                <select id="Quyen" class="form-control" name="Quyen" style="width: 250px;">
-                  <option value="<%= role.Quyen %>"><%= role.Quyen %></option>
-                </select>
-              </div> -->
-            </div>
-            <div class="col-md-4 input-wrapper">
-              <label for="HSL" class="form-label">Hệ số lương*</label>
-              <input type="text" class="form-control" id="HSL" name="HSL" value="<%= user.HSL %>" required>
-            </div>
+            </select>
+          </div> -->
+          <div class="">
+            <label for="HSL" class="form-label">Hệ số lương*</label>
+            <input type="text" class="form-control text-center" id="HSL" name="HSL" value="<%= user.HSL %>" required>
           </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
-                <label for="SoTaiKhoan" class="form-label">Số Tài Khoản*</label>
-                <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" value="<%= user.SoTaiKhoan %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="NganHang" class="form-label">Ngân Hàng*</label>
-                <input type="text" class="form-control" id="NganHang" name="NganHang" value="<%= user.NganHang %>">
-            </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="ChiNhanh" class="form-label">Chi Nhánh*</label>
-                <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" value="<%= user.ChiNhanh %>">
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
-                <label for="MaSoThue" class="form-label">Mã Số Thuế*</label>
-                <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" value="<%= user.MaSoThue %>">
-            </div>
-            
-            <div class="col-md-4 input-wrapper">
-                <label for="MonGiangDayChinh" class="form-label">Môn Giảng Dạy Chính*</label>
-                <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
-                <input type="text" id="boMon" value="<%= user.MonGiangDayChinh %>" hidden>
-            </div>
-            <div class="col-md-4 input-wrapper">
-                <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan*</label>
-                <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" value="<%= user.CacMonLienQuan %>">
-            </div>
-          </div>
-          <button type="submit" class="btn" id="btnUpdateNV">Cập nhật</button>
-          <button class="btn mx-5" type="button" onclick="window.history.back()">Trở về</button>
-          <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin có thể thay đổi.</h6>
-        </form>                          
         </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="Luong" class="form-label">Lương</label>
+          <input type="text" class="form-control" id="Luong" name="Luong"
+            value="<%= user.Luong %>">
+        </div>
+        <!-- <div class="col-md-4 input-wrapper">
+          <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
+          <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay"
+            value="<%= user.DiaChiHienNay %>">
+        </div> -->
+      </div>
+      <!-- <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="SoTaiKhoan" class="form-label">Số Tài Khoản*</label>
+          <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" value="<%= user.SoTaiKhoan %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="NganHang" class="form-label">Ngân Hàng*</label>
+          <input type="text" class="form-control" id="NganHang" name="NganHang" value="<%= user.NganHang %>">
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="ChiNhanh" class="form-label">Chi Nhánh*</label>
+          <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" value="<%= user.ChiNhanh %>">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4 input-wrapper">
+          <label for="MaSoThue" class="form-label">Mã Số Thuế*</label>
+          <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" value="<%= user.MaSoThue %>">
+        </div>
+
+        <div class="col-md-4 input-wrapper">
+          <label for="MonGiangDayChinh" class="form-label">Môn Giảng Dạy Chính*</label>
+          <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
+          <input type="text" id="boMon" value="<%= user.MonGiangDayChinh %>" hidden>
+        </div>
+        <div class="col-md-4 input-wrapper">
+          <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan*</label>
+          <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan"
+            value="<%= user.CacMonLienQuan %>">
+        </div>
+      </div> -->
+      <button type="submit" class="btn" id="submitBtn">Cập nhật</button>
+      <button class="btn mx-5" type="button" onclick="window.history.back()">Trở về</button>
+    </form>
+  </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const khoa = <%= role.isKhoa %>;
-        const quyenSelect = document.getElementById('Quyen');
+      const khoa = <%= role.isKhoa %>;
+      const quyenSelect = document.getElementById('Quyen');
 
-        // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
-        if (khoa === 1) {
+      // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
+      if (khoa === 1) {
         quyenSelect.innerHTML = `
             <option value="GV">Giảng Viên</option>
             <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
             <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
-        } else {
+      } else {
         quyenSelect.innerHTML = `
             <option value="Duyệt">Duyệt</option>
             <option value="Thường">Thường</option>`;
-        }
-        const quyenValue = "<%= role.Quyen %>";
+      }
+      const quyenValue = "<%= role.Quyen %>";
 
-    // Đặt option có value khớp với role.Quyen là selected
-        const optionToSelect = quyenSelect.querySelector(`option[value="${quyenValue}"]`);
-        if (optionToSelect) {
+      // Đặt option có value khớp với role.Quyen là selected
+      const optionToSelect = quyenSelect.querySelector(`option[value="${quyenValue}"]`);
+      if (optionToSelect) {
         optionToSelect.selected = true;
-        }
+      }
     })
   </script>
 
@@ -380,16 +326,16 @@
     window.onload = function () {
       const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
       const Role = localStorage.getItem("userRole");
-  
+
       if (TenNhanVien) {
         // Hiển thị tên người dùng trên phần tử HTML
         document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
       } else {
         document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
       }
-  
+
       //document.querySelector('.role').innerText = `${Role}`;
-  
+
     };
   </script>
   <script>
@@ -409,26 +355,26 @@
               <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
               <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
           } else {
-              quyenSelect.innerHTML = `
+            quyenSelect.innerHTML = `
               <option value="Thường">Thường</option>
               <option value="Duyệt">Duyệt</option>`;
-            }
-            
           }
+
+        }
         )
         .catch(error => console.error('Error:', error));
-      }
+    }
   </script>
   <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
       if (tenDangNhap) {
-          // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-          window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
       } else {
-          alert("Không tìm thấy TenDangNhap trong localStorage.");
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
       }
     });
   </script>
@@ -436,74 +382,74 @@
     document.addEventListener("DOMContentLoaded", function () {
       const maPhongBan = document.getElementById("MaPhongBan").value;
       const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
-      
+
       fetch(`/getMaBoMon/${maPhongBan}`)
         .then(response => response.json())
         .then(data => {
           console.log(data); // In ra phản hồi để kiểm tra
           const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-          
+
           if (!maBoMonSelect) {
             console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
             return;
           }
-          
+
           maBoMonSelect.innerHTML = ''; // Xóa các option cũ
           let foundMatch = false;
-  
+
           // Kiểm tra success và dữ liệu maBoMon
           if (data.success && data.maBoMon) {
             data.maBoMon.forEach(item => {
               const option = document.createElement('option');
               option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
               option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-              
+
               // Kiểm tra nếu giá trị trùng với monGiangDayChinh
               if (item.MaBoMon === monGiangDayChinh) {
                 option.selected = true; // Đặt option thành selected nếu trùng
                 foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
               }
-              
+
               maBoMonSelect.appendChild(option); // Thêm option vào select
-  
-              
+
+
             });
           } else {
             console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
           }
-  
+
           // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
           if (!foundMatch) {
-                alert("Không tồn tại mã bộ môn vui lòng sửa lại");
-              }
-  
+            alert("Không tồn tại mã bộ môn vui lòng sửa lại");
+          }
+
         })
         .catch(error => console.error('Error:', error));
     });
   </script>
   <script>
-    function fetchBoMon(){
+    function fetchBoMon() {
       const maPhongBan = document.getElementById("MaPhongBan").value;
       fetch(`/getMaBoMon/${maPhongBan}`)
         .then(response => response.json())
         .then(data => {
           console.log(data); // In ra phản hồi để kiểm tra
           const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-          
+
           if (!maBoMonSelect) {
             console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
             return;
           }
-          
+
           maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-  
+
           // Kiểm tra success và dữ liệu maBoMon
           if (data.success && data.maBoMon) {
             data.maBoMon.forEach(item => {
               const option = document.createElement('option');
               option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
               option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-              
+
               maBoMonSelect.appendChild(option); // Thêm option vào select
             });
           } else {
@@ -523,14 +469,14 @@
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
 
-    if (isKhoa == 0) {
-          actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-          actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-          
+      if (isKhoa == 0) {
+        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+
       } else {
-          actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-          actionButton2.style.display = 'none'; // Ẩn actionButton2
-          
+        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+        actionButton2.style.display = 'none'; // Ẩn actionButton2
+
       }
       //Ẩn site duyệt lớp gk
       const Quyen = localStorage.getItem("userRole");
@@ -549,7 +495,7 @@
       const TenDangNhap = localStorage.getItem("TenDangNhap");
 
       let Role = localStorage.getItem("userRole");
-      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA'){
+      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
         Role = 'LĐK';
       }
 
@@ -557,7 +503,7 @@
         // Hiển thị tên người dùng trên phần tử HTML
         document.querySelector(
           ".fullname"
-        ).innerText = `${TenNhanVien} - ${Role}` ;
+        ).innerText = `${TenNhanVien} - ${Role}`;
       } else {
         document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
       }
@@ -610,31 +556,83 @@
   </script>
 
   <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
       if (tenDangNhap) {
-          // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-          window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
       } else {
-          alert("Không tìm thấy TenDangNhap trong localStorage.");
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
       }
     });
   </script>
   <script>
-    document.getElementById("infome").addEventListener("click", function(event) {
+    document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
       if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+        alert("Không tìm thấy id_User trong localStorage.");
       }
     });
   </script>
 
-</body>
-</html>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Lắng nghe sự kiện click trên nút có id là submitBtn
+      document.getElementById("submitBtn").addEventListener("click", function (event) {
+        event.preventDefault();  // Ngừng hành vi gửi form mặc định
 
+        const form = document.getElementById("formData");  // Lấy form theo id
+
+        // Kiểm tra xem form có tồn tại không
+        if (form) {
+          // Tạo đối tượng FormData từ form
+          const formData = new FormData(form);
+
+          // Chuyển FormData thành một đối tượng JSON để dễ đọc và xử lý
+          const formObject = {};
+          formData.forEach((value, key) => {
+            formObject[key] = value;
+          });
+
+          // Lấy id_User từ dữ liệu trong form
+          const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
+
+          if (id_User) {
+            // Sử dụng fetch để gửi dữ liệu đến server
+            fetch(`/infome/${id_User}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
+              },
+              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
+            })
+              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
+              .then(data => {
+                console.log("Dữ liệu phản hồi từ server:", data);
+                alert(data.message)
+                // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
+              })
+              .catch(error => {
+                console.error("Có lỗi xảy ra:", error);
+                // Xử lý lỗi nếu có
+              });
+          } else {
+            alert("Không tìm thấy id_User trong form.");
+          }
+        } else {
+          console.log("Không tìm thấy form với id 'infome'.");
+        }
+      });
+    });
+
+
+  </script>
+</body>
+
+</html>

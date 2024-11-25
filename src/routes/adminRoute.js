@@ -4,10 +4,13 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         getListNhanVien, getPhongBan, getListPhongBan, getUpdateNV, getViewNV, getUpdateTK, getthemTaiKhoan, postthemTK,
         getTenNhanVien, getQuyenByPhongBan, themBoMon, getNamHoc, getBoMonList, suggest,
         infome,
-        updateMe
+        updateMe,
+        getKyTuBD,
+        deleteKyTuBD, postKyTuBD,
+        updateKyTuBD
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
-        getchangePassword, updatePassword, postNamHoc, deleteNamHoc
+        getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList
         } = require('../controllers/admin');
 const { postUpdateNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
 router.get('/admin', (req, res) => {
@@ -68,7 +71,7 @@ router.get('/changePassword', getchangePassword);
 router.post('/changePassword',  updatePassword);
 
 //Năm học
-router.get('/namHoc', getNamHoc);
+router.get('/namHoc', getNamHocList);
 router.post('/namHoc', postNamHoc);
 router.delete('/namHoc/:NamHoc', deleteNamHoc);
 
@@ -83,4 +86,9 @@ router.get('/suggest/:query',  suggest);
 router.get('/infome/:id_User', infome);
 router.post('/infome/:id_User', updateMe);
 
+//Ký tự bắt đầu
+router.get('/kytubatdau', getKyTuBD);
+router.post('/kytubatdau', postKyTuBD);
+router.delete('/kytubatdau/:LopViDu', deleteKyTuBD);
+router.put('/kytubatdau/:LopViDu', updateKyTuBD); 
 module.exports = router;

@@ -31,7 +31,8 @@ const logRoute = require("./routes/logRoute");
 const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
 const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
-
+const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
+const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -89,7 +90,8 @@ app.use("/", xemCacLopGvmRoute);
 app.use("/", xemCacLopMoiRoute);
 app.use("/", vuotGioAddClassRoute);
 app.use("/", vuotGioExportRoute);
-
+app.use("/", vuotGioImportDoAnRoute);
+app.use("/", vuotGioSoTietDMRouter);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
@@ -98,17 +100,6 @@ app.listen(port, hostname, () => {
 // Phục vụ các file tĩnh từ thư mục node_modules
 app.use(express.static(path.join(__dirname, "../node_modules")));
 app.use(express.static(path.join(__dirname, "public/images")));
-
-// simple query
-// connection.query("SELECT * FROM `bomon`", function (err, results, fields) {
-//   // console.log("result = ", results); // results contains rows returned by server
-//   // console.log(fields); // fields contains extra meta data about results, if available
-//   // Chuyển đổi kết quả thành JSON
-//   // const jsonData = JSON.stringify(results);
-
-//   // // In ra dữ liệu dưới dạng JSON
-//   // console.log("Data in JSON format: ", jsonData);
-// });
 
 // == src of L ==
 app.set("view engine", "ejs");

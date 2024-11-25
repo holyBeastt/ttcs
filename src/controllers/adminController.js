@@ -19,7 +19,11 @@ const AdminController = {
   showThemPhongBan: (req, res) => {
     res.render("themPhongBan", { title: "Thêm Phòng Ban" });
   },
-  
+
+  showThemKyTuBD: (req, res) => {
+    res.render("themKyTuBD", { title: "Thêm Ký tự bắt đầu" });
+  },
+
   // phần thêm
   themNhanVien: async (req, res) => {
     const {
@@ -248,7 +252,7 @@ const AdminController = {
   getUpdateNV: async (req, res) => {
     let connection = await createPoolConnection();
     try {
-      const id_User = parseInt(req.params.id) + 1;
+      const id_User = parseInt(req.params.id);
 
       // Lấy dữ liệu nhân viên
       const query1 = "SELECT * FROM `nhanvien` WHERE id_User = ?";
@@ -540,7 +544,7 @@ const AdminController = {
 
       //Lấy tên môn học
       const query4 = "SELECT * FROM bomon WHERE MaBoMon = ?";
-      const [results4] = await connection.query(query4,[maBoMon]);
+      const [results4] = await connection.query(query4, [maBoMon]);
       let TenBoMon = results4 && results4.length > 0 ? results4[0] : {};;
 
       // Render trang với 2 biến: value và departmentLists
@@ -590,12 +594,12 @@ const AdminController = {
   getBoMonList: async (req, res) => {
     let maPhongBan = req.params.maPhongBan;
     console.log(maPhongBan);
-  
+
     let connection = await createPoolConnection();
     try {
       let results;
-        const query = `SELECT * FROM bomon WHERE MaPhongBan = ?`;
-        [results] = await connection.query(query, [maPhongBan]);
+      const query = `SELECT * FROM bomon WHERE MaPhongBan = ?`;
+      [results] = await connection.query(query, [maPhongBan]);
       res.json({
         success: true,
         maBoMon: results,
@@ -616,7 +620,7 @@ const AdminController = {
     } catch (error) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
       res.status(500).send("Lỗi server");
-    }finally{
+    } finally {
       if (connection) {
         connection.release();
       }
@@ -627,7 +631,7 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      
+
       const query1 = "SELECT * FROM `nhanvien` WHERE id_User = ?";
       const [results1] = await connection.query(query1, [id_User]);
       let user = results1 && results1.length > 0 ? results1[0] : {};
@@ -658,106 +662,257 @@ const AdminController = {
     } catch (error) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
       res.status(500).send("Lỗi server");
-    }finally{
+    } finally {
       if (connection) {
         connection.release();
       }
     }
   },
+  // updateMe: async (req, res) => {
+  //   // Lấy các thông tin từ form
+  //   let connection; // Khai báo biến connection
+
+  //   const {
+  //     TenNhanVien,
+  //     GioiTinh,
+  //     NgaySinh,
+  //     CCCD,
+  //     NgayCapCCCD,
+  //     NoiCapCCCD,
+  //     DiaChiHienNay,
+  //     DienThoai,
+  //     MaSoThue,
+  //     HocVi,
+  //     ChucVu,
+  //     SoTaiKhoan,
+  //     NganHang,
+  //     ChiNhanh,
+  //     MaPhongBan,
+  //     Id_User,
+  //     TenDangNhap,
+  //     Quyen,
+  //     HSL,
+  //   } = req.body;
+
+  //   const MaNhanVien = `${MaPhongBan}${Id_User}`;
+  //   try {
+  //     connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+  //     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
+  //     const query = `UPDATE nhanvien SET 
+  //       TenNhanVien = ?,
+  //       GioiTinh = ?,
+  //       NgaySinh = ?,
+  //       CCCD = ?,
+  //       NgayCapCCCD = ?,
+  //       NoiCapCCCD = ?,
+  //       DiaChiHienNay = ?,
+  //       DienThoai = ?,
+  //       MaSoThue = ?,
+  //       HocVi = ?,
+  //       ChucVu = ?,
+  //       SoTaiKhoan = ?,
+  //       NganHang = ?,
+  //       ChiNhanh = ?,
+  //       MaPhongBan = ?,
+  //       NoiCongTac = ?,
+  //       DiaChiCCCD = ?,
+  //       MonGiangDayChinh = ?,
+  //       CacMonLienQuan = ?,
+  //       MaNhanVien = ?,
+  //       HSL = ?
+  //       WHERE id_User = ?`;
+
+  //     const [updateResult] = await connection.query(query, [
+  //       TenNhanVien,
+  //       GioiTinh,
+  //       NgaySinh,
+  //       CCCD,
+  //       NgayCapCCCD,
+  //       NoiCapCCCD,
+  //       DiaChiHienNay,
+  //       DienThoai,
+  //       MaSoThue,
+  //       HocVi,
+  //       ChucVu,
+  //       SoTaiKhoan,
+  //       NganHang,
+  //       ChiNhanh,
+  //       MaPhongBan,
+  //       req.body.NoiCongTac, // Lấy từ req.body
+  //       req.body.DiaChiCCCD, // Lấy từ req.body
+  //       req.body.MonGiangDayChinh, // Lấy từ req.body
+  //       req.body.CacMonLienQuan, // Lấy từ req.body
+  //       MaNhanVien,
+  //       HSL,
+  //       Id_User,
+  //     ]);
+
+  //     // Cập nhật bảng role sau khi cập nhật nhân viên thành công
+  //     // const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
+  //     // const [roleUpdateResult] = await connection.query(queryRole, [
+  //     //   MaPhongBan,
+  //     //   Quyen,
+  //     //   TenDangNhap,
+  //     // ]);
+
+  //     console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
+  //     // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
+  //     res.status(200).json({
+  //       message: `Cập nhật thông tin thành công`,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error executing query: ", error);
+  //   } finally {
+  //     if (connection) connection.release(); // Giải phóng kết nối
+  //   }
+  // },
+
   updateMe: async (req, res) => {
     // Lấy các thông tin từ form
     let connection; // Khai báo biến connection
-  
+
     const {
       TenNhanVien,
-      GioiTinh,
       NgaySinh,
-      CCCD,
-      NgayCapCCCD,
-      NoiCapCCCD,
-      DiaChiHienNay,
-      DienThoai,
-      MaSoThue,
       HocVi,
       ChucVu,
-      SoTaiKhoan,
-      NganHang,
-      ChiNhanh,
-      MaPhongBan,
+      Luong,
       Id_User,
       TenDangNhap,
       Quyen,
       HSL,
     } = req.body;
-  
-    const MaNhanVien = `${MaPhongBan}${Id_User}`;
+
     try {
       connection = await createPoolConnection(); // Lấy kết nối từ pool
-  
+
       // Truy vấn để update dữ liệu vào cơ sở dữ liệu
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
-        GioiTinh = ?,
         NgaySinh = ?,
-        CCCD = ?,
-        NgayCapCCCD = ?,
-        NoiCapCCCD = ?,
-        DiaChiHienNay = ?,
-        DienThoai = ?,
-        MaSoThue = ?,
         HocVi = ?,
         ChucVu = ?,
-        SoTaiKhoan = ?,
-        NganHang = ?,
-        ChiNhanh = ?,
-        MaPhongBan = ?,
-        NoiCongTac = ?,
-        DiaChiCCCD = ?,
-        MonGiangDayChinh = ?,
-        CacMonLienQuan = ?,
-        MaNhanVien = ?,
-        HSL = ?
+        HSL = ?,
+        Luong = ?
         WHERE id_User = ?`;
-  
+
       const [updateResult] = await connection.query(query, [
         TenNhanVien,
-        GioiTinh,
         NgaySinh,
-        CCCD,
-        NgayCapCCCD,
-        NoiCapCCCD,
-        DiaChiHienNay,
-        DienThoai,
-        MaSoThue,
         HocVi,
         ChucVu,
-        SoTaiKhoan,
-        NganHang,
-        ChiNhanh,
-        MaPhongBan,
-        req.body.NoiCongTac, // Lấy từ req.body
-        req.body.DiaChiCCCD, // Lấy từ req.body
-        req.body.MonGiangDayChinh, // Lấy từ req.body
-        req.body.CacMonLienQuan, // Lấy từ req.body
-        MaNhanVien,
         HSL,
+        Luong,
         Id_User,
       ]);
-  
-      // Cập nhật bảng role sau khi cập nhật nhân viên thành công
-      // const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
-      // const [roleUpdateResult] = await connection.query(queryRole, [
-      //   MaPhongBan,
-      //   Quyen,
-      //   TenDangNhap,
-      // ]);
-  
-      console.log("Nhân viên đã được cập nhật:", updateResult);
+
+      console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
       // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
+      res.status(200).json({
+        message: `Cập nhật thông tin thành công`,
+      });
     } catch (error) {
       console.error("Error executing query: ", error);
     } finally {
       if (connection) connection.release(); // Giải phóng kết nối
+    }
+  },
+  getKyTuBD: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
+      res.render('vuotGioKyTuBD', { 
+        kyTuBD,
+        message: req.query.success ? 'Thêm mới thành công!' : null 
+      });
+    } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).send("Đã xảy ra lỗi");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  postKyTuBD: async (req, res) => {
+    const { LopViDu, vietTat } = req.body;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+
+      const insertQuery = `
+        INSERT INTO hedonghocphi (LopViDu, vietTat) 
+        VALUES (?, ?)
+      `;
+      await connection.execute(insertQuery, [LopViDu, vietTat]);
+      
+      res.redirect('/kytubatdau?success=true');
+    } catch (error) {
+      console.error("Lỗi khi thêm ký tự bắt đầu:", error);
+      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
+      res.render('vuotGioKyTuBD', { 
+        kyTuBD,
+        message: 'Có lỗi xảy ra khi thêm mới!' 
+      });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  deleteKyTuBD: async (req, res) => {
+    const LopViDu = req.params.LopViDu;
+    const connection = await createPoolConnection();
+    try {
+      const query = `DELETE FROM hedonghocphi WHERE LopViDu = ?`;
+      const [results] = await connection.query(query, [LopViDu]);
+    
+      if (results.affectedRows > 0) {
+        res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
+      } else {
+        res.status(404).json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa dữ liệu: ", error);
+      res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" }); // Thông báo lỗi
+    } finally {
+      if (connection) connection.release(); // Trả lại connection cho pool
+    }
+  },
+  updateKyTuBD: async (req, res) => {
+    const oldLopViDu = req.params.LopViDu;
+    const { LopViDu, VietTat } = req.body;
+    let connection;
+    
+    try {
+        connection = await createPoolConnection();
+        const query = `
+            UPDATE hedonghocphi 
+            SET LopViDu = ?, VietTat = ?
+            WHERE LopViDu = ?
+        `;
+        
+        const [result] = await connection.execute(query, [LopViDu, VietTat, oldLopViDu]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy bản ghi để cập nhật"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật thành công"
+        });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi cập nhật"
+        });
+    } finally {
+        if (connection) connection.release();
     }
   },
   // Other methods can be added here as needed...

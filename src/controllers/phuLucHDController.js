@@ -308,21 +308,21 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       };
 
       // Căn chỉnh độ rộng cột
-     // Định dạng độ rộng cột, bao gồm cột STT
-worksheet.getColumn(1).width = 5; // STT
-worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-worksheet.getColumn(3).width = 14; // Tên học phần
-worksheet.getColumn(4).width = 14; // Tên lớp
-worksheet.getColumn(5).width = 10; // Số tiết
-worksheet.getColumn(6).width = 16; // Thời gian thực hiện
-worksheet.getColumn(7).width = 6; // Học kỳ
-worksheet.getColumn(8).width = 16; // Địa Chỉ
-worksheet.getColumn(9).width = 6; // Học vị
-worksheet.getColumn(10).width = 7; // Hệ số lương
-worksheet.getColumn(11).width = 12; // Mức thanh toán
-worksheet.getColumn(12).width = 15; // Thành tiền
-worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-worksheet.getColumn(14).width = 15; // Còn lại
+      // Định dạng độ rộng cột, bao gồm cột STT
+      worksheet.getColumn(1).width = 5; // STT
+      worksheet.getColumn(2).width = 18; // Họ tên giảng viên
+      worksheet.getColumn(3).width = 14; // Tên học phần
+      worksheet.getColumn(4).width = 14; // Tên lớp
+      worksheet.getColumn(5).width = 10; // Số tiết
+      worksheet.getColumn(6).width = 16; // Thời gian thực hiện
+      worksheet.getColumn(7).width = 6; // Học kỳ
+      worksheet.getColumn(8).width = 16; // Địa Chỉ
+      worksheet.getColumn(9).width = 6; // Học vị
+      worksheet.getColumn(10).width = 7; // Hệ số lương
+      worksheet.getColumn(11).width = 12; // Mức thanh toán
+      worksheet.getColumn(12).width = 15; // Thành tiền
+      worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
+      worksheet.getColumn(14).width = 15; // Còn lại
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
@@ -354,12 +354,19 @@ worksheet.getColumn(14).width = 15; // Còn lại
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
         const thucNhan = soTien - truThue;
-        const thoiGianThucHien = `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(item.NgayKetThuc)}`;
-      
-         // Chuyển đổi Học kỳ sang số La Mã
-  const hocKyLaMa = convertToRoman(item.HocKy);
-  // Viết tắt Học vị
-  const hocViVietTat = item.HocVi === "Tiến sĩ" ? "TS" : item.HocVi === "Thạc sĩ" ? "ThS" : item.HocVi;
+        const thoiGianThucHien = `${formatDateDMY(
+          item.NgayBatDau
+        )} - ${formatDateDMY(item.NgayKetThuc)}`;
+
+        // Chuyển đổi Học kỳ sang số La Mã
+        const hocKyLaMa = convertToRoman(item.HocKy);
+        // Viết tắt Học vị
+        const hocViVietTat =
+          item.HocVi === "Tiến sĩ"
+            ? "TS"
+            : item.HocVi === "Thạc sĩ"
+            ? "ThS"
+            : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -377,8 +384,6 @@ worksheet.getColumn(14).width = 15; // Còn lại
           thucNhan,
         ]);
         row.font = { name: "Times New Roman", size: 13 };
-        
-    
 
         row.getCell(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
         row.getCell(13).numFmt = "#,##0"; // Còn lại
@@ -465,7 +470,7 @@ worksheet.getColumn(14).width = 15; // Còn lại
         totalTruThue,
         totalThucNhan,
       ]);
-      totalRow.font = { name: "Times New Roman", bold: true, size: 14};
+      totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
       totalRow.eachCell((cell) => {
         cell.alignment = { horizontal: "center", vertical: "middle" };
         cell.border = {
@@ -475,8 +480,6 @@ worksheet.getColumn(14).width = 15; // Còn lại
           right: { style: "thin" },
         };
       });
-
-
 
       // Gộp ô cho hàng tổng cộng
       worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number}`);
