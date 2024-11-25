@@ -32,6 +32,7 @@ const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
 const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
+const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -90,6 +91,7 @@ app.use("/", xemCacLopMoiRoute);
 app.use("/", vuotGioAddClassRoute);
 app.use("/", vuotGioExportRoute);
 app.use("/", vuotGioImportDoAnRoute);
+app.use("/", vuotGioSoTietDMRouter);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);

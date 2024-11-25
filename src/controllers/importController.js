@@ -1155,29 +1155,66 @@ const updateDateAll = async (req, res) => {
   let connection;
 
   try {
+    // Kiểm tra dữ liệu đầu vào
+    if (!jsonData || jsonData.length === 0) {
+      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
+    }
+
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    // Duyệt qua từng phần tử trong jsonData
-    for (let item of jsonData) {
-      const { ID, NgayBatDau, NgayKetThuc } = item;
+    // Giới hạn số lượng bản ghi mỗi batch (tránh quá tải)
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < jsonData.length; i += batchSize) {
+      batches.push(jsonData.slice(i, i + batchSize));
+    }
 
-      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-      const updateQuery = `
+    // Xử lý từng batch
+    for (const batch of batches) {
+      let updateQuery = `
         UPDATE ${tableName}
-        SET 
-          NgayBatDau = ?,
-          NgayKetThuc = ?
-        WHERE ID = ?
+        SET
+          NgayBatDau = CASE
+      `;
+      const updateValues = [];
+      const ids = [];
+
+      batch.forEach(({ ID, NgayBatDau, NgayKetThuc }) => {
+        // Chuẩn hóa dữ liệu
+        const validNgayBatDau = isNaN(new Date(NgayBatDau).getTime())
+          ? null
+          : NgayBatDau;
+        const validNgayKetThuc = isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc;
+
+        // Thêm logic cập nhật cho NgayBatDau
+        updateQuery += ` WHEN ID = ? THEN ? `;
+        updateValues.push(ID, validNgayBatDau);
+
+        // Thêm logic cập nhật cho NgayKetThuc
+        if (!ids.includes(ID)) ids.push(ID);
+      });
+
+      updateQuery += `
+        END, 
+        NgayKetThuc = CASE
       `;
 
-      const updateValues = [
-        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-        ID,
-      ];
-      //const updateValues = [NgayBatDau, NgayKetThuc, ID];
+      batch.forEach(({ ID, NgayKetThuc }) => {
+        const validNgayKetThuc = isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc;
+        updateQuery += ` WHEN ID = ? THEN ? `;
+        updateValues.push(ID, validNgayKetThuc);
+      });
 
+      // Hoàn thiện truy vấn
+      updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
+      updateValues.push(...ids);
+
+      // Thực hiện truy vấn cập nhật
       await connection.query(updateQuery, updateValues);
     }
 
@@ -1190,6 +1227,49 @@ const updateDateAll = async (req, res) => {
   }
 };
 
+// const updateDateAll = async (req, res) => {
+//   const tableName = process.env.DB_TABLE_QC;
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ createPoolConnection
+//     connection = await createPoolConnection();
+
+//     // Duyệt qua từng phần tử trong jsonData
+//     for (let item of jsonData) {
+//       const { ID, NgayBatDau, NgayKetThuc } = item;
+
+//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+//       const updateQuery = `
+//         UPDATE ${tableName}
+//         SET
+//           NgayBatDau = ?,
+//           NgayKetThuc = ?
+//         WHERE ID = ?
+//       `;
+
+//       const updateValues = [
+//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//         ID,
+//       ];
+//       //const updateValues = [NgayBatDau, NgayKetThuc, ID];
+
+//       await connection.query(updateQuery, updateValues);
+//     }
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
+// BACKUP KO ĐC XÓA
 const updateQC = async (req, res) => {
   const role = req.session.role;
   const duyet = process.env.DUYET;
@@ -1201,9 +1281,6 @@ const updateQC = async (req, res) => {
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
-
-    // Biến để lưu các ID đã hoàn thiện
-    let completedIDs = [];
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
@@ -1243,32 +1320,28 @@ const updateQC = async (req, res) => {
         }
       }
 
-      // Truy vấn kiểm tra nếu bản ghi đã được duyệt đầy đủ
-      //const approvalQuery = `SELECT KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet FROM ${tableName} WHERE ID = ?`;
-      //const approvalResult = await connection.query(approvalQuery, [ID]);
-
       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
       const updateQuery = `
         UPDATE ${tableName}
-        SET 
-          Khoa = ?, 
-          Dot = ?, 
-          KiHoc = ?, 
-          NamHoc = ?, 
-          GiaoVien = ?, 
-          GiaoVienGiangDay = ?, 
-          MoiGiang = ?, 
-          SoTinChi = ?, 
-          MaHocPhan = ?, 
-          LopHocPhan = ?, 
-          TenLop = ?, 
-          BoMon = ?, 
-          LL = ?, 
-          SoTietCTDT = ?, 
-          HeSoT7CN = ?, 
-          SoSinhVien = ?, 
-          HeSoLopDong = ?, 
-          QuyChuan = ?, 
+        SET
+          Khoa = ?,
+          Dot = ?,
+          KiHoc = ?,
+          NamHoc = ?,
+          GiaoVien = ?,
+          GiaoVienGiangDay = ?,
+          MoiGiang = ?,
+          SoTinChi = ?,
+          MaHocPhan = ?,
+          LopHocPhan = ?,
+          TenLop = ?,
+          BoMon = ?,
+          LL = ?,
+          SoTietCTDT = ?,
+          HeSoT7CN = ?,
+          SoSinhVien = ?,
+          HeSoLopDong = ?,
+          QuyChuan = ?,
           GhiChu = ?,
           KhoaDuyet = ?,
           DaoTaoDuyet = ?,
@@ -1317,6 +1390,137 @@ const updateQC = async (req, res) => {
     if (connection) connection.release(); // Trả kết nối về pool
   }
 };
+
+// const updateQC = async (req, res) => {
+//   const { role } = req.session;
+//   const tableName = process.env.DB_TABLE_QC;
+//   const jsonData = req.body;
+
+//   if (!Array.isArray(jsonData) || jsonData.length === 0) {
+//     return res.status(400).json({ message: "Dữ liệu không hợp lệ hoặc rỗng." });
+//   }
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ pool
+//     connection = await createPoolConnection();
+
+//     // Kiểm tra toàn bộ dữ liệu trước khi cập nhật
+//     for (let item of jsonData) {
+//       const { LopHocPhan, TenLop, GiaoVienGiangDay, KhoaDuyet } = item;
+
+//       if (
+//         KhoaDuyet == 1 &&
+//         (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0)
+//       ) {
+//         return res.status(400).json({
+//           message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên.`,
+//         });
+//       }
+//     }
+
+//     // Thực hiện cập nhật đồng thời tất cả bản ghi
+//     const updatePromises = jsonData.map((item) => {
+//       const {
+//         ID,
+//         Khoa,
+//         Dot,
+//         KiHoc,
+//         NamHoc,
+//         GiaoVien,
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         SoTinChi,
+//         MaHocPhan,
+//         LopHocPhan,
+//         TenLop,
+//         BoMon,
+//         LL,
+//         SoTietCTDT,
+//         HeSoT7CN,
+//         SoSinhVien,
+//         HeSoLopDong,
+//         QuyChuan,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
+//         NgayBatDau,
+//         NgayKetThuc,
+//       } = item;
+
+//       const updateQuery = `
+//         UPDATE ${tableName}
+//         SET
+//           Khoa = ?,
+//           Dot = ?,
+//           KiHoc = ?,
+//           NamHoc = ?,
+//           GiaoVien = ?,
+//           GiaoVienGiangDay = ?,
+//           MoiGiang = ?,
+//           SoTinChi = ?,
+//           MaHocPhan = ?,
+//           LopHocPhan = ?,
+//           TenLop = ?,
+//           BoMon = ?,
+//           LL = ?,
+//           SoTietCTDT = ?,
+//           HeSoT7CN = ?,
+//           SoSinhVien = ?,
+//           HeSoLopDong = ?,
+//           QuyChuan = ?,
+//           GhiChu = ?,
+//           KhoaDuyet = ?,
+//           DaoTaoDuyet = ?,
+//           TaiChinhDuyet = ?,
+//           NgayBatDau = ?,
+//           NgayKetThuc = ?
+//         WHERE ID = ?
+//       `;
+
+//       const updateValues = [
+//         Khoa,
+//         Dot,
+//         KiHoc,
+//         NamHoc,
+//         GiaoVien,
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         SoTinChi,
+//         MaHocPhan,
+//         LopHocPhan,
+//         TenLop,
+//         BoMon,
+//         LL,
+//         SoTietCTDT,
+//         HeSoT7CN,
+//         SoSinhVien,
+//         HeSoLopDong,
+//         QuyChuan,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
+//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//         ID,
+//       ];
+
+//       return connection.query(updateQuery, updateValues);
+//     });
+
+//     await Promise.all(updatePromises);
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error.message);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu." });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
 
 const capNhatTen_BoMon = async (req, res) => {
   // console.log("Đang xử lý yêu cầu cập nhật...");
