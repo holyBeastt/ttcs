@@ -183,7 +183,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -241,7 +241,7 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -344,7 +344,7 @@
           } else {
             actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
             actionButton2.style.display = 'none'; // Ẩn actionButton2
-            if (Quyen.toLowerCase() == 'gv'){
+            if (Quyen.toLowerCase() == 'gv') {
               actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
             }
           }
@@ -415,10 +415,10 @@
               SoSinhVien: "Số sinh viên",
               HeSoLopDong: "Hệ số lớp đông",
               QuyChuan: "Quy chuẩn",
-              GhiChu: "Ghi chú",
+              // GhiChu: "Ghi chú", // Bỏ qua key GhiChu
             };
 
-            const headers = Object.keys(data[0]);
+            const headers = Object.keys(data[0]).filter(header => header !== "GhiChu"); // Loại bỏ "GhiChu"
             headers.forEach((header) => {
               const newHeaderName = headersMap[header] || header;
               tableHtml += `<th>${newHeaderName}</th>`;
@@ -829,14 +829,14 @@
       });
   </script>
   <script>
-    document.getElementById("infome").addEventListener("click", function(event) {
+    document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
       if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+        alert("Không tìm thấy id_User trong localStorage.");
       }
     });
   </script>
