@@ -175,83 +175,90 @@
         <div class="col-md-4 input-wrapper">
           <label for="NgaySinh" class="form-label">Ngày Sinh</label>
           <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(user.NgaySinh.getTime() - (new Date().getTimezoneOffset() * 60000))
-           .toISOString().split('T')[0] %>" readonly>
+           .toISOString().split('T')[0] %>">
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="HocVi" class="form-label">Học Vị*</label>
-          <input type="text" class="form-control" id="HocVi" name="HocVi" value="<%= user.HocVi %>">
+          <label for="HocVi" class="form-label">Học Hàm/Học Vị</label>
+          <select class="form-control" name="HocVi" id="HocVi">
+            <option value="Cử nhân" <%= user.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+            <option value="Kỹ sư" <%= user.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+            <option value="Thạc sĩ" <%= user.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+            <option value="Tiến sĩ" <%= user.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+            <option value="Phó giáo sư. Tiến sĩ" <%= user.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
+            <option value="Giáo sư. Tiến sĩ" <%= user.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
+          </select>        
+          <!-- <input type="text" class="form-control" id="HocVi" name="HocVi" value="<%= user.HocVi %>"> -->
         </div>
       </div>
-      <div class="row mb-3">
+      <!-- <div class="row mb-3">
         <div class="col-md-4 input-wrapper">
-          <label for="CCCD" class="form-label">CCCD*</label>
+          <label for="CCCD" class="form-label">CCCD</label>
           <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= user.CCCD %>">
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD*</label>
+          <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
           <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD"
             value="<%= new Date((user.NgayCapCCCD).getTime() + 7 * 60 * 60 * 1000).toISOString().split('T')[0] %>">
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD*</label>
+          <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
           <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" value="<%= user.NoiCapCCCD %>">
         </div>
       </div>
       <div class="row mb-3">
         <div class="col-md-4 input-wrapper">
           <label for="gioitinh">Giới tính</label>
-          <!-- <select class="form-control" name="GioiTinh" id="gioitinh" >
-                  <option value="Nam" <%= user.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
-                  <option value="Nữ" <%= user.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
-              </select> -->
           <input class="form-control text-center" type="text" name="GioiTinh" id="gioitinh" value="<%= user.GioiTinh%>"
             readonly>
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="DienThoai" class="form-label">Điện Thoại*</label>
+          <label for="DienThoai" class="form-label">Điện Thoại</label>
           <input type="tel" class="form-control" id="DienThoai" name="DienThoai" value="<%= user.DienThoai %>">
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD*</label>
+          <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD</label>
           <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" value="<%= user.DiaChiCCCD %>">
         </div>
-      </div>
+      </div> -->
       <div class="row mb-3">
         <div class="col-md-4 input-wrapper">
-          <label for="ChucVu" class="form-label">Chức Vụ*</label>
+          <label for="ChucVu" class="form-label">Chức Vụ</label>
           <input type="text" class="form-control text-center" id="ChucVu" name="ChucVu" value="<%= user.ChucVu %>"
             required>
         </div>
         <div class="col-md-4 input-wrapper d-flex justify-content-between">
-          <div>
+          <!-- <div>
             <label for="MaPhongBan" class="form-label">Mã Phòng Ban*</label>
             <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
-              <!-- Option đầu tiên là giá trị hiện tại của role.MaPhongBan -->
               <option value="<%= role.MaPhongBan %>">
                 <%= role.MaPhongBan %>
               </option>
               <% departmentLists.forEach(function(department) { %>
                 <% if (department.MaPhongBan !==role.MaPhongBan) { %>
-                  <!-- Chỉ thêm các giá trị khác với role.MaPhongBan -->
                   <option value="<%= department.MaPhongBan %>">
                     <%= department.MaPhongBan %>
                   </option>
                   <% } %>
                     <% }); %>
             </select>
-          </div>
+          </div> -->
           <div class="">
             <label for="HSL" class="form-label">Hệ số lương*</label>
             <input type="text" class="form-control text-center" id="HSL" name="HSL" value="<%= user.HSL %>" required>
           </div>
         </div>
         <div class="col-md-4 input-wrapper">
+          <label for="Luong" class="form-label">Lương</label>
+          <input type="text" class="form-control" id="Luong" name="Luong"
+            value="<%= user.Luong %>">
+        </div>
+        <!-- <div class="col-md-4 input-wrapper">
           <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
           <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay"
             value="<%= user.DiaChiHienNay %>">
-        </div>
+        </div> -->
       </div>
-      <div class="row mb-3">
+      <!-- <div class="row mb-3">
         <div class="col-md-4 input-wrapper">
           <label for="SoTaiKhoan" class="form-label">Số Tài Khoản*</label>
           <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" value="<%= user.SoTaiKhoan %>">
@@ -281,10 +288,9 @@
           <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan"
             value="<%= user.CacMonLienQuan %>">
         </div>
-      </div>
+      </div> -->
       <button type="submit" class="btn" id="submitBtn">Cập nhật</button>
       <button class="btn mx-5" type="button" onclick="window.history.back()">Trở về</button>
-      <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin có thể thay đổi.</h6>
     </form>
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -562,7 +568,7 @@
       }
     });
   </script>
-  <!-- <script>
+  <script>
     document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
@@ -573,7 +579,7 @@
         alert("Không tìm thấy id_User trong localStorage.");
       }
     });
-  </script> -->
+  </script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {

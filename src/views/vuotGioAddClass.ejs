@@ -287,43 +287,6 @@
                 </div>
               </div>
         
-              <!-- Phần tìm kiếm xuống dưới -->
-              <div class="d-flex my-3" style="height: 70px;">
-                <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
-                  style="width: 200px;" />
-                <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
-                  style="width: 200px;" />
-              </div>
-              <script>
-                function filterTable() {
-                  const nameFilter = document.getElementById('filterName').value.toLowerCase();
-                  const classFilter = document.getElementById('filterClass').value.toLowerCase();
-                  const tableRows = document.querySelectorAll('#tableBody tr');
-        
-                  tableRows.forEach(row => {
-                    const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-                    const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-        
-                    const name = nameCell ? nameCell.textContent.toLowerCase() : '';
-                    const className = classCell ? classCell.textContent.toLowerCase() : '';
-        
-                    // Kiểm tra điều kiện lọc
-                    const matchesName = name.includes(nameFilter);
-                    const matchesClass = className.includes(classFilter);
-        
-                    // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-                    if (matchesName && matchesClass) {
-                      row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
-                    } else {
-                      row.style.display = 'none'; // Ẩn hàng nếu không khớp
-                    }
-                  });
-                }
-        
-                // Gán sự kiện cho các input filter
-                document.getElementById('filterName').addEventListener('input', filterTable);
-                document.getElementById('filterClass').addEventListener('input', filterTable);
-              </script>
         
               <div id="renderInfo">
                 <table class=" text-center" style="width: 100%;">

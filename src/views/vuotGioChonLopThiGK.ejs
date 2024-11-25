@@ -611,8 +611,10 @@
     try {
       if (Typeclass === "Lớp giảng dạy chính" ) {
         MoiGiang = 0;
+        document.getElementById('filterName').style.display = "none";
       } else {
         MoiGiang = 1;
+        document.getElementById('filterName').style.display = "";
       }
       const response = await fetch(`/getLopGiuaKi/${MaPhongBan}/${Dot}/${Ki}/${Nam}/${MoiGiang}`, {
         method: 'GET', // Gửi yêu cầu GET

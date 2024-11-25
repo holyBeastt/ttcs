@@ -394,7 +394,6 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
         if (MaPhongBan ==="DAOTAO" || MaPhongBan === "TAICHINH") {
             const query = `SELECT * FROM lopngoaiquychuan WHERE HocKy = ? AND NamHoc = ?`;
             const [rows] = await connection.query(query, [ Ki, Nam]);
-            console.log(rows)
             res.json({
                 success: true,
                 maBoMon: rows,
@@ -402,7 +401,6 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
         } else {
             const query = `SELECT * FROM lopngoaiquychuan WHERE MaPhongBan = ? AND HocKy = ? AND NamHoc = ?`;
             const [rows] = await connection.query(query, [MaPhongBan, Ki, Nam]);
-            console.log(rows)
             res.json({
                 success: true,
                 maBoMon: rows,
