@@ -179,7 +179,12 @@
         <label for="fileInput" class="btn btn-primary">
             Chọn File PDF
         </label>
-        <input type="file" id="fileInput" accept=".pdf, .docx, .xlsx" style="display: none;" />
+        <input type="file" id="fileInput" accept=".pdf, .docx" style="display: none;" />
+
+        <!-- Combo box kì -->
+        <select class="selectop mx-1" id="combobox-ki">
+          <option value="">Kỳ</option>
+        </select>
 
         <!-- Combo box Năm -->
         <select class="selectop mx-1" id="NamHoc">
@@ -306,9 +311,10 @@
   // Lưu dữ liệu
   document.getElementById("import").addEventListener("click", function(){ 
     const namHoc = document.getElementById("NamHoc").value;
+    const Ki = document.getElementById("combobox-ki").value;
     debugger
     // Gửi file qua API
-    fetch(`/postSaveDataDoAn?namHoc=${encodeURIComponent(namHoc)}`, {
+    fetch(`/postSaveDataDoAn?Ki=${encodeURIComponent(Ki)}&namHoc=${encodeURIComponent(namHoc)}`, {
       method: "GET",
     })
       .then((response) => {
