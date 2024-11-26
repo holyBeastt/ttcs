@@ -293,17 +293,17 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
       worksheet.pageSetup = {
         paperSize: 9, // A4 paper size
-        orientation: "portait",
+        orientation: "landscape",
         fitToPage: true, // Fit to page
         fitToWidth: 1, // Fit to width
         fitToHeight: 0, // Do not fit to height
         margins: {
-          left: 0.196850393700787,
-          right: 0.196850393700787,
-          top: 0.393700787401575,
-          bottom: 0.393700787401575,
-          header:0.196850393700787,
-          footer:0.196850393700787,
+          left: 0.3149,
+          right: 0.3149,
+          top: 0,
+          bottom: 0,
+          header: 0.3149,
+          footer: 0.3149,
         },
       };
 

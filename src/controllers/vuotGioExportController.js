@@ -174,6 +174,21 @@ function sanitizeFileName(fileName) {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Dữ liệu vượt giờ");
 
+        worksheet.pageSetup = {
+          paperSize: 9, // A4 paper size
+          orientation: "portait",
+          fitToPage: true, // Fit to page
+          fitToWidth: 1, // Fit to width
+          fitToHeight: 0, // Do not fit to height
+          margins: {
+            left: 0.196850393700787,
+            right: 0.196850393700787,
+            top: 0.393700787401575,
+            bottom: 0.393700787401575,
+            header:0.196850393700787,
+            footer:0.196850393700787,
+          },
+        };
         // Thêm tiêu đề cột
         worksheet.columns = [
             { header: "Tên Giảng Viên", key: "teacherName", width: 30 },
