@@ -279,9 +279,10 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
 
               </div>
@@ -359,7 +360,7 @@
           </select>
 
           <!-- Combo box Đợt -->
-          <select class="form-select w-100px mx-1 selectop custom-select" id="combobox-ki">
+          <select class="form-select w-100px mx-1 selectop custom-select" id="comboboxki">
             <option value="">Kì</option>
           </select>
 
@@ -622,7 +623,7 @@
       try {
         // Lấy giá trị từ các combobox
         const dotValue = document.getElementById("combobox-dot").value;
-        const kiValue = document.getElementById("combobox-ki").value;
+        const kiValue = document.getElementById("comboboxki").value;
         const namValue = document.getElementById("NamHoc").value;
 
         // Tạo đối tượng dữ liệu để gửi
@@ -953,7 +954,7 @@
 
       // Lấy giá trị từ các combo box
       const dot = document.getElementById('combobox-dot').value;  // Giá trị từ combo box Đợt
-      const ki = document.getElementById('combobox-ki').value;    // Giá trị từ combo box Kì
+      const ki = document.getElementById('comboboxki').value;    // Giá trị từ combo box Kì
       const namHoc = document.getElementById('NamHoc').value;      // Giá trị từ combo box Năm học
 
       // Tạo đối tượng chứa dữ liệu cần gửi
@@ -1595,7 +1596,7 @@
   <script>
     $(document).ready(function () {
       $('#NamHoc option[value=""]').remove();
-      $('#combobox-ki option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
       $('#combobox-dot option[value=""]').remove();
 
       $.ajax({
@@ -1613,7 +1614,7 @@
 
             response.Ki.forEach(function (item) {
               console.log(item.Ki);
-              $('#combobox-ki').append(
+              $('#comboboxki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });

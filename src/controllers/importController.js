@@ -119,7 +119,12 @@ const convertWordToJSON = async (filePath) => {
       const headers =
         rows[0]["w:tc"]?.map((cell) => {
           const cellText = (cell["w:p"] || [])
-            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .map((p) =>
+              (p["w:r"] || [])
+                .map((r) => r["w:t"])
+                .flat()
+                .join("")
+            )
             .join(" ");
           return cellText.trim();
         }) || [];
@@ -135,7 +140,12 @@ const convertWordToJSON = async (filePath) => {
         // Lấy dữ liệu văn bản của từng ô trong hàng này
         const rowData = cells.map((cell) => {
           const cellText = (cell["w:p"] || [])
-            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .map((p) =>
+              (p["w:r"] || [])
+                .map((r) => r["w:t"])
+                .flat()
+                .join("")
+            )
             .join(" ");
           return cellText.trim();
         });
@@ -268,7 +278,7 @@ function tachLopHocPhan(chuoi) {
   };
 }
 
-// gộp lớp 
+// gộp lớp
 function mergeClasses(jsonData) {
   // Sắp xếp danh sách lớp theo TenLop
   jsonData.sort((a, b) => a.TenLop.localeCompare(b.TenLop));
@@ -284,12 +294,18 @@ function mergeClasses(jsonData) {
     const currentClass = jsonData[i].TenLop;
 
     // Kiểm tra xem lớp hiện tại có cùng phần đầu với lớp đang gộp không
-    const prefixCurrent = currentClass.substring(0, currentGroup.lastIndexOf('.') + 1);
-    const prefixMerged = currentGroup.substring(0, currentGroup.lastIndexOf('.') + 1);
+    const prefixCurrent = currentClass.substring(
+      0,
+      currentGroup.lastIndexOf(".") + 1
+    );
+    const prefixMerged = currentGroup.substring(
+      0,
+      currentGroup.lastIndexOf(".") + 1
+    );
 
     if (prefixCurrent === prefixMerged) {
       // Nếu có, tiếp tục với lớp hiện tại
-      currentGroup = prefixMerged + currentClass.split('.').pop(); // Giữ lại phần đuôi của lớp
+      currentGroup = prefixMerged + currentClass.split(".").pop(); // Giữ lại phần đuôi của lớp
     } else {
       // Nếu không có, thêm lớp đã gộp vào danh sách
       mergedClasses.push({ TenLop: currentGroup });
@@ -301,8 +317,8 @@ function mergeClasses(jsonData) {
   mergedClasses.push({ TenLop: currentGroup });
 
   // Cập nhật lại jsonData với các lớp đã gộp
-  jsonData.length = 0;  // Xóa toàn bộ phần tử trong jsonData
-  mergedClasses.forEach(item => jsonData.push(item)); // Thêm các lớp đã gộp vào jsonData
+  jsonData.length = 0; // Xóa toàn bộ phần tử trong jsonData
+  mergedClasses.forEach((item) => jsonData.push(item)); // Thêm các lớp đã gộp vào jsonData
 
   return jsonData; // Trả về jsonData đã được gộp
 }
@@ -320,8 +336,6 @@ function mergeClasses(jsonData) {
 //     const gvmKeyword3 = "GVMời"; // Từ khóa cho giảng viên mời
 //     const gvmKeyword4 = "GVM"; // Từ khóa cho giảng viên mời
 
-
-
 //     // Nếu chuỗi đầu vào rỗng, trả về giá trị mặc định
 //     if (!giaoVienInput || giaoVienInput.trim() === "") {
 //       return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
@@ -333,7 +347,6 @@ function mergeClasses(jsonData) {
 //       giaoVienInput.toLowerCase().includes(gvmKeyword2.toLowerCase()) ||
 //       giaoVienInput.toLowerCase().includes(gvmKeyword3.toLowerCase()) ||
 //       giaoVienInput.toLowerCase().includes(gvmKeyword4.toLowerCase());
-
 
 //     // Nếu có giảng viên mời, trả về giá trị mặc định
 //     if (isGuestLecturer) {
@@ -402,13 +415,16 @@ function tachGiaoVien(giaoVienInput) {
   const guestLecturerKeywords = ["gvm", "gvmời", "giảng viên mời"];
 
   // Tách các tên giảng viên, chỉ lấy tên đầu tiên
-  const lecturers = giaoVienInput.split(/[,;]\s*/).map(name => name.trim()).filter(name => name.length > 0);
+  const lecturers = giaoVienInput
+    .split(/[,;]\s*/)
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
 
   // Lấy tên giảng viên đầu tiên
   const firstLecturer = lecturers[0];
 
   // Kiểm tra tên đầu tiên có chứa giảng viên mời không
-  const isGuestLecturer = guestLecturerKeywords.some(keyword =>
+  const isGuestLecturer = guestLecturerKeywords.some((keyword) =>
     firstLecturer.toLowerCase().includes(keyword.toLowerCase())
   );
 
@@ -483,7 +499,6 @@ const tongHopDuLieuGiangVien = async () => {
     connection.release(); // Giải phóng kết nối sau khi hoàn thành
   }
 };
-
 
 const validateKhoa = (khoa) => {
   // Chuyển giá trị của khoa thành chữ viết hoa để tránh nhầm lẫn với chữ thường
@@ -663,14 +678,14 @@ const updateBanHanh = async (req, res) => {
 //       Dot,
 //       Ki,
 //       Nam,
-//       GiaoVien, 
-//       SoTinChi, 
-//       LopHocPhan, 
-//       LL, 
-//       SoTietCTDT, 
-//       HeSoT7CN, 
-//       SoSinhVien, 
-//       HeSoLopDong, 
+//       GiaoVien,
+//       SoTinChi,
+//       LopHocPhan,
+//       LL,
+//       SoTietCTDT,
+//       HeSoT7CN,
+//       SoSinhVien,
+//       HeSoLopDong,
 //       QuyChuan
 //     ) VALUES ?
 //   `;
@@ -740,7 +755,8 @@ const importTableTam = async (jsonData) => {
     item["Lớp học phần"],
     item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"],
     item["Số tiết theo CTĐT"],
-    item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+    item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
     item["Số SV"],
     item["Hệ số lớp đông"],
     item["QC"],
@@ -759,9 +775,6 @@ const importTableTam = async (jsonData) => {
     connection.release(); // Giải phóng kết nối
   }
 };
-
-
-
 
 const getIdUserByTeacherName = async (teacherName) => {
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
@@ -932,7 +945,6 @@ const handleUploadAndRender = async (req, res) => {
     // const fileExtension = path.extname(req.file.filename).toLowerCase(); // Lấy đuôi file
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
-
     let result;
 
     // console.log(fileExtension)
@@ -949,7 +961,7 @@ const handleUploadAndRender = async (req, res) => {
       return res.status(400).send({ error: "Không đúng định dạng" });
     }
 
-    console.log('Convert file quy chuẩn thành công!');
+    console.log("Convert file quy chuẩn thành công!");
     // Gửi kết quả cho client
     res.send(result);
 
@@ -962,7 +974,6 @@ const handleUploadAndRender = async (req, res) => {
     res.status(500).send({ error: "Internal server error" });
   }
 };
-
 
 const checkFile = async (req, res) => {
   console.log("Thực hiện kiểm tra dữ liệu trong bảng Tam");
@@ -1421,7 +1432,130 @@ const updateDateAll = async (req, res) => {
 // };
 
 // BACKUP KO ĐC XÓA
+// back up t cũng xóa
+// const updateQC = async (req, res) => {
+//   const role = req.session.role;
+//   const duyet = process.env.DUYET;
+//   const tableName = process.env.DB_TABLE_QC;
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ createPoolConnection
+//     connection = await createPoolConnection();
+
+//     // Duyệt qua từng phần tử trong jsonData
+//     for (let item of jsonData) {
+//       const {
+//         ID,
+//         Khoa,
+//         Dot,
+//         KiHoc,
+//         NamHoc,
+//         GiaoVien,
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         SoTinChi,
+//         MaHocPhan,
+//         LopHocPhan,
+//         TenLop,
+//         BoMon,
+//         LL,
+//         SoTietCTDT,
+//         HeSoT7CN,
+//         SoSinhVien,
+//         HeSoLopDong,
+//         QuyChuan,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
+//         NgayBatDau,
+//         NgayKetThuc,
+//       } = item;
+
+//       if (KhoaDuyet == 1) {
+//         if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
+//           return res.status(200).json({
+//             message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên`,
+//           });
+//         }
+//       }
+
+//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+//       const updateQuery = `
+//         UPDATE ${tableName}
+//         SET
+//           Khoa = ?,
+//           Dot = ?,
+//           KiHoc = ?,
+//           NamHoc = ?,
+//           GiaoVien = ?,
+//           GiaoVienGiangDay = ?,
+//           MoiGiang = ?,
+//           SoTinChi = ?,
+//           MaHocPhan = ?,
+//           LopHocPhan = ?,
+//           TenLop = ?,
+//           BoMon = ?,
+//           LL = ?,
+//           SoTietCTDT = ?,
+//           HeSoT7CN = ?,
+//           SoSinhVien = ?,
+//           HeSoLopDong = ?,
+//           QuyChuan = ?,
+//           GhiChu = ?,
+//           KhoaDuyet = ?,
+//           DaoTaoDuyet = ?,
+//           TaiChinhDuyet = ?,
+//           NgayBatDau = ?,
+//           NgayKetThuc = ?
+//         WHERE ID = ?
+//       `;
+
+//       const updateValues = [
+//         Khoa,
+//         Dot,
+//         KiHoc,
+//         NamHoc,
+//         GiaoVien,
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         SoTinChi,
+//         MaHocPhan,
+//         LopHocPhan,
+//         TenLop,
+//         BoMon,
+//         LL,
+//         SoTietCTDT,
+//         HeSoT7CN,
+//         SoSinhVien,
+//         HeSoLopDong,
+//         QuyChuan,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
+//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//         ID,
+//       ];
+
+//       await connection.query(updateQuery, updateValues);
+//     }
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
 const updateQC = async (req, res) => {
+  const maPhongBan = req.session.MaPhongBan;
   const role = req.session.role;
   const duyet = process.env.DUYET;
   const tableName = process.env.DB_TABLE_QC;
@@ -1430,7 +1564,10 @@ const updateQC = async (req, res) => {
   let connection;
 
   try {
-    // Lấy kết nối từ createPoolConnection
+    if (!jsonData || jsonData.length === 0) {
+      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
+    }
+
     connection = await createPoolConnection();
 
     // Duyệt qua từng phần tử trong jsonData
@@ -1533,14 +1670,22 @@ const updateQC = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     }
 
+    console.log(`${role} ${maPhongBan} vừa cập nhật bảng quy chuẩn!`);
     res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
   } finally {
-    if (connection) connection.release(); // Trả kết nối về pool
+    if (connection) connection.release();
   }
 };
+
+// Hàm kiểm tra ngày hợp lệ
+function isValidDate(dateString) {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
 
 // const updateQC = async (req, res) => {
 //   const { role } = req.session;

@@ -143,7 +143,7 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Mời Giảng
               </a>
@@ -153,7 +153,7 @@
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
                 <a class="nav-link '" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <li class="nav-item"></li>
-                <a class="nav-link active" href="/phulucHD">Phụ lục hợp đồng</a>
+                <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
 
@@ -167,10 +167,9 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
 
               </div>
@@ -194,7 +193,8 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="/importDoAn">Import Đồ Án</a>
+                <a class="nav-link active" id="" href="/exportDoAn">Export Đồ Án</a>
               </div>
             </div>
           </div>
@@ -240,7 +240,7 @@
   <div class="container mt-4">
     <div class="col-12">
       <!-- Tiêu đề -->
-      <h2 class="text-center mb-4">Phụ Lục Hợp Đồng Giảng Viên</h2>
+      <h2 class="text-center mb-4">Hợp đồng đồ án giảng viên mời</h2>
 
       <!-- Container chính -->
       <div class="controls-container d-flex align-items-center">
@@ -249,7 +249,7 @@
           <option value="2">Đợt 2</option>
         </select>
 
-        <select class="form-select w-100px mx-2 selectop" id="comboboxki">
+        <select class="form-select w-100px mx-2 selectop" id="combobox-ki">
           <option value="1">Kỳ 1</option>
           <option value="2">Kỳ 2</option>
         </select>
@@ -268,7 +268,7 @@
           <!-- Nút xuất dữ liệu với style được cải thiện -->
           <button id="exportButton" class="btn btn-primary btn-lg hover-shadow">
             <i class="fas fa-file-export me-2"></i>
-            Xuất dữ liệu phụ lục giảng viên mời
+            Xuất dữ liệu hợp đồng đồ án giảng viên mời
           </button>
         </div>
 
@@ -280,7 +280,7 @@
   <script>
     document.getElementById('exportButton').addEventListener('click', function() {
         const dot = document.getElementById("combobox-dot").value;
-        const ki = document.getElementById("comboboxki").value;
+        const ki = document.getElementById("combobox-ki").value;
         const namHoc = document.getElementById("NamHoc").value;
         const khoa = document.getElementById("MaPhongBan").value;
         const teacherName = document.getElementById("search-teacher").value;
@@ -291,7 +291,7 @@
         }
 
         // Tạo URL với các tham số
-        let url = `/api/export-phu-luc-giang-vien-moi?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
+        let url = `/api/export-hop-dong-do-an-gvm?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
 
         if (khoa) {
             url += `&khoa=${encodeURIComponent(khoa)}`;
@@ -481,7 +481,7 @@
   <script>
     $(document).ready(function () {
       $('#NamHoc option[value=""]').remove();
-      $('#comboboxki option[value=""]').remove();
+      $('#combobox-ki option[value=""]').remove();
       $('#combobox-dot option[value=""]').remove();
 
       $.ajax({
@@ -499,7 +499,7 @@
 
             response.Ki.forEach(function (item) {
               console.log(item.Ki);
-              $('#comboboxki').append(
+              $('#combobox-ki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });
@@ -659,10 +659,7 @@
     function hideSuggestionsGvm() {
       const existingSuggestions = document.querySelectorAll('.suggestions');
       existingSuggestions.forEach(suggestion => suggestion.remove());
-    }
-
-     // calculateTotals();
-  
+    }  
 
   </script>
   <script>

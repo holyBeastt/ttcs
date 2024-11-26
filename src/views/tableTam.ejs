@@ -180,10 +180,11 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
 
               </div>
             </div>
@@ -274,7 +275,7 @@
             </select>
 
             <!-- Combo box kì -->
-            <select class="selectop " id="combobox-ki">
+            <select class="selectop " id="comboboxki">
               <option value="">Kì</option>
             </select>
 
@@ -365,7 +366,7 @@
   <script>
     document.getElementById("render").addEventListener("click", function () {
       let Dot = document.getElementById("combobox-dot").value;
-      let Ki = document.getElementById("combobox-ki").value;
+      let Ki = document.getElementById("comboboxki").value;
       let Nam = document.getElementById("NamHoc").value;
       let Khoa = document.getElementById("departmentFilter").value;
 
@@ -447,7 +448,7 @@
     document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('xoa-qc-du-kien').addEventListener('click', async function () {
         let Dot = document.getElementById("combobox-dot").value;
-        let Ki = document.getElementById("combobox-ki").value;
+        let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("departmentFilter").value;
 
@@ -503,7 +504,7 @@
     async function fetchData() {
       // Lấy giá trị từ các phần tử đầu vào và kiểm tra xem có tồn tại hay không
       let Dot = document.getElementById("combobox-dot")?.value;
-      let Ki = document.getElementById("combobox-ki")?.value;
+      let Ki = document.getElementById("comboboxki")?.value;
       let Nam = document.getElementById("NamHoc")?.value;
       let Khoa = document.getElementById("departmentFilter")?.value;
 
@@ -659,7 +660,7 @@
     function filterTable() {
       // Lấy giá trị đã chọn từ các combobox
       let dot = document.getElementById("combobox-dot").value;
-      let ki = document.getElementById("combobox-ki").value;
+      let ki = document.getElementById("comboboxki").value;
       let nam = document.getElementById("NamHoc").value;
       let department = document
         .getElementById("departmentFilter")
@@ -711,7 +712,7 @@
   <script>
     $(document).ready(function () {
       $('#NamHoc option[value=""]').remove();
-      $('#combobox-ki option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
       $('#combobox-dot option[value=""]').remove();
 
       $.ajax({
@@ -729,7 +730,7 @@
 
             response.Ki.forEach(function (item) {
               console.log(item.Ki);
-              $('#combobox-ki').append(
+              $('#comboboxki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });
@@ -797,7 +798,7 @@
 
         // Lấy giá trị của option đang được chọn
         let Dot = document.getElementById("combobox-dot")?.value;
-        let Ki = document.getElementById("combobox-ki")?.value;
+        let Ki = document.getElementById("comboboxki")?.value;
         let NamHoc = document.getElementById("NamHoc")?.value;
 
         try {

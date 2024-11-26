@@ -177,9 +177,10 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
 
               </div>
@@ -258,7 +259,7 @@
         </select>
 
         <!-- Combo box kì -->
-        <select class="form-select w-100px mx-1 selectop" id="combobox-ki">
+        <select class="form-select w-100px mx-1 selectop" id="comboboxki">
           <option value="">Kì</option>
         </select>
 
@@ -369,14 +370,14 @@
       try {
         // Biến để lưu trữ giá trị mặc định
         let dotValue = document.getElementById('combobox-dot').value;
-        let kiValue = document.getElementById('combobox-ki').value;
+        let kiValue = document.getElementById('comboboxki').value;
         let namValue = document.getElementById('NamHoc').value;
         let khoaValue = document.getElementById('MaPhongBan').value;
 
         // Hàm cập nhật giá trị từ comboboxes
         const updateValues = () => {
           dotValue = document.getElementById('combobox-dot').value;
-          kiValue = document.getElementById('combobox-ki').value;
+          kiValue = document.getElementById('comboboxki').value;
           namValue = document.getElementById('NamHoc').value;
           khoaValue = document.getElementById('MaPhongBan').value;
 
@@ -423,7 +424,7 @@
 
         // Thêm trình lắng nghe sự kiện cho từng combobox
         document.getElementById('combobox-dot').addEventListener('change', handleComboboxChange);
-        document.getElementById('combobox-ki').addEventListener('change', handleComboboxChange);
+        document.getElementById('comboboxki').addEventListener('change', handleComboboxChange);
         document.getElementById('NamHoc').addEventListener('change', handleComboboxChange);
         document.getElementById('MaPhongBan').addEventListener('change', handleComboboxChange);
 
@@ -612,7 +613,7 @@
   <script>
     $(document).ready(function () {
       $('#NamHoc option[value=""]').remove();
-      $('#combobox-ki option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
       $('#combobox-dot option[value=""]').remove();
 
       $.ajax({
@@ -630,7 +631,7 @@
 
             response.Ki.forEach(function (item) {
               console.log(item.Ki);
-              $('#combobox-ki').append(
+              $('#comboboxki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });

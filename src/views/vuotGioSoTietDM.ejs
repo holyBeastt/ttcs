@@ -312,10 +312,11 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link active" id="" href="/soTietDM">Số tiết định mức</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link " id="" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link " id="" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link " id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
               </div>
             </div>
@@ -540,7 +541,7 @@
 <script>
   $(document).ready(function () {
     $('#NamHoc option[value=""]').remove();
-    $('#combobox-ki option[value=""]').remove();
+    $('#comboboxki option[value=""]').remove();
     $.ajax({
       url: '/getNamHoc',
       method: 'GET',
@@ -556,7 +557,7 @@
 
           response.Ki.forEach(function (item) {
             console.log(item.Ki);
-            $('#combobox-ki').append(
+            $('#comboboxki').append(
               `<option value="${item.value}">${item.Ki}</option>`
             );
           });
@@ -575,7 +576,7 @@
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-    const Ki = document.getElementById('combobox-ki').value;
+    const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     const typeclass = document.getElementById('typeclass').value;
     console.log(typeclass);

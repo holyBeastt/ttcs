@@ -68,6 +68,7 @@ function processWordData(content) {
   let currentRow = {}; // Dòng hiện tại trong bảng
   let headerCount = 0; // Biến đếm số dòng tiêu đề
   let count = 0;
+  let TenGiangVien = "";
 
   const headerKeywords = [
     "TT",
@@ -122,19 +123,29 @@ function processWordData(content) {
       } else if (
         line.startsWith("1.") ||
         line.startsWith("2.") ||
-        line.startsWith("TS.")
+        line.startsWith("TS.") ||
+        line.includes(",")
       ) {
         line = line.replace(
           /^\d+\.\s*(KS|ThS|TS|PGS\.\s*TS)\.\s*|^(KS|ThS|TS|PGS\.\s*TS)\.\s*/i,
           ""
         );
 
-        // Đảm bảo GiangVien luôn là mảng trước khi push
         if (!currentRow.GiangVien) {
           currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
         }
 
-        currentRow.GiangVien.push(line); // Thêm giảng viên vào danh sách
+        TenGiangVien += line; // Nối chuỗi hiện tại vào TenGiangVien
+
+        // Kiểm tra nếu chuỗi có dấu ','
+        if (TenGiangVien.includes(",")) {
+          const Ten = TenGiangVien.split(",")[0].trim(); // Lấy tên trước dấu ',' và xóa khoảng trắng
+
+          currentRow.GiangVien.push(Ten); // Thêm tên đã xử lý vào danh sách
+          TenGiangVien = ""; // Reset TenGiangVien để chuẩn bị xử lý dòng tiếp theo
+        } else {
+          currentRow.GiangVien.push(line.trim()); // Thêm trực tiếp nếu không có dấu ','
+        }
       }
     }
   });

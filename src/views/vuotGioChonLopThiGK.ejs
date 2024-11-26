@@ -97,7 +97,7 @@
       /* Giữ padding như cũ */
     }
 
-    /* phần css cho label tổng số tiết  ki*/
+    /* phần css cho label tổng số tiết ki*/
     .total-label {
       margin-left: auto;
       /* Căn phải cho thẻ total-label */
@@ -230,9 +230,10 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link active" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
@@ -301,7 +302,7 @@
     </div>
   </nav>
 
-
+  <h1 class="d-flex justify-content-center my-3">Chọn lớp coi thi giữa kì</h1>
   <div class="container-fluid box m-4">
     <div class="">
       <div class="d-flex">
@@ -317,7 +318,7 @@
           </select>
 
           <!-- Combo box Kỳ -->
-          <select class="selectop mx-1" id="combobox-ki">
+          <select class="selectop mx-1" id="comboboxki">
             <option value="">Kỳ</option>
           </select>
 
@@ -380,7 +381,7 @@
               <th style="width: 100px;">Số SV</th>
               <th style="width: 50px;">Hình thức thi giữa kỳ</th>
               <th style="width: 100px;">Hệ số T7CN</th>
-              <th style="width: 50px;">Số đề</th>
+              <th style="width: 50px;">QC</th>
               <th style="width: 50px;">Ghi chú</th>
               <th style="width: 80px; " id="select">
                 <div class="form-check d-flex justify-content-center" style="padding: 0px;">
@@ -397,6 +398,9 @@
         </table>
       </div>
       <!-- Label tổng số tiết tách riêng với bảng -->
+      <div class="total-label">
+        <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
+      </div>
     </div>
   </div>
   <!-- Modal form -->
@@ -555,7 +559,7 @@
 <script>
   $(document).ready(function () {
     $('#NamHoc option[value=""]').remove();
-    $('#combobox-ki option[value=""]').remove();
+    $('#comboboxki option[value=""]').remove();
     $('#combobox-dot option[value=""]').remove();
 
     $.ajax({
@@ -573,7 +577,7 @@
 
           response.Ki.forEach(function (item) {
             console.log(item.Ki);
-            $('#combobox-ki').append(
+            $('#comboboxki').append(
               `<option value="${item.value}">${item.Ki}</option>`
             );
           });
@@ -600,7 +604,7 @@
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
     const Typeclass = document.getElementById('typeclass').value;
     const Dot = document.getElementById('combobox-dot').value;
-    const Ki = document.getElementById('combobox-ki').value;
+    const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     let MoiGiang = 0;
     if (!MaPhongBan) {
@@ -609,7 +613,7 @@
     }
 
     try {
-      if (Typeclass === "Lớp giảng dạy chính" ) {
+      if (Typeclass === "Lớp giảng dạy chính") {
         MoiGiang = 0;
         document.getElementById('filterName').style.display = "none";
       } else {
@@ -649,8 +653,10 @@
     const isKhoa = localStorage.getItem("isKhoa");
     const TenNhanVien = localStorage.getItem("TenNhanVien");
     const typeclass = document.getElementById("typeclass").value;
-    console.log( TenNhanVien);
+    console.log(TenNhanVien);
     let tableRowData = [];
+    console.log(data);
+
 
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = ''; // Xóa nội dung cũ
@@ -659,7 +665,7 @@
     if (typeclass === "Lớp giảng dạy chính") {
       filteredData = data.maBoMon.filter(row => row.GiangVien.trim() === TenNhanVien.trim());
     }
-    
+
     filteredData.forEach((row, index) => {
 
       const tableRow = document.createElement('tr');
@@ -766,27 +772,16 @@
       heSoT7CNSelect.id = `heSoT7CN_${index}`;
       tableRow.appendChild(heSoT7CNTd);
 
-      let soDeTd;
-      let soDeInput;
-      soDeTd = document.createElement('td');
-      soDeInput = document.createElement('input');
-      soDeInput.type = 'text';
-      soDeInput.name = 'soDe';
+      //Số tiết kiểm tra
+      // const soTietKTTd = document.createElement('td');
+      // soTietKTTd.textContent = row.SoTietKT;
+      // tableRow.appendChild(soTietKTTd);
 
-      // Gán giá trị dựa trên số sinh viên
-      if (row.SoSV < 40) {
-        soDeInput.value = 2; // Dưới 40 sinh viên: 2 đề
-      } else if (row.SoSV <= 80) {
-        soDeInput.value = 3; // Từ 41 đến 80 sinh viên: 3 đề
-      } else {
-        soDeInput.value = 4; // Trên 80 sinh viên: 4 đề
-      }
 
-      soDeInput.placeholder = ''; // Giữ nguyên placeholder nếu cần
-      soDeInput.id = `soDe_${index}`; // Gắn id để tiện truy cập sau
-      soDeTd.appendChild(soDeInput);
-      tableRow.appendChild(soDeTd);
-
+      // Số tiết qc
+      const soTietQCTd = document.createElement('td');
+      soTietQCTd.textContent = row.QuyChuan;
+      tableRow.appendChild(soTietQCTd);
 
       // Ghi chú
       const ghiChuTd = document.createElement("td");
@@ -829,30 +824,28 @@
       tableRow.appendChild(selectCheckboxTd);
 
 
-      if(typeclass === "Lớp mời coi giữa kỳ") {
-        if(row.DaChon){
-          if(row.GiangVienCoiGK.trim() === TenNhanVien.trim()){
+      if (typeclass === "Lớp mời coi giữa kỳ") {
+        if (row.DaChon) {
+          if (row.GiangVienCoiGK.trim() === TenNhanVien.trim()) {
             hinhThucKTGiuaKySelect.disabled = false;
-            soDeInput.disabled = false;
             heSoT7CNSelect.disabled = false;
             selectCheckbox.disabled = false;
-          }else{
+          } else {
             hinhThucKTGiuaKySelect.disabled = true;
-            soDeInput.disabled = true;
             heSoT7CNSelect.disabled = true;
             selectCheckbox.disabled = true;
           }
         }
       }
-      if(row.KhoaDuyet){
+      if (row.KhoaDuyet) {
         hinhThucKTGiuaKySelect.disabled = true;
-        soDeInput.disabled = true;
         heSoT7CNSelect.disabled = true;
         selectCheckbox.disabled = true;
       }
     });
     // Lưu dữ liệu với id vào localStorage
     localStorage.setItem('tableData', JSON.stringify(tableRowData));
+    calculateTotals();
   }
 
   function checkAll(type) {
@@ -886,6 +879,31 @@
     const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
     checkAllCheckbox.checked = allChecked; // Cập nhật trạng thái của checkbox "Check All"
   }
+
+
+  function calculateTotals() {
+    let totalQC = 0; // Reset tổng số tiết QC
+
+    const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
+
+    rows.forEach((row) => {
+      // Bỏ qua các hàng đang bị ẩn
+      if (row.style.display === 'none') {
+        return;
+      }
+
+      // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
+      const QuyChuanCell = row.querySelector('td:nth-child(8)'); // Lấy ô của cột QuyChuan
+
+      // Chuyển đổi giá trị của các ô thành số và cộng dồn
+      const QuyChuan = parseFloat(QuyChuanCell.textContent) || 0;
+
+      totalQC += QuyChuan; // Cộng dồn số tiết QC
+    });
+
+    // Cập nhật tổng số tiết vào HTML với 2 số sau dấu phẩy
+    document.getElementById('totalQC').textContent = totalQC.toFixed(2);
+  }
 </script>
 <script>
   async function submitData() {
@@ -896,39 +914,35 @@
     const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
     const rowCount = rows.length;
     const globalData = [];
-    
+
     rows.forEach((row, index) => {
       // Lấy checkbox "select"
       const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
-      
+
       // Kiểm tra nếu checkbox bị disable, bỏ qua dòng này
       if (selectCheckbox && selectCheckbox.disabled) {
         return; // Bỏ qua dòng này nếu checkbox bị disable
       }
-      
+
       const hinhThucKTGiuaKyInput = document.getElementById(`hinhThucKTGiuaKy_${index}`);
       const hinhThucKTGiuaKy = hinhThucKTGiuaKyInput ? hinhThucKTGiuaKyInput.value : '';
 
       const heSoT7CNInput = document.getElementById(`heSoT7CN_${index}`);
       const heSoT7CN = heSoT7CNInput ? heSoT7CNInput.value : '';
 
-      const soDeInput = document.getElementById(`soDe_${index}`);
-      const soDe = soDeInput ? soDeInput.value : '';
 
       console.log(hinhThucKTGiuaKy);
       console.log(heSoT7CN);
-      console.log(soDe);
 
       // Lấy trạng thái của checkbox "select"
       const select = selectCheckbox ? selectCheckbox.checked : false;
-      
+
       // Đẩy dữ liệu vào globalData
       globalData.push({
         hinhThucKTGiuaKy,
         heSoT7CN,
         select,
         MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
-        soDe,
         GiangVien,
       });
       console.log(globalData);
@@ -1102,6 +1116,9 @@
   });
 </script>
 
+<script>
+
+</script>
 
 
 </body>
