@@ -230,9 +230,10 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link active" id="" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link active" id="" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link " id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
@@ -301,7 +302,7 @@
     </div>
   </nav>
 
-
+  <h1 class="d-flex justify-content-center my-3">Duyệt các lớp giữa kì</h1>
   <div class="container-fluid box m-4">
     <div class="">
       <div class="d-flex">
@@ -309,12 +310,12 @@
 
           <select class="selectop mx-1" id="typeclass">
             <option value="Lớp ngoài quy chuẩn">Lớp ngoài quy chuẩn</option>
-            <option value="Lớp mời coi giữa kỳ">Lớp mời coi giữa kỳ</option>
+            <option value="Lớp quy chuẩn">Lớp quy chuẩn</option>
           </select>
 
 
           <!-- Combo box Kỳ -->
-          <select class="selectop mx-1" id="combobox-ki">
+          <select class="selectop mx-1" id="comboboxki">
             <option value="">Kỳ</option>
           </select>
 
@@ -416,6 +417,10 @@
         </table>
       </div>
       <!-- Label tổng số tiết tách riêng với bảng -->
+      <div class="total-label">
+        <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
+        <label class="flex"><span class="align-content-around">Tổng số tiết Quy Chuẩn: </span><span class="value" id="totalSoTietKT">0</span></label>
+      </div>
     </div>
   </div>
   <!-- Modal form -->
@@ -581,7 +586,7 @@
 <script>
   $(document).ready(function () {
     $('#NamHoc option[value=""]').remove();
-    $('#combobox-ki option[value=""]').remove();
+    $('#comboboxki option[value=""]').remove();
     $.ajax({
       url: '/getNamHoc',
       method: 'GET',
@@ -597,7 +602,7 @@
 
           response.Ki.forEach(function (item) {
             console.log(item.Ki);
-            $('#combobox-ki').append(
+            $('#comboboxki').append(
               `<option value="${item.value}">${item.Ki}</option>`
             );
           });
@@ -616,7 +621,7 @@
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-    const Ki = document.getElementById('combobox-ki').value;
+    const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     const typeclass = document.getElementById('typeclass').value;
     console.log(typeclass);
@@ -626,7 +631,7 @@
     }
 
     try {
-      if (typeclass === "Lớp mời coi giữa kỳ") {
+      if (typeclass === "Lớp quy chuẩn") {
         const response = await fetch(`/getLopGK/${MaPhongBan}/${Ki}/${Nam}`, {
           method: 'GET', // Gửi yêu cầu GET
         });
@@ -782,6 +787,7 @@
       selectCheckboxTd = document.createElement('td');
       selectCheckbox = document.createElement('input');
       selectCheckbox.type = 'checkbox';
+      selectCheckbox.id = 'selectCheckbox';
       selectCheckbox.style.marginLeft = '30px';
       selectCheckbox.name = 'select'; // Thêm thuộc tính name
       selectCheckbox.checked = true; // Dùng một trường cho checkbox
@@ -794,6 +800,7 @@
       khoaDuyetCheckboxTd = document.createElement('td');
       khoaDuyetCheckbox = document.createElement('input');
       khoaDuyetCheckbox.type = 'checkbox';
+      khoaDuyetCheckbox.id = 'khoaDuyetCheckbox';
       khoaDuyetCheckbox.style.marginLeft = '30px';
       khoaDuyetCheckbox.name = 'khoaDuyet'; // Thêm thuộc tính name
       khoaDuyetCheckbox.checked = row.KhoaDuyet || false; // Dùng một trường cho checkbox
@@ -806,6 +813,7 @@
       daoTaoDuyetCheckboxTd = document.createElement('td');
       daoTaoDuyetCheckbox = document.createElement('input');
       daoTaoDuyetCheckbox.type = 'checkbox';
+      daoTaoDuyetCheckbox.id = 'daoTaoDuyetCheckbox';
       daoTaoDuyetCheckbox.style.marginLeft = '30px';
       daoTaoDuyetCheckbox.name = 'daoTaoDuyet'; // Thêm thuộc tính name
       daoTaoDuyetCheckbox.checked = row.DaoTaoDuyet || false; // Dùng một trường cho checkbox
@@ -818,6 +826,7 @@
       taiChinhDuyetCheckboxTd = document.createElement('td');
       taiChinhDuyetCheckbox = document.createElement('input');
       taiChinhDuyetCheckbox.type = 'checkbox';
+      taiChinhDuyetCheckbox.id = 'taiChinhDuyetCheckbox';
       taiChinhDuyetCheckbox.style.marginLeft = '30px';
       taiChinhDuyetCheckbox.name = 'taiChinhDuyet'; // Thêm thuộc tính name
       taiChinhDuyetCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
@@ -850,7 +859,15 @@
         }
 
       }
-
+      if(row.DaoTaoDuyet && MaPhongBan !== "DAOTAO"){
+        khoaDuyetCheckbox.disabled = true;
+        selectCheckbox.disabled = true;
+      }
+      if(row.TaiChinhDuyet && MaPhongBan != "TAICHINH"){
+        khoaDuyetCheckbox.disabled = true;
+        daoTaoDuyetCheckbox.disabled = true;
+      }
+      calculateTotalSoTietKT();
     });
     // Lưu dữ liệu với id vào localStorage
     localStorage.setItem('tableData', JSON.stringify(tableRowData));
@@ -930,6 +947,7 @@
           updateDuyet(MaGiangDay, typeclass, daoTaoDuyet, taiChinhDuyet, MaPhongBan);
         }
       }
+
 
     });
   }
@@ -1146,6 +1164,33 @@
     }
   });
 </script>
+<script>
+  // tổng quy chuẩn
+  function calculateTotalSoTietKT() {
+    let totalSoTietKT = 0;
+
+    // Lấy tất cả các hàng dữ liệu trong bảng
+    const rows = document.querySelectorAll('#tableBody tr');
+
+    rows.forEach(row => {
+      // Kiểm tra nếu dòng có chứa giá trị `SoTietKT`
+      const soTietKTTd = row.querySelector('td:nth-last-child(6)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+      if (soTietKTTd) {
+        const soTietKTValue = parseFloat(soTietKTTd.textContent.trim());
+        if (!isNaN(soTietKTValue)) {
+          totalSoTietKT += soTietKTValue;
+        }
+      }
+    });
+
+    // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalSoTietKT`
+    const totalSoTietKTElement = document.getElementById('totalSoTietKT');
+    if (totalSoTietKTElement) {
+      totalSoTietKTElement.textContent = totalSoTietKT.toFixed(2); // Định dạng 2 chữ số thập phân
+    }
+  }
+</script>
+
 
 
 

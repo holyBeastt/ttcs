@@ -230,9 +230,10 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link active" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
@@ -301,7 +302,7 @@
     </div>
   </nav>
 
-
+  <h1 class="d-flex justify-content-center my-3">Chọn lớp coi thi giữa kì</h1>
   <div class="container-fluid box m-4">
     <div class="">
       <div class="d-flex">
@@ -317,7 +318,7 @@
           </select>
 
           <!-- Combo box Kỳ -->
-          <select class="selectop mx-1" id="combobox-ki">
+          <select class="selectop mx-1" id="comboboxki">
             <option value="">Kỳ</option>
           </select>
 
@@ -380,7 +381,7 @@
               <th style="width: 100px;">Số SV</th>
               <th style="width: 50px;">Hình thức thi giữa kỳ</th>
               <th style="width: 100px;">Hệ số T7CN</th>
-              <th style="width: 50px;">Số đề</th>
+              <!-- <th style="width: 50px;">Số đề</th> -->
               <th style="width: 50px;">Ghi chú</th>
               <th style="width: 80px; " id="select">
                 <div class="form-check d-flex justify-content-center" style="padding: 0px;">
@@ -555,7 +556,7 @@
 <script>
   $(document).ready(function () {
     $('#NamHoc option[value=""]').remove();
-    $('#combobox-ki option[value=""]').remove();
+    $('#comboboxki option[value=""]').remove();
     $('#combobox-dot option[value=""]').remove();
 
     $.ajax({
@@ -573,7 +574,7 @@
 
           response.Ki.forEach(function (item) {
             console.log(item.Ki);
-            $('#combobox-ki').append(
+            $('#comboboxki').append(
               `<option value="${item.value}">${item.Ki}</option>`
             );
           });
@@ -600,7 +601,7 @@
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
     const Typeclass = document.getElementById('typeclass').value;
     const Dot = document.getElementById('combobox-dot').value;
-    const Ki = document.getElementById('combobox-ki').value;
+    const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     let MoiGiang = 0;
     if (!MaPhongBan) {
@@ -766,26 +767,10 @@
       heSoT7CNSelect.id = `heSoT7CN_${index}`;
       tableRow.appendChild(heSoT7CNTd);
 
-      let soDeTd;
-      let soDeInput;
-      soDeTd = document.createElement('td');
-      soDeInput = document.createElement('input');
-      soDeInput.type = 'text';
-      soDeInput.name = 'soDe';
-
-      // Gán giá trị dựa trên số sinh viên
-      if (row.SoSV < 40) {
-        soDeInput.value = 2; // Dưới 40 sinh viên: 2 đề
-      } else if (row.SoSV <= 80) {
-        soDeInput.value = 3; // Từ 41 đến 80 sinh viên: 3 đề
-      } else {
-        soDeInput.value = 4; // Trên 80 sinh viên: 4 đề
-      }
-
-      soDeInput.placeholder = ''; // Giữ nguyên placeholder nếu cần
-      soDeInput.id = `soDe_${index}`; // Gắn id để tiện truy cập sau
-      soDeTd.appendChild(soDeInput);
-      tableRow.appendChild(soDeTd);
+      //Số tiết kiểm tra
+      // const soTietKTTd = document.createElement('td');
+      // soTietKTTd.textContent = row.SoTietKT;
+      // tableRow.appendChild(soTietKTTd);
 
 
       // Ghi chú
@@ -833,12 +818,10 @@
         if(row.DaChon){
           if(row.GiangVienCoiGK.trim() === TenNhanVien.trim()){
             hinhThucKTGiuaKySelect.disabled = false;
-            soDeInput.disabled = false;
             heSoT7CNSelect.disabled = false;
             selectCheckbox.disabled = false;
           }else{
             hinhThucKTGiuaKySelect.disabled = true;
-            soDeInput.disabled = true;
             heSoT7CNSelect.disabled = true;
             selectCheckbox.disabled = true;
           }
@@ -846,7 +829,6 @@
       }
       if(row.KhoaDuyet){
         hinhThucKTGiuaKySelect.disabled = true;
-        soDeInput.disabled = true;
         heSoT7CNSelect.disabled = true;
         selectCheckbox.disabled = true;
       }
@@ -912,12 +894,9 @@
       const heSoT7CNInput = document.getElementById(`heSoT7CN_${index}`);
       const heSoT7CN = heSoT7CNInput ? heSoT7CNInput.value : '';
 
-      const soDeInput = document.getElementById(`soDe_${index}`);
-      const soDe = soDeInput ? soDeInput.value : '';
 
       console.log(hinhThucKTGiuaKy);
       console.log(heSoT7CN);
-      console.log(soDe);
 
       // Lấy trạng thái của checkbox "select"
       const select = selectCheckbox ? selectCheckbox.checked : false;
@@ -928,7 +907,6 @@
         heSoT7CN,
         select,
         MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
-        soDe,
         GiangVien,
       });
       console.log(globalData);
