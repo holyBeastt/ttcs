@@ -363,6 +363,7 @@
               row.style.display = 'none'; // Ẩn hàng nếu không khớp
             }
           });
+          calculateTotals();
         }
 
         // Gán sự kiện cho các input filter
@@ -381,7 +382,7 @@
               <th style="width: 100px;">Số SV</th>
               <th style="width: 50px;">Hình thức thi giữa kỳ</th>
               <th style="width: 100px;">Hệ số T7CN</th>
-              <!-- <th style="width: 50px;">Số đề</th> -->
+              <th style="width: 50px;">Số tiết QC</th>
               <th style="width: 50px;">Ghi chú</th>
               <th style="width: 80px; " id="select">
                 <div class="form-check d-flex justify-content-center" style="padding: 0px;">
@@ -893,7 +894,7 @@
       }
 
       // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-      const QuyChuanCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột QuyChuan
+      const QuyChuanCell = row.querySelector('td:nth-last-child(3)'); // Lấy ô của cột QuyChuan
 
       // Chuyển đổi giá trị của các ô thành số và cộng dồn
       const QuyChuan = parseFloat(QuyChuanCell.textContent) || 0;
@@ -1114,10 +1115,6 @@
       alert("Không tìm thấy id_User trong localStorage.");
     }
   });
-</script>
-
-<script>
-
 </script>
 
 
