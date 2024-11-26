@@ -309,7 +309,7 @@
                 </select>
             </div>
             <div class="col-md-4">
-              <label for="monGiangDayChinh">Môn giảng dạy chính:</label>
+              <label for="monGiangDayChinh">Bộ môn:</label>
               <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
               </select>
           </div>
@@ -372,10 +372,13 @@
           if (data.success && data.maBoMon) {
         // Vòng lặp qua từng mục trong maBoMon và tạo thẻ option
             data.maBoMon.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-              maBoMonSelect.appendChild(option);
+              if (maPhongBan === item.MaPhongBan) {
+                const option = document.createElement('option');
+                option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
+                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+                maBoMonSelect.appendChild(option); 
+              }
+              
             });
           } else {
             console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");

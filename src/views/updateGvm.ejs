@@ -194,6 +194,7 @@
               <div class="col-md-4">
                   <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
                   <select class="form-control" name="BangTotNghiepLoai" id="BangTotNghiepLoai">
+                    <option value="">---</option>
                     <option value="Trung bình" <%= value.BangTotNghiepLoai === "Trung bình" ? "selected" : "" %>>Trung bình</option>
                     <option value="Khá" <%= value.BangTotNghiepLoai === "Khá" ? "selected" : "" %>>Khá</option>
                     <option value="Giỏi" <%= value.BangTotNghiepLoai === "Giỏi" ? "selected" : "" %>>Giỏi</option>
@@ -252,8 +253,9 @@
               <input required class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>" >
             </div>
             <div class="col-md-4">
-              <label for="hocVi">Học vị:</label>
-              <select class="form-control" name="hocVi" id="hocVi">
+              <label for="HocVi">Học vị:</label>
+              <select class="form-control" name="HocVi" id="HocVi">
+                <option value="">---</option>
                 <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
                 <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
                 <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
@@ -280,13 +282,14 @@
           <div class="row mb-3">
             <div class="col-md-4">
               <p style="margin-bottom: 8px;">Mã phòng ban:</p>
-              <select id="filterByDepartment" name="maPhongBan" class="form-control filter" style="cursor: pointer;">
+              <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan" value="<%= value.MaPhongBan %>" readonly>
+              <!-- <select id="filterByDepartment" name="maPhongBan" class="form-control filter" style="cursor: pointer;">
                 <% phongBanList.forEach(function(phongBan) { %>
                   <option value="<%= phongBan.MaPhongBan %>" <%= value.MaPhongBan === phongBan.MaPhongBan ? 'selected' : '' %>>
                     <%= phongBan.MaPhongBan %>
                   </option>
                 <% }); %>
-              </select>
+              </select> -->
             </div>
             <div class="col-md-4">
               <label for="tinhTrang">Tình trạng giảng dạy:</label>
@@ -296,8 +299,9 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label for="monGiangDayChinh">Môn giảng dạy chính:</label>
+              <label for="monGiangDayChinh">Bộ môn:</label>
               <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
+                <option value="">---</option>
               </select>
             </div>
             <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
@@ -370,23 +374,25 @@ hideButton();
           return;
         }
         
-        maBoMonSelect.innerHTML = ''; // Xóa các option cũ
         let foundMatch = false;
 
         // Kiểm tra success và dữ liệu maBoMon
         if (data.success && data.maBoMon) {
           data.maBoMon.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-            option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-            
-            // Kiểm tra nếu giá trị trùng với monGiangDayChinh
-            if (item.MaBoMon === monGiangDayChinh) {
-              option.selected = true; // Đặt option thành selected nếu trùng
-              foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
+            if(maPhongBan === item.MaPhongBan){
+              const option = document.createElement('option');
+              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
+              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+              
+              // Kiểm tra nếu giá trị trùng với monGiangDayChinh
+              if (item.MaBoMon === monGiangDayChinh) {
+                option.selected = true; // Đặt option thành selected nếu trùng
+                foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
+              }
+              
+              maBoMonSelect.appendChild(option); // Thêm option vào select
             }
             
-            maBoMonSelect.appendChild(option); // Thêm option vào select
 
             
           });
