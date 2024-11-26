@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan, updateDuyet, getLopGiuaKi, deletelopngoaiquychuan, updatelopngoaiquychuan} = require('../controllers/vuotGioAddClassController');
+const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, updateKhoaDuyet, deleteLopGK, getLopNgoaiQuyChuan, updateDuyet, getLopGiuaKi, deletelopngoaiquychuan, updatelopngoaiquychuan, getLopGiangDay} = require('../controllers/vuotGioAddClassController');
 // const {
 //   getClassInfoGvm,
 // } = require("../controllers/xemCacLopGvmController");
@@ -39,4 +39,9 @@ router.post("/updateDuyet", updateDuyet);
 router.post("/deletelopngoaiquychuan", deletelopngoaiquychuan);
 router.post("/updatelopngoaiquychuan", updatelopngoaiquychuan);
 
+//thông tin các lớp vượt giờ
+router.get("/infoclassvuotgio", (req, res) => {
+  res.render("vuotGioTTLop");
+} );
+router.get("/xemlopgiangday/:MaPhongBan/:Ki/:Nam", getLopGiangDay);
 module.exports = router;
