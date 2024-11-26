@@ -11,7 +11,6 @@ const router = express.Router();
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
-const createConnection = require("../config/databaseAsync");
 
 // Cấu hình multer để lưu file tạm thời trong thư mục 'uploads'
 const upload = multer({
@@ -21,11 +20,11 @@ const upload = multer({
 // render trang import
 router.get("/import", role.checkDaotaoRoleThiHanh, getMainHTML.getImport);
 
-// Route POST để xử lý upload file Excel
+// Route POST để xử lý upload 
 router.post(
   "/import",
   role.checkDaotaoRoleThiHanh,
-  upload.single("excelFile"),
+  upload.single("file"),
   obj.handleUploadAndRender
 );
 

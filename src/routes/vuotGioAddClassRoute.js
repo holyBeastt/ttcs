@@ -5,6 +5,9 @@ const {addClass, getLopMoi, SaveNote, DoneNote, updateLopThiGk, getLopGK, update
 //   getClassInfoGvm,
 // } = require("../controllers/xemCacLopGvmController");
 
+router.get("/addclass/:MaPhongBan", (req, res) => {
+    res.render("vuotGioAddClass");
+  });
 router.get("/addclass", (req, res) => {
     res.render("vuotGioAddClass");
   });

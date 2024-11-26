@@ -4,89 +4,169 @@ const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
 
 
+// const addClass = async (req, res) => {
+//     const MaPhongBan = req.params.MaPhongBan;
+//     const GiangVien = req.body.GiangVien;
+//     const index = req.body.index;
+//     let connection;
+//     try {
+//         connection = await createPoolConnection();
+//         const query = `SELECT id_User FROM nhanvien WHERE TenNhanVien = ?`;
+//         const [rows] = await connection.query(query, [GiangVien]);
+//         const id_User = rows[0].id_User;
+//         for (let i = 1; i <= index; i++) { // Sửa lại điều kiện vòng lặp để bao gồm cả giá trị index
+//             console.log(i);
+//             let {
+//                 [`SoTC${i}`]: SoTC = 0, 
+//                 [`TenHocPhan${i}`]: TenHocPhan = "",  // Gán giá trị mặc định là chuỗi rỗng
+//                 [`SoTietCTDT${i}`]: SoTietCTDT = 0, 
+//                 [`HeSoT7CN${i}`]: HeSoT7CN,  // Gán giá trị mặc định là 0
+//                 [`SoSV${i}`]: SoSV = 0,  // Gán giá trị mặc định là 0
+//                 [`QuyChuan${i}`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
+//                 [`HocKy${i}`]: HocKy,  // Gán giá trị mặc định là chuỗi rỗng
+//                 [`NamHoc${i}`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
+//                 [`HinhThucKTGiuaKy${i}`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
+//                 [`Lop${i}`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
+//             } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
+            
+//             if ([SoTC, TenHocPhan, SoTietCTDT, SoSV, QuyChuan, Lop].every(value => value === "" || value === 0)) {
+//                 console.log(`All data is default (empty or 0) for iteration ${i}`);
+//                 continue; // Bỏ qua lần lặp này nếu tất cả dữ liệu là mặc định
+//             }
+//             SoTC = SoTC || 0;
+//             SoTietCTDT = SoTietCTDT || 0;
+//             let SoDe = 0, HeSoLopDong = 0;
+//             if (SoSV >= 41 && SoSV <= 50) {
+//                 HeSoLopDong = 1.1;
+//                 SoDe = 3;
+//             } else if (SoSV >= 51 && SoSV <= 65) {
+//                 HeSoLopDong = 1.2;
+//                 SoDe = 3;
+//             } else if (SoSV >= 66 && SoSV <= 80) {
+//                 HeSoLopDong = 1.3;
+//                 SoDe = 3;
+//             } else if (SoSV >= 81 && SoSV <= 100) {
+//                 HeSoLopDong = 1.4;
+//                 SoDe = 4;
+//             } else if (SoSV >= 101) {
+//                 HeSoLopDong = 1.5;
+//                 SoDe = 4;
+//             } else {
+//                 HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
+//                 SoDe = 2;
+//             }
+//             let SoTietKT = 0;
+//             if (HinhThucKTGiuaKy === "none") {
+//                 SoTietKT = 0;
+//             }
+//             if (HinhThucKTGiuaKy === "Coi, chấm TN" || HinhThucKTGiuaKy === "Coi, chấm viết" ) {
+//                     let number = HeSoT7CN*(0.05*SoSV +2);
+//                     SoTietKT = parseFloat(number.toFixed(2));
+//             }
+//             if (HinhThucKTGiuaKy === "Coi, chấm VĐ" || HinhThucKTGiuaKy === "Coi, chấm TH" ) {
+//                     let number = HeSoT7CN*(0.125*SoSV +2);
+//                     SoTietKT = parseFloat(number.toFixed(2));
+//             }
+//             console.log(SoTC,
+//                 TenHocPhan,
+//                 SoTietCTDT,
+//                 HeSoT7CN,
+//                 SoSV,
+//                 HeSoLopDong,
+//                 QuyChuan,
+//                 HocKy,
+//                 NamHoc,
+//                 HinhThucKTGiuaKy,
+//                 SoTietKT,
+//                 Lop, MaPhongBan);
+//             const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+//             await connection.query(query1, [SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
+
+//         }
+//         res.redirect("/addclass?message=insertSuccess");
+//     } catch (error) {
+//         console.error("Lỗi khi cập nhật dữ liệu: ", error);
+//         res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+//     } finally {
+//         if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+//     }
+// };
 const addClass = async (req, res) => {
     const MaPhongBan = req.params.MaPhongBan;
     const GiangVien = req.body.GiangVien;
-    const index = req.body.index;
+    console.log(req.body);
     let connection;
     try {
         connection = await createPoolConnection();
         const query = `SELECT id_User FROM nhanvien WHERE TenNhanVien = ?`;
         const [rows] = await connection.query(query, [GiangVien]);
         const id_User = rows[0].id_User;
-        for (let i = 1; i <= index; i++) { // Sửa lại điều kiện vòng lặp để bao gồm cả giá trị index
-            console.log(i);
-            let {
-                [`SoTC${i}`]: SoTC = 0, 
-                [`TenHocPhan${i}`]: TenHocPhan = "",  // Gán giá trị mặc định là chuỗi rỗng
-                [`SoTietCTDT${i}`]: SoTietCTDT = 0, 
-                [`HeSoT7CN${i}`]: HeSoT7CN,  // Gán giá trị mặc định là 0
-                [`SoSV${i}`]: SoSV = 0,  // Gán giá trị mặc định là 0
-                [`QuyChuan${i}`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
-                [`HocKy${i}`]: HocKy,  // Gán giá trị mặc định là chuỗi rỗng
-                [`NamHoc${i}`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
-                [`HinhThucKTGiuaKy${i}`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
-                [`Lop${i}`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
-            } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
-            
-            if ([SoTC, TenHocPhan, SoTietCTDT, SoSV, QuyChuan, Lop].every(value => value === "" || value === 0)) {
-                console.log(`All data is default (empty or 0) for iteration ${i}`);
-                continue; // Bỏ qua lần lặp này nếu tất cả dữ liệu là mặc định
-            }
-            SoTC = SoTC || 0;
-            SoTietCTDT = SoTietCTDT || 0;
-            let SoDe = 0, HeSoLopDong = 0;
-            if (SoSV >= 41 && SoSV <= 50) {
-                HeSoLopDong = 1.1;
-                SoDe = 3;
-            } else if (SoSV >= 51 && SoSV <= 65) {
-                HeSoLopDong = 1.2;
-                SoDe = 3;
-            } else if (SoSV >= 66 && SoSV <= 80) {
-                HeSoLopDong = 1.3;
-                SoDe = 3;
-            } else if (SoSV >= 81 && SoSV <= 100) {
-                HeSoLopDong = 1.4;
-                SoDe = 4;
-            } else if (SoSV >= 101) {
-                HeSoLopDong = 1.5;
-                SoDe = 4;
-            } else {
-                HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
-                SoDe = 2;
-            }
-            let SoTietKT = 0;
-            if (HinhThucKTGiuaKy === "none") {
-                SoTietKT = 0;
-            }
-            if (HinhThucKTGiuaKy === "Coi, chấm TN" || HinhThucKTGiuaKy === "Coi, chấm viết" ) {
-                    let number = HeSoT7CN*(0.05*SoSV +2);
-                    SoTietKT = parseFloat(number.toFixed(2));
-            }
-            if (HinhThucKTGiuaKy === "Coi, chấm VĐ" || HinhThucKTGiuaKy === "Coi, chấm TH" ) {
-                    let number = HeSoT7CN*(0.125*SoSV +2);
-                    SoTietKT = parseFloat(number.toFixed(2));
-            }
-            console.log(SoTC,
-                TenHocPhan,
-                SoTietCTDT,
-                HeSoT7CN,
-                SoSV,
-                HeSoLopDong,
-                QuyChuan,
-                HocKy,
-                NamHoc,
-                HinhThucKTGiuaKy,
-                SoTietKT,
-                Lop, MaPhongBan);
-            const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-            await connection.query(query1, [SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
-
+        let {
+            [`SoTC`]: SoTC = 0, 
+            [`TenHocPhan`]: TenHocPhan = "",  // Gán giá trị mặc định là chuỗi rỗng
+            [`SoTietCTDT`]: SoTietCTDT = 0, 
+            [`HeSoT7CN`]: HeSoT7CN,  // Gán giá trị mặc định là 0
+            [`SoSV`]: SoSV = 0,  // Gán giá trị mặc định là 0
+            [`QuyChuan`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
+            [`HocKy`]: HocKy,  // Gán giá trị mặc định là chuỗi rỗng
+            [`NamHoc`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
+            [`HinhThucKTGiuaKy`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
+            [`Lop`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
+        } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
+        SoTC = SoTC || 0;
+        SoTietCTDT = SoTietCTDT || 0;
+        let SoDe = 0, HeSoLopDong = 0;
+        if (SoSV >= 41 && SoSV <= 50) {
+            HeSoLopDong = 1.1;
+            SoDe = 3;
+        } else if (SoSV >= 51 && SoSV <= 65) {
+            HeSoLopDong = 1.2;
+            SoDe = 3;
+        } else if (SoSV >= 66 && SoSV <= 80) {
+            HeSoLopDong = 1.3;
+            SoDe = 3;
+        } else if (SoSV >= 81 && SoSV <= 100) {
+            HeSoLopDong = 1.4;
+            SoDe = 4;
+        } else if (SoSV >= 101) {
+            HeSoLopDong = 1.5;
+            SoDe = 4;
+        } else {
+            HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
+            SoDe = 2;
         }
-        res.redirect("/addclass?message=insertSuccess");
+        let SoTietKT = 0;
+        if (HinhThucKTGiuaKy === "none") {
+            SoTietKT = 0;
+        }
+        if (HinhThucKTGiuaKy === "Coi, chấm TN" || HinhThucKTGiuaKy === "Coi, chấm viết" ) {
+                let number = HeSoT7CN*(0.05*SoSV +2);
+                SoTietKT = parseFloat(number.toFixed(2));
+        }
+        if (HinhThucKTGiuaKy === "Coi, chấm VĐ" || HinhThucKTGiuaKy === "Coi, chấm TH" ) {
+                let number = HeSoT7CN*(0.125*SoSV +2);
+                SoTietKT = parseFloat(number.toFixed(2));
+        }
+        console.log(SoTC,
+            TenHocPhan,
+            SoTietCTDT,
+            HeSoT7CN,
+            SoSV,
+            HeSoLopDong,
+            QuyChuan,
+            HocKy,
+            NamHoc,
+            HinhThucKTGiuaKy,
+            SoTietKT,
+            Lop, MaPhongBan);
+        const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+        await connection.query(query1, [SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
+
+        res.status(200).send({ message: "Thêm lớp thành công" });
     } catch (error) {
-        console.error("Lỗi khi cập nhật dữ liệu: ", error);
-        res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+        console.error("Lỗi khi thêm dữ liệu: ", error);
+        // Đảm bảo không gửi phản hồi nếu đã có lỗi
+        res.status(500).send("Lỗi server, không thể thêm dữ liệu");
     } finally {
         if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
@@ -220,7 +300,7 @@ const updateLopThiGk = async (req, res) => {
     try {
         // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
         for (let data of globalData) {
-            const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, soDe, GiangVien } = data;
+            const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } = data;
         
             // Truy vấn dữ liệu từ bảng giangday bằng MaGiangDay
             const query1 = `SELECT * FROM giangday WHERE MaGiangDay = ?`;
@@ -269,7 +349,7 @@ const updateLopThiGk = async (req, res) => {
                     hinhThucKTGiuaKy, 
                     SoTietKT, 
                     row.Lop, 
-                    soDe,
+                    SoDe,
                     row.Khoa
                 ];
             
@@ -323,12 +403,21 @@ const getLopGK = async (req,res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        const query = `SELECT * From giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ? `;
-        const [result] = await connection.query(query, [MaPhongBan, Ki, Nam]);
-        res.json({
-            success: true,
-            maBoMon: result,
-          });
+        if (MaPhongBan ==="DAOTAO" || MaPhongBan === "TAICHINH") {
+            const query = `SELECT * FROM giuaky WHERE HocKy = ? AND NamHoc = ?`;
+            const [rows] = await connection.query(query, [ Ki, Nam]);
+            res.json({
+                success: true,
+                maBoMon: rows,
+            });
+        } else {
+            const query2 = `SELECT * From giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ? `;
+            const [result] = await connection.query(query2, [MaPhongBan, Ki, Nam]);
+            res.json({
+                success: true,
+                maBoMon: result,
+            });
+        }
     } catch (error) {
         console.error("Lỗi: ", error);
         res.status(500).send("Đã có lỗi xảy ra");
@@ -394,7 +483,6 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
         if (MaPhongBan ==="DAOTAO" || MaPhongBan === "TAICHINH") {
             const query = `SELECT * FROM lopngoaiquychuan WHERE HocKy = ? AND NamHoc = ?`;
             const [rows] = await connection.query(query, [ Ki, Nam]);
-            console.log(rows)
             res.json({
                 success: true,
                 maBoMon: rows,
@@ -402,7 +490,6 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
         } else {
             const query = `SELECT * FROM lopngoaiquychuan WHERE MaPhongBan = ? AND HocKy = ? AND NamHoc = ?`;
             const [rows] = await connection.query(query, [MaPhongBan, Ki, Nam]);
-            console.log(rows)
             res.json({
                 success: true,
                 maBoMon: rows,
@@ -453,7 +540,6 @@ const deletelopngoaiquychuan = async (req, res) =>{
         connection = await createPoolConnection();
         const query =  `DELETE FROM lopngoaiquychuan WHERE MaGiangDay = ?`;
         await connection.query(query, [MaGiangDay]);
-        res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
         res.json({
             success: true,
         });
@@ -476,15 +562,27 @@ const updatelopngoaiquychuan = async (req, res) =>{
     try {
         // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
         for (let data of globalData) {
-            const { tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay, soDe } = data;
+            const { tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay } = data;
         
             let SoTietKT = 0;
-            let SoDe = 0;
-            if (soSV >= 41 && soSV <= 80) {
+            let SoDe = 0, HeSoLopDong = 0;
+            if (soSV >= 41 && soSV <= 50) {
+                HeSoLopDong = 1.1;
                 SoDe = 3;
-            } else if (soSV >= 81) {
+            } else if (soSV >= 51 && soSV <= 65) {
+                HeSoLopDong = 1.2;
+                SoDe = 3;
+            } else if (soSV >= 66 && soSV <= 80) {
+                HeSoLopDong = 1.3;
+                SoDe = 3;
+            } else if (soSV >= 81 && soSV <= 100) {
+                HeSoLopDong = 1.4;
+                SoDe = 4;
+            } else if (soSV >= 101) {
+                HeSoLopDong = 1.5;
                 SoDe = 4;
             } else {
+                HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
                 SoDe = 2;
             }
             
@@ -503,17 +601,18 @@ const updatelopngoaiquychuan = async (req, res) =>{
                 tenHocPhan, 
                 heSoT7CN, 
                 soSV, 
+                HeSoLopDong,
                 hinhThucKTGiuaKy, 
                 SoTietKT, 
                 maLop, 
-                soDe,
+                SoDe,
                 soTC,
                 MaGiangDay
             ];
             
             // Câu lệnh INSERT vào bảng giuaky
             const query2 = `
-                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
+                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HeSoLopDong = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
                 WHERE MaGiangDay = ? 
             `;
             

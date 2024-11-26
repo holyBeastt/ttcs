@@ -1,8 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const vuotGioExportController = require("../controllers/vuotGioExportController");
 
-router.get("/vuotGioExport", (req, res) => {
-    res.render("vuotGioExport"); // Hiển thị trang thông tin hợp đồng giảng viên mời
-  });
+
+router.get("/vuotGioExport", vuotGioExportController.getvuotGioExportSite);
+
+  router.get(
+    "/api/export-vuot-gio",
+    vuotGioExportController.exportVuotGio
+  );
+  
   
   module.exports = router;

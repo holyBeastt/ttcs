@@ -668,93 +668,144 @@ const AdminController = {
       }
     }
   },
+  // updateMe: async (req, res) => {
+  //   // Lấy các thông tin từ form
+  //   let connection; // Khai báo biến connection
+
+  //   const {
+  //     TenNhanVien,
+  //     GioiTinh,
+  //     NgaySinh,
+  //     CCCD,
+  //     NgayCapCCCD,
+  //     NoiCapCCCD,
+  //     DiaChiHienNay,
+  //     DienThoai,
+  //     MaSoThue,
+  //     HocVi,
+  //     ChucVu,
+  //     SoTaiKhoan,
+  //     NganHang,
+  //     ChiNhanh,
+  //     MaPhongBan,
+  //     Id_User,
+  //     TenDangNhap,
+  //     Quyen,
+  //     HSL,
+  //   } = req.body;
+
+  //   const MaNhanVien = `${MaPhongBan}${Id_User}`;
+  //   try {
+  //     connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+  //     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
+  //     const query = `UPDATE nhanvien SET 
+  //       TenNhanVien = ?,
+  //       GioiTinh = ?,
+  //       NgaySinh = ?,
+  //       CCCD = ?,
+  //       NgayCapCCCD = ?,
+  //       NoiCapCCCD = ?,
+  //       DiaChiHienNay = ?,
+  //       DienThoai = ?,
+  //       MaSoThue = ?,
+  //       HocVi = ?,
+  //       ChucVu = ?,
+  //       SoTaiKhoan = ?,
+  //       NganHang = ?,
+  //       ChiNhanh = ?,
+  //       MaPhongBan = ?,
+  //       NoiCongTac = ?,
+  //       DiaChiCCCD = ?,
+  //       MonGiangDayChinh = ?,
+  //       CacMonLienQuan = ?,
+  //       MaNhanVien = ?,
+  //       HSL = ?
+  //       WHERE id_User = ?`;
+
+  //     const [updateResult] = await connection.query(query, [
+  //       TenNhanVien,
+  //       GioiTinh,
+  //       NgaySinh,
+  //       CCCD,
+  //       NgayCapCCCD,
+  //       NoiCapCCCD,
+  //       DiaChiHienNay,
+  //       DienThoai,
+  //       MaSoThue,
+  //       HocVi,
+  //       ChucVu,
+  //       SoTaiKhoan,
+  //       NganHang,
+  //       ChiNhanh,
+  //       MaPhongBan,
+  //       req.body.NoiCongTac, // Lấy từ req.body
+  //       req.body.DiaChiCCCD, // Lấy từ req.body
+  //       req.body.MonGiangDayChinh, // Lấy từ req.body
+  //       req.body.CacMonLienQuan, // Lấy từ req.body
+  //       MaNhanVien,
+  //       HSL,
+  //       Id_User,
+  //     ]);
+
+  //     // Cập nhật bảng role sau khi cập nhật nhân viên thành công
+  //     // const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
+  //     // const [roleUpdateResult] = await connection.query(queryRole, [
+  //     //   MaPhongBan,
+  //     //   Quyen,
+  //     //   TenDangNhap,
+  //     // ]);
+
+  //     console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
+  //     // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
+  //     res.status(200).json({
+  //       message: `Cập nhật thông tin thành công`,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error executing query: ", error);
+  //   } finally {
+  //     if (connection) connection.release(); // Giải phóng kết nối
+  //   }
+  // },
+
   updateMe: async (req, res) => {
     // Lấy các thông tin từ form
     let connection; // Khai báo biến connection
 
     const {
       TenNhanVien,
-      GioiTinh,
       NgaySinh,
-      CCCD,
-      NgayCapCCCD,
-      NoiCapCCCD,
-      DiaChiHienNay,
-      DienThoai,
-      MaSoThue,
       HocVi,
       ChucVu,
-      SoTaiKhoan,
-      NganHang,
-      ChiNhanh,
-      MaPhongBan,
+      Luong,
       Id_User,
       TenDangNhap,
       Quyen,
       HSL,
     } = req.body;
 
-    const MaNhanVien = `${MaPhongBan}${Id_User}`;
     try {
       connection = await createPoolConnection(); // Lấy kết nối từ pool
 
       // Truy vấn để update dữ liệu vào cơ sở dữ liệu
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
-        GioiTinh = ?,
         NgaySinh = ?,
-        CCCD = ?,
-        NgayCapCCCD = ?,
-        NoiCapCCCD = ?,
-        DiaChiHienNay = ?,
-        DienThoai = ?,
-        MaSoThue = ?,
         HocVi = ?,
         ChucVu = ?,
-        SoTaiKhoan = ?,
-        NganHang = ?,
-        ChiNhanh = ?,
-        MaPhongBan = ?,
-        NoiCongTac = ?,
-        DiaChiCCCD = ?,
-        MonGiangDayChinh = ?,
-        CacMonLienQuan = ?,
-        MaNhanVien = ?,
-        HSL = ?
+        HSL = ?,
+        Luong = ?
         WHERE id_User = ?`;
 
       const [updateResult] = await connection.query(query, [
         TenNhanVien,
-        GioiTinh,
         NgaySinh,
-        CCCD,
-        NgayCapCCCD,
-        NoiCapCCCD,
-        DiaChiHienNay,
-        DienThoai,
-        MaSoThue,
         HocVi,
         ChucVu,
-        SoTaiKhoan,
-        NganHang,
-        ChiNhanh,
-        MaPhongBan,
-        req.body.NoiCongTac, // Lấy từ req.body
-        req.body.DiaChiCCCD, // Lấy từ req.body
-        req.body.MonGiangDayChinh, // Lấy từ req.body
-        req.body.CacMonLienQuan, // Lấy từ req.body
-        MaNhanVien,
         HSL,
+        Luong,
         Id_User,
       ]);
-
-      // Cập nhật bảng role sau khi cập nhật nhân viên thành công
-      // const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
-      // const [roleUpdateResult] = await connection.query(queryRole, [
-      //   MaPhongBan,
-      //   Quyen,
-      //   TenDangNhap,
-      // ]);
 
       console.log(`${TenNhanVien.trim()} vừa thay đổi thông tin cá nhân`);
       // console.log("Bảng role đã được cập nhật:", roleUpdateResult);
