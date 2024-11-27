@@ -290,8 +290,9 @@
             </select>
         </div>
         <div class="col-md-4">
-          <label for="monGiangDayChinh">Môn giáng dạy chính:</label>
+          <label for="monGiangDayChinh">Bộ môn:</label>
           <select type="text" class="form-control" name="monGiangDayChinh" id="monGiangDayChinh" disabled>
+            <option value="">---</option>
           </select>
         </div>
         <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
@@ -485,7 +486,6 @@ hideButton();
             return;
           }
           
-          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
           let foundMatch = false;
   
           // Kiểm tra success và dữ liệu maBoMon
@@ -512,7 +512,6 @@ hideButton();
           // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
           if (!foundMatch) {
                 alert("Không tồn tại mã bộ môn vui lòng sửa lại");
-                window.location.href = '/gvmList'; // Quay trở về trang /gvmList
               }
   
         })
