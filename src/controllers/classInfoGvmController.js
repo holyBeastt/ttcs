@@ -24,7 +24,7 @@ const getClassInfoGvmData = async (req, res) => {
   if (isKhoa == 0) {
     if (department == "ALL") {
       query = `
-      SELECT 
+      SELECT distinct
       *
       FROM quychuan
       JOIN gvmoi 
@@ -33,7 +33,7 @@ const getClassInfoGvmData = async (req, res) => {
       `;
     } else {
       query = `
-      SELECT 
+      SELECT distinct
       *
       FROM quychuan
       JOIN gvmoi 
@@ -43,7 +43,7 @@ const getClassInfoGvmData = async (req, res) => {
     }
   } else {
     query = `
-    SELECT * 
+    SELECT distinct * 
     FROM quychuan 
     JOIN gvmoi ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen
     WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND MaPhongBan LIKE '%${MaPhongBan}%'`;
