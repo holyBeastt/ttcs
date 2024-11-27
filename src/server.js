@@ -96,7 +96,6 @@ app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioSoTietDMRouter);
 app.use("/", vuotGioExportDoAnRoute);
 app.use('/', thongkemgRoute);
-console.log('Route /thongkemg đã được liên kết');
 
 
 app.listen(port, hostname, () => {
