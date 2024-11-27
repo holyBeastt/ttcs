@@ -4,93 +4,6 @@ const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
 
 
-// const addClass = async (req, res) => {
-//     const MaPhongBan = req.params.MaPhongBan;
-//     const GiangVien = req.body.GiangVien;
-//     const index = req.body.index;
-//     let connection;
-//     try {
-//         connection = await createPoolConnection();
-//         const query = `SELECT id_User FROM nhanvien WHERE TenNhanVien = ?`;
-//         const [rows] = await connection.query(query, [GiangVien]);
-//         const id_User = rows[0].id_User;
-//         for (let i = 1; i <= index; i++) { // Sửa lại điều kiện vòng lặp để bao gồm cả giá trị index
-//             console.log(i);
-//             let {
-//                 [`SoTC${i}`]: SoTC = 0, 
-//                 [`TenHocPhan${i}`]: TenHocPhan = "",  // Gán giá trị mặc định là chuỗi rỗng
-//                 [`SoTietCTDT${i}`]: SoTietCTDT = 0, 
-//                 [`HeSoT7CN${i}`]: HeSoT7CN,  // Gán giá trị mặc định là 0
-//                 [`SoSV${i}`]: SoSV = 0,  // Gán giá trị mặc định là 0
-//                 [`QuyChuan${i}`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
-//                 [`HocKy${i}`]: HocKy,  // Gán giá trị mặc định là chuỗi rỗng
-//                 [`NamHoc${i}`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
-//                 [`HinhThucKTGiuaKy${i}`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
-//                 [`Lop${i}`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
-//             } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
-            
-//             if ([SoTC, TenHocPhan, SoTietCTDT, SoSV, QuyChuan, Lop].every(value => value === "" || value === 0)) {
-//                 console.log(`All data is default (empty or 0) for iteration ${i}`);
-//                 continue; // Bỏ qua lần lặp này nếu tất cả dữ liệu là mặc định
-//             }
-//             SoTC = SoTC || 0;
-//             SoTietCTDT = SoTietCTDT || 0;
-//             let SoDe = 0, HeSoLopDong = 0;
-//             if (SoSV >= 41 && SoSV <= 50) {
-//                 HeSoLopDong = 1.1;
-//                 SoDe = 3;
-//             } else if (SoSV >= 51 && SoSV <= 65) {
-//                 HeSoLopDong = 1.2;
-//                 SoDe = 3;
-//             } else if (SoSV >= 66 && SoSV <= 80) {
-//                 HeSoLopDong = 1.3;
-//                 SoDe = 3;
-//             } else if (SoSV >= 81 && SoSV <= 100) {
-//                 HeSoLopDong = 1.4;
-//                 SoDe = 4;
-//             } else if (SoSV >= 101) {
-//                 HeSoLopDong = 1.5;
-//                 SoDe = 4;
-//             } else {
-//                 HeSoLopDong = 1; // Giá trị mặc định nếu không nằm trong khoảng
-//                 SoDe = 2;
-//             }
-//             let SoTietKT = 0;
-//             if (HinhThucKTGiuaKy === "none") {
-//                 SoTietKT = 0;
-//             }
-//             if (HinhThucKTGiuaKy === "Coi, chấm TN" || HinhThucKTGiuaKy === "Coi, chấm viết" ) {
-//                     let number = HeSoT7CN*(0.05*SoSV +2);
-//                     SoTietKT = parseFloat(number.toFixed(2));
-//             }
-//             if (HinhThucKTGiuaKy === "Coi, chấm VĐ" || HinhThucKTGiuaKy === "Coi, chấm TH" ) {
-//                     let number = HeSoT7CN*(0.125*SoSV +2);
-//                     SoTietKT = parseFloat(number.toFixed(2));
-//             }
-//             console.log(SoTC,
-//                 TenHocPhan,
-//                 SoTietCTDT,
-//                 HeSoT7CN,
-//                 SoSV,
-//                 HeSoLopDong,
-//                 QuyChuan,
-//                 HocKy,
-//                 NamHoc,
-//                 HinhThucKTGiuaKy,
-//                 SoTietKT,
-//                 Lop, MaPhongBan);
-//             const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-//             await connection.query(query1, [SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
-
-//         }
-//         res.redirect("/addclass?message=insertSuccess");
-//     } catch (error) {
-//         console.error("Lỗi khi cập nhật dữ liệu: ", error);
-//         res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
-//     } finally {
-//         if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-//     }
-// };
 const addClass = async (req, res) => {
     const MaPhongBan = req.params.MaPhongBan;
     const GiangVien = req.body.GiangVien;
@@ -104,7 +17,7 @@ const addClass = async (req, res) => {
         let {
             [`SoTC`]: SoTC = 0, 
             [`TenHocPhan`]: TenHocPhan = "",  // Gán giá trị mặc định là chuỗi rỗng
-            [`SoTietCTDT`]: SoTietCTDT = 0, 
+            [`LenLop`]: LenLop = 0, 
             [`HeSoT7CN`]: HeSoT7CN,  // Gán giá trị mặc định là 0
             [`SoSV`]: SoSV = 0,  // Gán giá trị mặc định là 0
             [`QuyChuan`]: QuyChuan = 0,  // Gán giá trị mặc định là chuỗi rỗng
@@ -114,7 +27,7 @@ const addClass = async (req, res) => {
             [`Lop`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
         } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
         SoTC = SoTC || 0;
-        SoTietCTDT = SoTietCTDT || 0;
+        LenLop = LenLop || 0;
         let SoDe = 0, HeSoLopDong = 0;
         if (SoSV >= 41 && SoSV <= 50) {
             HeSoLopDong = 1.1;
@@ -149,7 +62,7 @@ const addClass = async (req, res) => {
         }
         console.log(SoTC,
             TenHocPhan,
-            SoTietCTDT,
+            LenLop,
             HeSoT7CN,
             SoSV,
             HeSoLopDong,
@@ -159,8 +72,8 @@ const addClass = async (req, res) => {
             HinhThucKTGiuaKy,
             SoTietKT,
             Lop, MaPhongBan);
-        const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-        await connection.query(query1, [SoTC, TenHocPhan, id_User, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
+        const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+        await connection.query(query1, [SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
 
         res.status(200).send({ message: "Thêm lớp thành công" });
     } catch (error) {
@@ -488,7 +401,7 @@ const getLopNgoaiQuyChuan = async (req, res) =>{
                 maBoMon: rows,
             });
         } else {
-            const query = `SELECT * FROM lopngoaiquychuan WHERE MaPhongBan = ? AND HocKy = ? AND NamHoc = ?`;
+            const query = `SELECT * FROM lopngoaiquychuan WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?`;
             const [rows] = await connection.query(query, [MaPhongBan, Ki, Nam]);
             res.json({
                 success: true,
@@ -562,7 +475,7 @@ const updatelopngoaiquychuan = async (req, res) =>{
     try {
         // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
         for (let data of globalData) {
-            const { tenHocPhan, soTC, maLop, soSV, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay } = data;
+            const { tenHocPhan, soTC, maLop, soSV, soTietTKB, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay } = data;
         
             let SoTietKT = 0;
             let SoDe = 0, HeSoLopDong = 0;
@@ -601,6 +514,7 @@ const updatelopngoaiquychuan = async (req, res) =>{
                 tenHocPhan, 
                 heSoT7CN, 
                 soSV, 
+                soTietTKB,
                 HeSoLopDong,
                 hinhThucKTGiuaKy, 
                 SoTietKT, 
@@ -612,7 +526,7 @@ const updatelopngoaiquychuan = async (req, res) =>{
             
             // Câu lệnh INSERT vào bảng giuaky
             const query2 = `
-                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HeSoLopDong = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
+                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, LenLop =?, HeSoLopDong = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
                 WHERE MaGiangDay = ? 
             `;
             
@@ -629,6 +543,33 @@ const updatelopngoaiquychuan = async (req, res) =>{
         if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
 };
+
+const getLopGiangDay = async (req, res) =>{
+    const {Ki, Nam, MaPhongBan} = req.params;
+    let connection
+    
+    try {
+        connection = await createPoolConnection();
+        console.log(Ki, Nam, MaPhongBan);
+        const query = `SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'giangday' AS source FROM giangday WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?
+                        UNION ALL
+                        SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'lopngoaiquychuan' AS source FROM lopngoaiquychuan WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?`;
+        const [rows] = await connection.query(query,[MaPhongBan, Ki, Nam, MaPhongBan, Ki, Nam]);
+        const query1 = `SELECT * FROM giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?`;
+        const [rows2] = await connection.query(query1, [MaPhongBan, Ki, Nam]);
+        console.log(rows2);
+        res.json({
+            success: true,
+            LopGiangDay: rows,
+            LopGiuaKi: rows2,
+        });
+    } catch (error) {
+        console.error("Lỗi: ", error);
+        res.status(500).send("Đã có lỗi xảy ra");
+    } finally {
+        if (connection) connection.release(); // hoặc connection.end();
+    }
+};
 module.exports = {
     addClass,
     getLopGiuaKi,
@@ -642,4 +583,5 @@ module.exports = {
     updateDuyet,
     deletelopngoaiquychuan,
     updatelopngoaiquychuan,
+    getLopGiangDay,
 };

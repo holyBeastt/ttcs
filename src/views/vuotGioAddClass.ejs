@@ -377,15 +377,15 @@
                   <option value="">Năm học</option>
                 </select>
         
-                <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
-                <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
-                <button class="btn" id="createclass">Thêm lớp</button>
+                <button id="infoGvm" class="btn text-nowrap mx-2" style="height: 45px;">Hiển thị</button>
+                <button onclick="submitData()" class="btn mx-2" id="update-qc" style="height: 45px;">Cập nhật</button>
+                <button class="btn" id="createclass" style="height: 45px;">Thêm lớp</button>
               </div>
             </div>
             <div id="formcreate"  style="display: none;">
               <form class="formcreate" id="addClassForm">
                 <p class="title">Thêm lớp ngoài quy chuẩn </p>
-                <p class="message">Nhập đầy đủ các thông tin được đánh dấu *. </p>
+                <p class="message">Nhập đầy đủ các thông tin bên dưới. </p>
                   <input type="text" id="GiangVien" name="GiangVien" hidden>
                       <label>
                         <input class="input" type="text" name="TenHocPhan" id="TenHocPhan" required>
@@ -410,28 +410,28 @@
                       <div class="flex">
                         <label>
                           <input type="text" class="input" name="Lop" id="Lop" required> 
-                          <span>Mã lớp*</span>
+                          <span>Mã lớp</span>
                         </label>
                         <label>
-                          <input type="text" class="input" name="SoTC" id="SoTC" value="0">
+                          <input type="text" class="input" name="SoTC" id="SoTC" required>
                           <span>Số tín chỉ</span>
                         </label>
                       </div>
 
                       <div class="flex">
                         <label>
-                          <input type="text" class="input" name="SoTietCTDT" id="SoTietCTDT" value="0">
+                          <input type="text" class="input" name="LenLop" id="LenLop" required>
                           <span>Số tiết TKB</span>
                         </label>
                         <label>
                           <input type="text" class="input" name="QuyChuan" id="QuyChuan" required>
-                          <span>Số tiết QC*</span>
+                          <span>Số tiết QC</span>
                         </label>
                       </div>
                       <div class="flex">
                         <label style="width: 50%;">
                           <input type="text" class="input" name="SoSV" id="SoSV" required>
-                          <span>Số SV*</span>
+                          <span>Số SV</span>
                         </label>
                         <label style="width: 50%;">
                           <select class="input" name="HeSoT7CN" id="HeSoT7CN" style="height: 57px;">
@@ -475,6 +475,7 @@
                     <th style="width: 200px;">GV giảng dạy</th>
                     <th style="width: 50px;">Mã lớp</th>
                     <th style="width: 100px;">Số SV</th>
+                    <th style="width: 50px;">Số tiết TKB</th>
                     <th style="width: 50px;">Hình thức thi giữa kỳ</th>
                     <th style="width: 100px;">Hệ số T7CN</th>
                     <th style="width: 50px;">Số tiết KT</th>
@@ -634,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const GiangVien = localStorage.getItem('TenNhanVien');
     const SoTC = document.getElementById('SoTC').value;
     const TenHocPhan = document.getElementById('TenHocPhan').value;
-    const SoTietCTDT = document.getElementById('SoTietCTDT').value;
+    const LenLop = document.getElementById('LenLop').value;
     const HeSoT7CN = document.getElementById('HeSoT7CN').value;
     const SoSV = document.getElementById('SoSV').value;
     const QuyChuan = document.getElementById('QuyChuan').value;
@@ -647,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
           body: JSON.stringify({
               SoTC, 
               TenHocPhan,  
-              SoTietCTDT, 
+              LenLop, 
               HeSoT7CN,
               SoSV,
               QuyChuan,  
@@ -845,6 +846,18 @@ document.addEventListener('DOMContentLoaded', function () {
       soSVInput.id = `soSVInput_${index}`;
       tableRow.appendChild(soSVTd);
 
+      // Số tiết TKB
+      const soTietTKBTd = document.createElement('td');
+      const soTietTKBInput = document.createElement('input');
+      soTietTKBInput.type = 'text'; // Loại input là text
+      soTietTKBInput.value = row.LenLop; // Gán giá trị ban đầu
+      soTietTKBInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      soTietTKBInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+      // Gắn input vào ô td
+      soTietTKBTd.appendChild(soTietTKBInput);
+      soTietTKBInput.id = `soTietTKBInput_${index}`;
+      tableRow.appendChild(soTietTKBTd);
+
 
       //Thẻ select hình thức thi giữa kỳ
       let hinhThucKTGiuaKyTd;
@@ -1011,6 +1024,9 @@ document.addEventListener('DOMContentLoaded', function () {
       const soSVInput = document.getElementById(`soSVInput_${index}`);
       const soSV = soSVInput ? soSVInput.value : '';
 
+      const soTietTKBInput = document.getElementById(`soTietTKBInput_${index}`);
+      const soTietTKB = soTietTKBInput ? soTietTKBInput.value : '';
+
       const hinhThucKTGiuaKyInput = document.getElementById(`hinhThucKTGiuaKy_${index}`);
       const hinhThucKTGiuaKy = hinhThucKTGiuaKyInput ? hinhThucKTGiuaKyInput.value : '';
 
@@ -1028,6 +1044,7 @@ document.addEventListener('DOMContentLoaded', function () {
         soTC,
         maLop,
         soSV,
+        soTietTKB,
         hinhThucKTGiuaKy,
         heSoT7CN,
         MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi

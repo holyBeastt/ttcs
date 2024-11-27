@@ -78,6 +78,7 @@ const exportHDGvmToExcel = async (req, res) => {
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
     }
+
     let query = `
     SELECT
       MIN(hd.NgayBatDau) AS NgayBatDau,
@@ -102,31 +103,34 @@ const exportHDGvmToExcel = async (req, res) => {
       hd.NganHang,
       SUM(hd.SoTiet) AS SoTiet,
       hd.DiaChi,
-      gv.NoiCongTac 
+      gv.NoiCongTac
     FROM
       hopdonggvmoi hd
     JOIN
-      gvmoi gv ON hd.HoTen = gv.HoTen  
+      gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
-      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?
+      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?`;
+
+    // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
+    if (khoa && khoa !== "ALL") {
+      query += ` AND gv.MaPhongBan = ?`;
+    }
+
+    query += `
     GROUP BY
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
       hd.Email, hd.MaSoThue, hd.HocVi, hd.ChucVu, hd.HSL, hd.DienThoai, 
-      hd.STK, hd.NganHang, hd.DiaChi,hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, gv.MonGiangDayChinh, gv.BangTotNghiepLoai
-  `;
+      hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
+      gv.MonGiangDayChinh, gv.BangTotNghiepLoai;
+    `;
 
+    // Tạo mảng tham số
     let params = [namHoc, dot, ki];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
-
-    // query += `
-    //   GROUP BY
-    //     HoTen, KiHoc, DanhXung, NgaySinh, CCCD, NoiCapCCCD, Email,
-    //     MaSoThue, HocVi, ChucVu, HSL, DienThoai, STK, NganHang, DiaChi
-    // `;
 
     const [rows] = await connection.execute(query, params);
 
