@@ -9,8 +9,11 @@ const { json, query } = require("express");
 const gvms = require("../services/gvmServices");
 const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
+const JSZip = require("jszip");
+const { parseStringPromise } = require("xml2js");
 
-// convert file excel sang file quy chuẩn
+
+// convert file quy chuẩn excel
 const convertExcelToJSON = (filePath) => {
   try {
     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
@@ -38,7 +41,7 @@ const convertExcelToJSON = (filePath) => {
     });
 
     // console.log("Chuẩn bị validate dữ liệu quy chuẩn");
-    validate(jsonObjects);
+    validateDataFileQC(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
   } catch (err) {
@@ -48,7 +51,7 @@ const convertExcelToJSON = (filePath) => {
 };
 
 // hàm thẩm định giá trị của dữ liệu từ file quy chuẩn
-const validate = (data) => {
+const validateDataFileQC = (data) => {
   // Kiểm tra nếu dữ liệu trống
   if (!data || data.length === 0) {
     throw new Error("Dữ liệu đầu vào không hợp lệ: Dữ liệu trống");
@@ -76,6 +79,152 @@ const validate = (data) => {
 
   // console.log("Dữ liệu đã được validate và chỉnh sửa");
   return data;
+};
+
+// convert file word quy chuẩn
+const convertWordToJSON = async (filePath) => {
+  try {
+    // Đọc file Word (.docx)
+    const fileBuffer = await fs.promises.readFile(filePath); // Sử dụng fs.promises để xử lý bất đồng bộ
+
+    await fs.promises.unlink(filePath); // Xóa tệp sau khi xử lý
+
+    // Giải nén file .docx
+    const zip = await JSZip.loadAsync(fileBuffer);
+
+    // Lấy file XML chứa nội dung tài liệu
+    const documentXml = await zip.file("word/document.xml").async("string");
+
+    // Parse XML để lấy nội dung
+    const parsedXml = await parseStringPromise(documentXml);
+
+    // Truy cập nội dung bảng trong file Word
+    const tables = parsedXml["w:document"]["w:body"][0]["w:tbl"] || [];
+
+    // Mảng chứa tất cả các dữ liệu từ các bảng
+    const allTablesData = [];
+
+    // Biến để lưu tên Khoa hiện tại
+    let currentKhoa = "";
+
+    // Xử lý từng bảng
+    for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+      const table = tables[tableIndex];
+      if (tableIndex === 0) {
+        continue; // Bỏ qua bảng đầu tiên
+      }
+
+      const rows = table["w:tr"] || [];
+
+      // Lấy dữ liệu từ hàng đầu tiên làm key cho đối tượng
+      const headers =
+        rows[0]["w:tc"]?.map((cell) => {
+          const cellText = (cell["w:p"] || [])
+            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .join(" ");
+          return cellText.trim();
+        }) || [];
+
+      // Mảng để chứa đối tượng của bảng này
+      const tableData = [];
+
+      // Xử lý các hàng tiếp theo để chuyển thành các đối tượng
+      for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex];
+        const cells = row["w:tc"] || [];
+
+        // Lấy dữ liệu văn bản của từng ô trong hàng này
+        const rowData = cells.map((cell) => {
+          const cellText = (cell["w:p"] || [])
+            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .join(" ");
+          return cellText.trim();
+        });
+
+        // Nếu chỉ có 1 ô, đây là dòng kiểm tra
+        if (rowData.length === 1) {
+          const rowText = rowData[0]; // Lấy văn bản của ô duy nhất
+
+          // Kiểm tra từ khóa trong dòng kiểm tra (ví dụ từ "Khoa")
+          if (rowText.includes("học phần khác")) {
+            currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
+          } else if (rowText.includes("Trung tâm thực hành")) {
+            currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
+          } else if (rowText.includes("Khoa")) {
+            const khoaMatch = rowText.match(/Khoa\s+(.+)$/);
+            if (khoaMatch) {
+              currentKhoa = khoaMatch[1].trim(); // Lấy tên Khoa từ dòng kiểm tra
+            }
+          }
+          continue; // Bỏ qua dòng này, không tạo đối tượng
+        }
+
+        // Chuyển hàng thành đối tượng với key là header và value là dữ liệu của hàng đó
+        const rowObject = headers.reduce((acc, header, idx) => {
+          acc[header] = rowData[idx] || "";
+          return acc;
+        }, {});
+
+        // Thêm key "Khoa" vào đối tượng
+        rowObject["Khoa"] = currentKhoa; // Chỉ áp dụng Khoa hiện tại
+
+        tableData.push(rowObject);
+      }
+
+      // Gộp bảng vào mảng chính (phẳng hóa ngay khi thêm)
+      allTablesData.push(...tableData);
+    }
+
+    // In ra mảng dữ liệu của tất cả các bảng
+    validateDataFileQC(allTablesData);
+    return allTablesData;
+  } catch (error) {
+    console.error("Lỗi khi đọc file:", error.message);
+    throw error; // Ném lỗi để có thể xử lý bên ngoài
+  }
+};
+
+const handleUploadAndRender = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({ error: "No file uploaded" });
+    }
+
+    const filePath = path.join(__dirname, "../../uploads", req.file.filename);
+    // console.log(filePath)
+
+    // const fileExtension = path.extname(req.file.filename).toLowerCase(); // Lấy đuôi file
+    const fileExtension = path.extname(req.file.originalname).toLowerCase();
+
+
+    let result;
+
+    // console.log(fileExtension)
+    // Xử lý theo loại file
+    if (fileExtension === ".xlsx" || fileExtension === ".xls") {
+      result = convertExcelToJSON(filePath);
+      // console.log('ok')
+    } else if (fileExtension === ".docx") {
+      result = await convertWordToJSON(filePath);
+      // console.log('ok2')
+    } else if (fileExtension === ".pdf") {
+      // result = processPdfFile(filePath);
+    } else {
+      return res.status(400).send({ error: "Không đúng định dạng" });
+    }
+
+    console.log('Convert file quy chuẩn thành công!');
+    // Gửi kết quả cho client
+    res.send(result);
+
+    // // Xóa file sau khi xử lý nếu cần thiết
+    // fs.unlink(filePath, (err) => {
+    //   if (err) console.error("Error deleting file:", err);
+    // });
+  } catch (error) {
+    console.error("Error processing file:", error);
+    res.status(500).send({ error: "Internal server error" });
+  }
 };
 
 // kiểm tra tồn tại dữ liệu cũ ( tránh trường hợp import 2 file quy chuẩn bị trùng )
@@ -422,9 +571,71 @@ const updateBanHanh = async (req, res) => {
   }
 };
 
-const importTableTam = async (jsonData) => {
-  const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
+// const importTableTam = async (jsonData) => {
+//   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
 
+//   // Tạo câu lệnh INSERT động
+//   const query = `
+//     INSERT INTO ${tableName} (
+//       Khoa,
+//       Dot,
+//       Ki,
+//       Nam,
+//       GiaoVien, 
+//       SoTinChi, 
+//       LopHocPhan, 
+//       LL, 
+//       SoTietCTDT, 
+//       HeSoT7CN, 
+//       SoSinhVien, 
+//       HeSoLopDong, 
+//       QuyChuan
+//     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+//   `;
+
+//   const insertPromises = jsonData.map(async (item) => {
+//     const connection = await createPoolConnection(); // Lấy kết nối từ pool
+//     try {
+//       const values = [
+//         item["Khoa"],
+//         item["Dot"],
+//         item["Ki"],
+//         item["Nam"],
+//         item["Giáo Viên"],
+//         item["Số TC"],
+//         item["Lớp học phần"],
+//         item["Số tiết lên lớp giờ HC"],
+//         item["Số tiết theo CTĐT"],
+//         item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+//         item["Số SV"],
+//         item["Hệ số lớp đông"],
+//         item["QC"],
+//       ];
+//       await connection.query(query, values);
+//     } catch (err) {
+//       console.error("Error:", err);
+//       throw err;
+//     } finally {
+//       connection.release(); // Giải phóng kết nối sau khi hoàn thành
+//     }
+//   });
+
+//   let results = false;
+//   try {
+//     await Promise.all(insertPromises); // Thực hiện tất cả các truy vấn song song
+//     results = true;
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+
+//   console.log("Thêm file quy chuẩn vào bảng Tam thành công");
+//   return results;
+// };
+
+const importTableTam = async (jsonData) => {
+  const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
+
+  // console.log(jsonData[1])
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -441,47 +652,40 @@ const importTableTam = async (jsonData) => {
       SoSinhVien, 
       HeSoLopDong, 
       QuyChuan
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ) VALUES ?
   `;
 
-  const insertPromises = jsonData.map(async (item) => {
-    const connection = await createPoolConnection(); // Lấy kết nối từ pool
-    try {
-      const values = [
-        item["Khoa"],
-        item["Dot"],
-        item["Ki"],
-        item["Nam"],
-        item["Giáo Viên"],
-        item["Số TC"],
-        item["Lớp học phần"],
-        item["Số tiết lên lớp giờ HC"],
-        item["Số tiết theo CTĐT"],
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
-        item["Số SV"],
-        item["Hệ số lớp đông"],
-        item["QC"],
-      ];
-      await connection.query(query, values);
-    } catch (err) {
-      console.error("Error:", err);
-      throw err;
-    } finally {
-      connection.release(); // Giải phóng kết nối sau khi hoàn thành
-    }
-  });
+  // Tạo danh sách các giá trị
+  const values = jsonData.map((item) => [
+    item["Khoa"],
+    item["Dot"],
+    item["Ki"],
+    item["Nam"],
+    item["Giáo Viên"],
+    item["Số TC"],
+    item["Lớp học phần"],
+    item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"],
+    item["Số tiết theo CTĐT"],
+    item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+    item["Số SV"],
+    item["Hệ số lớp đông"],
+    item["QC"],
+  ]);
 
-  let results = false;
+  const connection = await createPoolConnection(); // Lấy kết nối từ pool
   try {
-    await Promise.all(insertPromises); // Thực hiện tất cả các truy vấn song song
-    results = true;
-  } catch (error) {
-    console.error("Error:", error);
+    // Thực hiện truy vấn với nhiều giá trị
+    await connection.query(query, [values]);
+    console.log("Thêm file quy chuẩn vào bảng Tam thành công");
+    return true;
+  } catch (err) {
+    console.error("Error:", err);
+    return false;
+  } finally {
+    connection.release(); // Giải phóng kết nối
   }
-
-  console.log("Thêm file quy chuẩn vào bảng Tam thành công");
-  return results;
 };
+
 
 const getIdUserByTeacherName = async (teacherName) => {
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
@@ -628,16 +832,6 @@ const importJSONToDB = async (jsonData) => {
     console.error("Lỗi tổng quát:", error);
     return false;
   }
-};
-
-const handleUploadAndRender = async (req, res) => {
-  const filePath = path.join(__dirname, "../../uploads", req.file.filename);
-
-  // Chuyển đổi file Excel sang JSON
-  const jsonResult = convertExcelToJSON(filePath);
-
-  // render bảng
-  res.send(jsonResult);
 };
 
 const checkFile = async (req, res) => {
