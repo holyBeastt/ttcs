@@ -10,72 +10,149 @@
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
   <style>
+    /* Định dạng cho bảng */
     .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 20px;
+        font-size: 0.9em;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        overflow: hidden;
     }
 
     .table th,
     .table td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #dee2e6;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        border-right: 2px solid #dee2e6;
+        border-left: 2px solid #dee2e6;
     }
 
     .table th {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
+        background-color: blue;
+        color: white;
+        font-weight: bold;
+        border-right: 2px solid #fff;
+    }
+
+    .table th:last-child {
+        border-right: 2px solid #dee2e6;
+    }
+
+    .table tbody tr {
+        border-bottom: 1px solid #dddddd;
+        transition: all 0.3s ease;
     }
 
     .table tbody tr:nth-child(even) {
-      background-color: #f8f9fa;
+        background-color: #f3f3f3;
+    }
+
+    .table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
     }
 
     .table tbody tr:hover {
-      background-color: #e2e6ea;
+        background-color: #f5f5f5;
+        transform: scale(1.01);
     }
 
-    .table td {
-      vertical-align: middle;
+    /* Định dạng cho biểu đồ */
+    #thongkemgCanvas {
+        width: 80%;
+        max-width: 1200px;
+        height: 400px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .bg-custom {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    /* Định dạng cho tiêu đề */
+    h3 {
+        color: #009879;
+        text-align: center;
+        margin: 30px 0;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
     }
 
-    .spinner-border {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1000;
+    h3:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: #009879;
     }
 
-    .card-item {
-      width: 30%;
+    /* Định dạng cho combobox */
+    .form-select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background-color: white;
+        transition: all 0.3s ease;
+        margin: 5px;
+        min-width: 150px;
     }
-                /* Định dạng chung cho biểu đồ */
-                #thongkemgCanvas {
-            width: 65%;  /* Giới hạn kích thước biểu đồ */
-            height: 150x; /* Điều chỉnh chiều cao của biểu đồ */
-            margin: 0 auto; /* Canh giữa biểu đồ */
+
+    .form-select:focus {
+        border-color: #009879;
+        box-shadow: 0 0 0 0.2rem rgba(0, 152, 121, 0.25);
+    }
+
+    /* Định dạng cho tổng số tiết */
+    .total-label {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 20px auto;
+        width: fit-content;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        color: #009879;
+    }
+
+    .value {
+        color: #dc3545;
+        font-size: 1.1em;
+        margin-left: 5px;
+    }
+
+    /* Container cho các controls */
+    .controls-container {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 10px;
+        margin: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        #thongkemgCanvas {
+            width: 95%;
+            height: 300px;
         }
 
-        /* Thêm một chút khoảng cách cho phần tử */
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+        .table {
+            font-size: 0.8em;
         }
 
-        h3 {
-            margin-bottom: 20px;
-            margin-top: 20px;
+        .form-select {
+            width: 100%;
+            margin: 5px 0;
         }
+    }
   </style>
 </head>
 
@@ -112,7 +189,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bằng file</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bng file</a>
               </div>
             </div>
           </div>
@@ -160,7 +237,7 @@
                 <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" href="/soTietDM">Số tiết định mức</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra già kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
 
@@ -240,20 +317,19 @@
 
         <!-- Combo box Đợt -->
         <select class="form-select w-100px mx-1 selectop" id="combobox-dot">
-          <option value="">Đợt</option>
+          <option value="">Tất cả đợt</option>
         </select>
 
         <!-- Combo box kì -->
         <select class="form-select w-100px mx-1 selectop" id="comboboxki">
-          <option value="">Kì</option>
+          <option value="">Tất cả kỳ</option>
         </select>
 
         <!-- Combo box Năm -->
         <select class="form-select w-100px mx-1 selectop" id="NamHoc">
-          <option value="">Chọn năm học</option>
+          <option value="">Tất cả năm</option>
         </select>
 
-        <button class="btn mx-1" id="render" style="margin-bottom: 0px; height: 45px;">Hiển thị</button>
 
       </div>
       <div class="overflow-auto">
@@ -287,62 +363,79 @@
             <!-- Dữ liệu bảng sẽ được chèn vào đây -->
         </tbody>
     </table>
-
+    <div class="total-label">
+      <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
+    </div>
     <script>
+        $(document).ready(function () {
+            $('#NamHoc option[value=""]').remove();
+            $('#comboboxki option[value=""]').remove();
+            $('#combobox-dot option[value=""]').remove();
+
+            $.ajax({
+                url: '/getNamHoc',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm dữ liệu năm học
+                        response.NamHoc.forEach(function (item) {
+                            console.log(item.NamHoc);
+                            $('#NamHoc').append(
+                                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                            );
+                        });
+
+                        // Thêm dữ liệu kỳ học
+                        response.Ki.forEach(function (item) {
+                            console.log(item.Ki);
+                            $('#comboboxki').append(
+                                `<option value="${item.value}">${item.Ki}</option>`
+                            );
+                        });
+
+                        // Thêm dữ liệu đợt
+                        response.Dot.forEach(function (item) {
+                            console.log(item.Dot);
+                            $('#combobox-dot').append(
+                                `<option value="${item.value}">${item.Dot}</option>`
+                            );
+                        });
+                    } else {
+                        console.error("Không lấy được dữ liệu:", response.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                }
+            });
+        });
+
+        let myChart = null;
+
         async function fetchThongkemgData() {
             try {
-                const response = await fetch('/api/thongkemg-data'); // Lấy dữ liệu từ API
-                const data = await response.json(); // Chuyển dữ liệu thành JSON
+                const dot = document.getElementById('combobox-dot').value;
+                const ki = document.getElementById('comboboxki').value;
+                const nam = document.getElementById('NamHoc').value;
+                
+                let url = '/api/thongkemg-data';
+                const params = new URLSearchParams();
+                
+                if (dot) params.append('dot', dot);
+                if (ki) params.append('kihoc', ki);
+                if (nam) params.append('namhoc', nam);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
 
-                // Lấy tên giảng viên và số tiết
-                const labels = data.map(item => item.hoten); // Lấy tên giảng viên
-                const values = data.map(item => item.tongsotiet); // Lấy tổng số tiết
-
-                // Vẽ biểu đồ với Chart.js
-                const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                const chart = new Chart(ctx, {
-                    type: 'bar', // Biểu đồ cột
-                    data: {
-                        labels: labels, // Nhãn (tên giảng viên)
-                        datasets: [{
-                            label: 'Số tiết mời giảng',
-                            data: values, // Dữ liệu (số tiết)
-                            backgroundColor: 'blue', // Màu nền của cột
-                            borderColor: 'black', // Màu viền của cột
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true, // Đảm bảo biểu đồ tự động thay đổi kích thước
-                        scales: {
-                            y: {
-                                beginAtZero: true, // Bắt đầu trục y từ 0
-                                ticks: {
-                                    stepSize: 100 // Điều chỉnh bước nhảy của trục y
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    font: {
-                                        weight: 'bold', // Làm cho tên giảng viên đen đậm
-                                        size: 14, // Kích thước font của tên giảng viên
-                                    },
-                                    maxRotation: 45, // Giảm góc quay của nhãn nếu cần
-                                    minRotation: 0
-                                }
-                            }
-                        },
-                        elements: {
-                            bar: {
-                                // Chiều rộng cột khoảng 1cm (37.8px)
-                                barThickness: 20
-                            }
-                        }
-                    }
-                });
-
-                // Hiển thị bảng chi tiết giảng viên và số tiết
+                // Cập nhật bảng
                 const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                
                 data.forEach((item, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -353,13 +446,90 @@
                     tableBody.appendChild(row);
                 });
 
+                // Thêm dòng này để tính tổng
+                calculateTotals();
+
+                // Cập nhật biểu đồ
+                const labels = data.map(item => item.hoten);
+                const values = data.map(item => item.tongsotiet);
+
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Số tiết mời giảng',
+                            data: values,
+                            backgroundColor: 'blue',
+                            borderColor: 'black',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 100
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        weight: 'bold',
+                                        size: 14
+                                    },
+                                    maxRotation: 45,
+                                    minRotation: 0
+                                }
+                            }
+                        },
+                        elements: {
+                            bar: {
+                                barThickness: 20
+                            }
+                        }
+                    }
+                });
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
             }
         }
 
-        // Gọi hàm khi trang được tải
-        window.onload = fetchThongkemgData; 
+        // Load dữ liệu ban đầu khi trang được tải
+        window.onload = async () => {
+            await fetchThongkemgData();
+        };
+
+        // Thêm event listeners
+        document.getElementById('combobox-dot').addEventListener('change', fetchThongkemgData);
+        document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
+        document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
+        document.getElementById('render').addEventListener('click', fetchThongkemgData);
+    </script>
+
+    <script>
+        function calculateTotals() {
+            let total = 0;
+            const rows = document.querySelectorAll('#tableBody tr');
+
+            rows.forEach((row) => {
+                // Lấy ô chứa số tiết (cột thứ 3)
+                const sotietCell = row.querySelector('td:nth-child(3)');
+                // Chuyển đổi giá trị thành số và cộng dồn
+                const sotiet = parseFloat(sotietCell.textContent) || 0;
+                total += sotiet;
+            });
+
+            // Cập nhật tổng số tiết
+            document.getElementById('total').textContent = total.toFixed(2);
+        }
     </script>
 <script>
       document.addEventListener("DOMContentLoaded", () => {

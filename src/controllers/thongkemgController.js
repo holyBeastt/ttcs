@@ -1,32 +1,56 @@
 const createConnection = require("../config/databasePool");
 
 const thongkemgController = {
-    // Phương thức để hiển thị trang thongkemg
     showThongkemgPage: (req, res) => {
-      res.render("thongkemg"); // Render trang thongkemg.ejs
+        res.render("thongkemg");
     },
-  
-    // Phương thức để lấy dữ liệu số tiết mời giảng
+
     getThongkemgData: async (req, res) => {
-      let connection;
-  
-      try {
-        connection = await createConnection();
-        const query = `
-          SELECT hoten, SUM(sotiet) as tongsotiet 
-          FROM hopdonggvmoi 
-          GROUP BY hoten
-          ORDER BY tongsotiet DESC;
-        `;
-        const [result] = await connection.query(query);
-        res.json(result); // Trả về dữ liệu dưới dạng JSON
-      } catch (err) {
-        console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-        res.status(500).send("Lỗi máy chủ");
-      } finally {
-        if (connection) connection.release(); // Giải phóng kết nối
-      }
+        let connection;
+        const { dot, kihoc, namhoc } = req.query;
+
+        try {
+            connection = await createConnection();
+            let query = `
+                SELECT hoten, SUM(sotiet) as tongsotiet 
+                FROM hopdonggvmoi 
+                WHERE 1=1
+            `;
+            
+            if (dot) query += ` AND dot = '${dot}'`;
+            if (kihoc) query += ` AND kihoc = '${kihoc}'`;
+            if (namhoc) query += ` AND namhoc = '${namhoc}'`;
+            
+            query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
+            
+            const [result] = await connection.query(query);
+            res.json(result);
+        } catch (err) {
+            console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+            res.status(500).send("Lỗi máy chủ");
+        } finally {
+            if (connection) connection.release();
+        }
+    },
+
+    getFilterOptions: async (req, res) => {
+        let connection;
+        try {
+            connection = await createConnection();
+            const query = `
+                SELECT DISTINCT dot, kihoc, namhoc 
+                FROM hopdonggvmoi 
+                ORDER BY namhoc DESC, kihoc DESC, dot DESC;
+            `;
+            const [result] = await connection.query(query);
+            res.json(result);
+        } catch (err) {
+            console.error("Lỗi khi lấy dữ liệu filter:", err);
+            res.status(500).send("Lỗi máy chủ");
+        } finally {
+            if (connection) connection.release();
+        }
     }
-  };
-  
-  module.exports = thongkemgController;
+};
+
+module.exports = thongkemgController;

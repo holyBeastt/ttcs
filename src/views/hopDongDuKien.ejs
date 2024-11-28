@@ -79,6 +79,12 @@
     .btn {
       height: 45px !important;
     }
+
+    /* Phần cảnh báo nếu số tiết vượt quá 300 */
+    .alert-sotiet {
+      background-color: #FFE4B5;
+      color: #333; /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+    }
   </style>
 </head>
 
@@ -393,7 +399,15 @@
                 row.insertCell(11).textContent = item.NganHang;
                 row.insertCell(12).textContent = item.MaSoThue;
                 row.insertCell(13).textContent = item.SoTiet;
+
+                              // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
+              if (item.SoTiet > 300) {
+                row.classList.add('alert-sotiet');
+              }
               });
+
+
+
 
               // Hiển thị bảng
               tableContainer.style.display = 'block';
