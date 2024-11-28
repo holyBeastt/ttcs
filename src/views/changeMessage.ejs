@@ -217,8 +217,8 @@
               <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
-                <a class="dropdown-item active" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item active" id="changeMessage">Thêm thông báo</a>
                 <a class="dropdown-item" href="/">Đăng xuất</a>
               </div>
             </div>
@@ -229,62 +229,34 @@
 
     <!-- Phần trên của navbar chứa logo và tiêu đề -->
     <div class="container-fluid m-4 box">
-      <h2>Đổi Mật Khẩu</h2>
+      <h2>Thêm thông báo</h2>
 
-      <form id="changePasswordForm" method="POST" action="/changePassword">
+      <form id="changeMessageForm" method="POST" >
         <div class="row">
           <div class="col-md-4 input-wrapper">
-            <label for="TenDangNhap">Tên đăng nhập</label>
+            <label for="LoiNhan">Thông báo:</label>
             <input
               type="text"
-              id="TenDangNhap"
-              name="TenDangNhap"
-              class="form-control"
-              value="<%= account.TenDangNhap %>"
-              readonly
-              required
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4 input-wrapper">
-            <label for="currentPassword">Mật khẩu hiện tại</label>
-            <input
-              type="password"
-              id="currentPassword"
-              name="currentPassword"
+              id="LoiNhan"
+              name="LoiNhan"
               class="form-control"
               required
             />
           </div>
         </div>
         <div class="row">
-          <div class="col-md-4 input-wrapper">
-            <label for="newPassword">Mật khẩu mới</label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              class="form-control"
-              required
-            />
-          </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="Deadline">Ngày hết hạn:</label>
+                <input
+                type="datetime-local"
+                id="Deadline"
+                name="Deadline"
+                class="form-control"
+                required
+                />
+            </div>
         </div>
-        <div class="row">
-          <div class="col-md-4 input-wrapper">
-            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              class="form-control"
-              required
-            />
-            <span id="passwordMatchMessage"></span>
-          </div>
-        </div>
-        <div id="alertMessage"></div>
-        <button id="submit" type="submit" class="btn mt-3">Đổi Mật Khẩu</button>
+        <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
         <button type="button" class="btn m-3" onclick="goBack()">
           Quay Lại
         </button>
@@ -296,29 +268,34 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      document
-        .getElementById("changePasswordForm")
-        .addEventListener("input", function () {
-          const newPassword = document.getElementById("newPassword").value;
-          const confirmPassword =
-            document.getElementById("confirmPassword").value;
-          const messageElement = document.getElementById(
-            "passwordMatchMessage"
-          );
-
-          if (newPassword === confirmPassword) {
-            messageElement.textContent = "Mật khẩu khớp!";
-            messageElement.style.color = "green"; // Có thể thay đổi màu sắc
-            document.getElementById("submit").disabled = false;
-          } else {
-            messageElement.textContent = "Mật khẩu không khớp!";
-            messageElement.style.color = "red"; // Có thể thay đổi màu sắc
-            document.getElementById("submit").disabled = true;
+        document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
+          const loiNhan = document.getElementById("LoiNhan").value.trim();
+          const deadline = document.getElementById("Deadline").value;
+      
+          if (!loiNhan) {
+            alert("Vui lòng nhập nội dung thông báo.");
+            event.preventDefault();
+            return;
+          }
+      
+          if (!deadline) {
+            alert("Vui lòng chọn ngày hết hạn.");
+            event.preventDefault();
+            return;
+          }
+      
+          const now = new Date();
+          const selectedDate = new Date(deadline);
+      
+          if (selectedDate < now) {
+            alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
+            event.preventDefault();
           }
         });
+      
         function goBack() {
-          window.history.go(-2); // Quay lại 2 trang nếu đã đổi mật khẩu thành công
-        };
+          window.history.go(-2)
+        }
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -351,12 +328,12 @@
           actionButton3.style.display = 'none';
         }
         const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('passwordChanged') === 'true') {
-            alert("Cập nhật mật khẩu mới thành công!")
-          } else if (urlParams.get('passwordChanged') === 'false1') {
-            alert("Mật khẩu cũ không đúng!")
-          }else if(urlParams.get('passwordChanged') === 'false2'){
-            alert("Cập nhật mật khẩu thất bại")
+          if (urlParams.get('MessageChanged') === 'true') {
+            alert("Thêm thông báo mới thành công!")
+          } else if (urlParams.get('MessageChanged') === 'false') {
+            alert("Thêm thông báo mới không đúng!")
+          }else if(urlParams.get('MessageChanged') === 'false2'){
+            alert("Cập nhật thông báo thất bại")
           }
       });
     </script>

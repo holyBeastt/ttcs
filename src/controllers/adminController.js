@@ -417,49 +417,6 @@ const AdminController = {
       if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
   },
-  updatePassword: async (req, res) => {
-    let connection;
-    try {
-      const { TenDangNhap, currentPassword, newPassword } = req.body;
-
-      // Kiểm tra xem TenDangNhap có tồn tại không
-      if (!TenDangNhap) {
-        return res.status(400).send("Thiếu tham số TenDangNhap");
-      }
-
-      // Truy vấn lấy tài khoản từ CSDL
-      const query = "SELECT * FROM taikhoannguoidung WHERE TenDangNhap = ?";
-      connection = await createPoolConnection();
-      const [results] = await connection.query(query, [TenDangNhap]);
-
-      if (results.length === 0) {
-        return res.status(404).send("Tài khoản không tồn tại");
-      }
-
-      const account = results[0];
-
-      // So sánh mật khẩu nhập vào với mật khẩu trong CSDL
-      if (account.MatKhau !== currentPassword) {
-        return res.status(401).send("Mật khẩu hiện tại không đúng");
-      }
-
-      // Cập nhật mật khẩu mới
-      const updateQuery =
-        "UPDATE taikhoannguoidung SET MatKhau = ? WHERE TenDangNhap = ?";
-      await connection.query(updateQuery, [newPassword, TenDangNhap]);
-
-      return res.redirect(
-        `/changePassword?tenDangNhap=${encodeURIComponent(
-          TenDangNhap
-        )}&message=updateSuccess&passwordChanged=true`
-      );
-    } catch (error) {
-      console.error("Lỗi khi cập nhật mật khẩu:", error);
-      res.status(500).send("Lỗi hệ thống");
-    } finally {
-      if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-    }
-  },
   getBoMon: async (req, res) => {
     let connection;
     try {

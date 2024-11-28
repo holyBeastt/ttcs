@@ -125,11 +125,6 @@
                     <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
                   </div>
                 </div>
-              </div>
-                <li class="nav-item"></li>
-
-
-              </div>
             </ul>
             <div class="navbar-nav">
               <div class="nav-item dropdown">
@@ -196,14 +191,16 @@
                   <input required class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>" >
               </div>
               <div class="col-md-4">
-                  <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
-                  <select class="form-control" name="BangTotNghiepLoai" id="BangTotNghiepLoai">
-                    <option value="">---</option>
-                    <option value="Trung bình" <%= value.BangTotNghiepLoai === "Trung bình" ? "selected" : "" %>>Trung bình</option>
-                    <option value="Khá" <%= value.BangTotNghiepLoai === "Khá" ? "selected" : "" %>>Khá</option>
-                    <option value="Giỏi" <%= value.BangTotNghiepLoai === "Giỏi" ? "selected" : "" %>>Giỏi</option>
-                    <option value="Xuất sắc" <%= value.BangTotNghiepLoai === "Xuất sắc" ? "selected" : "" %>>Xuất sắc</option>
-                  </select>
+                <label for="HocVi">Bằng cấp cao nhất:</label>
+                <select class="form-control" name="HocVi" id="HocVi">
+                  <option value="">---</option>
+                  <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+                  <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+                  <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+                  <option value="Tiến sĩ" <%= value.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+                  <option value="Phó giáo sư. Tiến sĩ" <%= value.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
+                  <option value="Giáo sư. Tiến sĩ" <%= value.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
+                </select> 
               </div>
             </div>
             <div class="row mb-3">
@@ -222,8 +219,8 @@
                 <input type="hidden" name="oldSauCCCD" value="<%= value.MatSauCCCD %>" >
               </div>
               <div class="col-md-4">
-                <label>Bằng đại học:</label>
-                <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng đại học" id="imgbang">
+                <label>Hình ảnh bằng cấp cao nhất:</label>
+                <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng cấp cao nhất" id="imgbang">
                 <br>
                 <input class="form-control" type="file" name="bangTotNghiep" id="bangTotNghiep" value="<%= value.BangTotNghiep %>">
                 <input type="hidden" name="oldbangTotNghiep" value="<%= value.BangTotNghiep %>" >
@@ -257,17 +254,15 @@
               <input required class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>" >
             </div>
             <div class="col-md-4">
-              <label for="HocVi">Học vị:</label>
-              <select class="form-control" name="HocVi" id="HocVi">
+              <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
+              <select class="form-control" name="BangTotNghiepLoai" id="BangTotNghiepLoai">
                 <option value="">---</option>
-                <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
-                <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
-                <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
-                <option value="Tiến sĩ" <%= value.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
-                <option value="Phó giáo sư. Tiến sĩ" <%= value.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
-                <option value="Giáo sư. Tiến sĩ" <%= value.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
-              </select> 
-            </div>
+                <option value="Trung bình" <%= value.BangTotNghiepLoai === "Trung bình" ? "selected" : "" %>>Trung bình</option>
+                <option value="Khá" <%= value.BangTotNghiepLoai === "Khá" ? "selected" : "" %>>Khá</option>
+                <option value="Giỏi" <%= value.BangTotNghiepLoai === "Giỏi" ? "selected" : "" %>>Giỏi</option>
+                <option value="Xuất sắc" <%= value.BangTotNghiepLoai === "Xuất sắc" ? "selected" : "" %>>Xuất sắc</option>
+              </select>
+          </div>
           </div>
           <div class="row mb-3">
             <div class="col-md-4">
@@ -570,6 +565,33 @@ hideButton();
     });
   </script>
 
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 </html>
 
