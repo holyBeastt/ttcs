@@ -111,12 +111,12 @@ const exportHDGvmToExcel = async (req, res) => {
       gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
       hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?`;
-
+    
     // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
     if (khoa && khoa !== "ALL") {
       query += ` AND gv.MaPhongBan = ?`;
     }
-
+    
     query += `
     GROUP BY
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
@@ -124,15 +124,13 @@ const exportHDGvmToExcel = async (req, res) => {
       hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
       gv.MonGiangDayChinh, gv.BangTotNghiepLoai;
     `;
-
+    
     // Tạo mảng tham số
     let params = [namHoc, dot, ki];
-
+    
     if (khoa && khoa !== "ALL") {
-      query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
-
     const [rows] = await connection.execute(query, params);
 
     if (rows.length === 0) {
