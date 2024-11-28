@@ -163,169 +163,104 @@ function tachLopHocPhan(chuoi) {
   };
 }
 
-// tách dữ liệu từ Giảng viên TKB trong file quy chuẩn
-function tachGiaoVien(giaoVienInput) {
-  // null
-  if (!giaoVienInput) {
-    return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-  }
-  // trường hợp có không có ( gvm )
-  else if (!giaoVienInput.includes("gvm")) {
-    const gvmKeyword1 = "( gvm )"; // Từ khóa cho giảng viên mời
-    const gvmKeyword2 = "Giảng viên mời"; // Từ khóa cho giảng viên mời
 
-    // Nếu chuỗi đầu vào rỗng, trả về giá trị mặc định
-    if (!giaoVienInput || giaoVienInput.trim() === "") {
-      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-    }
+// Hàm thực thi auto fill tên, bộ môn, kiểm tra mời giảng
+function processLecturerInfo(input, dataGiangVien) {
+  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi input
+  input = input.trim();
 
-    // Kiểm tra xem có giảng viên mời hay không
-    const isGuestLecturer =
-      giaoVienInput.toLowerCase().includes(gvmKeyword1.toLowerCase()) ||
-      giaoVienInput.toLowerCase().includes(gvmKeyword2.toLowerCase());
+  // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
+  const namesArray = input.split(/[,;]/).map(part => part.trim()); // Tách tại cả "," và ";"
 
-    // Nếu có giảng viên mời, trả về giá trị mặc định
-    if (isGuestLecturer) {
-      return [{ MoiGiang: true, GiaoVienGiangDay: "" }];
-    }
+  // Xử lý các key với tên đầu tiên trong mảng
+  const giangVienGiangDay = cleanName(namesArray[0]);  // HoTen: Loại bỏ ký tự đặc biệt, xử lý tên
+  const moiGiang = checkIfGuestLecturer(namesArray[0]); // isGuestLecturer: Kiểm tra mời giảng
+  const monGiangDayChinh = getMainTeachingSubject(namesArray[0], dataGiangVien); // mainTeachingSubject: Tìm môn giảng dạy chính
 
-    // Tách tên giảng viên từ chuỗi
-    const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
+  // Nếu có môn giảng dạy chính thì gán giá trị giảng viên, nếu không gán là null
+  // Nếu có bộ môn tương ứng thì giảng viên này đang hoạt động, thì mới fill tên
+  // Tránh fill tên với một số trường hợp : Khoa ATTT, Giảng viên mời
+  const giangVienResult = monGiangDayChinh ? giangVienGiangDay : null;
 
-    // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
-    const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
-
-    // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
-    const lecturers = cleanedInput
-      .split(/[,;(]\s*/)
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-
-    // Nếu không có giảng viên, trả về giá trị mặc định
-    if (lecturers.length === 0) {
-      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-    }
-
-    // Tạo mảng kết quả chứa thông tin giảng viên
-    return [
-      {
-        MoiGiang: false, // Không có giảng viên mời
-        GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
-      },
-    ];
-  } else {
-    // Tách tên giảng viên từ chuỗi
-    const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
-
-    // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
-    const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
-
-    // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
-    const lecturers = cleanedInput
-      .split(/[,;(]\s*/)
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-
-    // Nếu không có giảng viên, trả về giá trị mặc định
-    if (lecturers.length === 0) {
-      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-    }
-
-    // Tạo mảng kết quả chứa thông tin giảng viên
-    return [
-      {
-        MoiGiang: true, // Có giảng viên mời
-        GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
-      },
-    ];
-  }
+  // Trả về kết quả
+  return {
+    giangVienGiangDay: giangVienResult,
+    moiGiang: moiGiang,
+    monGiangDayChinh: monGiangDayChinh,
+  };
 }
 
-// gộp dữ liệu giảng viên có trong DB và file quy chuẩn để có dữ liệu giảng viên giảng dạy
-// const duLieuGiangVienGiangDay = async (jsonData) => {
-//   // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
-//   const tongHopGiangVien = await tongHopDuLieuGiangVien();
+// Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
+function cleanName(name) {
+  const prefixes = [
+    'PGS\\.?', // "PGS." hoặc "PGS"
+    'TS\\.?',  // "TS." hoặc "TS"
+    'PGS\\.TS\\.?', // "PGS.TS." hoặc "PGS TS"
+    '\\( gvm \\)',
+    '\\(gvm\\)',
+    'GVM',
+    'GVMời',
+    'Giảng viên mời'
+  ];
 
-//   // Khởi tạo mảng giangVienGiangDay để lưu kết quả giảng viên giảng dạy
-//   const giangVienGiangDay = [];
+  // Tạo regex tổng hợp để loại bỏ tất cả tiền tố
+  const combinedRegex = new RegExp(`\\b(${prefixes.join('|')}) \\b`, 'gi');
 
-//   // Duyệt qua từng phần tử trong jsonData
-//   for (const item of jsonData) {
-//     // Lấy giá trị của key GiaoVien từ item và tách thông tin giảng viên
-//     const giaoVienInput = item.GiaoVien;
-//     const tenGiaoVienList = tachGiaoVien(giaoVienInput);
+  // Xóa tất cả tiền tố trong danh sách
+  name = name.replace(combinedRegex, '').trim();
 
-//     // Duyệt qua từng tên giảng viên trong tenGiaoVienList để so sánh với tongHopGiangVien
-//     for (const { GiaoVienGiangDay: tenGiaoVien } of tenGiaoVienList) {
-//       const giangVienFound = tongHopGiangVien.find(
-//         (gv) => gv.HoTen.trim() === tenGiaoVien.trim()
-//       );
+  // Loại bỏ dấu ngoặc và nội dung bên trong (nếu có)
+  name = name.replace(/\(.*?\)/g, '').trim();
 
-//       // Nếu tìm thấy giảng viên có tên trùng, thêm vào giangVienGiangDay
-//       if (giangVienFound) {
-//         giangVienGiangDay.push({
-//           HoTen: giangVienFound.HoTen.trim(),
-//           MonGiangDayChinh: giangVienFound.MonGiangDayChinh,
-//         });
-//       }
-//     }
-//   }
+  // Loại bỏ ký tự đặc biệt hoặc khoảng trắng thừa còn lại
+  name = name.replace(/[^a-zA-ZÀ-ỹ\s]/g, '').trim(); // Chỉ giữ lại chữ cái và khoảng trắng
 
-//   return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
-// };
+  return name;
+}
 
-const duLieuGiangVienGiangDay = async (jsonData) => {
-  // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
-  const tongHopGiangVien = await tongHopDuLieuGiangVien();
+// Hàm kiểm tra mời giảng
+function checkIfGuestLecturer(name) {
+  if (!name || typeof name !== 'string') {
+    return false; // Đảm bảo input hợp lệ, nếu không trả về false
+  }
 
-  // Khởi tạo mảng giangVienGiangDay để lưu kết quả giảng viên giảng dạy
-  const giangVienGiangDay = [];
+  const lowerCaseName = name.toLowerCase().trim(); // Chuyển về chữ thường để kiểm tra
 
-  // Duyệt qua từng phần tử trong jsonData
-  for (const item of jsonData) {
-    // Lấy giá trị của key GiaoVien từ item và tách thông tin giảng viên
-    const giaoVienInput = item.GiaoVien;
-    const tenGiaoVienList = tachGiaoVien(giaoVienInput);
+  // Các mẫu ký hiệu mời giảng
+  const invitePatterns = [
+    'gvmời',         // Mẫu ký hiệu mời giảng dạng chữ thường
+    'giảng viên mời', // Mẫu khác của ký hiệu mời giảng
+    'gvm',            // Ký hiệu mời giảng đơn giản "gvm"
+    '( gvm )',        // Mẫu có dấu ngoặc
+    '(gvm)'           // Mẫu không có dấu cách trong ngoặc
+  ];
 
-    // Duyệt qua từng tên giảng viên trong tenGiaoVienList để so sánh với tongHopGiangVien
-    for (const { GiaoVienGiangDay: tenGiaoVien } of tenGiaoVienList) {
-      const giangVienFound = tongHopGiangVien.find(
-        (gv) => gv.HoTen.trim() === tenGiaoVien.trim()
-      );
-
-      // Nếu tìm thấy giảng viên có tên trùng, thêm vào giangVienGiangDay
-      if (giangVienFound) {
-        giangVienGiangDay.push({
-          HoTen: giangVienFound.HoTen.trim(),
-          MonGiangDayChinh: giangVienFound.MonGiangDayChinh,
-        });
-      }
+  // Kiểm tra xem có mẫu ký hiệu mời giảng nào xuất hiện trong tên
+  for (const pattern of invitePatterns) {
+    if (lowerCaseName.includes(pattern)) {
+      return true;  // Nếu có ký hiệu mời giảng, trả về true
     }
   }
 
-  return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
-};
+  return false;  // Nếu không có ký hiệu mời giảng, trả về false
+}
 
-// lấy dữ liệu giảng viên mời và giảng viên cơ hữu trong DB
-// const tongHopDuLieuGiangVien = async () => {
-//   // Truy vấn lấy dữ liệu từ bảng gvmoi
-//   const query1 =
-//     "SELECT HoTen, MonGiangDayChinh FROM gvmoi";
+// Hàm tìm giảng viên trong dataGiangVien và trả về môn giảng dạy chính
+function getMainTeachingSubject(name, dataGiangVien) {
+  // Làm sạch tên đầu vào
+  const cleanedName = cleanName(name).toLowerCase().trim(); // Chuyển về chữ thường
 
-//   // Truy vấn lấy dữ liệu từ bảng nhanvien
-//   const query2 =
-//     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien";
+  // Tìm giảng viên trong danh sách, so sánh tên sau khi làm sạch
+  const lecturer = dataGiangVien.find(lecturer =>
+    lecturer.HoTen.toLowerCase().trim() === cleanedName
+  );
 
-//   const connection = await createPoolConnection(); // Tạo kết nối từ pool
-//   // Thực hiện các truy vấn cho tất cả giảng viên trong 2 bảng
-//   const [results1] = await connection.execute(query1);
-//   const [results2] = await connection.execute(query2);
-//   const allResults = results1.concat(results2);
+  // console.log("tìm thấy:", lecturer)
+  // Nếu tìm thấy giảng viên, trả về môn giảng dạy chính, nếu không trả về null
+  return lecturer ? lecturer.MonGiangDayChinh : null;
+}
 
-//   connection.release();
-//   return allResults.length > 0 ? allResults : [];
-
-// };
+// Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
 const tongHopDuLieuGiangVien = async () => {
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
@@ -353,113 +288,12 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
-// lưu file quy chuẩn vào bảng quychuan
-// const importTableQC = async (jsonData) => {
-//   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
-//   const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
-//   console.log(dataGiangVien);
-
-//   const queryInsert = `INSERT INTO ${tableName} (
-//     Khoa,
-//     Dot,
-//     KiHoc,
-//     NamHoc,
-//     GiaoVien,
-//     GiaoVienGiangDay,
-//     MoiGiang,
-//     SoTinChi,
-//     MaHocPhan,
-//     LopHocPhan,
-//     TenLop,
-//     BoMon,
-//     LL,
-//     SoTietCTDT,
-//     HeSoT7CN,
-//     SoSinhVien,
-//     HeSoLopDong,
-//     QuyChuan,
-//     GhiChu
-//   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-
-//   const insertPromises = jsonData.flatMap((item) => {
-//     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
-//     const giangVienArray = tachGiaoVien(item["GiaoVien"]);
-
-//     return giangVienArray.map(async ({ MoiGiang, GiaoVienGiangDay }) => {
-//       const connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-//       try {
-//         const boMonFound = dataGiangVien.find(
-//           (dataGiangVien) => dataGiangVien.HoTen === GiaoVienGiangDay
-//         );
-//         const giangVien = boMonFound ? boMonFound.HoTen : null; // Sử dụng null thay cho ""
-//         const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null; // Sử dụng null thay cho ""
-
-//         const values = [
-//           item["Khoa"] || null,
-//           item["Dot"] || null,
-//           item["Ki"] || null,
-//           item["Nam"] || null,
-//           item["GiaoVien"] || null,
-//           giangVien,
-//           MoiGiang || null,
-//           item["SoTinChi"] || null,
-//           item["MaHocPhan"] || null,
-//           TenLop || null,
-//           Lop || null,
-//           monGiangDayChinh,
-//           item["LL"] || null,
-//           item["SoTietCTDT"] || null,
-//           item["HeSoT7CN"] || null,
-//           item["SoSinhVien"] || null,
-//           item["HeSoLopDong"] || null,
-//           item["QuyChuan"] || null,
-//           item["GhiChu"] || null,
-//         ];
-
-//         await connection.execute(queryInsert, values); // Sử dụng execute thay vì query
-
-//       } catch (err) {
-//         console.error("Error:", err);
-//         throw err;
-//       } finally {
-//         connection.release(); // Giải phóng kết nối
-//       }
-//     });
-//   });
-
-//   let results = false;
-
-//   try {
-//     await Promise.all(insertPromises);
-
-//     // Chạy câu lệnh UPDATE sau khi INSERT thành công
-//     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
-
-//     const connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-//     try {
-//       // Sử dụng trực tiếp await với connection.execute
-//       await connection.execute(queryUpdate);  // Không cần bọc trong new Promise nữa
-//       results = true; // Cập nhật thành công
-//     } catch (err) {
-//       console.error("Error while updating:", err);
-//     } finally {
-//       connection.release(); // Giải phóng kết nối sau khi thực thi
-//     }
-
-//   } catch (error) {
-//     console.error("Error:", error);
-//   }
-
-//   return results;
-// };
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
-  const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
-  console.log(dataGiangVien);
+  const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
+  // console.log(dataGiangVien);
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
@@ -489,40 +323,33 @@ const importTableQC = async (jsonData) => {
 
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
   jsonData.forEach((item) => {
+    // tách lớp học phần 
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
-    const giangVienArray = tachGiaoVien(item["GiaoVien"]);
 
-    // Với mỗi giảng viên, thêm giá trị vào mảng allValues
-    giangVienArray.forEach(({ MoiGiang, GiaoVienGiangDay }) => {
-      const boMonFound = dataGiangVien.find(
-        (dataGiangVien) =>
-          dataGiangVien.HoTen.trim() === GiaoVienGiangDay.trim()
-      );
-      const giangVien = boMonFound ? boMonFound.HoTen : null;
-      const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null;
+    // tách từ cột giảng viên theo tkb, xử lí mời giảng?, tự điền tên, tự điền bộ môn 
+    const { giangVienGiangDay, moiGiang, monGiangDayChinh } = processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
-      allValues.push([
-        item["Khoa"] || null,
-        item["Dot"] || null,
-        item["Ki"] || null,
-        item["Nam"] || null,
-        item["GiaoVien"] || null,
-        giangVien,
-        MoiGiang || null,
-        item["SoTinChi"] || null,
-        item["MaHocPhan"] || null,
-        TenLop || null,
-        Lop || null,
-        monGiangDayChinh,
-        item["LL"] || null,
-        item["SoTietCTDT"] || null,
-        item["HeSoT7CN"] || null,
-        item["SoSinhVien"] || null,
-        item["HeSoLopDong"] || null,
-        item["QuyChuan"] || null,
-        item["GhiChu"] || null,
-      ]);
-    });
+    allValues.push([
+      item["Khoa"] || null,
+      item["Dot"] || null,
+      item["Ki"] || null,
+      item["Nam"] || null,
+      item["GiaoVien"] || null,
+      giangVienGiangDay,
+      moiGiang || null,
+      item["SoTinChi"] || null,
+      item["MaHocPhan"] || null,
+      TenLop || null,
+      Lop || null,
+      monGiangDayChinh,
+      item["LL"] || null,
+      item["SoTietCTDT"] || null,
+      item["HeSoT7CN"] || null,
+      item["SoSinhVien"] || null,
+      item["HeSoLopDong"] || null,
+      item["QuyChuan"] || null,
+      item["GhiChu"] || null,
+    ]);
   });
 
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
