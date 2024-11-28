@@ -635,7 +635,6 @@ const updateBanHanh = async (req, res) => {
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
 
-  // console.log(jsonData[1])
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -655,22 +654,38 @@ const importTableTam = async (jsonData) => {
     ) VALUES ?
   `;
 
-  // Tạo danh sách các giá trị
-  const values = jsonData.map((item) => [
-    item["Khoa"],
-    item["Dot"],
-    item["Ki"],
-    item["Nam"],
-    item["Giáo Viên"],
-    item["Số TC"],
-    item["Lớp học phần"],
-    item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"],
-    item["Số tiết theo CTĐT"],
-    item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
-    item["Số SV"],
-    item["Hệ số lớp đông"],
-    item["QC"],
-  ]);
+  const values = jsonData
+    .filter(item => {
+      // Log giá trị của QC để kiểm tra
+      // console.log("QC value:", item["QC"]);
+
+      // Chuyển QC về kiểu số và kiểm tra xem nó có phải là NaN hoặc bằng 0 không
+      const qcValue = parseFloat(item["QC"]);
+
+      // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
+      return !isNaN(qcValue) && qcValue !== 0;
+    })
+    .map(item => [
+      item["Khoa"] || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      item["Dot"] || null,
+      item["Ki"] || null,
+      item["Nam"] || null,
+      item["Giáo Viên"] || null,
+      item["Số TC"] || null,
+      item["Lớp học phần"] || null,
+      item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"] || null,
+      item["Số tiết theo CTĐT"] || null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || null,
+      item["Số SV"] || null,
+      item["Hệ số lớp đông"] || null,
+      item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
+    ]);
+
+  // Kiểm tra nếu không có đối tượng hợp lệ
+  if (values.length === 0) {
+    console.log("Không có dữ liệu hợp lệ để thêm vào cơ sở dữ liệu.");
+    return false; // Nếu không có đối tượng hợp lệ, dừng lại
+  }
 
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
   try {
@@ -679,7 +694,7 @@ const importTableTam = async (jsonData) => {
     console.log("Thêm file quy chuẩn vào bảng Tam thành công");
     return true;
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Lỗi:", err.message || err);
     return false;
   } finally {
     connection.release(); // Giải phóng kết nối
