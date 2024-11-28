@@ -9,10 +9,8 @@ const { json, query } = require("express");
 const gvms = require("../services/gvmServices");
 const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
-const JSZip = require("jszip");
-const { parseStringPromise } = require("xml2js");
 
-// convert file quy chuẩn excel
+// convert file excel sang file quy chuẩn
 const convertExcelToJSON = (filePath) => {
   try {
     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
@@ -40,7 +38,7 @@ const convertExcelToJSON = (filePath) => {
     });
 
     // console.log("Chuẩn bị validate dữ liệu quy chuẩn");
-    validateDataFileQC(jsonObjects);
+    validate(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
   } catch (err) {
@@ -50,7 +48,7 @@ const convertExcelToJSON = (filePath) => {
 };
 
 // hàm thẩm định giá trị của dữ liệu từ file quy chuẩn
-const validateDataFileQC = (data) => {
+const validate = (data) => {
   // Kiểm tra nếu dữ liệu trống
   if (!data || data.length === 0) {
     throw new Error("Dữ liệu đầu vào không hợp lệ: Dữ liệu trống");
@@ -78,119 +76,6 @@ const validateDataFileQC = (data) => {
 
   // console.log("Dữ liệu đã được validate và chỉnh sửa");
   return data;
-};
-
-// convert file word quy chuẩn
-const convertWordToJSON = async (filePath) => {
-  try {
-    // Đọc file Word (.docx)
-    const fileBuffer = await fs.promises.readFile(filePath); // Sử dụng fs.promises để xử lý bất đồng bộ
-
-    await fs.promises.unlink(filePath); // Xóa tệp sau khi xử lý
-
-    // Giải nén file .docx
-    const zip = await JSZip.loadAsync(fileBuffer);
-
-    // Lấy file XML chứa nội dung tài liệu
-    const documentXml = await zip.file("word/document.xml").async("string");
-
-    // Parse XML để lấy nội dung
-    const parsedXml = await parseStringPromise(documentXml);
-
-    // Truy cập nội dung bảng trong file Word
-    const tables = parsedXml["w:document"]["w:body"][0]["w:tbl"] || [];
-
-    // Mảng chứa tất cả các dữ liệu từ các bảng
-    const allTablesData = [];
-
-    // Biến để lưu tên Khoa hiện tại
-    let currentKhoa = "";
-
-    // Xử lý từng bảng
-    for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
-      const table = tables[tableIndex];
-      if (tableIndex === 0) {
-        continue; // Bỏ qua bảng đầu tiên
-      }
-
-      const rows = table["w:tr"] || [];
-
-      // Lấy dữ liệu từ hàng đầu tiên làm key cho đối tượng
-      const headers =
-        rows[0]["w:tc"]?.map((cell) => {
-          const cellText = (cell["w:p"] || [])
-            .map((p) =>
-              (p["w:r"] || [])
-                .map((r) => r["w:t"])
-                .flat()
-                .join("")
-            )
-            .join(" ");
-          return cellText.trim();
-        }) || [];
-
-      // Mảng để chứa đối tượng của bảng này
-      const tableData = [];
-
-      // Xử lý các hàng tiếp theo để chuyển thành các đối tượng
-      for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
-        const row = rows[rowIndex];
-        const cells = row["w:tc"] || [];
-
-        // Lấy dữ liệu văn bản của từng ô trong hàng này
-        const rowData = cells.map((cell) => {
-          const cellText = (cell["w:p"] || [])
-            .map((p) =>
-              (p["w:r"] || [])
-                .map((r) => r["w:t"])
-                .flat()
-                .join("")
-            )
-            .join(" ");
-          return cellText.trim();
-        });
-
-        // Nếu chỉ có 1 ô, đây là dòng kiểm tra
-        if (rowData.length === 1) {
-          const rowText = rowData[0]; // Lấy văn bản của ô duy nhất
-
-          // Kiểm tra từ khóa trong dòng kiểm tra (ví dụ từ "Khoa")
-          if (rowText.includes("học phần khác")) {
-            currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
-          } else if (rowText.includes("Trung tâm thực hành")) {
-            currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
-          } else if (rowText.includes("Khoa")) {
-            const khoaMatch = rowText.match(/Khoa\s+(.+)$/);
-            if (khoaMatch) {
-              currentKhoa = khoaMatch[1].trim(); // Lấy tên Khoa từ dòng kiểm tra
-            }
-          }
-          continue; // Bỏ qua dòng này, không tạo đối tượng
-        }
-
-        // Chuyển hàng thành đối tượng với key là header và value là dữ liệu của hàng đó
-        const rowObject = headers.reduce((acc, header, idx) => {
-          acc[header] = rowData[idx] || "";
-          return acc;
-        }, {});
-
-        // Thêm key "Khoa" vào đối tượng
-        rowObject["Khoa"] = currentKhoa; // Chỉ áp dụng Khoa hiện tại
-
-        tableData.push(rowObject);
-      }
-
-      // Gộp bảng vào mảng chính (phẳng hóa ngay khi thêm)
-      allTablesData.push(...tableData);
-    }
-
-    // In ra mảng dữ liệu của tất cả các bảng
-    validateDataFileQC(allTablesData);
-    return allTablesData;
-  } catch (error) {
-    console.error("Lỗi khi đọc file:", error.message);
-    throw error; // Ném lỗi để có thể xử lý bên ngoài
-  }
 };
 
 // kiểm tra tồn tại dữ liệu cũ ( tránh trường hợp import 2 file quy chuẩn bị trùng )
@@ -278,168 +163,116 @@ function tachLopHocPhan(chuoi) {
   };
 }
 
-// gộp lớp
-function mergeClasses(jsonData) {
-  // Sắp xếp danh sách lớp theo TenLop
-  jsonData.sort((a, b) => a.TenLop.localeCompare(b.TenLop));
-
-  // Danh sách chứa các lớp đã gộp
-  const mergedClasses = [];
-
-  // Biến tạm để giữ lớp đang gộp
-  let currentGroup = jsonData[0].TenLop;
-
-  // Duyệt qua các lớp còn lại
-  for (let i = 1; i < jsonData.length; i++) {
-    const currentClass = jsonData[i].TenLop;
-
-    // Kiểm tra xem lớp hiện tại có cùng phần đầu với lớp đang gộp không
-    const prefixCurrent = currentClass.substring(
-      0,
-      currentGroup.lastIndexOf(".") + 1
-    );
-    const prefixMerged = currentGroup.substring(
-      0,
-      currentGroup.lastIndexOf(".") + 1
-    );
-
-    if (prefixCurrent === prefixMerged) {
-      // Nếu có, tiếp tục với lớp hiện tại
-      currentGroup = prefixMerged + currentClass.split(".").pop(); // Giữ lại phần đuôi của lớp
-    } else {
-      // Nếu không có, thêm lớp đã gộp vào danh sách
-      mergedClasses.push({ TenLop: currentGroup });
-      currentGroup = currentClass; // Cập nhật lớp gộp mới
-    }
-  }
-
-  // Thêm lớp cuối cùng vào danh sách
-  mergedClasses.push({ TenLop: currentGroup });
-
-  // Cập nhật lại jsonData với các lớp đã gộp
-  jsonData.length = 0; // Xóa toàn bộ phần tử trong jsonData
-  mergedClasses.forEach((item) => jsonData.push(item)); // Thêm các lớp đã gộp vào jsonData
-
-  return jsonData; // Trả về jsonData đã được gộp
-}
-
-// hàm tách tên giảng viên cũ
-// function tachGiaoVien(giaoVienInput) {
-//   // null
-//   if (!giaoVienInput) {
-//     return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-//   }
-//   // trường hợp có không có ( gvm )
-//   else if (!giaoVienInput.includes("gvm")) {
-//     const gvmKeyword1 = "( gvm )"; // Từ khóa cho giảng viên mời
-//     const gvmKeyword2 = "Giảng viên mời"; // Từ khóa cho giảng viên mời
-//     const gvmKeyword3 = "GVMời"; // Từ khóa cho giảng viên mời
-//     const gvmKeyword4 = "GVM"; // Từ khóa cho giảng viên mời
-
-//     // Nếu chuỗi đầu vào rỗng, trả về giá trị mặc định
-//     if (!giaoVienInput || giaoVienInput.trim() === "") {
-//       return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-//     }
-
-//     // Kiểm tra xem có giảng viên mời hay không
-//     const isGuestLecturer =
-//       giaoVienInput.toLowerCase().includes(gvmKeyword1.toLowerCase()) ||
-//       giaoVienInput.toLowerCase().includes(gvmKeyword2.toLowerCase()) ||
-//       giaoVienInput.toLowerCase().includes(gvmKeyword3.toLowerCase()) ||
-//       giaoVienInput.toLowerCase().includes(gvmKeyword4.toLowerCase());
-
-//     // Nếu có giảng viên mời, trả về giá trị mặc định
-//     if (isGuestLecturer) {
-//       return [{ MoiGiang: true, GiaoVienGiangDay: "" }];
-//     }
-
-//     // Tách tên giảng viên từ chuỗi
-//     const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
-
-//     // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
-//     const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
-
-//     // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
-//     const lecturers = cleanedInput
-//       .split(/[,;(]\s*/)
-//       .map((name) => name.trim())
-//       .filter((name) => name.length > 0);
-
-//     // Nếu không có giảng viên, trả về giá trị mặc định
-//     if (lecturers.length === 0) {
-//       return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-//     }
-
-//     // Tạo mảng kết quả chứa thông tin giảng viên
-//     return [
-//       {
-//         MoiGiang: false, // Không có giảng viên mời
-//         GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
-//       },
-//     ];
-//   } else {
-//     // Tách tên giảng viên từ chuỗi
-//     const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
-
-//     // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
-//     const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
-
-//     // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
-//     const lecturers = cleanedInput
-//       .split(/[,;(]\s*/)
-//       .map((name) => name.trim())
-//       .filter((name) => name.length > 0);
-
-//     // Nếu không có giảng viên, trả về giá trị mặc định
-//     if (lecturers.length === 0) {
-//       return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
-//     }
-
-//     // Tạo mảng kết quả chứa thông tin giảng viên
-//     return [
-//       {
-//         MoiGiang: true, // Có giảng viên mời
-//         GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
-//       },
-//     ];
-//   }
-// }
-
+// tách dữ liệu từ Giảng viên TKB trong file quy chuẩn
 function tachGiaoVien(giaoVienInput) {
-  // Kiểm tra nếu không có giá trị đầu vào
-  if (!giaoVienInput || giaoVienInput.trim() === "") {
+  // null
+  if (!giaoVienInput) {
     return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
   }
+  // trường hợp có không có ( gvm )
+  else if (!giaoVienInput.includes("gvm")) {
+    const gvmKeyword1 = "( gvm )"; // Từ khóa cho giảng viên mời
+    const gvmKeyword2 = "Giảng viên mời"; // Từ khóa cho giảng viên mời
 
-  // Danh sách các từ khóa giảng viên mời
-  const guestLecturerKeywords = ["gvm", "gvmời", "giảng viên mời"];
+    // Nếu chuỗi đầu vào rỗng, trả về giá trị mặc định
+    if (!giaoVienInput || giaoVienInput.trim() === "") {
+      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
+    }
 
-  // Tách các tên giảng viên, chỉ lấy tên đầu tiên
-  const lecturers = giaoVienInput
-    .split(/[,;]\s*/)
-    .map((name) => name.trim())
-    .filter((name) => name.length > 0);
+    // Kiểm tra xem có giảng viên mời hay không
+    const isGuestLecturer =
+      giaoVienInput.toLowerCase().includes(gvmKeyword1.toLowerCase()) ||
+      giaoVienInput.toLowerCase().includes(gvmKeyword2.toLowerCase());
 
-  // Lấy tên giảng viên đầu tiên
-  const firstLecturer = lecturers[0];
+    // Nếu có giảng viên mời, trả về giá trị mặc định
+    if (isGuestLecturer) {
+      return [{ MoiGiang: true, GiaoVienGiangDay: "" }];
+    }
 
-  // Kiểm tra tên đầu tiên có chứa giảng viên mời không
-  const isGuestLecturer = guestLecturerKeywords.some((keyword) =>
-    firstLecturer.toLowerCase().includes(keyword.toLowerCase())
-  );
+    // Tách tên giảng viên từ chuỗi
+    const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
 
-  if (isGuestLecturer) {
-    // Nếu tên đầu tiên là giảng viên mời
-    return [{ MoiGiang: true, GiaoVienGiangDay: "" }];
+    // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
+    const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
+
+    // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
+    const lecturers = cleanedInput
+      .split(/[,;(]\s*/)
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
+    // Nếu không có giảng viên, trả về giá trị mặc định
+    if (lecturers.length === 0) {
+      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
+    }
+
+    // Tạo mảng kết quả chứa thông tin giảng viên
+    return [
+      {
+        MoiGiang: false, // Không có giảng viên mời
+        GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
+      },
+    ];
   } else {
-    // Nếu tên đầu tiên không phải giảng viên mời, xử lý bình thường
-    const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu
-    const cleanedInput = firstLecturer.replace(titleRegex, "").trim(); // Loại bỏ danh hiệu khỏi tên giảng viên
+    // Tách tên giảng viên từ chuỗi
+    const titleRegex = /(PGS\.?|( gvm )\.?|TS\.?|PGS\.? TS\.?)\s*/gi; // Biểu thức chính quy để loại bỏ danh hiệu gồm PGS. TS. PGS. TS. ( gvm )
 
-    // Trả về tên giảng viên đầu tiên đã làm sạch
-    return [{ MoiGiang: false, GiaoVienGiangDay: cleanedInput }];
+    // Xóa danh hiệu khỏi chuỗi nhưng giữ lại phần còn lại
+    const cleanedInput = giaoVienInput.replace(titleRegex, "").trim();
+
+    // Tách tên giảng viên bằng cả dấu phẩy và dấu chấm phẩy
+    const lecturers = cleanedInput
+      .split(/[,;(]\s*/)
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
+    // Nếu không có giảng viên, trả về giá trị mặc định
+    if (lecturers.length === 0) {
+      return [{ MoiGiang: false, GiaoVienGiangDay: "" }];
+    }
+
+    // Tạo mảng kết quả chứa thông tin giảng viên
+    return [
+      {
+        MoiGiang: true, // Có giảng viên mời
+        GiaoVienGiangDay: lecturers[0], // Lấy tên giảng viên đầu tiên
+      },
+    ];
   }
 }
+
+// gộp dữ liệu giảng viên có trong DB và file quy chuẩn để có dữ liệu giảng viên giảng dạy
+// const duLieuGiangVienGiangDay = async (jsonData) => {
+//   // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
+//   const tongHopGiangVien = await tongHopDuLieuGiangVien();
+
+//   // Khởi tạo mảng giangVienGiangDay để lưu kết quả giảng viên giảng dạy
+//   const giangVienGiangDay = [];
+
+//   // Duyệt qua từng phần tử trong jsonData
+//   for (const item of jsonData) {
+//     // Lấy giá trị của key GiaoVien từ item và tách thông tin giảng viên
+//     const giaoVienInput = item.GiaoVien;
+//     const tenGiaoVienList = tachGiaoVien(giaoVienInput);
+
+//     // Duyệt qua từng tên giảng viên trong tenGiaoVienList để so sánh với tongHopGiangVien
+//     for (const { GiaoVienGiangDay: tenGiaoVien } of tenGiaoVienList) {
+//       const giangVienFound = tongHopGiangVien.find(
+//         (gv) => gv.HoTen.trim() === tenGiaoVien.trim()
+//       );
+
+//       // Nếu tìm thấy giảng viên có tên trùng, thêm vào giangVienGiangDay
+//       if (giangVienFound) {
+//         giangVienGiangDay.push({
+//           HoTen: giangVienFound.HoTen.trim(),
+//           MonGiangDayChinh: giangVienFound.MonGiangDayChinh,
+//         });
+//       }
+//     }
+//   }
+
+//   return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
+// };
 
 const duLieuGiangVienGiangDay = async (jsonData) => {
   // Gọi hàm tongHopDuLieuGiangVien để lấy dữ liệu giảng viên từ cơ sở dữ liệu
@@ -473,6 +306,26 @@ const duLieuGiangVienGiangDay = async (jsonData) => {
   return giangVienGiangDay; // Trả về mảng giảng viên giảng dạy đã tìm được
 };
 
+// lấy dữ liệu giảng viên mời và giảng viên cơ hữu trong DB
+// const tongHopDuLieuGiangVien = async () => {
+//   // Truy vấn lấy dữ liệu từ bảng gvmoi
+//   const query1 =
+//     "SELECT HoTen, MonGiangDayChinh FROM gvmoi";
+
+//   // Truy vấn lấy dữ liệu từ bảng nhanvien
+//   const query2 =
+//     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien";
+
+//   const connection = await createPoolConnection(); // Tạo kết nối từ pool
+//   // Thực hiện các truy vấn cho tất cả giảng viên trong 2 bảng
+//   const [results1] = await connection.execute(query1);
+//   const [results2] = await connection.execute(query2);
+//   const allResults = results1.concat(results2);
+
+//   connection.release();
+//   return allResults.length > 0 ? allResults : [];
+
+// };
 const tongHopDuLieuGiangVien = async () => {
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
@@ -500,37 +353,113 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
-const validateKhoa = (khoa) => {
-  // Chuyển giá trị của khoa thành chữ viết hoa để tránh nhầm lẫn với chữ thường
-  switch (khoa.trim()) {
-    case "Cơ bản":
-      return "CB";
-    case "An toàn thông tin":
-      return "ATTT";
-    case "Công nghệ thông tin":
-      return "CNTT";
-    case "Điện tử - Viễn thông":
-      return "ĐTVT";
-    case "Trung tâm thực hành":
-      return "TTTH";
-    case "Lý luận hính trị":
-      return "LLCT";
-    case "QS&GDTC":
-      return "QS&GDTC";
-    case "Mật":
-      return "MM";
-    case "Khác":
-      return "Khác";
-    default:
-      return khoa; // Nếu không khớp với bất kỳ giá trị nào, trả về chính nó :)
-  }
-};
+// lưu file quy chuẩn vào bảng quychuan
+// const importTableQC = async (jsonData) => {
+//   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
+//   const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
+//   console.log(dataGiangVien);
+
+//   const queryInsert = `INSERT INTO ${tableName} (
+//     Khoa,
+//     Dot,
+//     KiHoc,
+//     NamHoc,
+//     GiaoVien,
+//     GiaoVienGiangDay,
+//     MoiGiang,
+//     SoTinChi,
+//     MaHocPhan,
+//     LopHocPhan,
+//     TenLop,
+//     BoMon,
+//     LL,
+//     SoTietCTDT,
+//     HeSoT7CN,
+//     SoSinhVien,
+//     HeSoLopDong,
+//     QuyChuan,
+//     GhiChu
+//   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+
+//   const insertPromises = jsonData.flatMap((item) => {
+//     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
+//     const giangVienArray = tachGiaoVien(item["GiaoVien"]);
+
+//     return giangVienArray.map(async ({ MoiGiang, GiaoVienGiangDay }) => {
+//       const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+//       try {
+//         const boMonFound = dataGiangVien.find(
+//           (dataGiangVien) => dataGiangVien.HoTen === GiaoVienGiangDay
+//         );
+//         const giangVien = boMonFound ? boMonFound.HoTen : null; // Sử dụng null thay cho ""
+//         const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null; // Sử dụng null thay cho ""
+
+//         const values = [
+//           item["Khoa"] || null,
+//           item["Dot"] || null,
+//           item["Ki"] || null,
+//           item["Nam"] || null,
+//           item["GiaoVien"] || null,
+//           giangVien,
+//           MoiGiang || null,
+//           item["SoTinChi"] || null,
+//           item["MaHocPhan"] || null,
+//           TenLop || null,
+//           Lop || null,
+//           monGiangDayChinh,
+//           item["LL"] || null,
+//           item["SoTietCTDT"] || null,
+//           item["HeSoT7CN"] || null,
+//           item["SoSinhVien"] || null,
+//           item["HeSoLopDong"] || null,
+//           item["QuyChuan"] || null,
+//           item["GhiChu"] || null,
+//         ];
+
+//         await connection.execute(queryInsert, values); // Sử dụng execute thay vì query
+
+//       } catch (err) {
+//         console.error("Error:", err);
+//         throw err;
+//       } finally {
+//         connection.release(); // Giải phóng kết nối
+//       }
+//     });
+//   });
+
+//   let results = false;
+
+//   try {
+//     await Promise.all(insertPromises);
+
+//     // Chạy câu lệnh UPDATE sau khi INSERT thành công
+//     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
+
+//     const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+//     try {
+//       // Sử dụng trực tiếp await với connection.execute
+//       await connection.execute(queryUpdate);  // Không cần bọc trong new Promise nữa
+//       results = true; // Cập nhật thành công
+//     } catch (err) {
+//       console.error("Error while updating:", err);
+//     } finally {
+//       connection.release(); // Giải phóng kết nối sau khi thực thi
+//     }
+
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+
+//   return results;
+// };
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
   const dataGiangVien = await duLieuGiangVienGiangDay(jsonData);
-  // console.log(dataGiangVien);
+  console.log(dataGiangVien);
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
@@ -573,7 +502,7 @@ const importTableQC = async (jsonData) => {
       const monGiangDayChinh = boMonFound ? boMonFound.MonGiangDayChinh : null;
 
       allValues.push([
-        validateKhoa(item["Khoa"]) || null,
+        item["Khoa"] || null,
         item["Dot"] || null,
         item["Ki"] || null,
         item["Nam"] || null,
@@ -666,65 +595,9 @@ const updateBanHanh = async (req, res) => {
   }
 };
 
-// Chỉ dùng 1 truy vấn khi thêm bảng tạm
-// const importTableTam = async (jsonData) => {
-//   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
-
-//   console.log(jsonData[1])
-//   // Tạo câu lệnh INSERT động
-//   const query = `
-//     INSERT INTO ${tableName} (
-//       Khoa,
-//       Dot,
-//       Ki,
-//       Nam,
-//       GiaoVien,
-//       SoTinChi,
-//       LopHocPhan,
-//       LL,
-//       SoTietCTDT,
-//       HeSoT7CN,
-//       SoSinhVien,
-//       HeSoLopDong,
-//       QuyChuan
-//     ) VALUES ?
-//   `;
-
-//   // Tạo danh sách các giá trị
-//   const values = jsonData.map((item) => [
-//     item["Khoa"],
-//     item["Dot"],
-//     item["Ki"],
-//     item["Nam"],
-//     item["Giáo Viên"],
-//     item["Số TC"],
-//     item["Lớp học phần"],
-//     item["Số tiết lên lớp giờ HC"],
-//     item["Số tiết theo CTĐT"],
-//     item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
-//     item["Số SV"],
-//     item["Hệ số lớp đông"],
-//     item["QC"],
-//   ]);
-
-//   const connection = await createPoolConnection(); // Lấy kết nối từ pool
-//   try {
-//     // Thực hiện truy vấn với nhiều giá trị
-//     await connection.query(query, [values]);
-//     console.log("Thêm file quy chuẩn vào bảng Tam thành công");
-//     return true;
-//   } catch (err) {
-//     console.error("Error:", err);
-//     return false;
-//   } finally {
-//     connection.release(); // Giải phóng kết nối
-//   }
-// };
-
 const importTableTam = async (jsonData) => {
-  const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
+  const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này có giá trị là "quychuan"
 
-  // console.log(jsonData[1])
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -741,39 +614,46 @@ const importTableTam = async (jsonData) => {
       SoSinhVien, 
       HeSoLopDong, 
       QuyChuan
-    ) VALUES ?
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
-  // Tạo danh sách các giá trị
-  const values = jsonData.map((item) => [
-    item["Khoa"],
-    item["Dot"],
-    item["Ki"],
-    item["Nam"],
-    item["Giáo Viên"],
-    item["Số TC"],
-    item["Lớp học phần"],
-    item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"],
-    item["Số tiết theo CTĐT"],
-    item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
-    item["Số SV"],
-    item["Hệ số lớp đông"],
-    item["QC"],
-  ]);
+  const insertPromises = jsonData.map(async (item) => {
+    const connection = await createPoolConnection(); // Lấy kết nối từ pool
+    try {
+      const values = [
+        item["Khoa"],
+        item["Dot"],
+        item["Ki"],
+        item["Nam"],
+        item["Giáo Viên"],
+        item["Số TC"],
+        item["Lớp học phần"],
+        item["Số tiết lên lớp giờ HC"],
+        item["Số tiết theo CTĐT"],
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+        item["Số SV"],
+        item["Hệ số lớp đông"],
+        item["QC"],
+      ];
+      await connection.query(query, values);
+    } catch (err) {
+      console.error("Error:", err);
+      throw err;
+    } finally {
+      connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+  });
 
-  const connection = await createPoolConnection(); // Lấy kết nối từ pool
+  let results = false;
   try {
-    // Thực hiện truy vấn với nhiều giá trị
-    await connection.query(query, [values]);
-    console.log("Thêm file quy chuẩn vào bảng Tam thành công");
-    return true;
-  } catch (err) {
-    console.error("Error:", err);
-    return false;
-  } finally {
-    connection.release(); // Giải phóng kết nối
+    await Promise.all(insertPromises); // Thực hiện tất cả các truy vấn song song
+    results = true;
+  } catch (error) {
+    console.error("Error:", error);
   }
+
+  console.log("Thêm file quy chuẩn vào bảng Tam thành công");
+  return results;
 };
 
 const getIdUserByTeacherName = async (teacherName) => {
@@ -923,56 +803,14 @@ const importJSONToDB = async (jsonData) => {
   }
 };
 
-// const handleUploadAndRender = async (req, res) => {
-//   const filePath = path.join(__dirname, "../../uploads", req.file.filename);
-
-//   // Chuyển đổi file Excel sang JSON
-//   const jsonResult = convertExcelToJSON(filePath);
-
-//   // render bảng
-//   res.send(jsonResult);
-// };
-
 const handleUploadAndRender = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).send({ error: "No file uploaded" });
-    }
+  const filePath = path.join(__dirname, "../../uploads", req.file.filename);
 
-    const filePath = path.join(__dirname, "../../uploads", req.file.filename);
-    // console.log(filePath)
+  // Chuyển đổi file Excel sang JSON
+  const jsonResult = convertExcelToJSON(filePath);
 
-    // const fileExtension = path.extname(req.file.filename).toLowerCase(); // Lấy đuôi file
-    const fileExtension = path.extname(req.file.originalname).toLowerCase();
-
-    let result;
-
-    // console.log(fileExtension)
-    // Xử lý theo loại file
-    if (fileExtension === ".xlsx" || fileExtension === ".xls") {
-      result = convertExcelToJSON(filePath);
-      // console.log('ok')
-    } else if (fileExtension === ".docx") {
-      result = await convertWordToJSON(filePath);
-      // console.log('ok2')
-    } else if (fileExtension === ".pdf") {
-      // result = processPdfFile(filePath);
-    } else {
-      return res.status(400).send({ error: "Không đúng định dạng" });
-    }
-
-    console.log("Convert file quy chuẩn thành công!");
-    // Gửi kết quả cho client
-    res.send(result);
-
-    // // Xóa file sau khi xử lý nếu cần thiết
-    // fs.unlink(filePath, (err) => {
-    //   if (err) console.error("Error deleting file:", err);
-    // });
-  } catch (error) {
-    console.error("Error processing file:", error);
-    res.status(500).send({ error: "Internal server error" });
-  }
+  // render bảng
+  res.send(jsonResult);
 };
 
 const checkFile = async (req, res) => {
@@ -1432,130 +1270,7 @@ const updateDateAll = async (req, res) => {
 // };
 
 // BACKUP KO ĐC XÓA
-// back up t cũng xóa
-// const updateQC = async (req, res) => {
-//   const role = req.session.role;
-//   const duyet = process.env.DUYET;
-//   const tableName = process.env.DB_TABLE_QC;
-//   const jsonData = req.body;
-
-//   let connection;
-
-//   try {
-//     // Lấy kết nối từ createPoolConnection
-//     connection = await createPoolConnection();
-
-//     // Duyệt qua từng phần tử trong jsonData
-//     for (let item of jsonData) {
-//       const {
-//         ID,
-//         Khoa,
-//         Dot,
-//         KiHoc,
-//         NamHoc,
-//         GiaoVien,
-//         GiaoVienGiangDay,
-//         MoiGiang,
-//         SoTinChi,
-//         MaHocPhan,
-//         LopHocPhan,
-//         TenLop,
-//         BoMon,
-//         LL,
-//         SoTietCTDT,
-//         HeSoT7CN,
-//         SoSinhVien,
-//         HeSoLopDong,
-//         QuyChuan,
-//         GhiChu,
-//         KhoaDuyet,
-//         DaoTaoDuyet,
-//         TaiChinhDuyet,
-//         NgayBatDau,
-//         NgayKetThuc,
-//       } = item;
-
-//       if (KhoaDuyet == 1) {
-//         if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
-//           return res.status(200).json({
-//             message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên`,
-//           });
-//         }
-//       }
-
-//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-//       const updateQuery = `
-//         UPDATE ${tableName}
-//         SET
-//           Khoa = ?,
-//           Dot = ?,
-//           KiHoc = ?,
-//           NamHoc = ?,
-//           GiaoVien = ?,
-//           GiaoVienGiangDay = ?,
-//           MoiGiang = ?,
-//           SoTinChi = ?,
-//           MaHocPhan = ?,
-//           LopHocPhan = ?,
-//           TenLop = ?,
-//           BoMon = ?,
-//           LL = ?,
-//           SoTietCTDT = ?,
-//           HeSoT7CN = ?,
-//           SoSinhVien = ?,
-//           HeSoLopDong = ?,
-//           QuyChuan = ?,
-//           GhiChu = ?,
-//           KhoaDuyet = ?,
-//           DaoTaoDuyet = ?,
-//           TaiChinhDuyet = ?,
-//           NgayBatDau = ?,
-//           NgayKetThuc = ?
-//         WHERE ID = ?
-//       `;
-
-//       const updateValues = [
-//         Khoa,
-//         Dot,
-//         KiHoc,
-//         NamHoc,
-//         GiaoVien,
-//         GiaoVienGiangDay,
-//         MoiGiang,
-//         SoTinChi,
-//         MaHocPhan,
-//         LopHocPhan,
-//         TenLop,
-//         BoMon,
-//         LL,
-//         SoTietCTDT,
-//         HeSoT7CN,
-//         SoSinhVien,
-//         HeSoLopDong,
-//         QuyChuan,
-//         GhiChu,
-//         KhoaDuyet,
-//         DaoTaoDuyet,
-//         TaiChinhDuyet,
-//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-//         ID,
-//       ];
-
-//       await connection.query(updateQuery, updateValues);
-//     }
-
-//     res.status(200).json({ message: "Cập nhật thành công" });
-//   } catch (error) {
-//     console.error("Lỗi cập nhật:", error);
-//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
-//   } finally {
-//     if (connection) connection.release(); // Trả kết nối về pool
-//   }
-// };
-
 const updateQC = async (req, res) => {
-  const maPhongBan = req.session.MaPhongBan;
   const role = req.session.role;
   const duyet = process.env.DUYET;
   const tableName = process.env.DB_TABLE_QC;
@@ -1564,10 +1279,7 @@ const updateQC = async (req, res) => {
   let connection;
 
   try {
-    if (!jsonData || jsonData.length === 0) {
-      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
-    }
-
+    // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
     // Duyệt qua từng phần tử trong jsonData
@@ -1670,22 +1382,14 @@ const updateQC = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     }
 
-    console.log(`${role} ${maPhongBan} vừa cập nhật bảng quy chuẩn!`);
     res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
   } finally {
-    if (connection) connection.release();
+    if (connection) connection.release(); // Trả kết nối về pool
   }
 };
-
-// Hàm kiểm tra ngày hợp lệ
-function isValidDate(dateString) {
-  if (!dateString) return false;
-  const date = new Date(dateString);
-  return !isNaN(date.getTime());
-}
 
 // const updateQC = async (req, res) => {
 //   const { role } = req.session;

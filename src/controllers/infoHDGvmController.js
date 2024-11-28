@@ -32,8 +32,9 @@ function convertToRoman(num) {
     17: "XVII",
     18: "XVIII",
     19: "XIX",
-    20: "XX"
+    20: "XX",
   };
+
 
   return romanNumerals[num] || "Không xác định";
 }
@@ -128,6 +129,7 @@ const exportHDGvmToExcel = async (req, res) => {
     let params = [namHoc, dot, ki];
 
     if (khoa && khoa !== "ALL") {
+      query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
 
@@ -213,8 +215,9 @@ const exportHDGvmToExcel = async (req, res) => {
 
       const kiLaMa = convertToRoman(row.KiHoc);
 
-
-      const thoiGianThucHien = `${utcBatDau.toLocaleDateString("vi-VN")} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
+      const thoiGianThucHien = `${utcBatDau.toLocaleDateString(
+        "vi-VN"
+      )} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
 
       // het
       worksheet.addRow({
