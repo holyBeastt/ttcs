@@ -60,7 +60,9 @@ const convertExcelToJSON = (req, res) => {
 // }
 
 function formatDateForMySQL(date) {
-  if (!date) return null; // Kiểm tra giá trị null hoặc undefined
+  const dateMacDinh = "1900-01-01";
+
+  if (!date) return dateMacDinh; // Kiểm tra giá trị null hoặc undefined
 
   // Nếu ngày là chuỗi dạng DD/MM/YYYY
   if (typeof date === "string" && date.includes("/")) {
@@ -78,7 +80,7 @@ function formatDateForMySQL(date) {
     return dateObj.toISOString().split("T")[0];
   }
 
-  return null; // Trả về null nếu định dạng không hợp lệ
+  return dateMacDinh; // Trả về null nếu định dạng không hợp lệ
 }
 
 // Xử lý
@@ -109,6 +111,8 @@ const saveToDB = async (req, res) => {
     const MaPhongBan = req.session.MaPhongBan;
     console.log(MaPhongBan);
     const TinhTrangGiangDay = 1; // Tình trạng giảng dạy
+
+    const duplicateCCCDs = [];
 
     if (data && data.length > 0) {
       const gvms = await gvmList.getGvmLists(req, res);
@@ -152,14 +156,16 @@ const saveToDB = async (req, res) => {
           HSL = parseFloat(HSL); // Trường hợp HSL là số hoặc chuỗi đã chuẩn
         }
 
+        let isDuplicate = false;
         // Kiểm tra trùng CCCD
         for (const gvm of gvms) {
           if (gvm.CCCD == CCCD) {
-            return res.status(400).json({
-              message: `Giảng viên mời ${HoTen} với CCCD ${CCCD} bị trùng, dữ liệu từ giảng viên này sẽ không được nhập`,
-            });
+            duplicateCCCDs.push(HoTen + " - " + CCCD);
+            isDuplicate = true; // Bỏ qua và tiếp tục
           }
         }
+
+        if (isDuplicate) continue;
 
         const sql = `
         INSERT INTO gvmoi
@@ -193,6 +199,14 @@ const saveToDB = async (req, res) => {
 
         await connection.query(sql, values);
         length++; // Tăng độ dài sau mỗi lần chèn thành công
+      }
+
+      if (duplicateCCCDs.length > 0) {
+        return res.status(400).json({
+          message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: ${duplicateCCCDs.join(
+            ", "
+          )}`,
+        });
       }
 
       // Gửi phản hồi thành công

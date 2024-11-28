@@ -35,6 +35,7 @@ function convertToRoman(num) {
     20: "XX",
   };
 
+
   return romanNumerals[num] || "Không xác định";
 }
 
@@ -110,12 +111,12 @@ const exportHDGvmToExcel = async (req, res) => {
       gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
       hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?`;
-
+    
     // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
     if (khoa && khoa !== "ALL") {
       query += ` AND gv.MaPhongBan = ?`;
     }
-
+    
     query += `
     GROUP BY
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
@@ -123,15 +124,13 @@ const exportHDGvmToExcel = async (req, res) => {
       hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
       gv.MonGiangDayChinh, gv.BangTotNghiepLoai;
     `;
-
+    
     // Tạo mảng tham số
     let params = [namHoc, dot, ki];
-
+    
     if (khoa && khoa !== "ALL") {
-      query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
-
     const [rows] = await connection.execute(query, params);
 
     if (rows.length === 0) {
@@ -211,6 +210,7 @@ const exportHDGvmToExcel = async (req, res) => {
       const utcSinh = new Date(row.NgaySinh);
       row.NgaySinh = utcSinh.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
 
+
       const kiLaMa = convertToRoman(row.KiHoc);
 
       const thoiGianThucHien = `${utcBatDau.toLocaleDateString(
@@ -284,9 +284,8 @@ const exportHDGvmToExcel = async (req, res) => {
 };
 
 // hàm chuyển tiền sang chữ số
-// Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
-  if (num === 0) return "không đồng";
+  if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
     "",
@@ -336,11 +335,13 @@ const numberToWords = (num) => {
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
 
+      // Xử lý hàng trăm
       if (hundreds) {
         chunkWords.push(ones[hundreds]);
         chunkWords.push("trăm");
       }
 
+      // Xử lý phần dư (tens và ones)
       if (remainder < 10) {
         if (remainder > 0) {
           if (hundreds) chunkWords.push("lẻ");
@@ -362,6 +363,7 @@ const numberToWords = (num) => {
         }
       }
 
+      // Thêm đơn vị nghìn, triệu, tỷ
       if (unitIndex > 0) {
         chunkWords.push(thousands[unitIndex]);
       }
@@ -372,13 +374,12 @@ const numberToWords = (num) => {
     unitIndex++;
   }
 
-  // Chuyển chữ cái đầu tiên thành chữ hoa
+  // Hàm viết hoa chữ cái đầu tiên
   const capitalizeFirstLetter = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
   return capitalizeFirstLetter(words.trim() + " đồng");
 };
-
 const getHDGvmData = async (req, res) => {
   let connection;
   try {

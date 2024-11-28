@@ -13,8 +13,6 @@ const connection = require("./config/database");
 // config engine template
 const configViewEngine = require("./config/viewEngine");
 
-// const webRoutes = require("./routes/web");
-
 // Cấu hình đường dẫn routes
 const webRoutes = require("./routes/web");
 const createGvmRoutes = require("./routes/createGvmRoute");
@@ -95,8 +93,7 @@ app.use("/", vuotGioExportRoute);
 app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioSoTietDMRouter);
 app.use("/", vuotGioExportDoAnRoute);
-app.use('/', thongkemgRoute);
-
+app.use("/", thongkemgRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);

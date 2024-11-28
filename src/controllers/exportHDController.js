@@ -51,7 +51,7 @@ const convertToRoman = (num) => {
 
 // Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
-  if (num === 0) return "không đồng";
+  if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
     "",
@@ -101,11 +101,13 @@ const numberToWords = (num) => {
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
 
+      // Xử lý hàng trăm
       if (hundreds) {
         chunkWords.push(ones[hundreds]);
         chunkWords.push("trăm");
       }
 
+      // Xử lý phần dư (tens và ones)
       if (remainder < 10) {
         if (remainder > 0) {
           if (hundreds) chunkWords.push("lẻ");
@@ -127,6 +129,7 @@ const numberToWords = (num) => {
         }
       }
 
+      // Thêm đơn vị nghìn, triệu, tỷ
       if (unitIndex > 0) {
         chunkWords.push(thousands[unitIndex]);
       }
@@ -137,7 +140,7 @@ const numberToWords = (num) => {
     unitIndex++;
   }
 
-  // Chuyển chữ cái đầu tiên thành chữ hoa
+  // Hàm viết hoa chữ cái đầu tiên
   const capitalizeFirstLetter = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -162,7 +165,25 @@ const numberWithDecimalToWords = (num) => {
   return `${integerWords}${decimalWords ? " " + decimalWords : ""}`.trim();
 };
 
-// Hàm định dạng ngày tháng
+// Hàm định dạng ngày/tháng/năm
+const formatDate1 = (date) => {
+  try {
+    if (!date) return "";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+
+    return `${day}/${month}/${year}`; // Định dạng ngày/tháng/năm
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+};
+
+// Hàm định dạng ngày tháng năm
 const formatDate = (date) => {
   try {
     if (!date) return "";
@@ -173,7 +194,7 @@ const formatDate = (date) => {
     const month = (d.getMonth() + 1).toString().padStart(2, "0");
     const year = d.getFullYear();
 
-    return `ngày ${day} tháng ${month} năm ${year}`;
+    return `ngày ${day} tháng ${month} năm ${year}`; // Định dạng ngày tháng năm
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";
@@ -211,7 +232,7 @@ const exportSingleContract = async (req, res) => {
       Danh_xưng: teacher.DanhXung,
       Họ_và_tên: teacher.HoTen,
       CCCD: teacher.CCCD,
-      Ngày_cấp: formatDate(teacher.NgayCap),
+      Ngày_cấp: formatDate1(teacher.NgayCap), // Gọi mà không cần tham số để giữ định dạng "ngày tháng năm"
       Nơi_cấp: teacher.NoiCapCCCD,
       Chức_vụ: teacher.ChucVu,
       Cấp_bậc: teacher.HocVi,
@@ -321,43 +342,7 @@ const exportMultipleContracts = async (req, res) => {
               NgayNghiemThu, Dot, KiHoc, NamHoc, MaPhongBan, MaBoMon
           `;
 
-    // let query = ` SELECT
-    //             MaHopDong,
-    //             id_Gvm,
-    //             DienThoai,
-    //             Email,
-    //             MaSoThue,
-    //             DanhXung,
-    //             HoTen,
-    //             NgaySinh,
-    //             HocVi,
-    //             ChucVu,
-    //             HSL,
-    //             CCCD,
-    //             NoiCapCCCD,
-    //             DiaChi,
-    //             STK,
-    //             NganHang,
-    //             MIN(NgayBatDau) AS NgayBatDau,
-    //             MAX(NgayKetThuc) AS NgayKetThuc,
-    //             SUM(SoTiet) AS SoTiet,
-    //             SoTien,
-    //             TruThue,
-    //             NgayCap,
-    //             ThucNhan,
-    //             NgayNghiemThu,
-    //             Dot,
-    //             KiHoc,
-    //             NamHoc,
-    //             MaPhongBan,
-    //             MaBoMon
-    //         FROM
-    //             hopdonggvmoi
-    //         WHERE
-    //             Dot = ? AND KiHoc = ? AND NamHoc = ?
-    //         GROUP BY
-    //             HoTen`;
-
+    
     let params = [dot, ki, namHoc];
 
     // Xử lý các trường hợp khác nhau
@@ -444,42 +429,7 @@ const exportMultipleContracts = async (req, res) => {
               HSL, CCCD, NoiCapCCCD, DiaChi, STK, NganHang, SoTien, TruThue, NgayCap, ThucNhan, 
               NgayNghiemThu, Dot, KiHoc, NamHoc, MaPhongBan, MaBoMon
           `;
-      // query = ` SELECT
-      //           MaHopDong,
-      //           id_Gvm,
-      //           DienThoai,
-      //           Email,
-      //           MaSoThue,
-      //           DanhXung,
-      //           HoTen,
-      //           NgaySinh,
-      //           HocVi,
-      //           ChucVu,
-      //           HSL,
-      //           CCCD,
-      //           NoiCapCCCD,
-      //           DiaChi,
-      //           STK,
-      //           NganHang,
-      //           MIN(NgayBatDau) AS NgayBatDau,
-      //           MAX(NgayKetThuc) AS NgayKetThuc,
-      //           SUM(SoTiet) AS SoTiet,
-      //           SoTien,
-      //           TruThue,
-      //           NgayCap,
-      //           ThucNhan,
-      //           NgayNghiemThu,
-      //           Dot,
-      //           KiHoc,
-      //           NamHoc,
-      //           MaPhongBan,
-      //           MaBoMon
-      //       FROM
-      //           hopdonggvmoi
-      //       WHERE
-      //           Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen LIKE ?
-      //       GROUP BY
-      //           HoTen`;
+    
       params = [dot, ki, namHoc, `%${teacherName}%`];
       //params.push(`%${teacherName}%`);
     }
@@ -517,7 +467,7 @@ const exportMultipleContracts = async (req, res) => {
         Danh_xưng: teacher.DanhXung,
         Họ_và_tên: teacher.HoTen,
         CCCD: teacher.CCCD,
-        Ngày_cấp: formatDate(teacher.NgayCap),
+        Ngày_cấp: formatDate1(teacher.NgayCap),
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
