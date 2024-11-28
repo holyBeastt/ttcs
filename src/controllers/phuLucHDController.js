@@ -33,7 +33,7 @@ function convertToRoman(num) {
 }
 // Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
-  if (num === 0) return "không đồng";
+  if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
     "",
@@ -83,11 +83,13 @@ const numberToWords = (num) => {
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
 
+      // Xử lý hàng trăm
       if (hundreds) {
         chunkWords.push(ones[hundreds]);
         chunkWords.push("trăm");
       }
 
+      // Xử lý phần dư (tens và ones)
       if (remainder < 10) {
         if (remainder > 0) {
           if (hundreds) chunkWords.push("lẻ");
@@ -109,6 +111,7 @@ const numberToWords = (num) => {
         }
       }
 
+      // Thêm đơn vị nghìn, triệu, tỷ
       if (unitIndex > 0) {
         chunkWords.push(thousands[unitIndex]);
       }
@@ -119,7 +122,7 @@ const numberToWords = (num) => {
     unitIndex++;
   }
 
-  // Chuyển chữ cái đầu tiên thành chữ hoa
+  // Hàm viết hoa chữ cái đầu tiên
   const capitalizeFirstLetter = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -204,6 +207,9 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       const worksheet = workbook.addWorksheet(giangVien);
 
+      worksheet.addRow([]);
+
+
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
       titleRow0.font = { name: "Times New Roman", size: 17 };
@@ -219,7 +225,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:K${titleRow2.number}`);
+      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
       // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
       const earliestDate = giangVienData.reduce((minDate, item) => {
@@ -235,14 +241,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       ]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow3.number}:K${titleRow3.number}`);
+      worksheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
       const titleRow4 = worksheet.addRow([
         `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
       ]);
       titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow4.number}:L${titleRow4.number}`);
+      worksheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
 
       // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
       const titleRow5 = worksheet.addRow([
@@ -365,8 +371,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -496,7 +502,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       bangChuRow.alignment = { horizontal: "left", vertical: "middle" };
 
       // Định dạng viền cho các hàng từ dòng thứ 6 trở đi
-      const firstRowOfTable = 7; // Giả sử bảng bắt đầu từ hàng 7
+      const firstRowOfTable = 8; // Giả sử bảng bắt đầu từ hàng 7
       const lastRowOfTable = totalRow.number; // Hàng tổng cộng
 
       for (let i = firstRowOfTable; i <= lastRowOfTable; i++) {

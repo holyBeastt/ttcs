@@ -34,7 +34,7 @@ function convertToRoman(num) {
     19: "XIX",
     20: "XX"
   };
-  
+
   return romanNumerals[num] || "Không xác định";
 }
 
@@ -209,8 +209,8 @@ const exportHDGvmToExcel = async (req, res) => {
       // Sửa lại ngày sinh
       const utcSinh = new Date(row.NgaySinh);
       row.NgaySinh = utcSinh.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
-   
-   
+
+
       const kiLaMa = convertToRoman(row.KiHoc);
 
 
@@ -283,9 +283,8 @@ const exportHDGvmToExcel = async (req, res) => {
 };
 
 // hàm chuyển tiền sang chữ số
-// Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
-  if (num === 0) return "không đồng";
+  if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
     "",
@@ -335,11 +334,13 @@ const numberToWords = (num) => {
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
 
+      // Xử lý hàng trăm
       if (hundreds) {
         chunkWords.push(ones[hundreds]);
         chunkWords.push("trăm");
       }
 
+      // Xử lý phần dư (tens và ones)
       if (remainder < 10) {
         if (remainder > 0) {
           if (hundreds) chunkWords.push("lẻ");
@@ -361,6 +362,7 @@ const numberToWords = (num) => {
         }
       }
 
+      // Thêm đơn vị nghìn, triệu, tỷ
       if (unitIndex > 0) {
         chunkWords.push(thousands[unitIndex]);
       }
@@ -371,13 +373,12 @@ const numberToWords = (num) => {
     unitIndex++;
   }
 
-  // Chuyển chữ cái đầu tiên thành chữ hoa
+  // Hàm viết hoa chữ cái đầu tiên
   const capitalizeFirstLetter = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
   return capitalizeFirstLetter(words.trim() + " đồng");
 };
-
 const getHDGvmData = async (req, res) => {
   let connection;
   try {
