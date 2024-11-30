@@ -2987,7 +2987,7 @@ const submitData2 = async (req, res) => {
 
     // Thực hiện các cập nhật và thêm dữ liệu song song
     const [updateResult, update2, insertResult] = await Promise.all([
-      updateAllTeachingInfo(req, res),
+      updateAllTeachingInfo(req, res), // Lưu dữ liệu hợp đồng
       insertGiangDay2(req, res, nvList, hocPhanList, daDuyetHetArray),
       insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray),
     ]);

@@ -203,8 +203,8 @@ const saveToDB = async (req, res) => {
 
       if (duplicateCCCDs.length > 0) {
         return res.status(400).json({
-          message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: ${duplicateCCCDs.join(
-            ", "
+          message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: \n${duplicateCCCDs.join(
+            "\n "
           )}`,
         });
       }
