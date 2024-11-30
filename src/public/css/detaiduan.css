@@ -1,0 +1,432 @@
+/* Đảm bảo container chiếm hết chiều rộng màn hình, nhưng có khoảng cách từ hai bên */
+.formNckh {
+    width: 100%;
+    max-width: 1000px;
+    /* Giới hạn chiều rộng tối đa của form */
+    margin: 0 auto;
+    /* Căn giữa form */
+    padding: 20px;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm form bị vượt kích thước */
+    background-color: #f9f9f9;
+    /* Màu nền nhẹ */
+    border-radius: 10px;
+    /* Bo góc mềm mại */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    /* Đổ bóng nhẹ cho form */
+    font-size: 16px;
+}
+
+/* Căn giữa tiêu đề */
+.titleNckh {
+    font-size: 28px;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 20px;
+    /* Khoảng cách giữa tiêu đề và các trường nhập */
+    text-align: center;
+}
+
+
+
+/* Đảm bảo các trường input chiếm đủ chiều rộng trong form */
+.form-group {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Các trường input, select, textarea có chiều rộng 100% */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    /* Chiếm hết chiều rộng của form */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm thừa */
+}
+
+/* Nút submit */
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#submitBtn {
+    width: 100px;
+}
+
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Flex container cho Cấp đề tài và Năm học */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    /* Căn đều khoảng cách giữa các phần tử */
+    gap: 20px;
+    /* Khoảng cách giữa các trường */
+}
+
+.flex-item {
+    flex: 1;
+    /* Mỗi trường chiếm 1 phần không gian bằng nhau */
+}
+
+/* Đảm bảo trường "Thư ký" ẩn khi không cần thiết */
+.hidden {
+    display: none;
+}
+
+/* Khi màn hình nhỏ hơn, các trường sẽ xếp chồng lên nhau */
+@media screen and (max-width: 768px) {
+    .form-group.flex-container .flex-item {
+        flex: 1 1 100%;
+        /* Các trường sẽ chiếm hết chiều rộng khi màn hình nhỏ */
+    }
+}
+
+/* Bo góc cho combobox (select) */
+select {
+    border-radius: 8px;
+    /* Thêm bo góc cho combobox */
+    padding: 8px;
+    /* Thêm padding để khoảng cách giữa nội dung và viền được rõ ràng */
+    border: 1px solid #ccc;
+    /* Thêm viền cho combobox */
+    font-size: 16px;
+    /* Tùy chỉnh kích thước font cho dropdown */
+    background-color: #fff;
+    /* Màu nền trắng cho dropdown */
+    -webkit-appearance: none;
+    /* Xóa bỏ kiểu mặc định của combobox trên các trình duyệt Webkit */
+    -moz-appearance: none;
+    /* Xóa bỏ kiểu mặc định của combobox trên Firefox */
+    appearance: none;
+    /* Tương tự cho các trình duyệt khác */
+    background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"%3E%3Cpath fill="none" stroke="%23333" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" d="M112 184l64 64 64-64" /%3E%3C/svg%3E');
+    /* Biểu tượng mũi tên dropdown */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+}
+
+
+/* tương phản của ô nhập và tiêu đề của no */
+.label {
+    color: #333;
+    /* Màu xám đậm */
+}
+
+.label:focus-within {
+    color: #007bff;
+    /* Màu xanh khi ô input được focus */
+}
+
+#memberListDisplay {
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.member-list-display {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.member-list-display span {
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    text-align: center;
+}
+
+/* Nút X đóng Modal ở góc phải trên */
+.close-btn {
+    font-size: 30px;
+    /* Kích thước chữ */
+    color: #aaa;
+    position: absolute;
+    /* Đặt vị trí tuyệt đối */
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+}
+
+.input-field {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+
+/* Cải tiến cho thẻ UL và LI trong modal */
+#memberListDisplay {
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Thành viên hiển thị */
+.member-list-display {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.member-list-display span {
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000000;
+    /* Đảm bảo modal hiển thị lên trên mọi phần tử */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Nội dung modal */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 600px;
+    /* Đặt chiều rộng modal rộng hơn */
+    text-align: center;
+    position: relative;
+    /* Đảm bảo modal không bị chồng lấn với các phần tử khác */
+    z-index: 10000001;
+    /* Đảm bảo modal vẫn hiển thị trên gợi ý */
+}
+
+.btn-add {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background-color: #218838;
+}
+
+.btn-add i {
+    margin-right: 5px;
+}
+
+/* Cải tiến cho thẻ UL và LI trong modal */
+.modal-member-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.modal-member-list li {
+    margin: 5px 0;
+    background-color: #f8f9fa;
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Cải tiến nút xóa thành viên trong modal */
+.modal-member-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0;
+    background-color: #f8f9fa;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Đảm bảo nút "X" có kích thước cố định */
+.modal-member-list li button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    width: 25px;
+    /* Cố định chiều rộng */
+    height: 25px;
+    /* Cố định chiều cao */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.modal-member-list li button:hover {
+    background-color: #c82333;
+}
+
+.modal-member-list li i {
+    font-size: 14px;
+    /* Kích thước icon nhỏ */
+}
+
+/* Đảm bảo nội dung thành viên không bị đẩy khỏi ô */
+.modal-member-list li span {
+    flex-grow: 1;
+    margin-right: 10px;
+    /* Khoảng cách giữa tên thành viên và nút "X" */
+}
+
+/* Mặc định cho ô input */
+.input-field {
+    border: 1px solid #ccc;
+    color: black;
+    outline: none;
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* Cảnh báo khi viền đỏ và thông báo lỗi */
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+    /* Ban đầu ẩn thông báo lỗi */
+}
+
+/* Các mục gợi ý */
+.suggestions-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000001;
+    padding: 0;
+    margin: 0;
+    border-radius: 5px;
+    /* Thêm bo góc cho khối gợi ý */
+}
+
+/* Các mục gợi ý */
+.suggestion-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: white;
+    color: #333;
+    /* Màu chữ tối */
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+    /* Viền dưới các mục */
+    transition: background-color 0.3s, color 0.3s;
+    /* Hiệu ứng chuyển màu */
+}
+
+/* Hover hiệu ứng */
+.suggestion-item:hover {
+    background-color: #f5f5f5;
+    color: #007BFF;
+    /* Thay đổi màu chữ khi hover */
+}
+
+/* Flex container để bao quanh các phần tử */
+.flex-item {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+/* Phần tử input */
+input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    transition: border-color 0.3s ease;
+    /* Hiệu ứng chuyển màu biên */
+}
+
+/* Thêm hiệu ứng cho input khi focus */
+input[type="text"]:focus {
+    border-color: #007BFF;
+    /* Đổi màu viền khi focus vào input */
+    outline: none;
+    /* Xóa outline mặc định */
+}
+
+/* Tăng độ tương phản và độ rõ ràng cho input */
+input[type="text"]::placeholder {
+    color: #888;
+    /* Màu chữ placeholder nhạt hơn */
+    font-style: italic;
+}
