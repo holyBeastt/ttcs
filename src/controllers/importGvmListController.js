@@ -113,6 +113,7 @@ const saveToDB = async (req, res) => {
     const TinhTrangGiangDay = 1; // Tình trạng giảng dạy
 
     const duplicateCCCDs = [];
+    const duplicateName = [];
 
     if (data && data.length > 0) {
       const gvms = await gvmList.getGvmLists(req, res);
@@ -124,7 +125,7 @@ const saveToDB = async (req, res) => {
         // Chuyển đổi dữ liệu để phù hợp với cột trong DB
         // const GioiTinh = row["Danh xưng"] === "Ông" ? "Nam" : "Nữ";
         const GioiTinh = row["Giới tính"];
-        const HoTen = row["Họ và tên"];
+        let HoTen = row["Họ và tên"];
         // const NgaySinh = row["Ngày sinh"] || " ";
         const CCCD = row["Số CCCD"];
         // const NgayCapCCCD = row["Ngày cấp"];
@@ -157,6 +158,8 @@ const saveToDB = async (req, res) => {
         }
 
         let isDuplicate = false;
+        let duplicateCount = 0;
+        let originalName = HoTen;
         // Kiểm tra trùng CCCD
         for (const gvm of gvms) {
           if (gvm.CCCD == CCCD) {
@@ -166,6 +169,40 @@ const saveToDB = async (req, res) => {
         }
 
         if (isDuplicate) continue;
+
+        // if (!isDuplicate) {
+        //   let nameExists = true;
+        //   while (nameExists) {
+        //     nameExists = gvms.some((gvm) => gvm.HoTen === HoTen);
+        //     if (nameExists) {
+        //       duplicateCount++;
+        //       HoTen = `${originalName} (${String.fromCharCode(
+        //         64 + duplicateCount
+        //       )})`; // A, B, C...
+
+        //       duplicateName.push(HoTen);
+        //     }
+        //   }
+        // }
+
+        if (!isDuplicate) {
+          let nameExists = true;
+          let modifiedName = HoTen; // Biến tạm để lưu tên cuối cùng
+          while (nameExists) {
+            nameExists = gvms.some((gvm) => gvm.HoTen === modifiedName);
+            if (nameExists) {
+              duplicateCount++;
+              modifiedName = `${originalName} (${String.fromCharCode(
+                64 + duplicateCount
+              )})`; // A, B, C...
+            }
+          }
+          // Khi xử lý xong, thêm tên cuối cùng vào danh sách trùng
+          if (modifiedName !== HoTen) {
+            duplicateName.push(`${HoTen} -> ${modifiedName}`); // Ghi lại thay đổi
+          }
+          HoTen = modifiedName; // Cập nhật tên cuối cùng
+        }
 
         const sql = `
         INSERT INTO gvmoi
@@ -201,12 +238,30 @@ const saveToDB = async (req, res) => {
         length++; // Tăng độ dài sau mỗi lần chèn thành công
       }
 
+      // if (duplicateCCCDs.length > 0) {
+      //   return res.status(400).json({
+      //     message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: \n${duplicateCCCDs.join(
+      //       "\n "
+      //     )}`,
+      //   });
+      // }
+      let mess = "";
+
       if (duplicateCCCDs.length > 0) {
-        return res.status(400).json({
-          message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: \n${duplicateCCCDs.join(
-            "\n "
-          )}`,
-        });
+        mess = `<b>Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD:</b> \n${duplicateCCCDs.join(
+          "\n "
+        )}`;
+      }
+
+      if (duplicateName.length > 0) {
+        mess += `\n<b>Tên các giảng viên bị trùng sẽ được lưu như sau:</b> \n${duplicateName.join(
+          "\n "
+        )}`;
+      }
+
+      // Trả về phản hồi nếu có thông báo
+      if (mess !== "") {
+        return res.status(400).json({ message: mess });
       }
 
       // Gửi phản hồi thành công
