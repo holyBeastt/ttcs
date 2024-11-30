@@ -35,7 +35,6 @@ function convertToRoman(num) {
     20: "XX",
   };
 
-
   return romanNumerals[num] || "Không xác định";
 }
 
@@ -111,12 +110,12 @@ const exportHDGvmToExcel = async (req, res) => {
       gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
       hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?`;
-    
+
     // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
     if (khoa && khoa !== "ALL") {
       query += ` AND gv.MaPhongBan = ?`;
     }
-    
+
     query += `
     GROUP BY
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
@@ -124,10 +123,10 @@ const exportHDGvmToExcel = async (req, res) => {
       hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
       gv.MonGiangDayChinh, gv.BangTotNghiepLoai;
     `;
-    
+
     // Tạo mảng tham số
     let params = [namHoc, dot, ki];
-    
+
     if (khoa && khoa !== "ALL") {
       params.push(khoa);
     }
@@ -209,7 +208,6 @@ const exportHDGvmToExcel = async (req, res) => {
       // Sửa lại ngày sinh
       const utcSinh = new Date(row.NgaySinh);
       row.NgaySinh = utcSinh.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
-
 
       const kiLaMa = convertToRoman(row.KiHoc);
 
@@ -456,33 +454,47 @@ const getHopDongDuKienData = async (req, res) => {
     let rows;
     if (khoa == undefined) {
       [rows] = await connection.execute(
-        //   `SELECT
-        //       MIN(qc.NgayBatDau) AS NgayBatDau,
-        //       MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        //       qc.KiHoc,
-        //       gv.GioiTinh,
-        //       gv.HoTen,
-        //       gv.NgaySinh,
-        //       gv.CCCD,
-        //       gv.NoiCapCCCD,
-        //       gv.Email,
-        //       gv.MaSoThue,
-        //       gv.HocVi,
-        //       gv.ChucVu,
-        //       gv.HSL,
-        //       gv.DienThoai,
-        //       gv.STK,
-        //       gv.NganHang,
-        //       gv.MaPhongBan,
-        //       SUM(qc.QuyChuan) AS SoTiet
-        //   FROM
-        // quychuan qc
-        //   JOIN
-        // gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        //   WHERE
-        //       NamHoc = ? AND Dot = ? AND KiHoc = ?
-        //   GROUP BY
-        //       gv.HoTen;`,
+        //     `SELECT
+        //     MIN(qc.NgayBatDau) AS NgayBatDau,
+        //     MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        //     qc.KiHoc,
+        //     gv.GioiTinh,
+        //     gv.HoTen,
+        //     gv.NgaySinh,
+        //     gv.CCCD,
+        //     gv.NoiCapCCCD,
+        //     gv.Email,
+        //     gv.MaSoThue,
+        //     gv.HocVi,
+        //     gv.ChucVu,
+        //     gv.HSL,
+        //     gv.DienThoai,
+        //     gv.STK,
+        //     gv.NganHang,
+        //     gv.MaPhongBan,
+        //     SUM(qc.QuyChuan) AS SoTiet
+        // FROM
+        //     quychuan qc
+        // JOIN
+        //     gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        // WHERE
+        //     NamHoc = ? AND Dot = ? AND KiHoc = ?
+        // GROUP BY
+        //     gv.HoTen,
+        //     qc.KiHoc,
+        //     gv.GioiTinh,
+        //     gv.NgaySinh,
+        //     gv.CCCD,
+        //     gv.NoiCapCCCD,
+        //     gv.Email,
+        //     gv.MaSoThue,
+        //     gv.HocVi,
+        //     gv.ChucVu,
+        //     gv.HSL,
+        //     gv.DienThoai,
+        //     gv.STK,
+        //     gv.NganHang,
+        //     gv.MaPhongBan;`,
         `SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
@@ -501,13 +513,19 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan) AS SoTiet
+        SUM(qc.QuyChuan) AS SoTiet,
+    (SELECT SUM(QuyChuan)         
+     FROM quychuan
+     WHERE 
+        SUBSTRING_INDEX(GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        AND NamHoc = qc.NamHoc) AS TongSoTiet
+
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        NamHoc = ? AND Dot = ? AND KiHoc = ?
+        namhoc = ? AND dot = ? AND KiHoc = ?
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -523,11 +541,52 @@ const getHopDongDuKienData = async (req, res) => {
         gv.DienThoai,
         gv.STK,
         gv.NganHang,
-        gv.MaPhongBan;`,
+        gv.MaPhongBan`,
         [namHoc, dot, ki]
       );
     } else {
       [rows] = await connection.execute(
+        //     `SELECT
+        //     MIN(qc.NgayBatDau) AS NgayBatDau,
+        //     MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        //     qc.KiHoc,
+        //     gv.GioiTinh,
+        //     gv.HoTen,
+        //     gv.NgaySinh,
+        //     gv.CCCD,
+        //     gv.NoiCapCCCD,
+        //     gv.Email,
+        //     gv.MaSoThue,
+        //     gv.HocVi,
+        //     gv.ChucVu,
+        //     gv.HSL,
+        //     gv.DienThoai,
+        //     gv.STK,
+        //     gv.NganHang,
+        //     gv.MaPhongBan,
+        //     SUM(qc.QuyChuan) AS SoTiet
+        // FROM
+        //     quychuan qc
+        // JOIN
+        //     gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        // WHERE
+        //     NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
+        // GROUP BY
+        //     gv.HoTen,
+        //     qc.KiHoc,
+        //     gv.GioiTinh,
+        //     gv.NgaySinh,
+        //     gv.CCCD,
+        //     gv.NoiCapCCCD,
+        //     gv.Email,
+        //     gv.MaSoThue,
+        //     gv.HocVi,
+        //     gv.ChucVu,
+        //     gv.HSL,
+        //     gv.DienThoai,
+        //     gv.STK,
+        //     gv.NganHang,
+        //     gv.MaPhongBan;`,
         `SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
@@ -546,13 +605,19 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan) AS SoTiet
+        SUM(qc.QuyChuan) AS SoTiet,
+    (SELECT SUM(QuyChuan)                 -- Tổng số tiết của giảng viên trong năm
+     FROM quychuan
+     WHERE 
+        SUBSTRING_INDEX(GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+        AND NamHoc = qc.NamHoc) AS TongSoTiet
+
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
+        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ?
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -568,7 +633,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.DienThoai,
         gv.STK,
         gv.NganHang,
-        gv.MaPhongBan;`,
+        gv.MaPhongBan`,
         [namHoc, dot, ki, khoa]
       );
     }
