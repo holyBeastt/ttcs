@@ -45,6 +45,25 @@
   margin-bottom: 20px;
 }
 
+.navbar-nav .dropdown-menu {
+  z-index: 1050 !important;
+}
+
+.container.my-5.box {
+  position: relative;
+  z-index: 1;
+}
+
+.navbar-bottom {
+  position: relative;
+  z-index: 1040;
+}
+
+.nav-link.dropdown-toggle {
+  z-index: 1050;
+  position: relative;
+}
+
 </style>
 <body>
 
@@ -121,7 +140,7 @@
         </div>
       </div>
       <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-100" style="z-index: -1;">Thêm mới</button>
+        <button type="submit" class="btn btn-primary w-100" style="z-index: 1;">Thêm mới</button>
       </div>
     </form>
         <!-- Nút Lọc màu giống nút Hiển thị -->
