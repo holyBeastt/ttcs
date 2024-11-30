@@ -264,12 +264,6 @@
             }
             const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-            // Gán URL động vào thuộc tính action của form
-            if (MaPhongBan) {
-              document.getElementById("addClassForm").action = `/addclass/${MaPhongBan}`;
-            } else {
-              console.error("Không tìm thấy MaPhongBan trong localStorage");
-            }
 
             //Ẩn site duyệt
             const Quyen = localStorage.getItem("userRole");

@@ -370,10 +370,6 @@
             <div class="d-flex">
               <div class="cbb d-flex" style="margin-top: 20px;">
         
-                <!-- Combo box Kỳ -->
-                <select class="selectop mx-1" id="comboboxki">
-                  <option value="">Kỳ</option>
-                </select>
         
                 <!-- Combo box Năm -->
                 <select class="selectop mx-1" id="NamHoc">
@@ -475,6 +471,7 @@
                   <tr>
                     <th style="width: 200px;">Học phần</th>
                     <th style="width: 50px;">Số TC</th>
+                    <th style="width: 50px;">Kì học</th>
                     <th style="width: 200px;">GV giảng dạy</th>
                     <th style="width: 50px;">Mã lớp</th>
                     <th style="width: 100px;">Số SV</th>
@@ -694,7 +691,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
   $(document).ready(function () {
     $('#NamHoc option[value=""]').remove();
-    $('#comboboxki option[value=""]').remove();
     $('#combobox-dot option[value=""]').remove();
 
     $.ajax({
@@ -707,13 +703,6 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log(item.NamHoc);
             $('#NamHoc').append(
               `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-            );
-          });
-
-          response.Ki.forEach(function (item) {
-            console.log(item.Ki);
-            $('#comboboxki').append(
-              `<option value="${item.value}">${item.Ki}</option>`
             );
           });
           loadLopMoiData();
@@ -733,7 +722,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-    const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     let MoiGiang = 0;
     if (!MaPhongBan) {
@@ -742,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     try {
-      const response = await fetch(`/getLopNgoaiQuyChuan/${MaPhongBan}/${Ki}/${Nam}`, {
+      const response = await fetch(`/getLopNgoaiQuyChuan/${MaPhongBan}/${Nam}`, {
         method: 'GET', // Gửi yêu cầu GET
       });
       if (!response.ok) {
@@ -819,6 +807,11 @@ document.addEventListener('DOMContentLoaded', function () {
       soTCTd.appendChild(soTCInput);
       soTCInput.id = `soTCInput_${index}`;
       tableRow.appendChild(soTCTd);
+
+      // Học kì giảng dạy
+      const kiHocTd = document.createElement('td');
+      kiHocTd.textContent = row.HocKy;
+      tableRow.appendChild(kiHocTd);
 
       // Giảng viên giảng dạy
       const giangVienTd = document.createElement('td');
@@ -1155,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Gửi dữ liệu đến API để lưu vào CSDL
         try {
-          const response = await fetch('/savenotegk', {
+          const response = await fetch('/savenoteaddclass', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1193,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Gửi dữ liệu đến API để lưu vào CSDL
         try {
-          const response = await fetch('/donenotegk', {
+          const response = await fetch('/donenoteaddclass', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
