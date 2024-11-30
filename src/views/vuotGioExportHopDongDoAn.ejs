@@ -279,8 +279,6 @@
         <div id="dataContainer" data-gvm-list='<%= JSON.stringify(gvmoiList) %>'></div>
 
      
-  
-
   <script>
     document.getElementById('exportButton').addEventListener('click', function() {
         const dot = document.getElementById("combobox-dot").value;
@@ -686,7 +684,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (Quyen === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

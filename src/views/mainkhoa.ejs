@@ -311,7 +311,6 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
                 <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
                 <a class="dropdown-item" href="/">Đăng xuất</a>
               </div>
             </div>
@@ -471,10 +470,8 @@
   // Render từng thông báo
   let i = 0;
   messages.Message.forEach((message, index) => {
-    const currentTime = new Date(); // Lấy thời gian hiện tại
-    const deadlineTime = new Date(message.Deadline); // Chuyển đổi Deadline thành đối tượng Date
 
-    if (message.HetHan === 1 || deadlineTime < currentTime) {
+    if (message.HetHan === 1 ) {
       return; // Bỏ qua thông báo nếu đã hết hạn hoặc hoàn thành
     }
 
@@ -493,6 +490,7 @@
         <p class="alert">Thông báo mới !</p>
       </div>
       <p class="message">
+        <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
         <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
         <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
         <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
@@ -511,6 +509,7 @@
 
     // Thêm thông báo vào container
     container.appendChild(notification);
+    i++;
   });
 
   // Hiển thị container
@@ -674,33 +673,6 @@ function closeNotification(index) {
             window.location.href = `/infome/${id_User}`;
         } else {
             alert("Không tìm thấy id_User trong localStorage.");
-        }
-      });
-    </script>
-  <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
-    <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
         }
       });
     </script>

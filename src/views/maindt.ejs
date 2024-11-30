@@ -13,6 +13,97 @@
     .card-item {
       width: 30%;
     }
+    .notification {
+        max-width: 320px;
+        border-width: 1px;
+        border-color: rgba(219, 234, 254, 1);
+        border-radius: 1rem;
+        background-color: rgba(255, 255, 255, 1);
+        padding: 1rem;
+        display: none;
+        /* Ẩn form ban đầu */
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 10px;
+        /* Góc tròn */
+        padding: 20px;
+        background-color: white;
+        z-index: 2000;
+        width: 320px;
+        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
+        /* Tăng bóng đổ */
+        font-family: Arial, sans-serif;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        grid-gap: 1rem;
+        gap: 1rem;
+      }
+
+      .icon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        background-color: rgba(96, 165, 250, 1);
+        padding: 0.5rem;
+        color: rgba(255, 255, 255, 1);
+      }
+
+      .icon svg {
+        height: 1rem;
+        width: 1rem;
+      }
+
+      .alert {
+        font-weight: 600;
+        color: rgba(107, 114, 128, 1);
+      }
+
+      .message {
+        margin-top: 1rem;
+        color: rgba(107, 114, 128, 1);
+      }
+
+      .actions {
+        margin-top: 1.5rem;
+      }
+
+      .actions button {
+        text-decoration: none;
+      }
+
+      .mark-as-read, .read {
+        display: inline-block;
+        border-radius: 0.5rem;
+        width: 100%;
+        padding: 0.75rem 1.25rem;
+        text-align: center;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        font-weight: 600;
+      }
+
+      .read {
+        background-color: rgba(59, 130, 246, 1);
+        color: rgba(255, 255, 255, 1);
+        border: none;
+      }
+
+      .mark-as-read {
+        margin-top: 0.5rem;
+        background-color: rgba(249, 250, 251, 1);
+        color: rgba(107, 114, 128, 1);
+        transition: all .15s ease;
+      }
+
+      .mark-as-read:hover {
+        background-color: rgb(230, 231, 233);
+      }
   </style>
 </head>
 
@@ -257,7 +348,8 @@
       </tbody>
     </table>
   </div>
-
+  <!-- Tab thông báo -->
+  <div id="notifications-container"></div>
   <!-- 5. Danh sách Giảng viên -->
   <div class="container-fluid m-4">
     <h3>Danh sách Giảng viên</h3>
@@ -370,7 +462,122 @@
         } else {
           actionButton3.style.display = 'none';
         }
+        loadMessage();
       });
+</script>
+<script>
+  async function loadMessage() {
+
+    try {
+      const response = await fetch(`/getMessage`, {
+        method: 'GET', // Gửi yêu cầu GET
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json(); // Lấy dữ liệu từ server
+      console.log(data);
+      if (data.success) {
+        if (data.Message && data.Message.length > 0) {
+          console.log('Dữ liệu thông báo:', data);
+          showNotifications(data);
+        } else {
+          alert("Dữ liệu trống!");
+        }
+      } else {
+        alert("Không tìm thấy dữ liệu!");
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+    }
+  }
+</script>
+<script>
+  function showNotifications(messages) {
+  const container = document.getElementById("notifications-container");
+
+  // Xóa nội dung cũ (nếu có)
+  container.innerHTML = "";
+
+  // Render từng thông báo
+  let i = 0;
+  messages.Message.forEach((message, index) => {
+
+    if (message.HetHan === 1 ) {
+      return; // Bỏ qua thông báo nếu đã hết hạn hoặc hoàn thành
+    }
+
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.style.display = "block";
+
+    // Nội dung thông báo
+    notification.innerHTML = `
+      <div class="header">
+        <span class="icon">
+          <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path clip-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" fill-rule="evenodd"></path>
+          </svg>
+        </span>
+        <p class="alert">Thông báo mới !</p>
+      </div>
+      <p class="message">
+        <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
+        <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
+        <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
+        <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        })}
+      </p>
+      <div class="actions">
+        <button class="read" onclick="closeNotification(${i})">Đã xem</button>
+      </div>
+    `;
+
+    // Thêm thông báo vào container
+    container.appendChild(notification);
+    i++;
+  });
+
+  // Hiển thị container
+  container.style.display = "block";
+}
+
+// Hàm đóng thông báo cụ thể
+function closeNotification(index) {
+  const container = document.getElementById("notifications-container");
+
+  if (!container) {
+    console.error("Không tìm thấy container thông báo!");
+    return;
+  }
+
+  const notifications = container.querySelectorAll(".notification");
+
+  // Kiểm tra xem thông báo tại index có tồn tại
+  if (!notifications[index]) {
+    console.error(`Không tìm thấy thông báo tại index ${index}`);
+    return; // Nếu không còn thông báo nào để đóng, dừng lại
+  }
+
+  // Ẩn thông báo tại vị trí index
+  notifications[index].style.display = "none";
+
+  // Kiểm tra nếu tất cả thông báo đã bị ẩn
+  const allHidden = Array.from(notifications).every(
+    (notif) => notif.style.display === "none"
+  );
+
+  if (allHidden) {
+    container.style.display = "none"; // Ẩn container nếu không còn thông báo
+    console.log("Tất cả thông báo đã được đóng.");
+  }
+}
 </script>
   <!-- 
   <script>
@@ -530,7 +737,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (Quyen === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

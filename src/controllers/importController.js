@@ -11,8 +11,7 @@ const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
-const { parseStringPromise } = require('xml2js'); // Để sử dụng parseStringPromise
-
+const { parseStringPromise } = require("xml2js"); // Để sử dụng parseStringPromise
 
 // convert file quy chuẩn excel
 const convertExcelToJSON = (filePath) => {
@@ -122,7 +121,12 @@ const convertWordToJSON = async (filePath) => {
       const headers =
         rows[0]["w:tc"]?.map((cell) => {
           const cellText = (cell["w:p"] || [])
-            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .map((p) =>
+              (p["w:r"] || [])
+                .map((r) => r["w:t"])
+                .flat()
+                .join("")
+            )
             .join(" ");
           return cellText.trim();
         }) || [];
@@ -138,7 +142,12 @@ const convertWordToJSON = async (filePath) => {
         // Lấy dữ liệu văn bản của từng ô trong hàng này
         const rowData = cells.map((cell) => {
           const cellText = (cell["w:p"] || [])
-            .map((p) => (p["w:r"] || []).map((r) => r["w:t"]).flat().join(""))
+            .map((p) =>
+              (p["w:r"] || [])
+                .map((r) => r["w:t"])
+                .flat()
+                .join("")
+            )
             .join(" ");
           return cellText.trim();
         });
@@ -300,14 +309,13 @@ const handleUploadAndRender = async (req, res) => {
     // const fileExtension = path.extname(req.file.filename).toLowerCase(); // Lấy đuôi file
     const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
-
     let result;
 
     // console.log(fileExtension)
     // Xử lý theo loại file
     if (fileExtension === ".xlsx" || fileExtension === ".xls") {
       result = convertExcelToJSON(filePath);
-      console.log(result)
+      console.log(result);
     } else if (fileExtension === ".docx") {
       result = await convertWordToJSON(filePath);
       // console.log(result)
@@ -417,17 +425,16 @@ function tachLopHocPhan(chuoi) {
   };
 }
 
-
 // Hàm thực thi auto fill tên, bộ môn, kiểm tra mời giảng
 function processLecturerInfo(input, dataGiangVien) {
   // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi input
   input = input.trim();
 
   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
-  const namesArray = input.split(/[,;]/).map(part => part.trim()); // Tách tại cả "," và ";"
+  const namesArray = input.split(/[,;]/).map((part) => part.trim()); // Tách tại cả "," và ";"
 
   // Xử lý các key với tên đầu tiên trong mảng
-  const giangVienGiangDay = cleanName(namesArray[0]);  // HoTen: Loại bỏ ký tự đặc biệt, xử lý tên
+  const giangVienGiangDay = cleanName(namesArray[0]); // HoTen: Loại bỏ ký tự đặc biệt, xử lý tên
   const moiGiang = checkIfGuestLecturer(namesArray[0]); // isGuestLecturer: Kiểm tra mời giảng
   const monGiangDayChinh = getMainTeachingSubject(namesArray[0], dataGiangVien); // mainTeachingSubject: Tìm môn giảng dạy chính
 
@@ -447,34 +454,34 @@ function processLecturerInfo(input, dataGiangVien) {
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
   const prefixes = [
-    'PGS\\.?', // "PGS." hoặc "PGS"
-    'TS\\.?',  // "TS." hoặc "TS"
-    'PGS\\.TS\\.?', // "PGS.TS." hoặc "PGS TS"
-    '\\( gvm \\)',
-    '\\(gvm\\)',
-    'GVM',
-    'GVMời',
-    'Giảng viên mời'
+    "PGS\\.?", // "PGS." hoặc "PGS"
+    "TS\\.?", // "TS." hoặc "TS"
+    "PGS\\.TS\\.?", // "PGS.TS." hoặc "PGS TS"
+    "\\( gvm \\)",
+    "\\(gvm\\)",
+    "GVM",
+    "GVMời",
+    "Giảng viên mời",
   ];
 
   // Tạo regex tổng hợp để loại bỏ tất cả tiền tố
-  const combinedRegex = new RegExp(`\\b(${prefixes.join('|')}) \\b`, 'gi');
+  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")}) \\b`, "gi");
 
   // Xóa tất cả tiền tố trong danh sách
-  name = name.replace(combinedRegex, '').trim();
+  name = name.replace(combinedRegex, "").trim();
 
   // Loại bỏ dấu ngoặc và nội dung bên trong (nếu có)
-  name = name.replace(/\(.*?\)/g, '').trim();
+  name = name.replace(/\(.*?\)/g, "").trim();
 
   // Loại bỏ ký tự đặc biệt hoặc khoảng trắng thừa còn lại
-  name = name.replace(/[^a-zA-ZÀ-ỹ\s]/g, '').trim(); // Chỉ giữ lại chữ cái và khoảng trắng
+  name = name.replace(/[^a-zA-ZÀ-ỹ\s]/g, "").trim(); // Chỉ giữ lại chữ cái và khoảng trắng
 
   return name;
 }
 
 // Hàm kiểm tra mời giảng
 function checkIfGuestLecturer(name) {
-  if (!name || typeof name !== 'string') {
+  if (!name || typeof name !== "string") {
     return false; // Đảm bảo input hợp lệ, nếu không trả về false
   }
 
@@ -482,21 +489,21 @@ function checkIfGuestLecturer(name) {
 
   // Các mẫu ký hiệu mời giảng
   const invitePatterns = [
-    'gvmời',         // Mẫu ký hiệu mời giảng dạng chữ thường
-    'giảng viên mời', // Mẫu khác của ký hiệu mời giảng
-    'gvm',            // Ký hiệu mời giảng đơn giản "gvm"
-    '( gvm )',        // Mẫu có dấu ngoặc
-    '(gvm)'           // Mẫu không có dấu cách trong ngoặc
+    "gvmời", // Mẫu ký hiệu mời giảng dạng chữ thường
+    "giảng viên mời", // Mẫu khác của ký hiệu mời giảng
+    "gvm", // Ký hiệu mời giảng đơn giản "gvm"
+    "( gvm )", // Mẫu có dấu ngoặc
+    "(gvm)", // Mẫu không có dấu cách trong ngoặc
   ];
 
   // Kiểm tra xem có mẫu ký hiệu mời giảng nào xuất hiện trong tên
   for (const pattern of invitePatterns) {
     if (lowerCaseName.includes(pattern)) {
-      return true;  // Nếu có ký hiệu mời giảng, trả về true
+      return true; // Nếu có ký hiệu mời giảng, trả về true
     }
   }
 
-  return false;  // Nếu không có ký hiệu mời giảng, trả về false
+  return false; // Nếu không có ký hiệu mời giảng, trả về false
 }
 
 // Hàm tìm giảng viên trong dataGiangVien và trả về môn giảng dạy chính
@@ -505,8 +512,8 @@ function getMainTeachingSubject(name, dataGiangVien) {
   const cleanedName = cleanName(name).toLowerCase().trim(); // Chuyển về chữ thường
 
   // Tìm giảng viên trong danh sách, so sánh tên sau khi làm sạch
-  const lecturer = dataGiangVien.find(lecturer =>
-    lecturer.HoTen.toLowerCase().trim() === cleanedName
+  const lecturer = dataGiangVien.find(
+    (lecturer) => lecturer.HoTen.toLowerCase().trim() === cleanedName
   );
 
   // console.log("tìm thấy:", lecturer)
@@ -542,7 +549,6 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
-
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
@@ -577,11 +583,12 @@ const importTableQC = async (jsonData) => {
 
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
   jsonData.forEach((item) => {
-    // tách lớp học phần 
+    // tách lớp học phần
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
 
-    // tách từ cột giảng viên theo tkb, xử lí mời giảng?, tự điền tên, tự điền bộ môn 
-    const { giangVienGiangDay, moiGiang, monGiangDayChinh } = processLecturerInfo(item["GiaoVien"], dataGiangVien);
+    // tách từ cột giảng viên theo tkb, xử lí mời giảng?, tự điền tên, tự điền bộ môn
+    const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
+      processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
     allValues.push([
       item["Khoa"] || null,
@@ -686,14 +693,14 @@ const updateBanHanh = async (req, res) => {
 //       Dot,
 //       Ki,
 //       Nam,
-//       GiaoVien, 
-//       SoTinChi, 
-//       LopHocPhan, 
-//       LL, 
-//       SoTietCTDT, 
-//       HeSoT7CN, 
-//       SoSinhVien, 
-//       HeSoLopDong, 
+//       GiaoVien,
+//       SoTinChi,
+//       LopHocPhan,
+//       LL,
+//       SoTietCTDT,
+//       HeSoT7CN,
+//       SoSinhVien,
+//       HeSoLopDong,
 //       QuyChuan
 //     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 //   `;
@@ -786,7 +793,7 @@ const importTableTam = async (jsonData) => {
   `;
 
   const values = jsonData
-    .filter(item => {
+    .filter((item) => {
       // Log giá trị của QC để kiểm tra
       // console.log("QC value:", item["QC"]);
 
@@ -796,7 +803,7 @@ const importTableTam = async (jsonData) => {
       // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
       return !isNaN(qcValue) && qcValue !== 0;
     })
-    .map(item => [
+    .map((item) => [
       validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
       item["Dot"] || null,
       item["Ki"] || null,
@@ -804,9 +811,13 @@ const importTableTam = async (jsonData) => {
       item["Giáo Viên"] || null,
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
-      item["Số tiết lên lớp theo TKB"] || item["Số tiết lên lớp giờ HC"] || null,
+      item["Số tiết lên lớp theo TKB"] ||
+        item["Số tiết lên lớp giờ HC"] ||
+        null,
       item["Số tiết theo CTĐT"] || null,
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -831,7 +842,6 @@ const importTableTam = async (jsonData) => {
     connection.release(); // Giải phóng kết nối
   }
 };
-
 
 const getIdUserByTeacherName = async (teacherName) => {
   const connection = await createPoolConnection(); // Lấy kết nối từ pool
@@ -2755,6 +2765,7 @@ const insertGiangDay = async (
             MaHocPhan,
             TenLop,
             Dot,
+            BoMon,
           } = item;
 
           req.session.tmp++;
@@ -2806,6 +2817,7 @@ const insertGiangDay = async (
             TenLop,
             Dot,
             Khoa,
+            BoMon,
           ];
         })
     );
@@ -2819,7 +2831,7 @@ const insertGiangDay = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
       ) VALUES ?;
     `;
 
@@ -2890,6 +2902,7 @@ const insertGiangDay2 = async (
             MaHocPhan,
             TenLop,
             Dot,
+            BoMon,
           } = item;
 
           req.session.tmp++;
@@ -2904,7 +2917,7 @@ const insertGiangDay2 = async (
           // Tạo giá trị cho Mã Học Phần
           const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
 
-          // Dùng forEach để duyệt qua mảng và Lấy id_Gvm khi giảng viên mới giảng
+          // Dùng forEach để duyệt qua mảng và Lấy id_User
           nvList.forEach((giangVien) => {
             if (
               giangVien.TenNhanVien.toLowerCase().trim() ==
@@ -2946,6 +2959,7 @@ const insertGiangDay2 = async (
             TenLop,
             Dot,
             Khoa,
+            BoMon,
           ];
         })
     );
@@ -2959,7 +2973,7 @@ const insertGiangDay2 = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
       ) VALUES ?;
     `;
 

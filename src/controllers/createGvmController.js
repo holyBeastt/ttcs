@@ -346,6 +346,28 @@ let handleUploadFile = async (req, res) => {
       return res.redirect("/gvmList?message=duplicateCCCD");
     }
 
+    // Kiểm tra trùng lặp tên
+    let nameExists = true;
+    let modifiedName = HoTen; // Biến tạm để lưu tên cuối cùng
+    let duplicateName = [];
+    let duplicateCount = 0;
+    let originalName = HoTen;
+
+    while (nameExists) {
+      nameExists = gvms.some((gvm) => gvm.HoTen === modifiedName);
+      if (nameExists) {
+        duplicateCount++;
+        modifiedName = `${originalName} (${String.fromCharCode(
+          64 + duplicateCount
+        )})`; // A, B, C...
+      }
+    }
+    // Khi xử lý xong, thêm tên cuối cùng vào danh sách trùng
+    if (modifiedName !== HoTen) {
+      duplicateName.push(`${HoTen} -> ${modifiedName}`); // Ghi lại thay đổi
+    }
+    HoTen = modifiedName; // Cập nhật tên cuối cùng
+
     // Xử lý upload file
     upload(req, res, async function (err) {
       if (req.fileValidationError) {
@@ -400,6 +422,22 @@ let handleUploadFile = async (req, res) => {
           BangTotNghiepLoai,
           MonGiangDayChinh,
         ]);
+
+        if (duplicateName.length > 0) {
+          const message = "Tên các giảng viên bị trùng sẽ được lưu như sau";
+          const encodedMessage = encodeURIComponent(message);
+
+          // Mã hóa duplicateName và nối với thông điệp
+          const encodedDuplicateNames = encodeURIComponent(
+            duplicateName.join(", ")
+          );
+
+          // Nối thông điệp và danh sách tên đã mã hóa
+          return res.redirect(
+            `/gvmList?message=${encodedMessage}&duplicateName=${encodedDuplicateNames}`
+          );
+        }
+
         res.redirect("/gvmList?message=insertSuccess");
       } catch (err) {
         console.error("Error executing query: ", err);

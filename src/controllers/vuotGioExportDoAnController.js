@@ -163,7 +163,7 @@ const exportHopDongDoAnGvm = async (req, res) => {
     from DoAnTotNghiep as da 
     JOIN gvmoi as gv
     ON da.GiangVien1 = gv.HoTen
-    WHERE da.Ki = ? AND da.NamHoc = ?
+    WHERE da.NamHoc = ?
     `;
 
     // Lấy dữ liệu giảng viên hướng dẫn phụ
@@ -175,7 +175,7 @@ const exportHopDongDoAnGvm = async (req, res) => {
     WHERE da.Ki = ? AND da.NamHoc = ?
     `;
 
-    let params = [ki, namHoc];
+    let params = [namHoc];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND qc.Khoa = ?`;
@@ -191,7 +191,7 @@ const exportHopDongDoAnGvm = async (req, res) => {
 
     if (data.length === 0) {
       return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>"
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportDoAn';</script>"
       );
     }
 

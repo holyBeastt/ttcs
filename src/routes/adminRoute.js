@@ -14,7 +14,9 @@ const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, g
         addMessage,
         updateMessage,
         updateDoneMessage,
-        getMessage
+        getMessage,
+        getshowMessage,
+        deleteMessage
         } = require('../controllers/admin');
 const { postUpdateNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
 router.get('/admin', (req, res) => {
@@ -102,7 +104,8 @@ router.get('/changeMessage/:MaPhongBan',
 );
 router.get('/getMessage', getMessage);
 router.post('/changeMessage/:MaPhongBan', addMessage);
-router.post('/changeMessage/:MaPhongBan', updateMessage);
-router.post('/changeMessage/:MaPhongBan', updateDoneMessage);
+router.post('/updateMessage', updateMessage);
+router.get('/getMessage/:MaPhongBan', getshowMessage);
+router.post('/deleteMessage', deleteMessage);
 
 module.exports = router;

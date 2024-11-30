@@ -472,13 +472,17 @@
       const messageDiv = document.getElementById("message");
 
       // Hiển thị thông báo dựa trên giá trị của message
+      
       if (message === "insertSuccess") {
         alert("Thành công!");
       } else if (message === "duplicateCCCD") {
         alert("Số CCCD đã tồn tại. Vui lòng kiểm tra lại số CCCD.");
       } else if (message === "insertFalse") {
         alert("Đã xảy ra lỗi trong quá trình thêm giảng viên.");
+      } else {
+        alert(message);
       }
+      
 
       // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
       if (message) {
@@ -744,7 +748,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (Quyen === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';
