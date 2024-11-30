@@ -204,8 +204,8 @@
             <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>" disabled>
         </div>
         <div class="col-md-4">
-            <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
-            <input class="form-control" type="text" name="BangTotNghiepLoai" id="BangTotNghiepLoai" value="<%= value.BangTotNghiepLoai %>" disabled>
+          <label for="hocVi">Bằng cấp cao nhất:</label>
+          <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
         </div>
       </div>
       <div class="row mb-3">
@@ -224,8 +224,8 @@
             <input type="hidden" name="oldSauCCCD" value="<%= value.MatSauCCCD %>" disabled>
         </div>
         <div class="col-md-4">
-            <label>Bằng đại học:</label>
-            <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng đại học" width="100" id="imgbang">
+            <label>Hình ảnh bằng cấp cao nhất:</label>
+            <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng cấp cao nhất" width="100" id="imgbang">
             <br>
             <input class="form-control" type="file" name="BangTotNghiep" id="BangTotNghiep" disabled>
             <input type="hidden" name="oldimgbangdh" value="<%= value.BangTotNghiep %>" disabled>
@@ -260,8 +260,8 @@
             <input class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>" disabled>
         </div>
         <div class="col-md-4">
-            <label for="hocVi">Học vị:</label>
-            <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
+          <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
+          <input class="form-control" type="text" name="BangTotNghiepLoai" id="BangTotNghiepLoai" value="<%= value.BangTotNghiepLoai %>" disabled>
         </div>
       </div>
 
@@ -534,6 +534,33 @@ hideButton();
     });
   </script>
 
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 </html>
 

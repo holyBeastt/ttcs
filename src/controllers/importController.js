@@ -9,8 +9,9 @@ const { json, query } = require("express");
 const gvms = require("../services/gvmServices");
 const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
+const mammoth = require("mammoth");
 const JSZip = require("jszip");
-const { parseStringPromise } = require("xml2js");
+const { parseStringPromise } = require("xml2js"); // Để sử dụng parseStringPromise
 
 // convert file quy chuẩn excel
 const convertExcelToJSON = (filePath) => {
@@ -80,6 +81,7 @@ const validateDataFileQC = (data) => {
   return data;
 };
 
+// đúng định dạng với file chung
 // convert file word quy chuẩn
 const convertWordToJSON = async (filePath) => {
   try {
@@ -193,6 +195,108 @@ const convertWordToJSON = async (filePath) => {
   }
 };
 
+// const convertWordToJSON = async (filePath) => {
+//   const data = [];
+
+//   try {
+//     const fileBuffer = fs.readFileSync(filePath);
+
+//     // Trích xuất văn bản thô từ file docx
+//     const result = await mammoth.extractRawText({ buffer: fileBuffer });
+//     const text = result.value;
+//     const lines = text.split("\n");  // Tách từng dòng
+
+//     let currentRow = {};  // Dùng để lưu thông tin cho từng dòng
+//     let currentKhoa = ""; // Biến lưu trữ tên Khoa
+
+//     // Biến để theo dõi số trường đã gán
+//     let count = 0;
+
+//     let isFirstLine = true;  // Biến để xác định dòng đầu bảng
+
+//     for (let i = 0; i < lines.length; i++) {
+//       const line = lines[i].trim();
+
+//       // Bỏ qua các dòng rỗng
+//       if (line === "") {
+//         continue;
+//       }
+
+//       // Bỏ qua dòng đầu bảng chứa key
+//       if (isFirstLine && line.includes("TT") && line.includes("Số TC") && line.includes("Lớp học phần")) {
+//         isFirstLine = false;  // Sau khi bỏ qua dòng đầu bảng, tiếp tục xử lý
+//         continue;
+//       }
+
+//       // Kiểm tra nếu dòng bắt đầu với số kèm dấu chấm (ví dụ: "84.")
+//       if (/^\d+\.$/.test(line)) {
+//         // Nếu đã có dữ liệu trong currentRow, thêm vào data trước khi bắt đầu dòng mới
+//         if (Object.keys(currentRow).length > 0) {
+//           currentRow["Khoa"] = currentKhoa;  // Gán giá trị Khoa vào dòng hiện tại
+//           currentRow["Ghi chú"] = "Đã hoàn thành dòng";  // Ghi chú để nhận biết đã hết dòng
+//           data.push(currentRow);  // Thêm dòng vào mảng
+//         }
+
+//         // Bắt đầu một dòng mới
+//         currentRow = {
+//           "TT": line.replace(".", "")  // Lấy số trước dấu chấm làm TT
+//         };
+//         count = 1;  // Bắt đầu đếm các trường tiếp theo
+//       } else if (count === 1) {
+//         currentRow["Số TC"] = line || '';  // Gán "Số TC" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 2) {
+//         currentRow["Lớp học phần"] = line || '';  // Gán "Lớp học phần" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 3) {
+//         currentRow["Giáo viên"] = line || '';  // Gán "Giáo viên" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 4) {
+//         currentRow["Số tiết theo CTĐT"] = line || '';  // Gán "Số tiết theo CTĐT" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 5) {
+//         currentRow["Số SV"] = line || '';  // Gán "Số SV" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 6) {
+//         currentRow["Số tiết lên lớp theo TKB"] = line || '';  // Gán "Số tiết lên lớp theo TKB" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 7) {
+//         currentRow["Hệ số lên lớp ngoài giờ"] = line || '';  // Gán "Hệ số lên lớp ngoài giờ" hoặc để trống nếu không có dữ liệu
+//         count++;
+//       } else if (count === 8) {
+//         currentRow["Hệ số lớp đông"] = line || '';  // Gán "Hệ số lớp đông" hoặc để trống nếu không có dữ liệu
+//         count = 0;  // Reset đếm sau khi gán đủ 8 trường
+//         currentRow["Ghi chú"] = "";  // Ghi chú đánh dấu kết thúc dòng
+//         currentRow["Khoa"] = currentKhoa;  // Đảm bảo "Khoa" được gán vào dòng cuối
+//         data.push(currentRow);  // Thêm dòng vào mảng dữ liệu
+//         currentRow = {};  // Reset cho dòng tiếp theo
+//       }
+
+//       // Kiểm tra tên khoa trong các dòng
+//       if (line.includes("học phần khác")) {
+//         currentKhoa = "Khác";  // Nếu chứa "học phần khác", gán Khoa là "Khác"
+//         continue;  // Bỏ qua dòng này, không tạo đối tượng
+//       } else if (line.includes("Trung tâm thực hành")) {
+//         currentKhoa = "Trung tâm thực hành";  // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
+//         continue;  // Bỏ qua dòng này, không tạo đối tượng
+//       } else if (line.includes("Khoa")) {
+//         const khoaMatch = line.match(/Khoa\s+(.+)$/);
+//         if (khoaMatch) {
+//           currentKhoa = khoaMatch[1].trim();  // Lấy tên Khoa từ dòng kiểm tra
+//         }
+//         continue;  // Bỏ qua dòng này, không tạo đối tượng
+//       }
+//     }
+
+//     // Trả về mảng dữ liệu đã xử lý
+//     return data;
+
+//   } catch (error) {
+//     console.error("Lỗi khi đọc file:", error);
+//     throw error;  // Ném lỗi để biết có vấn đề trong quá trình xử lý
+//   }
+// };
+
 const handleUploadAndRender = async (req, res) => {
   try {
     if (!req.file) {
@@ -211,9 +315,10 @@ const handleUploadAndRender = async (req, res) => {
     // Xử lý theo loại file
     if (fileExtension === ".xlsx" || fileExtension === ".xls") {
       result = convertExcelToJSON(filePath);
-      // console.log('ok')
+      console.log(result);
     } else if (fileExtension === ".docx") {
       result = await convertWordToJSON(filePath);
+      // console.log(result)
       // console.log('ok2')
     } else if (fileExtension === ".pdf") {
       // result = processPdfFile(filePath);
@@ -221,7 +326,7 @@ const handleUploadAndRender = async (req, res) => {
       return res.status(400).send({ error: "Không đúng định dạng" });
     }
 
-    console.log("Convert file quy chuẩn thành công!");
+    // console.log('Convert file quy chuẩn thành công!');
     // Gửi kết quả cho client
     res.send(result);
 
@@ -639,6 +744,32 @@ const updateBanHanh = async (req, res) => {
 //   return results;
 // };
 
+const validateKhoa = (khoa) => {
+  // Chuyển giá trị của khoa thành chữ viết hoa để tránh nhầm lẫn với chữ thường
+  switch (khoa.trim()) {
+    case "Cơ bản":
+      return "CB";
+    case "An toàn thông tin":
+      return "ATTT";
+    case "Công nghệ thông tin":
+      return "CNTT";
+    case "Điện tử - Viễn thông":
+      return "ĐTVT";
+    case "Trung tâm thực hành":
+      return "TTTH";
+    case "Lý luận hính trị":
+      return "LLCT";
+    case "QS&GDTC":
+      return "QS&GDTC";
+    case "Mật":
+      return "MM";
+    case "Khác":
+      return "Khác";
+    default:
+      return khoa; // Nếu không khớp với bất kỳ giá trị nào, trả về chính nó :)
+  }
+};
+
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
 
@@ -673,7 +804,7 @@ const importTableTam = async (jsonData) => {
       return !isNaN(qcValue) && qcValue !== 0;
     })
     .map((item) => [
-      item["Khoa"] || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
       item["Dot"] || null,
       item["Ki"] || null,
       item["Nam"] || null,

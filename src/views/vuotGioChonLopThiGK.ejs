@@ -296,6 +296,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -309,11 +310,6 @@
     <div class="">
       <div class="d-flex">
         <div class="cbb d-flex" style="margin-top: 20px;">
-
-          <select class="selectop mx-1" id="typeclass">
-            <option value="Lớp giảng dạy chính">Lớp giảng dạy chính</option>
-            <option value="Lớp mời coi giữa kỳ">Lớp mời coi giữa kỳ</option>
-          </select>
 
           <select class="selectop mx-1" id="combobox-dot">
             <option value="">Đợt</option>
@@ -605,25 +601,16 @@
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-    const Typeclass = document.getElementById('typeclass').value;
     const Dot = document.getElementById('combobox-dot').value;
     const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
-    let MoiGiang = 0;
     if (!MaPhongBan) {
       alert("Mã phòng ban không tồn tại!");
       return;
     }
 
     try {
-      if (Typeclass === "Lớp giảng dạy chính") {
-        MoiGiang = 0;
-        document.getElementById('filterName').style.display = "none";
-      } else {
-        MoiGiang = 1;
-        document.getElementById('filterName').style.display = "";
-      }
-      const response = await fetch(`/getLopGiuaKi/${MaPhongBan}/${Dot}/${Ki}/${Nam}/${MoiGiang}`, {
+      const response = await fetch(`/getLopGiuaKi/${MaPhongBan}/${Dot}/${Ki}/${Nam}`, {
         method: 'GET', // Gửi yêu cầu GET
       });
 
@@ -655,7 +642,6 @@
     const MaPhongBan = localStorage.getItem("MaPhongBan");
     const isKhoa = localStorage.getItem("isKhoa");
     const TenNhanVien = localStorage.getItem("TenNhanVien");
-    const typeclass = document.getElementById("typeclass").value;
     console.log(TenNhanVien);
     let tableRowData = [];
     console.log(data);
@@ -664,10 +650,9 @@
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
-    let filteredData = data.maBoMon;
-    if (typeclass === "Lớp giảng dạy chính") {
-      filteredData = data.maBoMon.filter(row => row.GiangVien.trim() === TenNhanVien.trim());
-    }
+    const filteredData = data.maBoMon.filter(row => 
+      row.GiangVien.trim() === TenNhanVien.trim() || row.id_Gvm !== 1
+    );
 
     filteredData.forEach((row, index) => {
 
@@ -827,17 +812,15 @@
       tableRow.appendChild(selectCheckboxTd);
 
 
-      if (typeclass === "Lớp mời coi giữa kỳ") {
-        if (row.DaChon) {
-          if (row.GiangVienCoiGK.trim() === TenNhanVien.trim()) {
-            hinhThucKTGiuaKySelect.disabled = false;
-            heSoT7CNSelect.disabled = false;
-            selectCheckbox.disabled = false;
-          } else {
-            hinhThucKTGiuaKySelect.disabled = true;
-            heSoT7CNSelect.disabled = true;
-            selectCheckbox.disabled = true;
-          }
+      if (row.DaChon) {
+        if (row.GiangVienCoiGK.trim() === TenNhanVien.trim()) {
+          hinhThucKTGiuaKySelect.disabled = false;
+          heSoT7CNSelect.disabled = false;
+          selectCheckbox.disabled = false;
+        } else {
+          hinhThucKTGiuaKySelect.disabled = true;
+          heSoT7CNSelect.disabled = true;
+          selectCheckbox.disabled = true;
         }
       }
       if (row.KhoaDuyet) {
@@ -1120,6 +1103,33 @@
 </script>
 
 
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 
 </html>

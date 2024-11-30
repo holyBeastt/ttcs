@@ -232,6 +232,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -811,6 +812,33 @@
         });
       </script>
 
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 
 </html>

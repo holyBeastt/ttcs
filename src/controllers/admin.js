@@ -1,5 +1,4 @@
 const express = require("express");
-const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const router = express.Router();
 const mysql = require("mysql2/promise");
@@ -164,18 +163,18 @@ const getchangePassword = async (req, res) => {
 const updatePassword = async (req, res) => {
   let connection;
   try {
-    const { currentPassword, newPassword } = req.body;
-    const tenDangNhap = req.query.tenDangNhap;
+    const { TenDangNhap, currentPassword, newPassword } = req.body;
+
 
     // Kiểm tra xem TenDangNhap có tồn tại không
-    if (!tenDangNhap) {
+    if (!TenDangNhap) {
       return res.status(400).send("Thiếu tham số TenDangNhap");
     }
 
     // Truy vấn lấy tài khoản từ CSDL
     const query = "SELECT * FROM taikhoannguoidung WHERE TenDangNhap = ?";
     connection = await createPoolConnection();
-    const [results] = await connection.query(query, [tenDangNhap]);
+    const [results] = await connection.query(query, [TenDangNhap]);
 
     if (results.length === 0) {
       return res.status(404).send("Tài khoản không tồn tại");
@@ -184,19 +183,31 @@ const updatePassword = async (req, res) => {
     const account = results[0];
 
     // So sánh mật khẩu nhập vào với mật khẩu trong CSDL
-    if (account.password !== currentPassword) {
-      return res.status(401).send("Mật khẩu hiện tại không đúng");
+    if (account.MatKhau !== currentPassword) {
+      return res.redirect(
+        `/changePassword?tenDangNhap=${encodeURIComponent(
+          TenDangNhap
+        )}&message=updateSuccess&passwordChanged=false1`
+      )
     }
 
     // Cập nhật mật khẩu mới
     const updateQuery =
-      "UPDATE taikhoannguoidung SET password = ? WHERE TenDangNhap = ?";
-    await connection.query(updateQuery, [newPassword, tenDangNhap]);
+      "UPDATE taikhoannguoidung SET MatKhau = ? WHERE TenDangNhap = ?";
+    await connection.query(updateQuery, [newPassword, TenDangNhap]);
 
-    res.send("Cập nhật mật khẩu thành công");
+    return res.redirect(
+      `/changePassword?tenDangNhap=${encodeURIComponent(
+        TenDangNhap
+      )}&message=updateSuccess&passwordChanged=true`
+    )
   } catch (error) {
     console.error("Lỗi khi cập nhật mật khẩu:", error);
-    res.status(500).send("Lỗi hệ thống");
+    return res.redirect(
+      `/changePassword?tenDangNhap=${encodeURIComponent(
+        TenDangNhap
+      )}&message=updateSuccess&passwordChanged=false2`
+    )
   } finally {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
@@ -268,6 +279,58 @@ const deleteNamHoc = async (req, res) => {
   }
 };
 
+const addMessage = async (req, res) => {
+  const { MaPhongBan } = req.params; // Lấy MaPhongBan từ params
+  const { LoiNhan, Deadline } = req.body; // Lấy LoiNhan và Deadline từ body
+  let connection;
+
+  try {
+    connection = await createPoolConnection();
+
+    // Câu truy vấn SQL
+    const query = `INSERT INTO thongbao (MaPhongBan, LoiNhan, Deadline) VALUES (?, ?, ?)`;
+    
+    // Thực hiện câu truy vấn
+    await connection.query(query, [MaPhongBan, LoiNhan, Deadline]);
+
+    // Redirect về trang thay đổi thông báo
+    return res.redirect(
+      `/changeMessage/${MaPhongBan}?MessageChanged=true`
+    );
+  } catch (error) {
+    console.error("Lỗi khi thêm thông báo:", error);
+    return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+
+const updateMessage = async (req, res) => {
+  
+};
+const updateDoneMessage = async (req, res) => {
+  
+};
+
+const getMessage = async (req, res) => {
+  let connection
+  try {
+    connection = await createPoolConnection()
+    const query = `SELECT * FROM thongbao`;
+    const [results] = await connection.query(query);
+    res.json({
+      success: true,
+      Message: results,
+  });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông báo:", error);
+    return res.status(500).send("Lỗi hệ thống. Không thể lấy thông báo.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -281,4 +344,8 @@ module.exports = {
   getNamHocList,
   postNamHoc,
   deleteNamHoc,
+  addMessage,
+  updateMessage,
+  updateDoneMessage,
+  getMessage,
 };
