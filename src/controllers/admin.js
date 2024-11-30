@@ -281,17 +281,17 @@ const deleteNamHoc = async (req, res) => {
 
 const addMessage = async (req, res) => {
   const { MaPhongBan } = req.params; // Lấy MaPhongBan từ params
-  const { LoiNhan, Deadline } = req.body; // Lấy LoiNhan và Deadline từ body
+  const { Title, LoiNhan, Deadline } = req.body; // Lấy LoiNhan và Deadline từ body
   let connection;
 
   try {
     connection = await createPoolConnection();
 
     // Câu truy vấn SQL
-    const query = `INSERT INTO thongbao (MaPhongBan, LoiNhan, Deadline) VALUES (?, ?, ?)`;
+    const query = `INSERT INTO thongbao (MaPhongBan, Title, LoiNhan, Deadline) VALUES (?, ?, ?, ?)`;
     
     // Thực hiện câu truy vấn
-    await connection.query(query, [MaPhongBan, LoiNhan, Deadline]);
+    await connection.query(query, [MaPhongBan, Title, LoiNhan, Deadline]);
 
     // Redirect về trang thay đổi thông báo
     return res.redirect(
@@ -307,10 +307,67 @@ const addMessage = async (req, res) => {
 
 
 const updateMessage = async (req, res) => {
+  const globalData = req.body; // Lấy dữ liệu từ client gửi đến
+  if (!globalData || globalData.length === 0) {
+    return res.status(400).json({ message: 'Không có dữ liệu để cập nhật.' });
+  }
   
+  let connection;
+
+  try {
+    connection = await createPoolConnection();
+    for (let data of globalData) {
+      const { tieuDe, loiNhan, deadline, isChecked ,id } = data; // Lấy LoiNhan và Deadline từ body
+      // Câu truy vấn SQL
+      const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
+      
+      // Thực hiện câu truy vấn
+      await connection.query(query, [tieuDe, loiNhan, deadline, isChecked, id]);
+    }
+
+    // Redirect về trang thay đổi thông báo
+    res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
+  } catch (error) {
+    console.error("Lỗi khi thêm thông báo:", error);
+    return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
 };
-const updateDoneMessage = async (req, res) => {
-  
+const getshowMessage = async (req, res) => {
+  const { MaPhongBan } = req.params;
+  let connection
+  try {
+    connection = await createPoolConnection();
+    const query = `SELECT * FROM thongbao WHERE MaPhongBan = ?`;
+    const [rows] = await connection.query(query,[MaPhongBan]);
+    res.json({
+      success: true,
+      Message: rows,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông báo:", error);
+    return res.status(500).send("Lỗi hệ thống. Không thể lấy thông báo.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+const deleteMessage = async (req, res) => {
+  const {id} = req.body;
+  let connection
+  try {
+    connection = await createPoolConnection();
+    const query = `DELETE FROM thongbao WHERE id = ?`;
+    await connection.query(query, [id]);
+    res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Lỗi xoá thông báo:", error);
+    return res.status(500).send("Lỗi hệ thống. Không thể xoá thông báo.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
 };
 
 const getMessage = async (req, res) => {
@@ -346,6 +403,7 @@ module.exports = {
   deleteNamHoc,
   addMessage,
   updateMessage,
-  updateDoneMessage,
+  deleteMessage,
   getMessage,
+  getshowMessage,
 };
