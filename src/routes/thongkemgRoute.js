@@ -28,12 +28,17 @@ router.get("/getNamHoc", async (req, res) => {
         );
 
         // Thêm option "Tất cả" vào đầu mỗi mảng
+        const allNamHoc = [{ NamHoc: 'ALL' }, ...namHoc];
+        const allKi = [{ Ki: 'Tất cả kỳ', value: 'ALL' }, ...ki];
+        const allDot = [{ Dot: 'Tất cả đợt', value: 'ALL' }, ...dot];
+        const allKhoa = [{ value: 'ALL', Khoa: 'Tất cả khoa' }, ...khoa];
+
         const data = {
             success: true,
-            NamHoc: [{ NamHoc: 'ALL', display: 'Tất cả năm' }, ...namHoc],
-            Ki: [{ Ki: 'Tất cả kỳ', value: 'ALL' }, ...ki],
-            Dot: [{ Dot: 'Tất cả đợt', value: 'ALL' }, ...dot],
-            Khoa: [{ value: 'ALL', Khoa: 'Tất cả khoa' }, ...khoa]
+            NamHoc: allNamHoc,
+            Ki: allKi,
+            Dot: allDot,
+            Khoa: allKhoa
         };
 
         connection.release();
@@ -51,14 +56,19 @@ router.get("/getNamHoc", async (req, res) => {
 router.get("/getPhongBan", async (req, res) => {
     try {
         const connection = await createConnection();
+        // Thêm DISTINCT để loại bỏ các giá trị trùng lặp
         const [phongBan] = await connection.query(
             "SELECT DISTINCT MaPhongBan FROM hopdonggvmoi ORDER BY MaPhongBan"
         );
         
+        // Tạo mảng mới không có giá trị trùng lặp
+        const uniquePhongBan = Array.from(new Set(phongBan.map(item => item.MaPhongBan)))
+            .map(maPB => ({ MaPhongBan: maPB }));
+        
         connection.release();
         res.json({
             success: true,
-            MaPhongBan: phongBan
+            MaPhongBan: uniquePhongBan
         });
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu phòng ban:", error);

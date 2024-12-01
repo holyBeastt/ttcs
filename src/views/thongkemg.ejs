@@ -368,12 +368,48 @@
     </div>
     <script>
         $(document).ready(function () {
+            // Biến để theo dõi số lượng combobox đã được khởi tạo
+            let initializedComboboxes = 0;
+            const totalComboboxes = 4; // Tổng số combobox cần khởi tạo
+
+            function checkAndFetchData() {
+                initializedComboboxes++;
+                if (initializedComboboxes === totalComboboxes) {
+                    fetchThongkemgData();
+                }
+            }
+
             // Xóa các option mặc định
             $('#NamHoc option').remove();
             $('#comboboxki option').remove();
             $('#combobox-dot option').remove();
             $('#Khoa option').remove();
 
+            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            $.ajax({
+                url: '/getPhongBan',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm option "Tất cả khoa"
+                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+                        
+                        // Thêm các option khoa không trùng lặp
+                        response.MaPhongBan.forEach(function (item) {
+                            $('#Khoa').append(
+                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                            );
+                        });
+                        checkAndFetchData();
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+                    checkAndFetchData();
+                }
+            });
+
+            // Khởi tạo các combobox khác
             $.ajax({
                 url: '/getNamHoc',
                 method: 'GET',
@@ -385,6 +421,7 @@
                                 `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu kỳ học
                         response.Ki.forEach(function (item) {
@@ -392,6 +429,7 @@
                                 `<option value="${item.value}">${item.Ki}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu đợt
                         response.Dot.forEach(function (item) {
@@ -399,19 +437,15 @@
                                 `<option value="${item.value}">${item.Dot}</option>`
                             );
                         });
-
-                        // Thêm dữ liệu khoa
-                        response.Khoa.forEach(function (item) {
-                            $('#Khoa').append(
-                                `<option value="${item.value}">${item.Khoa}</option>`
-                            );
-                        });
-                    } else {
-                        console.error("Không lấy được dữ liệu:", response.message);
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
+                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
+                    checkAndFetchData();
+                    checkAndFetchData();
+                    checkAndFetchData();
                 }
             });
         });
@@ -567,34 +601,7 @@
         }
       });
     </script>
-  <script>
-    $(document).ready(function () {
-        $('#Khoa option[value=""]').remove();
-        
-        $.ajax({
-            url: '/getPhongBan',
-            method: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    // Thêm option "Tất cả khoa"
-                    $('#Khoa').prepend('<option value="ALL">Tất cả khoa</option>');
-                    
-                    // Thêm các option khoa
-                    response.MaPhongBan.forEach(function (item) {
-                        $('#Khoa').append(
-                            `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                        );
-                    });
-                } else {
-                    console.error("Không lấy được dữ liệu phòng ban:", response.message);
-                }
-            },
-            error: function (error) {
-                console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
-            }
-        });
-    });
-  </script>
+    
   <script>
     window.onload = function () {
         const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
