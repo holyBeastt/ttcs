@@ -4,13 +4,19 @@ const nckh = require("../controllers/NckhController"); // Import hàm xử lý t
 
 
 // render site đề tài, dự án
-router.get("/detai-duan", nckh.getDeTaiDuAn);
+router.get("/detaiduan", nckh.getDeTaiDuAn);
 
 // lưu đề tài dự án
-router.post("/detai-duan", nckh.saveDeTaiDuAn);
+router.post("/detaiduan", nckh.saveDeTaiDuAn);
 
 // lấy dữ liệu giảng viên cơ hữu
-router.get("/giang-vien-co-huu", nckh.getTeacher);
+router.get("/giangviencohuu", nckh.getTeacher);
+
+// render site bài báo khoa học
+router.get("/baibaokhoahoc", nckh.getBaiBaoKhoaHoc);
+
+// lưu bài báo khoa học
+router.post("/baibaokhoahoc", nckh.saveBaiBaoKhoaHoc);
 
 
 module.exports = router;

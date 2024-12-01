@@ -5,6 +5,10 @@ const createPoolConnection = require("../config/databasePool");
 const getDeTaiDuAn = (req, res) => {
     res.render("nckhDeTaiDuAn.ejs");
 };
+const getBaiBaoKhoaHoc = (req, res) => {
+    res.render("nckhBaiBaoKhoaHoc.ejs");
+};
+
 
 // Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
 const tongHopDuLieuGiangVien = async () => {
@@ -44,7 +48,7 @@ const getTeacher = async (req, res) => {
             `SELECT TenNhanVien AS HoTen, MonGiangDayChinh 
              FROM nhanvien`
         );
-        
+
         // Trả luôn kết quả vào response (res) ngay trong hàm getTeacher
         res.json(results); // Trả về kết quả trực tiếp từ đây
     } catch (error) {
@@ -56,7 +60,7 @@ const getTeacher = async (req, res) => {
     }
 };
 
-
+// thêm đề tài dự án
 const saveDeTaiDuAn = async (req, res) => {
     // Lấy dữ liệu từ body
     const {
@@ -99,6 +103,7 @@ const saveDeTaiDuAn = async (req, res) => {
         );
 
         // Trả về phản hồi thành công cho client
+        console.log('Thêm đề tài dự án thành công')
         res.status(200).json({
             message: "Thêm đề tài, dự án thành công!",
         });
@@ -114,8 +119,67 @@ const saveDeTaiDuAn = async (req, res) => {
     }
 };
 
+
+// thêm bài báo khoa học
+const saveBaiBaoKhoaHoc = async (req, res) => {
+    // Lấy dữ liệu từ body
+    const {
+        // loaiBaiBao,
+        namHoc,
+        tenBaiBao,
+        loaiTapChi,
+        chiSoTapChi,
+        tacGia,
+        thanhVien, // Đây là một mảng từ client
+    } = req.body;
+
+    // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
+    const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
+
+    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+    try {
+        // Chèn dữ liệu vào bảng baibaokhoahoc
+        await connection.execute(
+            `
+            INSERT INTO baibaokhoahoc (
+                 NamHoc, TenBaiBao, LoaiTapChi, ChiSoTapChi, TacGia, DanhSachThanhVien
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?)
+            `,
+            [
+                // loaiBaiBao,
+                namHoc,
+                tenBaiBao,
+                loaiTapChi,
+                chiSoTapChi,
+                tacGia,
+                danhSachThanhVien,
+            ]
+        );
+
+        // Trả về phản hồi thành công cho client
+        console.log('Thêm bài báo khoa học thành công')
+        res.status(200).json({
+            message: "Thêm bài báo khoa học thành công!",
+        });
+    } catch (error) {
+        console.error("Error while saving research paper data:", error);
+        // Trả về phản hồi lỗi cho client
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi thêm bài báo khoa học.",
+            error: error.message,
+        });
+    } finally {
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+};
+
+
 module.exports = {
     getDeTaiDuAn,
     saveDeTaiDuAn,
-    getTeacher
+    getTeacher,
+    getBaiBaoKhoaHoc,
+    saveBaiBaoKhoaHoc
 };
