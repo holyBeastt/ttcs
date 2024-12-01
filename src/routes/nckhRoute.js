@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const nckh = require("../controllers/NckhController"); // Import hàm xử lý từ controller
+const nckh = require("../controllers/nckhController"); // Import hàm xử lý từ controller
 
 
 // render site đề tài, dự án
@@ -17,6 +17,12 @@ router.get("/baibaokhoahoc", nckh.getBaiBaoKhoaHoc);
 
 // lưu bài báo khoa học
 router.post("/baibaokhoahoc", nckh.saveBaiBaoKhoaHoc);
+
+// render site bằng sáng chế và giải thưởng
+router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
+
+// lưu bằng sáng chế và giải thưởng
+router.post("/bangsangchevagiaithuong", nckh.saveBangSangCheVaGiaiThuong);
 
 
 module.exports = router;

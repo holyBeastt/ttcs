@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/bangsangchevagiaithuong.css">
+</head>
+
+<body>
+
+  <nav class="navbar-top ">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner">
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+    <div class="" style="width: 100%">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+          </li>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Giảng Viên Mời
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời
+                  bằng file</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Bảng Quy Chuẩn
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Mời Giảng
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+
+                <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
+                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
+                <li class="nav-item"></li>
+                <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
+                </li>
+                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Vượt Giờ
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
+                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Nghiên Cứu Khoa Học
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Đồ Án
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Thống Kê
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
+                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="#">Đồ Án</a>
+                <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hệ Thống
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/log">Xem File Log</a>
+              </div>
+            </div>
+          </div>
+        </ul>
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fullname active" href="/login" id="navbarDropdownUser"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              Hi, Lê Đức Thuận
+            </a>
+            <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item active" id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" href="/">Đăng xuất</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- <div class="container my-5 box formNckh"> -->
+  <div class="my-3 box formNckh">
+    <h2 class="titleNckh">Bằng sáng chế và giải thưởng</h2>
+
+    <form id="formData" class="">
+      <div class="form-group flex-container">
+        <!-- Phân loại -->
+        <div class="flex-item">
+          <label for="phanLoai">Phân loại</label>
+          <select id="phanLoai" name="phanLoai" required>
+            <option value="Bằng độc quyền sáng chế">Bằng độc quyền sáng chế</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp Quốc gia">Giải thưởng khoa học và công nghệ cấp Quốc
+              gia</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp Bộ trở lên">Giải thưởng khoa học và công nghệ cấp Bộ
+              trở lên</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp dưới Bộ">Giải thưởng khoa học và công nghệ cấp dưới Bộ
+            </option>
+            <option value="Giải pháp hữu ích">Giải pháp hữu ích</option>
+          </select>
+        </div>
+        <!-- Năm học -->
+        <div class="flex-item">
+          <label for="namHoc">Năm học</label>
+          <select id="namHoc" name="namHoc" required>
+            <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Tên bằng sáng chế, giải thưởng -->
+      <div class="form-group">
+        <label for="tenBangSangChe">Tên bằng sáng chế / giải thưởng</label>
+        <input type="text" id="tenBangSangChe" name="tenBangSangChe"
+          placeholder="Nhập tên bằng sáng chế hoặc giải thưởng" required>
+      </div>
+
+      <!-- Ngày quyết định, số quyết định, tác giả trên cùng một dòng -->
+      <div class="form-group flex-container">
+        <!-- Số quyết định công nhận -->
+        <div class="flex-item">
+          <label for="soQuyetDinh">Số quyết định công nhận</label>
+          <input type="text" id="soQuyetDinh" name="soQuyetDinh" placeholder="VD: 2401/QĐ-BGDĐT" required>
+        </div>
+
+        <!-- Ngày quyết định công nhận -->
+        <div class="flex-item">
+          <label for="ngayQuyetDinh">Ngày quyết định công nhận</label>
+          <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required>
+        </div>
+
+        <!-- Tác giả -->
+        <div class="flex-item">
+          <label for="tacGia">Tác giả</label>
+          <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
+          <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
+        </div>
+      </div>
+
+      <!-- Danh sách thành viên -->
+      <div class="form-group">
+        <label for="thuKy">Danh sách thành viên</label>
+        <input type="text" id="newMember" placeholder="Nhập tên thành viên" class="input-field">
+        <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
+        <div id="memberListDisplay" class="member-list-display"></div>
+      </div>
+
+      <button type="button" class="btn" id="submitBtn">Gửi</button>
+    </form>
+
+
+
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- nckh -->
+  <script>
+    // giảng viên cơ hữu của trường, để gợi ý tên
+    var giangVienCoHuu = []
+
+    // =================================================================
+    // thực hiện gắn hàm gợi ý khi load trang
+    document.addEventListener("DOMContentLoaded", () => {
+
+      function handleInput(inputId, suggestionId) {
+        const inputElement = document.getElementById(inputId);
+        const suggestionContainer = document.getElementById(suggestionId);
+        const errorMessage = document.createElement("div");
+        inputElement.parentNode.appendChild(errorMessage); // Thêm vào DOM
+
+        let isSuggestionSelected = false; // Biến theo dõi việc chọn gợi ý
+
+        // Gợi ý khi người dùng nhập
+        inputElement.addEventListener("input", () => {
+          const query = inputElement.value.trim(); // Trim đầu và cuối chuỗi của input
+          suggestionContainer.innerHTML = ""; // Xóa gợi ý cũ
+
+          if (query) {
+            const suggestions = giangVienCoHuu.filter(item =>
+              item.HoTen.toLowerCase().trim().includes(query.toLowerCase()) // So sánh không phân biệt hoa thường
+            );
+
+            suggestions.forEach(item => {
+              const suggestionItem = document.createElement("div");
+              suggestionItem.textContent = item.HoTen;
+              suggestionItem.className = "suggestion-item";
+
+              suggestionItem.addEventListener("click", () => {
+                inputElement.value = item.HoTen; // Điền giá trị vào input (không chuyển thành lowercase)
+                suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
+                removeWarning(inputElement, errorMessage); // Xóa cảnh báo nếu chọn đúng
+                isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
+
+                // Kiểm tra nếu ID là 'newMember', gọi hàm thêm thành viên
+                if (inputId === 'newMember') {
+                  addMember(); // Gọi hàm thêm member
+                  inputElement.value = ''; // Xóa nội dung ô input sau khi thêm thành viên
+                }
+              });
+
+              suggestionContainer.appendChild(suggestionItem);
+            });
+          }
+        });
+        // Kiểm tra  giá trị khi người dùng nhấn Enter hoặc click ra ngoài (blur)
+        inputElement.addEventListener("blur", () => {
+          // Nếu gợi ý đã được chọn, ngừng xử lý sự kiện blur
+          if (isSuggestionSelected) {
+            isSuggestionSelected = false; // Reset lại trạng thái
+            return; // Không thực hiện cảnh báo
+          }
+          const value = inputElement.value.trim(); // Trim input value (không chuyển thành lowercase)
+          const isValid = giangVienCoHuu.some(item =>
+            item.HoTen.trim().toLowerCase() === value.toLowerCase() // So sánh không phân biệt hoa thường và trim cả hai đầu
+          );
+
+          if (!isValid) {
+            showWarning(inputElement, errorMessage); // Hiển thị cảnh báo
+          } else {
+            removeWarning(inputElement, errorMessage); // Xóa cảnh báo nếu đúng
+          }
+        });
+        // Ngăn chặn sự kiện blur khi đang hiển thị gợi ý
+        inputElement.addEventListener("focus", () => {
+          suggestionContainer.innerHTML = ""; // Dọn gọn gợi ý cũ khi focus lại vào input
+          removeWarning(inputElement, errorMessage); // Xóa cảnh báo khi bắt đầu nhập
+        });
+      }
+      // Hiển thị cảnh báo
+      function showWarning(inputElement, errorMessage) {
+        inputElement.style.borderColor = "red";
+        inputElement.style.color = "red";
+        // inputElement.placeholder = "Bắt buộc nhập giảng viên cơ hữu";
+        errorMessage.style.display = "block"; // Hiển thị thông báo lỗi
+      }
+      // Xóa cảnh báo
+      function removeWarning(inputElement, errorMessage) {
+        inputElement.style.borderColor = ""; // Trở về mặc định
+        inputElement.style.color = "";
+        inputElement.placeholder = "VD: Lê Đức Thuận"; // Reset placeholder
+        errorMessage.style.display = "none"; // Ẩn thông báo lỗi
+      }
+      // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý
+      handleInput("tacGia", "tacGia-suggestions");
+      handleInput("newMember", "themThanhVien-suggestions");
+    });
+    // =================================================================
+
+
+    // lấy dữ liệu giảng viên cơ hữu
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const response = await fetch("/giangviencohuu"); // Gọi API
+        if (!response.ok) {
+          throw new Error("Không thể lấy dữ liệu từ API.");
+        }
+
+        // Thông báo nếu cần (chỉnh sửa alert nếu cần)
+        // alert("Dữ liệu đã được tải thành công!");
+
+        // Chuyển đổi dữ liệu sang JSON
+        const data = await response.json();
+        console.log(data);
+
+        // Gán dữ liệu vào mảng giangVienCoHuu
+        giangVienCoHuu = data;
+
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+      }
+    });
+
+    // gửi form lên sv
+    document.getElementById("submitBtn").addEventListener("click", function () {
+      // Lấy dữ liệu từ form
+      const formData = {
+        phanLoai: document.getElementById("phanLoai").value,  // Phân loại
+        namHoc: document.getElementById("namHoc").value,  // Năm học
+        tenBangSangCheVaGiaiThuong: document.getElementById("tenBangSangChe").value,  // Tên bằng sáng chế / giải thưởng
+        SoQDCongNhan: document.getElementById("soQuyetDinh").value,  // Số quyết định công nhận
+        NgayQDCongNhan: document.getElementById("ngayQuyetDinh").value,  // Ngày quyết định công nhận
+        tacGia: document.getElementById("tacGia").value,  // Tác giả
+        thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
+          (member) => member.textContent  // Danh sách thành viên
+        ),
+      };
+
+      // Kiểm tra form hợp lệ
+      if (!formData.phanLoai || !formData.namHoc || !formData.tenBangSangCheVaGiaiThuong || !formData.SoQDCongNhan || !formData.NgayQDCongNhan || !formData.tacGia) {
+        alert("Vui lòng điền đầy đủ thông tin.");
+        return;
+      }
+
+      // Gửi dữ liệu lên server
+      fetch("/bangsangchevagiaithuong", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Gửi dữ liệu thất bại!");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          alert(data.message);
+          // Reset form nếu cần
+          document.getElementById("formData").reset();
+          document.getElementById("memberListDisplay").innerHTML = "";
+        })
+        .catch((error) => {
+          console.error("Lỗi:", error);
+          alert("Có lỗi xảy ra: " + error.message);
+        });
+    });
+
+    // =================================================================
+    let members = []
+    // Hàm thêm thành viên vào mảng member để hiển thị
+    function addMember() {
+      const memberName = document.getElementById('newMember').value.trim();
+      if (memberName) {
+        // Thêm thành viên vào mảng members
+        members.push(memberName);
+        // Cập nhật danh sách thành viên hiển thị trên form
+        updateFormMemberList();
+        // Xóa nội dung ô input sau khi thêm thành viên
+        document.getElementById('newMember').value = '';
+      }
+    }
+    // Hàm cập nhật danh sách thành viên và hiển thị lên form
+    function updateFormMemberList() {
+      const memberListDisplay = document.getElementById('memberListDisplay');
+      memberListDisplay.innerHTML = ''; // Xóa danh sách cũ
+      // Duyệt qua mảng members để hiển thị từng thành viên
+      members.forEach((member, index) => {
+        const memberContainer = document.createElement('div');
+        memberContainer.style.display = 'flex';  // Đảm bảo các phần tử được hiển thị trên cùng một dòng
+        memberContainer.style.alignItems = 'center';  // Căn giữa tên và nút xóa
+        memberContainer.style.justifyContent = 'space-between'; // Đảm bảo tên thành viên và nút xóa được căn lề
+        // Tạo phần tử hiển thị tên thành viên
+        const span = document.createElement('span');
+        span.textContent = member;
+        span.style.flexGrow = 1; // Cho phép tên thành viên chiếm hết không gian còn lại trong div
+        // Thêm nút xóa cho từng thành viên
+        const removeButton = document.createElement('button');
+        removeButton.innerHTML = '<i class="fa fa-times"></i>';
+        removeButton.onclick = () => removeMember(index); // Gắn sự kiện xóa
+        // Thêm tên thành viên và nút xóa vào giao diện
+        memberContainer.appendChild(span);
+        memberContainer.appendChild(removeButton);
+        // Thêm container chứa thành viên vào danh sách hiển thị
+        memberListDisplay.appendChild(memberContainer);
+      });
+    }
+    // Hàm xóa thành viên
+    function removeMember(index) {
+      members.splice(index, 1); // Xóa thành viên khỏi mảng
+      updateFormMemberList();   // Cập nhật lại danh sách hiển thị
+    }
+    // =================================================================
+
+
+
+
+    // combobox năm học
+    document.addEventListener('DOMContentLoaded', function () {
+      // Tạo danh sách các năm học
+      const namHocSelect = document.getElementById('namHoc');
+      const currentYear = new Date().getFullYear();
+      const startYear = currentYear;
+      const endYear = currentYear + 3;
+
+      // Thêm các năm học vào combo box
+      for (let year = startYear; year <= endYear; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `${year}-${year + 1}`;
+        if (year === currentYear) {
+          option.selected = true; // Mặc định là năm hiện tại
+        }
+        namHocSelect.appendChild(option);
+      }
+    });
+  </script>
+
+  <!-- Phần phân quyền -->
+  <!-- <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      const Role = localStorage.getItem("userRole");
+
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
+      } else {
+        document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
+      }
+
+      //document.querySelector('.role').innerText = `${Role}`;
+
+    };
+  </script> -->
+  <!-- <script>
+    function fetchQuyen() {
+      const maPhongBan = document.getElementById('MaPhongBan').value;
+      // Gọi API để lấy thông tin isKhoa
+      fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
+        .then(response => response.json())
+        .then(data => {
+          const quyenSelect = document.getElementById('Quyen');
+          quyenSelect.innerHTML = ''; // Xóa các option cũ
+
+          // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
+          if (data.isKhoa === 1) {
+            quyenSelect.innerHTML = `
+              <option value="GV">Giảng Viên</option>
+              <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
+              <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+          } else {
+            quyenSelect.innerHTML = `
+              <option value="Thường">Thường</option>
+              <option value="Duyệt">Duyệt</option>`;
+          }
+
+        }
+        )
+        .catch(error => console.error('Error:', error));
+    }
+  </script> -->
+  <script>
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+      if (tenDangNhap) {
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+      } else {
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
+      }
+    });
+  </script>
+  <!-- <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const maPhongBan = document.getElementById("MaPhongBan").value;
+      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
+
+      fetch(`/getMaBoMon/${maPhongBan}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data); // In ra phản hồi để kiểm tra
+          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
+
+          if (!maBoMonSelect) {
+            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
+            return;
+          }
+
+          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
+          let foundMatch = false;
+
+          // Kiểm tra success và dữ liệu maBoMon
+          if (data.success && data.maBoMon) {
+            data.maBoMon.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
+              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+
+              // Kiểm tra nếu giá trị trùng với monGiangDayChinh
+              if (item.MaBoMon === monGiangDayChinh) {
+                option.selected = true; // Đặt option thành selected nếu trùng
+                foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
+              }
+
+              maBoMonSelect.appendChild(option); // Thêm option vào select
+
+
+            });
+          } else {
+            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
+          }
+
+          // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
+          if (!foundMatch) {
+            alert("Không tồn tại mã bộ môn vui lòng sửa lại");
+          }
+
+        })
+        .catch(error => console.error('Error:', error));
+    });
+  </script> -->
+  <!-- <script>
+    function fetchBoMon() {
+      const maPhongBan = document.getElementById("MaPhongBan").value;
+      fetch(`/getMaBoMon/${maPhongBan}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data); // In ra phản hồi để kiểm tra
+          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
+
+          if (!maBoMonSelect) {
+            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
+            return;
+          }
+
+          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
+
+          // Kiểm tra success và dữ liệu maBoMon
+          if (data.success && data.maBoMon) {
+            data.maBoMon.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
+              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+
+              maBoMonSelect.appendChild(option); // Thêm option vào select
+            });
+          } else {
+            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+  </script> -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const isKhoa = localStorage.getItem("isKhoa");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('actionButton');
+      const actionButton1 = document.getElementById('actionButton1');
+      const actionButton2 = document.getElementById('actionButton2');
+      const actionButton3 = document.getElementById('actionButton3');
+
+      if (isKhoa == 0) {
+        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+
+      } else {
+        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+        actionButton2.style.display = 'none'; // Ẩn actionButton2
+
+      }
+      //Ẩn site duyệt lớp gk
+      const Quyen = localStorage.getItem("userRole");
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton3.style.display = '';
+      } else {
+        actionButton3.style.display = 'none';
+      }
+    });
+  </script>
+
+  <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      //const Role = localStorage.getItem("userRole");
+      const TenDangNhap = localStorage.getItem("TenDangNhap");
+
+      let Role = localStorage.getItem("userRole");
+      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+        Role = 'LĐK';
+      }
+
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector(
+          ".fullname"
+        ).innerText = `${TenNhanVien} - ${Role}`;
+      } else {
+        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+      }
+
+      //document.querySelector('.role').innerText = `${Role}`;
+    };
+
+    const fullnameElement = document.querySelector(".fullname");
+    fullnameElement.addEventListener("click", function () {
+      console.log("Full name link clicked");
+    });
+  </script>
+
+  <!-- Phần phân quyền -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+      ThongTinGD.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/info2";
+        } else {
+          window.location.href = "/info";
+        }
+      });
+
+      // Thêm sự kiện click cho phần tử có id="Home"
+
+      const Home = document.getElementById("Home");
+
+      Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+      });
+    });
+  </script>
+
+  <script>
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+      if (tenDangNhap) {
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+      } else {
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("infome").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+      if (id_User) {
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
+      } else {
+        alert("Không tìm thấy id_User trong localStorage.");
+      }
+    });
+  </script>
+
+  <!-- <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Lắng nghe sự kiện click trên nút có id là submitBtn
+      document.getElementById("submitBtn").addEventListener("click", function (event) {
+        event.preventDefault();  // Ngừng hành vi gửi form mặc định
+
+        const form = document.getElementById("formData");  // Lấy form theo id
+
+        // Kiểm tra xem form có tồn tại không
+        if (form) {
+          // Tạo đối tượng FormData từ form
+          const formData = new FormData(form);
+
+          // Chuyển FormData thành một đối tượng JSON để dễ đọc và xử lý
+          const formObject = {};
+          formData.forEach((value, key) => {
+            formObject[key] = value;
+          });
+
+          // Lấy id_User từ dữ liệu trong form
+          const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
+
+          if (id_User) {
+            // Sử dụng fetch để gửi dữ liệu đến server
+            fetch(`/infome/${id_User}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
+              },
+              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
+            })
+              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
+              .then(data => {
+                console.log("Dữ liệu phản hồi từ server:", data);
+                alert(data.message)
+                // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
+              })
+              .catch(error => {
+                console.error("Có lỗi xảy ra:", error);
+                // Xử lý lỗi nếu có
+              });
+          } else {
+            alert("Không tìm thấy id_User trong form.");
+          }
+        } else {
+          console.log("Không tìm thấy form với id 'infome'.");
+        }
+      });
+    }); -->
+
+
+  <!-- </script> -->
+  <!-- <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const Quyen = localStorage.getItem("userRole");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script> -->
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+</body>
+
+</html>

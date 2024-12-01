@@ -8,6 +8,9 @@ const getDeTaiDuAn = (req, res) => {
 const getBaiBaoKhoaHoc = (req, res) => {
     res.render("nckhBaiBaoKhoaHoc.ejs");
 };
+const getBangSangCheVaGiaiThuong = (req, res) => {
+    res.render("nckhBangSangCheVaGiaiThuong.ejs");
+};
 
 
 // Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
@@ -175,11 +178,67 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
     }
 };
 
+// thêm bằng sáng chế và giải thưởng
+const saveBangSangCheVaGiaiThuong = async (req, res) => {
+    // Lấy dữ liệu từ body
+    const {
+        phanLoai, // Phân loại
+        namHoc,
+        tenBangSangCheVaGiaiThuong, // Tên bằng sáng chế / giải thưởng
+        SoQDCongNhan, // Số quyết định công nhận
+        NgayQDCongNhan, // Ngày quyết định công nhận
+        tacGia,
+        thanhVien, // Đây là một mảng từ client
+    } = req.body;
+
+    // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
+    const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
+
+    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+    try {
+        // Chèn dữ liệu vào bảng bangsangchevagiaithuong
+        await connection.execute(
+            `
+            INSERT INTO bangsangchevagiaithuong (
+                 PhanLoai, NamHoc, TenBangSangCheVaGiaiThuong, SoQDCongNhan, NgayQDCongNhan, TacGia, DanhSachThanhVien
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
+            [
+                phanLoai,  // Phân loại
+                namHoc,
+                tenBangSangCheVaGiaiThuong,  // Tên bằng sáng chế / giải thưởng
+                SoQDCongNhan,  // Số quyết định công nhận
+                NgayQDCongNhan,  // Ngày quyết định công nhận
+                tacGia,
+                danhSachThanhVien,  // Danh sách thành viên
+            ]
+        );
+
+        // Trả về phản hồi thành công cho client
+        console.log('Thêm bằng sáng chế và giải thưởng thành công')
+        res.status(200).json({
+            message: "Thêm bằng sáng chế và giải thưởng thành công!",
+        });
+    } catch (error) {
+        console.error("Error while saving research paper data:", error);
+        // Trả về phản hồi lỗi cho client
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi thêm bằng sáng chế và giải thưởng.",
+            error: error.message,
+        });
+    } finally {
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+};
 
 module.exports = {
     getDeTaiDuAn,
     saveDeTaiDuAn,
     getTeacher,
     getBaiBaoKhoaHoc,
-    saveBaiBaoKhoaHoc
+    saveBaiBaoKhoaHoc,
+    getBangSangCheVaGiaiThuong,
+    saveBangSangCheVaGiaiThuong,
 };
