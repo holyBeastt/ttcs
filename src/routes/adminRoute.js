@@ -10,7 +10,13 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         updateKyTuBD
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
-        getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList
+        getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList,
+        addMessage,
+        updateMessage,
+        updateDoneMessage,
+        getMessage,
+        getshowMessage,
+        deleteMessage
         } = require('../controllers/admin');
 const { postUpdateNV, postUpdatePhongBan, postUpdateTK, postUpdateBoMon } = require('../controllers/adminUpdate');
 router.get('/admin', (req, res) => {
@@ -91,4 +97,15 @@ router.get('/kytubatdau', getKyTuBD);
 router.post('/kytubatdau', postKyTuBD);
 router.delete('/kytubatdau/:LopViDu', deleteKyTuBD);
 router.put('/kytubatdau/:LopViDu', updateKyTuBD); 
+
+//Thêm thông báo 
+router.get('/changeMessage/:MaPhongBan',
+    (req, res) => res.render('changeMessage')
+);
+router.get('/getMessage', getMessage);
+router.post('/changeMessage/:MaPhongBan', addMessage);
+router.post('/updateMessage', updateMessage);
+router.get('/getMessage/:MaPhongBan', getshowMessage);
+router.post('/deleteMessage', deleteMessage);
+
 module.exports = router;

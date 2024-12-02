@@ -234,6 +234,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -725,43 +726,34 @@
       }
     });
   </script>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const isKhoa = localStorage.getItem("isKhoa");
-      const role = localStorage.getItem("userRole");
-      const Quyen = localStorage.getItem("userRole");
-
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('actionButton');
-      const actionButton1 = document.getElementById('actionButton1');
-      const actionButton2 = document.getElementById('actionButton2');
-      const actionButton3 = document.getElementById('actionButton3');
-
-      if (isKhoa == 0) {
-        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-        if (role.trim().toLocaleLowerCase() == "thường") {
-          actionButton2.style.display = 'none'; // Hiện actionButton2
-        }
-      } else {
-        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-        actionButton2.style.display = 'none'; // Ẩn actionButton2
-
-        if (Quyen.toLowerCase() == 'gv'){
-          actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
-        }
-      }
-
-      //Ẩn site duyệt lớp gk
-      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-        actionButton3.style.display = '';
-      } else {
-        actionButton3.style.display = 'none';
-      }
-    });
-  </script>
   
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
           
 </html>

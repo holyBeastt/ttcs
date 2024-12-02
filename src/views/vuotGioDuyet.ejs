@@ -296,6 +296,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -309,11 +310,6 @@
     <div class="">
       <div class="d-flex">
         <div class="cbb d-flex" style="margin-top: 20px;">
-
-          <select class="selectop mx-1" id="typeclass">
-            <option value="Lớp ngoài quy chuẩn">Lớp ngoài quy chuẩn</option>
-            <option value="Lớp quy chuẩn">Lớp quy chuẩn</option>
-          </select>
 
 
           <!-- Combo box Kỳ -->
@@ -627,15 +623,12 @@
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
     const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
-    const typeclass = document.getElementById('typeclass').value;
-    console.log(typeclass);
     if (!MaPhongBan) {
       alert("Mã phòng ban không tồn tại!");
       return;
     }
 
     try {
-      if (typeclass === "Lớp quy chuẩn") {
         const response = await fetch(`/getLopGK/${MaPhongBan}/${Ki}/${Nam}`, {
           method: 'GET', // Gửi yêu cầu GET
         });
@@ -662,32 +655,6 @@
         } else {
           alert("Không tìm thấy dữ liệu!");
         }
-      } else {
-
-        const response = await fetch(`/getLopNgoaiQuyChuan/${MaPhongBan}/${Ki}/${Nam}`, {
-          method: 'GET', // Gửi yêu cầu GET
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json(); // Lấy dữ liệu từ server
-        console.log(data);
-        if (data.success) {
-          if (data.maBoMon && data.maBoMon.length > 0) {
-            console.log('Dữ liệu bộ môn:', data);
-            renderTable(data);
-            document.getElementById("QuyChuan").style.display = 'revert';
-            document.getElementById("filterName").style.display = 'none';
-
-          } else {
-            alert("Dữ liệu trống!");
-          }
-        } else {
-          alert("Không tìm thấy dữ liệu!");
-        }
-      }
 
 
     } catch (error) {
@@ -701,7 +668,6 @@
     const role = localStorage.getItem("userRole");
     const MaPhongBan = localStorage.getItem("MaPhongBan");
     const isKhoa = localStorage.getItem("isKhoa");
-    const typeclass = document.getElementById('typeclass').value;
     let tableRowData = [];
 
     const tableBody = document.getElementById('tableBody');
@@ -794,7 +760,7 @@
           ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu không có ghi chú
         }
         ghiChuTd.style.cursor = "pointer"; // Thay đổi con trỏ chuột khi di chuột qua biểu tượng
-        ghiChuTd.onclick = () => openNoteForm(tableRow, ghiChuValue, typeclass); // Gọi hàm mở form khi nhấn vào biểu tượng
+        ghiChuTd.onclick = () => openNoteForm(tableRow, ghiChuValue); // Gọi hàm mở form khi nhấn vào biểu tượng
 
 
       }
@@ -932,7 +898,6 @@
     const GiangVien = localStorage.getItem("TenNhanVien");
     const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
     const rowCount = rows.length;
-    const typeclass = document.getElementById("typeclass").value;
     rows.forEach((row, index) => {
       if (row.style.display === "none") return;
       // Lấy giá trị của checkbox "select"
@@ -950,20 +915,20 @@
       let taiChinhDuyet = taiChinhDuyetCheckbox ? taiChinhDuyetCheckbox.checked : false;
 
       if (isKhoa === "1") {
-        console.log(select, khoaDuyet, MaGiangDay, typeclass);
+        console.log(select, khoaDuyet, MaGiangDay);
         if (select) {
-          updateKhoaDuyet(MaGiangDay, typeclass, khoaDuyet);
+          updateKhoaDuyet(MaGiangDay, khoaDuyet);
         } else {
-          deleteLopGK(MaGiangDay, typeclass);
+          deleteLopGK(MaGiangDay);
         }
       } else {
         if (MaPhongBan === "DAOTAO") {
-          console.log(khoaDuyet, daoTaoDuyet, MaGiangDay, typeclass);
-          updateDuyet(MaGiangDay, typeclass, khoaDuyet, daoTaoDuyet, MaPhongBan);
+          console.log(khoaDuyet, daoTaoDuyet, MaGiangDay);
+          updateDuyet(MaGiangDay, khoaDuyet, daoTaoDuyet, MaPhongBan);
         }
         if (MaPhongBan === "TAICHINH") {
-          console.log(daoTaoDuyet, taiChinhDuyet, MaGiangDay, typeclass);
-          updateDuyet(MaGiangDay, typeclass, daoTaoDuyet, taiChinhDuyet, MaPhongBan);
+          console.log(daoTaoDuyet, taiChinhDuyet, MaGiangDay);
+          updateDuyet(MaGiangDay, daoTaoDuyet, taiChinhDuyet, MaPhongBan);
         }
       }
 
@@ -971,13 +936,13 @@
     });
   }
   // Gửi dữ liệu lên server
-  function updateKhoaDuyet(MaGiangDay, typeclass, khoaDuyet) {
+  function updateKhoaDuyet(MaGiangDay, khoaDuyet) {
     fetch('/updateKhoaDuyet', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ MaGiangDay, typeclass, khoaDuyet }) // Chuyển đổi globalData thành chuỗi JSON
+      body: JSON.stringify({ MaGiangDay, khoaDuyet }) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
@@ -995,13 +960,13 @@
         console.log(error.message);
       });
   }
-  function deleteLopGK(MaGiangDay, typeclass) {
+  function deleteLopGK(MaGiangDay) {
     fetch('/deleteLopGK', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ MaGiangDay, typeclass }) // Chuyển đổi globalData thành chuỗi JSON
+      body: JSON.stringify({ MaGiangDay }) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
@@ -1019,13 +984,13 @@
         console.log(error.message);
       });
   }
-  function updateDuyet(MaGiangDay, typeclass, KhoaDuyet, daoTaoDuyet, MaPhongBan) {
+  function updateDuyet(MaGiangDay, KhoaDuyet, daoTaoDuyet, MaPhongBan) {
     fetch('/updateDuyet', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ MaGiangDay, typeclass, KhoaDuyet, daoTaoDuyet, MaPhongBan }) // Chuyển đổi globalData thành chuỗi JSON
+      body: JSON.stringify({ MaGiangDay, KhoaDuyet, daoTaoDuyet, MaPhongBan }) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
@@ -1049,8 +1014,8 @@
 <script>
   let currentRow; // Biến toàn cục để lưu hàng hiện tại
 
-  function openNoteForm(row, GhiChu, typeclass) {
-    console.log(row, GhiChu, typeclass);
+  function openNoteForm(row, GhiChu) {
+    console.log(row, GhiChu);
     currentRow = row; // Lưu hàng hiện tại
     document.getElementById("noteForm").style.display = "block"; // Hiển thị form
     document.getElementById("modalBackdrop").style.display = "block"; // Hiển thị nền tối
@@ -1073,7 +1038,6 @@
   }
   async function saveNote() {
     const note = document.getElementById("noteInput").value;
-    const typeclass = document.getElementById("typeclass").value;
     // const deadline = document.getElementById("deadlineInput").value;
 
     if (currentRow) {
@@ -1084,12 +1048,12 @@
 
         // Gửi dữ liệu đến API để lưu vào CSDL
         try {
-          const response = await fetch('/savenotegk', {
+          const response = await fetch('/savenoteduyet', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id, ghiChu: note, typeclass }),
+            body: JSON.stringify({ id, ghiChu: note }),
           });
           const result = await response.json();
           if (!result.success) {
@@ -1111,7 +1075,6 @@
   }
   async function doneNote() {
     const note = document.getElementById("noteInput").value;
-    const typeclass = document.getElementById("typeclass").value;
     // const deadline = document.getElementById("deadlineInput").value;
 
     if (currentRow) {
@@ -1123,12 +1086,12 @@
 
         // Gửi dữ liệu đến API để lưu vào CSDL
         try {
-          const response = await fetch('/donenotegk', {
+          const response = await fetch('/donenoteduyet', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id, ghiChu: note, typeclass }),
+            body: JSON.stringify({ id, ghiChu: note }),
           });
           const result = await response.json();
           if (!result.success) {
@@ -1216,6 +1179,33 @@
 
 
 
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 
 </html>

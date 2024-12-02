@@ -3,6 +3,7 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const path = require("path");
+const { query } = require("./connectDB");
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -146,6 +147,8 @@ const exportHopDongDoAnGvm = async (req, res) => {
     connection = await createPoolConnection();
 
     const { dot, ki, namHoc, khoa, teacherName } = req.query;
+    console.log("ki = ", ki);
+    console.log("namHoc = ", namHoc);
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -159,8 +162,8 @@ const exportHopDongDoAnGvm = async (req, res) => {
     select gv.HoTen, da.TenDeTai, gv.NoiCongTac, gv.HocVi, gv.HSL
     from DoAnTotNghiep as da 
     JOIN gvmoi as gv
-    ON da.GiangVien1 == gv.HoTen
-    WHERE da.Ki = ? AND da.NamHoc = ?
+    ON da.GiangVien1 = gv.HoTen
+    WHERE da.NamHoc = ?
     `;
 
     // Lấy dữ liệu giảng viên hướng dẫn phụ
@@ -168,11 +171,11 @@ const exportHopDongDoAnGvm = async (req, res) => {
     select gv.HoTen, da.TenDeTai, gv.NoiCongTac, gv.HocVi, gv.HSL
     from DoAnTotNghiep as da 
     JOIN gvmoi as gv
-    ON da.GiangVien2 == gv.HoTen
+    ON da.GiangVien2 = gv.HoTen
     WHERE da.Ki = ? AND da.NamHoc = ?
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [namHoc];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND qc.Khoa = ?`;
@@ -184,11 +187,11 @@ const exportHopDongDoAnGvm = async (req, res) => {
       params.push(`%${teacherName}%`);
     }
 
-    const [data] = await connection.execute(query, params);
+    const [data] = await connection.execute(query1, params);
 
     if (data.length === 0) {
       return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>"
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportDoAn';</script>"
       );
     }
 

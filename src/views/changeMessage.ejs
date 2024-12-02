@@ -5,103 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Học Viện Kỹ Thuật Mật Mã</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/forminput.css" />
+    <link rel="stylesheet" href="/css/table.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      .notification {
-        max-width: 320px;
-        border-width: 1px;
-        border-color: rgba(219, 234, 254, 1);
-        border-radius: 1rem;
-        background-color: rgba(255, 255, 255, 1);
-        padding: 1rem;
-        display: none;
-        /* Ẩn form ban đầu */
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border-radius: 10px;
-        /* Góc tròn */
-        padding: 20px;
-        background-color: white;
-        z-index: 2000;
-        width: 320px;
-        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
-        /* Tăng bóng đổ */
-        font-family: Arial, sans-serif;
-      }
-      .header {
-        display: flex;
-        align-items: center;
-        grid-gap: 1rem;
-        gap: 1rem;
-      }
-
-      .icon {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 9999px;
-        background-color: rgba(96, 165, 250, 1);
-        padding: 0.5rem;
-        color: rgba(255, 255, 255, 1);
-      }
-
-      .icon svg {
-        height: 1rem;
-        width: 1rem;
-      }
-
-      .alert {
-        font-weight: 600;
-        color: rgba(107, 114, 128, 1);
-      }
-
-      .message {
-        margin-top: 1rem;
-        color: rgba(107, 114, 128, 1);
-      }
-
-      .actions {
-        margin-top: 1.5rem;
-      }
-
-      .actions button {
-        text-decoration: none;
-      }
-
-      .mark-as-read, .read {
-        display: inline-block;
-        border-radius: 0.5rem;
-        width: 100%;
-        padding: 0.75rem 1.25rem;
-        text-align: center;
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-        font-weight: 600;
-      }
-
-      .read {
-        background-color: rgba(59, 130, 246, 1);
-        color: rgba(255, 255, 255, 1);
-        border: none;
-      }
-
-      .mark-as-read {
-        margin-top: 0.5rem;
-        background-color: rgba(249, 250, 251, 1);
-        color: rgba(107, 114, 128, 1);
-        transition: all .15s ease;
-      }
-
-      .mark-as-read:hover {
-        background-color: rgb(230, 231, 233);
-      }
-    </style>
   </head>
 
   <body>
@@ -137,7 +45,7 @@
         >
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link active" id="Home" href=""
+              <a class="nav-link " id="Home" href=""
                 ><i class="fa-solid fa-house"></i
               ></a>
             </li>
@@ -248,9 +156,7 @@
                   Nghiên Cứu Khoa Học
                 </a>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="nav-link" id="" href="/detaiduan">Đề tài, Dự án</a>
-                  <a class="nav-link" id="" href="/baibaokhoahoc">Bài báo khoa học</a>
-                  <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                  <a class="nav-link" id="" href="#">COMING SOON</a>
                 </div>
               </div>
             </div>
@@ -301,7 +207,7 @@
           <div class="navbar-nav">
             <div class="nav-item dropdown">
               <a
-                class="nav-link dropdown-toggle fullname"
+                class="nav-link dropdown-toggle fullname active"
                 href="/login"
                 id="navbarDropdownUser"
                 data-bs-toggle="dropdown"
@@ -313,6 +219,7 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
                 <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item active" id="changeMessage">Thêm thông báo</a>
                 <a class="dropdown-item" href="/">Đăng xuất</a>
               </div>
             </div>
@@ -322,86 +229,105 @@
     </nav>
 
     <!-- Phần trên của navbar chứa logo và tiêu đề -->
-    <div class="container-fluid m-4">
-      <!-- Tiêu đề dashboard -->
-      <h1 class="text-center">Dashboard Giảng Dạy Khoa</h1>
+    <div class="container-fluid m-4 box">
+      <h2>Thêm thông báo</h2>
 
-      <!-- 1. Tổng quan về số lớp và số tiết giảng dạy -->
-      <div class="row m-4">
-        <div class="col-lg-6 col-md-12">
-          <div class="card text-white bg-info mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Tổng số lớp giảng dạy</h5>
-              <p class="card-text">20 Lớp</p>
-            </div>
+      <form id="changeMessageForm" method="POST" >
+        <div class="row">
+          <div class="col-md-4 input-wrapper">
+            <label for="Title">Tiêu đề:</label>
+            <input
+              type="text"
+              id="Title"
+              name="Title"
+              class="form-control"
+              required
+            />
           </div>
         </div>
-        <div class="col-lg-6 col-md-12">
-          <div class="card text-white bg-danger mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Tổng số tiết giảng dạy</h5>
-              <p class="card-text">200 Tiết</p>
-            </div>
+        <div class="row">
+          <div class="col-md-4 input-wrapper">
+            <label for="LoiNhan">Thông báo:</label>
+            <input
+              type="text"
+              id="LoiNhan"
+              name="LoiNhan"
+              class="form-control"
+              required
+            />
           </div>
         </div>
-      </div>
-
-      <!-- 2. Danh sách các lớp giảng dạy -->
-      <div class="container-fluid m-4">
-        <h3>Danh sách các lớp giảng dạy</h3>
-        <table class="table table-bordered">
+        <div class="row">
+            <div class="col-md-4 input-wrapper">
+                <label for="Deadline">Ngày hết hạn:</label>
+                <input
+                type="datetime-local"
+                id="Deadline"
+                name="Deadline"
+                class="form-control"
+                required
+                />
+            </div>
+        </div>
+        <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
+        <button type="button" class="btn m-3" onclick="goBack()">
+          Quay Lại
+        </button>
+      </form>
+      <div class="showMessage">
+        <h4>Thông báo đã ban hành</h4>
+        <table class=" text-center" style="width: 100%;">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Tên lớp</th>
-              <th>Môn học</th>
-              <th>Số tiết giảng dạy</th>
-              <th>Giáo viên phụ trách</th>
+              <th style="width: 50px;">Tiêu đề</th>
+              <th style="width: 50px;">Lời nhắn</th>
+              <th style="width: 200px;">Hạn cuối</th>
+              <th style="width: 50px;">Ẩn thông báo</th>
+              <th style="width: 50px;">Xoá thông báo</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Class A</td>
-              <td>Toán Cao Cấp</td>
-              <td>45</td>
-              <td>Nguyễn Văn A</td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Class B</td>
-              <td>Lý Thuyết Mạng</td>
-              <td>30</td>
-              <td>Trần Thị B</td>
-            </tr>
+          <tbody id="tableBody">
+            <!-- Dữ liệu sẽ được chèn vào đây -->
           </tbody>
         </table>
-      </div>
-
-      <!-- 3. Thống kê số tiết giảng dạy theo giáo viên -->
-      <div class="container-fluid m-4">
-        <h3>Thống kê số tiết giảng dạy theo giáo viên</h3>
-        <canvas id="teachingHoursChart"></canvas>
-      </div>
-      <!-- Tab thông báo -->
-       <div id="notifications-container"></div>
-      <!-- 4. Nút quay về đầu trang -->
-      <div class="container-fluid m-4">
-        <footer class="text-center">
-          <button
-            onclick="topFunction()"
-            id="backToTopBtn"
-            class="btn"
-          >
-            Quay về đầu trang
-          </button>
-        </footer>
+        <button onclick="submitData()" class="btn m-2" id="update-qc" style="height: 45px;">Cập nhật</button>
       </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
+          const loiNhan = document.getElementById("LoiNhan").value.trim();
+          const deadline = document.getElementById("Deadline").value;
+      
+          if (!loiNhan) {
+            alert("Vui lòng nhập nội dung thông báo.");
+            event.preventDefault();
+            return;
+          }
+      
+          if (!deadline) {
+            alert("Vui lòng chọn ngày hết hạn.");
+            event.preventDefault();
+            return;
+          }
+      
+          const now = new Date();
+          const selectedDate = new Date(deadline);
+      
+          if (selectedDate < now) {
+            alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
+            event.preventDefault();
+          }
+        });
+      
+        function goBack() {
+          window.history.go(-2)
+        }
+    </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -432,160 +358,240 @@
         } else {
           actionButton3.style.display = 'none';
         }
-        loadMessage();
+        const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('MessageChanged') === 'true') {
+            alert("Thêm thông báo mới thành công!")
+          } else if (urlParams.get('MessageChanged') === 'false') {
+            alert("Thêm thông báo mới không đúng!")
+          }else if(urlParams.get('MessageChanged') === 'false2'){
+            alert("Cập nhật thông báo thất bại")
+          }
+        getMessage();
       });
-</script>
-<script>
-  async function loadMessage() {
-
-    try {
-      const response = await fetch(`/getMessage`, {
-        method: 'GET', // Gửi yêu cầu GET
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      const data = await response.json(); // Lấy dữ liệu từ server
-      console.log(data);
-      if (data.success) {
-        if (data.Message && data.Message.length > 0) {
-          console.log('Dữ liệu thông báo:', data);
-          showNotifications(data);
-        } else {
-          alert("Dữ liệu trống!");
+    </script>
+    <script>    
+      async function getMessage() {
+        const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+        if (!MaPhongBan) {
+          alert("Mã phòng ban không tồn tại!");
+          return;
         }
-      } else {
-        alert("Không tìm thấy dữ liệu!");
+    
+        try {
+          console.log("Gửi dữ liệu");
+          const response = await fetch(`/getMessage/${MaPhongBan}`, {
+            method: 'GET', // Gửi yêu cầu GET
+          });
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+          const data = await response.json(); // Lấy dữ liệu từ server
+          console.log(data);
+          if (data.success) {
+            if (data.Message && data.Message.length > 0) {
+              console.log('Dữ liệu thông báo:', data);
+              renderTable(data);
+            } else {
+              alert("Dữ liệu trống!");
+            }
+          } else {
+            alert("Không tìm thấy dữ liệu!");
+          }
+        } catch (error) {
+          console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+        }
       }
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
-    }
-  }
-</script>
-<script>
-  function showNotifications(messages) {
-  const container = document.getElementById("notifications-container");
-
-  // Xóa nội dung cũ (nếu có)
-  container.innerHTML = "";
-
-  // Render từng thông báo
-  let i = 0;
-  messages.Message.forEach((message, index) => {
-
-    if (message.HetHan === 1 ) {
-      return; // Bỏ qua thông báo nếu đã hết hạn hoặc hoàn thành
-    }
-
-    const notification = document.createElement("div");
-    notification.className = "notification";
-    notification.style.display = "block";
-
-    // Nội dung thông báo
-    notification.innerHTML = `
-      <div class="header">
-        <span class="icon">
-          <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path clip-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" fill-rule="evenodd"></path>
-          </svg>
-        </span>
-        <p class="alert">Thông báo mới !</p>
-      </div>
-      <p class="message">
-        <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
-        <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
-        <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
-        <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        })}
-      </p>
-      <div class="actions">
-        <button class="read" onclick="closeNotification(${i})">Đã xem</button>
-      </div>
-    `;
-
-    // Thêm thông báo vào container
-    container.appendChild(notification);
-    i++;
-  });
-
-  // Hiển thị container
-  container.style.display = "block";
-}
-
-// Hàm đóng thông báo cụ thể
-function closeNotification(index) {
-  const container = document.getElementById("notifications-container");
-
-  if (!container) {
-    console.error("Không tìm thấy container thông báo!");
-    return;
-  }
-
-  const notifications = container.querySelectorAll(".notification");
-
-  // Kiểm tra xem thông báo tại index có tồn tại
-  if (!notifications[index]) {
-    console.error(`Không tìm thấy thông báo tại index ${index}`);
-    return; // Nếu không còn thông báo nào để đóng, dừng lại
-  }
-
-  // Ẩn thông báo tại vị trí index
-  notifications[index].style.display = "none";
-
-  // Kiểm tra nếu tất cả thông báo đã bị ẩn
-  const allHidden = Array.from(notifications).every(
-    (notif) => notif.style.display === "none"
-  );
-
-  if (allHidden) {
-    container.style.display = "none"; // Ẩn container nếu không còn thông báo
-    console.log("Tất cả thông báo đã được đóng.");
-  }
-}
-
-
-
-// Gọi hàm hiển thị thông báo
-</script>
+    
+    </script>
     <script>
-      // 3. Thống kê số tiết giảng dạy theo giáo viên (Sử dụng Chart.js)
-      var ctx = document.getElementById("teachingHoursChart").getContext("2d");
-      var teachingHoursChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: ["Nguyễn Văn A", "Trần Thị B", "Lê Văn C"],
-          datasets: [
-            {
-              label: "Số tiết giảng dạy",
-              data: [45, 30, 25],
-              backgroundColor: [
-                "rgba(75, 192, 192, 0.2)",
-                "rgba(255, 99, 132, 0.2)",
-                "rgba(54, 162, 235, 0.2)",
-              ],
-              borderColor: [
-                "rgba(75, 192, 192, 1)",
-                "rgba(255, 99, 132, 1)",
-                "rgba(54, 162, 235, 1)",
-              ],
-              borderWidth: 1,
+      function renderTable(data) {
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        let tableRowData = [];
+    
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // Xóa nội dung cũ
+        //let index = -1;
+        let Data = data.Message;
+        Data.forEach((row, index) => {
+    
+          const tableRow = document.createElement('tr');
+    
+          // Thêm id vào dữ liệu row để lưu trữ
+          let rowWithId = {
+            id: index,
+            ...row
+          };
+          tableRowData.push(rowWithId);
+    
+          tableRow.setAttribute("data-id", row.id);
+    
+          //Tiêu đề
+          const tieuDeTd = document.createElement('td');
+          const tieuDeInput = document.createElement('input');
+          tieuDeInput.type = 'text'; // Loại input là text
+          tieuDeInput.value = row.Title; // Gán giá trị ban đầu
+          tieuDeInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          tieuDeInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          tieuDeTd.appendChild(tieuDeInput);
+          tieuDeInput.id = `tieuDeInput_${index}`;
+          tableRow.appendChild(tieuDeTd);
+
+          //Lời nhắn
+          const loiNhanTd = document.createElement('td');
+          const loiNhanInput = document.createElement('input');
+          loiNhanInput.type = 'text'; // Loại input là text
+          loiNhanInput.value = row.LoiNhan; // Gán giá trị ban đầu
+          loiNhanInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          loiNhanInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          loiNhanTd.appendChild(loiNhanInput);
+          loiNhanInput.id = `loiNhanInput_${index}`;
+          tableRow.appendChild(loiNhanTd);
+
+          // Deadline
+          const deadlineValue = new Date(row.Deadline).toISOString().slice(0, 16);
+          const deadlineTd = document.createElement('td');
+          const deadlineInput = document.createElement('input');
+          deadlineInput.type = 'datetime-local'; // Loại input là text
+          deadlineInput.value = deadlineValue; // Gán giá trị ban đầu
+          deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          deadlineTd.appendChild(deadlineInput);
+          deadlineInput.id = `deadlineInput_${index}`;
+          tableRow.appendChild(deadlineTd);
+
+          //Check box chọn thông báo 
+          let selectCheckboxTd, selectCheckbox;
+          selectCheckboxTd = document.createElement('td');
+          selectCheckbox = document.createElement('input');
+          selectCheckbox.type = 'checkbox';
+          selectCheckbox.style.marginLeft = '30px';
+          selectCheckbox.name = 'select'; // Thêm thuộc tính name
+          selectCheckbox.checked = row.HetHan || false; // Dùng một trường cho checkbox
+          selectCheckboxTd.appendChild(selectCheckbox);
+          tableRow.appendChild(selectCheckboxTd);
+
+          //button xoá thông báo
+          let deleteButtonTd, deleteButton;
+          deleteButtonTd = document.createElement('td');
+          deleteButton = document.createElement('button');
+          deleteButton.style.marginLeft = '30px'; // Canh chỉnh nút
+          deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
+          deleteButton.onclick = () => {
+              const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');
+              if (confirmed) {
+                  tableRow.remove(); // Xóa dòng tương ứng
+                  // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
+                  deleteData(row.id); // Gọi hàm xóa dữ liệu trong database
+              }
+          };
+          deleteButtonTd.appendChild(deleteButton);
+          tableRow.appendChild(deleteButtonTd);
+    
+          tableBody.appendChild(tableRow);
+        });
+
+        // Lưu dữ liệu với id vào localStorage
+        localStorage.setItem('tableData', JSON.stringify(tableRowData));
+      }
+    
+    </script>
+    <script>
+      async function submitData() {
+        const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
+        const rowCount = rows.length;
+        const globalData = [];
+        
+        rows.forEach((row, index) => {
+
+          const tieuDeInput = document.getElementById(`tieuDeInput_${index}`);
+          const tieuDe = tieuDeInput ? tieuDeInput.value : '';
+    
+          const loiNhanInput = document.getElementById(`loiNhanInput_${index}`);
+          const loiNhan = loiNhanInput ? loiNhanInput.value : '';
+    
+          const deadlineInput = document.getElementById(`deadlineInput_${index}`);
+          const deadline = deadlineInput ? deadlineInput.value : null;
+
+          // Lấy trạng thái từ selectCheckbox
+          const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
+          const isChecked = selectCheckbox ? selectCheckbox.checked : false;
+          
+          // Đẩy dữ liệu vào globalData
+          globalData.push({
+            tieuDe,
+            loiNhan,
+            deadline,
+            isChecked,
+            id: row.dataset.id, // Thêm thông tin index vào để theo dõi
+          });
+          console.log(globalData);
+        });
+    
+        // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
+        update(globalData);
+      }
+    
+      // Gửi dữ liệu lên server
+      function update(globalData) {
+        console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
+        fetch('/updateMessage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
+              });
+            }
+            return response.json(); // Chuyển đổi phản hồi thành JSON
+          })
+          .then(data => {
+            console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+            getMessage();
+          })
+          .catch(error => {
+            console.error('Có lỗi xảy ra:', error);
+            console.log(error.message);
+          });
+      }
+      function deleteData(id) {
+        fetch('/deleteMessage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-          ],
-        },
-      });
-      // Nút quay về đầu trang
-      function topFunction() {
-        document.body.scrollTop = 0; // Cho Safari
-        document.documentElement.scrollTop = 0; // Cho Chrome, Firefox, IE và Opera
+            body: JSON.stringify({ id }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Lỗi khi xóa dữ liệu');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Cập nhật giao diện, ví dụ: xóa hàng khỏi bảng
+                const row = document.querySelector(`tr[data-id="${id}"]`);
+                if (row) row.remove();
+            } else {
+                alert(`Lỗi: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error('Có lỗi xảy ra:', error);
+            alert(`Không thể xóa: ${error.message}`);
+        });
       }
     </script>
-
     <script>
       window.onload = function () {
         const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
@@ -675,6 +681,33 @@ function closeNotification(index) {
             window.location.href = `/infome/${id_User}`;
         } else {
             alert("Không tìm thấy id_User trong localStorage.");
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
         }
       });
     </script>

@@ -73,7 +73,6 @@
                     <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
                     <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
                     <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-
                     <a  class="nav-link " href="/infoHDGvm" role="button">Thông tin hợp đồng</a>   
                     <li class="nav-item"></li>
                       <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
@@ -91,11 +90,10 @@
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
-                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
+                    <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                     <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                     <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                     <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
-              
                   </div>
                 </div>
               </div>
@@ -106,7 +104,8 @@
                     Nghiên Cứu Khoa Học
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
+                    <a class="nav-link" id="" href="#">COMING SOON</a>              
+                  </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -116,7 +115,8 @@
                     Đồ Án
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
+                    <a class="nav-link" id="" href="#">COMING SOON</a>              
+                  </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -133,7 +133,6 @@
                   </div>
                 </div>
               </div>
-              </div>
               <div class="navbar-nav">
                 <div class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
@@ -145,6 +144,7 @@
                   </div>
                 </div>
               </div>
+            </ul>
               <div class="navbar-nav">
                 <div class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
@@ -154,11 +154,11 @@
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
                     <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                    <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
                     <a class="dropdown-item" href="/">Đăng xuất</a>
                   </div>
                 </div>
               </div>
-            </ul>
           </div>
         </div>
       </nav>
@@ -166,10 +166,6 @@
         <form action="/daotaonhap" enctype="multipart/form-data" class="form" method="POST">
           <fieldset>
           <div class="row mb-3">
-            <!-- <div class="col-md-4">
-              <label for="id_GVM">Mã giảng viên mời:</label>
-              <input required class="form-control" type="text" name="Id_GVM" id="id_GVM">
-            </div> -->
             <div class="col-md-4">
               <label for="HoTen">Họ tên:</label>
                 <input required class="form-control" type="text" name="HoTen" id="HoTen">
@@ -292,18 +288,6 @@
             </div>
           </div>
         <div class="row mb-3" style="position: relative;">
-            <!-- <div class="col-md-4">
-                <p style="margin-bottom: 8px;">Mã phòng ban</p>
-                <label>
-                    <input class="m-2" type="checkbox" name="maPhongBan" value="CNTT" style="cursor: pointer;"> CNTT
-                </label>
-                <label>
-                    <input class="m-2" type="checkbox" name="maPhongBan" value="ATTT" style="cursor: pointer;"> ATTT
-                </label>
-                <label>
-                    <input class="m-2" type="checkbox" name="maPhongBan" value="DTVT" style="cursor: pointer;"> DTVT
-                </label>
-            </div> -->
             <div class="col-md-4">
                 <label for="tinhTrang">Tình trạng giảng dạy:</label>
                 <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
@@ -553,6 +537,33 @@
         }
       });
     </script>
-</body>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+  <script>
+      document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
+  </body>
 </html>
 
