@@ -493,14 +493,14 @@
         <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
         <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
         <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
-        <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
+        <strong>Hạn chót:</strong> <span style = "color:red">${new Date(message.Deadline).toLocaleString("vi-VN", {
           weekday: "long",
           year: "numeric",
           month: "long",
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit"
-        })}
+        })}</span>
       </p>
       <div class="actions">
         <button class="read" onclick="closeNotification(${i})">Đã xem</button>
