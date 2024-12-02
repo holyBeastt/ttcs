@@ -317,19 +317,19 @@
 
         <!-- Combo box Đợt -->
         <select class="form-select w-100px mx-1 selectop" id="combobox-dot">
-          <option value="">Tất cả đợt</option>
         </select>
 
         <!-- Combo box kì -->
         <select class="form-select w-100px mx-1 selectop" id="comboboxki">
-          <option value="">Tất cả kỳ</option>
         </select>
 
         <!-- Combo box Năm -->
         <select class="form-select w-100px mx-1 selectop" id="NamHoc">
-          <option value="">Tất cả năm</option>
         </select>
 
+        <!-- Combo box Khoa -->
+        <select class="form-select w-100px mx-1 selectop" id="Khoa">
+        </select>
 
       </div>
       <div class="overflow-auto">
@@ -368,10 +368,48 @@
     </div>
     <script>
         $(document).ready(function () {
-            $('#NamHoc option[value=""]').remove();
-            $('#comboboxki option[value=""]').remove();
-            $('#combobox-dot option[value=""]').remove();
+            // Biến để theo dõi số lượng combobox đã được khởi tạo
+            let initializedComboboxes = 0;
+            const totalComboboxes = 4; // Tổng số combobox cần khởi tạo
 
+            function checkAndFetchData() {
+                initializedComboboxes++;
+                if (initializedComboboxes === totalComboboxes) {
+                    fetchThongkemgData();
+                }
+            }
+
+            // Xóa các option mặc định
+            $('#NamHoc option').remove();
+            $('#comboboxki option').remove();
+            $('#combobox-dot option').remove();
+            $('#Khoa option').remove();
+
+            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            $.ajax({
+                url: '/getPhongBan',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm option "Tất cả khoa"
+                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+                        
+                        // Thêm các option khoa không trùng lặp
+                        response.MaPhongBan.forEach(function (item) {
+                            $('#Khoa').append(
+                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                            );
+                        });
+                        checkAndFetchData();
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+                    checkAndFetchData();
+                }
+            });
+
+            // Khởi tạo các combobox khác
             $.ajax({
                 url: '/getNamHoc',
                 method: 'GET',
@@ -379,33 +417,35 @@
                     if (response.success) {
                         // Thêm dữ liệu năm học
                         response.NamHoc.forEach(function (item) {
-                            console.log(item.NamHoc);
                             $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu kỳ học
                         response.Ki.forEach(function (item) {
-                            console.log(item.Ki);
                             $('#comboboxki').append(
                                 `<option value="${item.value}">${item.Ki}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu đợt
                         response.Dot.forEach(function (item) {
-                            console.log(item.Dot);
                             $('#combobox-dot').append(
                                 `<option value="${item.value}">${item.Dot}</option>`
                             );
                         });
-                    } else {
-                        console.error("Không lấy được dữ liệu:", response.message);
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
+                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
+                    checkAndFetchData();
+                    checkAndFetchData();
+                    checkAndFetchData();
                 }
             });
         });
@@ -417,6 +457,7 @@
                 const dot = document.getElementById('combobox-dot').value;
                 const ki = document.getElementById('comboboxki').value;
                 const nam = document.getElementById('NamHoc').value;
+                const khoa = document.getElementById('Khoa').value;
                 
                 let url = '/api/thongkemg-data';
                 const params = new URLSearchParams();
@@ -424,6 +465,7 @@
                 if (dot) params.append('dot', dot);
                 if (ki) params.append('kihoc', ki);
                 if (nam) params.append('namhoc', nam);
+                if (khoa) params.append('khoa', khoa);
                 
                 if (params.toString()) {
                     url += '?' + params.toString();
@@ -511,6 +553,7 @@
         document.getElementById('combobox-dot').addEventListener('change', fetchThongkemgData);
         document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
         document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
+        document.getElementById('Khoa').addEventListener('change', fetchThongkemgData);
         document.getElementById('render').addEventListener('click', fetchThongkemgData);
     </script>
 
@@ -538,7 +581,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';
@@ -558,5 +601,79 @@
         }
       });
     </script>
+    
+  <script>
+    window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        let Role = localStorage.getItem("userRole");
+        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+            Role = 'LĐK';
+        }
+        if (TenNhanVien) {
+            // Hiển thị tên người dùng và role trên phần tử HTML
+            document.querySelector(
+                ".fullname"
+            ).innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+            document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+        }
+    };
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+            actionButton.style.display = '';
+        } else {
+            actionButton.style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+        if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("infome").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
+        if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+        } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+        }
+    });
+</script>
   </body>
 </html>

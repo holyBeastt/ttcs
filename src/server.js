@@ -97,6 +97,7 @@ app.use("/", vuotGioExportDoAnRoute);
 app.use("/", thongkemgRoute);
 app.use("/", thayDoiTTGiamDocTrongHDRoute);
 
+
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
@@ -118,11 +119,12 @@ const importFile = require("./routes/importRoute");
 const infoGvm = require("./routes/infoRoute");
 const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
-const { log } = require("console");
-//const { require } = require("app-root-path");
+const nckhRoute = require("./routes/nckhRoute");
 
 app.use("/", importFile); // cấu hình import
 app.use("/", infoGvm); // cấu hình import
 app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
+app.use("/", nckhRoute);
+
 // Thay đổi giới hạn kích thước payload (ví dụ: 10mb)

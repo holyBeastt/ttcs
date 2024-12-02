@@ -7,7 +7,7 @@ const thongkemgController = {
 
     getThongkemgData: async (req, res) => {
         let connection;
-        const { dot, kihoc, namhoc } = req.query;
+        const { dot, kihoc, namhoc, khoa } = req.query;
 
         try {
             connection = await createConnection();
@@ -17,13 +17,28 @@ const thongkemgController = {
                 WHERE 1=1
             `;
             
-            if (dot) query += ` AND dot = '${dot}'`;
-            if (kihoc) query += ` AND kihoc = '${kihoc}'`;
-            if (namhoc) query += ` AND namhoc = '${namhoc}'`;
+            const params = [];
+            
+            if (khoa && khoa !== 'ALL') {
+                query += ` AND MaPhongBan = ?`;
+                params.push(khoa);
+            }
+            if (dot && dot !== 'ALL') {
+                query += ` AND dot = ?`;
+                params.push(dot);
+            }
+            if (kihoc && kihoc !== 'ALL') {
+                query += ` AND kihoc = ?`;
+                params.push(kihoc);
+            }
+            if (namhoc && namhoc !== 'ALL') {
+                query += ` AND namhoc = ?`;
+                params.push(namhoc);
+            }
             
             query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
             
-            const [result] = await connection.query(query);
+            const [result] = await connection.query(query, params);
             res.json(result);
         } catch (err) {
             console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
