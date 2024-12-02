@@ -201,7 +201,6 @@
           </button>
         </div>
 
-        <div id="dataContainer" data-gvm-list='<%= JSON.stringify(gvmoiList) %>'></div>
 
 
         <script>
@@ -401,63 +400,70 @@
           });
         </script>
         <script>
-          const gvmList = JSON.parse(document.getElementById("dataContainer").getAttribute("data-gvm-list"));
-
-          localStorage.setItem("gvmList", JSON.stringify(gvmList));
-          console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
-
+          // Hàm để lấy danh sách giảng viên từ API
+          async function fetchGiangVienList() {
+              try {
+                  const response = await fetch('/api/giangvien'); // Gọi API
+                  if (!response.ok) {
+                      throw new Error('Network response was not ok');
+                  }
+                  const gvmList = await response.json(); // Chuyển đổi dữ liệu thành JSON
+                  return gvmList;
+              } catch (error) {
+                  console.error("Error fetching giang vien list:", error);
+                  return []; // Trả về mảng rỗng nếu có lỗi
+              }
+          }
+      
           // Hàm gợi ý bộ môn ở ô nhập 
-          function showSuggestionsGvm(input) {
-            const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-            hideSuggestionsGvm(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
+          async function showSuggestionsGvm(input) {
+              const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+              hideSuggestionsGvm(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý
+      
+              // Lấy danh sách giảng viên từ API
+              const gvmList = await fetchGiangVienList();
+      
+              // Tạo thẻ div chứa gợi ý
+              const suggestionsContainer = document.createElement('div');
+              suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
+      
+              // Đặt vị trí cho suggestionsContainer
+              const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
+              suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
+              suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
+              suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
+              suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
+              suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
+              suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
+              suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
+      
+              // Thêm suggestionsContainer vào DOM
+              document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
+      
+              let suggestions = []; // Khởi tạo mảng gợi ý
+      
+              // Tạo danh sách gợi ý với GiangVien và Khoa
+              suggestions = gvmList.map(item => `${item.GiangVien} - ${item.Khoa}`);
+      
+              // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
+              if (value) {
+                  suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+              }
+      
+              // Nếu không có gợi ý, ẩn container
+              if (suggestions.length === 0) {
+                  suggestionsContainer.remove();
+                  return; // Kết thúc hàm nếu không có gợi ý
+              }
+      
+              // Tạo gợi ý dưới dạng danh sách (list)
+              suggestions.forEach(name => {
+                  const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
+            suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
+            suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
 
-            // Tạo thẻ div chứa gợi ý
-            const suggestionsContainer = document.createElement('div');
-            suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
-
-            // Đặt vị trí cho suggestionsContainer
-            const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-            suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-            suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-            suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-            suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-            suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-            suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-            suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
-
-            // Thêm suggestionsContainer vào DOM
-            document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
-
-            let suggestions = []; // Khởi tạo mảng gợi ý
-
-            // Lấy dữ liệu từ localStorage
-            const boMon = JSON.parse(localStorage.getItem("gvmList")) || []; // Giảng viên mời
-            console.log(gvmList)
-
-            suggestions = gvmList.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
-
-            console.log("value= " + value);
-
-            // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-            if (value) {
-              suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-            }
-
-            // Nếu không có gợi ý, ẩn container
-            if (suggestions.length === 0) {
-              suggestionsContainer.remove();
-              return; // Kết thúc hàm nếu không có gợi ý
-            }
-
-            // Tạo gợi ý dưới dạng danh sách (list)
-            suggestions.forEach(name => {
-              const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-              suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-              suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
-
-              // Thêm sự kiện click để điền tên vào ô input
-              suggestionItem.onclick = function () {
-                // Giả sử 'name' là giá trị gợi ý bạn nhận được từ suggestionItem
+            // Thêm sự kiện click để điền tên vào ô input
+            suggestionItem.onclick = function () {
                 const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
 
                 // Tìm vị trí của dấu "-" trong chuỗi
@@ -467,37 +473,31 @@
                 let processedName = name;
 
                 if (dashIndex !== -1) {
-                  // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-                  //processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
-                  processedName = name.slice(0, dashIndex).trim();
-
+                    // Lấy phần trước dấu "-" (tên giảng viên)
+                    processedName = name.slice(0, dashIndex).trim();
                 }
 
-                input.value = processedName;
+                input.value = processedName; // Đặt giá trị vào ô input
 
                 hideSuggestionsGvm(); // Ẩn gợi ý sau khi chọn
-              };
-
-
-              suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-            });
-
-            // Ẩn gợi ý khi input không còn focus
-            input.onblur = function () {
-              setTimeout(() => {
-                hideSuggestionsGvm();
-              }, 100); // Thời gian chờ để nhận diện click
             };
-          }
 
-          function hideSuggestionsGvm() {
-            const existingSuggestions = document.querySelectorAll('.suggestions');
-            existingSuggestions.forEach(suggestion => suggestion.remove());
-          }
+            suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
+        });
 
+        // Ẩn gợi ý khi input không còn focus
+        input.onblur = function () {
+            setTimeout(() => {
+                hideSuggestionsGvm();
+            }, 100); // Thời gian chờ để nhận diện click
+        };
+    }
 
-
-        </script>
+    function hideSuggestionsGvm() {
+        const existingSuggestions = document.querySelectorAll('.suggestions');
+        existingSuggestions.forEach(suggestion => suggestion.remove());
+    }
+</script>
 
 </body>
 
