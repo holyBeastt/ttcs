@@ -33,6 +33,7 @@ const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
 const vuotGioExportDoAnRoute = require("./routes/vuotGioExportDoAnRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
+const thayDoiTTGiamDocTrongHDRoute = require("./routes/thayDoiTTGiamDocTrongHDRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -94,6 +95,7 @@ app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioSoTietDMRouter);
 app.use("/", vuotGioExportDoAnRoute);
 app.use("/", thongkemgRoute);
+app.use("/", thayDoiTTGiamDocTrongHDRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
