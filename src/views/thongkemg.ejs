@@ -479,69 +479,206 @@
                 const tableBody = document.getElementById('tableBody');
                 tableBody.innerHTML = '';
                 
-                data.forEach((item, index) => {
+                if (!data || data.length === 0) {
+                    // Nếu không có dữ liệu, hiển thị một hàng thông báo
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${item.hoten}</td>
-                        <td>${item.tongsotiet}</td>
+                        <td colspan="4" style="text-align: center;">Không có dữ liệu cho khoảng thời gian này</td>
                     `;
                     tableBody.appendChild(row);
-                });
-
-                // Thêm dòng này để tính tổng
-                calculateTotals();
-
-                // Cập nhật biểu đồ
-                const labels = data.map(item => item.hoten);
-                const values = data.map(item => item.tongsotiet);
-
-                if (myChart) {
-                    myChart.destroy();
+                    
+                    // Xóa các biểu đồ
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    const existingGvChart = document.getElementById('gvChart');
+                    if (existingGvChart) {
+                        existingGvChart.remove();
+                    }
+                    
+                    // Reset tổng số tiết
+                    document.getElementById('total').textContent = '0';
+                    return;
                 }
+                
+                if (khoa === 'ALL') {
+                    // Hiển thị dữ liệu theo khoa
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.khoa}</td>
+                            <td>${item.tongsotiet}</td>
+                            <td>${item.sogiangvien}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
 
-                const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Số tiết mời giảng',
-                            data: values,
-                            backgroundColor: 'blue',
-                            borderColor: 'black',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 100
-                                }
+                    // Cập nhật header bảng
+                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
+                        <th>STT</th>
+                        <th>Khoa</th>
+                        <th>Tổng số tiết</th>
+                        <th>Số giảng viên mời</th>
+                    `;
+                    
+                    // Xóa biểu đồ cũ nếu có
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    
+                    // Xóa biểu đồ số giảng viên cũ nếu có
+                    const existingGvChart = document.getElementById('gvChart');
+                    if (existingGvChart) {
+                        existingGvChart.remove();
+                    }
+
+                    // Kiểm tra xem có dữ liệu không
+                    if (data && data.length > 0) {
+                        // Vẽ biểu đồ tròn
+                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                        myChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: data.map(item => item.khoa),
+                                datasets: [{
+                                    data: data.map(item => item.tongsotiet),
+                                    backgroundColor: [
+                                        '#FF6384',
+                                        '#36A2EB',
+                                        '#FFCE56',
+                                        '#4BC0C0',
+                                        '#9966FF',
+                                        '#FF9F40'
+                                    ]
+                                }]
                             },
-                            x: {
-                                ticks: {
-                                    font: {
-                                        weight: 'bold',
-                                        size: 14
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
                                     },
-                                    maxRotation: 45,
-                                    minRotation: 0
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const dataset = context.dataset;
+                                                const total = dataset.data.reduce((acc, data) => acc + Number(data), 0);
+                                                const currentValue = dataset.data[context.dataIndex];
+                                                const percentage = parseFloat((currentValue/total * 100).toFixed(1));
+                                                return `${context.label}: ${currentValue} tiết (${percentage}%)`;
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        });
+
+                        // Thêm biểu đồ cột cho số giảng viên
+                        const gvCanvas = document.createElement('canvas');
+                        gvCanvas.id = 'gvChart';
+                        document.getElementById('thongkemgCanvas').parentNode.insertBefore(gvCanvas, document.getElementById('thongkemgCanvas').nextSibling);
+
+                        new Chart(gvCanvas, {
+                            type: 'bar',
+                            data: {
+                                labels: data.map(item => item.khoa),
+                                datasets: [{
+                                    label: 'Số giảng viên mời',
+                                    data: data.map(item => item.sogiangvien),
+                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            stepSize: 1
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // Hiển thị thông báo không có dữ liệu
+                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                        ctx.font = '16px Arial';
+                        ctx.fillStyle = 'gray';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Không có dữ liệu cho khoảng thời gian này', ctx.canvas.width/2, ctx.canvas.height/2);
+                    }
+                } else {
+                    // Hiển thị dữ liệu theo giảng viên
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.hoten}</td>
+                            <td>${item.tongsotiet}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Cập nhật header bảng
+                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
+                        <th>STT</th>
+                        <th>Họ tên</th>
+                        <th>Tổng số tiết</th>
+                    `;
+                    
+                    // Vẽ biểu đồ cột
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.hoten),
+                            datasets: [{
+                                label: 'Số tiết mời giảng',
+                                data: data.map(item => item.tongsotiet),
+                                backgroundColor: 'blue',
+                                borderColor: 'black',
+                                borderWidth: 1
+                            }]
                         },
-                        elements: {
-                            bar: {
-                                barThickness: 20
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
+                    });
+
+                    // Xóa biểu đồ số giảng viên nếu tồn tại
+                    const gvChart = document.getElementById('gvChart');
+                    if (gvChart) {
+                        gvChart.remove();
                     }
-                });
+                }
+
+                // Cập nhật tổng số tiết
+                calculateTotals();
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
+                // Hiển thị thông báo lỗi trong bảng
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: red;">
+                            Đã xảy ra lỗi khi tải dữ liệu
+                        </td>
+                    </tr>
+                `;
             }
         }
 
