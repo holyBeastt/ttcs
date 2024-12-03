@@ -180,7 +180,7 @@
       <div class="collapse navbar-collapse " style="width: 100%;" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link active" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+            <a class="nav-link " id="Home" href=""><i class="fa-solid fa-house"></i></a>
           </li>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
@@ -269,12 +269,12 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Thống Kê
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/ThongkeMG">Mời Giảng</a>
+                <a class="nav-link active" id="" href="/ThongkeMG">Mời Giảng</a>
                 <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
@@ -352,6 +352,9 @@
 
     <!-- Bảng chi tiết số tiết của giảng viên -->
      <h3>Bảng chi tiết số tiết mời giảng</h3>
+     <div class="total-label">
+       <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
+     </div>
     <table class="table table-bordered my-2" border="1" id="thongkemgTable">
         <thead>
             <tr>
@@ -364,9 +367,6 @@
             <!-- Dữ liệu bảng sẽ được chèn vào đây -->
         </tbody>
     </table>
-    <div class="total-label">
-      <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
-    </div>
     <script>
         $(document).ready(function () {
             // Biến để theo dõi số lượng combobox đã được khởi tạo
