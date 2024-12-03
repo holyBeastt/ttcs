@@ -450,11 +450,14 @@
           tableRow.appendChild(loiNhanTd);
 
           // Deadline
-          const deadlineValue = new Date(row.Deadline).toISOString().slice(0, 16);
+          const deadlineValue = new Date(row.Deadline);
+          deadlineValue.setMinutes(deadlineValue.getMinutes() - deadlineValue.getTimezoneOffset()); // Chuyển đổi sang giờ địa phương
+          const formattedDeadlineValue = deadlineValue.toISOString().slice(0, 16);
+          console.log(deadlineValue);
           const deadlineTd = document.createElement('td');
           const deadlineInput = document.createElement('input');
           deadlineInput.type = 'datetime-local'; // Loại input là text
-          deadlineInput.value = deadlineValue; // Gán giá trị ban đầu
+          deadlineInput.value = formattedDeadlineValue; // Gán giá trị ban đầu
           deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
           deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
           // Gắn input vào ô td
