@@ -402,7 +402,7 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
     titleRow17.height = 40; // Tăng chiều cao hàng
 
     let tableCount1 = 5; // Biến đếm số bảng
-    let totalSoTietKTALL = 0; // Tổng số tiết TKB cho tất cả các bảng
+    let totalSoTietKTAll = 0; // Khai báo biến totalSoTietKTAll ở đầu hàm
 
     for (const ky in groupedResultsGiuaKy) {
       for (const he in groupedResultsGiuaKy[ky]) {
@@ -451,7 +451,7 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
           ]);
 
           totalSoTietKT += row.SoTietKT; // Số tiết theo TKB
-          totalSoTietKTAll += row.SoTietKT;
+          totalSoTietKTAll += row.SoTietKT; // Cộng dồn vào tổng số tiết cho tất cả các bảng
 
 
           // Định dạng dòng dữ liệu
@@ -486,7 +486,7 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
       "", // Lớp học phần
       "", // Loại hình đào tạo
       "", // Tổng số tiết theo TKB cho tất cả các bảng
-      totalSoTietKTALL // Tổng số tiết quy chuẩn cho tất cả các bảng
+      totalSoTietKTAll // Tổng số tiết quy chuẩn cho tất cả các bảng
     ]);
 
     // Gộp cột A và B cho dòng tổng kết
