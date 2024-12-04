@@ -12,7 +12,7 @@
   <style>
     /* Định dạng cho bảng */
     .table {
-        width: 100%;
+        width: 80%;
         border-collapse: separate;
         border-spacing: 0;
         margin-top: 20px;
@@ -20,6 +20,7 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         border-radius: 8px;
         overflow: hidden;
+        justify-self: center;
     }
 
     .table th,
@@ -179,7 +180,7 @@
       <div class="collapse navbar-collapse " style="width: 100%;" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link active" id="Home" href=""><i class="fa-solid fa-house"></i></a>
+            <a class="nav-link " id="Home" href=""><i class="fa-solid fa-house"></i></a>
           </li>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
@@ -268,12 +269,12 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Thống Kê
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/ThongkeMG">Mời Giảng</a>
+                <a class="nav-link active" id="" href="/ThongkeMG">Mời Giảng</a>
                 <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
@@ -317,19 +318,19 @@
 
         <!-- Combo box Đợt -->
         <select class="form-select w-100px mx-1 selectop" id="combobox-dot">
-          <option value="">Tất cả đợt</option>
         </select>
 
         <!-- Combo box kì -->
         <select class="form-select w-100px mx-1 selectop" id="comboboxki">
-          <option value="">Tất cả kỳ</option>
         </select>
 
         <!-- Combo box Năm -->
         <select class="form-select w-100px mx-1 selectop" id="NamHoc">
-          <option value="">Tất cả năm</option>
         </select>
 
+        <!-- Combo box Khoa -->
+        <select class="form-select w-100px mx-1 selectop" id="Khoa">
+        </select>
 
       </div>
       <div class="overflow-auto">
@@ -351,6 +352,9 @@
 
     <!-- Bảng chi tiết số tiết của giảng viên -->
      <h3>Bảng chi tiết số tiết mời giảng</h3>
+     <div class="total-label">
+       <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
+     </div>
     <table class="table table-bordered my-2" border="1" id="thongkemgTable">
         <thead>
             <tr>
@@ -363,15 +367,50 @@
             <!-- Dữ liệu bảng sẽ được chèn vào đây -->
         </tbody>
     </table>
-    <div class="total-label">
-      <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
-    </div>
     <script>
         $(document).ready(function () {
-            $('#NamHoc option[value=""]').remove();
-            $('#comboboxki option[value=""]').remove();
-            $('#combobox-dot option[value=""]').remove();
+            // Biến để theo dõi số lượng combobox đã được khởi tạo
+            let initializedComboboxes = 0;
+            const totalComboboxes = 4; // Tổng số combobox cần khởi tạo
 
+            function checkAndFetchData() {
+                initializedComboboxes++;
+                if (initializedComboboxes === totalComboboxes) {
+                    fetchThongkemgData();
+                }
+            }
+
+            // Xóa các option mặc định
+            $('#NamHoc option').remove();
+            $('#comboboxki option').remove();
+            $('#combobox-dot option').remove();
+            $('#Khoa option').remove();
+
+            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            $.ajax({
+                url: '/getPhongBan',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm option "Tất cả khoa"
+                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+                        
+                        // Thêm các option khoa không trùng lặp
+                        response.MaPhongBan.forEach(function (item) {
+                            $('#Khoa').append(
+                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                            );
+                        });
+                        checkAndFetchData();
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+                    checkAndFetchData();
+                }
+            });
+
+            // Khởi tạo các combobox khác
             $.ajax({
                 url: '/getNamHoc',
                 method: 'GET',
@@ -379,33 +418,35 @@
                     if (response.success) {
                         // Thêm dữ liệu năm học
                         response.NamHoc.forEach(function (item) {
-                            console.log(item.NamHoc);
                             $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu kỳ học
                         response.Ki.forEach(function (item) {
-                            console.log(item.Ki);
                             $('#comboboxki').append(
                                 `<option value="${item.value}">${item.Ki}</option>`
                             );
                         });
+                        checkAndFetchData();
 
                         // Thêm dữ liệu đợt
                         response.Dot.forEach(function (item) {
-                            console.log(item.Dot);
                             $('#combobox-dot').append(
                                 `<option value="${item.value}">${item.Dot}</option>`
                             );
                         });
-                    } else {
-                        console.error("Không lấy được dữ liệu:", response.message);
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
+                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
+                    checkAndFetchData();
+                    checkAndFetchData();
+                    checkAndFetchData();
                 }
             });
         });
@@ -417,6 +458,7 @@
                 const dot = document.getElementById('combobox-dot').value;
                 const ki = document.getElementById('comboboxki').value;
                 const nam = document.getElementById('NamHoc').value;
+                const khoa = document.getElementById('Khoa').value;
                 
                 let url = '/api/thongkemg-data';
                 const params = new URLSearchParams();
@@ -424,6 +466,7 @@
                 if (dot) params.append('dot', dot);
                 if (ki) params.append('kihoc', ki);
                 if (nam) params.append('namhoc', nam);
+                if (khoa) params.append('khoa', khoa);
                 
                 if (params.toString()) {
                     url += '?' + params.toString();
@@ -436,69 +479,206 @@
                 const tableBody = document.getElementById('tableBody');
                 tableBody.innerHTML = '';
                 
-                data.forEach((item, index) => {
+                if (!data || data.length === 0) {
+                    // Nếu không có dữ liệu, hiển thị một hàng thông báo
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${item.hoten}</td>
-                        <td>${item.tongsotiet}</td>
+                        <td colspan="4" style="text-align: center;">Không có dữ liệu cho khoảng thời gian này</td>
                     `;
                     tableBody.appendChild(row);
-                });
-
-                // Thêm dòng này để tính tổng
-                calculateTotals();
-
-                // Cập nhật biểu đồ
-                const labels = data.map(item => item.hoten);
-                const values = data.map(item => item.tongsotiet);
-
-                if (myChart) {
-                    myChart.destroy();
+                    
+                    // Xóa các biểu đồ
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    const existingGvChart = document.getElementById('gvChart');
+                    if (existingGvChart) {
+                        existingGvChart.remove();
+                    }
+                    
+                    // Reset tổng số tiết
+                    document.getElementById('total').textContent = '0';
+                    return;
                 }
+                
+                if (khoa === 'ALL') {
+                    // Hiển thị dữ liệu theo khoa
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.khoa}</td>
+                            <td>${item.tongsotiet}</td>
+                            <td>${item.sogiangvien}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
 
-                const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Số tiết mời giảng',
-                            data: values,
-                            backgroundColor: 'blue',
-                            borderColor: 'black',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 100
-                                }
+                    // Cập nhật header bảng
+                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
+                        <th>STT</th>
+                        <th>Khoa</th>
+                        <th>Tổng số tiết</th>
+                        <th>Số giảng viên mời</th>
+                    `;
+                    
+                    // Xóa biểu đồ cũ nếu có
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    
+                    // Xóa biểu đồ số giảng viên cũ nếu có
+                    const existingGvChart = document.getElementById('gvChart');
+                    if (existingGvChart) {
+                        existingGvChart.remove();
+                    }
+
+                    // Kiểm tra xem có dữ liệu không
+                    if (data && data.length > 0) {
+                        // Vẽ biểu đồ tròn
+                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                        myChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: data.map(item => item.khoa),
+                                datasets: [{
+                                    data: data.map(item => item.tongsotiet),
+                                    backgroundColor: [
+                                        '#FF6384',
+                                        '#36A2EB',
+                                        '#FFCE56',
+                                        '#4BC0C0',
+                                        '#9966FF',
+                                        '#FF9F40'
+                                    ]
+                                }]
                             },
-                            x: {
-                                ticks: {
-                                    font: {
-                                        weight: 'bold',
-                                        size: 14
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
                                     },
-                                    maxRotation: 45,
-                                    minRotation: 0
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const dataset = context.dataset;
+                                                const total = dataset.data.reduce((acc, data) => acc + Number(data), 0);
+                                                const currentValue = dataset.data[context.dataIndex];
+                                                const percentage = parseFloat((currentValue/total * 100).toFixed(1));
+                                                return `${context.label}: ${currentValue} tiết (${percentage}%)`;
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        });
+
+                        // Thêm biểu đồ cột cho số giảng viên
+                        const gvCanvas = document.createElement('canvas');
+                        gvCanvas.id = 'gvChart';
+                        document.getElementById('thongkemgCanvas').parentNode.insertBefore(gvCanvas, document.getElementById('thongkemgCanvas').nextSibling);
+
+                        new Chart(gvCanvas, {
+                            type: 'bar',
+                            data: {
+                                labels: data.map(item => item.khoa),
+                                datasets: [{
+                                    label: 'Số giảng viên mời',
+                                    data: data.map(item => item.sogiangvien),
+                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            stepSize: 1
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // Hiển thị thông báo không có dữ liệu
+                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                        ctx.font = '16px Arial';
+                        ctx.fillStyle = 'gray';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Không có dữ liệu cho khoảng thời gian này', ctx.canvas.width/2, ctx.canvas.height/2);
+                    }
+                } else {
+                    // Hiển thị dữ liệu theo giảng viên
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.hoten}</td>
+                            <td>${item.tongsotiet}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Cập nhật header bảng
+                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
+                        <th>STT</th>
+                        <th>Họ tên</th>
+                        <th>Tổng số tiết</th>
+                    `;
+                    
+                    // Vẽ biểu đồ cột
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+
+                    const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.hoten),
+                            datasets: [{
+                                label: 'Số tiết mời giảng',
+                                data: data.map(item => item.tongsotiet),
+                                backgroundColor: 'blue',
+                                borderColor: 'black',
+                                borderWidth: 1
+                            }]
                         },
-                        elements: {
-                            bar: {
-                                barThickness: 20
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
                             }
                         }
+                    });
+
+                    // Xóa biểu đồ số giảng viên nếu tồn tại
+                    const gvChart = document.getElementById('gvChart');
+                    if (gvChart) {
+                        gvChart.remove();
                     }
-                });
+                }
+
+                // Cập nhật tổng số tiết
+                calculateTotals();
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
+                // Hiển thị thông báo lỗi trong bảng
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: red;">
+                            Đã xảy ra lỗi khi tải dữ liệu
+                        </td>
+                    </tr>
+                `;
             }
         }
 
@@ -511,6 +691,7 @@
         document.getElementById('combobox-dot').addEventListener('change', fetchThongkemgData);
         document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
         document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
+        document.getElementById('Khoa').addEventListener('change', fetchThongkemgData);
         document.getElementById('render').addEventListener('click', fetchThongkemgData);
     </script>
 
@@ -538,7 +719,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';
@@ -558,5 +739,95 @@
         }
       });
     </script>
+
+  <script>
+    window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        let Role = localStorage.getItem("userRole");
+        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+            Role = 'LĐK';
+        }
+        if (TenNhanVien) {
+            // Hiển thị tên người dùng và role trên phần tử HTML
+            document.querySelector(
+                ".fullname"
+            ).innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+            document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+        }
+    };
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+            actionButton.style.display = '';
+        } else {
+            actionButton.style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("changeMessage").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+        if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+        }
+    });
+</script>
+
+<script>
+    document.getElementById("infome").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
+        if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+        } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+        }
+    });
+     // Thêm sự kiện click cho phần tử có id="Home"
+
+     const Home = document.getElementById("Home");
+
+Home.addEventListener("click", function (event) {
+  event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+  const isKhoa = localStorage.getItem("isKhoa");
+
+  if (isKhoa == 0) {
+    // Nếu là đào tạo hoặc tài chính
+    window.location.href = "/maindt";
+  } else {
+    window.location.href = "/mainkhoa";
+  }
+});
+</script>
   </body>
 </html>

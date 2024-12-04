@@ -7,23 +7,55 @@ const thongkemgController = {
 
     getThongkemgData: async (req, res) => {
         let connection;
-        const { dot, kihoc, namhoc } = req.query;
+        const { dot, kihoc, namhoc, khoa } = req.query;
 
         try {
             connection = await createConnection();
-            let query = `
-                SELECT hoten, SUM(sotiet) as tongsotiet 
-                FROM hopdonggvmoi 
-                WHERE 1=1
-            `;
-            
-            if (dot) query += ` AND dot = '${dot}'`;
-            if (kihoc) query += ` AND kihoc = '${kihoc}'`;
-            if (namhoc) query += ` AND namhoc = '${namhoc}'`;
-            
-            query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
-            
-            const [result] = await connection.query(query);
+            let query;
+            const params = [];
+
+            if (khoa === 'ALL') {
+                // Query khi chọn tất cả khoa
+                query = `
+                    SELECT 
+                        MaPhongBan as khoa,
+                        COUNT(DISTINCT hoten) as sogiangvien,
+                        SUM(sotiet) as tongsotiet
+                    FROM hopdonggvmoi 
+                    WHERE 1=1
+                `;
+            } else {
+                // Query cho khoa cụ thể
+                query = `
+                    SELECT hoten, SUM(sotiet) as tongsotiet 
+                    FROM hopdonggvmoi 
+                    WHERE MaPhongBan = ?
+                `;
+                params.push(khoa);
+            }
+
+            // Thêm các điều kiện lọc khác
+            if (dot && dot !== 'ALL') {
+                query += ` AND dot = ?`;
+                params.push(dot);
+            }
+            if (kihoc && kihoc !== 'ALL') {
+                query += ` AND kihoc = ?`;
+                params.push(kihoc);
+            }
+            if (namhoc && namhoc !== 'ALL') {
+                query += ` AND namhoc = ?`;
+                params.push(namhoc);
+            }
+
+            // Thêm GROUP BY
+            if (khoa === 'ALL') {
+                query += ` GROUP BY MaPhongBan ORDER BY tongsotiet DESC`;
+            } else {
+                query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
+            }
+
+            const [result] = await connection.query(query, params);
             res.json(result);
         } catch (err) {
             console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);

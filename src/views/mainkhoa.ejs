@@ -381,33 +381,31 @@
   <script>
     async function loadMessage() {
 
-      try {
-        const response = await fetch(`/getMessage`, {
-          method: 'GET', // Gửi yêu cầu GET
-        });
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-        const data = await response.json(); // Lấy dữ liệu từ server
-        console.log(data);
-        if (data.success) {
-          if (data.Message && data.Message.length > 0) {
-            console.log('Dữ liệu thông báo:', data);
-            showNotifications(data);
-          } else {
-            alert("Dữ liệu trống!");
-          }
-        } else {
-          alert("Không tìm thấy dữ liệu!");
-        }
-      } catch (error) {
-        console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+    try {
+      const response = await fetch(`/getMessage`, {
+        method: 'GET', // Gửi yêu cầu GET
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
       }
+      const data = await response.json(); // Lấy dữ liệu từ server
+      console.log(data);
+      if (data.success) {
+        if (data.Message && data.Message.length > 0) {
+          console.log('Dữ liệu thông báo:', data);
+          showNotifications(data);
+        }
+      } else {
+        alert("Không tìm thấy dữ liệu!");
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
     }
-  </script>
-  <script>
-    function showNotifications(messages) {
-      const container = document.getElementById("notifications-container");
+  }
+</script>
+<script>
+  function showNotifications(messages) {
+  const container = document.getElementById("notifications-container");
 
       // Xóa nội dung cũ (nếu có)
       container.innerHTML = "";
@@ -438,14 +436,14 @@
         <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
         <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
         <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
-        <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
+        <strong>Hạn chót:</strong> <span style = "color:red">${new Date(message.Deadline).toLocaleString("vi-VN", {
           weekday: "long",
           year: "numeric",
           month: "long",
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit"
-        })}
+        })}</span>
       </p>
       <div class="actions">
         <button class="read" onclick="closeNotification(${i})">Đã xem</button>

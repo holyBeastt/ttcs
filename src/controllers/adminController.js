@@ -522,7 +522,7 @@ const AdminController = {
     let connection;
     try {
       const connection = await createPoolConnection();
-      const query1 = "SELECT *FROM `namhoc` ORDER BY trangthai DESC";
+      const query1 = "SELECT *FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
       const [result1] = await connection.query(query1);
       const query2 = "SELECT *FROM `ki` ORDER BY trangthai DESC";
       const [result2] = await connection.query(query2);
