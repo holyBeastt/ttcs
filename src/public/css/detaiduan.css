@@ -379,7 +379,7 @@ input[type="text"]::placeholder {
 
 /* Style cho container gợi ý phần nhập thành viên */
 .suggestions-container-dstv {
-    /* position: absolute; */
+    position: absolute;
     top: 100%;
     /* Đặt ngay dưới ô input */
     left: 0;
@@ -425,4 +425,52 @@ input[type="text"]::placeholder {
     margin-top: 20px;
     font-size: 14px;
     line-height: 1.6;
+}
+
+label[for="chuNhiem"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Khoảng cách giữa label và checkbox */
+}
+
+label[for="chuNhiem"] input[type="checkbox"] {
+    margin: 0;
+    /* Loại bỏ margin mặc định của checkbox */
+    vertical-align: middle;
+    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
+    width: 10%;
+    /* Giới hạn chiều rộng của checkbox */
+}
+
+label[for="thuKy"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Khoảng cách giữa label và checkbox */
+}
+
+label[for="thuKy"] input[type="checkbox"] {
+    margin: 0;
+    /* Loại bỏ margin mặc định của checkbox */
+    vertical-align: middle;
+    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
+    width: 10%;
+    /* Giới hạn chiều rộng của checkbox */
+}
+
+label[for="thanhVien"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Khoảng cách giữa label và checkbox */
+}
+
+label[for="thanhVien"] input[type="checkbox"] {
+    margin: 0;
+    /* Loại bỏ margin mặc định của checkbox */
+    vertical-align: middle;
+    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
+    width: 10%;
+    /* Giới hạn chiều rộng của checkbox */
 }
