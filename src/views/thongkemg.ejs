@@ -41,7 +41,6 @@
 
     .table th:last-child {
         border-right: 2px solid #dee2e6;
-        width: 20%;
     }
 
     .table tbody tr {
@@ -540,7 +539,7 @@
                     return;
                 }
 
-                // Cập nhật header của bảng dựa vào khoa được chọn
+                // Cập nhật header của bảng dựa vào khoa được ch��n
                 const tableHeader = document.querySelector('#thongkemgTable thead tr');
                 if (tableHeader) {
                     tableHeader.innerHTML = `
@@ -591,7 +590,7 @@
                 if (tableBody) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="${khoa === 'ALL' ? 4 : 3}" style="text-align: center; color: red;">
+                            <td colspan="3" style="text-align: center; color: red;">
                                 Đã xảy ra lỗi khi tải dữ liệu: ${error.message}
                             </td>
                         </tr>
@@ -617,6 +616,10 @@
                     if (window.pieChart instanceof Chart) {
                         window.pieChart.destroy();
                     }
+
+                    // Tính tổng số tiết
+                    const totalHours = data.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+
                     window.pieChart = new Chart(ctxPie, {
                         type: 'pie',
                         data: {
@@ -636,6 +639,34 @@
                             plugins: {
                                 legend: {
                                     position: 'right',
+                                    labels: {
+                                        // Tùy chỉnh nhãn để hiển thị phần trăm
+                                        generateLabels: function(chart) {
+                                            const data = chart.data;
+                                            if (data.labels.length && data.datasets.length) {
+                                                return data.labels.map((label, i) => {
+                                                    const value = data.datasets[0].data[i];
+                                                    const percentage = ((value / totalHours) * 100).toFixed(1);
+                                                    return {
+                                                        text: `${label} (${percentage}%)`,
+                                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                                        hidden: isNaN(value) || value === 0,
+                                                        index: i
+                                                    };
+                                                });
+                                            }
+                                            return [];
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const percentage = ((value / totalHours) * 100).toFixed(1);
+                                            return `${context.label}: ${value} tiết (${percentage}%)`;
+                                        }
+                                    }
                                 },
                                 title: {
                                     display: true,
@@ -856,7 +887,7 @@
 
 <script>
     document.getElementById("infome").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định ca thẻ a
+        event.preventDefault(); // Ngăn chặn hành vi mặc định ca th�� a
         const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
         if (id_User) {
             // Chuyển hướng đến trang infome và truyền id_User trong URL
