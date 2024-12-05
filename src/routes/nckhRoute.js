@@ -24,5 +24,10 @@ router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
 // lưu bằng sáng chế và giải thưởng
 router.post("/bangsangchevagiaithuong", nckh.saveBangSangCheVaGiaiThuong);
 
+// render site sách và giáo trình
+router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);
+
+// lưu sách và giáo trình
+router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
 
 module.exports = router;

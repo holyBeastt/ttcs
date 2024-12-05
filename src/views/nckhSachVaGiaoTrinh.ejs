@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/baibaokhoahoc.css">
+  <link rel="stylesheet" href="/css/bangsangchevagiaithuong.css">
 </head>
 
 <body>
@@ -168,16 +168,25 @@
   </nav>
   <!-- <div class="container my-5 box formNckh"> -->
   <div class="my-3 box formNckh">
-    <h2 class="titleNckh">Bài báo khoa học</h2>
+    <h2 class="titleNckh">Bằng sáng chế và giải thưởng</h2>
+
     <form id="formData" class="">
       <div class="form-group flex-container">
+        <!-- Phân loại -->
         <div class="flex-item">
-          <label for="loaiBaiBao">Phân loại</label>
-          <select id="loaiBaiBao" name="loaiBaiBao" required>
-            <option value="baiBaoKhoaHoc">Bài báo khoa học đăng trên tạp chí khoa học</option>
-            <option value="baoCaoKhoaHoc">Báo cáo khoa học</option>
+          <label for="phanLoai">Phân loại</label>
+          <select id="phanLoai" name="phanLoai" required>
+            <option value="Bằng độc quyền sáng chế">Bằng độc quyền sáng chế</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp Quốc gia">Giải thưởng khoa học và công nghệ cấp Quốc
+              gia</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp Bộ trở lên">Giải thưởng khoa học và công nghệ cấp Bộ
+              trở lên</option>
+            <option value="Giải thưởng khoa học và công nghệ cấp dưới Bộ">Giải thưởng khoa học và công nghệ cấp dưới Bộ
+            </option>
+            <option value="Giải pháp hữu ích">Giải pháp hữu ích</option>
           </select>
         </div>
+        <!-- Năm học -->
         <div class="flex-item">
           <label for="namHoc">Năm học</label>
           <select id="namHoc" name="namHoc" required>
@@ -186,50 +195,48 @@
         </div>
       </div>
 
-      <!-- Loại tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="loaiTapChiContainer">
-        <label for="loaiTapChi">Loại tạp chí</label>
-        <select id="loaiTapChi" name="loaiTapChi" required>
-          <option value="">-- Chọn loại tạp chí --</option>
-          <!-- Các loại tạp chí sẽ được thêm vào đây bằng JavaScript -->
-        </select>
-      </div>
-
-
-      <!-- Tên bài báo -->
+      <!-- Tên bằng sáng chế, giải thưởng -->
       <div class="form-group">
-        <label for="tenBaiBao">Tên bài báo</label>
-        <input type="text" id="tenBaiBao" name="tenBaiBao" placeholder="Nhập tên bài báo" required>
+        <label for="tenBangSangChe">Tên bằng sáng chế / giải thưởng</label>
+        <input type="text" id="tenBangSangChe" name="tenBangSangChe"
+          placeholder="Nhập tên bằng sáng chế hoặc giải thưởng" required>
       </div>
 
-      <!-- Chỉ số tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="chiSoTapChiContainer">
-        <label for="chiSoTapChi">Chỉ số tạp chí</label>
-        <select id="chiSoTapChi" name="chiSoTapChi" required>
-          <option value="">-- Chọn chỉ số tạp chí --</option>
-        </select>
+      <!-- Ngày quyết định, số quyết định, tác giả trên cùng một dòng -->
+      <div class="form-group flex-container">
+        <!-- Số quyết định công nhận -->
+        <div class="flex-item">
+          <label for="soQuyetDinh">Số quyết định công nhận</label>
+          <input type="text" id="soQuyetDinh" name="soQuyetDinh" placeholder="VD: 2401/QĐ-BGDĐT" required>
+        </div>
+
+        <!-- Ngày quyết định công nhận -->
+        <div class="flex-item">
+          <label for="ngayQuyetDinh">Ngày quyết định công nhận</label>
+          <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required>
+        </div>
+
+        <!-- Tác giả -->
+        <div class="flex-item">
+          <label for="tacGia">Tác giả</label>
+          <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
+          <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
+        </div>
       </div>
 
-      <!-- Tác giả -->
-      <div class="form-group">
-        <label for="tacGia">Tác giả</label>
-        <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
-        <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-      </div>
-
-      <!-- Thành viên -->
+      <!-- Danh sách thành viên -->
       <div class="form-group">
         <label for="thuKy">Danh sách thành viên</label>
         <input type="text" id="newMember" placeholder="Nhập tên thành viên" class="input-field">
-        <!-- <input type="text" id="newMember" placeholder="Nhập tên thành viên" class="input-field"
-          onkeydown="handleKeyPress(event)"> -->
-        <!-- <button type="button" onclick="addMember()"></button> -->
         <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
         <div id="memberListDisplay" class="member-list-display"></div>
       </div>
 
       <button type="button" class="btn" id="submitBtn">Gửi</button>
     </form>
+
+
+
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -238,82 +245,6 @@
   <script>
     // giảng viên cơ hữu của trường, để gợi ý tên
     var giangVienCoHuu = []
-
-    // =================================================================
-    // Hàm cập nhật các tùy chọn cho loại tạp chí và chỉ số tạp chí
-    function updateOptions(loaiBaiBao) {
-      const loaiTapChi = document.getElementById('loaiTapChi');
-      const chiSoTapChi = document.getElementById('chiSoTapChi');
-
-      // Làm trống các tùy chọn tạp chí và chỉ số tạp chí
-      loaiTapChi.innerHTML = '<option value="">-- Chọn loại tạp chí --</option>';
-      chiSoTapChi.innerHTML = '<option value="">-- Chọn chỉ số tạp chí --</option>';
-
-      if (loaiBaiBao === 'baiBaoKhoaHoc') {
-        // Các tùy chọn cho bài báo khoa học
-        loaiTapChi.innerHTML += `
-        <option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
-        <option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
-        Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
-        </option>
-        <option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)">
-        Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)
-        </option>
-        <option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)">
-        Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)
-        </option>
-        `;
-        // Các chỉ số tạp chí cho bài báo khoa học
-        chiSoTapChi.innerHTML += `
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
-        <option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
-        Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
-        </option>
-        `;
-      } else if (loaiBaiBao === 'baoCaoKhoaHoc') {
-        // Các tùy chọn cho báo cáo khoa học
-        loaiTapChi.innerHTML += `
-        <option value="Nội san học viện">Nội san học viện</option>
-        <option value="Kỷ yếu khoa học">Kỷ yếu khoa học</option>
-        <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
-        <option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
-      `;
-        // Các chỉ số tạp chí cho báo cáo khoa học
-        chiSoTapChi.innerHTML += `
-        <option value="Nội san học viện">Nội san học viện</option>
-        <option value="Kỷ yếu khoa học">Kỷ yếu khoa học</option>
-        <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
-        <option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
-      `;
-      }
-    }
-
-    // Đảm bảo form sẽ tự động cập nhật khi trang được tải, ngay cả khi mặc định là bài báo khoa học
-    window.addEventListener('DOMContentLoaded', function () {
-      // Cập nhật các tùy chọn khi trang tải
-      const loaiBaiBao = document.getElementById('loaiBaiBao').value || 'baiBaoKhoaHoc'; // Giá trị mặc định là bài báo khoa học
-      updateOptions(loaiBaiBao);
-    });
-
-    // Thêm sự kiện khi thay đổi lựa chọn loại bài báo
-    document.getElementById('loaiBaiBao').addEventListener('change', function () {
-      const loaiBaiBao = this.value;
-      updateOptions(loaiBaiBao);
-    });
-    // =================================================================
-
-
 
     // =================================================================
     // thực hiện gắn hàm gợi ý khi load trang
@@ -431,25 +362,25 @@
     document.getElementById("submitBtn").addEventListener("click", function () {
       // Lấy dữ liệu từ form
       const formData = {
-        // loaiBaiBao: document.getElementById("loaiBaiBao").value,
-        namHoc: document.getElementById("namHoc").value,
-        tenBaiBao: document.getElementById("tenBaiBao").value,
-        loaiTapChi: document.getElementById("loaiTapChi").value,
-        chiSoTapChi: document.getElementById("chiSoTapChi").value,
-        tacGia: document.getElementById("tacGia").value,
+        phanLoai: document.getElementById("phanLoai").value,  // Phân loại
+        namHoc: document.getElementById("namHoc").value,  // Năm học
+        tenBangSangCheVaGiaiThuong: document.getElementById("tenBangSangChe").value,  // Tên bằng sáng chế / giải thưởng
+        SoQDCongNhan: document.getElementById("soQuyetDinh").value,  // Số quyết định công nhận
+        NgayQDCongNhan: document.getElementById("ngayQuyetDinh").value,  // Ngày quyết định công nhận
+        tacGia: document.getElementById("tacGia").value,  // Tác giả
         thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
-          (member) => member.textContent
+          (member) => member.textContent  // Danh sách thành viên
         ),
       };
 
       // Kiểm tra form hợp lệ
-      if (!formData.namHoc || !formData.tenBaiBao || !formData.loaiTapChi || !formData.chiSoTapChi || !formData.tacGia) {
+      if (!formData.phanLoai || !formData.namHoc || !formData.tenBangSangCheVaGiaiThuong || !formData.SoQDCongNhan || !formData.NgayQDCongNhan || !formData.tacGia) {
         alert("Vui lòng điền đầy đủ thông tin.");
         return;
       }
 
       // Gửi dữ liệu lên server
-      fetch("/baibaokhoahoc", {
+      fetch("/bangsangchevagiaithuong", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -467,30 +398,12 @@
           // Reset form nếu cần
           document.getElementById("formData").reset();
           document.getElementById("memberListDisplay").innerHTML = "";
-          members = [];
         })
         .catch((error) => {
           console.error("Lỗi:", error);
           alert("Có lỗi xảy ra: " + error.message);
         });
     });
-
-    // // Xử lí ô nhập thư kí
-    // document.getElementById('capDeTai').addEventListener('change', function () {
-    //   const capDeTai = this.value; // Lấy giá trị cấp đề tài đã chọn
-    //   const thukiInput = document.getElementById('thuKy'); // Lấy ô nhập thư ký
-
-    //   // Kiểm tra nếu cấp đề tài là "Học viện, Cơ sở"
-    //   if (capDeTai === "Cơ sở, Học viện") {
-    //     // Vô hiệu hóa ô nhập thư ký
-    //     thukiInput.disabled = true;
-    //     thukiInput.value = ''; // Xóa giá trị đã nhập trong ô nhập thư ký
-    //   } else {
-    //     // Kích hoạt lại ô nhập thư ký
-    //     thukiInput.disabled = false;
-    //   }
-    // });
-
 
     // =================================================================
     let members = []

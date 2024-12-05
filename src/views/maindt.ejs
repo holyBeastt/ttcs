@@ -204,6 +204,7 @@
                 <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
                 <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
                 <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
               </div>
             </div>
           </div>
@@ -482,8 +483,6 @@
         if (data.Message && data.Message.length > 0) {
           console.log('Dữ liệu thông báo:', data);
           showNotifications(data);
-        } else {
-          alert("Dữ liệu trống!");
         }
       } else {
         alert("Không tìm thấy dữ liệu!");
@@ -526,14 +525,14 @@
         <strong style="font-size: 24px; text-transform: uppercase;">${message.Title}</strong> <br>
         <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
         <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
-        <strong>Hạn chót:</strong> ${new Date(message.Deadline).toLocaleString("vi-VN", {
+        <strong>Hạn chót:</strong><span style = "color:red"> ${new Date(message.Deadline).toLocaleString("vi-VN", {
           weekday: "long",
           year: "numeric",
           month: "long",
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit"
-        })}
+        })}</span>
       </p>
       <div class="actions">
         <button class="read" onclick="closeNotification(${i})">Đã xem</button>
