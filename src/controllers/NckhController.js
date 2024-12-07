@@ -16,6 +16,49 @@ const getSachVaGiaoTrinh = (req, res) => {
 };
 
 
+const getTableDeTaiDuAn = async (req, res) => {
+
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng detaiduan Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        let query;
+        const queryParams = [];
+
+        query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+        queryParams.push(NamHoc);
+
+
+        //   // Xây dựng truy vấn dựa vào giá trị của Khoa
+        //   if (Khoa !== "ALL") {
+        //     query = `SELECT * FROM detaiduan WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
+        //     queryParams.push(Khoa, Dot, Ki, Nam);
+        //   } else {
+        //     query = `SELECT * FROM detaiduan WHERE Dot = ? AND Ki = ? AND Nam = ?`;
+        //     queryParams.push(Dot, Ki, Nam);
+        //   }
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getDeTaiDuAn:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+
+
 
 // Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
 const tongHopDuLieuGiangVien = async () => {
@@ -120,20 +163,20 @@ const quyDoiSoTietDeTaiDuAn = (body) => {
     // Tách và format thông tin của chủ nhiệm
     if (chuNhiem) {
         const { name, unit } = extractNameAndUnit(chuNhiem);
-        body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} tiết)`;
+        body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} giờ)`;
     }
 
     // Tách và format thông tin của thư ký
     if (thuKy) {
         const { name, unit } = extractNameAndUnit(thuKy);
-        body.thuKy = `${name} (${unit} - ${soTietThuKy} tiết)`;
+        body.thuKy = `${name} (${unit} - ${soTietThuKy} giờ)`;
     }
 
     // Tách và format thông tin của thành viên
     if (thanhVien && Array.isArray(thanhVien)) {
         body.thanhVien = thanhVien.map((member, index) => {
             const { name, unit } = extractNameAndUnit(member);
-            return `${name} (${unit} - ${soTietThanhVien[index]} tiết)`;
+            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`;
         }).join(", ");
     }
 
@@ -167,7 +210,7 @@ const saveDeTaiDuAn = async (req, res) => {
         await connection.execute(
             `
             INSERT INTO detaiduan (
-                CapDeTai, NamHoc, TenDeTai, MaDeTai, ChuNhiem, ThuKy, NgayNghiemThu, XepLoai, DanhSachThanhVien
+                CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, ThuKy, NgayNghiemThu, XepLoai, DanhSachThanhVien
             ) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
@@ -367,6 +410,7 @@ const saveSachVaGiaoTrinh = async (req, res) => {
 
 module.exports = {
     getDeTaiDuAn,
+    getTableDeTaiDuAn,
     saveDeTaiDuAn,
     getTeacher,
     getBaiBaoKhoaHoc,

@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <link rel="stylesheet" href="/css/detaiduan.css">
+  <link rel="stylesheet" href="/css/nckh.css">
+
 </head>
 
 <body>
@@ -288,10 +290,134 @@
       <button type="button" class="btn" id="submitBtn">Gửi</button>
     </form>
   </div>
+  <div class="my-3 box formView">
+    <h2 class="titleNckh">Xem thông tin</h2>
+    <div class="flex-container">
+      <div class="flex-item">
+        <label for="NamHoc">Chọn Năm Học:</label>
+        <select id="NamHoc">
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+        </select>
+      </div>
+      <div class="flex-item">
+        <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+      </div>
+
+    </div>
+
+    <div class="table-container">
+      <table border="1" class="table table-bordered">
+        <thead id="table-header">
+          <tr>
+            <th>Cấp đề tài</th>
+            <th>Tên đề tài</th>
+            <th>Mã số đề tài</th>
+            <th>Chủ nhiệm</th>
+            <th>Thư ký</th>
+            <th>Thành viên</th>
+            <th>Ngày nghiệm thu</th>
+            <th>Xếp loại</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- nckh -->
+  <!-- nckh view -->
+  <script>
+
+
+    // Hàm format để định dạng ngày từ ISO 8601
+    function formatDate(dateString) {
+      const date = new Date(dateString); // Tạo đối tượng Date từ chuỗi ISO 8601
+
+      // Lấy ngày, tháng, năm từ đối tượng Date
+      const day = String(date.getDate()).padStart(2, '0');  // Đảm bảo ngày có 2 chữ số
+      const month = String(date.getMonth() + 1).padStart(2, '0');  // Tháng (0-indexed)
+      const year = date.getFullYear();  // Lấy năm
+
+      return `${day}/${month}/${year}`; // Trả về định dạng ngày/tháng/năm
+    }
+
+
+
+    // format giờ
+    function formatHours(text) {
+      const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
+
+      if (match) {
+        const hours = parseFloat(match[1].replace(',', '.'));
+        const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
+        return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+      }
+
+      return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
+    }
+
+    // render table
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+
+      // Xóa dữ liệu cũ
+      tbody.innerHTML = '';
+
+      // Duyệt qua dữ liệu và thêm từng hàng vào tbody
+      data.forEach(item => {
+        const row = document.createElement('tr');
+
+        // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
+        const chuNhiemFormatted = formatHours(item.ChuNhiem);
+        const thuKyFormatted = formatHours(item.ThuKy);
+        const thanhVienFormatted = item.DanhSachThanhVien
+          .split(',')  // Tách chuỗi thành viên bằng dấu phẩy
+          .map(member => formatHours(member.trim()))  // Định dạng giờ cho từng thành viên
+          .join(', ');  // Nối lại thành chuỗi các thành viên đã được định dạng
+        const ngayNghiemThuFormatted = formatDate(item.NgayNghiemThu);
+
+        // Tạo các dòng dữ liệu cho bảng
+        row.innerHTML = `
+      <td>${item.CapDeTai}</td>
+      <td>${item.TenDeTai}</td>
+      <td>${item.MaSoDeTai}</td>
+      <td>${chuNhiemFormatted}</td>
+      <td>${thuKyFormatted}</td>
+      <td>${thanhVienFormatted}</td>
+      <td>${ngayNghiemThuFormatted}</td>
+      <td>${item.XepLoai}</td>
+    `;
+        tbody.appendChild(row);
+      });
+    }
+
+
+    // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
+    async function getData() {
+      const year = document.getElementById('NamHoc').value; // Lấy năm học từ select
+      const url = `/tabledetaiduan/${year}`; // Tạo URL với URL parameter 'NamHoc'
+
+      try {
+        fetch(url) // Thay URL bằng endpoint của bạn
+          .then(response => response.json())
+          .then(data => {
+            renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy dữ liệu:', error);
+          });
+      } catch (error) {
+        console.error('Lỗi trong quá trình gửi yêu cầu:', error);
+      }
+    }
+  </script>
+  <!-- nckh form -->
   <script>
     // giảng viên cơ hữu của trường, để gợi ý tên
     var giangVienCoHuu = []

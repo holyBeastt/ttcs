@@ -9,6 +9,9 @@ router.get("/detaiduan", nckh.getDeTaiDuAn);
 // lưu đề tài dự án
 router.post("/detaiduan", nckh.saveDeTaiDuAn);
 
+// render table đề tài, dự án
+router.get("/tabledetaiduan/:NamHoc", nckh.getTableDeTaiDuAn);
+
 // lấy dữ liệu giảng viên cơ hữu
 router.get("/giangviencohuu", nckh.getTeacher);
 

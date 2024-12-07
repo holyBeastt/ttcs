@@ -1,0 +1,106 @@
+/* căn chỉnh bảng phuf hợp với form */
+.formView {
+    width: 100%;
+    max-width: 1000px;
+    /* Giới hạn chiều rộng tối đa của form */
+    margin: 0 auto;
+    /* Căn giữa form */
+    padding: 20px;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm form bị vượt kích thước */
+    background-color: #f9f9f9;
+    /* Màu nền nhẹ */
+    border-radius: 10px;
+    /* Bo góc mềm mại */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    /* Đổ bóng nhẹ cho form */
+    font-size: 16px;
+}
+
+#NamHoc {
+    padding: 5px;
+    font-size: 14px;
+}
+
+#render {
+    padding: 5px 15px;
+    font-size: 14px;
+    width: auto;
+    /* Chiều rộng tự động theo nội dung */
+    white-space: nowrap;
+    /* Đảm bảo chữ không bị xuống dòng */
+}
+
+.table {
+    width: 100%;
+    /* Bảng chiếm toàn bộ chiều rộng */
+    text-align: left;
+    /* Căn chữ sang trái */
+    border-collapse: collapse;
+    /* Gộp viền bảng */
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    /* Tạo khoảng cách trong ô */
+    border: 1px solid #ccc;
+    /* Đường viền cho các ô */
+}
+
+.table th {
+    background-color: #f0f0f0;
+    /* Màu nền cho tiêu đề bảng */
+}
+
+.table-container {
+    margin-top: 20px;
+    /* Khoảng cách giữa form và bảng */
+}
+
+/* màu bảng */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #dee2e6;
+}
+
+.table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.table tbody tr:hover {
+    background-color: #e2e6ea;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.bg-custom {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.spinner-border {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
