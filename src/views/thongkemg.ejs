@@ -12,7 +12,7 @@
   <style>
     /* Định dạng cho bảng */
     .table {
-        width: 80%;
+        width: 70%;
         border-collapse: separate;
         border-spacing: 0;
         margin-top: 20px;
@@ -153,6 +153,33 @@
             width: 100%;
             margin: 5px 0;
         }
+    }
+
+    /* Thêm container cho 2 biểu đồ tất cả khoa */
+    .charts-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .chart-wrapper {
+        width: 48%;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+    }
+
+    /* Định dạng cho biểu đồ khoa riêng lẻ */
+    #khoa-chart-container {
+        width: 80%;
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
@@ -347,8 +374,19 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <h3>Biểu đồ số tiết mời giảng</h3>
-    <canvas id="thongkemgCanvas"></canvas>
+  <div id="chart-section">
+    <div id="khoa-chart-container" style="display: none;">
+        <canvas id="khoaChart"></canvas>
+    </div>
+    <div class="charts-container" id="all-khoa-charts" style="display: none;">
+        <div class="chart-wrapper">
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+</div>
 
     <!-- Bảng chi tiết số tiết của giảng viên -->
      <h3>Bảng chi tiết số tiết mời giảng</h3>
@@ -460,6 +498,8 @@
                 const nam = document.getElementById('NamHoc').value;
                 const khoa = document.getElementById('Khoa').value;
                 
+                console.log('Fetching with params:', { dot, ki, nam, khoa });
+                
                 let url = '/api/thongkemg-data';
                 const params = new URLSearchParams();
                 
@@ -472,172 +512,226 @@
                     url += '?' + params.toString();
                 }
                 
+                console.log('Requesting URL:', url);
+                
                 const response = await fetch(url);
                 const data = await response.json();
+                
+                console.log('Received data:', data);
 
                 // Cập nhật bảng
                 const tableBody = document.getElementById('tableBody');
-                tableBody.innerHTML = '';
-                
-                if (!data || data.length === 0) {
-                    // Nếu không có dữ liệu, hiển thị một hàng thông báo
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td colspan="4" style="text-align: center;">Không có dữ liệu cho khoảng thời gian này</td>
-                    `;
-                    tableBody.appendChild(row);
-                    
-                    // Xóa các biểu đồ
-                    if (myChart) {
-                        myChart.destroy();
-                    }
-                    const existingGvChart = document.getElementById('gvChart');
-                    if (existingGvChart) {
-                        existingGvChart.remove();
-                    }
-                    
-                    // Reset tổng số tiết
-                    document.getElementById('total').textContent = '0';
+                if (!tableBody) {
+                    console.error('Không tìm thấy element tableBody');
                     return;
                 }
                 
+                // Xóa dữ liệu cũ
+                tableBody.innerHTML = '';
+                
+                if (!data || data.length === 0) {
+                    console.log('Không có dữ liệu');
+                    const row = tableBody.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = khoa === 'ALL' ? 4 : 3; // Tăng colspan lên 4 cho trường hợp ALL
+                    cell.style.textAlign = 'center';
+                    cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
+                    return;
+                }
+
+                // Cập nhật header của bảng dựa vào khoa được ch��n
+                const tableHeader = document.querySelector('#thongkemgTable thead tr');
+                if (tableHeader) {
+                    tableHeader.innerHTML = `
+                        <th>STT</th>
+                        <th>${khoa === 'ALL' ? 'Khoa' : 'Họ tên'}</th>
+                        <th>Tổng số tiết</th>
+                        ${khoa === 'ALL' ? '<th>Số lượng giảng viên</th>' : ''}
+                    `;
+                }
+
+                // Thêm dữ liệu mới
+                data.forEach((item, index) => {
+                    console.log('Processing row:', item);
+                    const row = tableBody.insertRow();
+                    
+                    // Cột STT
+                    const cellSTT = row.insertCell(0);
+                    cellSTT.textContent = index + 1;
+                    
+                    // Cột Họ tên/Khoa
+                    const cellName = row.insertCell(1);
+                    cellName.textContent = khoa === 'ALL' ? item.khoa : item.hoten;
+                    
+                    // Cột Tổng số tiết
+                    const cellTotal = row.insertCell(2);
+                    cellTotal.textContent = item.tongsotiet;
+
+                    // Thêm cột số lượng giảng viên nếu đang xem tất cả khoa
+                    if (khoa === 'ALL') {
+                        const cellGV = row.insertCell(3);
+                        cellGV.textContent = item.sogiangvien || 0;
+                    }
+                });
+
+                // Cập nhật tổng số tiết
+                const total = data.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+                const totalElement = document.getElementById('total');
+                if (totalElement) {
+                    totalElement.textContent = total.toFixed(2);
+                }
+
+                // Sau khi cập nhật bảng, gọi hàm vẽ biểu đồ
+                updateCharts(data, khoa);
+
+            } catch (error) {
+                console.error('Error in fetchThongkemgData:', error);
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: red;">
+                                Đã xảy ra lỗi khi tải dữ liệu: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        // Tách riêng hàm vẽ biểu đồ
+        function updateCharts(data, khoa) {
+            try {
                 if (khoa === 'ALL') {
-                    // Hiển thị dữ liệu theo khoa
-                    data.forEach((item, index) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${item.khoa}</td>
-                            <td>${item.tongsotiet}</td>
-                            <td>${item.sogiangvien}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
+                    // Hiển thị 2 biểu đồ tất cả khoa
+                    document.getElementById('khoa-chart-container').style.display = 'none';
+                    document.getElementById('all-khoa-charts').style.display = 'flex';
 
-                    // Cập nhật header bảng
-                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
-                        <th>STT</th>
-                        <th>Khoa</th>
-                        <th>Tổng số tiết</th>
-                        <th>Số giảng viên mời</th>
-                    `;
-                    
-                    // Xóa biểu đồ cũ nếu có
-                    if (myChart) {
-                        myChart.destroy();
+                    // Vẽ biểu đồ tròn
+                    const ctxPie = document.getElementById('pieChart');
+                    if (!ctxPie) {
+                        console.error('Không tìm thấy element pieChart');
+                        return;
                     }
-                    
-                    // Xóa biểu đồ số giảng viên cũ nếu có
-                    const existingGvChart = document.getElementById('gvChart');
-                    if (existingGvChart) {
-                        existingGvChart.remove();
+                    if (window.pieChart instanceof Chart) {
+                        window.pieChart.destroy();
                     }
 
-                    // Kiểm tra xem có dữ liệu không
-                    if (data && data.length > 0) {
-                        // Vẽ biểu đồ tròn
-                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                        myChart = new Chart(ctx, {
-                            type: 'pie',
-                            data: {
-                                labels: data.map(item => item.khoa),
-                                datasets: [{
-                                    data: data.map(item => item.tongsotiet),
-                                    backgroundColor: [
-                                        '#FF6384',
-                                        '#36A2EB',
-                                        '#FFCE56',
-                                        '#4BC0C0',
-                                        '#9966FF',
-                                        '#FF9F40'
-                                    ]
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'right',
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const dataset = context.dataset;
-                                                const total = dataset.data.reduce((acc, data) => acc + Number(data), 0);
-                                                const currentValue = dataset.data[context.dataIndex];
-                                                const percentage = parseFloat((currentValue/total * 100).toFixed(1));
-                                                return `${context.label}: ${currentValue} tiết (${percentage}%)`;
+                    // Tính tổng số tiết
+                    const totalHours = data.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+
+                    window.pieChart = new Chart(ctxPie, {
+                        type: 'pie',
+                        data: {
+                            labels: data.map(item => item.khoa),
+                            datasets: [{
+                                data: data.map(item => item.tongsotiet),
+                                backgroundColor: [
+                                    '#FF6384', '#36A2EB', '#FFCE56',
+                                    '#4BC0C0', '#9966FF', '#FF9F40'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 1.5,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        // Tùy chỉnh nhãn để hiển thị phần trăm
+                                        generateLabels: function(chart) {
+                                            const data = chart.data;
+                                            if (data.labels.length && data.datasets.length) {
+                                                return data.labels.map((label, i) => {
+                                                    const value = data.datasets[0].data[i];
+                                                    const percentage = ((value / totalHours) * 100).toFixed(1);
+                                                    return {
+                                                        text: `${label} (${percentage}%)`,
+                                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                                        hidden: isNaN(value) || value === 0,
+                                                        index: i
+                                                    };
+                                                });
                                             }
+                                            return [];
                                         }
                                     }
-                                }
-                            }
-                        });
-
-                        // Thêm biểu đồ cột cho số giảng viên
-                        const gvCanvas = document.createElement('canvas');
-                        gvCanvas.id = 'gvChart';
-                        document.getElementById('thongkemgCanvas').parentNode.insertBefore(gvCanvas, document.getElementById('thongkemgCanvas').nextSibling);
-
-                        new Chart(gvCanvas, {
-                            type: 'bar',
-                            data: {
-                                labels: data.map(item => item.khoa),
-                                datasets: [{
-                                    label: 'Số giảng viên mời',
-                                    data: data.map(item => item.sogiangvien),
-                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                                    borderColor: 'rgba(54, 162, 235, 1)',
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {
-                                            stepSize: 1
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const percentage = ((value / totalHours) * 100).toFixed(1);
+                                            return `${context.label}: ${value} tiết (${percentage}%)`;
                                         }
                                     }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Phân bố số tiết theo khoa'
                                 }
                             }
-                        });
-                    } else {
-                        // Hiển thị thông báo không có dữ liệu
-                        const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                        ctx.font = '16px Arial';
-                        ctx.fillStyle = 'gray';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('Không có dữ liệu cho khoảng thời gian này', ctx.canvas.width/2, ctx.canvas.height/2);
-                    }
-                } else {
-                    // Hiển thị dữ liệu theo giảng viên
-                    data.forEach((item, index) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${item.hoten}</td>
-                            <td>${item.tongsotiet}</td>
-                        `;
-                        tableBody.appendChild(row);
+                        }
                     });
 
-                    // Cập nhật header bảng
-                    document.querySelector('#thongkemgTable thead tr').innerHTML = `
-                        <th>STT</th>
-                        <th>Họ tên</th>
-                        <th>Tổng số tiết</th>
-                    `;
-                    
-                    // Vẽ biểu đồ cột
-                    if (myChart) {
-                        myChart.destroy();
+                    // Vẽ biểu đồ cột số giảng viên
+                    const ctxBar = document.getElementById('barChart');
+                    if (!ctxBar) {
+                        console.error('Không tìm thấy element barChart');
+                        return;
                     }
+                    if (window.barChart instanceof Chart) {
+                        window.barChart.destroy();
+                    }
+                    window.barChart = new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.khoa),
+                            datasets: [{
+                                label: 'Số giảng viên mời',
+                                data: data.map(item => item.sogiangvien),
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 1.5,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Số giảng viên mời theo khoa'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // Hiển thị biểu đồ cho một khoa
+                    document.getElementById('khoa-chart-container').style.display = 'block';
+                    document.getElementById('all-khoa-charts').style.display = 'none';
 
-                    const ctx = document.getElementById('thongkemgCanvas').getContext('2d');
-                    myChart = new Chart(ctx, {
+                    // Vẽ biểu đồ cột cho khoa được chọn
+                    const ctxKhoa = document.getElementById('khoaChart');
+                    if (!ctxKhoa) {
+                        console.error('Không tìm thấy element khoaChart');
+                        return;
+                    }
+                    if (window.khoaChart instanceof Chart) {
+                        window.khoaChart.destroy();
+                    }
+                    window.khoaChart = new Chart(ctxKhoa, {
                         type: 'bar',
                         data: {
                             labels: data.map(item => item.hoten),
@@ -651,6 +745,14 @@
                         },
                         options: {
                             responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 2,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Số tiết mời giảng theo giảng viên'
+                                }
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true
@@ -658,27 +760,9 @@
                             }
                         }
                     });
-
-                    // Xóa biểu đồ số giảng viên nếu tồn tại
-                    const gvChart = document.getElementById('gvChart');
-                    if (gvChart) {
-                        gvChart.remove();
-                    }
                 }
-
-                // Cập nhật tổng số tiết
-                calculateTotals();
             } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu:', error);
-                // Hiển thị thông báo lỗi trong bảng
-                const tableBody = document.getElementById('tableBody');
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: red;">
-                            Đã xảy ra lỗi khi tải dữ liệu
-                        </td>
-                    </tr>
-                `;
+                console.error('Error in updateCharts:', error);
             }
         }
 
@@ -779,7 +863,7 @@
         const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
         if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            // Chuyển hướng đn trang changeMessage và truyền MaPhongBan trong URL
             window.location.href = `/changeMessage/${MaPhongBan}`;
         } else {
             alert("Không tìm thấy MaPhongBan trong localStorage.");
@@ -803,7 +887,7 @@
 
 <script>
     document.getElementById("infome").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        event.preventDefault(); // Ngăn chặn hành vi mặc định ca th�� a
         const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
         if (id_User) {
             // Chuyển hướng đến trang infome và truyền id_User trong URL

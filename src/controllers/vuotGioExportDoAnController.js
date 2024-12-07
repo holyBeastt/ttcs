@@ -166,14 +166,15 @@ const exportHopDongDoAnGvm = async (req, res) => {
     WHERE da.NamHoc = ?
     `;
 
-    // Lấy dữ liệu giảng viên hướng dẫn phụ
     let query2 = `
     select gv.HoTen, da.TenDeTai, gv.NoiCongTac, gv.HocVi, gv.HSL
     from DoAnTotNghiep as da 
     JOIN gvmoi as gv
     ON da.GiangVien2 = gv.HoTen
-    WHERE da.Ki = ? AND da.NamHoc = ?
+    WHERE da.NamHoc = ?
     `;
+
+    // Lấy dữ liệu giảng viên hướng dẫn phụ
 
     let params = [namHoc];
 
@@ -187,7 +188,9 @@ const exportHopDongDoAnGvm = async (req, res) => {
       params.push(`%${teacherName}%`);
     }
 
-    const [data] = await connection.execute(query1, params);
+    const [data] = await connection.execute(query2, params);
+
+    console.log("data = ", data);
 
     if (data.length === 0) {
       return res.send(
@@ -212,13 +215,13 @@ const exportHopDongDoAnGvm = async (req, res) => {
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
       titleRow0.font = { name: "Times New Roman", size: 13 };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:C${titleRow2.number}`);
+      worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
       titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
       titleRow1.alignment = { vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:F${titleRow2.number}`);
+      worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
