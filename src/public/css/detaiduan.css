@@ -427,46 +427,22 @@ input[type="text"]::placeholder {
     line-height: 1.6;
 }
 
-label[for="chuNhiem"] {
+label[for="chuNhiem"],
+label[for="thuKy"],
+label[for="thanhVien"],
+label[for="tacGia"],
+label[for="tacGiaCtn"] {
     display: flex;
     align-items: center;
     gap: 8px;
     /* Khoảng cách giữa label và checkbox */
 }
 
-label[for="chuNhiem"] input[type="checkbox"] {
-    margin: 0;
-    /* Loại bỏ margin mặc định của checkbox */
-    vertical-align: middle;
-    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
-    width: 10%;
-    /* Giới hạn chiều rộng của checkbox */
-}
-
-label[for="thuKy"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* Khoảng cách giữa label và checkbox */
-}
-
-label[for="thuKy"] input[type="checkbox"] {
-    margin: 0;
-    /* Loại bỏ margin mặc định của checkbox */
-    vertical-align: middle;
-    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
-    width: 10%;
-    /* Giới hạn chiều rộng của checkbox */
-}
-
-label[for="thanhVien"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* Khoảng cách giữa label và checkbox */
-}
-
-label[for="thanhVien"] input[type="checkbox"] {
+label[for="chuNhiem"] input[type="checkbox"],
+label[for="thuKy"] input[type="checkbox"],
+label[for="thanhVien"] input[type="checkbox"],
+label[for="tacGia"] input[type="checkbox"],
+label[for="tacGiaCtn"] input[type="checkbox"] {
     margin: 0;
     /* Loại bỏ margin mặc định của checkbox */
     vertical-align: middle;

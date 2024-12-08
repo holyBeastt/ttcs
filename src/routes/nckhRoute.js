@@ -21,6 +21,9 @@ router.get("/baibaokhoahoc", nckh.getBaiBaoKhoaHoc);
 // lưu bài báo khoa học
 router.post("/baibaokhoahoc", nckh.saveBaiBaoKhoaHoc);
 
+// render table bài báo khoa học
+router.get("/baibaokhoahoc/:NamHoc", nckh.getTableBaiBaoKhoaHoc);
+
 // render site bằng sáng chế và giải thưởng
 router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
 

@@ -184,8 +184,8 @@
           </select>
         </div>
         <div class="flex-item">
-          <label for="namHoc">Năm học</label>
-          <select id="namHoc" name="namHoc" required>
+          <label for="namHocForm">Năm học</label>
+          <select class="namHoc" id="namHocForm" name="namHoc" required>
             <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
           </select>
         </div>
@@ -290,22 +290,18 @@
       <button type="button" class="btn" id="submitBtn">Gửi</button>
     </form>
   </div>
+
+  <!-- xem -->
   <div class="my-3 box formView">
-    <h2 class="titleNckh">Xem thông tin</h2>
-    <div class="flex-container">
+    <h2 class="titleNckh">Xem số giờ quy đổi</h2>
+    <div class="flex-container-view">
       <div class="flex-item">
-        <label for="NamHoc">Chọn Năm Học:</label>
-        <select id="NamHoc">
-          <option value="2022">2022</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-        </select>
+        <label for="namHocXem">Chọn Năm Học:</label>
+        <select id="namHocXem" class="namHoc"></select>
       </div>
-      <div class="flex-item">
+      <div class="flex-item-view">
         <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
       </div>
-
     </div>
 
     <div class="table-container">
@@ -400,7 +396,7 @@
 
     // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
     async function getData() {
-      const year = document.getElementById('NamHoc').value; // Lấy năm học từ select
+      const year = document.getElementById('namHocXem').value; // Lấy năm học từ select
       const url = `/tabledetaiduan/${year}`; // Tạo URL với URL parameter 'NamHoc'
 
       try {
@@ -574,9 +570,6 @@
       handleInput("thanhVien", "themThanhVien-suggestions", "thanhVienComboBox", "thanhVienCheckbox");
 
     });
-
-
-
     // =================================================================
 
 
@@ -608,7 +601,7 @@
       // Lấy dữ liệu từ form
       const formData = {
         capDeTai: document.getElementById("capDeTai").value,
-        namHoc: document.getElementById("namHoc").value,
+        namHoc: document.getElementById("namHocForm").value,
         tenDeTai: document.getElementById("tenDeTai").value,
         maDeTai: document.getElementById("maDeTai").value,
         chuNhiem: document.getElementById("chuNhiem").value,
@@ -1064,7 +1057,7 @@
       }
     });
   </script>
-  <script>
+  <!-- <script>
     $(document).ready(function () {
       $('#namHoc option[value=""]').remove();
 
@@ -1089,7 +1082,39 @@
         }
       });
     });
+  </script> -->
+  <script>
+    $(document).ready(function () {
+      // Xóa các option trống trong tất cả các select có class .namHoc
+      $('.namHoc option[value=""]').remove();
+
+      // Gửi yêu cầu AJAX để lấy danh sách năm học
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            // Lặp qua mỗi select có class .namHoc
+            $('.namHoc').each(function () {
+              const selectElement = $(this); // Lấy select hiện tại
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                selectElement.append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+            });
+          } else {
+            console.error("Không lấy được dữ liệu năm học:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        }
+      });
+    });
   </script>
+
 </body>
 
 </html>

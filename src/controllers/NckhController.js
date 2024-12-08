@@ -16,6 +16,7 @@ const getSachVaGiaoTrinh = (req, res) => {
 };
 
 
+// lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
 
     const { NamHoc } = req.params; // Lấy năm học từ URL parameter
@@ -56,9 +57,6 @@ const getTableDeTaiDuAn = async (req, res) => {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
 };
-
-
-
 
 // Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
 const tongHopDuLieuGiangVien = async () => {
@@ -110,7 +108,79 @@ const getTeacher = async (req, res) => {
     }
 };
 
+// quy đổi số tiết phần đề tài dự án
+// const quyDoiSoTietDeTaiDuAn = (body) => {
+//     const {
+//         capDeTai,
+//         namHoc,
+//         tenDeTai,
+//         maDeTai,
+//         chuNhiem,
+//         thuKy,
+//         ngayNghiemThu,
+//         xepLoaiKetQua,
+//         thanhVien, // Đây là một mảng từ client
+//     } = body;
 
+//     // Hàm tách tên và đơn vị
+//     const extractNameAndUnit = (fullName) => {
+//         if (fullName && fullName.includes(" - ")) {
+//             const [name, unit] = fullName.split(" - ");
+//             return { name, unit };
+//         }
+//         return { name: fullName, unit: "" };
+//     };
+
+//     let soTietChuNhiem = 0;
+//     let soTietThuKy = 0;
+//     let soTietThanhVien = [];
+
+//     // Kiểm tra cấp đề tài và tính toán số tiết quy đổi
+//     if (capDeTai === "Quốc gia, Nghị định thư") {
+//         if (chuNhiem) soTietChuNhiem = 400;  // Chủ nhiệm cấp quốc gia được 400 tiết
+//         if (thuKy) soTietThuKy = 120;  // Thư ký cấp quốc gia được 120 tiết
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soTietThanhVien = Array(thanhVien.length).fill(280 / thanhVien.length);  // 280 tiết chia đều cho thành viên
+//         }
+//     } else if (capDeTai === "Ban, Bộ và tương đương") {
+//         if (chuNhiem) soTietChuNhiem = 250;  // Chủ nhiệm cấp ban bộ được 250 tiết
+//         if (thuKy) soTietThuKy = 75;  // Thư ký cấp ban bộ được 75 tiết
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soTietThanhVien = Array(thanhVien.length).fill(125 / thanhVien.length);  // 125 tiết chia đều cho thành viên
+//         }
+//     } else if (capDeTai === "Cơ sở, Học viện") {
+//         if (chuNhiem) soTietChuNhiem = 150;  // Chủ nhiệm cấp học viện cơ sở được 150 tiết
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soTietThanhVien = Array(thanhVien.length).fill(50 / thanhVien.length);  // 50 tiết chia đều cho thành viên
+//         } else {
+//             // Nếu không có thành viên, cộng thêm 50 tiết cho chủ nhiệm
+//             soTietChuNhiem += 50;
+//         }
+//     }
+
+//     // Tách và format thông tin của chủ nhiệm
+//     if (chuNhiem) {
+//         const { name, unit } = extractNameAndUnit(chuNhiem);
+//         body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} giờ)`;
+//     }
+
+//     // Tách và format thông tin của thư ký
+//     if (thuKy) {
+//         const { name, unit } = extractNameAndUnit(thuKy);
+//         body.thuKy = `${name} (${unit} - ${soTietThuKy} giờ)`;
+//     }
+
+//     // Tách và format thông tin của thành viên
+//     if (thanhVien && Array.isArray(thanhVien)) {
+//         body.thanhVien = thanhVien.map((member, index) => {
+//             const { name, unit } = extractNameAndUnit(member);
+//             return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`;
+//         }).join(", ");
+//     }
+
+//     // Trả về body đã được cập nhật
+//     return body;
+// };
 const quyDoiSoTietDeTaiDuAn = (body) => {
     const {
         capDeTai,
@@ -124,13 +194,13 @@ const quyDoiSoTietDeTaiDuAn = (body) => {
         thanhVien, // Đây là một mảng từ client
     } = body;
 
-    // Hàm tách tên và đơn vị
+    // Hàm tách tên và đơn vị, loại bỏ khoảng trắng thừa
     const extractNameAndUnit = (fullName) => {
         if (fullName && fullName.includes(" - ")) {
             const [name, unit] = fullName.split(" - ");
-            return { name, unit };
+            return { name: name.trim(), unit: unit.trim() };
         }
-        return { name: fullName, unit: "" };
+        return { name: fullName.trim(), unit: "" };
     };
 
     let soTietChuNhiem = 0;
@@ -163,26 +233,27 @@ const quyDoiSoTietDeTaiDuAn = (body) => {
     // Tách và format thông tin của chủ nhiệm
     if (chuNhiem) {
         const { name, unit } = extractNameAndUnit(chuNhiem);
-        body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} giờ)`;
+        body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} giờ)`.trim();
     }
 
     // Tách và format thông tin của thư ký
     if (thuKy) {
         const { name, unit } = extractNameAndUnit(thuKy);
-        body.thuKy = `${name} (${unit} - ${soTietThuKy} giờ)`;
+        body.thuKy = `${name} (${unit} - ${soTietThuKy} giờ)`.trim();
     }
 
     // Tách và format thông tin của thành viên
     if (thanhVien && Array.isArray(thanhVien)) {
         body.thanhVien = thanhVien.map((member, index) => {
             const { name, unit } = extractNameAndUnit(member);
-            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`;
+            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`.trim();
         }).join(", ");
     }
 
     // Trả về body đã được cập nhật
     return body;
 };
+
 
 // thêm đề tài dự án
 const saveDeTaiDuAn = async (req, res) => {
@@ -244,21 +315,285 @@ const saveDeTaiDuAn = async (req, res) => {
     }
 };
 
+// lấy bảng đề tài dự án
+const getTableBaiBaoKhoaHoc = async (req, res) => {
+
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        let query;
+        const queryParams = [];
+
+        query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
+        queryParams.push(NamHoc);
+
+
+        //   // Xây dựng truy vấn dựa vào giá trị của Khoa
+        //   if (Khoa !== "ALL") {
+        //     query = `SELECT * FROM detaiduan WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
+        //     queryParams.push(Khoa, Dot, Ki, Nam);
+        //   } else {
+        //     query = `SELECT * FROM detaiduan WHERE Dot = ? AND Ki = ? AND Nam = ?`;
+        //     queryParams.push(Dot, Ki, Nam);
+        //   }
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getDeTaiDuAn:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+// quy đổi số tiết bài báo khoa học
+// const quyDoiSoTietBaiBaoKhoaHoc = (body) => {
+//     const {
+//         loaiTapChi,
+//         tacGia,
+//         tacGiaCtn,
+//         danhSachThanhVien
+//     } = body;
+
+//     // Danh sách số giờ tương ứng với các loại tạp chí
+//     const publicationHours = {
+//         "Tạp chí Nature; AAAS": 800,
+//         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)": 700,
+//         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)": 600,
+//         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)": 500,
+//         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)": 400,
+//         "Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác": 0,
+//         "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)": 200,
+//         "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)": 100,
+//         "Nội san học viện": 75,
+//         "Nội san cấp khoa": 50,
+//         "Hội thảo chuyên ngành": 100,
+//         "Hội nghị khoa học trong nước": 200,
+//         "Hội nghị, hội thảo khoa học quốc tế": 250,
+//         "Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)": 300
+//     };
+
+//     // Hàm tách tên và đơn vị
+//     const extractNameAndUnit = (fullName) => {
+//         if (fullName && fullName.includes(" - ")) {
+//             const [name, unit] = fullName.split(" - ");
+//             return { name, unit };
+//         }
+//         return { name: fullName, unit: "" };
+//     };
+
+//     // Lấy số giờ của tạp chí
+//     let soTiet = publicationHours[loaiTapChi] || 0;
+//     let soTietTacGia = 0;
+//     let soTietTacGiaCtn = 0;
+//     let soTietThanhVien = [];
+
+//     // Trường hợp có 1 tác giả chính và không có tác giả chịu trách nhiệm và thành viên
+//     if (tacGia && !tacGiaCtn && !danhSachThanhVien) {
+//         soTietTacGia = soTiet; // Tác giả chính nhận 100% số giờ
+//     }
+//     // Trường hợp có 1 tác giả chính, 1 tác giả chịu trách nhiệm, và có thành viên
+//     else if (tacGia && tacGiaCtn && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+//         let totalParticipants = 2 + danhSachThanhVien.length; // Tổng số người tham gia (2 tác giả + thành viên)
+
+//         // Tác giả chính nhận 20% số giờ
+//         soTietTacGia = (soTiet * 0.2);
+
+//         // Tác giả chịu trách nhiệm nhận 20% số giờ
+//         soTietTacGiaCtn = (soTiet * 0.2);
+
+//         // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính và tác giả chịu trách nhiệm
+//         let soTietPerMember = (soTiet * 0.6) / totalParticipants;
+
+//         // Gán số giờ cho thành viên
+//         soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+//         // Cộng số giờ cho tác giả chính và tác giả chịu trách nhiệm
+//         soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+//         soTietTacGiaCtn += soTietPerMember; // Tác giả chịu trách nhiệm cũng nhận phần của thành viên
+//     }
+//     // Trường hợp có 1 tác giả chính, không có tác giả chịu trách nhiệm và có thành viên
+//     else if (tacGia && !tacGiaCtn && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+//         // Tác giả chính nhận 40% số giờ
+//         soTietTacGia = (soTiet * 0.4);
+
+//         // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính
+//         let soTietPerMember = (soTiet * 0.6) / (danhSachThanhVien.length + 1); // +1 vì tính cả tác giả chính
+
+//         // Gán số giờ cho thành viên
+//         soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+//         // Cộng số giờ cho tác giả chính
+//         soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+//     }
+
+//     // Tách và format thông tin của tác giả chính
+//     if (tacGia) {
+//         const { name, unit } = extractNameAndUnit(tacGia);
+//         body.tacGia = `${name} (${unit} - ${soTietTacGia} giờ)`;
+//     }
+
+//     // Tách và format thông tin của tác giả chịu trách nhiệm
+//     if (tacGiaCtn) {
+//         const { name, unit } = extractNameAndUnit(tacGiaCtn);
+//         body.tacGiaCtn = `${name} (${unit} - ${soTietTacGiaCtn} giờ)`;
+//     }
+
+//     // Tách và format thông tin của thành viên
+//     if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
+//         body.thanhVien = danhSachThanhVien.map((member, index) => {
+//             const { name, unit } = extractNameAndUnit(member);
+//             return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`;
+//         }).join(", ");
+//     }
+
+//     // Trả về body đã được cập nhật
+//     return body;
+// };
+const quyDoiSoTietBaiBaoKhoaHoc = (body) => {
+    const {
+        loaiTapChi,
+        tacGia,
+        tacGiaCtn,
+        danhSachThanhVien
+    } = body;
+
+    // Danh sách số giờ tương ứng với các loại tạp chí
+    const publicationHours = {
+        "Tạp chí Nature; AAAS": 800,
+        "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)": 700,
+        "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)": 600,
+        "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)": 500,
+        "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)": 400,
+        "Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác": 0,
+        "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)": 200,
+        "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)": 100,
+        "Nội san học viện": 75,
+        "Nội san cấp khoa": 50,
+        "Hội thảo chuyên ngành": 100,
+        "Hội nghị khoa học trong nước": 200,
+        "Hội nghị, hội thảo khoa học quốc tế": 250,
+        "Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)": 300
+    };
+
+    // Hàm tách tên và đơn vị, loại bỏ khoảng trắng thừa
+    const extractNameAndUnit = (fullName) => {
+        if (fullName && fullName.includes(" - ")) {
+            const [name, unit] = fullName.split(" - ");
+            return { name: name.trim(), unit: unit.trim() };
+        }
+        return { name: fullName.trim(), unit: "" };
+    };
+
+    // Lấy số giờ của tạp chí
+    let soTiet = publicationHours[loaiTapChi] || 0;
+    let soTietTacGia = 0;
+    let soTietTacGiaCtn = 0;
+    let soTietThanhVien = [];
+
+    // Trường hợp có 1 tác giả chính và không có tác giả chịu trách nhiệm và thành viên
+    if (tacGia && !tacGiaCtn && !danhSachThanhVien) {
+        soTietTacGia = soTiet; // Tác giả chính nhận 100% số giờ
+    }
+    // Trường hợp có 1 tác giả chính, 1 tác giả chịu trách nhiệm, và có thành viên
+    else if (tacGia && tacGiaCtn && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+        let totalParticipants = 2 + danhSachThanhVien.length; // Tổng số người tham gia (2 tác giả + thành viên)
+
+        // Tác giả chính nhận 20% số giờ
+        soTietTacGia = (soTiet * 0.2);
+
+        // Tác giả chịu trách nhiệm nhận 20% số giờ
+        soTietTacGiaCtn = (soTiet * 0.2);
+
+        // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính và tác giả chịu trách nhiệm
+        let soTietPerMember = (soTiet * 0.6) / totalParticipants;
+
+        // Gán số giờ cho thành viên
+        soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+        // Cộng số giờ cho tác giả chính và tác giả chịu trách nhiệm
+        soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+        soTietTacGiaCtn += soTietPerMember; // Tác giả chịu trách nhiệm cũng nhận phần của thành viên
+    }
+    // Trường hợp có 1 tác giả chính, không có tác giả chịu trách nhiệm và có thành viên
+    else if (tacGia && !tacGiaCtn && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+        // Tác giả chính nhận 40% số giờ
+        soTietTacGia = (soTiet * 0.4);
+
+        // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính
+        let soTietPerMember = (soTiet * 0.6) / (danhSachThanhVien.length + 1); // +1 vì tính cả tác giả chính
+
+        // Gán số giờ cho thành viên
+        soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+        // Cộng số giờ cho tác giả chính
+        soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+    }
+
+    // Tách và format thông tin của tác giả chính
+    if (tacGia) {
+        const { name, unit } = extractNameAndUnit(tacGia);
+        body.tacGia = `${name} (${unit} - ${soTietTacGia} giờ)`.trim();
+    }
+
+    // Tách và format thông tin của tác giả chịu trách nhiệm
+    if (tacGiaCtn) {
+        const { name, unit } = extractNameAndUnit(tacGiaCtn);
+        body.tacGiaCtn = `${name} (${unit} - ${soTietTacGiaCtn} giờ)`.trim();
+    }
+
+    // Tách và format thông tin của thành viên
+    if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
+        body.thanhVien = danhSachThanhVien.map((member, index) => {
+            const { name, unit } = extractNameAndUnit(member);
+            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`.trim();
+        }).join(", ");
+    }
+
+    // Trả về body đã được cập nhật
+    return body;
+};
+
+
 // thêm bài báo khoa học
 const saveBaiBaoKhoaHoc = async (req, res) => {
     // Lấy dữ liệu từ body
     const {
-        // loaiBaiBao,
         namHoc,
         tenBaiBao,
         loaiTapChi,
         chiSoTapChi,
         tacGia,
+        tacGiaCtn,
         thanhVien, // Đây là một mảng từ client
     } = req.body;
 
     // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
     const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
+
+    // Gọi hàm quy đổi số giờ cho bài báo khoa học
+    const body = {
+        loaiTapChi,
+        tacGia,
+        tacGiaCtn,
+        danhSachThanhVien: thanhVien, // Sử dụng danh sách thành viên dưới dạng mảng
+    };
+
+    const updatedBody = quyDoiSoTietBaiBaoKhoaHoc(body); // Gọi hàm quy đổi
+
+    // Cập nhật lại thông tin từ hàm quy đổi vào body
+    const { tacGia: tacGiaUpdated, tacGiaCtn: tacGiaCtnUpdated, thanhVien: thanhVienUpdated } = updatedBody;
 
     const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
@@ -267,23 +602,23 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
         await connection.execute(
             `
             INSERT INTO baibaokhoahoc (
-                 NamHoc, TenBaiBao, LoaiTapChi, ChiSoTapChi, TacGia, DanhSachThanhVien
+                NamHoc, TenBaiBao, LoaiTapChi, ChiSoTapChi, TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
             ) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             `,
             [
-                // loaiBaiBao,
                 namHoc,
                 tenBaiBao,
                 loaiTapChi,
                 chiSoTapChi,
-                tacGia,
-                danhSachThanhVien,
+                tacGiaUpdated, // Thông tin tác giả chính đã quy đổi
+                tacGiaCtnUpdated, // Thông tin tác giả chịu trách nhiệm đã quy đổi
+                thanhVienUpdated, // Thông tin thành viên đã quy đổi
             ]
         );
 
         // Trả về phản hồi thành công cho client
-        console.log('Thêm bài báo khoa học thành công')
+        console.log('Thêm bài báo khoa học thành công');
         res.status(200).json({
             message: "Thêm bài báo khoa học thành công!",
         });
@@ -298,6 +633,7 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
         connection.release(); // Giải phóng kết nối sau khi hoàn thành
     }
 };
+
 
 // thêm bằng sáng chế và giải thưởng
 const saveBangSangCheVaGiaiThuong = async (req, res) => {
@@ -415,6 +751,7 @@ module.exports = {
     getTeacher,
     getBaiBaoKhoaHoc,
     saveBaiBaoKhoaHoc,
+    getTableBaiBaoKhoaHoc,
     getBangSangCheVaGiaiThuong,
     saveBangSangCheVaGiaiThuong,
     getSachVaGiaoTrinh,

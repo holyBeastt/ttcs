@@ -10,7 +10,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/baibaokhoahoc.css">
+  <!-- <link rel="stylesheet" href="/css/baibaokhoahoc.css"> -->
+  <link rel="stylesheet" href="/css/detaiduan.css">
+  <link rel="stylesheet" href="/css/nckh.css">
+
 </head>
 
 <body>
@@ -170,31 +173,22 @@
   <div class="my-3 box formNckh">
     <h2 class="titleNckh">Bài báo khoa học</h2>
     <form id="formData" class="">
+      <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
       <div class="form-group flex-container">
         <div class="flex-item">
-          <label for="loaiBaiBao">Phân loại</label>
-          <select id="loaiBaiBao" name="loaiBaiBao" required>
-            <option value="baiBaoKhoaHoc">Bài báo khoa học đăng trên tạp chí khoa học</option>
+          <label for="phanLoai">Phân loại</label>
+          <select id="phanLoai" name="phanLoai" required>
+            <option value="baiBaoKhoaHoc">Bài báo khoa học</option>
             <option value="baoCaoKhoaHoc">Báo cáo khoa học</option>
           </select>
         </div>
         <div class="flex-item">
-          <label for="namHoc">Năm học</label>
-          <select id="namHoc" name="namHoc" required>
+          <label for="namHocForm">Năm học</label>
+          <select class="namHoc" id="namHocForm" name="namHoc" required>
             <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
           </select>
         </div>
       </div>
-
-      <!-- Loại tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="loaiTapChiContainer">
-        <label for="loaiTapChi">Loại tạp chí</label>
-        <select id="loaiTapChi" name="loaiTapChi" required>
-          <option value="">-- Chọn loại tạp chí --</option>
-          <!-- Các loại tạp chí sẽ được thêm vào đây bằng JavaScript -->
-        </select>
-      </div>
-
 
       <!-- Tên bài báo -->
       <div class="form-group">
@@ -202,46 +196,221 @@
         <input type="text" id="tenBaiBao" name="tenBaiBao" placeholder="Nhập tên bài báo" required>
       </div>
 
-      <!-- Chỉ số tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="chiSoTapChiContainer">
-        <label for="chiSoTapChi">Chỉ số tạp chí</label>
-        <select id="chiSoTapChi" name="chiSoTapChi" required>
-          <option value="">-- Chọn chỉ số tạp chí --</option>
+      <!-- Loại tạp chí (tùy thuộc vào loại bài báo) -->
+      <div class="form-group" id="loaiTapChiContainer">
+        <label for="loaiTapChi">Loại tạp chí/ hội nghị</label>
+        <select id="loaiTapChi" name="loaiTapChi" required>
+          <option value="">-- Chọn loại tạp chí/ hội nghị --</option>
+          <!-- Các loại tạp chí sẽ được thêm vào đây bằng JavaScript -->
         </select>
       </div>
 
-      <!-- Tác giả -->
-      <div class="form-group">
-        <label for="tacGia">Tác giả</label>
-        <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
-        <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
+      <!-- Chỉ số tạp chí (tùy thuộc vào loại bài báo) -->
+      <div class="form-group" id="chiSoTapChiContainer">
+        <label for="chiSoTapChi">Chỉ số tạp chí/ hội nghị</label>
+        <select id="chiSoTapChi" name="chiSoTapChi" required>
+          <option value="">-- Chọn chỉ số tạp chí/ hội nghị --</option>
+        </select>
+      </div>
+
+      <!-- Tác giả chính -->
+      <div class="form-group flex-container">
+        <div class="flex-item">
+          <label for="tacGia">
+            Tác giả chính
+            <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox">
+          </label>
+          <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
+          <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
+        </div>
+        <div class="flex-item">
+          <!-- Combobox thêm vào -->
+          <label for="tacGiaComboBox">Đơn vị</label>
+          <select id="tacGiaComboBox" name="tacGiaComboBox">
+            <option value="KMA" selected>KMA</option>
+            <option value="KMP">KMP</option>
+          </select>
+        </div>
+      </div>
+
+
+      <!-- Tác giả chịu trách nhiệm -->
+      <div class="form-group flex-container">
+        <div class="flex-item">
+          <label for="tacGiaCtn">
+            Tác giả chịu trách nhiệm
+            <input type="checkbox" id="tacGiaCtnCheckbox" name="tacGiaCtnCheckbox">
+          </label>
+          <div id="tacGiaCtn-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
+          <input type="text" id="tacGiaCtn" name="tacGiaCtn" placeholder="Nhập tên tác giả">
+        </div>
+        <div class="flex-item">
+          <!-- Combobox thêm vào -->
+          <label for="tacGiaCtnComboBox">Đơn vị</label>
+          <select id="tacGiaCtnComboBox" name="thuKyComboBox">
+            <option value="KMA" selected>KMA</option>
+            <option value="KMP">KMP</option>
+          </select>
+        </div>
+      </div>
+
+
+      <!-- Thành viên -->
+      <div class="form-group flex-container">
+        <div class="flex-item">
+          <label for="thanhVien">
+            Thành viên
+            <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox">
+          </label>
+          <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
+          <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field">
+        </div>
+        <div class="flex-item">
+          <!-- Combobox cho đơn vị -->
+          <label for="thanhVienComboBox">Đơn vị</label>
+          <select id="thanhVienComboBox" name="thanhVienComboBox">
+            <option value="KMA" selected>KMA</option>
+            <option value="KMP">KMP</option>
+          </select>
+        </div>
       </div>
 
       <!-- Thành viên -->
-      <div class="form-group">
-        <label for="thuKy">Danh sách thành viên</label>
-        <input type="text" id="newMember" placeholder="Nhập tên thành viên" class="input-field">
-        <!-- <input type="text" id="newMember" placeholder="Nhập tên thành viên" class="input-field"
-          onkeydown="handleKeyPress(event)"> -->
-        <!-- <button type="button" onclick="addMember()"></button> -->
-        <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
-        <div id="memberListDisplay" class="member-list-display"></div>
-      </div>
+      <div id="memberListDisplay" class="member-list-display form-group"></div>
 
       <button type="button" class="btn" id="submitBtn">Gửi</button>
     </form>
   </div>
+  <div class="my-3 box formView">
+    <h2 class="titleNckh">Xem số giờ quy đổi</h2>
+    <div class="flex-container-view">
+      <div class="flex-item">
+        <label for="namHocXem">Chọn Năm Học:</label>
+        <select id="namHocXem" class="namHoc"></select>
+      </div>
+      <div class="flex-item-view">
+        <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table border="1" class="table table-bordered">
+        <thead id="table-header">
+          <tr>
+            <th>Loại tạp chí</th>
+            <th>Tên bài báo</th>
+            <th>Tác giả</th>
+            <th>Tác giả CTN</th>
+            <th>Thành viên</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- nckh -->
+  <!-- nckh view -->
+  <script>
+
+    // format giờ cho thành viên
+    function formatDanhSachThanhVien(DanhSachThanhVien) {
+      // Kiểm tra nếu đầu vào không phải chuỗi hoặc chuỗi rỗng
+      if (typeof DanhSachThanhVien !== 'string' || !DanhSachThanhVien.trim()) {
+        return ''; // Nếu không hợp lệ, trả về chuỗi rỗng
+      }
+
+      // Tách chuỗi thành viên dựa trên dấu phẩy và xử lý từng thành viên
+      const thanhVienFormatted = DanhSachThanhVien
+        .split(',')  // Tách chuỗi thành viên bằng dấu phẩy
+        .map(member => {
+          const trimmedMember = member.trim(); // Loại bỏ khoảng trắng thừa
+          if (trimmedMember) {
+            return formatHours(trimmedMember);  // Định dạng giờ cho từng thành viên
+          }
+          return '';  // Nếu phần tử rỗng hoặc không hợp lệ, trả về chuỗi rỗng
+        })
+        .filter(Boolean)  // Loại bỏ các phần tử rỗng trong mảng
+        .join(', ');  // Nối lại thành chuỗi các thành viên đã được định dạng
+
+      return thanhVienFormatted;
+    }
+
+    // format giờ
+    function formatHours(text) {
+      // Kiểm tra nếu text không phải là chuỗi
+      if (typeof text !== 'string') {
+        return text;
+      }
+
+      const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
+
+      if (match) {
+        const hours = parseFloat(match[1].replace(',', '.'));
+        const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
+        return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+      }
+
+      return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
+    }
+
+
+    // render table
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+
+      // Xóa dữ liệu cũ
+      tbody.innerHTML = '';
+
+      // Duyệt qua dữ liệu và thêm từng hàng vào tbody
+      data.forEach(item => {
+        const row = document.createElement('tr');
+
+        // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
+        const tacGiaFormated = formatHours(item.TacGia);
+        const tacGiaCtnFormated = formatHours(item.TacGiaChiuTrachNhiem);
+        const thanhVienFormatted = formatDanhSachThanhVien(item.DanhSachThanhVien)
+        
+        row.innerHTML = `
+      <td>${item.LoaiTapChi}</td>
+      <td>${item.TenBaiBao}</td>
+      <td>${tacGiaFormated}</td>
+      <td>${tacGiaCtnFormated}</td>
+      <td>${thanhVienFormatted}</td>
+    `;
+        tbody.appendChild(row);
+      });
+    }
+
+
+    // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
+    async function getData() {
+      const year = document.getElementById('namHocXem').value; // Lấy năm học từ select
+      const url = `/baibaokhoahoc/${year}`; // Tạo URL với URL parameter 'NamHoc'
+
+      try {
+        fetch(url) // Thay URL bằng endpoint của bạn
+          .then(response => response.json())
+          .then(data => {
+            renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy dữ liệu:', error);
+          });
+      } catch (error) {
+        console.error('Lỗi trong quá trình gửi yêu cầu:', error);
+      }
+    }
+  </script>
+  <!-- nckh form -->
   <script>
     // giảng viên cơ hữu của trường, để gợi ý tên
     var giangVienCoHuu = []
 
     // =================================================================
     // Hàm cập nhật các tùy chọn cho loại tạp chí và chỉ số tạp chí
-    function updateOptions(loaiBaiBao) {
+    function updateOptions(phanLoai) {
       const loaiTapChi = document.getElementById('loaiTapChi');
       const chiSoTapChi = document.getElementById('chiSoTapChi');
 
@@ -249,81 +418,130 @@
       loaiTapChi.innerHTML = '<option value="">-- Chọn loại tạp chí --</option>';
       chiSoTapChi.innerHTML = '<option value="">-- Chọn chỉ số tạp chí --</option>';
 
-      if (loaiBaiBao === 'baiBaoKhoaHoc') {
+      if (phanLoai === 'baiBaoKhoaHoc') {
         // Các tùy chọn cho bài báo khoa học
         loaiTapChi.innerHTML += `
-        <option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
-        <option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
-        Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
-        </option>
-        <option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)">
-        Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)
-        </option>
-        <option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)">
-        Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)
-        </option>
-        `;
+<option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
+<option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
+Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
+</option>
+<option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)">
+Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)
+</option>
+<option value="Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)">
+Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)
+</option>
+`;
         // Các chỉ số tạp chí cho bài báo khoa học
         chiSoTapChi.innerHTML += `
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
-        <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
-        <option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
-        Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
-        </option>
-        `;
-      } else if (loaiBaiBao === 'baoCaoKhoaHoc') {
+<option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)</option>
+<option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)</option>
+<option value="Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác">
+Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
+</option>
+`;
+      } else if (phanLoai === 'baoCaoKhoaHoc') {
         // Các tùy chọn cho báo cáo khoa học
         loaiTapChi.innerHTML += `
-        <option value="Nội san học viện">Nội san học viện</option>
-        <option value="Kỷ yếu khoa học">Kỷ yếu khoa học</option>
-        <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
-        <option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
-      `;
+<option value="Nội san học viện">Nội san/Kỷ yếu khoa học cấp học viện</option>
+<option value="Nội san cấp khoa">Nội san/Kỷ yếu khoa học cấp học khoa</option>
+<option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
+<option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
+<option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
+<option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
+`;
         // Các chỉ số tạp chí cho báo cáo khoa học
         chiSoTapChi.innerHTML += `
-        <option value="Nội san học viện">Nội san học viện</option>
-        <option value="Kỷ yếu khoa học">Kỷ yếu khoa học</option>
-        <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
-        <option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
-        <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
-      `;
+<option value="Nội san học viện">Nội san/Kỷ yếu khoa học cấp học viện</option>
+<option value="Nội san cấp khoa">Nội san/Kỷ yếu khoa học cấp học khoa</option>
+<option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
+<option value="Hội nghị khoa học trong nước">Hội nghị khoa học trong nước</option>
+<option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
+<option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
+`;
       }
     }
 
     // Đảm bảo form sẽ tự động cập nhật khi trang được tải, ngay cả khi mặc định là bài báo khoa học
     window.addEventListener('DOMContentLoaded', function () {
       // Cập nhật các tùy chọn khi trang tải
-      const loaiBaiBao = document.getElementById('loaiBaiBao').value || 'baiBaoKhoaHoc'; // Giá trị mặc định là bài báo khoa học
-      updateOptions(loaiBaiBao);
+      const phanLoai = document.getElementById('phanLoai').value; // Giá trị mặc định là bài báo khoa học
+      updateOptions(phanLoai);
     });
 
     // Thêm sự kiện khi thay đổi lựa chọn loại bài báo
-    document.getElementById('loaiBaiBao').addEventListener('change', function () {
-      const loaiBaiBao = this.value;
-      updateOptions(loaiBaiBao);
+    document.getElementById('phanLoai').addEventListener('change', function () {
+      const phanLoai = this.value;
+      updateOptions(phanLoai);
     });
     // =================================================================
 
+    // check thì tắt gợi ý
+    document.addEventListener('DOMContentLoaded', function () {
+      // Lấy các phần tử
+      const chuNhiemInput = document.getElementById('tacGia');
+      const chuNhiemSuggestions = document.getElementById('tacGia-suggestions');
+      const chuNhiemCheckbox = document.getElementById('tacGiaCheckbox');
+      const thuKyCheckbox = document.getElementById('tacGiaCtnCheckbox');
+      const thuKyInput = document.getElementById('tacGiaCtn');
+      const thuKySuggestions = document.getElementById('tacGiaCtn-suggestions');
+      const thanhVienCheckbox = document.getElementById('thanhVienCheckbox');  // Thành viên checkbox
+      const thanhVienInput = document.getElementById('thanhVien');  // Thành viên input text
+      const thanhVienSuggestions = document.getElementById('themThanhVien-suggestions');  // Thành viên gợi ý
+
+      // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
+      chuNhiemCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+          // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
+          chuNhiemSuggestions.style.display = 'none';
+        } else {
+          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
+          chuNhiemSuggestions.style.display = 'block';
+        }
+      });
+
+      // Thêm sự kiện lắng nghe khi thuKyCheckbox thay đổi
+      thuKyCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+          // Nếu checkbox thư ký được đánh dấu, ẩn phần gợi ý thư ký
+          thuKySuggestions.style.display = 'none';
+        } else {
+          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thư ký
+          thuKySuggestions.style.display = 'block';
+        }
+      });
+
+      // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
+      thanhVienCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+          // Nếu checkbox thành viên được đánh dấu, ẩn phần gợi ý thành viên
+          thanhVienSuggestions.style.display = 'none';
+        } else {
+          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thành viên
+          thanhVienSuggestions.style.display = 'block';
+        }
+      });
+    });
 
 
     // =================================================================
     // thực hiện gắn hàm gợi ý khi load trang
     document.addEventListener("DOMContentLoaded", () => {
 
-      function handleInput(inputId, suggestionId) {
+      // Hàm xử lý sự kiện nhập liệu
+      function handleInput(inputId, suggestionId, comboBoxId, checkboxId) {
         const inputElement = document.getElementById(inputId);
         const suggestionContainer = document.getElementById(suggestionId);
+        const comboBoxElement = document.getElementById(comboBoxId);
+        const checkboxElement = document.getElementById(checkboxId); // Lấy checkbox
         const errorMessage = document.createElement("div");
-        inputElement.parentNode.appendChild(errorMessage); // Thêm vào DOM
 
         let isSuggestionSelected = false; // Biến theo dõi việc chọn gợi ý
 
@@ -332,7 +550,7 @@
           const query = inputElement.value.trim(); // Trim đầu và cuối chuỗi của input
           suggestionContainer.innerHTML = ""; // Xóa gợi ý cũ
 
-          if (query) {
+          if (!checkboxElement.checked && query) { // Nếu checkbox không được chọn và có nhập liệu
             const suggestions = giangVienCoHuu.filter(item =>
               item.HoTen.toLowerCase().trim().includes(query.toLowerCase()) // So sánh không phân biệt hoa thường
             );
@@ -343,15 +561,13 @@
               suggestionItem.className = "suggestion-item";
 
               suggestionItem.addEventListener("click", () => {
-                inputElement.value = item.HoTen; // Điền giá trị vào input (không chuyển thành lowercase)
+                // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
+                const unit = comboBoxElement.value; // Lấy giá trị từ combo box
+                inputElement.value = `${item.HoTen} - ${unit}`; // Điền giá trị vào ô input
                 suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
-                removeWarning(inputElement, errorMessage); // Xóa cảnh báo nếu chọn đúng
                 isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
-
-                // Kiểm tra nếu ID là 'newMember', gọi hàm thêm thành viên
-                if (inputId === 'newMember') {
-                  addMember(); // Gọi hàm thêm member
-                  inputElement.value = ''; // Xóa nội dung ô input sau khi thêm thành viên
+                if (inputId == "thanhVien") {
+                  addMember(inputElement.value);
                 }
               });
 
@@ -359,47 +575,64 @@
             });
           }
         });
-        // Kiểm tra  giá trị khi người dùng nhấn Enter hoặc click ra ngoài (blur)
+
+        // Kiểm tra giá trị khi người dùng nhấn Enter hoặc click ra ngoài (blur)
         inputElement.addEventListener("blur", () => {
           // Nếu gợi ý đã được chọn, ngừng xử lý sự kiện blur
           if (isSuggestionSelected) {
             isSuggestionSelected = false; // Reset lại trạng thái
             return; // Không thực hiện cảnh báo
           }
-          const value = inputElement.value.trim(); // Trim input value (không chuyển thành lowercase)
-          const isValid = giangVienCoHuu.some(item =>
-            item.HoTen.trim().toLowerCase() === value.toLowerCase() // So sánh không phân biệt hoa thường và trim cả hai đầu
-          );
 
-          if (!isValid) {
-            showWarning(inputElement, errorMessage); // Hiển thị cảnh báo
-          } else {
-            removeWarning(inputElement, errorMessage); // Xóa cảnh báo nếu đúng
+          // Nếu checkbox được đánh dấu, cho phép nhấn Enter để nhập trực tiếp
+          if (checkboxElement.checked) {
+            const value = inputElement.value.trim(); // Trim input value (không chuyển thành lowercase)
+            const isValid = giangVienCoHuu.some(item =>
+              item.HoTen.trim().toLowerCase() === value.toLowerCase() // So sánh không phân biệt hoa thường và trim cả hai đầu
+            );
+            // Không hiển thị cảnh báo nếu nhập không đúng nữa
           }
         });
+
+        // Xử lý khi nhấn Enter
+        inputElement.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();  // Ngừng hành động mặc định của phím Enter
+            // Nếu checkbox được đánh dấu, tự động điền giá trị vào input và gọi addMember
+            if (checkboxElement.checked) {
+              const query = inputElement.value.trim();
+              // Kiểm tra xem người dùng đã nhập tên hay chưa
+              if (query) {
+                const unit = comboBoxElement.value; // Lấy giá trị từ combo box
+                inputElement.value = `${query} - ${unit}`; // Điền giá trị vào ô input theo định dạng "Tên - Đơn vị"
+                suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi nhấn Enter
+
+                if (inputId == "thanhVien") {
+                  addMember(inputElement.value);
+                }
+              }
+            }
+          }
+        });
+
         // Ngăn chặn sự kiện blur khi đang hiển thị gợi ý
         inputElement.addEventListener("focus", () => {
           suggestionContainer.innerHTML = ""; // Dọn gọn gợi ý cũ khi focus lại vào input
-          removeWarning(inputElement, errorMessage); // Xóa cảnh báo khi bắt đầu nhập
+        });
+
+        // Ẩn gợi ý nếu checkbox được chọn
+        checkboxElement.addEventListener("change", () => {
+          if (checkboxElement.checked) {
+            suggestionContainer.innerHTML = ""; // Ẩn gợi ý
+          }
         });
       }
-      // Hiển thị cảnh báo
-      function showWarning(inputElement, errorMessage) {
-        inputElement.style.borderColor = "red";
-        inputElement.style.color = "red";
-        // inputElement.placeholder = "Bắt buộc nhập giảng viên cơ hữu";
-        errorMessage.style.display = "block"; // Hiển thị thông báo lỗi
-      }
-      // Xóa cảnh báo
-      function removeWarning(inputElement, errorMessage) {
-        inputElement.style.borderColor = ""; // Trở về mặc định
-        inputElement.style.color = "";
-        inputElement.placeholder = "VD: Lê Đức Thuận"; // Reset placeholder
-        errorMessage.style.display = "none"; // Ẩn thông báo lỗi
-      }
-      // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý
-      handleInput("tacGia", "tacGia-suggestions");
-      handleInput("newMember", "themThanhVien-suggestions");
+
+      // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý, truyền thêm combo box và checkbox
+      handleInput("tacGia", "tacGia-suggestions", "tacGiaCtnComboBox", "tacGiaCtnCheckbox");
+      handleInput("tacGiaCtn", "tacGiaCtn-suggestions", "tacGiaCtnComboBox", "tacGiaCtnCheckbox");
+      handleInput("thanhVien", "themThanhVien-suggestions", "thanhVienComboBox", "thanhVienCheckbox");
+
     });
     // =================================================================
 
@@ -432,21 +665,18 @@
       // Lấy dữ liệu từ form
       const formData = {
         // loaiBaiBao: document.getElementById("loaiBaiBao").value,
-        namHoc: document.getElementById("namHoc").value,
+        namHoc: document.getElementById("namHocForm").value,
         tenBaiBao: document.getElementById("tenBaiBao").value,
         loaiTapChi: document.getElementById("loaiTapChi").value,
         chiSoTapChi: document.getElementById("chiSoTapChi").value,
         tacGia: document.getElementById("tacGia").value,
+        tacGiaCtn: document.getElementById("tacGiaCtn").value,
         thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
           (member) => member.textContent
         ),
       };
 
-      // Kiểm tra form hợp lệ
-      if (!formData.namHoc || !formData.tenBaiBao || !formData.loaiTapChi || !formData.chiSoTapChi || !formData.tacGia) {
-        alert("Vui lòng điền đầy đủ thông tin.");
-        return;
-      }
+      console.log(formData)
 
       // Gửi dữ liệu lên server
       fetch("/baibaokhoahoc", {
@@ -495,15 +725,15 @@
     // =================================================================
     let members = []
     // Hàm thêm thành viên vào mảng member để hiển thị
-    function addMember() {
-      const memberName = document.getElementById('newMember').value.trim();
+    function addMember(memberName) {
       if (memberName) {
         // Thêm thành viên vào mảng members
+        console.log(memberName)
         members.push(memberName);
         // Cập nhật danh sách thành viên hiển thị trên form
         updateFormMemberList();
         // Xóa nội dung ô input sau khi thêm thành viên
-        document.getElementById('newMember').value = '';
+        document.getElementById('thanhVien').value = '';
       }
     }
     // Hàm cập nhật danh sách thành viên và hiển thị lên form
@@ -533,33 +763,12 @@
     }
     // Hàm xóa thành viên
     function removeMember(index) {
+      console.log('xóa')
       members.splice(index, 1); // Xóa thành viên khỏi mảng
       updateFormMemberList();   // Cập nhật lại danh sách hiển thị
     }
     // =================================================================
 
-
-
-
-    // combobox năm học
-    document.addEventListener('DOMContentLoaded', function () {
-      // Tạo danh sách các năm học
-      const namHocSelect = document.getElementById('namHoc');
-      const currentYear = new Date().getFullYear();
-      const startYear = currentYear;
-      const endYear = currentYear + 3;
-
-      // Thêm các năm học vào combo box
-      for (let year = startYear; year <= endYear; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = `${year}-${year + 1}`;
-        if (year === currentYear) {
-          option.selected = true; // Mặc định là năm hiện tại
-        }
-        namHocSelect.appendChild(option);
-      }
-    });
   </script>
 
   <!-- Phần phân quyền -->
@@ -899,6 +1108,37 @@
       } else {
         alert("Không tìm thấy MaPhongBan trong localStorage.");
       }
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      // Xóa các option trống trong tất cả các select có class .namHoc
+      $('.namHoc option[value=""]').remove();
+
+      // Gửi yêu cầu AJAX để lấy danh sách năm học
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            // Lặp qua mỗi select có class .namHoc
+            $('.namHoc').each(function () {
+              const selectElement = $(this); // Lấy select hiện tại
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                selectElement.append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+            });
+          } else {
+            console.error("Không lấy được dữ liệu năm học:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        }
+      });
     });
   </script>
 </body>

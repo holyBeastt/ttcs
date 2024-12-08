@@ -17,7 +17,7 @@
     font-size: 16px;
 }
 
-#NamHoc {
+.namHoc {
     padding: 5px;
     font-size: 14px;
 }
@@ -31,6 +31,9 @@
     /* Đảm bảo chữ không bị xuống dòng */
 }
 
+
+
+/* màu bảng */
 .table {
     width: 100%;
     /* Bảng chiếm toàn bộ chiều rộng */
@@ -103,4 +106,25 @@
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
+}
+
+/* bảng hiển thị, năm học và label chung 1 dòng */
+.flex-container-view {
+    display: flex;
+    align-items: center;
+    /* Canh giữa theo trục dọc */
+    gap: 10px;
+    /* Khoảng cách giữa các phần tử */
+}
+
+.flex-item-nckh-view {
+    display: flex;
+    align-items: center;
+    /* Canh giữa theo trục dọc */
+}
+
+.namHoc {
+    width: 100px;
+    white-space: nowrap;
+    /* Điều chỉnh kích thước nếu cần */
 }
