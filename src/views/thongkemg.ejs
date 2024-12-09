@@ -536,10 +536,15 @@
                     cell.colSpan = khoa === 'ALL' ? 4 : 3; // Tăng colspan lên 4 cho trường hợp ALL
                     cell.style.textAlign = 'center';
                     cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
+
+                    // Ẩn biểu đồ và cập nhật tổng số tiết
+                    document.getElementById('total').textContent = '0';
+                    document.getElementById('khoa-chart-container').style.display = 'none';
+                    document.getElementById('all-khoa-charts').style.display = 'none';
                     return;
                 }
 
-                // Cập nhật header của bảng dựa vào khoa được ch��n
+                // Cập nhật header của bảng dựa vào khoa được chọn
                 const tableHeader = document.querySelector('#thongkemgTable thead tr');
                 if (tableHeader) {
                     tableHeader.innerHTML = `
@@ -863,7 +868,7 @@
         const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
         if (MaPhongBan) {
-            // Chuyển hướng đn trang changeMessage và truyền MaPhongBan trong URL
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
             window.location.href = `/changeMessage/${MaPhongBan}`;
         } else {
             alert("Không tìm thấy MaPhongBan trong localStorage.");
@@ -887,7 +892,7 @@
 
 <script>
     document.getElementById("infome").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định ca th�� a
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
         const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
         if (id_User) {
             // Chuyển hướng đến trang infome và truyền id_User trong URL
