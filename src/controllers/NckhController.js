@@ -14,6 +14,9 @@ const getBangSangCheVaGiaiThuong = (req, res) => {
 const getSachVaGiaoTrinh = (req, res) => {
     res.render("nckhSachVaGiaoTrinh.ejs");
 };
+const getNckhVaHuanLuyenDoiTuyen = (req, res) => {
+    res.render("nckhVaHuanLuyenDoiTuyen.ejs");
+};
 
 
 // lấy bảng đề tài dự án
@@ -904,6 +907,147 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
     }
 };
 
+const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
+    // Lấy dữ liệu từ body
+    const {
+        phanLoai, // Phân loại
+        namHoc,
+        tenDeTai, // Tên đề tài
+        soQDGiaoNhiemVu, // Số quyết định công nhận
+        ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
+        thanhVien, // Đây là một mảng từ client
+    } = req.body;
+
+    // Gọi hàm quy đổi
+    const quyDoiResult = quyDoiSoTietNckhVaHuanLuyen({
+        phanLoai,
+        danhSachThanhVien: thanhVien
+    });
+
+    // Lấy kết quả sau khi quy đổi
+    const thanhVienFormatted = quyDoiResult.thanhVien || "";
+
+    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+    try {
+        // Chèn dữ liệu vào bảng NCKH và huấn luyện đội tuyển
+        await connection.execute(
+            ` 
+            INSERT INTO nckhvahuanluyendoituyen (
+                PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?)
+            `,
+            [
+                phanLoai,  // Phân loại
+                namHoc,
+                tenDeTai,  // Tên đề tài
+                soQDGiaoNhiemVu,  // Số quyết định công nhận
+                ngayQDGiaoNhiemVu,  // Ngày quyết định công nhận
+                thanhVienFormatted,  // Danh sách thành viên đã được format
+            ]
+        );
+
+        // Trả về phản hồi thành công cho client
+        console.log('Thêm NCKH và huấn luyện đội tuyển thành công');
+        res.status(200).json({
+            message: "Thêm NCKH và huấn luyện đội tuyển thành công!",
+        });
+    } catch (error) {
+        console.error("Lỗi khi lưu dữ liệu NCKH và huấn luyện đội tuyển:", error);
+        // Trả về phản hồi lỗi cho client
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi thêm NCKH và huấn luyện đội tuyển.",
+            error: error.message,
+        });
+    } finally {
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+};
+
+const quyDoiSoTietNckhVaHuanLuyen = (body) => {
+    const { phanLoai, danhSachThanhVien } = body;
+
+    // Danh sách số giờ tương ứng với từng loại NCKH và Huấn luyện đội tuyển
+    const awardHours = {
+        "NCKH đạt yêu cầu cấp khoa": 25,
+        "NCKH đạt yêu cầu cấp Học viện": 35,
+        "NCKH đạt giải khuyến khích, giải Ba cấp Học viện": 40,
+        "NCKH đạt giải Nhì, sản phẩm tiêu biểu cấp Học viện": 45,
+        "NCKH đạt giải Nhất cấp Học viện": 50,
+        "Huấn luyện đội tuyển trong các cuộc thi cấp quốc tế": 100,
+        "Huấn luyện đội tuyển trong các cuộc thi trong nước": 90
+    };
+
+    // Lấy số giờ quy đổi dựa trên loại NCKH và Huấn luyện
+    const totalHours = awardHours[phanLoai] || 0;
+
+    // Tổng số người tham gia (danh sách thành viên)
+    const participants = danhSachThanhVien && Array.isArray(danhSachThanhVien) ? danhSachThanhVien : [];
+
+    // Tính số giờ chia đều cho các thành viên
+    const hoursPerMember = participants.length > 0
+        ? Math.floor(totalHours / participants.length)
+        : 0;
+
+    // Xử lý format đầu ra
+    let thanhVienResult = "";
+
+    participants.forEach((participant, index) => {
+        // Tách tên và đơn vị
+        let name = participant;
+        let unit = "";
+        if (participant.includes(" - ")) {
+            const split = participant.split(" - ");
+            name = split[0].trim();
+            unit = split[1].trim();
+        }
+
+        const formatted = `${name} (${unit} - ${hoursPerMember} giờ)`;
+
+        // Gán vào danh sách thành viên
+        thanhVienResult += (thanhVienResult ? ", " : "") + formatted;
+    });
+
+    // Kết quả cuối cùng
+    return {
+        thanhVien: thanhVienResult || null,
+    };
+};
+
+// Lấy bảng nckh và huấn luyện đội tuyển
+const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
+
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng nckhvahuanluyendoituyen Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        let query;
+        const queryParams = [];
+
+        // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
+        query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
+        queryParams.push(NamHoc);
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getTableNckhVaHuanLuyenDoiTuyen:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
 
 module.exports = {
     getDeTaiDuAn,
@@ -919,4 +1063,7 @@ module.exports = {
     getSachVaGiaoTrinh,
     saveSachVaGiaoTrinh,
     getTableSachVaGiaoTrinh,
+    getNckhVaHuanLuyenDoiTuyen,
+    saveNckhVaHuanLuyenDoiTuyen,
+    getTableNckhVaHuanLuyenDoiTuyen,
 };

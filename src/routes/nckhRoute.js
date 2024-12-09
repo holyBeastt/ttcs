@@ -34,5 +34,13 @@ router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
 // render table sách và giáo trình 
 router.get("/sachvagiaotrinh/:NamHoc", nckh.getTableSachVaGiaoTrinh);
 
+// render site nckh và huấn luyện đội tuyển
+router.get("/nckhvahuanluyendoituyen", nckh.getNckhVaHuanLuyenDoiTuyen);
+// lưu nckh và huấn luyện đội tuyển
+router.post("/nckhvahuanluyendoituyen", nckh.saveNckhVaHuanLuyenDoiTuyen);
+// render table nckh và huấn luyện đội tuyển
+router.get("/nckhvahuanluyendoituyen/:NamHoc", nckh.getTableNckhVaHuanLuyenDoiTuyen);
+
+
 
 module.exports = router;
