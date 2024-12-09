@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const nckh = require("../controllers/nckhController"); // Import hàm xử lý từ controller
+const nckh = require("../controllers/nckhController2"); // Import hàm xử lý từ controller
 
 
 // render site đề tài, dự án
