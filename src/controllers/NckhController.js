@@ -533,59 +533,6 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
 
 
 // thêm bằng sáng chế và giải thưởng
-// const saveBangSangCheVaGiaiThuong = async (req, res) => {
-//     // Lấy dữ liệu từ body
-//     const {
-//         phanLoai, // Phân loại
-//         namHoc,
-//         tenBangSangCheVaGiaiThuong, // Tên bằng sáng chế / giải thưởng
-//         SoQDCongNhan, // Số quyết định công nhận
-//         NgayQDCongNhan, // Ngày quyết định công nhận
-//         tacGia,
-//         thanhVien, // Đây là một mảng từ client
-//     } = req.body;
-
-//     // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
-//     const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
-
-//     const connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-//     try {
-//         // Chèn dữ liệu vào bảng bangsangchevagiaithuong
-//         await connection.execute(
-//             `
-//             INSERT INTO bangsangchevagiaithuong (
-//                  PhanLoai, NamHoc, TenBangSangCheVaGiaiThuong, SoQDCongNhan, NgayQDCongNhan, TacGia, DanhSachThanhVien
-//             ) 
-//             VALUES (?, ?, ?, ?, ?, ?, ?)
-//             `,
-//             [
-//                 phanLoai,  // Phân loại
-//                 namHoc,
-//                 tenBangSangCheVaGiaiThuong,  // Tên bằng sáng chế / giải thưởng
-//                 SoQDCongNhan,  // Số quyết định công nhận
-//                 NgayQDCongNhan,  // Ngày quyết định công nhận
-//                 tacGia,
-//                 danhSachThanhVien,  // Danh sách thành viên
-//             ]
-//         );
-
-//         // Trả về phản hồi thành công cho client
-//         console.log('Thêm bằng sáng chế và giải thưởng thành công')
-//         res.status(200).json({
-//             message: "Thêm bằng sáng chế và giải thưởng thành công!",
-//         });
-//     } catch (error) {
-//         console.error("Error while saving research paper data:", error);
-//         // Trả về phản hồi lỗi cho client
-//         res.status(500).json({
-//             message: "Có lỗi xảy ra khi thêm bằng sáng chế và giải thưởng.",
-//             error: error.message,
-//         });
-//     } finally {
-//         connection.release(); // Giải phóng kết nối sau khi hoàn thành
-//     }
-// };
 const saveBangSangCheVaGiaiThuong = async (req, res) => {
     // Lấy dữ liệu từ body
     const {
@@ -751,31 +698,45 @@ const quyDoiSoTietBangSangCheVaGiaiThuong = (body) => {
 };
 
 
-// Hàm tách tên và đơn vị
-const extractNameAndUnit = (fullName) => {
-    if (fullName && fullName.includes(" - ")) {
-        const [name, unit] = fullName.split(" - ");
-        return { name: name.trim(), unit: unit.trim() };
-    }
-    return { name: fullName.trim(), unit: "" };
-};
-
-
 // thêm sách và giáo trình 
 const saveSachVaGiaoTrinh = async (req, res) => {
     // Lấy dữ liệu từ body
     const {
+        phanLoai,
         namHoc,
         tenSachVaGiaoTrinh, // Tên sách, giáo trình
         soXuatBan, // Số xuất bản
         soTrang, // Số trang
         tacGia,
+        dongChuBien,
         thanhVien, // Đây là một mảng từ client
     } = req.body;
+    console.log(req.body)
+
 
     // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
     const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
 
+    // Tính toán số giờ quy đổi
+    const body = {
+        phanLoai,
+        tacGia,
+        dongChuBien,
+        danhSachThanhVien: thanhVien, // Truyền danh sách thành viên từ client
+    };
+
+    // Gọi hàm quy đổi
+    const quyDoiKetQua = quyDoiSachVaGiaoTrinh(body);
+
+    // Trích xuất kết quả sau khi quy đổi
+    const {
+        tacGia: tacGiaFormatted,
+        dongChuBien: dongChuBienFormatted,
+        thanhVien: thanhVienFormatted,
+    } = quyDoiKetQua;
+    console.log(quyDoiKetQua)
+
+    // Kết nối với cơ sở dữ liệu
     const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
     try {
@@ -783,17 +744,19 @@ const saveSachVaGiaoTrinh = async (req, res) => {
         await connection.execute(
             `
             INSERT INTO sachvagiaotrinh (
-                NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DanhSachThanhVien
+                PhanLoai, NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DongChuBien, DanhSachThanhVien
             ) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
+                phanLoai,
                 namHoc,
                 tenSachVaGiaoTrinh, // Tên sách, giáo trình
                 soXuatBan, // Số xuất bản
                 soTrang, // Số trang
-                tacGia,
-                danhSachThanhVien, // Danh sách thành viên
+                tacGiaFormatted, // Tác giả đã format sau quy đổi
+                dongChuBienFormatted, // Tác giả chịu trách nhiệm đã format sau quy đổi
+                thanhVienFormatted, // Danh sách thành viên đã format sau quy đổi
             ]
         );
 
@@ -814,6 +777,133 @@ const saveSachVaGiaoTrinh = async (req, res) => {
     }
 };
 
+const quyDoiSachVaGiaoTrinh = (body) => {
+    const {
+        phanLoai,
+        tacGia,
+        dongChuBien,  // Thay 'tacGiaCtn' thành 'dongChuBien'
+        danhSachThanhVien
+    } = body;
+
+    // Danh sách số giờ tương ứng với các loại sách/giáo trình
+    const bookHours = {
+        "Sách chuyên khảo được xuất bản": 600,
+        "Giáo trình, tài liệu giảng dạy được xuất bản": 400,
+        "Sách tham khảo hoặc tương đương được xuất bản": 300,
+        "Một chương sách chuyên khảo được xuất bản tại nước ngoài": 400,
+    };
+
+    // Lấy số giờ quy đổi
+    let soTiet = bookHours[phanLoai] || 0;
+    let soTietTacGia = 0;
+    let soTietDongChuBien = 0; // Cập nhật biến tên theo yêu cầu
+    let soTietThanhVien = [];
+
+    // Trường hợp có 1 tác giả chính và không có tác giả chịu trách nhiệm và thành viên
+    if (tacGia && !dongChuBien && !danhSachThanhVien) {
+        soTietTacGia = soTiet; // Tác giả chính nhận 100% số giờ
+    }
+    // Trường hợp có 1 tác giả chính, 1 tác giả chịu trách nhiệm, và có thành viên
+    else if (tacGia && dongChuBien && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+        let totalParticipants = 2 + danhSachThanhVien.length; // Tổng số người tham gia (2 tác giả + thành viên)
+
+        // Tác giả chính nhận 20% số giờ
+        soTietTacGia = (soTiet * 0.2);
+
+        // Dong chu bien nhận 20% số giờ
+        soTietDongChuBien = (soTiet * 0.2);
+
+        // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính và tác giả chịu trách nhiệm
+        let soTietPerMember = (soTiet * 0.6) / totalParticipants;
+
+        // Gán số giờ cho thành viên
+        soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+        // Cộng số giờ cho tác giả chính và tác giả chịu trách nhiệm
+        soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+        soTietDongChuBien += soTietPerMember; // Dong chu bien cũng nhận phần của thành viên
+    }
+    // Trường hợp có 1 tác giả chính, không có tác giả chịu trách nhiệm và có thành viên
+    else if (tacGia && !dongChuBien && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+        // Tác giả chính nhận 40% số giờ
+        soTietTacGia = (soTiet * 0.4);
+
+        // Còn lại 60% chia đều cho tất cả thành viên, bao gồm tác giả chính
+        let soTietPerMember = (soTiet * 0.6) / (danhSachThanhVien.length + 1); // +1 vì tính cả tác giả chính
+
+        // Gán số giờ cho thành viên
+        soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+        // Cộng số giờ cho tác giả chính
+        soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+    }
+
+    // Hàm tách tên và đơn vị, loại bỏ khoảng trắng thừa
+    const extractNameAndUnit = (fullName) => {
+        if (fullName && fullName.includes(" - ")) {
+            const [name, unit] = fullName.split(" - ");
+            return { name: name.trim(), unit: unit.trim() };
+        }
+        return { name: fullName.trim(), unit: "" };
+    };
+
+    // Tách và format thông tin của tác giả chính
+    if (tacGia) {
+        const { name, unit } = extractNameAndUnit(tacGia);
+        body.tacGia = `${name} (${unit} - ${soTietTacGia} giờ)`.trim();
+    }
+
+    // Tách và format thông tin của dong chu bien
+    if (dongChuBien) {
+        const { name, unit } = extractNameAndUnit(dongChuBien);
+        body.dongChuBien = `${name} (${unit} - ${soTietDongChuBien} giờ)`.trim(); // Thay 'tacGiaCtn' thành 'dongChuBien'
+    }
+
+    // Tách và format thông tin của thành viên
+    if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
+        body.thanhVien = danhSachThanhVien.map((member, index) => {
+            const { name, unit } = extractNameAndUnit(member);
+            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`.trim();
+        }).join(", ");
+    }
+
+    // Trả về body đã được cập nhật
+    return body;
+};
+
+// Lấy bảng sách và giáo trình
+const getTableSachVaGiaoTrinh = async (req, res) => {
+
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng sachvagiaotrinh Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        let query;
+        const queryParams = [];
+
+        // Truy vấn dữ liệu từ bảng sachvagiaotrinh
+        query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
+        queryParams.push(NamHoc);
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getTableSachVaGiaoTrinh:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
 
 module.exports = {
     getDeTaiDuAn,
@@ -828,4 +918,5 @@ module.exports = {
     getTableBangSangCheVaGiaiThuong,
     getSachVaGiaoTrinh,
     saveSachVaGiaoTrinh,
+    getTableSachVaGiaoTrinh,
 };

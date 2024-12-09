@@ -31,5 +31,8 @@ router.get("/bangsangchevagiaithuong/:NamHoc", nckh.getTableBangSangCheVaGiaiThu
 router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);
 // lưu sách và giáo trình
 router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
+// render table sách và giáo trình 
+router.get("/sachvagiaotrinh/:NamHoc", nckh.getTableSachVaGiaoTrinh);
+
 
 module.exports = router;
