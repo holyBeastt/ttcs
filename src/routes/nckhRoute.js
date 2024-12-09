@@ -48,4 +48,11 @@ router.post("/xaydungctdt", nckh.saveXayDungCTDT);
 // render table xây dựng ctdt
 router.get("/xaydungctdt/:NamHoc", nckh.getTableXayDungCTDT);
 
+// render site biên soạn giáo trình bài giảng
+router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
+// lưu biên soạn giáo trình bài giảng
+router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
+// render table biên soạn giáo trình bài giảng
+router.get("/biensoangiaotrinhbaigiang/:NamHoc", nckh.getTableBienSoanGiaoTrinhBaiGiang);
+
 module.exports = router;

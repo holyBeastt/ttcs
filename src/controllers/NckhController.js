@@ -21,6 +21,9 @@ const getNckhVaHuanLuyenDoiTuyen = (req, res) => {
 const getXayDungCTDT = (req, res) => {
     res.render("nckhXayDungCTDT.ejs");
 };
+const getBienSoanGiaoTrinhBaiGiang = (req, res) => {
+    res.render("nckhBienSoanGiaoTrinhBaiGiang.ejs");
+};
 
 // lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
@@ -1113,7 +1116,6 @@ const saveXayDungCTDT = async (req, res) => {
     }
 };
 
-
 const quyDoiXayDungChuongTrinhDaoTao = (body) => {
     const { phanLoai, danhSachThanhVien, soTC } = body;
 
@@ -1195,6 +1197,173 @@ const getTableXayDungCTDT = async (req, res) => {
     }
 };
 
+const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
+    // Lấy dữ liệu từ body
+    const {
+        phanLoai, // Phân loại
+        namHoc,
+        tenGiaoTrinhBaiGiang, // Tên chương trình
+        soQDGiaoNhiemVu, // Số quyết định giao nhiệm vụ
+        ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
+        soTC,
+        tacGia,
+        thanhVien, // Đây là một mảng từ client
+    } = req.body;
+
+    // Gọi hàm quy đổi
+    const quyDoiResult = quyDoiBienSoanGiaoTrinhBaiGiang({
+        phanLoai,
+        danhSachThanhVien: thanhVien,
+        soTC,
+        tacGia
+    });
+
+    // Lấy kết quả sau khi quy đổi
+    const thanhVienFormatted = quyDoiResult.thanhVien || "";
+    const tacGiaFormatted = quyDoiResult.tacGia || "";
+
+
+    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+    try {
+        // Chèn dữ liệu vào bảng biensoangiaotrinhbaigiang
+        await connection.execute(
+            ` 
+            INSERT INTO biensoangiaotrinhbaigiang (
+                PhanLoai, NamHoc, TenGiaoTrinhBaiGiang, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, TacGia, DanhSachThanhVien
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            [
+                phanLoai,  // Phân loại
+                namHoc,
+                tenGiaoTrinhBaiGiang,  // Tên chương trình
+                soTC,
+                soQDGiaoNhiemVu,  // Số quyết định giao nhiệm vụ
+                ngayQDGiaoNhiemVu,  // Ngày quyết định giao nhiệm vụ
+                tacGiaFormatted, // Tác giả
+                thanhVienFormatted,  // Danh sách thành viên đã được format
+            ]
+        );
+
+        // Trả về phản hồi thành công cho client
+        console.log('Thêm biên soạn giáo trình/bài giảng thành công');
+        res.status(200).json({
+            message: "Thêm biên soạn giáo trình/bài giảng thành công!",
+        });
+    } catch (error) {
+        console.error("Lỗi khi lưu dữ liệu biên soạn giáo trình/bài giảng:", error);
+        // Trả về phản hồi lỗi cho client
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi thêm biên soạn giáo trình/bài giảng.",
+            error: error.message,
+        });
+    } finally {
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+};
+
+
+
+const quyDoiBienSoanGiaoTrinhBaiGiang = (body) => {
+    const {
+        phanLoai,
+        soTC,
+        tacGia,
+        danhSachThanhVien
+    } = body;
+
+    // Xác định tổng số giờ dựa vào loại công việc và số tín chỉ (soTC)
+    let totalHours = 0;
+    if (phanLoai === "Viết mới giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ đạt yêu cầu trở lên") {
+        totalHours = soTC * 42; // Số giờ cho việc viết mới giáo trình/bài giảng
+    } else if (phanLoai === "Tu chỉnh giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ đạt yêu cầu trở lên") {
+        totalHours = soTC * 14; // Số giờ cho việc tu chỉnh giáo trình/bài giảng
+    }
+
+    // Làm tròn xuống
+    totalHours = Math.floor(totalHours);
+
+    let soTietTacGia = 0;
+    let soTietThanhVien = [];
+
+    // Hàm tách tên và đơn vị, loại bỏ khoảng trắng thừa
+    const extractNameAndUnit = (fullName) => {
+        if (fullName && fullName.includes(" - ")) {
+            const [name, unit] = fullName.split(" - ");
+            return { name: name.trim(), unit: unit.trim() };
+        }
+        return { name: fullName.trim(), unit: "" };
+    };
+
+    // Trường hợp chỉ có tác giả
+    if (tacGia && !danhSachThanhVien) {
+        soTietTacGia = totalHours; // Tác giả chính nhận 100% số giờ
+    }
+    // Trường hợp có tác giả và thành viên
+    else if (tacGia && danhSachThanhVien && Array.isArray(danhSachThanhVien) && danhSachThanhVien.length > 0) {
+        // Tác giả chính nhận 40% số giờ
+        soTietTacGia = totalHours * 0.4;
+
+        // Còn lại 60% chia đều cho tác giả và thành viên
+        let totalParticipants = 1 + danhSachThanhVien.length; // Tính số người tham gia (tác giả + thành viên)
+        let soTietPerMember = Math.floor((totalHours * 0.6) / totalParticipants); // Phần chia cho mỗi người, làm tròn xuống
+
+        // Gán số giờ cho thành viên
+        soTietThanhVien = Array(danhSachThanhVien.length).fill(soTietPerMember);
+
+        // Cộng số giờ cho tác giả chính
+        soTietTacGia += soTietPerMember; // Tác giả chính cũng nhận phần của thành viên
+    }
+
+    // Tách và format thông tin của tác giả chính
+    if (tacGia) {
+        const { name, unit } = extractNameAndUnit(tacGia);
+        body.tacGia = `${name} (${unit} - ${soTietTacGia} giờ)`; // Định dạng theo yêu cầu
+    }
+
+    // Tách và format thông tin của thành viên
+    if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
+        body.thanhVien = danhSachThanhVien.map((member, index) => {
+            const { name, unit } = extractNameAndUnit(member);
+            return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`.trim();
+        }).join(", ");
+    }
+
+    // console.log(body)
+    // Trả về body đã được cập nhật
+    return body;
+};
+
+// Lấy bảng biensoangiaotrinhbaigiang
+const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+        const queryParams = [NamHoc];
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getTableBienSoanGiaoTrinhBaiGiang:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+
 
 
 module.exports = {
@@ -1217,5 +1386,7 @@ module.exports = {
     getXayDungCTDT,
     saveXayDungCTDT,
     getTableXayDungCTDT,
-
+    getBienSoanGiaoTrinhBaiGiang,
+    saveBienSoanGiaoTrinhBaiGiang,
+    getTableBienSoanGiaoTrinhBaiGiang
 };
