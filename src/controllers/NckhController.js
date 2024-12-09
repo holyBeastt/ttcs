@@ -1272,13 +1272,16 @@ const quyDoiBienSoanGiaoTrinhBaiGiang = (body) => {
         tacGia,
         danhSachThanhVien
     } = body;
+    console.log(body)
 
-    // Xác định tổng số giờ dựa vào loại công việc và số tín chỉ (soTC)
     let totalHours = 0;
-    if (phanLoai === "Viết mới giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ đạt yêu cầu trở lên") {
-        totalHours = soTC * 42; // Số giờ cho việc viết mới giáo trình/bài giảng
-    } else if (phanLoai === "Tu chỉnh giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ đạt yêu cầu trở lên") {
-        totalHours = soTC * 14; // Số giờ cho việc tu chỉnh giáo trình/bài giảng
+    // Chuyển đổi soTC sang số nguyên
+    const soTCInt = parseInt(soTC, 10); // Sử dụng cơ số 10 để chuyển đổi
+
+    if (phanLoai === "Viết mới giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên") {
+        totalHours = soTCInt * 42; // Số giờ cho việc viết mới giáo trình/bài giảng
+    } else if (phanLoai === "Tu chỉnh giáo trình, bài giảng và được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên") {
+        totalHours = soTCInt * 14; // Số giờ cho việc tu chỉnh giáo trình/bài giảng
     }
 
     // Làm tròn xuống
@@ -1297,7 +1300,7 @@ const quyDoiBienSoanGiaoTrinhBaiGiang = (body) => {
     };
 
     // Trường hợp chỉ có tác giả
-    if (tacGia && !danhSachThanhVien) {
+    if (tacGia && (!danhSachThanhVien || danhSachThanhVien.length === 0)) {
         soTietTacGia = totalHours; // Tác giả chính nhận 100% số giờ
     }
     // Trường hợp có tác giả và thành viên

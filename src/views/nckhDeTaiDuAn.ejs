@@ -175,9 +175,9 @@
       <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
       <div class="form-group flex-container">
         <div class="flex-item">
-          <label for="capDeTai">Cấp đề tài</label>
+          <label for="capDeTai">Cấp đề tài, dự án</label>
           <select id="capDeTai" name="capDeTai" required>
-            <option value="">-- Chọn cấp đề tài --</option>
+            <option value="">-- Chọn cấp đề tài, dự án --</option>
             <option value="Quốc gia, Nghị định thư">Quốc gia, Nghị định thư</option>
             <option value="Ban, Bộ và tương đương">Ban, Bộ và tương đương</option>
             <option value="Cơ sở, Học viện">Cơ sở, Học viện</option>
@@ -193,14 +193,14 @@
 
       <!-- Tên đề tài -->
       <div class="form-group">
-        <label for="tenDeTai">Tên đề tài</label>
+        <label for="tenDeTai">Tên đề tài, dự án</label>
         <input type="text" id="tenDeTai" name="tenDeTai" placeholder="Nhập tên đề tài" required>
       </div>
 
       <!-- Mã đề tài -->
       <div class="form-group">
         <div class="flex-item">
-          <label for="maDeTai">Mã số đề tài</label>
+          <label for="maDeTai">Mã số đề tài, dự án</label>
           <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required>
         </div>
       </div>
@@ -209,18 +209,18 @@
       <div class="form-group flex-container">
         <div class="flex-item">
           <label for="chuNhiem">
-            Chủ nhiệm
+            Chủ nhiệm 
             <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox">
           </label>
           <div id="chuNhiem-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên giảng viên" required>
+          <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required>
         </div>
         <div class="flex-item">
           <!-- Combobox thêm vào -->
           <label for="chuNhiemComboBox">Đơn vị</label>
           <select id="chuNhiemComboBox" name="chuNhiemComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -234,14 +234,14 @@
             <input type="checkbox" id="thuKyCheckbox" name="thuKyCheckbox">
           </label>
           <div id="thuKy-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên giảng viên">
+          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký">
         </div>
         <div class="flex-item">
           <!-- Combobox thêm vào -->
           <label for="thuKyComboBox">Đơn vị</label>
           <select id="thuKyComboBox" name="thuKyComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -262,7 +262,7 @@
           <label for="thanhVienComboBox">Đơn vị</label>
           <select id="thanhVienComboBox" name="thanhVienComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -614,10 +614,10 @@
       };
 
       // Kiểm tra form hợp lệ
-      if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
-        alert("Vui lòng điền đầy đủ thông tin.");
-        return;
-      }
+      // if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
+      //   alert("Vui lòng điền đầy đủ thông tin.");
+      //   return;
+      // }
 
       // Gửi dữ liệu lên server
       fetch("/detaiduan", {
