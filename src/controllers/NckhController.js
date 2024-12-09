@@ -18,6 +18,9 @@ const getNckhVaHuanLuyenDoiTuyen = (req, res) => {
     res.render("nckhVaHuanLuyenDoiTuyen.ejs");
 };
 
+const getXayDungCTDT = (req, res) => {
+    res.render("nckhXayDungCTDT.ejs");
+};
 
 // lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
@@ -1049,6 +1052,151 @@ const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
 };
 
 
+const saveXayDungCTDT = async (req, res) => {
+    // Lấy dữ liệu từ body
+    const {
+        phanLoai, // Phân loại
+        namHoc,
+        tenChuongTrinh, // Tên chương trình
+        soQDGiaoNhiemVu, // Số quyết định giao nhiệm vụ
+        ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
+        soTC,
+        thanhVien, // Đây là một mảng từ client
+    } = req.body;
+
+    // Gọi hàm quy đổi
+    const quyDoiResult = quyDoiXayDungChuongTrinhDaoTao({
+        phanLoai,
+        danhSachThanhVien: thanhVien,
+        soTC
+    });
+
+    // Lấy kết quả sau khi quy đổi
+    const thanhVienFormatted = quyDoiResult.thanhVien || "";
+
+    const connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+    try {
+        // Chèn dữ liệu vào bảng xaydungctdt
+        await connection.execute(
+            ` 
+            INSERT INTO xaydungctdt (
+                HinhThucXayDung, NamHoc, TenChuongTrinh, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien
+            ) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
+            [
+                phanLoai,  // Phân loại
+                namHoc,
+                tenChuongTrinh,  // Tên chương trình
+                soTC,
+                soQDGiaoNhiemVu,  // Số quyết định giao nhiệm vụ
+                ngayQDGiaoNhiemVu,  // Ngày quyết định giao nhiệm vụ
+                thanhVienFormatted,  // Danh sách thành viên đã được format
+            ]
+        );
+
+        // Trả về phản hồi thành công cho client
+        console.log('Thêm xây dựng CTĐT thành công');
+        res.status(200).json({
+            message: "Thêm xây dựng CTĐT thành công!",
+        });
+    } catch (error) {
+        console.error("Lỗi khi lưu dữ liệu xây dựng CTĐT:", error);
+        // Trả về phản hồi lỗi cho client
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi thêm xây dựng CTĐT.",
+            error: error.message,
+        });
+    } finally {
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
+    }
+};
+
+
+const quyDoiXayDungChuongTrinhDaoTao = (body) => {
+    const { phanLoai, danhSachThanhVien, soTC } = body;
+
+    // Kiểm tra đầu vào `soTC`, nếu không hợp lệ thì mặc định là 0
+    // const validSoTC = typeof soTC === "number" && soTC > 0 ? soTC : 0;
+    const validSoTC = Number.isInteger(parseInt(soTC)) && parseInt(soTC) > 0 ? parseInt(soTC) : 0;
+
+
+    // Quy định cách tính số giờ tương ứng với từng loại công việc
+    const calculateHours = {
+        "Xây dựng mới chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên": validSoTC * 3.75,
+        "Xây dựng mới chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên": validSoTC * 11.5,
+        "Tu chỉnh chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên": validSoTC * 1.5,
+        "Tu chỉnh chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên": validSoTC * 3.5
+    };
+
+    // Lấy số giờ quy đổi dựa trên loại công việc
+    const totalHours = calculateHours[phanLoai] || 0;
+
+    // Tổng số người tham gia (danh sách thành viên)
+    const participants = danhSachThanhVien && Array.isArray(danhSachThanhVien) ? danhSachThanhVien : [];
+
+    // Tính số giờ chia đều cho các thành viên
+    const hoursPerMember = participants.length > 0
+        ? Math.floor(totalHours / participants.length)
+        : 0;
+
+    // Xử lý format đầu ra
+    let thanhVienResult = "";
+
+    participants.forEach((participant, index) => {
+        // Tách tên và đơn vị
+        let name = participant;
+        let unit = "";
+        if (participant.includes(" - ")) {
+            const split = participant.split(" - ");
+            name = split[0].trim();
+            unit = split[1].trim();
+        }
+
+        const formatted = `${name} (${unit} - ${hoursPerMember} giờ)`;
+
+        // Gán vào danh sách thành viên
+        thanhVienResult += (thanhVienResult ? ", " : "") + formatted;
+    });
+
+    // Kết quả cuối cùng
+    return {
+        thanhVien: thanhVienResult || null,
+    };
+};
+
+// Lấy bảng xaydungctdt
+const getTableXayDungCTDT = async (req, res) => {
+
+    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+
+    console.log("Lấy dữ liệu bảng xaydungctdt Năm:", NamHoc);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `SELECT * FROM xaydungctdt WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+        const queryParams = [NamHoc];
+
+        // Thực hiện truy vấn
+        const [results] = await connection.execute(query, queryParams);
+
+        // Trả về kết quả dưới dạng JSON
+        res.json(results); // results chứa dữ liệu trả về
+    } catch (error) {
+        console.error("Lỗi trong hàm getTableXayDungCTDT:", error);
+        res
+            .status(500)
+            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+
+
 module.exports = {
     getDeTaiDuAn,
     getTableDeTaiDuAn,
@@ -1066,4 +1214,8 @@ module.exports = {
     getNckhVaHuanLuyenDoiTuyen,
     saveNckhVaHuanLuyenDoiTuyen,
     getTableNckhVaHuanLuyenDoiTuyen,
+    getXayDungCTDT,
+    saveXayDungCTDT,
+    getTableXayDungCTDT,
+
 };
