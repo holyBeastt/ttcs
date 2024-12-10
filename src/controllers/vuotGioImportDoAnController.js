@@ -867,6 +867,77 @@ const saveToDB = async (req, res) => {
   }
 };
 
+// Lưu vào bảng doantotnghiep
+const saveToTableDoantotnghiep = async (req, res) => {
+  const namHoc = req.query.namHoc;
+  const MaPhongBan = req.query.MaPhongBan;
+  const Dot = req.query.Dot;
+  const data = req.body;
+
+  let connection;
+  try {
+    connection = await createPoolConnection(); // Kết nối đến DB
+
+    // Tạo mảng 2 chiều chứa tất cả các bản ghi
+    const values = data.map((row) => {
+      // Tạo Khóa đào tạo
+      const KhoaDaoTao = row.MaSV.slice(0, 4);
+
+      const KhoaDuyet = 0,
+        DaoTaoDuyet = 0,
+        TaiChinhDuyet = 0,
+        DaLuu = 0,
+        DaBanHanh = 0;
+
+      return [
+        row.TT,
+        row.SinhVien,
+        row.MaSV,
+        KhoaDaoTao,
+        row.TenDeTai,
+        row.GiangVienDefault,
+        row.GiangVien1,
+        row.GiangVien2,
+        namHoc,
+        row.NgayBatDau,
+        row.NgayKetThuc,
+        MaPhongBan,
+        row.SoQD,
+        KhoaDuyet,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
+        DaLuu,
+        row.GiangVien1Real,
+        row.GiangVien2Real,
+        DaBanHanh,
+        Dot,
+      ]; // Thêm NamHoc vào mảng
+    });
+
+    // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
+    const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
+    GiangVien1, GiangVien2, NamHoc, NgayBatDau, NgayKetThuc, MaPhongBan, SoQD, KhoaDuyet, DaoTaoDuyet, 
+    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot)
+    VALUES ?`;
+
+    // Thực thi câu lệnh SQL với mảng values
+    const [result] = await connection.query(sql, [values]);
+
+    // Gửi phản hồi thành công
+    res.status(200).json({
+      message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
+      insertedRows: result.affectedRows,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lưu dữ liệu vào database:", error);
+    if (!res.headersSent) {
+      res.status(500).send("Đã xảy ra lỗi khi lưu dữ liệu vào database!");
+    }
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 const getImportDoAn = (req, res) => {
   res.render("vuotGioImportDoAn.ejs");
 };
@@ -876,4 +947,5 @@ module.exports = {
   getImportDoAn,
   extractFileData,
   saveToDB,
+  saveToTableDoantotnghiep,
 };
