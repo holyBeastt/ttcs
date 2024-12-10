@@ -170,7 +170,7 @@
   </nav>
   <!-- <div class="container my-5 box formNckh"> -->
   <div class="my-3 box formNckh">
-    <h2 class="titleNckh">Sách và giáo trình xuất bản trong nước</h2>
+    <h2 class="titleNckh">Xây dựng chương trình đào tạo</h2>
 
     <form id="formData" class="">
       <div class="form-group flex-container">
@@ -178,84 +178,88 @@
         <div class="flex-item">
           <label for="phanLoai">Phân loại</label>
           <select id="phanLoai" name="phanLoai" required>
-            <option value="Sách chuyên khảo được xuất bản">Sách chuyên khảo được xuất bản</option>
-            <option value="Giáo trình, tài liệu giảng dạy được xuất bản">Giáo trình, tài liệu giảng dạy được xuất bản
+            <option value="Xây dựng mới chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
+              Xây dựng mới chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
             </option>
-            <option value="Sách tham khảo hoặc tương đương được xuất bản">Sách tham khảo hoặc tương đương được xuất bản
+            <option value="Xây dựng mới chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
+              Xây dựng mới chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
             </option>
-            <option value="Một chương sách chuyên khảo được xuất bản tại nước ngoài">Một chương sách chuyên khảo được
-              xuất bản tại nước ngoài</option>
+            <option value="Tu chỉnh chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
+              Tu chỉnh chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
+            </option>
+            <option value="Tu chỉnh chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
+              Tu chỉnh chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
+            </option>
+        </div>
+        <!-- Năm học này để cho đúng css thôi chứ năm học combo box phải lấy ở dưới =) -->
+        <div class="flex-item">
+          <label for="namHocFormLỏ">Năm học</label>
+          <select class="namHoc" id="namHocFormLỏ" name="namHoc" required>
           </select>
         </div>
-        <!-- Năm học -->
+      </div>
+
+      <div class="form-group flex-container">
         <div class="flex-item">
           <label for="namHocForm">Năm học</label>
           <select class="namHoc" id="namHocForm" name="namHoc" required>
-            <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
           </select>
+        </div>
+        <div class="flex-item">
+          <!-- Tên bằng sáng chế, giải thưởng -->
+          <div class="form-group">
+            <label for="soTC">Số tín chỉ</label>
+            <input type="number" id="soTC" name="soTC" placeholder="Nhập số tín chỉ" required>
+          </div>
         </div>
       </div>
 
       <!-- Tên bằng sáng chế, giải thưởng -->
       <div class="form-group">
-        <label for="tenSachVaGiaoTrinh">Tên sách, giáo trình</label>
-        <input type="text" id="tenSachVaGiaoTrinh" name="tenSachVaGiaoTrinh" placeholder="Nhập tên sách, giáo trình"
-          required>
+        <label for="tenChuongTrinh">Tên chương trình đào tạo</label>
+        <input type="text" id="tenChuongTrinh" name="tenChuongTrinh" placeholder="Nhập tên chương trình đào tạo" required>
       </div>
+
+      <!-- Tên bằng sáng chế, giải thưởng
+      <div class="form-group">
+        <label for="soTC">Số tín chỉ</label>
+        <input type="number" id="soTC" name="soTC" placeholder="Nhập số tín chỉ" required>
+      </div> -->
+
 
       <!-- Ngày quyết định, số quyết định, tác giả trên cùng một dòng -->
       <div class="form-group flex-container">
         <!-- Số quyết định công nhận -->
         <div class="flex-item">
-          <label for="soXuatBan">Số xuất bản</label>
-          <input type="text" id="soXuatBan" name="soXuatBan" placeholder="Nhập số xuất bản" required>
+          <label for="soQuyetDinh">Số quyết định giao nhiệm vụ</label>
+          <input type="text" id="soQuyetDinh" name="soQuyetDinh" placeholder="VD: 1277/QĐ-HVM" required>
         </div>
 
         <!-- Ngày quyết định công nhận -->
         <div class="flex-item">
-          <label for="soTrang">Số trang</label>
-          <input type="number" id="soTrang" name="soTrang" placeholder="Nhập số trang" required>
+          <label for="ngayQuyetDinh">Ngày quyết định giao nhiệm vụ</label>
+          <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required>
         </div>
       </div>
 
-      <div class="form-group flex-container">
-        <div class="flex-item">
-          <label for="tacGia">
-            Chủ biên
-            <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox">
-          </label>
-          <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
-        </div>
-        <div class="flex-item">
-          <!-- Combobox thêm vào -->
-          <label for="tacGiaComboBox">Đơn vị</label>
-          <select id="tacGiaComboBox" name="tacGiaComboBox">
-            <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
-          </select>
-        </div>
-      </div>
 
-      <!-- Tác giả chịu trách nhiệm -->
+      <!-- Kết quả 
       <div class="form-group flex-container">
         <div class="flex-item">
-          <label for="tacGiaCtn">
-            Đồng chủ biên
-            <input type="checkbox" id="tacGiaCtnCheckbox" name="tacGiaCtnCheckbox">
-          </label>
-          <div id="tacGiaCtn-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="tacGiaCtn" name="tacGiaCtn" placeholder="Nhập tên tác giả">
-        </div>
-        <div class="flex-item">
-          <!-- Combobox thêm vào -->
-          <label for="tacGiaCtnComboBox">Đơn vị</label>
-          <select id="tacGiaCtnComboBox" name="thuKyComboBox">
-            <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+          <label for="xepLoaiKetQuaCapKhoa">Xếp loại kết quả cấp Khoa</label>
+          <select id="xepLoaiKetQua" name="xepLoaiKetQua" required>
+            <option value="Đạt" selected>Đạt</option>
+            <option value="Không đạt">Không đạt</option>
           </select>
         </div>
-      </div>
+        <div class="flex-item">
+          <label for="xepLoaiKetQuaCapHocVien">Xếp loại kết quả cấp Học viện</label>
+          <select id="xepLoaiKetQua" name="xepLoaiKetQua" required>
+            <option value="Đạt" selected>Đạt</option>
+            <option value="Không đạt">Không đạt</option>
+          </select>
+        </div>
+      </div> -->
 
       <!-- Thành viên -->
       <div class="form-group flex-container">
@@ -264,15 +268,14 @@
             Thành viên
             <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox">
           </label>
-          <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
+          <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div>
           <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field">
         </div>
         <div class="flex-item">
-          <!-- Combobox cho đơn vị -->
           <label for="thanhVienComboBox">Đơn vị</label>
           <select id="thanhVienComboBox" name="thanhVienComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -298,12 +301,11 @@
       <table border="1" class="table table-bordered">
         <thead id="table-header">
           <tr>
-            <th>Phân loại</th>
-            <th>Tên sách, giáo trình</th>
-            <th>Số xuất bản</th>
-            <th>Số trang</th>
-            <th>Tác giả</th>
-            <th>Đồng chủ biên</th>
+            <th>Hình thức</th>
+            <th>Tên chương trình</th>
+            <th>Số tín chỉ</th>
+            <th>Số QĐ giao nhiệm vụ</th>
+            <th>Ngày QĐ giao nhiệm vụ</th>
             <th>Thành viên</th>
           </tr>
         </thead>
@@ -383,19 +385,16 @@
         const row = document.createElement('tr');
 
         // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
-        const tacGiaFormated = formatHours(item.TacGia);
-        const dongChuBienFormated = formatHours(item.DongChuBien);
-
         const thanhVienFormatted = formatDanhSachThanhVien(item.DanhSachThanhVien)
+        const ngayQDCongNhanFormated = formatDate(item.NgayQDGiaoNhiemVu);
 
 
         row.innerHTML = `
-      <td>${item.PhanLoai}</td>
-      <td>${item.TenSachVaGiaoTrinh}</td>
-      <td>${item.SoXuatBan}</td>
-      <td>${item.SoTrang}</td>
-      <td>${tacGiaFormated}</td>
-      <td>${dongChuBienFormated}</td>
+      <td>${item.HinhThucXayDung}</td>
+      <td>${item.TenChuongTrinh}</td>
+      <td>${item.SoTC}</td>
+      <td>${item.SoQDGiaoNhiemVu}</td>
+      <td>${ngayQDCongNhanFormated}</td>
       <td>${thanhVienFormatted}</td>
     `;
         tbody.appendChild(row);
@@ -406,7 +405,7 @@
     // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
     async function getData() {
       const year = document.getElementById('namHocXem').value; // Lấy năm học từ select
-      const url = `/sachvagiaotrinh/${year}`; // Tạo URL với URL parameter 'NamHoc'
+      const url = `/xaydungctdt/${year}`; // Tạo URL với URL parameter 'NamHoc'
 
       try {
         fetch(url) // Thay URL bằng endpoint của bạn
@@ -432,9 +431,9 @@
     // check thì tắt gợi ý
     document.addEventListener('DOMContentLoaded', function () {
       // Lấy các phần tử
-      const chuNhiemInput = document.getElementById('tacGia');
-      const chuNhiemSuggestions = document.getElementById('tacGia-suggestions');
-      const chuNhiemCheckbox = document.getElementById('tacGiaCheckbox');
+      // const chuNhiemInput = document.getElementById('tacGia');
+      // const chuNhiemSuggestions = document.getElementById('tacGia-suggestions');
+      // const chuNhiemCheckbox = document.getElementById('tacGiaCheckbox');
 
       const thanhVienCheckbox = document.getElementById('thanhVienCheckbox');  // Thành viên checkbox
       const thanhVienInput = document.getElementById('thanhVien');  // Thành viên input text
@@ -563,8 +562,7 @@
       }
 
       // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý, truyền thêm combo box và checkbox
-      handleInput("tacGia", "tacGia-suggestions", "tacGiaComboBox", "tacGiaCheckbox");
-      handleInput("tacGiaCtn", "tacGiaCtn-suggestions", "tacGiaCtnComboBox", "tacGiaCtnCheckbox");
+      // handleInput("tacGia", "tacGia-suggestions", "tacGiaComboBox", "tacGiaCheckbox");
       handleInput("thanhVien", "themThanhVien-suggestions", "thanhVienComboBox", "thanhVienCheckbox");
     });
     // =================================================================     
@@ -599,11 +597,13 @@
       const formData = {
         phanLoai: document.getElementById("phanLoai").value,  // Phân loại
         namHoc: document.getElementById("namHocForm").value,  // Năm học
-        tenSachVaGiaoTrinh: document.getElementById("tenSachVaGiaoTrinh").value,  // Tên bằng sáng chế / giải thưởng
-        soXuatBan: document.getElementById("soXuatBan").value,  // Số quyết định công nhận
-        soTrang: document.getElementById("soTrang").value,  // Ngày quyết định công nhận
-        tacGia: document.getElementById("tacGia").value,  // Tác giả
-        dongChuBien: document.getElementById("tacGiaCtn").value,
+        tenChuongTrinh: document.getElementById("tenChuongTrinh").value,  // Tên bằng sáng chế / giải thưởng
+        soTC: document.getElementById("soTC").value,  // Tên bằng sáng chế / giải thưởng
+        soQDGiaoNhiemVu: document.getElementById("soQuyetDinh").value,  // Số quyết định công nhận
+        ngayQDGiaoNhiemVu: document.getElementById("ngayQuyetDinh").value,  // Ngày quyết định công nhận
+        // xepLoaiKetQuaCapKhoa: document.getElementById("xepLoaiKetQuaCapKhoa").value,
+        // xepLoaiKetQuaCapHocVien: document.getElementById("xepLoaiKetQuaCapHocVien").value,
+        // tacGia: document.getElementById("tacGia").value,  // Tác giả
         thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
           (member) => member.textContent  // Danh sách thành viên
         ),
@@ -611,9 +611,8 @@
 
       console.log(formData)
 
-
       // Gửi dữ liệu lên server
-      fetch("/sachvagiaotrinh", {
+      fetch("/xaydungctdt", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
