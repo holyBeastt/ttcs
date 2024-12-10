@@ -89,14 +89,6 @@ button:hover {
     display: none;
 }
 
-/* Khi màn hình nhỏ hơn, các trường sẽ xếp chồng lên nhau */
-@media screen and (max-width: 768px) {
-    .form-group.flex-container .flex-item {
-        flex: 1 1 100%;
-        /* Các trường sẽ chiếm hết chiều rộng khi màn hình nhỏ */
-    }
-}
-
 /* Bo góc cho combobox (select) */
 select {
     border-radius: 8px;
@@ -313,9 +305,9 @@ select {
     max-height: 200px;
     overflow-y: auto;
     background-color: white;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000001000000000;
+    z-index: 100000;
     padding: 0;
     margin: 0;
     border-radius: 5px;
@@ -323,6 +315,7 @@ select {
 
 /* Các mục gợi ý */
 .suggestion-item {
+    z-index: 1;
     padding: 10px 15px;
     cursor: pointer;
     background-color: white;
@@ -379,14 +372,14 @@ input[type="text"]::placeholder {
 
 /* Style cho container gợi ý phần nhập thành viên */
 .suggestions-container-dstv {
-    /* position: absolute; */
+    position: absolute;
     top: 100%;
     /* Đặt ngay dưới ô input */
     left: 0;
     width: 100%;
     /* Trùng chiều rộng với ô input */
     background: white;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     border-top: none;
     /* Xóa viền trên để liền với input */
     border-radius: 0 0 4px 4px;
@@ -397,7 +390,7 @@ input[type="text"]::placeholder {
     /* Giới hạn chiều cao */
     overflow-y: auto;
     /* Thêm thanh cuộn dọc nếu quá dài */
-    z-index: 100;
+    z-index: 1;
     /* Đảm bảo gợi ý nằm trên các phần tử khác */
 }
 
@@ -425,4 +418,161 @@ input[type="text"]::placeholder {
     margin-top: 20px;
     font-size: 14px;
     line-height: 1.6;
+}
+
+
+/* check boxx */
+label[for="chuNhiem"],
+label[for="thuKy"],
+label[for="thanhVien"],
+label[for="tacGia"],
+label[for="tacGiaCtn"] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Khoảng cách giữa label và checkbox */
+}
+
+label[for="chuNhiem"] input[type="checkbox"],
+label[for="thuKy"] input[type="checkbox"],
+label[for="thanhVien"] input[type="checkbox"],
+label[for="tacGia"] input[type="checkbox"],
+label[for="tacGiaCtn"] input[type="checkbox"] {
+    margin: 0;
+    /* Loại bỏ margin mặc định của checkbox */
+    vertical-align: middle;
+    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
+    width: 10%;
+    /* Giới hạn chiều rộng của checkbox */
+}
+
+/* css bảng xem với form */
+.formView {
+    width: 100%;
+    max-width: 1000px;
+    /* Giới hạn chiều rộng tối đa của form */
+    margin: 0 auto;
+    /* Căn giữa form */
+    padding: 20px;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm form bị vượt kích thước */
+    background-color: #f9f9f9;
+    /* Màu nền nhẹ */
+    border-radius: 10px;
+    /* Bo góc mềm mại */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    /* Đổ bóng nhẹ cho form */
+    font-size: 16px;
+}
+
+.namHoc {
+    padding: 5px;
+    font-size: 14px;
+}
+
+#render {
+    padding: 5px 15px;
+    font-size: 14px;
+    width: auto;
+    /* Chiều rộng tự động theo nội dung */
+    white-space: nowrap;
+    /* Đảm bảo chữ không bị xuống dòng */
+}
+
+
+
+/* màu bảng */
+.table {
+    width: 100%;
+    /* Bảng chiếm toàn bộ chiều rộng */
+    text-align: left;
+    /* Căn chữ sang trái */
+    border-collapse: collapse;
+    /* Gộp viền bảng */
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    /* Tạo khoảng cách trong ô */
+    border: 1px solid #ccc;
+    /* Đường viền cho các ô */
+}
+
+.table th {
+    background-color: #f0f0f0;
+    /* Màu nền cho tiêu đề bảng */
+}
+
+.table-container {
+    margin-top: 20px;
+    /* Khoảng cách giữa form và bảng */
+}
+
+/* màu bảng */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #dee2e6;
+}
+
+.table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.table tbody tr:hover {
+    background-color: #e2e6ea;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.bg-custom {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.spinner-border {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+/* bảng hiển thị, năm học và label chung 1 dòng */
+.flex-container-view {
+    display: flex;
+    align-items: center;
+    /* Canh giữa theo trục dọc */
+    gap: 10px;
+    /* Khoảng cách giữa các phần tử */
+}
+
+.flex-item-nckh-view {
+    display: flex;
+    align-items: center;
+    /* Canh giữa theo trục dọc */
+}
+
+.namHoc {
+    width: 100px;
+    white-space: nowrap;
+    /* Điều chỉnh kích thước nếu cần */
 }

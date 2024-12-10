@@ -13,7 +13,7 @@ const {
 } = require("../controllers/vuotGioImportDoAnController");
 
 router.get("/importDoAn", getImportDoAn);
-router.get("/postSaveDataDoAn", saveToDB);
+router.post("/postSaveDataDoAn", saveToDB);
 
 // Route để tải lên file
 router.post("/postImportDoAn", upload.single("file"), extractFileData);

@@ -20,6 +20,8 @@ const {
   getRole,
   getlog,
   getthongkemg,
+  getthongkenckh,
+  getthongkedoan,
 } = require("../controllers/homeController");
 
 // const { createGVM } = require("../controllers/DaoTaoController");
@@ -53,4 +55,6 @@ router.get("/maindt/tableQC", getXemBangQC);
 router.get("/mainkhoa", getMainKhoa);
 router.get("/log", getlog);
 router.get("/thongkemg", getthongkemg);
+router.get("/thongkenckh", getthongkenckh);
+router.get("/thongkedoan", getthongkedoan);
 module.exports = router;
