@@ -118,7 +118,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -168,7 +176,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -1044,33 +1052,33 @@
       }
     });
   </script>
-<script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
   <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      const Quyen = localStorage.getItem("userRole");
 
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (Quyen === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+</body>
 
 </html>
