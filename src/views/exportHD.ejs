@@ -170,7 +170,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -182,7 +182,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -232,9 +240,9 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -244,11 +252,11 @@
   </nav>
 
 
-    <div class="d-flex justify-content-center">
-      <!-- Main content -->
-      <div class="gvmList">
-        <div class="m-3">
-          <h1>HỢP ĐỒNG GIẢNG VIÊN MỜI</h1>
+  <div class="d-flex justify-content-center">
+    <!-- Main content -->
+    <div class="gvmList">
+      <div class="m-3">
+        <h1>HỢP ĐỒNG GIẢNG VIÊN MỜI</h1>
 
         <div class="controls-container d-flex align-items-center">
           <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
@@ -267,7 +275,8 @@
           <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
             <option value="">Chọn khoa</option>
           </select>
-          <input type="text" class="form-control w-200px mx-2" id="search-teacher" oninput="showSuggestionsGvm(this)" onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên">
+          <input type="text" class="form-control w-200px mx-2" id="search-teacher" oninput="showSuggestionsGvm(this)"
+            onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên">
 
           <button type="button" class="btn mx-2" id="exportButton"><i class="fas fa-file-export me-2"></i>Xuất Hợp
             Đồng</button>
@@ -399,46 +408,11 @@
 
         if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
           window.location.href = "/info2";
-         
-          } else {
-            window.location.href = "/info";
-          }
-        });
 
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa")
-
-          if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
-
-    </script>
-
-    <script>
-      window.onload = function () {
-        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-        let Role = localStorage.getItem("userRole");
-        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA'){
-          Role = 'LĐK';
-        }
-
-        if (TenNhanVien) {
-          // Hiển thị tên người dùng trên phần tử HTML
-          document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
         } else {
           window.location.href = "/info";
         }
-      };
+      });
 
       // Thêm sự kiện click cho phần tử có id="Home"
 
@@ -455,7 +429,42 @@
           window.location.href = "/mainkhoa";
         }
       });
-    
+    });
+
+  </script>
+
+  <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      let Role = localStorage.getItem("userRole");
+      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+        Role = 'LĐK';
+      }
+
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
+      } else {
+        window.location.href = "/info";
+      }
+    };
+
+    // Thêm sự kiện click cho phần tử có id="Home"
+
+    const Home = document.getElementById("Home");
+
+    Home.addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+      const isKhoa = localStorage.getItem("isKhoa")
+
+      if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
+        window.location.href = "/maindt";
+      } else {
+        window.location.href = "/mainkhoa";
+      }
+    });
+
 
   </script>
 
@@ -490,79 +499,79 @@
     });
   </script>
 
-<script>
-  $(document).ready(function () {
-    // Xóa tùy chọn rỗng nếu có
-    $('#NamHoc option[value=""]').remove();
+  <script>
+    $(document).ready(function () {
+      // Xóa tùy chọn rỗng nếu có
+      $('#NamHoc option[value=""]').remove();
 
-    $.ajax({
-      url: '/getNamHoc',
-      method: 'GET',
-      success: function (response) {
-        if (response.success) {
-          const namHocList = response.NamHoc; // Giả sử NamHoc là một mảng
-          console.log(namHocList);
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            const namHocList = response.NamHoc; // Giả sử NamHoc là một mảng
+            console.log(namHocList);
 
-          // Xóa tất cả các tùy chọn hiện có để tránh trùng lặp
-          $('#NamHoc').empty();
+            // Xóa tất cả các tùy chọn hiện có để tránh trùng lặp
+            $('#NamHoc').empty();
 
-          // Thêm các tùy chọn từ dữ liệu trả về
-          namHocList.forEach(function (item) {
-            $('#NamHoc').append(
-              `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-            );
-          });
+            // Thêm các tùy chọn từ dữ liệu trả về
+            namHocList.forEach(function (item) {
+              $('#NamHoc').append(
+                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+              );
+            });
 
-          // Kiểm tra và thêm tùy chọn mặc định nếu không có tùy chọn nào được chọn
-          if ($('#NamHoc option:selected').length === 0) {
-            $('#NamHoc').prepend('<option value="">Chọn Năm Học</option>');
-          }
-        } else {
-          console.error("Không thể lấy năm học:", response.message);
-        }
-      },
-      error: function (xhr, status, error) {
-        console.error("Lỗi khi gọi API:", error);
-      }
-    });
-  });
-</script>
-
-    <script>
-      $(document).ready(function () {
-        $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
-        $('#combobox-dot option[value=""]').remove();
-  
-        $.ajax({
-          url: '/getNamHoc',
-          method: 'GET',
-          success: function (response) {
-            if (response.success) {
-  
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                  $('#NamHoc').append(
-                    `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                  );
-              });
-  
-              response.Ki.forEach(function (item) {
-                console.log(item.Ki);
-                  $('#comboboxki').append(
-                    `<option value="${item.value}">${item.Ki}</option>`
-                  );
-              });
-              response.Dot.forEach(function (item) {
-                console.log(item.Dot);
-                  $('#combobox-dot').append(
-                    `<option value="${item.value}">${item.Dot}</option>`
-                  );
-              });
-            } else {
-              console.error("Không lấy được dữ liệu năm học:", response.message);
+            // Kiểm tra và thêm tùy chọn mặc định nếu không có tùy chọn nào được chọn
+            if ($('#NamHoc option:selected').length === 0) {
+              $('#NamHoc').prepend('<option value="">Chọn Năm Học</option>');
             }
-          
+          } else {
+            console.error("Không thể lấy năm học:", response.message);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+    });
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      $('#NamHoc option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
+      $('#combobox-dot option[value=""]').remove();
+
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+
+            response.NamHoc.forEach(function (item) {
+              console.log(item.NamHoc);
+              $('#NamHoc').append(
+                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+              );
+            });
+
+            response.Ki.forEach(function (item) {
+              console.log(item.Ki);
+              $('#comboboxki').append(
+                `<option value="${item.value}">${item.Ki}</option>`
+              );
+            });
+            response.Dot.forEach(function (item) {
+              console.log(item.Dot);
+              $('#combobox-dot').append(
+                `<option value="${item.value}">${item.Dot}</option>`
+              );
+            });
+          } else {
+            console.error("Không lấy được dữ liệu năm học:", response.message);
+          }
+
         },
         error: function (error) {
           console.error("Lỗi khi lấy dữ liệu năm học:", error);
@@ -599,7 +608,7 @@
             if (!$('#MaPhongBan option:selected').length) {
               $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
             }
-          }   else {
+          } else {
             console.error("Không lấy được dữ liệu phongBan:", response.message);
           }
         },
@@ -612,7 +621,7 @@
 
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    const gvmList = <%- JSON.stringify(gvmoiList) %>;
+    const gvmList = <% - JSON.stringify(gvmoiList) %>;
     localStorage.setItem("gvmList", JSON.stringify(gvmList));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
 
@@ -710,50 +719,50 @@
       existingSuggestions.forEach(suggestion => suggestion.remove());
     }
 
-     // calculateTotals();
-  
+    // calculateTotals();
+
 
   </script>
   <script>
-    document.getElementById("infome").addEventListener("click", function(event) {
+    document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
       if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+        alert("Không tìm thấy id_User trong localStorage.");
       }
     });
   </script>
-  
-<script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
   <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      const Quyen = localStorage.getItem("userRole");
 
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
-          
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (Quyen === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+</body>
+
 </html>

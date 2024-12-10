@@ -420,6 +420,8 @@ input[type="text"]::placeholder {
     line-height: 1.6;
 }
 
+
+/* check boxx */
 label[for="chuNhiem"],
 label[for="thuKy"],
 label[for="thanhVien"],
