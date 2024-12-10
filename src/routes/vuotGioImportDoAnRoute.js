@@ -9,11 +9,11 @@ const readXlsxFile = require("read-excel-file");
 const {
   getImportDoAn,
   extractFileData,
-  saveToDB,
+  saveToTableDoantotnghiep,
 } = require("../controllers/vuotGioImportDoAnController");
 
 router.get("/importDoAn", getImportDoAn);
-router.post("/postSaveDataDoAn", saveToDB);
+router.post("/postSaveDataDoAn", saveToTableDoantotnghiep);
 
 // Route để tải lên file
 router.post("/postImportDoAn", upload.single("file"), extractFileData);

@@ -29,11 +29,16 @@ const logRoute = require("./routes/logRoute");
 const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
 const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
-const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
-const vuotGioExportDoAnRoute = require("./routes/vuotGioExportDoAnRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
 const thayDoiTTGiamDocTrongHDRoute = require("./routes/thayDoiTTGiamDocTrongHDRoute");
+
+// Phần đồ án
+const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
+const vuotGioExportDoAnRoute = require("./routes/vuotGioExportDoAnRoute");
+const doAnChinhThucRoute = require("./routes/doAnChinhThucRoute");
+const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
+const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -91,12 +96,16 @@ app.use("/", xemCacLopGvmRoute);
 app.use("/", xemCacLopMoiRoute);
 app.use("/", vuotGioAddClassRoute);
 app.use("/", vuotGioExportRoute);
-app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioSoTietDMRouter);
-app.use("/", vuotGioExportDoAnRoute);
 app.use("/", thongkemgRoute);
 app.use("/", thayDoiTTGiamDocTrongHDRoute);
 
+// Phần đồ án
+app.use("/", doAnChinhThucRoute);
+app.use("/", vuotGioImportDoAnRoute);
+app.use("/", vuotGioExportDoAnRoute);
+app.use("/", vuotGioDoAnDuKienRoute);
+app.use("/", doAnHopDongDuKienRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
