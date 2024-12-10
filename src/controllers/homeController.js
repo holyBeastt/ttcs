@@ -56,6 +56,9 @@ const getMainKhoa = (req, res) => {
 const getthongkemg = (req, res) => {
   res.render("thongkemg.ejs");
 };
+const getthongkenckh = (req, res) => {
+  res.render("thongkenckh.ejs");
+};
 // Hàm postFile xử lý upload file Excel
 const postFile = (req, res) => {
   // Sử dụng multer để upload file
@@ -88,5 +91,6 @@ module.exports = {
   getlog,
   // Lấy role
   //thong ke
-  getthongkemg
+  getthongkemg,
+  getthongkenckh,
 };
