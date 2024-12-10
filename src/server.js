@@ -31,7 +31,9 @@ const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
-const thayDoiTTGiamDocTrongHDRoute = require("./routes/thayDoiTTGiamDocTrongHDRoute");
+const thongkenckhRoute = require("./routes/thongkenckhRoute");
+const thongkedoanRoute = require("./routes/thongkedoanRoute");
+const suaHDRoute = require("./routes/suaHDRoute");
 
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
@@ -98,7 +100,9 @@ app.use("/", vuotGioAddClassRoute);
 app.use("/", vuotGioExportRoute);
 app.use("/", vuotGioSoTietDMRouter);
 app.use("/", thongkemgRoute);
-app.use("/", thayDoiTTGiamDocTrongHDRoute);
+app.use("/", thongkenckhRoute);
+app.use("/", thongkedoanRoute);
+app.use("/", suaHDRoute);
 
 // Phần đồ án
 app.use("/", doAnChinhThucRoute);

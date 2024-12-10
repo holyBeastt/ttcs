@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/detaiduan.css">
+  <link rel="stylesheet" href="/css/nckh.css">
+
 </head>
 
 <body>
@@ -107,7 +108,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -173,17 +182,17 @@
       <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
       <div class="form-group flex-container">
         <div class="flex-item">
-          <label for="capDeTai">Cấp đề tài</label>
+          <label for="capDeTai">Cấp đề tài, dự án</label>
           <select id="capDeTai" name="capDeTai" required>
-            <option value="">-- Chọn cấp đề tài --</option>
+            <option value="">-- Chọn cấp đề tài, dự án --</option>
             <option value="Quốc gia, Nghị định thư">Quốc gia, Nghị định thư</option>
             <option value="Ban, Bộ và tương đương">Ban, Bộ và tương đương</option>
             <option value="Cơ sở, Học viện">Cơ sở, Học viện</option>
           </select>
         </div>
         <div class="flex-item">
-          <label for="namHoc">Năm học</label>
-          <select id="namHoc" name="namHoc" required>
+          <label for="namHocForm">Năm học</label>
+          <select class="namHoc" id="namHocForm" name="namHoc" required>
             <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
           </select>
         </div>
@@ -191,14 +200,14 @@
 
       <!-- Tên đề tài -->
       <div class="form-group">
-        <label for="tenDeTai">Tên đề tài</label>
+        <label for="tenDeTai">Tên đề tài, dự án</label>
         <input type="text" id="tenDeTai" name="tenDeTai" placeholder="Nhập tên đề tài" required>
       </div>
 
       <!-- Mã đề tài -->
       <div class="form-group">
         <div class="flex-item">
-          <label for="maDeTai">Mã số đề tài</label>
+          <label for="maDeTai">Mã số đề tài, dự án</label>
           <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required>
         </div>
       </div>
@@ -207,18 +216,18 @@
       <div class="form-group flex-container">
         <div class="flex-item">
           <label for="chuNhiem">
-            Chủ nhiệm
+            Chủ nhiệm 
             <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox">
           </label>
           <div id="chuNhiem-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên giảng viên" required>
+          <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required>
         </div>
         <div class="flex-item">
           <!-- Combobox thêm vào -->
           <label for="chuNhiemComboBox">Đơn vị</label>
           <select id="chuNhiemComboBox" name="chuNhiemComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -232,14 +241,14 @@
             <input type="checkbox" id="thuKyCheckbox" name="thuKyCheckbox">
           </label>
           <div id="thuKy-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên giảng viên">
+          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký">
         </div>
         <div class="flex-item">
           <!-- Combobox thêm vào -->
           <label for="thuKyComboBox">Đơn vị</label>
           <select id="thuKyComboBox" name="thuKyComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -260,7 +269,7 @@
           <label for="thanhVienComboBox">Đơn vị</label>
           <select id="thanhVienComboBox" name="thanhVienComboBox">
             <option value="KMA" selected>KMA</option>
-            <option value="KMP">KMP</option>
+            <!-- <option value="KMP">KMP</option> -->
           </select>
         </div>
       </div>
@@ -288,10 +297,130 @@
       <button type="button" class="btn" id="submitBtn">Gửi</button>
     </form>
   </div>
+
+  <!-- xem -->
+  <div class="my-3 box formView">
+    <h2 class="titleNckh">Xem số giờ quy đổi</h2>
+    <div class="flex-container-view">
+      <div class="flex-item">
+        <label for="namHocXem">Chọn Năm Học:</label>
+        <select id="namHocXem" class="namHoc"></select>
+      </div>
+      <div class="flex-item-view">
+        <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table border="1" class="table table-bordered">
+        <thead id="table-header">
+          <tr>
+            <th>Cấp đề tài</th>
+            <th>Tên đề tài</th>
+            <th>Mã số đề tài</th>
+            <th>Chủ nhiệm</th>
+            <th>Thư ký</th>
+            <th>Thành viên</th>
+            <th>Ngày nghiệm thu</th>
+            <th>Xếp loại</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- nckh -->
+  <!-- nckh view -->
+  <script>
+
+
+    // Hàm format để định dạng ngày từ ISO 8601
+    function formatDate(dateString) {
+      const date = new Date(dateString); // Tạo đối tượng Date từ chuỗi ISO 8601
+
+      // Lấy ngày, tháng, năm từ đối tượng Date
+      const day = String(date.getDate()).padStart(2, '0');  // Đảm bảo ngày có 2 chữ số
+      const month = String(date.getMonth() + 1).padStart(2, '0');  // Tháng (0-indexed)
+      const year = date.getFullYear();  // Lấy năm
+
+      return `${day}/${month}/${year}`; // Trả về định dạng ngày/tháng/năm
+    }
+
+
+
+    // format giờ
+    function formatHours(text) {
+      const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
+
+      if (match) {
+        const hours = parseFloat(match[1].replace(',', '.'));
+        const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
+        return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+      }
+
+      return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
+    }
+
+    // render table
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+
+      // Xóa dữ liệu cũ
+      tbody.innerHTML = '';
+
+      // Duyệt qua dữ liệu và thêm từng hàng vào tbody
+      data.forEach(item => {
+        const row = document.createElement('tr');
+
+        // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
+        const chuNhiemFormatted = formatHours(item.ChuNhiem);
+        const thuKyFormatted = formatHours(item.ThuKy);
+        const thanhVienFormatted = item.DanhSachThanhVien
+          .split(',')  // Tách chuỗi thành viên bằng dấu phẩy
+          .map(member => formatHours(member.trim()))  // Định dạng giờ cho từng thành viên
+          .join(', ');  // Nối lại thành chuỗi các thành viên đã được định dạng
+        const ngayNghiemThuFormatted = formatDate(item.NgayNghiemThu);
+
+        // Tạo các dòng dữ liệu cho bảng
+        row.innerHTML = `
+      <td>${item.CapDeTai}</td>
+      <td>${item.TenDeTai}</td>
+      <td>${item.MaSoDeTai}</td>
+      <td>${chuNhiemFormatted}</td>
+      <td>${thuKyFormatted}</td>
+      <td>${thanhVienFormatted}</td>
+      <td>${ngayNghiemThuFormatted}</td>
+      <td>${item.XepLoai}</td>
+    `;
+        tbody.appendChild(row);
+      });
+    }
+
+
+    // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
+    async function getData() {
+      const year = document.getElementById('namHocXem').value; // Lấy năm học từ select
+      const url = `/tabledetaiduan/${year}`; // Tạo URL với URL parameter 'NamHoc'
+
+      try {
+        fetch(url) // Thay URL bằng endpoint của bạn
+          .then(response => response.json())
+          .then(data => {
+            renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy dữ liệu:', error);
+          });
+      } catch (error) {
+        console.error('Lỗi trong quá trình gửi yêu cầu:', error);
+      }
+    }
+  </script>
+  <!-- nckh form -->
   <script>
     // giảng viên cơ hữu của trường, để gợi ý tên
     var giangVienCoHuu = []
@@ -448,9 +577,6 @@
       handleInput("thanhVien", "themThanhVien-suggestions", "thanhVienComboBox", "thanhVienCheckbox");
 
     });
-
-
-
     // =================================================================
 
 
@@ -482,7 +608,7 @@
       // Lấy dữ liệu từ form
       const formData = {
         capDeTai: document.getElementById("capDeTai").value,
-        namHoc: document.getElementById("namHoc").value,
+        namHoc: document.getElementById("namHocForm").value,
         tenDeTai: document.getElementById("tenDeTai").value,
         maDeTai: document.getElementById("maDeTai").value,
         chuNhiem: document.getElementById("chuNhiem").value,
@@ -495,10 +621,10 @@
       };
 
       // Kiểm tra form hợp lệ
-      if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
-        alert("Vui lòng điền đầy đủ thông tin.");
-        return;
-      }
+      // if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
+      //   alert("Vui lòng điền đầy đủ thông tin.");
+      //   return;
+      // }
 
       // Gửi dữ liệu lên server
       fetch("/detaiduan", {
@@ -938,7 +1064,7 @@
       }
     });
   </script>
-  <script>
+  <!-- <script>
     $(document).ready(function () {
       $('#namHoc option[value=""]').remove();
 
@@ -963,7 +1089,39 @@
         }
       });
     });
+  </script> -->
+  <script>
+    $(document).ready(function () {
+      // Xóa các option trống trong tất cả các select có class .namHoc
+      $('.namHoc option[value=""]').remove();
+
+      // Gửi yêu cầu AJAX để lấy danh sách năm học
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            // Lặp qua mỗi select có class .namHoc
+            $('.namHoc').each(function () {
+              const selectElement = $(this); // Lấy select hiện tại
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                selectElement.append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+            });
+          } else {
+            console.error("Không lấy được dữ liệu năm học:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        }
+      });
+    });
   </script>
+
 </body>
 
 </html>

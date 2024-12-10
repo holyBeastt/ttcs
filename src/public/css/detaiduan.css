@@ -89,14 +89,6 @@ button:hover {
     display: none;
 }
 
-/* Khi màn hình nhỏ hơn, các trường sẽ xếp chồng lên nhau */
-@media screen and (max-width: 768px) {
-    .form-group.flex-container .flex-item {
-        flex: 1 1 100%;
-        /* Các trường sẽ chiếm hết chiều rộng khi màn hình nhỏ */
-    }
-}
-
 /* Bo góc cho combobox (select) */
 select {
     border-radius: 8px;
@@ -313,9 +305,9 @@ select {
     max-height: 200px;
     overflow-y: auto;
     background-color: white;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000001;
+    z-index: 100000;
     padding: 0;
     margin: 0;
     border-radius: 5px;
@@ -323,6 +315,7 @@ select {
 
 /* Các mục gợi ý */
 .suggestion-item {
+    z-index: 1;
     padding: 10px 15px;
     cursor: pointer;
     background-color: white;
@@ -386,7 +379,7 @@ input[type="text"]::placeholder {
     width: 100%;
     /* Trùng chiều rộng với ô input */
     background: white;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
     border-top: none;
     /* Xóa viền trên để liền với input */
     border-radius: 0 0 4px 4px;
@@ -397,7 +390,7 @@ input[type="text"]::placeholder {
     /* Giới hạn chiều cao */
     overflow-y: auto;
     /* Thêm thanh cuộn dọc nếu quá dài */
-    z-index: 100;
+    z-index: 1;
     /* Đảm bảo gợi ý nằm trên các phần tử khác */
 }
 
@@ -427,46 +420,24 @@ input[type="text"]::placeholder {
     line-height: 1.6;
 }
 
-label[for="chuNhiem"] {
+
+/* check boxx */
+label[for="chuNhiem"],
+label[for="thuKy"],
+label[for="thanhVien"],
+label[for="tacGia"],
+label[for="tacGiaCtn"] {
     display: flex;
     align-items: center;
     gap: 8px;
     /* Khoảng cách giữa label và checkbox */
 }
 
-label[for="chuNhiem"] input[type="checkbox"] {
-    margin: 0;
-    /* Loại bỏ margin mặc định của checkbox */
-    vertical-align: middle;
-    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
-    width: 10%;
-    /* Giới hạn chiều rộng của checkbox */
-}
-
-label[for="thuKy"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* Khoảng cách giữa label và checkbox */
-}
-
-label[for="thuKy"] input[type="checkbox"] {
-    margin: 0;
-    /* Loại bỏ margin mặc định của checkbox */
-    vertical-align: middle;
-    /* Đảm bảo checkbox căn chỉnh chính giữa với văn bản */
-    width: 10%;
-    /* Giới hạn chiều rộng của checkbox */
-}
-
-label[for="thanhVien"] {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* Khoảng cách giữa label và checkbox */
-}
-
-label[for="thanhVien"] input[type="checkbox"] {
+label[for="chuNhiem"] input[type="checkbox"],
+label[for="thuKy"] input[type="checkbox"],
+label[for="thanhVien"] input[type="checkbox"],
+label[for="tacGia"] input[type="checkbox"],
+label[for="tacGiaCtn"] input[type="checkbox"] {
     margin: 0;
     /* Loại bỏ margin mặc định của checkbox */
     vertical-align: middle;
