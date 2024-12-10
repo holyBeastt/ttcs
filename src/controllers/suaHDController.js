@@ -48,15 +48,9 @@ exports.uploadFile = (req, res) => {
                 });
             });
         } else {
-            // Nếu tệp chưa tồn tại, chỉ cần lưu lại
-            fs.rename(req.file.path, filePath, (err) => {
-                if (err) {
-                    console.error('Lỗi khi lưu tệp:', err);
-                    return res.status(500).send('Có lỗi xảy ra khi lưu tệp!');
-                }
-
-                res.json({ message: 'Tệp đã được tải lên thành công!' });
-            });
+            // Nếu không trùng, gửi thông báo lỗi
+            return res.status(400).send('Tên tệp tải lên không trùng với tên tệp đã tồn tại!');
         }
+    
     });
 };

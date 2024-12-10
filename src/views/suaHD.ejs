@@ -54,6 +54,61 @@
       background-color: inherit;
       /* Giữ nguyên nút cập nhật */
     }
+ /* Căn chỉnh chung cho toàn bộ form */
+.d-flex {
+  display: flex;
+  flex-direction: row; /* Các phần tử nằm ngang */
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa các phần tử */
+  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
+  padding: 20px;
+}
+
+/* Căn chỉnh cho các select box */
+#loaiHopDong {
+  padding: 10px;
+  font-size: 16px;
+  min-width: 120px; /* Đảm bảo combobox có chiều rộng tối thiểu */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
+
+}
+
+/* Căn chỉnh cho button */
+button {
+  background-color: #4CAF50; /* Màu nền của nút */
+  color: white; /* Màu chữ */
+  font-size: 16px; /* Kích thước chữ */
+  padding: 10px 20px; /* Khoảng cách trong nút */
+  border: none; /* Không có border */
+  border-radius: 5px; /* Bo góc */
+  cursor: pointer; /* Con trỏ chuột khi hover */
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Hiệu ứng hover */
+button:hover {
+  background-color: #45a049; /* Màu nền khi hover */
+  transform: scale(1.05); /* Phóng to nút khi hover */
+}
+
+/* Hiệu ứng khi button được nhấn */
+button:active {
+  background-color: #388e3c;
+  transform: scale(0.98); /* Thu nhỏ nút khi nhấn */
+}
+
+/* Căn chỉnh input type file */
+input[type="file"] {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  min-width: 120px; /* Đảm bảo input có chiều rộng tối thiểu */
+}
+
   </style>
 
 </head>
@@ -195,28 +250,29 @@
   <div class="d-flex justify-content-center">
     <!-- Main content -->
     <div class="gvmList">
-      <div class="m-3">  <h1>Sửa HD</h1>
+      <div class="m-3">
 
-  <!-- Combobox để chọn loại hợp đồng -->
-  <select id="loaiHopDong"  class="form-select w-100px mx-2 selectop">
-    <option value="HopDongMM.docx">Mật mã</option>
-    <option value="HopDongDA.docx">Đồ án</option>
-    <option value="HopDongHP.docx">Hệ học phí</option>
-  </select>
-  <!-- Nút tải file -->
-  <button id="downloadButton">Tải file</button>
-
-  <br><br>
-
-  <!-- Chọn file để upload -->
-  <input type="file" id="fileInput" />
-  <button id="uploadButton">Tải lên</button>
-
-  <script src="app.js"></script>
-
+        <!-- Combobox để chọn loại hợp đồng -->
+        <select id="loaiHopDong" class="form-select mx-2 selectop">
+          <option value="HopDongMM.docx">Mật mã</option>
+          <option value="HopDongDA.docx">Đồ án</option>
+          <option value="HopDongHP.docx">Hệ học phí</option>
+        </select>
+  
+        <!-- Nút tải file -->
+        <button id="downloadButton">Tải file</button>
+  
+        <!-- Chọn file để upload -->
+        <input type="file" id="fileInput" />
+        <button id="uploadButton">Tải lên</button>
+  
       </div>
     </div>
   </div>
+  
+  <script src="app.js"></script>
+  
+  
   <script>
    document.addEventListener('DOMContentLoaded', function () {
     // Xử lý sự kiện khi nhấn nút tải file
