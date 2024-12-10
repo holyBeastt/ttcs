@@ -54,6 +54,61 @@
       background-color: inherit;
       /* Giữ nguyên nút cập nhật */
     }
+ /* Căn chỉnh chung cho toàn bộ form */
+.d-flex {
+  display: flex;
+  flex-direction: row; /* Các phần tử nằm ngang */
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa các phần tử */
+  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
+  padding: 20px;
+}
+
+/* Căn chỉnh cho các select box */
+#loaiHopDong {
+  padding: 10px;
+  font-size: 16px;
+  min-width: 120px; /* Đảm bảo combobox có chiều rộng tối thiểu */
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
+
+}
+
+/* Căn chỉnh cho button */
+button {
+  background-color: #4CAF50; /* Màu nền của nút */
+  color: white; /* Màu chữ */
+  font-size: 16px; /* Kích thước chữ */
+  padding: 10px 20px; /* Khoảng cách trong nút */
+  border: none; /* Không có border */
+  border-radius: 5px; /* Bo góc */
+  cursor: pointer; /* Con trỏ chuột khi hover */
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Hiệu ứng hover */
+button:hover {
+  background-color: #45a049; /* Màu nền khi hover */
+  transform: scale(1.05); /* Phóng to nút khi hover */
+}
+
+/* Hiệu ứng khi button được nhấn */
+button:active {
+  background-color: #388e3c;
+  transform: scale(0.98); /* Thu nhỏ nút khi nhấn */
+}
+
+/* Căn chỉnh input type file */
+input[type="file"] {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  min-width: 120px; /* Đảm bảo input có chiều rộng tối thiểu */
+}
+
   </style>
 
 </head>
@@ -122,8 +177,8 @@
                 <a class="nav-link " href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-                <a class="nav-link" id="TTGiamDocTrongHopDong" href="/viewThayDoiTTGiamDoc">Thông tin giám đốc trong hợp
-                  đồng</a>
+                <a class="nav-link active " href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
+
               </div>
             </div>
           </div>
@@ -148,15 +203,7 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
-                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
-                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
-                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
-                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
-                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
-                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
-                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
-                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
+                <a class="nav-link" id="" href="#">COMING SOON</a>
               </div>
             </div>
           </div>
@@ -200,43 +247,94 @@
       </div>
     </div>
   </nav>
-  <!-- Main content -->
-  <div class="m-3 box">
-    <form action="/updateTTGiamDoc" method="POST" class="form" id="updateForm">
-      <div class="row">
-        <div class="form-group col-6">
-          <label for="HoTen">Họ tên:</label>
-          <input required class="form-control" type="text" name="HoTen" id="HoTen" value="<%= value.HoTen %>"
-            placeholder="Nhập họ tên">
-        </div>
-        <div class="form-group col-6">
-          <label for="ChucVu">Chức vụ:</label>
-          <input required class="form-control" type="text" name="ChucVu" id="ChucVu" value="<%= value.ChucVu %>"
-            placeholder="Nhập chức vụ">
-        </div>
-        <div class="form-group col-6">
-          <label for="DiaChi">Địa chỉ:</label>
-          <input required class="form-control" type="text" name="DiaChi" id="DiaChi" value="<%= value.DiaChi %>"
-            placeholder="Nhập địa chỉ">
-        </div>
-        <div class="form-group col-6">
-          <label for="DienThoai">Điện thoại:</label>
-          <input required class="form-control" type="tel" name="DienThoai" id="DienThoai" value="<%= value.DienThoai %>"
-            placeholder="Nhập số điện thoại">
-        </div>
-        <div class="form-group col-6">
-          <label for="STK">Số tài khoản:</label>
-          <input required class="form-control" type="text" name="STK" id="STK" value="<%= value.STK %>"
-            placeholder="Nhập số tài khoản">
-        </div>
-        <div class="form-group col-6">
-          <label for="NganHang">Ngân hàng:</label>
-          <input required class="form-control" type="text" name="NganHang" id="NganHang" value="<%= value.NganHang %>"
-            placeholder="Nhập nơi mở tài khoản">
-        </div>
+  <div class="d-flex justify-content-center">
+    <!-- Main content -->
+    <div class="gvmList">
+      <div class="m-3">
+
+        <!-- Combobox để chọn loại hợp đồng -->
+        <select id="loaiHopDong" class="form-select mx-2 selectop">
+          <option value="HopDongMM.docx">Mật mã</option>
+          <option value="HopDongDA.docx">Đồ án</option>
+          <option value="HopDongHP.docx">Hệ học phí</option>
+        </select>
+  
+        <!-- Nút tải file -->
+        <button id="downloadButton">Tải file</button>
+  
+        <!-- Chọn file để upload -->
+        <input type="file" id="fileInput" />
+        <button id="uploadButton">Tải lên</button>
+  
       </div>
-      <button type="submit" class="btn btn-primary mt-3">Cập Nhật</button>
-    </form>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+  
+  
+  <script>
+   document.addEventListener('DOMContentLoaded', function () {
+    // Xử lý sự kiện khi nhấn nút tải file
+    document.getElementById('downloadButton').addEventListener('click', function () {
+        const selectedFile = document.getElementById('loaiHopDong').value;
+
+        if (selectedFile) {
+            // Gửi yêu cầu tải file từ server
+            fetch(`/download/${selectedFile}`)
+            .then(response => response.blob())
+            .then(blob => {
+                // Tạo link tạm thời để tải file về
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = selectedFile; // Đặt tên file khi tải xuống
+                link.click(); // Giả lập click để tải file
+            })
+            .catch(error => {
+                console.error('Lỗi tải xuống:', error);
+                alert('Có lỗi xảy ra khi tải xuống.');
+            });
+        } else {
+            alert('Vui lòng chọn một loại hợp đồng!');
+        }
+    });
+
+    // Xử lý sự kiện khi nhấn nút upload file
+    document.getElementById('uploadButton').addEventListener('click', function () {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0]; // Lấy file đã chọn
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Gửi file lên server để upload và ghi đè file cũ
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Tệp đã được tải lên thành công:', data);
+                alert('Tải lên thành công!');
+            })
+            .catch(error => {
+                console.error('Lỗi tải lên:', error);
+                alert('Có lỗi xảy ra khi tải lên.');
+            });
+        } else {
+            alert('Vui lòng chọn tệp để tải lên!');
+        }
+    });
+});
+
+
+
+  </script>
+  
+  
+
+
   </div>
 
 

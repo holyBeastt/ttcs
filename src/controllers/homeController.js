@@ -59,6 +59,9 @@ const getthongkemg = (req, res) => {
 const getthongkenckh = (req, res) => {
   res.render("thongkenckh.ejs");
 };
+const getthongkedoan = (req, res) => {
+  res.render("thongkedoan.ejs");
+};
 // Hàm postFile xử lý upload file Excel
 const postFile = (req, res) => {
   // Sử dụng multer để upload file
@@ -93,4 +96,5 @@ module.exports = {
   //thong ke
   getthongkemg,
   getthongkenckh,
+  getthongkedoan,
 };

@@ -155,9 +155,8 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
     combinedResults.forEach(row => {
       const className = row.Lop; // Giả sử tên lớp được lưu trong thuộc tính 'Lop'
-      const isHeDongHocPhi = /^[A-Za-z]\d/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng chữ cái và sau đó là chữ số
-      const isHeMatMa = /^[A-Za-z][A-Za-z]/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng chữ cái và sau đó là chữ cái khác
-
+      const isHeDongHocPhi = /^[A-Za-z]\d{1,}/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng chữ cái và có một hoặc nhiều chữ số
+      const isHeMatMa = /^[A-Za-z][A-Za-z]/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng hai chữ cái
       if (row.HocKy === 1) {
         if (isHeDongHocPhi) {
           groupedResults["Kỳ 1"]["Hệ đóng học phí"].push(row);
@@ -174,8 +173,8 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
     });
     resultsGiuaky.forEach(row => {
       const className = row.Lop; 
-      const isHeDongHocPhi = /^[A-Za-z]\d/.test(className); 
-      const isHeMatMa = /^[A-Za-z][A-Za-z]/.test(className); 
+       const isHeDongHocPhi = /^[A-Za-z]\d{1,}/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng chữ cái và có một hoặc nhiều chữ số
+      const isHeMatMa = /^[A-Za-z][A-Za-z]/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng hai chữ cái
     
       if (row.HocKy === 1) {
         if (isHeDongHocPhi) {
@@ -456,7 +455,7 @@ const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
           // Định dạng dòng dữ liệu
           dataRow.font = { name: "Times New Roman", size: 12 };
-          dataRow.alignment = { horizontal: "center", vertical: "middle" };
+          dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText:true };
         });
         // Thêm dòng tổng cộng cho bảng
         const totalRow = worksheet.addRow([
