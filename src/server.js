@@ -33,6 +33,7 @@ const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
 const vuotGioExportDoAnRoute = require("./routes/vuotGioExportDoAnRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
+const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thayDoiTTGiamDocTrongHDRoute = require("./routes/thayDoiTTGiamDocTrongHDRoute");
 
 const app = express();
@@ -95,6 +96,7 @@ app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioSoTietDMRouter);
 app.use("/", vuotGioExportDoAnRoute);
 app.use("/", thongkemgRoute);
+app.use("/", thongkenckhRoute);
 app.use("/", thayDoiTTGiamDocTrongHDRoute);
 
 
