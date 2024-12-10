@@ -252,26 +252,29 @@
 
         <div class="controls-container d-flex align-items-center">
           <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
-            <option value="1">Đợt 1</option>
-            <option value="2">Đợt 2</option>
+        
           </select>
 
           <select class="form-select w-100px mx-2 selectop" id="comboboxki">
-            <option value="1">Kỳ 1</option>
-            <option value="2">Kỳ 2</option>
           </select>
 
           <select class="form-select w-100px mx-2 selectop" id="NamHoc">
-            <option value="">Năm học</option>
           </select>
-          <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
+          <select class="form-select w-250px mx-2 selectop" id="MaPhongBan">
             <option value="">Chọn khoa</option>
           </select>
           <input type="text" class="form-control w-200px mx-2" id="search-teacher" oninput="showSuggestionsGvm(this)" onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên">
 
+          <select id="loaiHopDong" name="loaiHopDong" class="form-select w-200px mx-2 selectop">
+            <option value="Hệ học phí">Hệ học phí</option>
+            <option value="Mật mã">Mật mã</option>
+            <option value="Đồ án">Đồ án</option>
+          </select>
+
           <button type="button" class="btn mx-2" id="exportButton"><i class="fas fa-file-export me-2"></i>Xuất Hợp
             Đồng</button>
         </div>
+     
         <script>
           // Trong file exportHD.ejs
           document.getElementById("exportButton").addEventListener("click", function () {
@@ -280,22 +283,28 @@
             const namHoc = document.getElementById("NamHoc").value;
             const khoa = document.getElementById("MaPhongBan").value;
             const teacherName = document.getElementById("search-teacher").value;
-
+            const loaiHopDong = document.getElementById("loaiHopDong").value; // Lấy giá trị từ combobox "Loại hợp đồng"
+        
             if (!dot || !ki || !namHoc) {
               alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học.");
               return;
             }
-
+        
             let url = `/exportHD/downloadAll?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
-
+        
             if (khoa) {
               url += `&khoa=${encodeURIComponent(khoa)}`;
             }
-
+        
             if (teacherName) {
               url += `&teacherName=${encodeURIComponent(teacherName)}`;
             }
-
+        
+            // Thêm loại hợp đồng vào URL
+            if (loaiHopDong) {
+              url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
+            }
+        
             window.location.href = url;
           });
         </script>
@@ -612,9 +621,9 @@
 
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    const gvmList = <%- JSON.stringify(gvmoiList) %>;
-    localStorage.setItem("gvmList", JSON.stringify(gvmList));
-    console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
+  const gvmList = <%- JSON.stringify(gvmoiList) %>;
+  localStorage.setItem("gvmList", JSON.stringify(gvmList));
+  console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
 
     // Hàm gợi ý bộ môn ở ô nhập 
     function showSuggestionsGvm(input) {
@@ -754,6 +763,9 @@
         }
       });
     </script>
+
+
+
   </body>
           
 </html>
