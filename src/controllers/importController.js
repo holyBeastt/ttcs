@@ -11,11 +11,11 @@ const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
-// const { parseStringPromise } = require("xml2js"); // Để sử dụng parseStringPromise
+const pdf = require('pdf-parse');
 const { parseStringPromise, Builder } = require("xml2js");
 
 // convert file quy chuẩn excel
-const convertExcelToJSON = (filePath) => {
+const convertExcelToJSON = async (filePath) => {
   try {
     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
     // Đọc tệp Excel
@@ -201,7 +201,7 @@ const validateFileExcelQC = (data) => {
 // };
 
 
-// hàm bỏ các lớp bị thiếu dữ liệu trong file word
+// hàm bỏ các lớp bị thiếu dữ liệu trong file word và pdf
 function filterInvalidRows(data) {
   const requiredKeys = [
     "TT", "Số TC", "Lớp học phần", "Giáo viên", "Số tiết theo CTĐT",
@@ -243,6 +243,7 @@ const convertWordToJSON = async (filePath) => {
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
     const text = result.value;
     const lines = text.split("\n");  // Tách từng dòng
+
 
     let currentRow = {};  // Dùng để lưu thông tin cho từng dòng
     let currentKhoa = ""; // Biến lưu trữ tên Khoa
@@ -342,7 +343,7 @@ const convertWordToJSON = async (filePath) => {
       } else if (line.includes("Trung tâm thực hành")) {
         currentKhoa = "Trung tâm thực hành";  // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
         continue;  // Bỏ qua dòng này, không tạo đối tượng
-      } else if (line.includes("Khoa")) {
+      } else if (line.includes("Các học phần thuộc")) {
         const khoaMatch = line.match(/Khoa\s+(.+)$/);
         if (khoaMatch) {
           currentKhoa = khoaMatch[1].trim();  // Lấy tên Khoa từ dòng kiểm tra
@@ -357,12 +358,96 @@ const convertWordToJSON = async (filePath) => {
 
     // Trả về mảng dữ liệu đã xử lý
     const data2 = filterInvalidRows(data);
-    // console.log(data2)
+    console.log(data2)
 
     return data2;
 
   } catch (error) {
     console.error("Lỗi khi đọc file:", error);
+    throw error;  // Ném lỗi để biết có vấn đề trong quá trình xử lý
+  }
+};
+
+// convert file quy chuẩn dạng pdf bằng thư viện pdf-parse
+const convertPDFToJSON = async (filePath) => {
+  const result = [];
+
+  try {
+    // Đọc tệp PDF vào bộ đệm
+    const dataBuffer = fs.readFileSync(filePath);
+
+    // Sử dụng pdf-parse để trích xuất văn bản từ tệp PDF
+    const data = await pdf(dataBuffer);
+
+    // Lấy văn bản thô từ tệp PDF
+    let extractedText = data.text;
+
+    // Loại bỏ các dấu xuống dòng và các khoảng trắng thừa
+    extractedText = extractedText.replace(/\r?\n|\r/g, ' ').trim();
+
+    // Tách thành từng dòng dựa trên số TT (số kèm dấu chấm và khoảng trắng sau đó)
+    const lines = extractedText.split(/(?=\b\d+\.\s)/);
+
+    // Duyệt qua từng dòng
+    lines.forEach(line => {
+      line = line.trim();
+
+      // Kiểm tra nếu dòng bắt đầu bằng số TT (số và dấu chấm, khoảng trắng)
+      if (/^\d+\.\s/.test(line)) {
+        let currentItem = {};
+
+        // Bắt đầu xử lý dòng để gắn dữ liệu vào từng key
+        const ttMatch = line.match(/^\d+\./); // Tìm TT
+        if (ttMatch) {
+          currentItem["TT"] = ttMatch[0].replace('.', '').trim();
+          line = line.replace(/^\d+\.\s/, ''); // Loại bỏ TT khỏi dòng
+        }
+
+        // Gắn số TC (phần tử số nguyên đầu tiên)
+        const tcMatch = line.match(/^\d+/);
+        if (tcMatch) {
+          currentItem["Số TC"] = tcMatch[0];
+          line = line.replace(/^\d+\s/, ''); // Loại bỏ Số TC khỏi dòng
+        }
+
+        // Gắn Lớp học phần (từ Số TC đến đóng ngoặc đơn)
+        const classMatch = line.match(/^.*?\([^()]*\)/);
+        if (classMatch) {
+          currentItem["Lớp học phần"] = classMatch[0];
+          line = line.replace(/^.*?\([^()]*\)\s*/, ''); // Loại bỏ Lớp học phần khỏi dòng
+        }
+
+        // Gắn Giáo viên (từ sau Lớp học phần đến khi gặp số đầu tiên)
+        const teacherMatch = line.match(/^.*?(?=\d)/);
+        if (teacherMatch) {
+          currentItem["Giáo viên"] = teacherMatch[0].trim();
+          line = line.replace(/^.*?(?=\d)/, '').trim(); // Loại bỏ Giáo viên khỏi dòng
+        }
+
+        // Gắn các giá trị số tiếp theo
+        const numbers = line.split(/\s+/); // Tách thành các giá trị số
+        currentItem["Số tiết theo CTĐT"] = numbers[0] || "";
+        currentItem["Số SV"] = numbers[1] || "";
+        currentItem["Số tiết lên lớp theo TKB"] = numbers[2] || "";
+        currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] = numbers[3] || "";
+        currentItem["Hệ số lớp đông"] = numbers[4] || "";
+        currentItem["QC"] = numbers[5] || "";
+
+        // Đưa đối tượng vào mảng kết quả
+        result.push(currentItem);
+      }
+    });
+    console.log(result)
+
+    // Trả về mảng các đối tượng đã trích xuất
+    fs.unlinkSync(filePath);
+    const data2 = filterInvalidRows(result);
+    console.log(data2)
+
+    return data2;
+
+  } catch (error) {
+    console.error('Có lỗi xảy ra khi xử lý tệp PDF:', error);
     throw error;  // Ném lỗi để biết có vấn đề trong quá trình xử lý
   }
 };
@@ -385,13 +470,15 @@ const handleUploadAndRender = async (req, res) => {
     // console.log(fileExtension)
     // Xử lý theo loại file
     if (fileExtension === ".xlsx" || fileExtension === ".xls") {
-      result = convertExcelToJSON(filePath);
+      result = await convertExcelToJSON(filePath);
       console.log('convert file quy chuẩn excel');
     } else if (fileExtension === ".docx") {
       result = await convertWordToJSON(filePath);
       console.log('convert file quy chuẩn word');
     } else if (fileExtension === ".pdf") {
-      // result = processPdfFile(filePath);
+      result = await convertPDFToJSON(filePath);
+      console.log('convert file quy chuẩn PDF');
+
     } else {
       return res.status(400).send({ error: "Không đúng định dạng" });
     }
