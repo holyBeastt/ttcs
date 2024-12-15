@@ -455,6 +455,7 @@
               <th style="width: 100px">GV giảng dạy</th>
               <th style="width: 50px">Khoa</th>
               <th style="width: 100px">Bộ môn</th>
+              <th style="width: 100px">Hệ đào tạo</th>
               <th style="width: 50px">Số tiết LL</th>
               <th style="width: 50px">Số tiết QC</th>
               <th style="width: 70px">Ngày bắt đầu</th>
@@ -738,6 +739,13 @@
         boMonInput.name = "bomon"; // Lấy giá trị từ row
         boMonTd.appendChild(boMonInput); // Thêm span vào ô
         tableRow.appendChild(boMonTd);
+
+        const heDaoTaoTd= document.createElement("td"); // Tạo ô Bộ môn
+        const heDaoTaoInput = document.createElement("span"); // Tạo span cho Bộ môn
+        heDaoTaoInput.textContent = row.HeDaoTao || ""; // Lấy giá trị từ row
+        heDaoTaoInput.name = "heDaoTao"; // Lấy giá trị từ row
+        heDaoTaoTd.appendChild(heDaoTaoInput); // Thêm span vào ô
+        tableRow.appendChild(heDaoTaoTd);
 
         const soTietLLTd = document.createElement("td");
         soTietLLTd.textContent = row.LL || "";

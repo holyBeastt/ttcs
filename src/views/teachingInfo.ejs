@@ -463,6 +463,7 @@
               <th style="width: 100px;">GV giảng dạy</th>
               <th style="width: 50px;">Khoa</th>
               <th style="width: 100px;">Bộ môn</th>
+              <th style="width: 100px;">Hệ đào tạo</th>
               <th style="width: 50px;">Số tiết LL</th>
               <th style="width: 50px;">Số tiết QC</th>
               <th style="width: 50px;">Ngày bắt đầu</th>
@@ -909,6 +910,39 @@
             showSuggestionsBoMon(boMonInput);
           };
 
+          //Thẻ select hình thức thi giữa kỳ
+          let heDaoTaoTd;
+          let heDaoTaoSelect;
+          heDaoTaoTd = document.createElement('td');
+          heDaoTaoSelect = document.createElement('select');
+          heDaoTaoSelect.name = 'heDaoTao';
+
+          // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+          const options = [
+            { value: 'Mật mã', text: 'Mật mã' },
+            { value: 'Đóng học phí', text: 'Đóng học phí' },
+          ];
+
+          // Thêm các tùy chọn vào select
+          options.forEach(optionData => {
+            const option = document.createElement('option');
+            option.value = optionData.value;
+            option.textContent = optionData.text;
+            if (row.HeDaoTao === optionData.value) {
+              option.selected = true;
+            }
+            heDaoTaoSelect.appendChild(option);
+          });
+          // Thêm style trực tiếp
+          heDaoTaoSelect.style.setProperty('background-color', 'white', 'important');
+          heDaoTaoSelect.style.setProperty('color', 'black', 'important');
+          heDaoTaoSelect.style.padding = '5px';
+
+          heDaoTaoTd.appendChild(heDaoTaoSelect);
+          // Thêm id để lấy dữ liệu 
+          heDaoTaoSelect.id = `heDaoTao-${row.ID}`;
+          tableRow.appendChild(heDaoTaoTd);
+
 
           const soTietLLTd = document.createElement('td');
           soTietLLTd.textContent = row.LL || '';
@@ -1003,6 +1037,7 @@
             inviteCheckbox.disabled = true
             giaoVienGiangDayInput.disabled = true;
             boMonInput.disabled = true;
+            heDaoTaoSelect.disabled = true;
             ngayBatDauInput.disabled = true;
             // Ngăn người dùng thay đổi trạng thái ngày kết thúc
             ngayKetThucInput.disabled = true;
@@ -1017,6 +1052,7 @@
 
               giaoVienGiangDayInput.disabled = true;
               boMonInput.disabled = true;
+              heDaoTaoSelect.disabled = true;
               ngayBatDauInput.disabled = true;
               // Ngăn người dùng thay đổi trạng thái ngày kết thúc
               ngayKetThucInput.disabled = true;
@@ -1242,8 +1278,8 @@
         }
 
         // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-        const LLCell = row.querySelector('td:nth-child(8)'); // Lấy ô của cột LL
-        const QuyChuanCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột QuyChuan
+        const LLCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột LL
+        const QuyChuanCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột QuyChuan
 
         // Chuyển đổi giá trị của các ô thành số và cộng dồn
         const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0
@@ -1388,12 +1424,14 @@
         // Lấy các giá trị từ các ô nhập và checkbox
         const giaoVienGiangDayInput = row.querySelector('input[type="text"][placeholder="Nhập tên giảng viên"]');
         const boMonInput = row.querySelector('input[type="text"][placeholder="Nhập tên bộ môn"]');
+        const heDaoTaoSelect= row.querySelector('select[name="heDaoTao"]');
         const moiGiangCheckbox = row.querySelector('input[type="checkbox"][name="moigiang"]');
         const khoaCheckbox = row.querySelector('input[type="checkbox"][name="khoa"]');
 
         // Lấy giá trị từ các ô nhập liệu
         const giaoVienGiangDay = giaoVienGiangDayInput ? giaoVienGiangDayInput.value : '';
         const boMon = boMonInput ? boMonInput.value : '';
+        const heDaoTao = heDaoTaoSelect ? heDaoTaoSelect.value : '';
 
         // Lấy trạng thái của checkbox "Khoa" và "Đào Tạo"
         const khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false;
@@ -1424,6 +1462,7 @@
         globalData[index].KhoaDuyet = khoaDuyet;
         globalData[index].MoiGiang = moiGiang;
         globalData[index].BoMon = boMon;
+        globalData[index].HeDaoTao = heDaoTao;
       });
 
       // In kết quả ra console để kiểm tra dữ liệu đã được cập nhật vào globalData

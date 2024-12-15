@@ -553,8 +553,9 @@ const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
   const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
-  // console.log(dataGiangVien);
-
+  // console.log(dataGiangVien);  
+  // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
+  const connection = await createPoolConnection();
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
@@ -575,14 +576,22 @@ const importTableQC = async (jsonData) => {
     SoSinhVien,
     HeSoLopDong,
     QuyChuan,
-    GhiChu
+    GhiChu,
+    HeDaoTao
   ) VALUES ?;`; // Dấu '?' cho phép chèn nhiều giá trị một lần
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
-
+  const query = `SELECT VietTat FROM hedonghocphi`
+  const [rows] = await connection.query(query);
+  // Gắn số từ 0 đến 9 vào từng giá trị VietTat
+  const VietTatModified = rows.map((row) => {
+    return Array.from({ length: 10 }, (_, i) => `${row.VietTat}${i}`);
+  }).flat(); // Tạo danh sách phẳng chứa tất cả các biến VietTat
+  
+  console.log(VietTatModified);
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
-  jsonData.forEach((item) => {
+  jsonData.forEach((item, index) => {
     // tách lớp học phần
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
 
@@ -590,6 +599,23 @@ const importTableQC = async (jsonData) => {
     const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
       processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
+    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
+    let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+
+    // Lặp qua tất cả các phần tử trong VietTatModified
+    for (let i = 0; i < VietTatModified.length; i++) {
+      const currentVietTat = VietTatModified[i];
+
+      // Lấy độ dài của currentVietTat
+      const lengthToCompare = currentVietTat.length;
+
+      // So sánh Lop với số ký tự tương ứng độ dài của currentVietTat
+      if (Lop.slice(0, lengthToCompare) === currentVietTat) {
+        HeDaoTao = "Đóng học phí";
+        break; // Nếu tìm thấy "hệ đóng học phí", thoát khỏi vòng lặp
+      }
+    }
+    
     allValues.push([
       item["Khoa"] || null,
       item["Dot"] || null,
@@ -610,14 +636,13 @@ const importTableQC = async (jsonData) => {
       item["HeSoLopDong"] || null,
       item["QuyChuan"] || null,
       item["GhiChu"] || null,
+      HeDaoTao,
     ]);
   });
 
-  // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
-  const connection = await createPoolConnection();
+  
 
   let results = false;
-
   try {
     // Thực hiện chèn tất cả giá trị cùng lúc
     await connection.query(queryInsert, [allValues]);
@@ -1461,6 +1486,7 @@ const updateQC = async (req, res) => {
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
+      console.log(item);
       const {
         ID,
         Khoa,
@@ -1487,6 +1513,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         NgayBatDau,
         NgayKetThuc,
+        HeDaoTao,
       } = item;
 
       if (KhoaDuyet == 1) {
@@ -1524,7 +1551,8 @@ const updateQC = async (req, res) => {
           DaoTaoDuyet = ?,
           TaiChinhDuyet = ?,
           NgayBatDau = ?,
-          NgayKetThuc = ?
+          NgayKetThuc = ?,
+          HeDaoTao = ?
         WHERE ID = ?
       `;
 
@@ -1553,6 +1581,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+        HeDaoTao,
         ID,
       ];
 
@@ -2766,6 +2795,7 @@ const insertGiangDay = async (
             TenLop,
             Dot,
             BoMon,
+            HeDaoTao,
           } = item;
 
           req.session.tmp++;
@@ -2818,6 +2848,7 @@ const insertGiangDay = async (
             Dot,
             Khoa,
             BoMon,
+            HeDaoTao
           ];
         })
     );
@@ -2831,7 +2862,7 @@ const insertGiangDay = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao
       ) VALUES ?;
     `;
 
@@ -2903,6 +2934,7 @@ const insertGiangDay2 = async (
             TenLop,
             Dot,
             BoMon,
+            HeDaoTao,
           } = item;
 
           req.session.tmp++;
@@ -2960,6 +2992,7 @@ const insertGiangDay2 = async (
             Dot,
             Khoa,
             BoMon,
+            HeDaoTao,
           ];
         })
     );
@@ -2973,7 +3006,7 @@ const insertGiangDay2 = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao
       ) VALUES ?;
     `;
 
