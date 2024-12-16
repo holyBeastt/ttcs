@@ -11,10 +11,11 @@ const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
-const { parseStringPromise } = require("xml2js"); // Để sử dụng parseStringPromise
+const pdf = require("pdf-parse");
+const { parseStringPromise, Builder } = require("xml2js");
 
 // convert file quy chuẩn excel
-const convertExcelToJSON = (filePath) => {
+const convertExcelToJSON = async (filePath) => {
   try {
     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
     // Đọc tệp Excel
@@ -41,7 +42,7 @@ const convertExcelToJSON = (filePath) => {
     });
 
     // console.log("Chuẩn bị validate dữ liệu quy chuẩn");
-    validateDataFileQC(jsonObjects);
+    validateFileExcelQC(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
   } catch (err) {
@@ -50,8 +51,8 @@ const convertExcelToJSON = (filePath) => {
   }
 };
 
-// hàm thẩm định giá trị của dữ liệu từ file quy chuẩn
-const validateDataFileQC = (data) => {
+// Hàm chuyển dữ liệu thiếu thành 0 khi import bằng file excel
+const validateFileExcelQC = (data) => {
   // Kiểm tra nếu dữ liệu trống
   if (!data || data.length === 0) {
     throw new Error("Dữ liệu đầu vào không hợp lệ: Dữ liệu trống");
@@ -81,222 +82,460 @@ const validateDataFileQC = (data) => {
   return data;
 };
 
-// đúng định dạng với file chung
-// convert file word quy chuẩn
-const convertWordToJSON = async (filePath) => {
-  try {
-    // Đọc file Word (.docx)
-    const fileBuffer = await fs.promises.readFile(filePath); // Sử dụng fs.promises để xử lý bất đồng bộ
-
-    await fs.promises.unlink(filePath); // Xóa tệp sau khi xử lý
-
-    // Giải nén file .docx
-    const zip = await JSZip.loadAsync(fileBuffer);
-
-    // Lấy file XML chứa nội dung tài liệu
-    const documentXml = await zip.file("word/document.xml").async("string");
-
-    // Parse XML để lấy nội dung
-    const parsedXml = await parseStringPromise(documentXml);
-
-    // Truy cập nội dung bảng trong file Word
-    const tables = parsedXml["w:document"]["w:body"][0]["w:tbl"] || [];
-
-    // Mảng chứa tất cả các dữ liệu từ các bảng
-    const allTablesData = [];
-
-    // Biến để lưu tên Khoa hiện tại
-    let currentKhoa = "";
-
-    // Xử lý từng bảng
-    for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
-      const table = tables[tableIndex];
-      if (tableIndex === 0) {
-        continue; // Bỏ qua bảng đầu tiên
-      }
-
-      const rows = table["w:tr"] || [];
-
-      // Lấy dữ liệu từ hàng đầu tiên làm key cho đối tượng
-      const headers =
-        rows[0]["w:tc"]?.map((cell) => {
-          const cellText = (cell["w:p"] || [])
-            .map((p) =>
-              (p["w:r"] || [])
-                .map((r) => r["w:t"])
-                .flat()
-                .join("")
-            )
-            .join(" ");
-          return cellText.trim();
-        }) || [];
-
-      // Mảng để chứa đối tượng của bảng này
-      const tableData = [];
-
-      // Xử lý các hàng tiếp theo để chuyển thành các đối tượng
-      for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
-        const row = rows[rowIndex];
-        const cells = row["w:tc"] || [];
-
-        // Lấy dữ liệu văn bản của từng ô trong hàng này
-        const rowData = cells.map((cell) => {
-          const cellText = (cell["w:p"] || [])
-            .map((p) =>
-              (p["w:r"] || [])
-                .map((r) => r["w:t"])
-                .flat()
-                .join("")
-            )
-            .join(" ");
-          return cellText.trim();
-        });
-
-        // Nếu chỉ có 1 ô, đây là dòng kiểm tra
-        if (rowData.length === 1) {
-          const rowText = rowData[0]; // Lấy văn bản của ô duy nhất
-
-          // Kiểm tra từ khóa trong dòng kiểm tra (ví dụ từ "Khoa")
-          if (rowText.includes("học phần khác")) {
-            currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
-          } else if (rowText.includes("Trung tâm thực hành")) {
-            currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
-          } else if (rowText.includes("Khoa")) {
-            const khoaMatch = rowText.match(/Khoa\s+(.+)$/);
-            if (khoaMatch) {
-              currentKhoa = khoaMatch[1].trim(); // Lấy tên Khoa từ dòng kiểm tra
-            }
-          }
-          continue; // Bỏ qua dòng này, không tạo đối tượng
-        }
-
-        // Chuyển hàng thành đối tượng với key là header và value là dữ liệu của hàng đó
-        const rowObject = headers.reduce((acc, header, idx) => {
-          acc[header] = rowData[idx] || "";
-          return acc;
-        }, {});
-
-        // Thêm key "Khoa" vào đối tượng
-        rowObject["Khoa"] = currentKhoa; // Chỉ áp dụng Khoa hiện tại
-
-        tableData.push(rowObject);
-      }
-
-      // Gộp bảng vào mảng chính (phẳng hóa ngay khi thêm)
-      allTablesData.push(...tableData);
-    }
-
-    // In ra mảng dữ liệu của tất cả các bảng
-    validateDataFileQC(allTablesData);
-    return allTablesData;
-  } catch (error) {
-    console.error("Lỗi khi đọc file:", error.message);
-    throw error; // Ném lỗi để có thể xử lý bên ngoài
-  }
-};
-
+// convert file word quy chuẩn bằng thư viện xml2js
 // const convertWordToJSON = async (filePath) => {
-//   const data = [];
-
 //   try {
-//     const fileBuffer = fs.readFileSync(filePath);
+//     // Đọc file Word (.docx)
+//     const fileBuffer = await fs.promises.readFile(filePath); // Sử dụng fs.promises để xử lý bất đồng bộ
 
-//     // Trích xuất văn bản thô từ file docx
-//     const result = await mammoth.extractRawText({ buffer: fileBuffer });
-//     const text = result.value;
-//     const lines = text.split("\n");  // Tách từng dòng
+//     await fs.promises.unlink(filePath); // Xóa tệp sau khi xử lý
 
-//     let currentRow = {};  // Dùng để lưu thông tin cho từng dòng
-//     let currentKhoa = ""; // Biến lưu trữ tên Khoa
+//     // Giải nén file .docx
+//     const zip = await JSZip.loadAsync(fileBuffer);
 
-//     // Biến để theo dõi số trường đã gán
-//     let count = 0;
+//     // Lấy file XML chứa nội dung tài liệu
+//     const documentXml = await zip.file("word/document.xml").async("string");
 
-//     let isFirstLine = true;  // Biến để xác định dòng đầu bảng
+//     // Parse XML để lấy nội dung
+//     const parsedXml = await parseStringPromise(documentXml);
 
-//     for (let i = 0; i < lines.length; i++) {
-//       const line = lines[i].trim();
+//     // Truy cập nội dung bảng trong file Word
+//     const tables = parsedXml["w:document"]["w:body"][0]["w:tbl"] || [];
 
-//       // Bỏ qua các dòng rỗng
-//       if (line === "") {
-//         continue;
+//     // Mảng chứa tất cả các dữ liệu từ các bảng
+//     const allTablesData = [];
+
+//     // Biến để lưu tên Khoa hiện tại
+//     let currentKhoa = "";
+
+//     // Xử lý từng bảng
+//     for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+//       const table = tables[tableIndex];
+//       if (tableIndex === 0) {
+//         continue; // Bỏ qua bảng đầu tiên
 //       }
 
-//       // Bỏ qua dòng đầu bảng chứa key
-//       if (isFirstLine && line.includes("TT") && line.includes("Số TC") && line.includes("Lớp học phần")) {
-//         isFirstLine = false;  // Sau khi bỏ qua dòng đầu bảng, tiếp tục xử lý
-//         continue;
-//       }
+//       const rows = table["w:tr"] || [];
 
-//       // Kiểm tra nếu dòng bắt đầu với số kèm dấu chấm (ví dụ: "84.")
-//       if (/^\d+\.$/.test(line)) {
-//         // Nếu đã có dữ liệu trong currentRow, thêm vào data trước khi bắt đầu dòng mới
-//         if (Object.keys(currentRow).length > 0) {
-//           currentRow["Khoa"] = currentKhoa;  // Gán giá trị Khoa vào dòng hiện tại
-//           currentRow["Ghi chú"] = "Đã hoàn thành dòng";  // Ghi chú để nhận biết đã hết dòng
-//           data.push(currentRow);  // Thêm dòng vào mảng
+//       // Lấy dữ liệu từ hàng đầu tiên làm key cho đối tượng
+//       const headers =
+//         rows[0]["w:tc"]?.map((cell) => {
+//           const cellText = (cell["w:p"] || [])
+//             .map((p) =>
+//               (p["w:r"] || [])
+//                 .map((r) => r["w:t"])
+//                 .flat()
+//                 .join("")
+//             )
+//             .join(" ");
+//           return cellText.trim();
+//         }) || [];
+
+//       // Mảng để chứa đối tượng của bảng này
+//       const tableData = [];
+
+//       // Xử lý các hàng tiếp theo để chuyển thành các đối tượng
+//       for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+//         const row = rows[rowIndex];
+//         const cells = row["w:tc"] || [];
+
+//         // Lấy dữ liệu văn bản của từng ô trong hàng này
+//         const rowData = cells.map((cell) => {
+//           const cellText = (cell["w:p"] || [])
+//             .map((p) =>
+//               (p["w:r"] || [])
+//                 .map((r) => r["w:t"])
+//                 .flat()
+//                 .join("")
+//             )
+//             .join(" ");
+//           return cellText.trim();
+//         });
+
+//         // Nếu chỉ có 1 ô, đây là dòng kiểm tra
+//         if (rowData.length === 1) {
+//           const rowText = rowData[0]; // Lấy văn bản của ô duy nhất
+
+//           // Kiểm tra từ khóa trong dòng kiểm tra (ví dụ từ "Khoa")
+//           if (rowText.includes("học phần khác")) {
+//             currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
+//           } else if (rowText.includes("Trung tâm thực hành")) {
+//             currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
+//           } else if (rowText.includes("Khoa")) {
+//             const khoaMatch = rowText.match(/Khoa\s+(.+)$/);
+//             if (khoaMatch) {
+//               currentKhoa = khoaMatch[1].trim(); // Lấy tên Khoa từ dòng kiểm tra
+//             }
+//           }
+//           continue; // Bỏ qua dòng này, không tạo đối tượng
 //         }
 
-//         // Bắt đầu một dòng mới
-//         currentRow = {
-//           "TT": line.replace(".", "")  // Lấy số trước dấu chấm làm TT
-//         };
-//         count = 1;  // Bắt đầu đếm các trường tiếp theo
-//       } else if (count === 1) {
-//         currentRow["Số TC"] = line || '';  // Gán "Số TC" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 2) {
-//         currentRow["Lớp học phần"] = line || '';  // Gán "Lớp học phần" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 3) {
-//         currentRow["Giáo viên"] = line || '';  // Gán "Giáo viên" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 4) {
-//         currentRow["Số tiết theo CTĐT"] = line || '';  // Gán "Số tiết theo CTĐT" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 5) {
-//         currentRow["Số SV"] = line || '';  // Gán "Số SV" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 6) {
-//         currentRow["Số tiết lên lớp theo TKB"] = line || '';  // Gán "Số tiết lên lớp theo TKB" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 7) {
-//         currentRow["Hệ số lên lớp ngoài giờ"] = line || '';  // Gán "Hệ số lên lớp ngoài giờ" hoặc để trống nếu không có dữ liệu
-//         count++;
-//       } else if (count === 8) {
-//         currentRow["Hệ số lớp đông"] = line || '';  // Gán "Hệ số lớp đông" hoặc để trống nếu không có dữ liệu
-//         count = 0;  // Reset đếm sau khi gán đủ 8 trường
-//         currentRow["Ghi chú"] = "";  // Ghi chú đánh dấu kết thúc dòng
-//         currentRow["Khoa"] = currentKhoa;  // Đảm bảo "Khoa" được gán vào dòng cuối
-//         data.push(currentRow);  // Thêm dòng vào mảng dữ liệu
-//         currentRow = {};  // Reset cho dòng tiếp theo
+//         // Chuyển hàng thành đối tượng với key là header và value là dữ liệu của hàng đó
+//         const rowObject = headers.reduce((acc, header, idx) => {
+//           acc[header] = rowData[idx] || "";
+//           return acc;
+//         }, {});
+
+//         // Thêm key "Khoa" vào đối tượng
+//         rowObject["Khoa"] = currentKhoa; // Chỉ áp dụng Khoa hiện tại
+
+//         tableData.push(rowObject);
 //       }
 
-//       // Kiểm tra tên khoa trong các dòng
-//       if (line.includes("học phần khác")) {
-//         currentKhoa = "Khác";  // Nếu chứa "học phần khác", gán Khoa là "Khác"
-//         continue;  // Bỏ qua dòng này, không tạo đối tượng
-//       } else if (line.includes("Trung tâm thực hành")) {
-//         currentKhoa = "Trung tâm thực hành";  // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
-//         continue;  // Bỏ qua dòng này, không tạo đối tượng
-//       } else if (line.includes("Khoa")) {
-//         const khoaMatch = line.match(/Khoa\s+(.+)$/);
-//         if (khoaMatch) {
-//           currentKhoa = khoaMatch[1].trim();  // Lấy tên Khoa từ dòng kiểm tra
-//         }
-//         continue;  // Bỏ qua dòng này, không tạo đối tượng
-//       }
+//       // Gộp bảng vào mảng chính (phẳng hóa ngay khi thêm)
+//       allTablesData.push(...tableData);
 //     }
 
-//     // Trả về mảng dữ liệu đã xử lý
-//     return data;
+//
+//     // In ra mảng dữ liệu của tất cả các bảng
+//     validateDataFileQC(data);
+//     // fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
 
+//     return allTablesData;
 //   } catch (error) {
-//     console.error("Lỗi khi đọc file:", error);
-//     throw error;  // Ném lỗi để biết có vấn đề trong quá trình xử lý
+//     console.error("Lỗi khi đọc file:", error.message);
+//     throw error; // Ném lỗi để có thể xử lý bên ngoài
 //   }
 // };
 
+// hàm bỏ các lớp bị thiếu dữ liệu trong file word và pdf
+function filterInvalidRows(data) {
+  const requiredKeys = [
+    "TT",
+    "Số TC",
+    "Lớp học phần",
+    "Giáo viên",
+    "Số tiết theo CTĐT",
+    "Số SV",
+    "Số tiết lên lớp theo TKB",
+    "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+    "Hệ số lớp đông",
+    "QC",
+  ];
+
+  return data
+    .filter((row) => {
+      // Kiểm tra xem đối tượng có đủ các khóa và các khóa này không rỗng
+      const hasRequiredKeys = requiredKeys.every(
+        (key) => row.hasOwnProperty(key) && row[key] !== ""
+      );
+      if (!hasRequiredKeys) {
+        return false; // Loại bỏ nếu thiếu bất kỳ khóa nào hoặc khóa đó rỗng
+      }
+
+      // Kiểm tra giá trị của QC có thể parse sang số thực hay không
+      const qcValue = parseFloat(row["QC"]);
+      if (isNaN(qcValue)) {
+        return false; // Loại bỏ nếu QC không phải số thực
+      }
+
+      return true;
+    })
+    .map((row) => {
+      // Loại bỏ key "Ghi chú" nếu tồn tại
+      const { "Ghi chú": _, ...rest } = row;
+      return rest;
+    });
+}
+
+// Hàm xử lí cắt dữ liệu khi convert word
+const processLines = (lines) => {
+  const result = [];
+  let currentTT = null; // Biến lưu giữ TT để gắn cho đối tượng tiếp theo
+  let currentKhoa = '';
+  lines.forEach((line, index) => {
+    line = line.trim();
+
+    // Kiểm tra tên khoa trong các dòng
+    // console.log(line)
+    if (line.includes("học phần khác")) {
+      currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
+      // continue; // Bỏ qua dòng này, không tạo đối tượng
+    } else if (line.includes("Trung tâm thực hành")) {
+      currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
+      // continue; // Bỏ qua dòng này, không tạo đối tượng
+    } else if (line.includes("học phần thuộc Khoa")) {
+      const khoaMatch = line.match(/Khoa\s+(.+)$/);
+      // console.log(line)
+      currentKhoa = khoaMatch[1].trim().replace(/\d+/g, '');; // Lấy tên Khoa từ dòng kiểm tra
+      // console.log(currentKhoa)
+
+      // continue; // Bỏ qua dòng này, không tạo đối tượng
+    }
+
+    // Nếu dòng chứa "học phần thuộc Khoa", cập nhật TT từ số cuối dòng
+    if (line.includes('học phần thuộc Khoa')) {
+      // console.log(line)
+      const ttMatch = line.match(/(\d+)$/); // Lấy số cuối dòng
+      if (ttMatch) {
+        currentTT = ttMatch[1]; // Lấy TT từ số cuối sau "Khoa"
+      }
+      return; // Bỏ qua dòng này, không xử lý như dữ liệu lớp học phần
+    }
+
+    // Kiểm tra nếu dòng chứa "Nhận được Thông báo này"
+    if (line.includes("Nhận được Thông báo này")) {
+      // Loại bỏ phần từ "Nhận được Thông báo này" trở đi
+      line = line.split("Nhận được Thông báo này")[0].trim();
+
+      // console.log(line)
+      const preLine = lines[index - 1].match(/(\d+)$/); // Lấy số cuối dòng
+      const TT = preLine[1]
+
+      let currentItem = {};
+      let count = 0; // Biến đếm số lượng số sau Giáo viên
+
+      // Gắn số TC (phần tử số nguyên đầu tiên)
+      const tcMatch = line.match(/^\d+/);
+      if (tcMatch) {
+        currentItem["Số TC"] = tcMatch[0];
+        line = line.replace(/^\d+\s/, ''); // Loại bỏ Số TC khỏi dòng
+        count++; // Đếm Số TC
+      }
+
+      // Gắn Lớp học phần (từ Số TC đến đóng ngoặc đơn)
+      const classMatch = line.match(/^.*?\([^()]*\)/);
+      if (classMatch) {
+        currentItem["Lớp học phần"] = classMatch[0];
+        line = line.replace(/^.*?\([^()]*\)\s*/, ''); // Loại bỏ Lớp học phần khỏi dòng
+      }
+
+      // Gắn Giáo viên (từ sau Lớp học phần đến khi gặp số đầu tiên)
+      const teacherMatch = line.match(/^.*?(?=\d)/);
+      if (teacherMatch) {
+        currentItem["Giáo viên"] = teacherMatch[0].trim();
+        line = line.replace(/^.*?(?=\d)/, '').trim(); // Loại bỏ Giáo viên khỏi dòng
+        count++; // Đếm Giáo viên
+      }
+
+      // Gắn các giá trị số tiếp theo và đếm
+      const numbers = line.match(/\d+(\.\d+)?/g); // Tìm tất cả các số
+      const keys = [
+        "Số tiết theo CTĐT",
+        "Số SV",
+        "Số tiết lên lớp theo TKB",
+        "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+        "Hệ số lớp đông",
+        "QC"
+      ];
+
+      // Đếm đủ 6 số (sau Giáo viên) và gắn vào các trường tương ứng
+      for (let i = 0; i < keys.length; i++) {
+        if (numbers && numbers[i]) {
+          currentItem[keys[i]] = numbers[i];
+          count++; // Đếm các số
+        }
+      }
+
+      currentItem["TT"] = TT;
+      currentItem["Khoa"] = currentKhoa; // Gắn Khoa
+
+
+      result.push(currentItem); // Thêm vào mảng kết quả
+    } else {
+      // Kiểm tra nếu dòng bắt đầu bằng số TT (số và dấu chấm, khoảng trắng)
+      if (/^\d+\s/.test(line)) {
+        let currentItem = {};
+        let count = 0; // Biến đếm số lượng số sau Giáo viên
+
+        // Gắn TT của đối tượng hiện tại từ biến currentTT
+        if (currentTT) {
+          currentItem["TT"] = currentTT;
+          currentTT = null; // Xóa giá trị TT sau khi gắn để không lặp lại
+        }
+
+        // Gắn số TC (phần tử số nguyên đầu tiên)
+        const tcMatch = line.match(/^\d+/);
+        if (tcMatch) {
+          currentItem["Số TC"] = tcMatch[0];
+          line = line.replace(/^\d+\s/, ''); // Loại bỏ Số TC khỏi dòng
+          count++; // Đếm Số TC
+        }
+
+        // Gắn Lớp học phần (từ Số TC đến đóng ngoặc đơn)
+        const classMatch = line.match(/^.*?\([^()]*\)/);
+        if (classMatch) {
+          currentItem["Lớp học phần"] = classMatch[0];
+          line = line.replace(/^.*?\([^()]*\)\s*/, ''); // Loại bỏ Lớp học phần khỏi dòng
+        }
+
+        // Gắn Giáo viên (từ sau Lớp học phần đến khi gặp số đầu tiên)
+        const teacherMatch = line.match(/^.*?(?=\d)/);
+        if (teacherMatch) {
+          currentItem["Giáo viên"] = teacherMatch[0].trim();
+          line = line.replace(/^.*?(?=\d)/, '').trim(); // Loại bỏ Giáo viên khỏi dòng
+          count++; // Đếm Giáo viên
+        }
+
+        // Gắn các giá trị số tiếp theo và đếm
+        const numbers = line.split(/\s+/); // Tách thành các giá trị số
+        const keys = [
+          "Số tiết theo CTĐT",
+          "Số SV",
+          "Số tiết lên lớp theo TKB",
+          "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+          "Hệ số lớp đông",
+          "QC"
+        ];
+
+        for (let i = 0; i < keys.length; i++) {
+          if (numbers[i]) {
+            currentItem[keys[i]] = numbers[i];
+            count++; // Đếm các số sau Giáo viên
+          }
+        }
+
+        // Kiểm tra nếu đủ 7 số sau Giáo viên
+        if (count >= 7) {
+          // Kiểm tra TT của đối tượng (kiểm tra số cuối)
+          const lastNumberMatch = line.match(/(\d+)$/);
+          if (lastNumberMatch) {
+            const lastNumber = lastNumberMatch[1]; // Lấy số cuối
+
+            // Nếu không còn số nào sau QC thì bỏ qua đối tượng này
+            if (lastNumber === currentItem.QC) {
+              return; // Không thêm đối tượng vào mảng
+            }
+
+            currentItem["TT"] = lastNumber - 1; // Gắn số cuối vào TT cuối
+            currentItem["Khoa"] = currentKhoa; // Gắn Khoa
+
+            result.push(currentItem); // Nếu có số cuối hợp lệ, thêm vào mảng kết quả
+          }
+        }
+      }
+    }
+
+  });
+
+  // console.log("Dữ liệu đã xử lý:", result);
+  return result;
+};
+
+// convert file quy chuẩn dạng word bằng thư viện mamoth
+const convertWordToJSON = async (filePath) => {
+  const data = [];
+
+  try {
+    const fileBuffer = fs.readFileSync(filePath);
+
+    // Trích xuất văn bản thô từ file docx
+    const result = await mammoth.extractRawText({ buffer: fileBuffer });
+    let text = result.value;
+
+    // Thay thế tất cả các ký tự xuống dòng (bao gồm cả \r\n và \n) bằng dấu cách
+    text = text.replace(/\r?\n/g, ' ');
+
+    // Xóa các khoảng trắng thừa (liên tiếp nhiều khoảng trắng thành một khoảng trắng)
+    text = text.replace(/\s+/g, ' ').trim();
+
+    // Tách thành từng dòng nếu cần tiếp tục xử lý như trước
+    const lines = text.split('. '); // Tách bằng dấu chấm hoặc dấu khác nếu cần
+
+    // console.log("Nội dung đọc được từ file:", lines);
+    fs.unlinkSync(filePath);
+
+    // Xử lý các dòng dữ liệu bằng hàm processLines
+    const data = processLines(lines);
+    // const processedData = filterInvalidRows(data);
+
+    // Trả về mảng dữ liệu đã xử lý
+    // console.log("Dữ liệu đã xử lý:", processedData);
+
+    return data;
+
+  } catch (error) {
+    console.error("Lỗi khi đọc file:", error);
+    throw error; // Ném lỗi để biết có vấn đề trong quá trình xử lý
+  }
+};
+
+
+// convert file quy chuẩn dạng pdf bằng thư viện pdf-parse
+const convertPDFToJSON = async (filePath) => {
+  const result = [];
+
+  try {
+    // Đọc tệp PDF vào bộ đệm
+    const dataBuffer = fs.readFileSync(filePath);
+
+    // Sử dụng pdf-parse để trích xuất văn bản từ tệp PDF
+    const data = await pdf(dataBuffer);
+
+    // Lấy văn bản thô từ tệp PDF
+    let extractedText = data.text;
+
+    // Loại bỏ các dấu xuống dòng và các khoảng trắng thừa
+    extractedText = extractedText.replace(/\r?\n|\r/g, " ").trim();
+
+    // Tách thành từng dòng dựa trên số TT (số kèm dấu chấm và khoảng trắng sau đó)
+    const lines = extractedText.split(/(?=\b\d+\.\s)/);
+
+    // Duyệt qua từng dòng
+    lines.forEach((line) => {
+      line = line.trim();
+
+      // Kiểm tra nếu dòng bắt đầu bằng số TT (số và dấu chấm, khoảng trắng)
+      if (/^\d+\.\s/.test(line)) {
+        let currentItem = {};
+
+        // Bắt đầu xử lý dòng để gắn dữ liệu vào từng key
+        const ttMatch = line.match(/^\d+\./); // Tìm TT
+        if (ttMatch) {
+          currentItem["TT"] = ttMatch[0].replace(".", "").trim();
+          line = line.replace(/^\d+\.\s/, ""); // Loại bỏ TT khỏi dòng
+        }
+
+        // Gắn số TC (phần tử số nguyên đầu tiên)
+        const tcMatch = line.match(/^\d+/);
+        if (tcMatch) {
+          currentItem["Số TC"] = tcMatch[0];
+          line = line.replace(/^\d+\s/, ""); // Loại bỏ Số TC khỏi dòng
+        }
+
+        // Gắn Lớp học phần (từ Số TC đến đóng ngoặc đơn)
+        const classMatch = line.match(/^.*?\([^()]*\)/);
+        if (classMatch) {
+          currentItem["Lớp học phần"] = classMatch[0];
+          line = line.replace(/^.*?\([^()]*\)\s*/, ""); // Loại bỏ Lớp học phần khỏi dòng
+        }
+
+        // Gắn Giáo viên (từ sau Lớp học phần đến khi gặp số đầu tiên)
+        const teacherMatch = line.match(/^.*?(?=\d)/);
+        if (teacherMatch) {
+          currentItem["Giáo viên"] = teacherMatch[0].trim();
+          line = line.replace(/^.*?(?=\d)/, "").trim(); // Loại bỏ Giáo viên khỏi dòng
+        }
+
+        // Gắn các giá trị số tiếp theo
+        const numbers = line.split(/\s+/); // Tách thành các giá trị số
+        currentItem["Số tiết theo CTĐT"] = numbers[0] || "";
+        currentItem["Số SV"] = numbers[1] || "";
+        currentItem["Số tiết lên lớp theo TKB"] = numbers[2] || "";
+        currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] =
+          numbers[3] || "";
+        currentItem["Hệ số lớp đông"] = numbers[4] || "";
+        currentItem["QC"] = numbers[5] || "";
+
+        // Đưa đối tượng vào mảng kết quả
+        result.push(currentItem);
+      }
+    });
+    console.log(result);
+
+    // Trả về mảng các đối tượng đã trích xuất
+    fs.unlinkSync(filePath);
+    const data2 = filterInvalidRows(result);
+    console.log(data2);
+
+    return data2;
+  } catch (error) {
+    console.error("Có lỗi xảy ra khi xử lý tệp PDF:", error);
+    throw error; // Ném lỗi để biết có vấn đề trong quá trình xử lý
+  }
+};
+
+// hàm xử lí trả về dữ liệu file quy chuẩn ( render bảng site thêm bảng quy chuẩn )
 const handleUploadAndRender = async (req, res) => {
   try {
     if (!req.file) {
@@ -314,14 +553,14 @@ const handleUploadAndRender = async (req, res) => {
     // console.log(fileExtension)
     // Xử lý theo loại file
     if (fileExtension === ".xlsx" || fileExtension === ".xls") {
-      result = convertExcelToJSON(filePath);
-      console.log(result);
+      result = await convertExcelToJSON(filePath);
+      console.log("convert file quy chuẩn excel");
     } else if (fileExtension === ".docx") {
       result = await convertWordToJSON(filePath);
-      // console.log(result)
-      // console.log('ok2')
+      console.log("convert file quy chuẩn word");
     } else if (fileExtension === ".pdf") {
-      // result = processPdfFile(filePath);
+      result = await convertPDFToJSON(filePath);
+      console.log("convert file quy chuẩn PDF");
     } else {
       return res.status(400).send({ error: "Không đúng định dạng" });
     }
@@ -554,7 +793,8 @@ const importTableQC = async (jsonData) => {
 
   const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
   // console.log(dataGiangVien);
-
+  // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
+  const connection = await createPoolConnection();
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
@@ -575,20 +815,47 @@ const importTableQC = async (jsonData) => {
     SoSinhVien,
     HeSoLopDong,
     QuyChuan,
-    GhiChu
+    GhiChu,
+    HeDaoTao
   ) VALUES ?;`; // Dấu '?' cho phép chèn nhiều giá trị một lần
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
+  const query = `SELECT VietTat FROM hedonghocphi`;
+  const [rows] = await connection.query(query);
+  // Gắn số từ 0 đến 9 vào từng giá trị VietTat
+  const VietTatModified = rows
+    .map((row) => {
+      return Array.from({ length: 10 }, (_, i) => `${row.VietTat}${i}`);
+    })
+    .flat(); // Tạo danh sách phẳng chứa tất cả các biến VietTat
 
+  console.log(VietTatModified);
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
-  jsonData.forEach((item) => {
+  jsonData.forEach((item, index) => {
     // tách lớp học phần
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
 
     // tách từ cột giảng viên theo tkb, xử lí mời giảng?, tự điền tên, tự điền bộ môn
     const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
       processLecturerInfo(item["GiaoVien"], dataGiangVien);
+
+    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
+    let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+
+    // Lặp qua tất cả các phần tử trong VietTatModified
+    for (let i = 0; i < VietTatModified.length; i++) {
+      const currentVietTat = VietTatModified[i];
+
+      // Lấy độ dài của currentVietTat
+      const lengthToCompare = currentVietTat.length;
+
+      // So sánh Lop với số ký tự tương ứng độ dài của currentVietTat
+      if (Lop.slice(0, lengthToCompare) === currentVietTat) {
+        HeDaoTao = "Đóng học phí";
+        break; // Nếu tìm thấy "hệ đóng học phí", thoát khỏi vòng lặp
+      }
+    }
 
     allValues.push([
       item["Khoa"] || null,
@@ -610,14 +877,11 @@ const importTableQC = async (jsonData) => {
       item["HeSoLopDong"] || null,
       item["QuyChuan"] || null,
       item["GhiChu"] || null,
+      HeDaoTao,
     ]);
   });
 
-  // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
-  const connection = await createPoolConnection();
-
   let results = false;
-
   try {
     // Thực hiện chèn tất cả giá trị cùng lúc
     await connection.query(queryInsert, [allValues]);
@@ -770,9 +1034,34 @@ const validateKhoa = (khoa) => {
   }
 };
 
+// hàm này chuẩn hóa tiêu đề trong file quy chuẩn word
+const normalizeKeys = (data) => {
+  const keyMap = {
+    "Giáo viên": "Giáo Viên", // Chuẩn hóa các biến thể
+    "Giáo Viên": "Giáo Viên", // Nếu tên trường là "Giáo Viên" thì chuẩn hóa thành "Giáo Viên"
+    "Giao Vien": "Giáo Viên", // Nếu tên trường là "Giao Vien" thì chuẩn hóa thành "Giáo Viên"
+    "giáo Viên": "Giáo Viên",
+    "Giáo Viên": "Giáo Viên", // Nếu tên trường là "giáo Viên" (chữ cái viết thường) thì chuẩn hóa thành "Giáo Viên"
+    "Số TC": "Số TC", // Các trường khác không thay đổi
+    "Số SV": "Số SV",
+    "Số tiết lên lớp giờ HC": "Số tiết lên lớp giờ HC",
+    // Thêm các cặp key khác nếu cần
+  };
+
+  return data.map((item) => {
+    const normalizedItem = {};
+    for (const key in item) {
+      const normalizedKey = keyMap[key] || key; // Nếu không có trong keyMap thì giữ nguyên tên trường
+      normalizedItem[normalizedKey] = item[key];
+    }
+    return normalizedItem;
+  });
+};
+
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
 
+  console.log(jsonData);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -791,8 +1080,8 @@ const importTableTam = async (jsonData) => {
       QuyChuan
     ) VALUES ?
   `;
-
-  const values = jsonData
+  const normalizedData = normalizeKeys(jsonData); // Chuẩn hóa dữ liệu
+  const values = normalizedData
     .filter((item) => {
       // Log giá trị của QC để kiểm tra
       // console.log("QC value:", item["QC"]);
@@ -812,12 +1101,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
+      item["Số tiết lên lớp giờ HC"] ||
+      null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -1461,6 +1750,7 @@ const updateQC = async (req, res) => {
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
+      console.log(item);
       const {
         ID,
         Khoa,
@@ -1487,6 +1777,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         NgayBatDau,
         NgayKetThuc,
+        HeDaoTao,
       } = item;
 
       if (KhoaDuyet == 1) {
@@ -1524,7 +1815,8 @@ const updateQC = async (req, res) => {
           DaoTaoDuyet = ?,
           TaiChinhDuyet = ?,
           NgayBatDau = ?,
-          NgayKetThuc = ?
+          NgayKetThuc = ?,
+          HeDaoTao = ?
         WHERE ID = ?
       `;
 
@@ -1553,6 +1845,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+        HeDaoTao,
         ID,
       ];
 
@@ -2330,13 +2623,15 @@ const TaiChinhCheckAll = async (Dot, KiHoc, NamHoc) => {
 //   }
 // };
 
-const updateAllTeachingInfo = async (req, res) => {
+const saveDataGvmDongHocPhi = async (req, res) => {
   const { dot, ki, namHoc } = req.body;
-  console.log("Dữ liệu Đợt Kì Năm từ client :", dot, ki, namHoc);
 
+  // Lưu hệ đóng học phí
+
+  // Lưu hệ mật mã
   const query2 = `
     SELECT
-        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
@@ -2348,7 +2643,7 @@ const updateAllTeachingInfo = async (req, res) => {
     JOIN
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ?
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Đóng học phí'
     GROUP BY
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
@@ -2364,10 +2659,7 @@ const updateAllTeachingInfo = async (req, res) => {
     // Kiểm tra xem có dữ liệu không
     if (!dataJoin || dataJoin.length === 0) {
       console.log("Không có dữ liệu hợp đồng");
-      return {
-        success: false,
-        message: "Không có dữ liệu để chèn.",
-      };
+      return;
     }
 
     const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
@@ -2381,7 +2673,7 @@ const updateAllTeachingInfo = async (req, res) => {
           (item) =>
             item.TaiChinhDuyet != 0 &&
             item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.MaPhongBan) // Kiểm tra sự tồn tại trong mảng
+            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
         ) // Loại bỏ các mục có TaiChinhDuyet = 0
         .map(async (item) => {
           const {
@@ -2412,6 +2704,7 @@ const updateAllTeachingInfo = async (req, res) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             GioiTinh,
+            HeDaoTao,
           } = item;
 
           req.session.tmp++;
@@ -2455,27 +2748,172 @@ const updateAllTeachingInfo = async (req, res) => {
             KhoaDuyet,
             DaoTaoDuyet,
             TaiChinhDuyet,
+            HeDaoTao,
           ];
         })
     );
-
-    // Kiểm tra xem insertValues có rỗng không
-    // if (
-    //   insertValues.length === 0 ||
-    //   insertValues.some((row) => row.length === 0)
-    // ) {
-    //   return {
-    //     success: false,
-    //     message: "Không có dữ liệu hợp lệ để chèn.",
-    //   };
-    // }
 
     // Định nghĩa câu lệnh chèn
     const queryInsert = `
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, HeDaoTao
+      ) VALUES ?;
+    `;
+
+    // Thực hiện câu lệnh chèn
+    if (insertValues.length > 0) {
+      await pool.query(queryInsert, [insertValues]);
+    }
+
+    // Trả về kết quả thành công
+    return;
+  } catch (err) {
+    console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
+    return {
+      success: false,
+      message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
+    };
+  }
+};
+
+const saveDataGvmMatMa = async (req, res) => {
+  const { dot, ki, namHoc } = req.body;
+
+  // Lưu hệ đóng học phí
+
+  // Lưu hệ mật mã
+  const query2 = `
+    SELECT
+        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+        SUM(qc.QuyChuan) AS TongSoTiet,
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc
+    FROM
+        quychuan qc
+    JOIN
+        gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+    WHERE
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Mật mã'
+    GROUP BY
+        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+    `;
+
+  const value = [dot, ki, namHoc];
+
+  try {
+    const [dataJoin] = await pool.query(query2, value);
+
+    // Kiểm tra xem có dữ liệu không
+    if (!dataJoin || dataJoin.length === 0) {
+      console.log("Không có dữ liệu hợp đồng");
+      return;
+    }
+
+    const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+    const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+
+    // Chuẩn bị dữ liệu để chèn từng loạt
+    //const insertValues = dataJoin.map((item) => {
+    const insertValues = await Promise.all(
+      dataJoin
+        .filter(
+          (item) =>
+            item.TaiChinhDuyet != 0 &&
+            item.DaLuu == 0 &&
+            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
+        ) // Loại bỏ các mục có TaiChinhDuyet = 0
+        .map(async (item) => {
+          const {
+            id_Gvm,
+            DienThoai,
+            Email,
+            MaSoThue,
+            HoTen,
+            NgaySinh,
+            HocVi,
+            ChucVu,
+            HSL,
+            CCCD,
+            NgayCapCCCD,
+            NoiCapCCCD,
+            DiaChi,
+            STK,
+            NganHang,
+            NgayBatDau,
+            NgayKetThuc,
+            KiHoc,
+            TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
+            QuyChuan,
+            Dot,
+            NamHoc,
+            MaPhongBan,
+            KhoaDuyet,
+            DaoTaoDuyet,
+            TaiChinhDuyet,
+            GioiTinh,
+            HeDaoTao,
+          } = item;
+
+          req.session.tmp++;
+
+          const DanhXung = getDanhXung(GioiTinh);
+          // const getDanhXung = (GioiTinh) => {
+          //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
+          // };
+          let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
+          let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
+          let TruThue = 0; // Giả định không thu thuế
+          let MaBoMon = 0; // Giá trị mặc định là 0
+
+          return [
+            id_Gvm,
+            DienThoai,
+            Email,
+            MaSoThue,
+            DanhXung,
+            HoTen,
+            NgaySinh,
+            HocVi,
+            ChucVu,
+            HSL,
+            CCCD,
+            NgayCapCCCD,
+            NoiCapCCCD,
+            DiaChi,
+            STK,
+            NganHang,
+            NgayBatDau,
+            NgayKetThuc,
+            KiHoc,
+            SoTiet,
+            SoTien,
+            TruThue,
+            Dot,
+            NamHoc,
+            MaPhongBan,
+            MaBoMon,
+            KhoaDuyet,
+            DaoTaoDuyet,
+            TaiChinhDuyet,
+            HeDaoTao,
+          ];
+        })
+    );
+
+    // Định nghĩa câu lệnh chèn
+    const queryInsert = `
+      INSERT INTO hopdonggvmoi (
+        id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
+        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, HeDaoTao
       ) VALUES ?;
     `;
 
@@ -2494,177 +2932,6 @@ const updateAllTeachingInfo = async (req, res) => {
     };
   }
 };
-
-// const updateAllTeachingInfo = async (req, res) => {
-//   // const query2 = `
-//   //     SELECT
-//   //       qc.*,
-//   //       gvmoi.*,
-//   //       SUM(qc.QuyChuan) AS TongSoTiet,
-//   //       SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS TenGiangVien
-//   //     FROM quychuan qc
-//   //     JOIN gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-//   //     WHERE qc.DaLuu = 0
-//   //     GROUP BY gvmoi.HoTen;
-//   //   `;
-//   const query2 = `
-// SELECT
-//     qc.*,
-//     gvmoi.*,
-//     SUM(qc.QuyChuan) AS TongSoTiet,
-//     MIN(qc.NgayBatDau) AS NgayBatDau,
-//     MAX(qc.NgayKetThuc) AS NgayKetThuc
-// FROM
-//     quychuan qc
-// JOIN
-//     gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-// WHERE
-//     qc.DaLuu = 0
-// GROUP BY
-//     gvmoi.HoTen;
-
-// `;
-//   try {
-//     const [dataJoin] = await connection.promise().query(query2);
-
-//     // Kiểm tra xem có dữ liệu không
-//     if (!dataJoin || dataJoin.length === 0) {
-//       return {
-//         success: false,
-//         message: "Không có dữ liệu để chèn.",
-//       };
-//     }
-
-//     const firstItem = dataJoin[0]; // Lấy phần tử đầu tiên
-
-//     // Lấy các thuộc tính Dot, Ki, Nam từ phần tử đầu tiên
-//     const dot = firstItem.Dot; // Lấy thuộc tính Dot
-//     const ki = firstItem.KiHoc; // Lấy thuộc tính Ki
-//     const nam = firstItem.NamHoc; // Lấy thuộc tính Nam
-
-//     const daDuyetHet = await TaiChinhCheckAll(dot, ki, nam);
-//     const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
-
-//     // Chuẩn bị dữ liệu để chèn từng loạt
-//     //const insertValues = dataJoin.map((item) => {
-//     const insertValues = await Promise.all(
-//       dataJoin
-//         .filter(
-//           (item) =>
-//             item.TaiChinhDuyet != 0 &&
-//             item.DaLuu == 0 &&
-//             daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
-//         ) // Loại bỏ các mục có TaiChinhDuyet = 0
-//         .map(async (item) => {
-//           const {
-//             ID,
-//             id_Gvm,
-//             DienThoai,
-//             Email,
-//             MaSoThue,
-//             HoTen,
-//             NgaySinh,
-//             HocVi,
-//             ChucVu,
-//             HSL,
-//             CCCD,
-//             NgayCapCCCD,
-//             NoiCapCCCD,
-//             DiaChi,
-//             STK,
-//             NganHang,
-//             NgayBatDau,
-//             NgayKetThuc,
-//             KiHoc,
-//             TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
-//             QuyChuan,
-//             Dot,
-//             NamHoc,
-//             MaPhongBan,
-//             KhoaDuyet,
-//             DaoTaoDuyet,
-//             TaiChinhDuyet,
-//             GioiTinh,
-//           } = item;
-
-//           req.session.tmp++;
-
-//           const DanhXung = getDanhXung(GioiTinh);
-//           // const getDanhXung = (GioiTinh) => {
-//           //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
-//           // };
-//           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
-//           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
-//           let TruThue = 0; // Giả định không thu thuế
-//           let MaBoMon = 0; // Giá trị mặc định là 0
-
-//           return [
-//             id_Gvm,
-//             DienThoai,
-//             Email,
-//             MaSoThue,
-//             DanhXung,
-//             HoTen,
-//             NgaySinh,
-//             HocVi,
-//             ChucVu,
-//             HSL,
-//             CCCD,
-//             NgayCapCCCD,
-//             NoiCapCCCD,
-//             DiaChi,
-//             STK,
-//             NganHang,
-//             NgayBatDau,
-//             NgayKetThuc,
-//             KiHoc,
-//             SoTiet,
-//             SoTien,
-//             TruThue,
-//             Dot,
-//             NamHoc,
-//             MaPhongBan,
-//             MaBoMon,
-//             KhoaDuyet,
-//             DaoTaoDuyet,
-//             TaiChinhDuyet,
-//           ];
-//         })
-//     );
-
-//     // Kiểm tra xem insertValues có rỗng không
-//     if (
-//       insertValues.length === 0 ||
-//       insertValues.some((row) => row.length === 0)
-//     ) {
-//       return {
-//         success: false,
-//         message: "Không có dữ liệu hợp lệ để chèn.",
-//       };
-//     }
-
-//     // Định nghĩa câu lệnh chèn
-//     const queryInsert = `
-//       INSERT INTO hopdonggvmoi (
-//         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
-//         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-//         Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet
-//       ) VALUES ?;
-//     `;
-
-//     // Thực hiện câu lệnh chèn
-//     await connection.promise().query(queryInsert, [insertValues]);
-
-//     // Trả về kết quả thành công
-//     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
-//   } catch (err) {
-//     console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
-//     return {
-//       success: false,
-//       message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
-//     };
-//   }
-// };
 
 const getGvmList = async (req, res) => {
   const query = `SELECT * FROM gvmoi`;
@@ -2766,6 +3033,7 @@ const insertGiangDay = async (
             TenLop,
             Dot,
             BoMon,
+            HeDaoTao,
           } = item;
 
           req.session.tmp++;
@@ -2818,6 +3086,7 @@ const insertGiangDay = async (
             Dot,
             Khoa,
             BoMon,
+            HeDaoTao,
           ];
         })
     );
@@ -2831,7 +3100,7 @@ const insertGiangDay = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao
       ) VALUES ?;
     `;
 
@@ -2903,6 +3172,7 @@ const insertGiangDay2 = async (
             TenLop,
             Dot,
             BoMon,
+            HeDaoTao,
           } = item;
 
           req.session.tmp++;
@@ -2960,6 +3230,7 @@ const insertGiangDay2 = async (
             Dot,
             Khoa,
             BoMon,
+            HeDaoTao,
           ];
         })
     );
@@ -2973,7 +3244,7 @@ const insertGiangDay2 = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao
       ) VALUES ?;
     `;
 
@@ -3001,7 +3272,8 @@ const submitData2 = async (req, res) => {
 
     // Thực hiện các cập nhật và thêm dữ liệu song song
     const [updateResult, update2, insertResult] = await Promise.all([
-      updateAllTeachingInfo(req, res), // Lưu dữ liệu hợp đồng
+      saveDataGvmDongHocPhi(req, res), // Hợp đồng hệ đóng học phí
+      saveDataGvmMatMa(req, res), // Hợp đồng hệ mật mã
       insertGiangDay2(req, res, nvList, hocPhanList, daDuyetHetArray),
       insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray),
     ]);
@@ -3040,7 +3312,7 @@ module.exports = {
   checkFile,
   deleteFile,
   updateChecked,
-  updateAllTeachingInfo,
+  saveDataGvmDongHocPhi,
   submitData2,
   updateQC,
   capNhatTen_BoMon,

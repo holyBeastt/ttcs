@@ -7,7 +7,8 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         updateMe,
         getKyTuBD,
         deleteKyTuBD, postKyTuBD,
-        updateKyTuBD
+        updateKyTuBD,
+        suggestPb
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
         getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList,
@@ -87,6 +88,7 @@ router.get('/getNamHoc',  getNamHoc);
 router.get('/getMaBoMon/:maPhongBan',  getBoMonList);
 
 router.get('/suggest/:query',  suggest);
+router.get('/suggestPb/:MaPhongBan/:query',  suggestPb);
 
 //Nhân viên tự sửa thông tin
 router.get('/infome/:id_User', infome);

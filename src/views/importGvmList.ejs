@@ -130,7 +130,11 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -244,7 +248,14 @@
 
       if (!fileInput.files.length) { // Kiểm tra xem người dùng đã chọn file chưa
         event.preventDefault(); // Ngừng gửi form
-        alert("Vui lòng chọn một file để tải lên!"); // Hiển thị thông báo lỗi
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Vui lòng chọn một file để tải lên",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       }
     });
   </script>

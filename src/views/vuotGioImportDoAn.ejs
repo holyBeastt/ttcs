@@ -148,12 +148,12 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Bảng Quy Chuẩn
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link active" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy
                   chuẩn</a>
                 <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
                 <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
@@ -218,12 +218,16 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link active" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -279,6 +283,11 @@
         </label>
         <input type="file" id="fileInput" accept=".pdf, .docx" style="display: none;" />
 
+        <!-- Combo chọn đợt -->
+        <select class="selectop w-100px mx-1 " id="combobox-dot">
+          <option value="">Đợt</option>
+        </select>
+
         <!-- Combo box Năm -->
         <select class="selectop mx-1" id="NamHoc">
           <option value="">Chọn năm học</option>
@@ -292,7 +301,6 @@
         <button class="btn mx-2" id="import">
           Thêm
         </button>
-
       </div>
 
       <div class="input-group-group" style="display: flex; gap: 16px;">
@@ -334,6 +342,78 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div id="action-modal" style="display: none;">
+        <div style="
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.6);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              z-index: 10000000000;
+            ">
+          <div style="
+                background: #ffffff;
+                padding: 25px;
+                border-radius: 12px;
+                max-width: 450px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+              ">
+            <p id="modal-message" style="
+                  font-size: 16px;
+                  color: #333;
+                  margin-bottom: 20px;
+                ">
+              Đây là nội dung của modal.
+            </p>
+            <button id="btn-delete" style="
+                  background-color: #e74c3c;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                " onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">
+              Xóa
+            </button>
+            <button id="btn-append" style="
+                  background-color: #3498db;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                " onmouseover="this.style.backgroundColor='#2980b9'" onmouseout="this.style.backgroundColor='#3498db'">
+              Chèn
+            </button>
+            <button id="btn-cancel" style="
+                  background-color: #95a5a6;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                " onmouseover="this.style.backgroundColor='#7f8c8d'" onmouseout="this.style.backgroundColor='#95a5a6'">
+              Hủy
+            </button>
+          </div>
+        </div>
       </div>
       <div id="dataTableContainer" class="h-75"></div>
     </div>
@@ -410,6 +490,7 @@
               // Lấy bảng dữ liệu và lưu vào localstorage
               localStorage.setItem("tableData", JSON.stringify(data.content));
               // Gọi hàm renderTable để hiển thị dữ liệu
+              console.log(data.content)
               renderTable(data.content);
             } else {
               // Hiển thị thông báo nếu không có dữ liệu
@@ -422,6 +503,9 @@
       });
       
       function renderTable(data) {
+        const role = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan")
+        const isKhoa = localStorage.getItem("isKhoa");
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = ''; // Xóa nội dung cũ
 
@@ -450,19 +534,12 @@
           tableRow.appendChild(tenDeTaiTd);
 
           // Giảng viên hướng dẫn
-          /*
-          const giangVienTd = document.createElement('td');
-          giangVienTd.textContent = row.GiangVienDefault || '';
-          tableRow.appendChild(giangVienTd);
-          */
-          // Giảng viên hướng dẫn
           const giangVienTd = document.createElement('td');
 
           // Thay thế xuống dòng (\n) bằng thẻ <br> và gán vào innerHTML
           giangVienTd.innerHTML = (row.GiangVienDefault || '').replace(/\n/g, '<br>');
 
           tableRow.appendChild(giangVienTd);
-
 
           // Giảng viên hướng dẫn 1
           const giaoVienHuongDan1Td = document.createElement('td');
@@ -475,6 +552,8 @@
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
+
+          giaoVienHuongDan1Input.disabled = true;
           giaoVienHuongDan1Input.onclick = () => {
             showSuggestions(giaoVienHuongDan1Input, row.GiangVien1Real, 1, id);
           };
@@ -497,6 +576,7 @@
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
+          giaoVienHuongDan2Input.disabled = true;
           giaoVienHuongDan2Input.onclick = () => {
             showSuggestions(giaoVienHuongDan2Input, row.GiangVien2Real, 2,id);
           };
@@ -507,6 +587,7 @@
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
+          
 
           // Tạo 2 cột lưu tên giảng viên để so sánh
           const GiangVien1Real = document.createElement('td');
@@ -520,6 +601,7 @@
           GiangVien2Real.id = `GiangVien2Real-${id}`;
           GiangVien2Real.style.display = 'none'; // Ẩn input bằng CSS
           tableRow.appendChild(GiangVien2Real);
+
 
           // Thêm hàng vào body của bảng
           tableBody.appendChild(tableRow);
@@ -536,6 +618,8 @@
       if (row.style.display === 'none') {
         return;
       }
+
+      console.log("id = ", id)
       // Lấy giá trị ngày bắt đầu, ngày kết thúc
       const NgayBatDau = document.getElementById(`startDate`);
       const NgayKetThuc = document.getElementById(`endDate`);
@@ -547,6 +631,8 @@
       const GiangVien1 = document.getElementById(`GiangVien1-${id}`);
       const GiangVien2 = document.getElementById(`GiangVien2-${id}`);
 
+      console.log("data = ", data[id]);
+      console.log("gv1 = ", GiangVien1.value)
       data[id].GiangVien1 = GiangVien1.value;
       data[id].GiangVien2 = GiangVien2.value;
   
@@ -554,109 +640,6 @@
 
     return data;
   }
-  
-
-  // Lưu dữ liệu
-  /*
-  document.getElementById("import").addEventListener("click", function(){ 
-    const namHoc = document.getElementById("NamHoc").value;
-    const MaPhongBan = document.getElementById("MaPhongBan").value;
-  
-    let data = getDataToStored();
-
-    console.log(data)
-
-    // Gửi dữ liệu qua API
-    fetch(`/postSaveDataDoAn?namHoc=${encodeURIComponent(namHoc)}&MaPhongBan=${encodeURIComponent(MaPhongBan)}`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json', // Định dạng gửi là JSON
-      },
-      body: JSON.stringify(data), // Chuyển object sang chuỗi JSON
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Import PDF thất bại");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        alert("Lưu dữ liệu thành công");
-      })
-      .catch((error) => {
-        console.error(error);
-      });   
-  });
-  */
-  document.getElementById("import").addEventListener("click", function () {
-    const namHoc = document.getElementById("NamHoc").value;
-    const MaPhongBan = document.getElementById("MaPhongBan").value;
-  
-    let data = getDataToStored();
-    
-    // Gửi dữ liệu qua API
-    fetch(
-      `/postSaveDataDoAn?namHoc=${encodeURIComponent(namHoc)}&MaPhongBan=${encodeURIComponent(MaPhongBan)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((errorData) => {
-            throw new Error(JSON.stringify(errorData)); // Gửi toàn bộ dữ liệu lỗi qua Error
-          });
-        }
-        return response.json();
-      })
-      .then((responseData) => {
-        // Hiển thị thông báo từ server
-        Swal.fire({
-          title: 'Thông báo',
-          html: responseData.message,
-          icon: 'info',
-          confirmButtonText: 'OK',
-          width: 'auto', // Tự động điều chỉnh chiều rộng
-          padding: '20px', // Giữ khoảng cách cho nội dung
-        });
-        //alert(responseData.message);
-      })
-      .catch((error) => {
-        try {
-          // Parse error message
-          const errorData = JSON.parse(error.message);
-      
-          // Hiển thị danh sách lỗi với dấu xuống dòng
-          const errorList = errorData.errors.map((err, index) => `${index + 1}. ${err}`).join("<br>"); // Thay \n bằng <br>
-      
-          Swal.fire({
-            title: 'Thông báo',
-            html: `${errorData.message}:<br>${errorList}`, // Sử dụng <br> để xuống dòng
-            icon: 'info',
-            confirmButtonText: 'OK',
-            width: 'auto', // Tự động điều chỉnh chiều rộng
-            padding: '20px', // Giữ khoảng cách cho nội dung
-          });
-        } catch (e) {
-          // Lỗi không parse được (phòng trường hợp lỗi không phải dạng JSON)
-          Swal.fire({
-            title: 'Thông báo',
-            html: error.message.replace(/\n/g, '<br>'), // Thay \n bằng <br> để hiển thị đúng
-            icon: 'info',
-            confirmButtonText: 'OK',
-            width: 'auto', // Tự động điều chỉnh chiều rộng
-            padding: '20px', // Giữ khoảng cách cho nội dung
-          });
-        }
-      
-      });
-  });
-  
-
       // Hàm hiển thị gợi ý đã được cập nhật
       function showSuggestions(input, GiangVienDefault, position, id) {
         const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
@@ -779,6 +762,186 @@
 
 
   </script>
+
+    <!-- Phần xử lý khi thêm dữ liệu vào bảng doantotnghiep -->
+    <script>
+
+
+      // Hàm kiểm tra dữ liệu tồn tại trên server
+      function checkDataExistence(khoaValue, dotValue, namValue, dataTam) {
+        const body = {
+          Khoa: khoaValue,
+          Dot: dotValue,
+          Nam: namValue,
+        };
+        fetch("/checkExistDataFile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Kiểm tra dữ liệu thất bại");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.exists) {
+              showModal(khoaValue, dotValue, namValue);
+            } else {
+              saveDataDoAnDuKien(khoaValue, dotValue, namValue);
+            }
+          })
+          .catch((error) => {
+            alert("Kiểm tra dữ liệu file quy chuẩn thất bại!");
+            console.error("Error:", error);
+          });
+      }
+  
+      // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
+      function showModal(khoaValue, dotValue, namValue) {
+        const modal = document.getElementById("action-modal");
+        const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
+        Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
+        document.getElementById("modal-message").innerText = message;
+        modal.style.display = "block";
+  
+        // Xử lý sự kiện "Xóa"
+        const deleteButton = document.getElementById("btn-delete");
+        deleteButton.onclick = function handleDeleteClick() {
+          modal.style.display = "none";
+          deleteFile(khoaValue, dotValue, namValue);
+          saveDataDoAnDuKien(khoaValue, dotValue, namValue);
+          //appendData(khoaValue, dotValue, namValue, dataTam);
+          // alert("Xóa thành công!");
+          //location.reload();
+        };
+  
+        // Xử lý sự kiện "Chèn"
+        const appendButton = document.getElementById("btn-append");
+        appendButton.onclick = function handleAppendClick() {
+          modal.style.display = "none";
+          //appendData(khoaValue, dotValue, namValue, dataTam);
+          saveDataDoAnDuKien(khoaValue, dotValue, namValue)
+          //location.reload();
+        };
+  
+        // Xử lý sự kiện "Hủy"
+        document.getElementById("btn-cancel").onclick = function () {
+          modal.style.display = "none";
+        };
+      }
+  
+      // Hàm gửi yêu cầu xóa dữ liệu
+      function deleteFile(khoaValue, dotValue, namValue) {
+        const body = {
+          Khoa: khoaValue,
+          Dot: dotValue,
+          Nam: namValue,
+        };
+  
+        fetch("/deleteDataDoAnExist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Xóa dữ liệu thất bại");
+            }
+
+          })
+          .catch((error) => {
+            alert("Xóa dữ liệu thất bại!");
+            console.error("Error:", error);
+          });
+      }
+
+      // Hàm chèn thêm dữ liệu
+      function saveDataDoAnDuKien(khoaValue, dotValue, namValue) {
+        const namHoc = namValue;
+        const MaPhongBan = khoaValue;
+        const Dot = dotValue;
+    
+        let data = getDataToStored();
+    
+        // Gửi dữ liệu qua API
+        fetch(
+            `/postSaveDataDoAn?namHoc=${encodeURIComponent(namHoc)}&MaPhongBan=${encodeURIComponent(MaPhongBan)}&Dot=${encodeURIComponent(Dot)}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            }
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    return response.json().then((errorData) => {
+                        throw new Error(JSON.stringify(errorData)); // Gửi toàn bộ dữ liệu lỗi qua Error
+                    });
+                }
+                return response.json();
+            })
+            .then((responseData) => {
+                // Hiển thị thông báo thành công
+                Swal.fire({
+                    title: 'Thông báo',
+                    html: responseData.message,
+                    icon: 'success', // Biểu tượng thành công
+                    confirmButtonText: 'OK',
+                    width: 'auto',
+                    padding: '20px',
+                }).then(() => {
+                    location.reload(); // Tải lại trang sau khi người dùng nhấn OK
+                });
+            })
+            .catch((error) => {
+                let errorMessage = "Đã xảy ra lỗi.";
+                let errorDetails = "";
+    
+                try {
+                    const errorData = JSON.parse(error.message);
+                    errorMessage = errorData.message || errorMessage;
+                    if (errorData.errors && Array.isArray(errorData.errors)) {
+                        errorDetails = errorData.errors
+                            .map((err, index) => `${index + 1}. ${err}`)
+                            .join("<br>");
+                    }
+                } catch {
+                    errorDetails = error.message.replace(/\n/g, '<br>');
+                }
+    
+                Swal.fire({
+                    title: 'Thông báo lỗi',
+                    html: `${errorMessage}<br>${errorDetails}`,
+                    icon: 'error', // Biểu tượng lỗi
+                    confirmButtonText: 'OK',
+                    width: 'auto',
+                    padding: '20px',
+                });
+            });
+    }
+    
+
+      // Gắn sự kiện cho nút "import"
+      document.getElementById("import").addEventListener("click", function () {
+  
+        const khoaValue = document.getElementById("MaPhongBan").value;
+        const dotValue = document.getElementById("combobox-dot").value;
+        const namValue = document.getElementById("NamHoc").value;
+  
+        if (khoaValue !== "ALL") {
+          checkDataExistence(khoaValue, dotValue, namValue);
+        }
+      });
+  
+    </script>
 
 
   <!-- link  -->
