@@ -192,16 +192,76 @@ const extractNameAndUnit = (fullName) => {
 //     return body;
 // };
 
+// const quyDoiSoGioDeTaiDuAn = (body) => {
+//     const {
+//         capDeTai,
+//         namHoc,
+//         tenDeTai,
+//         maDeTai,
+//         chuNhiem,
+//         thuKy,
+//         ngayNghiemThu,
+//         xepLoaiKetQua,
+//         thanhVien, // Đây là một mảng từ client
+//     } = body;
+
+//     let soGioChuNhiem = 0;
+//     let soGioThuKy = 0;
+//     let soGioThanhVien = [];
+
+//     // Kiểm tra cấp đề tài và tính toán số giờ quy đổi
+//     if (capDeTai === "Quốc gia, Nghị định thư") {
+//         if (chuNhiem) soGioChuNhiem = 400; // Chủ nhiệm cấp quốc gia được 400 giờ
+//         if (thuKy) soGioThuKy = 120; // Thư ký cấp quốc gia được 120 giờ
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soGioThanhVien = Array(thanhVien.length).fill((280 / thanhVien.length).toFixed(2)); // 280 giờ chia đều cho thành viên
+//         }
+//     } else if (capDeTai === "Ban, Bộ và tương đương") {
+//         if (chuNhiem) soGioChuNhiem = 250; // Chủ nhiệm cấp ban bộ được 250 giờ
+//         if (thuKy) soGioThuKy = 75; // Thư ký cấp ban bộ được 75 giờ
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soGioThanhVien = Array(thanhVien.length).fill((125 / thanhVien.length).toFixed(2)); // 125 giờ chia đều cho thành viên
+//         }
+//     } else if (capDeTai === "Cơ sở, Học viện") {
+//         if (chuNhiem) soGioChuNhiem = 150; // Chủ nhiệm cấp học viện cơ sở được 150 giờ
+//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+//             soGioThanhVien = Array(thanhVien.length).fill(parseFloat((280 / thanhVien.length).toFixed(1)));
+//             // soGioThanhVien = Array(thanhVien.length).fill((50 / thanhVien.length).toFixed(2)); // 50 giờ chia đều cho thành viên
+//         } else {
+//             // Nếu không có thành viên, cộng thêm 50 giờ cho chủ nhiệm
+//             soGioChuNhiem += 50;
+//         }
+//     }
+
+//     // Tách và format thông tin của chủ nhiệm
+//     if (chuNhiem) {
+//         const { name, unit } = extractNameAndUnit(chuNhiem);
+//         body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2)} giờ)`.trim();
+//     }
+
+//     // Tách và format thông tin của thư ký
+//     if (thuKy) {
+//         const { name, unit } = extractNameAndUnit(thuKy);
+//         body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2)} giờ)`.trim();
+//     }
+
+//     // Tách và format thông tin của thành viên
+//     if (thanhVien && Array.isArray(thanhVien)) {
+//         body.thanhVien = thanhVien.map((member, index) => {
+//             const { name, unit } = extractNameAndUnit(member);
+//             return `${name} (${unit} - ${soGioThanhVien[index]} giờ)`.trim();
+//         }).join(", ");
+//     }
+
+//     // Trả về body đã được cập nhật
+//     return body;
+// };
+
 const quyDoiSoGioDeTaiDuAn = (body) => {
     const {
         capDeTai,
-        namHoc,
-        tenDeTai,
-        maDeTai,
         chuNhiem,
         thuKy,
-        ngayNghiemThu,
-        xepLoaiKetQua,
         thanhVien, // Đây là một mảng từ client
     } = body;
 
@@ -211,25 +271,26 @@ const quyDoiSoGioDeTaiDuAn = (body) => {
 
     // Kiểm tra cấp đề tài và tính toán số giờ quy đổi
     if (capDeTai === "Quốc gia, Nghị định thư") {
-        if (chuNhiem) soGioChuNhiem = 400; // Chủ nhiệm cấp quốc gia được 400 giờ
-        if (thuKy) soGioThuKy = 120; // Thư ký cấp quốc gia được 120 giờ
+        soGioChuNhiem = chuNhiem ? 400 : 0; // Chủ nhiệm cấp quốc gia được 400 giờ
+        soGioThuKy = thuKy ? 120 : 0; // Thư ký cấp quốc gia được 120 giờ
         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            soGioThanhVien = Array(thanhVien.length).fill((280 / thanhVien.length).toFixed(2)); // 280 giờ chia đều cho thành viên
+            const gioThanhVien = 280 / thanhVien.length; // 280 giờ chia đều cho thành viên
+            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
         }
     } else if (capDeTai === "Ban, Bộ và tương đương") {
-        if (chuNhiem) soGioChuNhiem = 250; // Chủ nhiệm cấp ban bộ được 250 giờ
-        if (thuKy) soGioThuKy = 75; // Thư ký cấp ban bộ được 75 giờ
+        soGioChuNhiem = chuNhiem ? 250 : 0; // Chủ nhiệm cấp ban bộ được 250 giờ
+        soGioThuKy = thuKy ? 75 : 0; // Thư ký cấp ban bộ được 75 giờ
         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            soGioThanhVien = Array(thanhVien.length).fill((125 / thanhVien.length).toFixed(2)); // 125 giờ chia đều cho thành viên
+            const gioThanhVien = 125 / thanhVien.length; // 125 giờ chia đều cho thành viên
+            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
         }
     } else if (capDeTai === "Cơ sở, Học viện") {
-        if (chuNhiem) soGioChuNhiem = 150; // Chủ nhiệm cấp học viện cơ sở được 150 giờ
+        soGioChuNhiem = chuNhiem ? 150 : 0; // Chủ nhiệm cấp học viện cơ sở được 150 giờ
         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            soGioThanhVien = Array(thanhVien.length).fill(parseFloat((280 / thanhVien.length).toFixed(1)));
-            // soGioThanhVien = Array(thanhVien.length).fill((50 / thanhVien.length).toFixed(2)); // 50 giờ chia đều cho thành viên
+            const gioThanhVien = 50 / thanhVien.length; // 50 giờ chia đều cho thành viên
+            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
         } else {
-            // Nếu không có thành viên, cộng thêm 50 giờ cho chủ nhiệm
-            soGioChuNhiem += 50;
+            soGioChuNhiem += 50; // Nếu không có thành viên, cộng thêm 50 giờ cho chủ nhiệm
         }
     }
 

@@ -349,16 +349,16 @@
         // Tạo một input để chọn file
         const fileInput = document.createElement("input");
         fileInput.type = "file";
-        fileInput.accept = ".xlsx,.docx"; // Cho phép chọn file Excel và Word
+        fileInput.accept = ".xlsx,.docx,.pdf"; // Cho phép chọn file Excel và Word
 
         // Khi có file được chọn
         fileInput.addEventListener("change", function () {
           const selectedFile = fileInput.files[0];
 
-          if (!selectedFile) {
-            alert("Bạn chưa chọn tệp nào.");
-            return;
-          }
+          // if (!selectedFile) {
+          //   alert("Bạn chưa chọn tệp nào.");
+          //   return;
+          // }
 
           const formData = new FormData();
           formData.append("file", selectedFile); // Đặt tên chung là "file"
@@ -381,13 +381,34 @@
               console.log("Dữ liệu thô từ server:", data);
 
               // Tạo bảng HTML từ dữ liệu JSON, bỏ qua cột "Ghi chú"
-              let tableHtml =
-                '<table class="table table-bordered"><thead><tr>';
+              let tableHtml = "";
+
+              // Lấy TT đầu tiên và cuối cùng
+              const ttValues = data.map((item) => parseInt(item.TT)).filter(Number.isInteger);
+              const ttMin = Math.min(...ttValues);
+              const ttMax = Math.max(...ttValues);
+
+              // Tìm các TT bị thiếu
+              const missingTT = [];
+              for (let i = ttMin; i <= ttMax; i++) {
+                if (!ttValues.includes(i)) {
+                  missingTT.push(i);
+                }
+              }
+
+              // Thêm thông báo cảnh báo nếu có TT bị thiếu
+              if (missingTT.length > 0) {
+                tableHtml += `<div class="alert alert-warning">
+                  Các lớp có STT : ${missingTT.join(", ")} đang bị thiếu dữ liệu.
+                  Những lớp thiếu dữ liệu sẽ không được thêm vào bảng quy chuẩn dự kiến
+                </div>`;
+              }
+
+              // Tiếp tục tạo bảng như trước
+              tableHtml += '<table class="table table-bordered"><thead><tr>';
 
               // Lấy tiêu đề từ đối tượng JSON đầu tiên (trừ "Ghi chú")
-              const headers = Object.keys(data[0]).filter(
-                (key) => key !== "Ghi chú"
-              );
+              const headers = Object.keys(data[0]).filter((key) => key !== "Ghi chú");
               headers.forEach((header) => {
                 tableHtml += `<th>${header}</th>`;
               });
@@ -402,7 +423,6 @@
                 tableHtml += "</tr>";
               });
               tableHtml += "</tbody></table>";
-
               // Chèn bảng vào thẻ div có id="dataTableContainer"
               document.getElementById("dataTableContainer").innerHTML = tableHtml;
 
@@ -410,9 +430,6 @@
               dataTam = data; // Lưu vào biến toàn cục
             })
             .catch((error) => {
-              document.getElementById("uploadStatus").innerHTML = `
-                <span style="color: red;">Import thất bại!</span>
-            `;
               console.error(error);
             });
         });
@@ -424,8 +441,6 @@
 
   <!-- phần xử lí thêm vào bảng tam -->
   <script>
-
-
     // Hàm kiểm tra dữ liệu tồn tại trên server
     function checkDataExistence(khoaValue, dotValue, kiValue, namValue, dataTam) {
       const body = {
@@ -590,6 +605,41 @@
         });
     }
 
+    function saveDataAll(dataTam, dotValue, kiValue, namValue) {
+      const updatedData = dataTam.map((item) => ({
+        ...item,
+        // Khoa: khoaValue,
+        Dot: dotValue,
+        Ki: kiValue,
+        Nam: namValue,
+      }));
+
+      fetch("/save-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Gửi dữ liệu thất bại");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            alert("Thêm file thành công!");
+          } else {
+            alert("Thêm file thất bại!");
+          }
+        })
+        .catch((error) => {
+          alert("Gửi dữ liệu thất bại!");
+          console.error("Error:", error);
+        });
+    }
+
     // Gắn sự kiện cho nút "import"
     document.getElementById("import").addEventListener("click", function () {
 
@@ -600,6 +650,9 @@
 
       if (khoaValue !== "ALL") {
         checkDataExistence(khoaValue, dotValue, kiValue, namValue, dataTam);
+      } else {
+        console.log('import all')
+        saveDataAll(dataTam, dotValue, kiValue, namValue);
       }
     });
 

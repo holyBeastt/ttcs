@@ -7,7 +7,6 @@ const createPoolConnection = require("../config/databasePool");
 const addClass = async (req, res) => {
     const MaPhongBan = req.params.MaPhongBan;
     const GiangVien = req.body.GiangVien;
-    console.log(req.body);
     let connection;
     try {
         connection = await createPoolConnection();
@@ -25,6 +24,7 @@ const addClass = async (req, res) => {
             [`NamHoc`]: NamHoc,  // Gán giá trị mặc định là chuỗi rỗng
             [`HinhThucKTGiuaKy`]: HinhThucKTGiuaKy,  // Gán giá trị mặc định là chuỗi rỗng
             [`Lop`]: Lop = "",  // Gán giá trị mặc định là chuỗi rỗng
+            [`HeDaoTao`]: HeDaoTao = "",  // Gán giá trị mặc định là chuỗi rỗng
         } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
         SoTC = SoTC || 0;
         LenLop = LenLop || 0;
@@ -71,13 +71,13 @@ const addClass = async (req, res) => {
             NamHoc,
             HinhThucKTGiuaKy,
             SoTietKT,
-            Lop, MaPhongBan);
-        const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-        const [result] = await connection.query(query1, [SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan]);
+            Lop, MaPhongBan, HeDaoTao);
+        const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, HeDaoTao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+        const [result] = await connection.query(query1, [SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan, HeDaoTao]);
         const MaGiangDay = result.insertId;
 
-        const query2 = `INSERT INTO giuaky (TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, Nguon, MaGiangDayNguon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-        await connection.query(query2, [TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan, "lopngoaiquychuan", MaGiangDay]);
+        const query2 = `INSERT INTO giuaky (TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, Nguon, MaGiangDayNguon, HeDaoTao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+        await connection.query(query2, [TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, MaPhongBan, "lopngoaiquychuan", MaGiangDay, HeDaoTao]);
 
         res.status(200).send({ message: "Thêm lớp thành công" });
     } catch (error) {
@@ -377,7 +377,8 @@ const updateLopThiGk = async (req, res) => {
                     SoTietKT, 
                     row.Lop, 
                     SoDe,
-                    row.Khoa
+                    row.Khoa,
+                    row.HeDaoTao
                 ];
                 
                 const query1 = `SELECT COUNT(*) AS count 
@@ -386,8 +387,8 @@ const updateLopThiGk = async (req, res) => {
                 const [rows] = await connection.query(query1, [row.MaGiangDay, "giangday"]);
                 if (rows[0].count === 0) {
                     const query2 = `
-                    INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, HeDaoTao) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                     await connection.query(query2, valuesToInsert);
                 } else {
                     const query2 = `
@@ -613,7 +614,7 @@ const updatelopngoaiquychuan = async (req, res) =>{
     try {
         // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
         for (let data of globalData) {
-            const { tenHocPhan, soTC, maLop, soSV, soTietTKB, hinhThucKTGiuaKy, heSoT7CN, MaGiangDay } = data;
+            const { tenHocPhan, soTC, maLop, soSV, soTietTKB, soTietQC, hinhThucKTGiuaKy, heSoT7CN, heDaoTao, MaGiangDay } = data;
             console.log(data);
         
             let SoTietKT = 0;
@@ -654,31 +655,33 @@ const updatelopngoaiquychuan = async (req, res) =>{
                 heSoT7CN, 
                 soSV, 
                 soTietTKB,
+                soTietQC,
                 HeSoLopDong,
                 hinhThucKTGiuaKy, 
                 SoTietKT, 
                 maLop, 
                 SoDe,
                 soTC,
+                heDaoTao,
                 MaGiangDay
             ];
             
-            // Câu lệnh INSERT vào bảng giuaky
+            // Câu lệnh Update vào bảng giuaky
             const query2 = `
-                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, LenLop =?, HeSoLopDong = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?
+                UPDATE lopngoaiquychuan SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, LenLop =?, QuyChuan = ?, HeSoLopDong = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, SoTC = ?, HeDaoTao = ?
                 WHERE MaGiangDay = ? 
             `;
             
-            // Thực hiện câu lệnh INSERT
+            // Thực hiện câu lệnh Update
             await connection.query(query2, valuesToInsert);
 
             const query1 = `
-                UPDATE giuaky SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?
+                UPDATE giuaky SET TenHocPhan = ?, HeSoT7CN = ?, SoSV = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, Lop = ?, SoDe = ?, HeDaoTao = ?
                 WHERE MaGiangDayNguon = ? AND Nguon = "lopngoaiquychuan"
             `;
             
             // Thực hiện câu lệnh INSERT
-            await connection.query(query1, [tenHocPhan, heSoT7CN, soSV, hinhThucKTGiuaKy, SoTietKT, maLop, SoDe, MaGiangDay]);
+            await connection.query(query1, [tenHocPhan, heSoT7CN, soSV, hinhThucKTGiuaKy, SoTietKT, maLop, SoDe, heDaoTao, MaGiangDay]);
         }        
 
         // Gửi phản hồi thành công
@@ -692,23 +695,35 @@ const updatelopngoaiquychuan = async (req, res) =>{
 };
 
 const getLopGiangDay = async (req, res) =>{
-    const {Ki, Nam, MaPhongBan} = req.params;
+    const {Nam, MaPhongBan} = req.params;
+    console.log( Nam, MaPhongBan);
     let connection
     
     try {
         connection = await createPoolConnection();
-        console.log(Ki, Nam, MaPhongBan);
-        const query = `SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'Lớp quy chuẩn' AS source FROM giangday WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?
+        console.log( Nam, MaPhongBan);
+        const query = `SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'Lớp quy chuẩn' AS source FROM giangday WHERE Khoa = ? AND HocKy = ? AND HeDaoTao = ? AND NamHoc = ?
                         UNION ALL
-                        SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'Lớp ngoài quy chuẩn' AS source FROM lopngoaiquychuan WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?`;
-        const [rows] = await connection.query(query,[MaPhongBan, Ki, Nam, MaPhongBan, Ki, Nam]);
-        const query1 = `SELECT * FROM giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ?`;
-        const [rows2] = await connection.query(query1, [MaPhongBan, Ki, Nam]);
-        console.log(rows2);
+                        SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan , 'Lớp ngoài quy chuẩn' AS source FROM lopngoaiquychuan WHERE Khoa = ? AND HocKy = ? AND HeDaoTao = ? AND NamHoc = ?`;
+        const [rows11] = await connection.query(query,[MaPhongBan, 1, "Mật mã", Nam, MaPhongBan, 1, "Mật mã", Nam]);
+        const [rows12] = await connection.query(query,[MaPhongBan, 1, "Đóng học phí", Nam, MaPhongBan, 1, "Đóng học phí", Nam]);
+        const [rows13] = await connection.query(query,[MaPhongBan, 2, "Mật mã", Nam, MaPhongBan, 2, "Mật mã", Nam]);
+        const [rows14] = await connection.query(query,[MaPhongBan, 2, "Đóng học phí", Nam, MaPhongBan, 2, "Mật mã", Nam]);
+        const query1 = `SELECT * FROM giuaky WHERE Khoa = ? AND HocKy = ? AND HeDaoTao = ? AND NamHoc = ?`;
+        const [rows21] = await connection.query(query1, [MaPhongBan, 1, "Mật mã", Nam]);
+        const [rows22] = await connection.query(query1, [MaPhongBan, 1, "Đóng học phí", Nam]);
+        const [rows23] = await connection.query(query1, [MaPhongBan, 2, "Mật mã", Nam]);
+        const [rows24] = await connection.query(query1, [MaPhongBan, 2, "Đóng học phí", Nam]);
         res.json({
             success: true,
-            LopGiangDay: rows,
-            LopGiuaKi: rows2,
+            rows11: rows11,
+            rows12: rows12,
+            rows13: rows13,
+            rows14: rows14,
+            rows21: rows21,
+            rows22: rows22,
+            rows23: rows23,
+            rows24: rows24,
         });
     } catch (error) {
         console.error("Lỗi: ", error);

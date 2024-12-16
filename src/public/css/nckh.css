@@ -576,3 +576,11 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
     white-space: nowrap;
     /* Điều chỉnh kích thước nếu cần */
 }
+
+
+/* làm mờ span */
+.faded-text {
+    color: #888; /* Màu mờ */
+    font-size: 0.9em; /* Giảm kích thước font một chút để nhấn mạnh */
+}
+

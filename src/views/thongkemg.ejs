@@ -695,7 +695,8 @@
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Phân bố số tiết theo khoa'
+                                    text: 'Phân bố số tiết theo khoa',
+                                    font: {size: 20}
                                 }
                             }
                         }
@@ -715,8 +716,8 @@
                         data: {
                             labels: data.map(item => item.khoa),
                             datasets: [{
-                                label: 'Số giảng viên mời',
-                                data: data.map(item => item.sogiangvien),
+                                label: 'Số tiết mời giảng',
+                                data: data.map(item => item.tongsotiet),
                                 backgroundColor: 'rgba(54, 162, 235, 0.5)',
                                 borderColor: 'rgba(54, 162, 235, 1)',
                                 borderWidth: 1
@@ -729,7 +730,8 @@
                             plugins: {
                                 title: {
                                     display: true,
-                                    text: 'Số giảng viên mời theo khoa'
+                                    text: 'Số tiết mời giảng theo khoa',
+                                    font: {size: 20}
                                 }
                             },
                             scales: {
