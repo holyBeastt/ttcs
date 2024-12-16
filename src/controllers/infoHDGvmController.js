@@ -447,54 +447,12 @@ const getHopDongDuKienData = async (req, res) => {
     const namHoc = req.query.namHoc;
     const dot = req.query.dot;
     const ki = req.query.ki;
-
+    const HeDaoTao = req.query.HeDaoTao;
     const khoa = req.query.khoa;
-    console.log("Khoa = ", khoa == undefined);
 
     let rows;
     if (khoa == undefined) {
       [rows] = await connection.execute(
-        //     `SELECT
-        //     MIN(qc.NgayBatDau) AS NgayBatDau,
-        //     MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        //     qc.KiHoc,
-        //     gv.GioiTinh,
-        //     gv.HoTen,
-        //     gv.NgaySinh,
-        //     gv.CCCD,
-        //     gv.NoiCapCCCD,
-        //     gv.Email,
-        //     gv.MaSoThue,
-        //     gv.HocVi,
-        //     gv.ChucVu,
-        //     gv.HSL,
-        //     gv.DienThoai,
-        //     gv.STK,
-        //     gv.NganHang,
-        //     gv.MaPhongBan,
-        //     SUM(qc.QuyChuan) AS SoTiet
-        // FROM
-        //     quychuan qc
-        // JOIN
-        //     gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        // WHERE
-        //     NamHoc = ? AND Dot = ? AND KiHoc = ?
-        // GROUP BY
-        //     gv.HoTen,
-        //     qc.KiHoc,
-        //     gv.GioiTinh,
-        //     gv.NgaySinh,
-        //     gv.CCCD,
-        //     gv.NoiCapCCCD,
-        //     gv.Email,
-        //     gv.MaSoThue,
-        //     gv.HocVi,
-        //     gv.ChucVu,
-        //     gv.HSL,
-        //     gv.DienThoai,
-        //     gv.STK,
-        //     gv.NganHang,
-        //     gv.MaPhongBan;`,
         `SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
@@ -525,7 +483,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ?
+        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ?
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -542,51 +500,10 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan`,
-        [namHoc, dot, ki]
+        [namHoc, dot, ki, HeDaoTao]
       );
     } else {
       [rows] = await connection.execute(
-        //     `SELECT
-        //     MIN(qc.NgayBatDau) AS NgayBatDau,
-        //     MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        //     qc.KiHoc,
-        //     gv.GioiTinh,
-        //     gv.HoTen,
-        //     gv.NgaySinh,
-        //     gv.CCCD,
-        //     gv.NoiCapCCCD,
-        //     gv.Email,
-        //     gv.MaSoThue,
-        //     gv.HocVi,
-        //     gv.ChucVu,
-        //     gv.HSL,
-        //     gv.DienThoai,
-        //     gv.STK,
-        //     gv.NganHang,
-        //     gv.MaPhongBan,
-        //     SUM(qc.QuyChuan) AS SoTiet
-        // FROM
-        //     quychuan qc
-        // JOIN
-        //     gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        // WHERE
-        //     NamHoc = ? AND Dot = ? AND KiHoc = ? AND Khoa = ?
-        // GROUP BY
-        //     gv.HoTen,
-        //     qc.KiHoc,
-        //     gv.GioiTinh,
-        //     gv.NgaySinh,
-        //     gv.CCCD,
-        //     gv.NoiCapCCCD,
-        //     gv.Email,
-        //     gv.MaSoThue,
-        //     gv.HocVi,
-        //     gv.ChucVu,
-        //     gv.HSL,
-        //     gv.DienThoai,
-        //     gv.STK,
-        //     gv.NganHang,
-        //     gv.MaPhongBan;`,
         `SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
@@ -606,7 +523,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-    (SELECT SUM(QuyChuan)                 -- Tổng số tiết của giảng viên trong năm
+    (SELECT SUM(QuyChuan)               
      FROM quychuan
      WHERE 
         SUBSTRING_INDEX(GiaoVienGiangDay, ' - ', 1) = gv.HoTen
@@ -617,7 +534,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ?
+        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ? AND HeDaoTao = ?
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -634,7 +551,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan`,
-        [namHoc, dot, ki, khoa]
+        [namHoc, dot, ki, khoa, HeDaoTao]
       );
     }
 
