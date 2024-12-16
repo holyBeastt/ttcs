@@ -80,29 +80,39 @@
   align-items: center;
   gap: 16px; /* Khoảng cách giữa hai ô */
   width: fit-content; /* Chỉ chiếm không gian theo nội dung */
-}
+  }
 
-.input-group {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ccc; /* Đường viền */
-  border-radius: 8px; /* Góc bo */
-  padding: 5px; /* Khoảng cách trong */
-  background-color: #42c2f5; /* Màu nền nhạt */
-  width: 350px; /* Chiều rộng từng ô */
-}
+  .input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc; /* Đường viền */
+    border-radius: 8px; /* Góc bo */
+    padding: 5px; /* Khoảng cách trong */
+    background-color: #42c2f5; /* Màu nền nhạt */
+    width: 350px; /* Chiều rộng từng ô */
+  }
 
-.input-group-text {
-  font-weight: bold;
-  background-color: transparent; /* Nền trong suốt */
-  border: none; /* Loại bỏ viền */
-}
+  .input-group-text {
+    font-weight: bold;
+    background-color: transparent; /* Nền trong suốt */
+    border: none; /* Loại bỏ viền */
+  }
 
-.form-control {
-  border: none;
-  outline: none; /* Bỏ viền focus mặc định */
-  width: 100%; /* Chiếm hết không gian còn lại */
-}
+  .form-control {
+    border: none;
+    outline: none; /* Bỏ viền focus mặc định */
+    width: 100%; /* Chiếm hết không gian còn lại */
+  }
+
+  /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
+  input[type="date"],
+  input[type="text"] {
+    width: 120px;
+    /* Điều chỉnh giá trị này theo mong muốn */
+    box-sizing: border-box;
+    padding: 5px;
+    /* Giữ padding như cũ */
+  }
 
 </style>
 
@@ -215,12 +225,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import Đồ Án</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export Đồ Án</a>
+                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
-
-                <a class="nav-link active" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>              </div>
-            </div>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+              </div>
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
@@ -301,16 +311,18 @@
         <input type="text" id="filterClass" placeholder="Tìm theo tên đề tài" class="form-control m-2 search"
           style="width: 200px;" />
 
-          <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
-            <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
-            <input required type="date" id="startDate" class="form-control" />
-          </div>
-          <div class="input-group my-2 mx-1" style="width: 350px;" id="ketthuc">
-    
-            <label for="endDate" class="input-group-text">Ngày kết thúc</label>
-            <input required type="date" id="endDate" class="form-control" />
-          </div>
-          <button id="fillDay" class="btn text-nowrap my-2 mx-1" style="height: 54px;">Chèn ngày</button>      
+            <div class="date-all-container" style="display: none;">
+              <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
+                <label for="startDateAll" class="input-group-text">Ngày bắt đầu</label>
+                <input required type="date" id="startDateAll" class="form-control" />
+              </div>
+              <div class="input-group my-2 mx-1" style="width: 350px;" id="ketthuc">
+        
+                <label for="endDateAll" class="input-group-text">Ngày kết thúc</label>
+                <input required type="date" id="endDateAll" class="form-control" />
+              </div>
+              <button id="fillDay" class="btn text-nowrap my-2 mx-1" style="height: 54px;">Chèn ngày</button> 
+            </div>     
           
       </div>
 
@@ -329,6 +341,7 @@
               <th style="width: 200px;">Giảng Viên Hướng Dẫn 2</th>
               <th style="min-width: 90px;">Ngày bắt đầu</th>
               <th style="min-width: 90px;">Ngày kết thúc</th>
+              <th style="width: 50px;">Ghi chú</th>
               <th style="width: 80px; " id="khoaColumn">
                 <div class="form-check d-flex ">
                   <input class="check" type="checkbox" id="checkAllKhoa" onclick="checkAll('khoa')">
@@ -366,6 +379,23 @@
         </table>
       </div>
       <div id="dataTableContainer" class="h-75"></div>
+        <!-- Modal form -->
+  <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
+  <div id="noteForm" style="display: none;">
+    <h3>Ghi chú</h3>
+    <label for="noteInput">Nội dung:</label>
+    <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
+    <br />
+    <label for="deadlineInput">Hạn:</label>
+    <input type="date" id="deadlineInput"
+      style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+    <br />
+    <div class="d-flex text-nowrap" style="text-align: right;">
+      <button onclick="saveNote()">Lưu</button>
+      <button onclick="doneNote()">Hoàn Thành</button>
+      <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+    </div>
+  </div>
     </div>
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -460,7 +490,14 @@
         
         
               if (!infoDoAnResponse.ok || !infoGiangVienResponse.ok) {
-                alert("Không tìm thấy dữ liệu!")
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: "Không tìm thấy dữ liệu",
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto', // Tự động điều chỉnh chiều rộng
+                  padding: '20px', // Giữ khoảng cách cho nội dung
+                });
               } 
         
               const infoDoAn = await infoDoAnResponse.json();
@@ -526,7 +563,9 @@
     function formatDateToInput(dateString) {
       if (!dateString) return ''; // Kiểm tra nếu không có giá trị
 
+      console.log("mặc định = ", dateString)
       const utcBatDau = new Date(dateString);
+      console.log(utcBatDau)
       dateString = utcBatDau.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
 
       // Chia tách chuỗi ngày thành các phần: năm, tháng, ngày
@@ -541,6 +580,28 @@
       return `${year}-${month}-${day}`;
     }
 
+    function addDoubleClickEvents() {
+      // get all date input fields
+      let dateInputs = document.querySelectorAll('[type="date"]');
+  
+      dateInputs.forEach(el => {
+        // register double-click event to change date input to text input and select the value
+        el.addEventListener('dblclick', () => {
+          el.type = "text";
+  
+          // After changing input type with JS, .select() needs a timeout to work
+          setTimeout(() => {
+            el.select();
+          });
+        });
+  
+        // register the focusout event to reset the input back to a date input field
+        el.addEventListener('focusout', () => {
+          el.type = "date";
+        });
+      });
+    }
+  
 
     // Hàm hiển thị thông tin ra màn hình
       function renderTable(data) {
@@ -554,7 +615,7 @@
         data.forEach((row, id) => {
           const tableRow = document.createElement('tr');
           // Gán ID trong csdl thành attribute của từng hàng
-          tableRow.setAttribute("table-row-id", row.ID);
+          tableRow.setAttribute("data-id", row.ID);
 
           // TT
           const ttTd = document.createElement('td');
@@ -581,12 +642,6 @@
           tenDeTaiTd.textContent = row.TenDeTai || '';
           tableRow.appendChild(tenDeTaiTd);
 
-          // Giảng viên hướng dẫn
-          /*
-          const giangVienTd = document.createElement('td');
-          giangVienTd.textContent = row.GiangVienDefault || '';
-          tableRow.appendChild(giangVienTd);
-          */
           // Giảng viên hướng dẫn
           const giangVienTd = document.createElement('td');
 
@@ -655,11 +710,11 @@
           tableRow.appendChild(GiangVien2Real);
 
           // Ngày Bắt Đầu
+          
           const NgayBatDauTd = document.createElement('td');
           const NgayBatDauInput = document.createElement('input');
           NgayBatDauInput.type = 'date';
-          NgayBatDauInput.id = `NgayBatDau_${id}`; // Thêm id
-          console.log("format = " + formatDateToInput(row.NgayBatDau))
+          NgayBatDauInput.id = `NgayBatDau-${id}`; // Thêm id
           NgayBatDauInput.value = formatDateToInput(row.NgayBatDau);
           NgayBatDauTd.appendChild(NgayBatDauInput);
           tableRow.appendChild(NgayBatDauTd);
@@ -668,10 +723,36 @@
           const NgayKetThucTd = document.createElement('td');
           const NgayKetThucInput = document.createElement('input');
           NgayKetThucInput.type = 'date';
-          NgayKetThucInput.id = `NgayKetThuc_${id}`; // Thêm id
+          NgayKetThucInput.id = `NgayKetThuc-${id}`; // Thêm id
           NgayKetThucInput.value = formatDateToInput(row.NgayKetThuc);
           NgayKetThucTd.appendChild(NgayKetThucInput);
           tableRow.appendChild(NgayKetThucTd);
+
+          // Ghi chú
+          const ghiChuTd = document.createElement("td");
+          const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
+          const deadlineValue = row.Deadline || ""; // Lấy giá trị Deadline
+          const hoanThanh = row.HoanThanh;
+          if (role === 'GV' || role === 'Thường') {
+            ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
+            ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
+            ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
+          } else {
+
+            if (ghiChuValue) {
+              if (hoanThanh) {
+                ghiChuTd.innerHTML = `📜 <span class="bi bi-check2-circle" style="color: green;"></span>`; // Hiển thị biểu tượng ghi chú và chấm đỏ
+              } else {
+                ghiChuTd.innerHTML = `📜 <span class="bi bi-circle" style="color: red;"></span>`; // Hiển thị biểu tượng ghi chú và chấm đỏ
+              }
+
+            } else {
+              ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu không có ghi chú
+            }
+            ghiChuTd.style.cursor = "pointer"; // Thay đổi con trỏ chuột khi di chuột qua biểu tượng
+            ghiChuTd.onclick = () => openNoteForm(tableRow, ghiChuValue, deadlineValue); // Gọi hàm mở form khi nhấn vào biểu tượng
+          }
+          tableRow.appendChild(ghiChuTd); // Thêm ô ghi chú vào hàng
 
           let khoaCheckboxTd, khoaCheckbox;
           // Checkbox cho Khoa
@@ -739,13 +820,15 @@
           if (isKhoa == 0) {
             giaoVienHuongDan1Input.disabled = true; // Chỉ xem
             giaoVienHuongDan2Input.disabled = true; // Chỉ xem
+            NgayBatDauInput.disabled = true;
+            NgayKetThucInput.disabled = true;
           }
 
           if ((isKhoa == 1 && role == "GV") || (isKhoa == 1 && row.KhoaDuyet == 1)) {
             giaoVienHuongDan1Input.disabled = true;
             giaoVienHuongDan2Input.disabled = true;
-            //NgayBatDauInput.disabled = true;
-            //NgayKetThucInput.disabled = true;
+            NgayBatDauInput.disabled = true;
+            NgayKetThucInput.disabled = true;
           }
 
           const KhoaCheck = localStorage.getItem("KhoaCheck");
@@ -801,7 +884,83 @@
           // Thêm hàng vào body của bảng
           tableBody.appendChild(tableRow);
         });
+      
+        // Thêm để chuyển kiểu dữ liệu ngày thành text khi double click vào
+        addDoubleClickEvents();
       }
+
+        // Fill all startDate and endDate
+  document.getElementById('fillDay').addEventListener('click', function () {
+    const startDateValue = document.getElementById('startDateAll').value;
+    const endDateValue = document.getElementById('endDateAll').value;
+
+    // Chỉ tiếp tục nếu người dùng đã chọn cả ngày bắt đầu và ngày kết thúc
+    if (!startDateValue || !endDateValue) {
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.",
+        icon: 'info',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
+      return;
+    }
+
+    // Chèn ngày bắt đầu, bỏ qua các ô bị disable
+    document.querySelectorAll("input[id^='NgayBatDau-']").forEach(input => {
+      if (!input.disabled && input.offsetParent !== null) {
+        input.value = startDateValue;
+      }
+    });
+
+    // Chèn ngày kết thúc, bỏ qua các ô bị disable
+    document.querySelectorAll("input[id^='NgayKetThuc-']").forEach(input => {
+      if (!input.disabled && input.offsetParent !== null) {
+        input.value = endDateValue;
+      }
+    });
+
+    let data = getDataToStored();
+
+    fetch('/updateDoAnDateAll', {
+      method: 'POST', // Phương thức POST
+      headers: {
+        'Content-Type': 'application/json' // Định dạng gửi là JSON
+      },
+      body: JSON.stringify(data) // Chuyển đổi data đã cập nhật thành chuỗi JSON
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Lỗi khi gửi dữ liệu');
+        }
+        return response.json(); // Chuyển đổi phản hồi thành JSON
+      })
+      .then(data => {
+        // Hiển thị thông báo từ server
+        Swal.fire({
+          title: 'Thông báo',
+          html: data.message,
+          icon: 'success',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+
+      })
+      .catch(error => {
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Có lỗi xảy ra khi cập nhật dữ liệu.",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+      });
+
+  });
+
 
       function checkAll(type) {
         const checkboxes = document.querySelectorAll(
@@ -844,93 +1003,6 @@
           });
         }
       }
-    /*
-  async function submitData() {
-    const isKhoa = localStorage.getItem("isKhoa")
-    const role = localStorage.getItem("userRole")
-    const MaPhongBan = localStorage.getItem("MaPhongBan");
-    const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
-
-    rows.forEach((row, id) => {
-      // Bỏ qua các hàng đang bị ẩn
-      //if (row.style.display === 'none') {
-      //  return;
-      //}
-
-      // Lấy giá trị nhập vào
-      const GiangVien1Input = document.getElementById(`GiangVien1-${id}`);
-      const GiangVien1 = GiangVien1Input ? GiangVien1Input.value : '';
-
-      const GiangVien2Input = document.getElementById(`GiangVien2-${id}`);
-      const GiangVien2 = GiangVien2Input ? GiangVien2Input.value : '';
-
-      
-      // Lấy giá trị "Ngày Bắt Đầu" cho từng hàng
-      const ngayBatDauInput = document.getElementById(`NgayBatDau_${index}`);
-      const ngayBatDauValue = ngayBatDauInput ? ngayBatDauInput.value : '';
-
-      // Lấy giá trị "Ngày Kết Thúc" cho từng hàng
-      const ngayKetThucInput = document.getElementById(`NgayKetThuc_${index}`);
-      const ngayKetThucValue = ngayKetThucInput ? ngayKetThucInput.value : '';
-      
-
-      // Lấy giá trị của checkbox "Khoa", "Đào Tạo", và "Tài Chính"
-      const khoaCheckbox = row.querySelector('input[type="checkbox"][name="khoa"]');
-      const daoTaoCheckbox = row.querySelector('input[type="checkbox"][name="daoTao"]');
-      const taiChinhCheckbox = row.querySelector('input[type="checkbox"][name="taiChinh"]');
-
-      // Lấy trạng thái của checkbox "Khoa"
-      let khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false;
-
-      // Lấy trạng thái của checkbox "Đào Tạo"
-      const daoTaoDuyet = daoTaoCheckbox ? daoTaoCheckbox.checked : false;
-
-      // Lấy trạng thái của checkbox "Tài Chính"
-      let taiChinhDuyet = taiChinhCheckbox ? taiChinhCheckbox.checked : false;
-
-      if (isKhoa == 1) {
-        // Cập nhật vào mảng globalData tương ứng với chỉ mục hàng (index)
-
-        globalData[id].GiangVien1 = GiangVien1;
-        globalData[id].GiangVien2 = GiangVien2;
-        //globalData[id].NgayBatDau = ngayBatDauValue;
-        //globalData[id].NgayKetThuc = ngayKetThucValue;
-      }
-
-      globalData[id].KhoaDuyet = khoaDuyet; // Cập nhật Khoa
-
-      globalData[id].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
-
-      globalData[id].TaiChinhDuyet = taiChinhDuyet; // Cập nhật Tài Chính
-
-    });
-
-    // Gửi dữ liệu lên server
-
-    fetch('/updateDoAn', {
-      method: 'POST', // Phương thức POST
-      headers: {
-        'Content-Type': 'application/json' // Định dạng gửi là JSON
-      },
-      body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Lỗi khi gửi dữ liệu');
-        }
-        return response.json(); // Chuyển đổi phản hồi thành JSON
-      })
-      .then(data => {
-        console.log('Dữ liệu phản hồi từ server:', data);
-        alert(data.message);
-      })
-      .catch(error => {
-        console.error('Có lỗi xảy ra:', error);
-        alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
-      });
-
-  }
-  */
 
   // Lấy dữ liệu để lưu
   function getDataToStored() {
@@ -939,14 +1011,10 @@
     const data = JSON.parse(localStorage.getItem("tableData"));
 
     rows.forEach((row, id) => {
-      // Bỏ qua các hàng đang bị ẩn
-      if (row.style.display === 'none') {
-        return;
-      }
       // Lấy giá trị ngày bắt đầu, ngày kết thúc
       
-      const NgayBatDau = document.getElementById(`startDate`);
-      const NgayKetThuc = document.getElementById(`endDate`);
+      const NgayBatDau = document.getElementById(`NgayBatDau-${id}`);
+      const NgayKetThuc = document.getElementById(`NgayKetThuc-${id}`);
 
       // Lấy các giá trị từ các ô nhập Giảng viên
       const GiangVien1 = document.getElementById(`GiangVien1-${id}`);
@@ -974,8 +1042,6 @@
 
         data[id].NgayBatDau = NgayBatDau.value;
         data[id].NgayKetThuc = NgayKetThuc.value;
-        //globalData[id].NgayBatDau = ngayBatDauValue;
-        //globalData[id].NgayKetThuc = ngayKetThucValue;
       }
 
       data[id].KhoaDuyet = khoaDuyet; // Cập nhật Khoa
@@ -1015,11 +1081,14 @@
       return response.json(); // Chuyển đổi phản hồi thành JSON
     })
     .then(data => {
-      console.log('Dữ liệu phản hồi từ server:', data);
+      let thongBao = 'info';
+      if (data.message.toLowerCase() == "cập nhật thành công"){
+        thongBao = 'success';
+      }
       Swal.fire({
         title: 'Thông báo',
         html: data.message,
-        icon: 'success',
+        icon: thongBao,
         confirmButtonText: 'OK',
         width: 'auto', // Tự động điều chỉnh chiều rộng
         padding: '20px', // Giữ khoảng cách cho nội dung
@@ -1068,7 +1137,6 @@
       return response.json(); // Chuyển đổi phản hồi thành JSON
     })
     .then(data => {
-      console.log('Dữ liệu phản hồi từ server:', data);
       Swal.fire({
         title: 'Thông báo',
         html: data.message,
@@ -1119,7 +1187,8 @@
         const duplicateGV = JSON.parse(localStorage.getItem("duplicateGV")) || [];
         const allGV = JSON.parse(localStorage.getItem("allGV")) || [];
 
-        // Kiểm tra giá trị moiGiang
+        // So sánh xem giảng viên có bị trùng không
+        /*
         if (position == '1') {
           suggestions = duplicateGV
           .filter(item => item.HoTenReal == GiangVienDefault)  // Điều kiện lọc
@@ -1129,6 +1198,7 @@
           .filter(item => item.HoTenReal == GiangVienDefault)  // Điều kiện lọc
           .map(item => `${item.HoTen} - ${item.BienChe} - ${item.CCCD}`);
         }
+          */
 
         let isAll = false;
         if (suggestions.length < 1){
@@ -1214,6 +1284,202 @@
 
   </script>
 
+  <script>
+    let currentRow; // Biến toàn cục để lưu hàng hiện tại
+  
+    function openNoteForm(row, GhiChu, Deadline) {
+      currentRow = row; // Lưu hàng hiện tại
+      document.getElementById("noteForm").style.display = "block"; // Hiển thị form
+      document.getElementById("modalBackdrop").style.display = "block"; // Hiển thị nền tối
+  
+      // Hiển thị giá trị ghi chú và hạn
+      document.getElementById("noteInput").value = GhiChu || ""; // Hiển thị ghi chú
+      document.getElementById("deadlineInput").value = formatInputDate(Deadline) || ""; // Hiển thị hạn
+    }
+  
+  
+    function closeNoteForm() {
+      document.getElementById("noteForm").style.display = "none"; // Ẩn form
+      document.getElementById("modalBackdrop").style.display = "none"; // Ẩn nền tối
+    }
+    
+    window.onclick = function (event) {
+      const modal = document.getElementById("noteForm");
+      const modalBackdrop = document.getElementById("modalBackdrop");
+      if (event.target === modalBackdrop) {
+        closeNoteForm();
+      }
+    }
+
+    async function saveNote() {
+      const note = document.getElementById("noteInput").value;
+      const deadline = document.getElementById("deadlineInput").value;
+  
+      if (currentRow) {
+        const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+  
+        // Kiểm tra ID có tồn tại
+        if (id) {
+  
+  
+          // Gửi dữ liệu đến API để lưu vào CSDL
+          try {
+            const response = await fetch('/saveNoteDoAn', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ id, ghiChu: note, deadline }),
+            });
+            const result = await response.json();
+            if (!result.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'info',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
+            } else {
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Lỗi khi gửi yêu cầu đến server: " + error,
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
+          }
+        } else {
+          Swal.fire({
+            title: 'Thông báo',
+            html: "ID của hàng hiện tại không tồn tại",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
+        }
+      } else {
+        Swal.fire({
+          title: 'Thông báo',
+          html: "currentRow không được xác định",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+      }
+  
+      closeNoteForm();
+    }
+    async function doneNote() {
+      const note = document.getElementById("noteInput").value;
+      const deadline = document.getElementById("deadlineInput").value;
+  
+      if (currentRow) {
+        const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+  
+        // Kiểm tra ID có tồn tại
+        if (id) {
+  
+  
+          // Gửi dữ liệu đến API để lưu vào CSDL
+          try {
+            const response = await fetch('/doneNoteDoAn', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ id, ghiChu: note, deadline }),
+            });
+            const result = await response.json();
+            if (!result.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'info',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
+            } else {
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Lỗi khi gửi yêu cầu đến server: " + error,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
+          }
+        } else {
+          Swal.fire({
+            title: 'Thông báo',
+            html: "ID của hàng hiện tại không tồn tại.",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
+        }
+      } else {
+        Swal.fire({
+          title: 'Thông báo',
+          html: "currentRow không được xác định.",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+      }
+  
+      closeNoteForm();
+    }
+  
+  
+    // Hàm để chuyển đổi định dạng ngày
+    function formatInputDate(dateString) {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Lấy tháng (0-11) và đảm bảo có 2 chữ số
+      const day = String(date.getDate()).padStart(2, '0'); // Lấy ngày và đảm bảo có 2 chữ số
+  
+      return `${year}-${month}-${day}`; // Trả về định dạng yyyy-mm-dd cho input
+    }
+  
+  
+  
+    // Sự kiện click ngoài modal để đóng modal
+    window.onclick = function (event) {
+      const modal = document.getElementById("noteForm");
+      const modalBackdrop = document.getElementById("modalBackdrop");
+      if (event.target === modalBackdrop) {
+        closeNoteForm();
+      }
+    }
+  </script>
 
   <!-- link  -->
   <script>
@@ -1295,9 +1561,9 @@
 
     // Phân quyền, nếu không có quyền khoa chỉnh sửa sẽ ẩn ngày all đi
     const dateContainer = document.querySelector(".date-all-container");
-    if (isKhoa == 1 && role != 'GV') {
-      dateContainer.style.display = "flex";
-    }
+      if (isKhoa == 1 && role != 'GV') {
+        dateContainer.style.display = "flex";
+      }
 
     });
   </script>
@@ -1328,7 +1594,14 @@
         // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
         window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
       } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Không tìm thấy TenDangNhap trong localStorage.",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       }
     });
   </script>
@@ -1345,20 +1618,17 @@
           if (response.success) {
 
             response.NamHoc.forEach(function (item) {
-              console.log(item.NamHoc);
               $('#NamHoc').append(
                 `<option value="${item.NamHoc}">${item.NamHoc}</option>`
               );
             });
 
             response.Ki.forEach(function (item) {
-              console.log(item.Ki);
               $('#comboboxki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });
             response.Dot.forEach(function (item) {
-              console.log(item.Dot);
               $('#combobox-dot').append(
                 `<option value="${item.value}">${item.Dot}</option>`
               );
@@ -1384,11 +1654,10 @@
           // Kiểm tra nếu response thành công
           const MaPhongBan = response.MaPhongBan;
           if (response.success) {
-            // $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
+            $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
             // Lặp qua từng mục trong mảng MaPhongBan
             response.MaPhongBan.forEach(function (item) {
               // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-              console.log(item);
               $('#MaPhongBan').append(
                 `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
               );
@@ -1417,7 +1686,14 @@
           // Chuyển hướng đến trang infome và truyền id_User trong URL
           window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Không tìm thấy id_User trong localStorage.",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
       }
     });
   </script>
@@ -1444,7 +1720,14 @@
             // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
             window.location.href = `/changeMessage/${MaPhongBan}`;
         } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Không tìm thấy MaPhongBan trong localStorage.",
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
         }
       });
     </script>

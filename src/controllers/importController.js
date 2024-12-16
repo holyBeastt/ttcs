@@ -553,7 +553,6 @@ const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
   const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
-  // console.log(dataGiangVien);
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (

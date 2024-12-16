@@ -27,4 +27,13 @@ router.post("/updateDoAn", doAnChinhThuc.updateDoAn);
 // Lưu dữ liệu vào table export đồ án tốt nghiệp
 router.post("/saveToExportDoAn", doAnChinhThuc.saveToExportDoAn);
 
+// Chèn ngày all
+router.post("/updateDoAnDateAll", doAnChinhThuc.updateDoAnDateAll);
+
+// Save note
+router.post("/saveNoteDoAn", doAnChinhThuc.SaveNote);
+
+// Done note
+router.post("/doneNoteDoAn", doAnChinhThuc.DoneNote);
+
 module.exports = router;
