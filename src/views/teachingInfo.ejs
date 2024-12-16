@@ -525,6 +525,14 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <script>
     $(document).ready(function () {
       const isKhoa = localStorage.getItem("isKhoa");
@@ -614,7 +622,14 @@
 
         // Kiểm tra nếu người dùng chưa nhập ngày
         if (!globalStartDate || !globalEndDate) {
-          alert('Vui lòng nhập ngày bắt đầu và ngày kết thúc.');
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Vui lòng nhập ngày bắt đầu và ngày kết thúc",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
           return;
         }
 
@@ -688,8 +703,14 @@
           })
           .then(data => {
             // Hiển thị thông báo từ server
-            alert(data.message);
-            console.log(data.message);
+            Swal.fire({
+              title: 'Thông báo',
+              html: data.message,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
 
           })
           .catch(error => {
@@ -802,7 +823,14 @@
             body: JSON.stringify(requestData),
           });
           if (!teachingResponse.ok) {
-            alert('Không tìm thấy dữ liệu');
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Không tìm thấy dữ liệu",
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
             return; // Dừng lại nếu có lỗi
           }
           const rs = await teachingResponse.json();
@@ -1585,8 +1613,14 @@
         })
         .then(data => {
           // Hiển thị thông báo từ server
-          alert(data.message);
-          // console.log(data.message);
+          Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         })
         .catch(error => {
           console.error('Có lỗi xảy ra:', error);
@@ -1663,9 +1697,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);
@@ -1703,9 +1751,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);

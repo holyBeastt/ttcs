@@ -563,9 +563,7 @@
     function formatDateToInput(dateString) {
       if (!dateString) return ''; // Kiểm tra nếu không có giá trị
 
-      console.log("mặc định = ", dateString)
       const utcBatDau = new Date(dateString);
-      console.log(utcBatDau)
       dateString = utcBatDau.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
 
       // Chia tách chuỗi ngày thành các phần: năm, tháng, ngày
@@ -1317,6 +1315,7 @@
   
       if (currentRow) {
         const id = currentRow.getAttribute("data-id"); // Lấy ID từ thuộc tính `data-id` của hàng
+        console.log("id = ", id);
   
         // Kiểm tra ID có tồn tại
         if (id) {
@@ -1643,6 +1642,7 @@
       });
     });
   </script>
+  
   <script>
     $(document).ready(function () {
       $('#MaPhongBan option[value=""]').remove();

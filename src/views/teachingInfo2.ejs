@@ -517,6 +517,14 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <script>
     $(document).ready(function () {
       const isKhoa = localStorage.getItem("isKhoa");
@@ -664,7 +672,14 @@
           ]);
 
         if (!gvmResponse.ok || !khoaResponse.ok || !teachingResponse.ok) {
-          alert("Không tìm thấy dữ liệu!");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Không tìm thấy dữ liệu",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         }
         // đẩy code cho P
         // Lưu dữ liệu giảng viên cùng với mã phòng ban
@@ -965,11 +980,25 @@
         })
         .then((data) => {
           // console.log('Dữ liệu phản hồi từ server:', data);
-          alert(data.message);
+          Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         })
         .catch((error) => {
           console.error("Có lỗi xảy ra:", error);
-          alert("Có lỗi xảy ra khi cập nhật dữ liệu.");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+            icon: 'error',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         });
     }
 
@@ -1009,7 +1038,14 @@
         const data = await response.json();
 
         // Hiển thị thông báo theo message từ server
-        alert(data.message); // Sử dụng message từ server để hiển thị thông báo
+        Swal.fire({
+          title: 'Thông báo',
+          html: data.message,
+          icon: 'success',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
 
       } catch (error) {
         console.error("Error sending signal:", error);
@@ -1292,9 +1328,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);
@@ -1330,9 +1380,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);
