@@ -200,10 +200,11 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import Đồ Án</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export Đồ Án</a>
-                <a class="nav-link active" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
-                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>               
+                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -311,6 +312,11 @@
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
   <script>
     $(document).ready(function () {
@@ -426,8 +432,14 @@
           }
         })
         .catch((error) => {
-          console.error("Error fetching data:", error);
-          alert("Có lỗi xảy ra khi gọi API: " + error.message);
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Có lỗi xảy ra khi gọi API: " + error.message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         });
     });
   </script>
@@ -464,15 +476,36 @@
             // Kiểm tra xem yêu cầu có thành công không
             if (response.ok) {
               const result = await response.json(); // Chuyển đổi phản hồi sang JSON
-              alert(result.message); // Hiển thị thông báo thành công
+              Swal.fire({
+                title: 'Thông báo',
+                html: result.message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
               location.reload();
             } else {
               const errorData = await response.json(); // Lấy thông tin lỗi
-              alert(`Lỗi: ${errorData.message}`); // Hiển thị thông báo lỗi
+              Swal.fire({
+                title: 'Thông báo',
+                html: errorData.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             console.error('Đã xảy ra lỗi:', error);
-            alert('Đã xảy ra lỗi khi gọi API.'); // Hiển thị thông báo lỗi cho người dùng
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Đã xảy ra lỗi khi gọi API",
+              icon: 'error',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
           }
         } else {
           // Nếu người dùng chọn Cancel
@@ -517,13 +550,33 @@
           const result = await response.json();
 
           if (result.success) {
-            alert(result.message || "Ban hành thành công!");
+            Swal.fire({
+              title: 'Thông báo',
+              html: result?.message || "Ban hành thành công!",
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
           } else {
-            alert(result.message || "Ban hành thất bại!");
+            Swal.fire({
+              title: 'Thông báo',
+              html: result?.message || "Ban hành thất bại!",
+              icon: 'error',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
           }
         } catch (error) {
-          console.error("Error:", error);
-          alert("Gửi dữ liệu thất bại! Vui lòng thử lại.");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Gửi dữ liệu thất bại! Vui lòng thử lại.",
+            icon: 'error',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         }
       });
 

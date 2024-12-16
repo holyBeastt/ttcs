@@ -12,10 +12,10 @@ const getDoAnDuKienData = async (req, res) => {
 
     let query, values;
     if (Khoa == "ALL") {
-      query = `select TT, SinhVien, MaSV, TenDeTai, GiangVienDefault, GiangVien1, GiangVien2 from doantotnghiep where Dot = ? AND NamHoc = ?`;
+      query = `select TT, SinhVien, MaSV, TenDeTai, GiangVienDefault, GiangVien1, GiangVien2 from doantotnghiep where Dot = ? AND NamHoc = ? AND DaBanHanh = 0`;
       values = [Dot, Nam];
     } else {
-      query = `select TT, SinhVien, MaSV, TenDeTai, GiangVienDefault, GiangVien1, GiangVien2 from doantotnghiep where MaPhongBan = ? AND Dot = ? AND NamHoc = ?`;
+      query = `select TT, SinhVien, MaSV, TenDeTai, GiangVienDefault, GiangVien1, GiangVien2 from doantotnghiep where MaPhongBan = ? AND Dot = ? AND NamHoc = ? AND DaBanHanh = 0`;
       values = [Khoa, Dot, Nam];
     }
 

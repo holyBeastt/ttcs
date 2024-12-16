@@ -47,7 +47,7 @@ async function extractFileData(req, res) {
       const pdfData = await pdf(dataBuffer);
       content = pdfData.text; // Nội dung PDF dạng text
 
-      tableData = processTextData(content);
+      tableData = processPdfFile(content);
     } else if (fileExtension === ".docx") {
       // Xử lý file Word (DOCX)
       content = await processWordFile(filePath);
@@ -362,7 +362,7 @@ async function processWordFile(filePath) {
 }
 
 // Hàm xử lý dữ liệu từ văn bản
-function processTextData(content) {
+function processPdfFile(content) {
   const lines = content.split("\n");
   const tableData = [];
   let currentRow = {}; // Dòng hiện tại trong bảng
@@ -400,6 +400,7 @@ function processTextData(content) {
           MaSV: "",
           TenDeTai: "",
           GiangVien: [],
+          GiangVienDefault: "",
         };
 
         // Gán tất cả vào SinhVien cho đến khi tìm thấy MaSV
@@ -440,22 +441,44 @@ function processTextData(content) {
           }
         }
       } else if (
-        line.startsWith("1.") ||
-        line.startsWith("2.") ||
-        line.startsWith("TS.")
+        line.toLowerCase().startsWith("1.") ||
+        line.toLowerCase().startsWith("2.") ||
+        line.toLowerCase().startsWith("ks.") ||
+        line.toLowerCase().startsWith("ths.") ||
+        line.toLowerCase().startsWith("ts.") ||
+        line.toLowerCase().startsWith("pgs.")
       ) {
         // Nếu dòng bắt đầu bằng "1.", "2.", hoặc "TS.", đây là thông tin Giảng viên
         // Bỏ phần "1. TS", "2. TS", "TS"
+        currentRow.GiangVienDefault += line + "\n";
+
         line = line.replace(
           /^\d+\.\s*(KS|ThS|TS|PGS\.\s*TS)\.\s*|^(KS|ThS|TS|PGS\.\s*TS)\.\s*/i,
           ""
         );
-        currentRow.GiangVien.push(line);
+        if (!currentRow.GiangVien) {
+          currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
+        }
+
+        TenGiangVien = line; // Nối chuỗi hiện tại vào TenGiangVien
+
+        // Kiểm tra nếu chuỗi có dấu ','
+        if (TenGiangVien.includes(",")) {
+          const Ten = TenGiangVien.split(",")[0].trim(); // Lấy tên trước dấu ',' và xóa khoảng trắng
+
+          currentRow.GiangVien.push(Ten); // Thêm tên đã xử lý vào danh sách
+          TenGiangVien = ""; // Reset TenGiangVien để chuẩn bị xử lý dòng tiếp theo
+        } else {
+          currentRow.GiangVien.push(line.trim()); // Thêm trực tiếp nếu không có dấu ','
+        }
+        //currentRow.GiangVien.push(line);
 
         isGV = true;
       } else if (!isGV) {
         // Nếu không phải giảng viên, dòng này tiếp tục phần Tên đề tài
         currentRow.TenDeTai += " " + line;
+      } else {
+        currentRow.GiangVienDefault += line + "\n";
       }
     }
 
@@ -479,7 +502,56 @@ function processTextData(content) {
     tableData.push(currentRow);
   }
 
-  return tableData;
+  const result = tableData.map((row) => {
+    let [GiangVien1, GiangVien2] = row.GiangVien.join(", ")
+      .split(",")
+      .map((gv) => gv.trim()); // Loại bỏ khoảng trắng đầu cuối
+
+    // So sánh tên giảng viên trong đồ án với tên trong csdl xem đã có chưa
+    // Kiểm tra GiangVien1 có trong uniqueGV không
+    const isGiangVien1InUniqueGV = uniqueGV.some(
+      (giangVien) => giangVien.HoTen.trim() === GiangVien1
+    );
+
+    // Kiểm tra GiangVien2 có trong uniqueGV không
+    let isGiangVien2InUniqueGV;
+    if (GiangVien2 !== undefined) {
+      isGiangVien2InUniqueGV = uniqueGV.some(
+        (giangVien) => giangVien.HoTen.trim() === GiangVien2
+      );
+    }
+    // Tạo 2 biến để lưu giá trị so sánh bên client
+    let gv1Real = GiangVien1;
+    let gv2Real = GiangVien2;
+    if (!isGiangVien1InUniqueGV) {
+      GiangVien1 = null;
+    }
+
+    if (!isGiangVien2InUniqueGV && GiangVien2 != undefined) {
+      GiangVien2 = "";
+    }
+
+    if (GiangVien2 == undefined) {
+      GiangVien2 = "không";
+    }
+
+    return {
+      TT: row.TT,
+      SinhVien: row.SinhVien.trim(),
+      MaSV: row.MaSV.trim(),
+      TenDeTai: row.TenDeTai.trim(),
+      GiangVien1: GiangVien1 || null, // Gán giá trị null nếu không có
+      GiangVien2: GiangVien2,
+      GiangVien: row.GiangVien.join(", ").trim(), // Loại bỏ khoảng trắng đầu cuối trong chuỗi
+      GiangVien1Real: gv1Real,
+      GiangVien2Real: gv2Real,
+      NgayBatDau: null,
+      NgayKetThuc: null,
+      GiangVienDefault: row.GiangVienDefault,
+    };
+  });
+
+  return result;
 }
 // Lưu vào bảng doantotnghiep
 // const saveToDB = async (req, res) => {
@@ -942,10 +1014,82 @@ const getImportDoAn = (req, res) => {
   res.render("vuotGioImportDoAn.ejs");
 };
 
+const checkExistDataFile = async (req, res) => {
+  console.log("Thực hiện kiểm tra dữ liệu trong bảng Tam");
+  const { Khoa, Dot, Nam } = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
+    const queryCheck = `SELECT EXISTS(SELECT 1 FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND NamHoc = ?) AS exist;`;
+
+    // Thực hiện truy vấn
+    const [results] = await connection.query(queryCheck, [Khoa, Dot, Nam]);
+
+    // Kết quả trả về từ cơ sở dữ liệu
+    const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
+
+    if (exist) {
+      return res.status(200).json({
+        message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
+        exists: true,
+      });
+    } else {
+      return res.status(200).json({
+        message: "Dữ liệu không tồn tại trong cơ sở dữ liệu",
+        exists: false,
+      });
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra file import:", err);
+    return res.status(500).json({ error: "Lỗi kiểm tra cơ sở dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
+const deleteDataDoAnExist = async (req, res) => {
+  const tableName = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
+  const { Khoa, Dot, Nam } = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Query SQL để xóa row
+    const sql = `DELETE FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND NamHoc = ?`;
+
+    // Thực hiện truy vấn
+    const [results] = await connection.query(sql, [Khoa, Dot, Nam]);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
+    }
+
+    console.log(
+      "Xóa dữ liệu bảng Tam ( trường hợp khi tại dữ liệu cũ ) thành công"
+    );
+    return res.status(200).json({ message: "Xóa thành công" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getImportDoAn,
   extractFileData,
   saveToDB,
   saveToTableDoantotnghiep,
+  checkExistDataFile,
+  deleteDataDoAnExist,
 };

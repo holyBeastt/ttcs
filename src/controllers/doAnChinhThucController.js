@@ -211,7 +211,6 @@ const updateDoAn = async (req, res) => {
         NgayKetThuc,
       } = item;
 
-      console.log("Khoa duyet = ", KhoaDuyet);
       if (KhoaDuyet == 1) {
         if (!GiangVien1 || GiangVien1.length === 0) {
           return res.status(200).json({
@@ -625,7 +624,7 @@ const getInfoDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const NamHoc = req.body.NamHoc;
   const MaPhongBan = req.body.MaPhongBan;
-  console.log("MaPhongBan = ", Dot, NamHoc, MaPhongBan);
+
   let connection;
   try {
     connection = await createPoolConnection();
@@ -1061,6 +1060,92 @@ const saveToExportDoAn = async (req, res) => {
   }
 };
 
+const updateDoAnDateAll = async (req, res) => {
+  const jsonData = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ createPoolConnection
+    connection = await createPoolConnection();
+
+    // Duyệt qua từng phần tử trong jsonData
+    for (let item of jsonData) {
+      const { ID, NgayBatDau, NgayKetThuc } = item;
+
+      let updateQuery, updateValues;
+
+      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+      updateQuery = `
+      UPDATE doantotnghiep
+      SET 
+        NgayBatDau = ?,
+        NgayKetThuc = ?
+      WHERE ID = ?
+    `;
+
+      updateValues = [
+        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+        ID,
+      ];
+
+      await connection.query(updateQuery, updateValues);
+    }
+
+    res.status(200).json({ message: "Cập nhật thành công" });
+  } catch (error) {
+    console.error("Lỗi cập nhật:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
+const SaveNote = async (req, res) => {
+  let connection = await createPoolConnection();
+  try {
+    const { id, ghiChu, deadline } = req.body;
+    const HoanThanh = false;
+    const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
+
+    const query = `
+        UPDATE doantotnghiep 
+        SET GhiChu = ?, Deadline = ?, HoanThanh = ?
+        WHERE ID = ?
+      `;
+    await connection.query(query, [ghiChu, deadlineValue, HoanThanh, id]);
+    res.json({ success: true, message: "Ghi chú đã được lưu thành công" });
+  } catch (error) {
+    console.error("Lỗi khi lưu dữ liệu vào bảng doantotnghiep:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Lỗi khi lưu ghi chú" });
+  }
+};
+const DoneNote = async (req, res) => {
+  let connection = await createPoolConnection();
+  try {
+    const { id, ghiChu, deadline } = req.body;
+    const HoanThanh = true;
+    const mGhiChu = ghiChu + " Đã sửa";
+    const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
+
+    const query = `
+          UPDATE doantotnghiep 
+          SET GhiChu = ?, Deadline = ?, HoanThanh = ? 
+          WHERE ID = ?
+      `;
+    await connection.query(query, [mGhiChu, deadlineValue, HoanThanh, id]);
+    res.json({ success: true, message: "Ghi chú đã được lưu thành công" });
+  } catch (error) {
+    console.error("Lỗi khi lưu dữ liệu vào bảng doantotnghiep:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Lỗi khi lưu ghi chú" });
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getDoAnChinhThuc,
@@ -1070,4 +1155,7 @@ module.exports = {
   getInfoGiangVien,
   getCheckAllDoantotnghiep,
   saveToExportDoAn,
+  updateDoAnDateAll,
+  SaveNote,
+  DoneNote,
 };

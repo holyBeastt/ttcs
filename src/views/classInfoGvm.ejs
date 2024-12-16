@@ -280,7 +280,11 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -402,6 +406,12 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   <!-- <tbody style="display: none;" class="teacher-group" id="data-table-body"></tbody> -->
 
   <script>
@@ -682,9 +692,23 @@
     // console.log(message)
     // Hiển thị thông báo dựa trên giá trị của message
     if (message === "insertSuccess") {
-      alert("Update Success");
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Cập nhật thành công",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
     } else if (message === "insertFalse") {
-      alert("Update False");
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Cập nhật thất bại",
+        icon: 'error',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
     }
 
     // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh

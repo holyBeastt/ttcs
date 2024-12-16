@@ -341,6 +341,14 @@
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <script>
     $(document).ready(function () {
       const isKhoa = localStorage.getItem("isKhoa");
@@ -428,7 +436,14 @@
 
           // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
           if (!foundMatch) {
-            alert("Không tồn tại mã bộ môn vui lòng sửa lại");
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Không tồn tại mã bộ môn, vui lòng sửa lại",
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
           }
 
         })
@@ -447,9 +462,23 @@
 
     // Hiển thị thông báo dựa trên giá trị của message
     if (message === 'insertSuccess') {
-      alert("insertSuccess")
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Thêm thành công",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
     } else if (message === 'insertFalse') {
-      alert("insertFalse")
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Thêm thất bại",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
     }
     // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
     if (message) {
