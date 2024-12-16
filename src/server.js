@@ -36,6 +36,8 @@ const thongkemgRoute = require("./routes/thongkemgRoute");
 const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
+const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
+
 
 const app = express();
 const port = process.env.port || 8888;
@@ -100,6 +102,8 @@ app.use("/", thongkemgRoute);
 app.use("/", thongkenckhRoute);
 app.use("/", thongkedoanRoute);
 app.use("/", suaHDRoute);
+app.use("/", exportPhuLucDARoute);
+
 
 
 app.listen(port, hostname, () => {
