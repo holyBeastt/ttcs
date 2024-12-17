@@ -176,7 +176,7 @@ const exportPhuLucDA= async (req, res) => {
     let params = [dot,  namHoc];
 
     if (khoa && khoa !== "ALL") {
-      query += `AND gv.MaPhongBan = ?`;
+      query += `AND edt.MaPhongBan = ?`;
       params.push(khoa);
     }
 
