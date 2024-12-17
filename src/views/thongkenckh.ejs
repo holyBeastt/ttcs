@@ -165,7 +165,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -176,7 +184,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -189,8 +202,8 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link active" id="" href="/ThongkeMG">Mời Giảng</a>
                 <a class="nav-link" id="" href="#">Vượt giờ</a>
-                <a class="nav-link" id="" href="#">Đồ Án</a>
-                <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
+                <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
+                <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
               </div>
             </div>
           </div>
@@ -695,5 +708,27 @@
     })
     .catch(error => console.error('Lỗi:', error));
  </script>
+
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const Quyen = localStorage.getItem("userRole");
+    const isKhoa = localStorage.getItem("isKhoa");
+
+    const importDoAn = document.getElementById('importDoAn');
+    if (isKhoa == 0 && Quyen == 'Duyệt'){
+      importDoAn.style.display = 'block';
+    }
+
+    // Ẩn button ngay khi trang được tải
+    const actionButton = document.getElementById('changeMessage');
+    //Ẩn site thêm thông báo
+    if (Quyen === "Duyệt") {
+      actionButton.style.display = '';
+    } else {
+      actionButton.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -229,7 +229,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -241,7 +241,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -252,7 +260,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -291,7 +304,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -438,9 +451,6 @@
 
       </div>
 
-
-
-
       <div id="renderInfo">
         <table class="text-center">
           <thead>
@@ -458,6 +468,7 @@
               <th style="width: 100px;">GV giảng dạy</th>
               <th style="width: 50px;">Khoa</th>
               <th style="width: 100px;">Bộ môn</th>
+              <th style="width: 100px;">Hệ đào tạo</th>
               <th style="width: 50px;">Số tiết LL</th>
               <th style="width: 50px;">Số tiết QC</th>
               <th style="width: 50px;">Ngày bắt đầu</th>
@@ -515,6 +526,14 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <script>
     $(document).ready(function () {
       const isKhoa = localStorage.getItem("isKhoa");
@@ -538,6 +557,11 @@
         const actionButton1 = document.getElementById('actionButton1');
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
+
+        const importDoAn = document.getElementById('importDoAn');
+        if (isKhoa == 0 && Quyen == 'Duyệt'){
+          importDoAn.style.display = 'block';
+        }
 
         if (actionButton1 && actionButton2) {
           if (isKhoa === "0") {
@@ -604,7 +628,14 @@
 
         // Kiểm tra nếu người dùng chưa nhập ngày
         if (!globalStartDate || !globalEndDate) {
-          alert('Vui lòng nhập ngày bắt đầu và ngày kết thúc.');
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Vui lòng nhập ngày bắt đầu và ngày kết thúc",
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
           return;
         }
 
@@ -678,8 +709,14 @@
           })
           .then(data => {
             // Hiển thị thông báo từ server
-            alert(data.message);
-            console.log(data.message);
+            Swal.fire({
+              title: 'Thông báo',
+              html: data.message,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
 
           })
           .catch(error => {
@@ -792,7 +829,14 @@
             body: JSON.stringify(requestData),
           });
           if (!teachingResponse.ok) {
-            alert('Không tìm thấy dữ liệu');
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Không tìm thấy dữ liệu",
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
             return; // Dừng lại nếu có lỗi
           }
           const rs = await teachingResponse.json();
@@ -904,6 +948,39 @@
             showSuggestionsBoMon(boMonInput);
           };
 
+          //Thẻ select hình thức thi giữa kỳ
+          let heDaoTaoTd;
+          let heDaoTaoSelect;
+          heDaoTaoTd = document.createElement('td');
+          heDaoTaoSelect = document.createElement('select');
+          heDaoTaoSelect.name = 'heDaoTao';
+
+          // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+          const options = [
+            { value: 'Mật mã', text: 'Mật mã' },
+            { value: 'Đóng học phí', text: 'Đóng học phí' },
+          ];
+
+          // Thêm các tùy chọn vào select
+          options.forEach(optionData => {
+            const option = document.createElement('option');
+            option.value = optionData.value;
+            option.textContent = optionData.text;
+            if (row.HeDaoTao === optionData.value) {
+              option.selected = true;
+            }
+            heDaoTaoSelect.appendChild(option);
+          });
+          // Thêm style trực tiếp
+          heDaoTaoSelect.style.setProperty('background-color', 'white', 'important');
+          heDaoTaoSelect.style.setProperty('color', 'black', 'important');
+          heDaoTaoSelect.style.padding = '5px';
+
+          heDaoTaoTd.appendChild(heDaoTaoSelect);
+          // Thêm id để lấy dữ liệu 
+          heDaoTaoSelect.id = `heDaoTao-${row.ID}`;
+          tableRow.appendChild(heDaoTaoTd);
+
 
           const soTietLLTd = document.createElement('td');
           soTietLLTd.textContent = row.LL || '';
@@ -998,6 +1075,7 @@
             inviteCheckbox.disabled = true
             giaoVienGiangDayInput.disabled = true;
             boMonInput.disabled = true;
+            heDaoTaoSelect.disabled = true;
             ngayBatDauInput.disabled = true;
             // Ngăn người dùng thay đổi trạng thái ngày kết thúc
             ngayKetThucInput.disabled = true;
@@ -1012,6 +1090,7 @@
 
               giaoVienGiangDayInput.disabled = true;
               boMonInput.disabled = true;
+              heDaoTaoSelect.disabled = true;
               ngayBatDauInput.disabled = true;
               // Ngăn người dùng thay đổi trạng thái ngày kết thúc
               ngayKetThucInput.disabled = true;
@@ -1237,8 +1316,8 @@
         }
 
         // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-        const LLCell = row.querySelector('td:nth-child(8)'); // Lấy ô của cột LL
-        const QuyChuanCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột QuyChuan
+        const LLCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột LL
+        const QuyChuanCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột QuyChuan
 
         // Chuyển đổi giá trị của các ô thành số và cộng dồn
         const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0
@@ -1383,12 +1462,14 @@
         // Lấy các giá trị từ các ô nhập và checkbox
         const giaoVienGiangDayInput = row.querySelector('input[type="text"][placeholder="Nhập tên giảng viên"]');
         const boMonInput = row.querySelector('input[type="text"][placeholder="Nhập tên bộ môn"]');
+        const heDaoTaoSelect= row.querySelector('select[name="heDaoTao"]');
         const moiGiangCheckbox = row.querySelector('input[type="checkbox"][name="moigiang"]');
         const khoaCheckbox = row.querySelector('input[type="checkbox"][name="khoa"]');
 
         // Lấy giá trị từ các ô nhập liệu
         const giaoVienGiangDay = giaoVienGiangDayInput ? giaoVienGiangDayInput.value : '';
         const boMon = boMonInput ? boMonInput.value : '';
+        const heDaoTao = heDaoTaoSelect ? heDaoTaoSelect.value : '';
 
         // Lấy trạng thái của checkbox "Khoa" và "Đào Tạo"
         const khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false;
@@ -1419,6 +1500,7 @@
         globalData[index].KhoaDuyet = khoaDuyet;
         globalData[index].MoiGiang = moiGiang;
         globalData[index].BoMon = boMon;
+        globalData[index].HeDaoTao = heDaoTao;
       });
 
       // In kết quả ra console để kiểm tra dữ liệu đã được cập nhật vào globalData
@@ -1537,8 +1619,14 @@
         })
         .then(data => {
           // Hiển thị thông báo từ server
-          alert(data.message);
-          // console.log(data.message);
+          Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         })
         .catch(error => {
           console.error('Có lỗi xảy ra:', error);
@@ -1615,9 +1703,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);
@@ -1655,9 +1757,23 @@
             });
             const result = await response.json();
             if (!result.success) {
-              alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             } else {
-              alert("Cập nhật thành công");
+              Swal.fire({
+                title: 'Thông báo',
+                html: "Cập nhật thành công",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              });
             }
           } catch (error) {
             alert("Lỗi khi gửi yêu cầu đến server: " + error);
@@ -1850,33 +1966,33 @@
     });
   </script>
 
-<script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
   <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      const Quyen = localStorage.getItem("userRole");
 
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (Quyen === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+</body>
 
 </html>

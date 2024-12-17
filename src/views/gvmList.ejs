@@ -82,11 +82,11 @@
       if (isKhoa == 0 || role.toLowerCase() == 'gv') {
         createGvm.style.display = "none"; // Ẩn button
         const editButtons = document.querySelectorAll('.action-button.edit');
-        editButtons.forEach(button => button.style.visibility  = 'hidden');
+        editButtons.forEach(button => button.style.visibility = 'hidden');
       }
 
       if (isKhoa == 1) {
-        if (role.toLowerCase() == 'gv'){
+        if (role.toLowerCase() == 'gv') {
           filterByDepartment.style.visibility = "hidden";
         } else {
           filterByDepartment.style.display = "none";
@@ -177,7 +177,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -189,7 +189,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -200,7 +208,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -237,9 +250,9 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -260,7 +273,8 @@
             </button>
             <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
             <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon"
-              onkeyup="searchBoMon(); showSuggestionsBoMon(this);" onchange="searchBoMon();" onclick="showSuggestionsBoMon(this)" />
+              onkeyup="searchBoMon(); showSuggestionsBoMon(this);" onchange="searchBoMon();"
+              onclick="showSuggestionsBoMon(this)" />
             <select id="filterByDepartment" class="filter">
               <option value="all">Tất cả</option>
               <% phongBanList.forEach(function(phongBan) { %>
@@ -362,6 +376,14 @@
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -373,6 +395,12 @@
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
 
+        const importDoAn = document.getElementById('importDoAn');
+
+        if (isKhoa == 0 && Quyen == 'Duyệt'){
+          importDoAn.style.display = 'block';
+        }
+
         if (isKhoa == 0) {
           actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
           actionButton2.style.display = 'inline-block'; // Hiện actionButton2
@@ -381,7 +409,7 @@
           actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
           actionButton2.style.display = 'none'; // Ẩn actionButton2
 
-          if (Quyen.toLowerCase() == 'gv'){
+          if (Quyen.toLowerCase() == 'gv') {
             actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
           }
         }
@@ -472,19 +500,40 @@
       const messageDiv = document.getElementById("message");
 
       // Hiển thị thông báo dựa trên giá trị của message
-      
+
       if (message === "insertSuccess") {
-        alert("Thành công!");
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Thành công",
+          icon: 'success',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       } else if (message === "duplicateCCCD") {
-        alert("Số CCCD đã tồn tại. Vui lòng kiểm tra lại số CCCD.");
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Số CCCD đã tồn tại. Vui lòng kiểm tra lại số CCCD.",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       } else if (message === "insertFalse") {
-        alert("Đã xảy ra lỗi trong quá trình thêm giảng viên.");
-      } else if (message == null){
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Đã xảy ra lỗi trong quá trình thêm giảng viên.",
+          icon: 'error',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+      } else if (message == null) {
         // alert(message);
       } else {
         alert(message);
       }
-      
+
 
       // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
       if (message) {
@@ -593,7 +642,6 @@
     <script>
       document.addEventListener('DOMContentLoaded', async function () {
         const MaPhongBan = localStorage.getItem("MaPhongBan");
-        // alert(MaPhongBan);
 
         try {
           const response = await fetch('/bo-mon', {
@@ -619,85 +667,85 @@
 
       // Hàm gợi ý bộ môn ở ô nhập 
       function showSuggestionsBoMon(input) {
-  const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-  hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
+        const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+        hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
 
-  // Tạo thẻ div chứa gợi ý
-  const suggestionsContainer = document.createElement('div');
-  suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
+        // Tạo thẻ div chứa gợi ý
+        const suggestionsContainer = document.createElement('div');
+        suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
 
-  // Đặt vị trí cho suggestionsContainer
-  const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-  suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-  suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-  suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-  suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-  suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-  suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-  suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
+        // Đặt vị trí cho suggestionsContainer
+        const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
+        suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
+        suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
+        suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
+        suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
+        suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
+        suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
+        suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
 
-  // Thêm suggestionsContainer vào DOM
-  document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
+        // Thêm suggestionsContainer vào DOM
+        document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
 
-  let suggestions = []; // Khởi tạo mảng gợi ý
+        let suggestions = []; // Khởi tạo mảng gợi ý
 
-  // Lấy dữ liệu từ localStorage
-  const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
-  console.log(boMon)
+        // Lấy dữ liệu từ localStorage
+        const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
+        console.log(boMon)
 
-  suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
+        suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
 
-  // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-  if (value) {
-    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-  }
+        // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
+        if (value) {
+          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+        }
 
-  // Nếu không có gợi ý, ẩn container
-  if (suggestions.length === 0) {
-    suggestionsContainer.remove();
-    return; // Kết thúc hàm nếu không có gợi ý
-  }
+        // Nếu không có gợi ý, ẩn container
+        if (suggestions.length === 0) {
+          suggestionsContainer.remove();
+          return; // Kết thúc hàm nếu không có gợi ý
+        }
 
-  // Tạo gợi ý dưới dạng danh sách (list)
-  suggestions.forEach(name => {
-    const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-    suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-    suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
+        // Tạo gợi ý dưới dạng danh sách (list)
+        suggestions.forEach(name => {
+          const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
+          suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
+          suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
 
-    // Thêm sự kiện click để điền tên vào ô input
-    suggestionItem.onclick = function () {
-      const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
+          // Thêm sự kiện click để điền tên vào ô input
+          suggestionItem.onclick = function () {
+            const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
 
-      // Tìm vị trí của dấu "-" trong chuỗi
-      const dashIndex = name.indexOf("-");
+            // Tìm vị trí của dấu "-" trong chuỗi
+            const dashIndex = name.indexOf("-");
 
-      // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-      let processedName = name;
+            // Nếu không có dấu "-", sử dụng tên gợi ý gốc
+            let processedName = name;
 
-      if (dashIndex !== -1) {
-        // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-        processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
+            if (dashIndex !== -1) {
+              // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
+              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
+            }
+
+            // Điền tên gợi ý đã xử lý vào ô input
+            input.value = processedName;
+
+            // Gọi hàm tìm kiếm ngay sau khi chọn gợi ý
+            filterTable(); // Gọi hàm lọc bảng
+
+            hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
+          };
+
+          suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
+        });
+
+        // Ẩn gợi ý khi input không còn focus
+        input.onblur = function () {
+          setTimeout(() => {
+            hideSuggestionsBoMon();
+          }, 100); // Thời gian chờ để nhận diện click
+        };
       }
-
-      // Điền tên gợi ý đã xử lý vào ô input
-      input.value = processedName;
-
-      // Gọi hàm tìm kiếm ngay sau khi chọn gợi ý
-      filterTable(); // Gọi hàm lọc bảng
-
-      hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
-    };
-
-    suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-  });
-
-  // Ẩn gợi ý khi input không còn focus
-  input.onblur = function () {
-    setTimeout(() => {
-      hideSuggestionsBoMon();
-    }, 100); // Thời gian chờ để nhận diện click
-  };
-}
       // Hàm ẩn gợi ý
       function hideSuggestionsBoMon() {
         const existingSuggestions = document.querySelectorAll('.suggestions');
@@ -731,19 +779,19 @@
 
     </script>
     <script>
-      document.getElementById("infome").addEventListener("click", function(event) {
+      document.getElementById("infome").addEventListener("click", function (event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
         const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
         if (id_User) {
-            // Chuyển hướng đến trang infome và truyền id_User trong URL
-            window.location.href = `/infome/${id_User}`;
+          // Chuyển hướng đến trang infome và truyền id_User trong URL
+          window.location.href = `/infome/${id_User}`;
         } else {
-            alert("Không tìm thấy id_User trong localStorage.");
+          alert("Không tìm thấy id_User trong localStorage.");
         }
       });
     </script>
 
-<script>
+    <script>
       document.addEventListener("DOMContentLoaded", () => {
         const Quyen = localStorage.getItem("userRole");
 
@@ -757,19 +805,19 @@
         }
       });
     </script>
-  <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
+    <script>
+      document.getElementById("changeMessage").addEventListener("click", function (event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
         const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
         if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
+          // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+          window.location.href = `/changeMessage/${MaPhongBan}`;
         } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
+          alert("Không tìm thấy MaPhongBan trong localStorage.");
         }
       });
     </script>
-  </body>
+</body>
 
 </html>

@@ -313,7 +313,6 @@ const updateQCGvm = async (req, res) => {
           ID,
         ];
       } else {
-        console.log("tep");
         // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
         updateQuery = `
       UPDATE ${tableName}

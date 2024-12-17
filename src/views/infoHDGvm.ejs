@@ -145,7 +145,7 @@
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -157,7 +157,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -168,7 +176,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -207,7 +220,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -233,10 +246,10 @@
               <option value="">Kỳ</option>
             </select>
 
-            <select class="form-select w-100px mx-2 selectop" id="NamHoc">
+            <select class="form-select mx-2 selectop" style="width: max-content;" id="NamHoc">
               <option value="">Năm học</option>
             </select>
-            <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
+            <select class="form-select mx-1 selectop" style="width: max-content;" id="MaPhongBan">
               <option value="">Chọn khoa</option>
             </select>
 
@@ -291,6 +304,7 @@
         function hideButton() {
           const isKhoa = localStorage.getItem("isKhoa");
           const Quyen = localStorage.getItem("userRole");
+
           if (isKhoa === null) {
             console.log('Không tìm thấy giá trị isKhoa trong localStorage');
           } else {
@@ -301,6 +315,11 @@
             const actionButton2 = document.getElementById('actionButton2');
             const actionButton3 = document.getElementById('actionButton3');
 
+            const importDoAn = document.getElementById('importDoAn');
+            if (isKhoa == 0 && Quyen == 'Duyệt'){
+              importDoAn.style.display = 'block';
+            }
+
             if (actionButton1 && actionButton2) {
               if (isKhoa === "0") {
                 actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
@@ -308,7 +327,7 @@
               } else {
                 actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
                 actionButton2.style.display = 'none'; // Ẩn actionButton2
-                if (Quyen.toLowerCase() == 'gv'){
+                if (Quyen.toLowerCase() == 'gv') {
                   actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
                 }
               }
@@ -715,33 +734,33 @@
           }
         });
       </script>
-<script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const Quyen = localStorage.getItem("userRole");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
-  <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+          // Ẩn button ngay khi trang được tải
+          const actionButton = document.getElementById('changeMessage');
+          //Ẩn site thêm thông báo
+          if (Quyen === "Duyệt") {
+            actionButton.style.display = '';
+          } else {
+            actionButton.style.display = 'none';
+          }
+        });
+      </script>
+      <script>
+        document.getElementById("changeMessage").addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-        if (MaPhongBan) {
+          if (MaPhongBan) {
             // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
             window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
+          } else {
             alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
+          }
+        });
+      </script>
+</body>
 
 </html>

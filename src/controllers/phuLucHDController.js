@@ -336,7 +336,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         ]);
     
         // Cập nhật các tổng cộng
-        totalSoTiet += item.SoTiet;
+        totalSoTiet += parseFloat(item.SoTiet);
         totalSoTien += soTien;
         totalTruThue += truThue;
         totalThucNhan += conLai;

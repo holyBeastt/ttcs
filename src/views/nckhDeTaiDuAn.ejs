@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/detaiduan.css">
   <link rel="stylesheet" href="/css/nckh.css">
 
 </head>
@@ -109,7 +108,15 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
               </div>
             </div>
           </div>
@@ -120,7 +127,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -209,21 +221,22 @@
       <div class="form-group flex-container">
         <div class="flex-item">
           <label for="chuNhiem">
-            Chủ nhiệm 
+            Chủ nhiệm
             <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox">
+            <span class="faded-text">(tích vào ô nếu là giảng viên ngoài học viện)</span>
+
           </label>
           <div id="chuNhiem-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
           <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required>
         </div>
-        <div class="flex-item">
-          <!-- Combobox thêm vào -->
+        <div class="flex-item combo-box-wrapper">
           <label for="chuNhiemComboBox">Đơn vị</label>
-          <select id="chuNhiemComboBox" name="chuNhiemComboBox">
-            <option value="KMA" selected>KMA</option>
-            <!-- <option value="KMP">KMP</option> -->
-          </select>
+          <span class="faded-text">(nhập tên đơn vị nếu là giảng viên ngoài học viện)</span>
+          <input type="text" id="chuNhiemComboBox" name="chuNhiemComboBox" class="combo-box" placeholder="Nhập đơn vị"
+            required>
         </div>
       </div>
+
 
 
       <!-- Thư ký -->
@@ -234,18 +247,14 @@
             <input type="checkbox" id="thuKyCheckbox" name="thuKyCheckbox">
           </label>
           <div id="thuKy-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký">
+          <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký" required>
         </div>
-        <div class="flex-item">
-          <!-- Combobox thêm vào -->
+        <div class="flex-item combo-box-wrapper">
           <label for="thuKyComboBox">Đơn vị</label>
-          <select id="thuKyComboBox" name="thuKyComboBox">
-            <option value="KMA" selected>KMA</option>
-            <!-- <option value="KMP">KMP</option> -->
-          </select>
+          <input type="text" id="thuKyComboBox" name="thuKyComboBox" class="combo-box" placeholder="Nhập đơn vị"
+            required>
         </div>
       </div>
-
 
       <!-- Thành viên -->
       <div class="form-group flex-container">
@@ -255,15 +264,13 @@
             <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox">
           </label>
           <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field">
+          <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field"
+            required>
         </div>
-        <div class="flex-item">
-          <!-- Combobox cho đơn vị -->
+        <div class="flex-item combo-box-wrapper">
           <label for="thanhVienComboBox">Đơn vị</label>
-          <select id="thanhVienComboBox" name="thanhVienComboBox">
-            <option value="KMA" selected>KMA</option>
-            <!-- <option value="KMP">KMP</option> -->
-          </select>
+          <input type="text" id="thanhVienComboBox" name="thanhVienComboBox" class="combo-box" placeholder="Nhập đơn vị"
+            required>
         </div>
       </div>
 
@@ -419,6 +426,56 @@
     var giangVienCoHuu = []
 
 
+    // check thì mới cho nhập đơn vị
+    document.addEventListener('DOMContentLoaded', function () {
+      // Lấy các checkbox và ô nhập đơn vị
+      const chuNhiemCheckbox = document.getElementById('chuNhiemCheckbox');
+      const thuKyCheckbox = document.getElementById('thuKyCheckbox');
+      const thanhVienCheckbox = document.getElementById('thanhVienCheckbox');
+
+      const chuNhiemComboBox = document.getElementById('chuNhiemComboBox');
+      const thuKyComboBox = document.getElementById('thuKyComboBox');
+      const thanhVienComboBox = document.getElementById('thanhVienComboBox');
+
+      // Hàm disable hoặc enable ô nhập đơn vị
+      function toggleComboBoxDisabled() {
+        // Chủ nhiệm
+        if (chuNhiemCheckbox.checked) {
+          chuNhiemComboBox.disabled = false;
+        } else {
+          chuNhiemComboBox.disabled = true;
+          chuNhiemComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
+        }
+
+        // Thư ký
+        if (thuKyCheckbox.checked) {
+          thuKyComboBox.disabled = false;
+        } else {
+          thuKyComboBox.disabled = true;
+          thuKyComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
+        }
+
+        // Thành viên
+        if (thanhVienCheckbox.checked) {
+          thanhVienComboBox.disabled = false;
+        } else {
+          thanhVienComboBox.disabled = true;
+          thanhVienComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
+        }
+      }
+
+      // Disable các ô nhập đơn vị khi tải trang
+      toggleComboBoxDisabled();
+
+      // Thêm sự kiện thay đổi (change) cho các checkbox
+      chuNhiemCheckbox.addEventListener('change', toggleComboBoxDisabled);
+      thuKyCheckbox.addEventListener('change', toggleComboBoxDisabled);
+      thanhVienCheckbox.addEventListener('change', toggleComboBoxDisabled);
+    });
+
+    // =================================================================
+
+
     // check thì tắt gợi ý
     document.addEventListener('DOMContentLoaded', function () {
       // Lấy các phần tử
@@ -499,7 +556,7 @@
               suggestionItem.addEventListener("click", () => {
                 // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
                 const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                inputElement.value = `${item.HoTen} - ${unit}`; // Điền giá trị vào ô input
+                inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
                 suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
                 isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
                 if (inputId == "thanhVien") {
@@ -639,6 +696,7 @@
           document.getElementById("formData").reset();
           document.getElementById("memberListDisplay").innerHTML = "";
           members = [];
+          location.reload();
         })
         .catch((error) => {
           console.error("Lỗi:", error);
@@ -866,6 +924,11 @@
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
 
+      const importDoAn = document.getElementById('importDoAn');
+      if (isKhoa == 0 && Quyen == 'Duyệt'){
+        importDoAn.style.display = 'block';
+      }
+      
       if (isKhoa == 0) {
         actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
         actionButton2.style.display = 'inline-block'; // Hiện actionButton2

@@ -306,7 +306,16 @@
                     Nghiên Cứu Khoa Học
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
+                    <!-- <a class="nav-link" id="" href="#">COMING SOON</a>               -->
+                    <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                    <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
+                    <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
+                    <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
+                    <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
+                    <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
+                    <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                    <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
+                  </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -316,7 +325,14 @@
                     Đồ Án
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="nav-link" id="" href="#">COMING SOON</a>              </div>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                      <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                      <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                      <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                      <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                      <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                      <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
+                    </div>            </div>
                 </div>
               </div>
               <div class="navbar-nav">
@@ -402,7 +418,10 @@
                       </label>
 
                       <label>
-                        <input class="input" type="text" name="LoaiHinhDaoTao" id="LoaiHinhDaoTao" required>
+                        <select class="input" name="HeDaoTao" id="HeDaoTao">
+                          <option value="Mật mã">Mật mã</option>
+                          <option value="Đóng học phí">Đóng học phí</option>
+                        </select>
                         <span>Loại hình đào tạo</span>
                       </label>
                       
@@ -474,8 +493,10 @@
                     <th style="width: 50px;">Kì học</th>
                     <th style="width: 200px;">GV giảng dạy</th>
                     <th style="width: 50px;">Mã lớp</th>
+                    <th style="width: 100px;">Hệ đào tạo</th>
                     <th style="width: 100px;">Số SV</th>
                     <th style="width: 50px;">Số tiết TKB</th>
+                    <th style="width: 50px;">Số tiết QC</th>
                     <th style="width: 50px;">Hình thức thi giữa kỳ</th>
                     <th style="width: 100px;">Hệ số T7CN</th>
                     <th style="width: 50px;">Số tiết KT</th>
@@ -491,9 +512,10 @@
               </table>
             </div>
             <!-- Label tổng số tiết tách riêng với bảng -->
-            <div class="total-label">
+            <div class="total-label d-flex">
               <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-              <label class="flex"><span class="align-content-around">Tổng số tiết Quy Chuẩn: </span><span class="value" id="totalSoTietKT">0</span></label>
+              <label class="flex"><span class="align-content-around text-nowrap">Tổng số tiết Quy Chuẩn: </span><span class="value" id="totalSoTietQC">0</span></label>
+              <label class="flex"><span class="align-content-around">Tổng số tiết Kiểm Tra: </span><span class="value" id="totalSoTietKT">0</span></label>
             </div>
           </div>
         </div>
@@ -517,6 +539,12 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const isKhoa = localStorage.getItem("isKhoa");
+      const Quyen = localStorage.getItem("userRole");
+
+      const importDoAn = document.getElementById('importDoAn');
+      if (isKhoa == 0 && Quyen == 'Duyệt'){
+        importDoAn.style.display = 'block';
+      }
 
       // Ẩn button ngay khi trang được tải
       const actionButton = document.getElementById('actionButton');
@@ -542,7 +570,6 @@
       }
 
       //Ẩn site duyệt
-      const Quyen = localStorage.getItem("userRole");
       if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
         actionButton3.style.display = '';
       } else {
@@ -643,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const NamHoc = document.getElementById('NamHoc1').value;
     const HinhThucKTGiuaKy = document.getElementById('HinhThucKTGiuaKy').value;
     const Lop = document.getElementById('Lop').value;
+    const HeDaoTao = document.getElementById('HeDaoTao').value;
     const response = await fetch(`/addclass/${MaPhongBan}`, {
           method: 'POST',
           body: JSON.stringify({
@@ -656,7 +684,8 @@ document.addEventListener('DOMContentLoaded', function () {
               NamHoc,  
               HinhThucKTGiuaKy,  
               Lop,
-              GiangVien
+              GiangVien,
+              HeDaoTao
           }),
           headers: {
               'Content-Type': 'application/json'
@@ -830,6 +859,35 @@ document.addEventListener('DOMContentLoaded', function () {
       maLopInput.id = `maLopInput_${index}`;
       tableRow.appendChild(maLopTd);
 
+      //Thẻ select hình thức thi giữa kỳ
+      let heDaoTaoTd;
+      let heDaoTaoSelect;
+      heDaoTaoTd = document.createElement('td');
+      heDaoTaoSelect = document.createElement('select');
+      heDaoTaoSelect.name = 'heDaoTao';
+
+      // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+      const option = [
+        { value: 'Mật mã', text: 'Mật mã' },
+        { value: 'Đóng học phí', text: 'Đóng học phí' },
+      ];
+
+      // Thêm các tùy chọn vào select
+      option.forEach(optionData => {
+        const option = document.createElement('option');
+        option.value = optionData.value;
+        option.textContent = optionData.text;
+        if (row.HeDaoTao === optionData.value) {
+          option.selected = true;
+        }
+        heDaoTaoSelect.appendChild(option);
+      });
+
+      heDaoTaoTd.appendChild(heDaoTaoSelect);
+      // Thêm id để lấy dữ liệu 
+      heDaoTaoSelect.id = `heDaoTao_${index}`;
+      tableRow.appendChild(heDaoTaoTd);
+
       // Số sinh viên
       const soSVTd = document.createElement('td');
       const soSVInput = document.createElement('input');
@@ -853,6 +911,18 @@ document.addEventListener('DOMContentLoaded', function () {
       soTietTKBTd.appendChild(soTietTKBInput);
       soTietTKBInput.id = `soTietTKBInput_${index}`;
       tableRow.appendChild(soTietTKBTd);
+
+      // Số tiết Quy Chuẩn
+      const soTietQCTd = document.createElement('td');
+      const soTietQCInput = document.createElement('input');
+      soTietQCInput.type = 'text'; // Loại input là text
+      soTietQCInput.value = row.QuyChuan; // Gán giá trị ban đầu
+      soTietQCInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+      soTietQCInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+      // Gắn input vào ô td
+      soTietQCTd.appendChild(soTietQCInput);
+      soTietQCInput.id = `soTietQCInput_${index}`;
+      tableRow.appendChild(soTietQCTd);
 
 
       //Thẻ select hình thức thi giữa kỳ
@@ -1023,11 +1093,17 @@ document.addEventListener('DOMContentLoaded', function () {
       const soTietTKBInput = document.getElementById(`soTietTKBInput_${index}`);
       const soTietTKB = soTietTKBInput ? soTietTKBInput.value : '';
 
+      const soTietQCInput = document.getElementById(`soTietQCInput_${index}`);
+      const soTietQC = soTietQCInput ? soTietQCInput.value : '';
+
       const hinhThucKTGiuaKyInput = document.getElementById(`hinhThucKTGiuaKy_${index}`);
       const hinhThucKTGiuaKy = hinhThucKTGiuaKyInput ? hinhThucKTGiuaKyInput.value : '';
 
       const heSoT7CNInput = document.getElementById(`heSoT7CN_${index}`);
       const heSoT7CN = heSoT7CNInput ? heSoT7CNInput.value : '';
+
+      const heDaoTaoInput = document.getElementById(`heDaoTao_${index}`);
+      const heDaoTao = heDaoTaoInput ? heDaoTaoInput.value : '';
 
 
       console.log(hinhThucKTGiuaKy);
@@ -1041,8 +1117,10 @@ document.addEventListener('DOMContentLoaded', function () {
         maLop,
         soSV,
         soTietTKB,
+        soTietQC,
         hinhThucKTGiuaKy,
         heSoT7CN,
+        heDaoTao,
         MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
       });
       console.log(globalData);
@@ -1235,6 +1313,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // tổng quy chuẩn
   function calculateTotalSoTietKT() {
   let totalSoTietKT = 0;
+  let totalSoTietQC = 0;
 
   // Lấy tất cả các hàng dữ liệu trong bảng
   const rows = document.querySelectorAll('#tableBody tr');
@@ -1248,12 +1327,23 @@ document.addEventListener('DOMContentLoaded', function () {
         totalSoTietKT += soTietKTValue;
       }
     }
+    const soTietQCTd = row.querySelector('td:nth-last-child(6) input'); // Lấy ô cột số tiết quy chuẩn (vị trí trước 2 ô cuối)
+    if (soTietQCTd) {
+      const soTietQCValue = parseFloat(soTietQCTd.value.trim());
+      if (!isNaN(soTietQCValue)) {
+        totalSoTietQC += soTietQCValue;
+      }
+    }
   });
 
   // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalSoTietKT`
   const totalSoTietKTElement = document.getElementById('totalSoTietKT');
   if (totalSoTietKTElement) {
     totalSoTietKTElement.textContent = totalSoTietKT.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const totalSoTietQCElement = document.getElementById('totalSoTietQC');
+  if (totalSoTietQCElement) {
+    totalSoTietQCElement.textContent = totalSoTietQC.toFixed(2); // Định dạng 2 chữ số thập phân
   }
 }
 </script>

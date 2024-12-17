@@ -175,7 +175,8 @@
                 <li class="nav-item"></li>
                 <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
-                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+                <a class="nav-link" href="/exportHD">Hợp Đồng</a>
+                <a class="nav-link" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
 
               </div>
             </div>
@@ -203,13 +204,14 @@
                 Nghiên Cứu Khoa Học
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/detaiduan">Đề tài, Dự án</a>
-                <a class="nav-link" id="" href="/baibaokhoahoc">Bài báo khoa học</a>
+                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
+                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
                 <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
                 <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
                 <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
                 <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
                 <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
 
 
               </div>
@@ -222,9 +224,11 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import Đồ Án</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export Đồ Án</a>
-
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -360,6 +364,11 @@
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
 
+      const importDoAn = document.getElementById('importDoAn');
+      if (isKhoa == 0 && Quyen == 'Duyệt'){
+        importDoAn.style.display = 'block';
+      }
+      
       if (isKhoa == 0) {
         actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
         actionButton2.style.display = 'inline-block'; // Hiện actionButton2
@@ -385,31 +394,31 @@
   <script>
     async function loadMessage() {
 
-    try {
-      const response = await fetch(`/getMessage`, {
-        method: 'GET', // Gửi yêu cầu GET
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-      const data = await response.json(); // Lấy dữ liệu từ server
-      console.log(data);
-      if (data.success) {
-        if (data.Message && data.Message.length > 0) {
-          console.log('Dữ liệu thông báo:', data);
-          showNotifications(data);
+      try {
+        const response = await fetch(`/getMessage`, {
+          method: 'GET', // Gửi yêu cầu GET
+        });
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
-      } else {
-        alert("Không tìm thấy dữ liệu!");
+        const data = await response.json(); // Lấy dữ liệu từ server
+        console.log(data);
+        if (data.success) {
+          if (data.Message && data.Message.length > 0) {
+            console.log('Dữ liệu thông báo:', data);
+            showNotifications(data);
+          }
+        } else {
+          alert("Không tìm thấy dữ liệu!");
+        }
+      } catch (error) {
+        console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
       }
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
     }
-  }
-</script>
-<script>
-  function showNotifications(messages) {
-  const container = document.getElementById("notifications-container");
+  </script>
+  <script>
+    function showNotifications(messages) {
+      const container = document.getElementById("notifications-container");
 
       // Xóa nội dung cũ (nếu có)
       container.innerHTML = "";
