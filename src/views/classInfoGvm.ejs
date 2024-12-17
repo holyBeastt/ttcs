@@ -280,7 +280,7 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
@@ -803,11 +803,16 @@
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
 
+      // Button import đồ án 
+      const importDoAn = document.getElementById('importDoAn');
+
       if (isKhoa == 0) {
         actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
         actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+        importDoAn.style.display = 'block';
         if (role.trim().toLocaleLowerCase() == "thường") {
-          actionButton2.style.display = 'none'; // Hiện actionButton2
+          actionButton2.style.display = 'none'; 
+          importDoAn.style.display = 'none';
         }
       } else {
         actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
