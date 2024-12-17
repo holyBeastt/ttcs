@@ -1,10 +1,27 @@
 const express = require("express");
 const router = express.Router();
 const qcdk = require("../controllers/moiGiangQCDKController"); // Import hàm xử lý từ controller
+const role = require("../controllers/middlewares"); // Check role
+
+// render site quy chuẩn dự kiến
+router.get('/tableTam', (req, res) => {
+  res.render('tableTam'); 
+});
+
+// router.get("/tableTam", (req, res) => {
+//   // Gọi middleware kiểm tra quyền
+//   const hasPermission = role.checkRolesRenderSiteQCDK(req);
+//   // Kiểm tra kết quả và render trang phù hợp
+//   if (hasPermission) {
+//     res.render("tableTam"); // Render trang cho người có quyền
+//   } else {
+//     res.render("tableTam2"); // Render trang mặc định nếu không có quyền
+//   }
+// });
 
 
-// render site theo khoa đợt kì năm
-router.post("/get-table-tam", (req, res) => qcdk.getTableTam(req, res));
+// render bảng theo khoa đợt kì năm
+router.post("/qcdk", (req, res) => qcdk.getTableTam(req, res));
 
 // xóa toàn bộ bảng theo khoa đợt kì năm
 router.post("/xoa-qcdk", (req, res) => {

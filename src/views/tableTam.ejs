@@ -331,7 +331,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-      <!-- Link script Sweet alert 2 -->
+  <!-- Link script Sweet alert 2 -->
   <!-- SweetAlert2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
 
@@ -339,15 +339,33 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
   <script>
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", function () {
       const isKhoa = localStorage.getItem("isKhoa");
+      const role = localStorage.getItem("userRole");
+
       console.log('Giá trị isKhoa từ localStorage: ', isKhoa);
+      console.log('role :', role);
+
       hideButton();
+      // hideButton2 ẩn các chức năng thêm sửa xóa
+      hideButton2(role);
     });
+
+    function hideButton2(role) {
+      if (role != "Duyệt") {
+        const themBtn = document.getElementById('add-row-btn');
+        // const hanhDongTh = document.querySelector('th:contains("Hành động")');
+        // const hanhDongTh = document.getElementById('action-column');
+        if (themBtn) {
+          themBtn.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+        }
+      }
+    }
 
     function hideButton() {
       const isKhoa = localStorage.getItem("isKhoa");
       const Quyen = localStorage.getItem("userRole");
+
       if (isKhoa === null) {
         console.log('Không tìm thấy giá trị isKhoa trong localStorage');
       } else {
@@ -370,14 +388,15 @@
           } else {
             actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
             actionButton2.style.display = 'none'; // Ẩn actionButton2
-            if (Quyen.toLowerCase() == 'gv') {
+            if (Quyen.toLowerCase() === 'gv') {
               actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
             }
           }
         } else {
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
-        //Ẩn site duyệt lớp gk
+
+        // Ẩn site duyệt lớp gk
         if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton3.style.display = '';
         } else {
@@ -385,6 +404,7 @@
         }
       }
     }
+
   </script>
 
   <!-- render bảng -->
@@ -396,8 +416,113 @@
     var khoaArray = [];
 
     // Hàm render ra bảng
+    // async function renderTable() {
+    //   console.log(khoaArray)
+    //   let Dot = document.getElementById("combobox-dot").value;
+    //   let Ki = document.getElementById("comboboxki").value;
+    //   let Nam = document.getElementById("NamHoc").value;
+    //   let Khoa = document.getElementById("departmentFilter").value;
+
+    //   const body = {
+    //     Khoa: Khoa,
+    //     Dot: Dot,
+    //     Ki: Ki,
+    //     Nam: Nam,
+    //   };
+
+    //   try {
+    //     const response = await fetch("/qcdk", {
+    //       method: "POST", // Phương thức HTTP
+    //       headers: {
+    //         "Content-Type": "application/json", // Định dạng dữ liệu
+    //       },
+    //       body: JSON.stringify(body), // Gửi Khoa trong body
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error("Network response was not ok: " + response.statusText);
+    //     }
+
+    //     const data = await response.json();
+
+    //     // Cập nhật biến chung renderData
+    //     renderData = data;
+
+    //     console.log(renderData);
+
+    //     document.getElementById("data-table-body").innerHTML = "";
+    //     if (renderData.length === 0) {
+    //       document.getElementById("no-data-message").style.display = "block"; // Hiển thị thông báo nếu không có dữ liệu
+    //     } else {
+    //       document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
+    //       let tableHtml = "";
+    //       const headersMap = {
+    //         Khoa: "Khoa",
+    //         Dot: "Đợt",
+    //         Ki: "Kì",
+    //         Nam: "Năm",
+    //         GiaoVien: "Giảng viên theo TKB",
+    //         GiaoVienGiangDay: "Giảng viên giảng dạy",
+    //         MoiGiang: "Mời giảng?",
+    //         SoTinChi: "Số TC",
+    //         LopHocPhan: "Lớp học phần",
+    //         LL: "Số tiết LL",
+    //         SoTietCTDT: "Số tiết TKB",
+    //         HeSoT7CN: "Hệ số ngoài giờ",
+    //         SoSinhVien: "Số SV",
+    //         HeSoLopDong: "Hệ số lớp đông",
+    //         QuyChuan: "Số tiết QC",
+    //       };
+
+    //       const headers = Object.keys(renderData[0]).filter(
+    //         (header) => header !== "GhiChu" && header !== "ID"
+    //       ); // Loại bỏ "GhiChu" và "ID"
+    //       headers.forEach((header) => {
+    //         const newHeaderName = headersMap[header] || header;
+    //         tableHtml += `<th>${newHeaderName}</th>`;
+    //       });
+
+    //       const role = localStorage.getItem("userRole");
+
+    //       tableHtml += `<th id="action-column">Hành động</th>`; // Thêm cột hành động
+    //       document.getElementById("table-header").innerHTML = tableHtml;
+
+    //       // Tạo mảng các key không thể sửa (không gắn id row => không tìm được id trong hàm sửa)
+    //       const keyNotEdit = ["ID", "GhiChu"]
+    //       renderData.forEach((item) => {
+    //         // Sử dụng ID từ dữ liệu làm định danh duy nhất cho từng hàng
+    //         const id = item.ID;
+
+    //         // Tạo nội dung cho mỗi hàng dựa trên các cột được xác định trong headers
+    //         const row = headers
+    //           .map((key) => {
+    //             if (keyNotEdit.includes(key)) {
+    //               return `<td>${item[key] !== null ? item[key] : ""}</td>`; // Không cho phép sửa
+    //             }
+    //             return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
+    //           })
+    //           .join("");
+
+    //         // Tạo HTML cho hàng và thêm nút Sửa, Xóa, sử dụng ID để thao tác đúng hàng
+    //         document.getElementById("data-table-body").innerHTML += `
+    //     <tr id="row-${id}">
+    //       ${row}
+    //       <td>
+    //         <button onclick="editRow(${id})">Sửa</button>
+    //         <button onclick="deleteRow(${id})">Xóa</button>
+    //       </td>
+    //     </tr>`;
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching data:", error);
+    //     alert("Có lỗi xảy ra khi gọi API: " + error.message);
+    //   }
+    // }
+
+
     async function renderTable() {
-      console.log(khoaArray)
+      console.log(khoaArray);
       let Dot = document.getElementById("combobox-dot").value;
       let Ki = document.getElementById("comboboxki").value;
       let Nam = document.getElementById("NamHoc").value;
@@ -411,7 +536,7 @@
       };
 
       try {
-        const response = await fetch("/get-table-tam", {
+        const response = await fetch("/qcdk", {
           method: "POST", // Phương thức HTTP
           headers: {
             "Content-Type": "application/json", // Định dạng dữ liệu
@@ -462,11 +587,17 @@
             tableHtml += `<th>${newHeaderName}</th>`;
           });
 
-          tableHtml += "<th>Hành động</th>"; // Thêm cột hành động
+          const role = localStorage.getItem("userRole");
+
+          // Chỉ thêm cột hành động khi role là "Duyệt"
+          if (role === "Duyệt") {
+            tableHtml += `<th id="action-column">Hành động</th>`; // Thêm cột hành động
+          }
+
           document.getElementById("table-header").innerHTML = tableHtml;
 
           // Tạo mảng các key không thể sửa (không gắn id row => không tìm được id trong hàm sửa)
-          const keyNotEdit = ["ID", "GhiChu"]
+          const keyNotEdit = ["ID", "GhiChu"];
           renderData.forEach((item) => {
             // Sử dụng ID từ dữ liệu làm định danh duy nhất cho từng hàng
             const id = item.ID;
@@ -481,15 +612,22 @@
               })
               .join("");
 
-            // Tạo HTML cho hàng và thêm nút Sửa, Xóa, sử dụng ID để thao tác đúng hàng
+            // Tạo HTML cho hàng và thêm nút Sửa, Xóa nếu role là "Duyệt"
+            let actionColumn = "";
+            if (role === "Duyệt") {
+              actionColumn = `
+                        <td>
+                            <button onclick="editRow(${id})">Sửa</button>
+                            <button onclick="deleteRow(${id})">Xóa</button>
+                        </td>
+                    `;
+            }
+
             document.getElementById("data-table-body").innerHTML += `
-        <tr id="row-${id}">
-          ${row}
-          <td>
-            <button onclick="editRow(${id})">Sửa</button>
-            <button onclick="deleteRow(${id})">Xóa</button>
-          </td>
-        </tr>`;
+                    <tr id="row-${id}">
+                        ${row}
+                        ${actionColumn}  <!-- Chỉ thêm cột hành động nếu role là "Duyệt" -->
+                    </tr>`;
           });
         }
       } catch (error) {
@@ -497,6 +635,7 @@
         alert("Có lỗi xảy ra khi gọi API: " + error.message);
       }
     }
+
 
     // Hàm sửa gắn vào tt onclick
     function editRow(index) {
@@ -607,64 +746,6 @@
       }
     }
 
-    // async function saveRow(id) {
-    //   try {
-    //     // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
-    //     const headers = Object.keys(renderData[0]);
-
-    //     // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
-    //     const updatedRow = {};
-
-    //     // Lấy dữ liệu dòng cần lưu
-    //     const rowData = {};
-    //     headers.forEach((key) => {
-    //       const input = document.getElementById(`input-${id}-${key}`);
-    //       if (input) {
-    //         const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
-    //         rowData[key] = newValue; // Lưu giá trị vào rowData
-    //       }
-    //     });
-
-    //     // Gọi hàm validate để kiểm tra dữ liệu
-    //     const validationResult = validate(rowData); // Validate dữ liệu
-
-    //     if (!validationResult.valid) {
-    //       alert(validationResult.message); // Hiển thị thông báo lỗi nếu dữ liệu không hợp lệ
-    //       return; // Dừng lại nếu dữ liệu không hợp lệ
-    //     }
-
-    //     // Nếu dữ liệu hợp lệ, tiếp tục xử lý
-    //     // Gửi dữ liệu dòng đã sửa tới API
-    //     const response = await fetch(`/update-row/${id}`, {
-    //       method: "PUT", // Hoặc "POST" tùy API
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
-    //     });
-
-    //     if (!response.ok) {
-    //       throw new Error(`Failed to update row: ${response.statusText}`);
-    //     }
-
-    //     // API trả về dữ liệu dòng đã cập nhật (nếu cần)
-    //     const result = await response.json();
-
-    //     // Cập nhật renderData với dữ liệu mới
-    //     const rowIndex = renderData.findIndex((row) => row.ID === id);
-    //     renderData[rowIndex] = result;
-
-    //     // Hiển thị lại bảng với dữ liệu đã cập nhật
-    //     renderTable();
-
-    //     alert("Cập nhật dòng thành công!");
-    //   } catch (error) {
-    //     console.error("Error updating row:", error);
-    //     alert(`Có lỗi xảy ra khi cập nhật dòng: ${error.message}`);
-    //   }
-    // }
-
-    // Hàm hủy khi đang sửa
     function cancelEdit(index) {
       // Hiển thị lại bảng mà không render lại từ server
       renderTable();
@@ -857,7 +938,6 @@
     // }
   </script>
 
-
   <!-- phần xóa bảng quy chuẩn dự kiến -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -958,7 +1038,7 @@
       };
 
       try {
-        const response = await fetch("/get-table-tam", {
+        const response = await fetch("/qcdk", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1051,6 +1131,38 @@
         }
       });
 
+  </script>
+
+  <!-- phần lấy role phân trang -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const isKhoa = localStorage.getItem("isKhoa");
+      const Quyen = localStorage.getItem("userRole");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('actionButton');
+      const actionButton1 = document.getElementById('actionButton1');
+      const actionButton2 = document.getElementById('actionButton2');
+      const actionButton3 = document.getElementById('actionButton3');
+
+      if (isKhoa == 0) {
+        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+
+      } else {
+        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+        actionButton2.style.display = 'none'; // Ẩn actionButton2
+        if (Quyen.toLowerCase() == 'gv') {
+          actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+        }
+      }
+      //Ẩn site duyệt lớp gk
+      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        actionButton3.style.display = '';
+      } else {
+        actionButton3.style.display = 'none';
+      }
+    });
   </script>
 
 
