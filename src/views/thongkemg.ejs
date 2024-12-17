@@ -302,7 +302,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link active" id="" href="/ThongkeMG">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Vượt Giờ</a>
+                <a class="nav-link" id="" href="thongkevuotgio">Vượt Giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
               </div>
@@ -460,6 +460,8 @@
                                 `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
+                        // Thêm option "Tất cả năm" vào đầu
+                        $('#NamHoc').prepend('<option value="ALL" selected>Tất cả năm</option>');
                         checkAndFetchData();
 
                         // Thêm dữ liệu kỳ học
@@ -468,6 +470,8 @@
                                 `<option value="${item.value}">${item.Ki}</option>`
                             );
                         });
+                        // Thêm option "Tất cả kỳ" vào đầu
+                        $('#comboboxki').prepend('<option value="ALL" selected>Tất cả kỳ</option>');
                         checkAndFetchData();
 
                         // Thêm dữ liệu đợt
