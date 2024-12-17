@@ -424,7 +424,7 @@ if (maPhongBan === "ATTT") {
         Danh_xưng: teacher.DanhXung,
         Họ_và_tên: teacher.HoTen,
         CCCD: teacher.CCCD,
-        Ngày_cấp: formatDate1(teacher.NgayCap),
+        Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
