@@ -22,6 +22,8 @@
       padding: 10px;
       text-align: left;
       border: 1px solid #dee2e6;
+      white-space: nowrap;
+      /* Ngăn chặn xuống dòng */
     }
 
     .table th {
@@ -280,9 +282,6 @@
           </button>
         </div>
 
-        <!-- <button class="btn btn-outline-primary button">
-          <a href="/import">Thêm bảng quy chuẩn</a>
-        </button> -->
         <div class="right" style="margin-top: 0px;">
           <div class="loc d-flex align-items-center">
             <select class="selectop " id="combobox-dot">
@@ -301,14 +300,9 @@
             <select class="selectop" id="departmentFilter">
               <option value="">Chọn khoa</option>
             </select>
-            <!-- <button class="export" onclick="exportSelectedData()">Xuất dữ liệu</button> -->
-
-            <button class="btn text-nowrap" id="render" style="margin-top: 17px;">
+            <button onclick=renderTable() class="btn text-nowrap" id="render" style="margin-top: 17px;">
               Hiển thị
             </button>
-            <!-- <button class="button text-nowrap" id="filter" style="margin-top: 17px" onclick="filterTable()">
-              Lọc
-            </button> -->
             <button class="btn text-nowrap" id="xoa-qc-du-kien" style="margin-top: 17px; visibility: hidden;">
               Xóa
             </button>
@@ -324,7 +318,11 @@
           </thead>
           <tbody id="data-table-body"></tbody>
         </table>
+        <button class="btn text-nowrap" id="add-row-btn" onclick="addRow()">Thêm</button>
+        <!-- <button class="btn text-nowrap" id="save-btn" onclick="submitData()">Lưu</button> -->
       </div>
+
+
       <div id="no-data-message" class="text-center my-3" style="display: none">
         Không có dữ liệu để hiển thị.
       </div>
@@ -389,9 +387,17 @@
     }
   </script>
 
-  <!-- render ra bảng k cần ấn gì cả -->
+  <!-- render bảng -->
   <script>
-    document.getElementById("render").addEventListener("click", function () {
+
+    // Biến chung để lưu dữ liệu render
+    let renderData = [];
+    // Mảng khoa 
+    var khoaArray = [];
+
+    // Hàm render ra bảng
+    async function renderTable() {
+      console.log(khoaArray)
       let Dot = document.getElementById("combobox-dot").value;
       let Ki = document.getElementById("comboboxki").value;
       let Nam = document.getElementById("NamHoc").value;
@@ -404,69 +410,451 @@
         Nam: Nam,
       };
 
-      console.log(body)
-      fetch("/get-table-tam", {
-        method: "POST", // Phương thức HTTP
-        headers: {
-          "Content-Type": "application/json", // Định dạng dữ liệu
-        },
-        body: JSON.stringify(body), // Gửi Khoa trong body
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok: " + response.statusText);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          // Xóa dữ liệu cũ khỏi bảng trước khi thêm dữ liệu mới
-          document.getElementById("data-table-body").innerHTML = "";
-
-          if (data.length === 0) {
-            document.getElementById("no-data-message").style.display = "block"; // Hiển thị thông báo nếu không có dữ liệu
-          } else {
-            document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
-            let tableHtml = "";
-            const headersMap = {
-              Khoa: "Khoa",
-              Dot: "Đợt",
-              Ki: "Kì",
-              Nam: "Năm",
-              GiaoVien: "Giảng viên theo TKB",
-              GiaoVienGiangDay: "Giảng viên giảng dạy",
-              MoiGiang: "Mời giảng?",
-              SoTinChi: "Số tín chỉ",
-              LopHocPhan: "Lớp học phần",
-              LL: "LL",
-              SoTietCTDT: "Số tiết CTĐT",
-              HeSoT7CN: "Hệ số ngoài giờ",
-              SoSinhVien: "Số sinh viên",
-              HeSoLopDong: "Hệ số lớp đông",
-              QuyChuan: "Quy chuẩn",
-              // GhiChu: "Ghi chú", // Bỏ qua key GhiChu
-            };
-
-            const headers = Object.keys(data[0]).filter(header => header !== "GhiChu"); // Loại bỏ "GhiChu"
-            headers.forEach((header) => {
-              const newHeaderName = headersMap[header] || header;
-              tableHtml += `<th>${newHeaderName}</th>`;
-            });
-
-            document.getElementById("table-header").innerHTML = tableHtml;
-
-            data.forEach((item) => {
-              const row = headers
-                .map((key) => `<td>${item[key] !== null ? item[key] : ""}</td>`)
-                .join("");
-              document.getElementById("data-table-body").innerHTML += `<tr>${row}</tr>`;
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-          alert("Có lỗi xảy ra khi gọi API: " + error.message);
+      try {
+        const response = await fetch("/get-table-tam", {
+          method: "POST", // Phương thức HTTP
+          headers: {
+            "Content-Type": "application/json", // Định dạng dữ liệu
+          },
+          body: JSON.stringify(body), // Gửi Khoa trong body
         });
-    });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok: " + response.statusText);
+        }
+
+        const data = await response.json();
+
+        // Cập nhật biến chung renderData
+        renderData = data;
+
+        console.log(renderData);
+
+        document.getElementById("data-table-body").innerHTML = "";
+        if (renderData.length === 0) {
+          document.getElementById("no-data-message").style.display = "block"; // Hiển thị thông báo nếu không có dữ liệu
+        } else {
+          document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
+          let tableHtml = "";
+          const headersMap = {
+            Khoa: "Khoa",
+            Dot: "Đợt",
+            Ki: "Kì",
+            Nam: "Năm",
+            GiaoVien: "Giảng viên theo TKB",
+            GiaoVienGiangDay: "Giảng viên giảng dạy",
+            MoiGiang: "Mời giảng?",
+            SoTinChi: "Số TC",
+            LopHocPhan: "Lớp học phần",
+            LL: "Số tiết LL",
+            SoTietCTDT: "Số tiết TKB",
+            HeSoT7CN: "Hệ số ngoài giờ",
+            SoSinhVien: "Số SV",
+            HeSoLopDong: "Hệ số lớp đông",
+            QuyChuan: "Số tiết QC",
+          };
+
+          const headers = Object.keys(renderData[0]).filter(
+            (header) => header !== "GhiChu" && header !== "ID"
+          ); // Loại bỏ "GhiChu" và "ID"
+          headers.forEach((header) => {
+            const newHeaderName = headersMap[header] || header;
+            tableHtml += `<th>${newHeaderName}</th>`;
+          });
+
+          tableHtml += "<th>Hành động</th>"; // Thêm cột hành động
+          document.getElementById("table-header").innerHTML = tableHtml;
+
+          // Tạo mảng các key không thể sửa (không gắn id row => không tìm được id trong hàm sửa)
+          const keyNotEdit = ["ID", "GhiChu"]
+          renderData.forEach((item) => {
+            // Sử dụng ID từ dữ liệu làm định danh duy nhất cho từng hàng
+            const id = item.ID;
+
+            // Tạo nội dung cho mỗi hàng dựa trên các cột được xác định trong headers
+            const row = headers
+              .map((key) => {
+                if (keyNotEdit.includes(key)) {
+                  return `<td>${item[key] !== null ? item[key] : ""}</td>`; // Không cho phép sửa
+                }
+                return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
+              })
+              .join("");
+
+            // Tạo HTML cho hàng và thêm nút Sửa, Xóa, sử dụng ID để thao tác đúng hàng
+            document.getElementById("data-table-body").innerHTML += `
+        <tr id="row-${id}">
+          ${row}
+          <td>
+            <button onclick="editRow(${id})">Sửa</button>
+            <button onclick="deleteRow(${id})">Xóa</button>
+          </td>
+        </tr>`;
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        alert("Có lỗi xảy ra khi gọi API: " + error.message);
+      }
+    }
+
+    // Hàm sửa gắn vào tt onclick
+    function editRow(index) {
+      // Lọc ra đối tượng trong renderData có ID tương ứng với index
+      const item = renderData.find(item => item.ID === index);
+
+      if (!item) {
+        console.error(`Không tìm thấy đối tượng với ID: ${index}`);
+        return;  // Nếu không tìm thấy đối tượng, thoát khỏi hàm
+      }
+
+      const row = document.getElementById(`row-${index}`);
+      if (!row) {
+        console.error(`Không tìm thấy row-${index}`);
+        return;  // Nếu không tìm thấy row, thoát khỏi hàm
+      }
+
+      // Lọc các cột cần sửa (Loại bỏ cột không sửa được như: "GhiChu" "ID")
+      const headers = Object.keys(renderData[0]).filter(header =>
+        !["GhiChu", "ID"].includes(header)
+      );
+
+      headers.forEach((key) => {
+        // Lấy giá trị của trường tương ứng từ item
+        const currentValue = item[key];
+
+        // Tìm phần tử cell tương ứng với ID và keyss
+        const cell = document.getElementById(`cell-${index}-${key}`);
+        if (cell) {
+          let inputWidth = "100%";  // Mặc định độ rộng là 100%
+          if (key === "LopHocPhan" || key === "GiaoVien") {
+            inputWidth = "100%";  // Nếu là "LopHocPhan" hoặc "GiaoVien", đặt độ rộng là 100%
+          }
+
+          // Tạo ô nhập liệu với giá trị hiện tại và độ rộng tùy chỉnh
+          cell.innerHTML = `<input type="text" id="input-${index}-${key}" value="${currentValue}" placeholder="${currentValue}" style="width: ${inputWidth};">`;
+        } else {
+          console.error(`Không tìm thấy cell-${index}-${key}`);
+        }
+      });
+
+      // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
+      const actionCell = row.querySelector("td:last-child");
+      actionCell.innerHTML = `
+    <button onclick="saveRow(${index})">Lưu</button>
+    <button onclick="cancelEdit(${index})">Hủy</button>
+  `;
+    }
+
+    // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
+    async function saveRow(id) {
+      try {
+        // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
+        const headers = Object.keys(renderData[0]);
+
+        // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
+        const updatedRow = {};
+
+        // Duyệt qua từng cột và cập nhật giá trị của nó
+        headers.forEach((key) => {
+          // Lấy phần tử input tương ứng với từng cột và dòng
+          const input = document.getElementById(`input-${id}-${key}`);
+
+          if (input) { // Kiểm tra xem ô nhập liệu có tồn tại không
+            const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
+
+            // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
+            if (newValue === "") {
+              throw new Error(`Giá trị của cột ${key} không thể để trống!`);
+            }
+
+            // Thêm giá trị mới vào đối tượng updatedRow
+            updatedRow[key] = newValue;
+          } else {
+            console.warn(`Không tìm thấy ô nhập liệu cho cột ${key} tại dòng ${id}`);
+            // Nếu không có input, giữ nguyên giá trị cũ
+            updatedRow[key] = renderData.find((row) => row.ID === id)[key];
+          }
+        });
+
+        // Gửi dữ liệu dòng đã sửa tới API
+        const response = await fetch(`/update-row/${id}`, {
+          method: "PUT", // hoặc "POST" tùy API
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update row: ${response.statusText}`);
+        }
+
+        // API trả về dữ liệu dòng đã cập nhật (nếu cần)
+        const result = await response.json();
+
+        // Cập nhật renderData với dữ liệu mới
+        const rowIndex = renderData.findIndex((row) => row.ID === id);
+        renderData[rowIndex] = result;
+
+        // Hiển thị lại bảng với dữ liệu đã cập nhật
+        renderTable();
+
+        // alert("Cập nhật dòng thành công!");
+      } catch (error) {
+        console.error("Error updating row:", error);
+        alert(`Có lỗi xảy ra khi cập nhật dòng: ${error.message}`);
+      }
+    }
+
+    // async function saveRow(id) {
+    //   try {
+    //     // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
+    //     const headers = Object.keys(renderData[0]);
+
+    //     // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
+    //     const updatedRow = {};
+
+    //     // Lấy dữ liệu dòng cần lưu
+    //     const rowData = {};
+    //     headers.forEach((key) => {
+    //       const input = document.getElementById(`input-${id}-${key}`);
+    //       if (input) {
+    //         const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
+    //         rowData[key] = newValue; // Lưu giá trị vào rowData
+    //       }
+    //     });
+
+    //     // Gọi hàm validate để kiểm tra dữ liệu
+    //     const validationResult = validate(rowData); // Validate dữ liệu
+
+    //     if (!validationResult.valid) {
+    //       alert(validationResult.message); // Hiển thị thông báo lỗi nếu dữ liệu không hợp lệ
+    //       return; // Dừng lại nếu dữ liệu không hợp lệ
+    //     }
+
+    //     // Nếu dữ liệu hợp lệ, tiếp tục xử lý
+    //     // Gửi dữ liệu dòng đã sửa tới API
+    //     const response = await fetch(`/update-row/${id}`, {
+    //       method: "PUT", // Hoặc "POST" tùy API
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error(`Failed to update row: ${response.statusText}`);
+    //     }
+
+    //     // API trả về dữ liệu dòng đã cập nhật (nếu cần)
+    //     const result = await response.json();
+
+    //     // Cập nhật renderData với dữ liệu mới
+    //     const rowIndex = renderData.findIndex((row) => row.ID === id);
+    //     renderData[rowIndex] = result;
+
+    //     // Hiển thị lại bảng với dữ liệu đã cập nhật
+    //     renderTable();
+
+    //     alert("Cập nhật dòng thành công!");
+    //   } catch (error) {
+    //     console.error("Error updating row:", error);
+    //     alert(`Có lỗi xảy ra khi cập nhật dòng: ${error.message}`);
+    //   }
+    // }
+
+    // Hàm hủy khi đang sửa
+    function cancelEdit(index) {
+      // Hiển thị lại bảng mà không render lại từ server
+      renderTable();
+    }
+
+    // Hàm xóa dòng khi sửa ( gọi api xóa 1 dòng )
+    async function deleteRow(id) {
+      if (confirm("Bạn có chắc chắn muốn xóa dòng này?")) { // Xác nhận xóa
+        try {
+          // Gửi yêu cầu DELETE tới API để xóa dòng
+          const response = await fetch(`/delete-row/${id}`, {
+            method: "DELETE", // Phương thức DELETE
+            headers: {
+              "Content-Type": "application/json", // Định dạng dữ liệu
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
+          }
+
+          // Hiển thị lại bảng với dữ liệu đã cập nhật
+          renderTable();
+          console.log("Xoá dòng thành công")
+        } catch (error) {
+          console.error("Lỗi khi xóa dòng:", error);
+          alert(`Có lỗi xảy ra khi xóa dòng: ${error.message}`);
+        }
+      }
+    }
+
+    // Hàm thêm khi ấn nút THÊM
+    function addRow() {
+      // Lấy các giá trị mặc định từ các combo box
+      const Khoa = document.getElementById("departmentFilter").value;
+      const Dot = document.getElementById("combobox-dot").value;
+      const Ki = document.getElementById("comboboxki").value;
+      const Nam = document.getElementById("NamHoc").value;
+
+      // Tạo một đối tượng rỗng cho dòng mới
+      const newRowData = {};
+
+      // Lấy danh sách các cột từ renderData[0] để đảm bảo khởi tạo đủ key, ngoại trừ "ID" và "GhiChu"
+      const headers = Object.keys(renderData[0]).filter(header => !["ID", "GhiChu"].includes(header));
+
+      // Khởi tạo dữ liệu cho các cột
+      headers.forEach((key) => {
+        if (key === "Khoa") {
+          newRowData[key] = Khoa; // Lấy giá trị từ combo box
+        } else if (key === "Dot") {
+          newRowData[key] = Dot; // Lấy giá trị từ combo box
+        } else if (key === "Ki") {
+          newRowData[key] = Ki; // Lấy giá trị từ combo box
+        } else if (key === "Nam") {
+          newRowData[key] = Nam; // Lấy giá trị từ combo box
+        } else {
+          newRowData[key] = ""; // Các trường khác để trống mặc định
+        }
+      });
+
+      // Tạo HTML cho các ô nhập liệu của dòng mới
+      let rowHtml = "";
+      headers.forEach((key) => {
+        let inputWidth = "100%"; // Độ rộng mặc định
+
+        // Tạo ô nhập liệu cho tất cả các trường
+        rowHtml += `<td><input type="text" id="input-new-${key}" value="${newRowData[key]}" placeholder="Nhập ${key}" style="width: ${inputWidth};"></td>`;
+      });
+
+      // Thêm nút hành động (Lưu và Hủy) với ID dòng tương ứng
+      rowHtml += `<td>
+                <button onclick="saveNewRow()">Lưu</button>
+                <button onclick="cancelAddRow()">Hủy</button>
+            </td>`;
+
+      // Thêm dòng mới vào bảng với ID "new-row"
+      document.getElementById("data-table-body").innerHTML += `
+  <tr id="new-row">
+      ${rowHtml}
+  </tr>`;
+
+      console.log("Dòng mới được khởi tạo:", newRowData);
+    }
+
+    // Hàm lưu dòng mới ( gọi api lưu 1 dòng mới )
+    async function saveNewRow() {
+      try {
+        // Lấy các giá trị từ ô nhập liệu
+        const newRowData = {};
+        const headers = Object.keys(renderData[0]).filter(header => !["ID", "GhiChu"].includes(header));
+
+        headers.forEach((key) => {
+          const input = document.getElementById(`input-new-${key}`);
+          if (input) {
+            newRowData[key] = input.value.trim(); // Lấy giá trị nhập vào và loại bỏ khoảng trắng
+          }
+        });
+
+        // Gửi dữ liệu dòng mới lên server
+        const response = await fetch('/add-row', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newRowData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Không thể lưu dòng mới: ${response.statusText}`);
+        }
+
+        // Cập nhật lại bảng sau khi lưu thành công
+        const result = await response.json();
+        console.log("Dòng mới đã được lưu thành công:", result);
+
+        // Cập nhật renderData nếu cần
+        renderData.push(result); // Giả sử API trả về dòng đã được lưu
+
+        // Hiển thị lại bảng
+        renderTable();
+
+      } catch (error) {
+        console.error("Lỗi khi lưu dòng mới:", error);
+        alert("Có lỗi xảy ra khi lưu dòng mới: " + error.message);
+      }
+    }
+
+    // Hàm hủy tạo dòng mới
+    function cancelAddRow() {
+      // Tìm và xóa dòng có ID "new-row"
+      const newRow = document.getElementById("new-row");
+      if (newRow) {
+        newRow.remove(); // Xóa dòng mới khỏi DOM
+      }
+    }
+
+    // async function submitData() {
+    //   // Lấy dữ liệu từ các phần tử HTML
+    //   let Dot = document.getElementById("combobox-dot").value;
+    //   let Ki = document.getElementById("comboboxki").value;
+    //   let Nam = document.getElementById("NamHoc").value;
+    //   let Khoa = document.getElementById("departmentFilter").value;
+
+    //   try {
+    //     // Gửi yêu cầu xóa dữ liệu trước
+    //     const responseDelete = await fetch('/xoa-qcdk', { // Đường dẫn tới API của bạn
+    //       method: 'POST', // Phương thức HTTP
+    //       headers: {
+    //         'Content-Type': 'application/json', // Định dạng dữ liệu
+    //       },
+    //       body: JSON.stringify({ Khoa, Dot, Ki, Nam }) // Gửi thông tin xóa trong body
+    //     });
+
+    //     // Kiểm tra xem yêu cầu xóa có thành công không
+    //     if (responseDelete.ok) {
+    //       const resultDelete = await responseDelete.json(); // Chuyển đổi phản hồi thành JSON
+    //       // alert(resultDelete.message); // Hiển thị thông báo thành công
+    //     } else {
+    //       const errorData = await responseDelete.json(); // Lấy thông tin lỗi
+    //       // alert(`Lỗi: ${errorData.message}`); // Hiển thị thông báo lỗi
+    //       return; // Dừng lại nếu có lỗi
+    //     }
+
+    //     // Cập nhật bảng sau khi xóa
+    //     const data = renderData; // Dữ liệu cần gửi đi
+    //     console.log(data);
+
+    //     // Gửi dữ liệu cập nhật lên server
+    //     const responseUpdate = await fetch('/update-qcdk', {
+    //       method: 'POST', // Sử dụng POST để gửi dữ liệu
+    //       headers: {
+    //         'Content-Type': 'application/json', // Định dạng dữ liệu là JSON
+    //       },
+    //       body: JSON.stringify(data) // Chuyển đổi dữ liệu sang chuỗi JSON
+    //     });
+
+    //     // Kiểm tra phản hồi từ API cập nhật
+    //     if (responseUpdate.ok) {
+    //       const resultUpdate = await responseUpdate.json(); // Chuyển đổi phản hồi thành JSON
+    //       alert(resultUpdate.message); // Hiển thị thông báo thành công
+    //     } else {
+    //       const errorUpdate = await responseUpdate.json(); // Lấy thông tin lỗi
+    //       alert(`Lỗi: ${errorUpdate.message}`); // Hiển thị thông báo lỗi
+    //     }
+
+    //   } catch (error) {
+    //     console.error('Đã xảy ra lỗi:', error);
+    //     alert('Đã xảy ra lỗi khi gọi API.'); // Hiển thị thông báo lỗi cho người dùng
+    //   }
+    // }
   </script>
 
 
@@ -513,7 +901,7 @@
                 width: 'auto', // Tự động điều chỉnh chiều rộng
                 padding: '20px', // Giữ khoảng cách cho nội dung
               });
-              location.reload();
+              // location.reload();
             } else {
               const errorData = await response.json(); // Lấy thông tin lỗi
               Swal.fire({
@@ -842,6 +1230,8 @@
             response.MaPhongBan.forEach(function (item) {
               // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
               console.log(item);
+              // Push vào mảng Khoa để validate bảng
+              khoaArray.push(item.MaPhongBan)
               $('#departmentFilter').append(
                 `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
               );

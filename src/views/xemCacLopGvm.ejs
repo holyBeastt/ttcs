@@ -425,6 +425,7 @@
               <th style="width: 100px;">GV giảng dạy</th>
               <th style="width: 50px;">Khoa</th>
               <th style="width: 100px;">Bộ môn</th>
+              <th style="width: 100px;">Hệ đào tạo</th>
               <th>Ngày bắt đầu</th>
               <th>Ngày kết thúc</th>
               <th style="width: 50px;">Số tiết LL</th>
@@ -983,6 +984,39 @@
       boMonTd.appendChild(boMonInput);
       tableRow.appendChild(boMonTd);
 
+      //Thẻ select hình thức thi giữa kỳ
+      let heDaoTaoTd;
+      let heDaoTaoSelect;
+      heDaoTaoTd = document.createElement('td');
+      heDaoTaoSelect = document.createElement('select');
+      heDaoTaoSelect.name = 'heDaoTao';
+
+      // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+      const options = [
+        { value: 'Mật mã', text: 'Mật mã' },
+        { value: 'Đóng học phí', text: 'Đóng học phí' },
+      ];
+
+      // Thêm các tùy chọn vào select
+      options.forEach(optionData => {
+        const option = document.createElement('option');
+        option.value = optionData.value;
+        option.textContent = optionData.text;
+        if (row.HeDaoTao === optionData.value) {
+          option.selected = true;
+        }
+        heDaoTaoSelect.appendChild(option);
+      });
+      // Thêm style trực tiếp
+      heDaoTaoSelect.style.setProperty('background-color', 'white', 'important');
+      heDaoTaoSelect.style.setProperty('color', 'black', 'important');
+      heDaoTaoSelect.style.padding = '5px';
+
+      heDaoTaoTd.appendChild(heDaoTaoSelect);
+      // Thêm id để lấy dữ liệu 
+      heDaoTaoSelect.id = `heDaoTao-${row.ID}`;
+      tableRow.appendChild(heDaoTaoTd);
+
       // Kiểm tra ngày bắt đầu 
       console.log(row.NgayBatDau)
 
@@ -1014,6 +1048,7 @@
         NgayBatDauInput.disabled = true; // Chỉ xem
         NgayKetThucInput.disabled = true; // Chỉ xem
         boMonInput.disabled = true;
+        heDaoTaoSelect.disabled = true;
       }
 
       const soTietLLTd = document.createElement('td');
@@ -1029,6 +1064,7 @@
       if ((isKhoa == 1 && role == "GV") || (isKhoa == 1 && row.KhoaDuyet == 1)) {
         giaoVienGiangDayInput.disabled = true;
         boMonInput.disabled = true;
+        heDaoTaoSelect.disabled = true;
         NgayBatDauInput.disabled = true;
         // Ngăn người dùng thay đổi trạng thái ngày kết thúc
         NgayKetThucInput.disabled = true;
@@ -1128,6 +1164,7 @@
         if (check.includes(MaPhongBan)) {
           //giaoVienGiangDayInput.disabled = true;
           boMonInput.disabled = true;
+          heDaoTaoSelect.disabled = true;
 
           NgayBatDauInput.disabled = true;
           // Ngăn người dùng thay đổi trạng thái ngày kết thúc
@@ -1144,6 +1181,7 @@
 
       if (MaPhongBan.toLowerCase() === "daotao" && role.toLowerCase() !== "thường") {
         // Nếu khoa đã check thì hiện check bên đào tạo
+        heDaoTaoSelect.disabled = true;
 
         if (!check.includes(row.Khoa)) {
           // Ngăn thay đổi trạng thái check box khoa
@@ -1822,8 +1860,8 @@
       }
 
       // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-      const LLCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột LL
-      const QuyChuanCell = row.querySelector('td:nth-child(11)'); // Lấy ô của cột QuyChuan
+      const LLCell = row.querySelector('td:nth-child(11)'); // Lấy ô của cột LL
+      const QuyChuanCell = row.querySelector('td:nth-child(12)'); // Lấy ô của cột QuyChuan
 
       // Chuyển đổi giá trị của các ô thành số và cộng dồn
       const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0

@@ -429,7 +429,7 @@ const exportMultipleContracts = async (req, res) => {
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
         Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
-        Năm_học: teacher.NamHoc, // Thêm trường NamHoc
+        Năm_học: teacher.NamHoc, // Thêm trường NamHocs
         Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
         Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
         Tiền_text1: tienText1.toLocaleString("vi-VN"),
