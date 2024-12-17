@@ -201,11 +201,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -369,6 +370,12 @@
 
         //Ẩn site duyệt lớp gk
         const Quyen = localStorage.getItem("userRole");
+
+        const importDoAn = document.getElementById('importDoAn');
+        if (isKhoa == 0 && Quyen == 'Duyệt'){
+          importDoAn.style.display = 'block';
+        }
+        
         if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton3.style.display = '';
         } else {

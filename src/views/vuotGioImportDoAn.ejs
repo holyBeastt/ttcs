@@ -223,11 +223,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link active" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -495,7 +496,6 @@
               // Lấy bảng dữ liệu và lưu vào localstorage
               localStorage.setItem("tableData", JSON.stringify(data.content));
               // Gọi hàm renderTable để hiển thị dữ liệu
-              console.log(data.content)
               renderTable(data.content);
             } else {
               // Hiển thị thông báo nếu không có dữ liệu
@@ -511,6 +511,7 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan")
         const isKhoa = localStorage.getItem("isKhoa");
+        const duplicateGV = localStorage.getItem("duplicateGV");
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = ''; // Xóa nội dung cũ
 
@@ -550,7 +551,7 @@
           const giaoVienHuongDan1Td = document.createElement('td');
           const giaoVienHuongDan1Input = document.createElement('input');
           giaoVienHuongDan1Input.type = 'text';
-          giaoVienHuongDan1Input.placeholder = 'Nhập tên giảng viên 1';
+          giaoVienHuongDan1Input.placeholder = '';
           giaoVienHuongDan1Input.value = row.GiangVien1 || '';
           // Gán id cho input
           giaoVienHuongDan1Input.id = `GiangVien1-${id}`;
@@ -574,7 +575,7 @@
           const giaoVienHuongDan2Td = document.createElement('td');
           const giaoVienHuongDan2Input = document.createElement('input');
           giaoVienHuongDan2Input.type = 'text';
-          giaoVienHuongDan2Input.placeholder = 'Nhập tên giảng viên 2';
+          giaoVienHuongDan2Input.placeholder = '';
           giaoVienHuongDan2Input.value = row.GiangVien2 || '';
           // Gán id cho input
           giaoVienHuongDan2Input.id = `GiangVien2-${id}`;
@@ -599,12 +600,30 @@
           GiangVien1Real.textContent = row.GiangVien1Real || '';
           GiangVien1Real.id = `GiangVien1Real-${id}`;
           GiangVien1Real.style.display = 'none'; // Ẩn input bằng CSS
+
+
+          // Kiểm tra nếu GiangVien1Real nằm trong duplicateGV
+          if (duplicateGV.includes(GiangVien1Real.textContent)) {
+            giaoVienHuongDan1Td.style.backgroundColor = '#FFFACD'; // Vàng nhạt
+            giaoVienHuongDan1Td.style.border = '1px solid #FFD700'; // Thêm viền vàng đậm
+            giaoVienHuongDan1Td.style.borderRadius = '4px'; // Góc bo tròn cho đẹ
+            giaoVienHuongDan1Input.placeholder = 'TÊN GIẢNG VIÊN TRÙNG';
+          }
           tableRow.appendChild(GiangVien1Real);
 
           const GiangVien2Real = document.createElement('td');
           GiangVien2Real.textContent = row.GiangVien2Real || '';
           GiangVien2Real.id = `GiangVien2Real-${id}`;
           GiangVien2Real.style.display = 'none'; // Ẩn input bằng CSS
+
+          // Kiểm tra nếu GiangVien2Real nằm trong duplicateGV
+          if (duplicateGV.includes(GiangVien2Real.textContent) && row.GiangVien2!= 'không') {
+            giaoVienHuongDan2Td.style.backgroundColor = '#FFFACD'; // Vàng nhạt
+            giaoVienHuongDan2Td.style.border = '1px solid #FFD700'; // Thêm viền vàng đậm
+            giaoVienHuongDan2Td.style.borderRadius = '4px'; // Góc bo tròn cho đẹ
+            giaoVienHuongDan2Input.placeholder = 'TÊN GIẢNG VIÊN TRÙNG';
+          }
+
           tableRow.appendChild(GiangVien2Real);
 
 
