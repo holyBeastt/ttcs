@@ -202,7 +202,7 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
@@ -442,42 +442,6 @@
 
       <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
       <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-      <!-- <script>
-        // Tìm kiếm giảng viên mời theo tên
-        function searchClass() {
-          let input = document.getElementById("searchInput").value.toLowerCase();
-          let table = document.getElementById("classTable");
-          let tr = table.getElementsByTagName("tr");
-
-          for (let i = 1; i < tr.length; i++) {
-            let td = tr[i].getElementsByTagName("td")[1];
-            if (td) {
-              let textValue = td.textContent || td.innerText;
-              if (textValue.toLowerCase().indexOf(input) > -1) {
-                tr[i].style.display = "";
-              } else {
-                tr[i].style.display = "none";
-              }
-            }
-          }
-        }
-
-
-        // Đóng modal
-        function closeModal() {
-          document.getElementById("modal").style.display = "none";
-        }
-
-        // Thêm sự kiện khi nhấn ra ngoài modal để đóng modal
-        window.onclick = function (event) {
-          let modal = document.getElementById("modal");
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
-        };
-
-      </script> -->
 
       <script>
         // Lấy query string từ URL
@@ -732,6 +696,13 @@
       <script>
         document.addEventListener("DOMContentLoaded", () => {
           const Quyen = localStorage.getItem("userRole");
+          const isKhoa = localStorage.getItem("isKhoa");
+
+          const importDoAn = document.getElementById('importDoAn');
+
+          if (isKhoa == 0 && Quyen == 'Duyệt'){
+            importDoAn.style.display = 'block';
+          }
 
           // Ẩn button ngay khi trang được tải
           const actionButton = document.getElementById('changeMessage');

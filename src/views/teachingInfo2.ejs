@@ -314,7 +314,7 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
@@ -545,6 +545,11 @@
         const actionButton1 = document.getElementById('actionButton1');
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
+
+        const importDoAn = document.getElementById('importDoAn');
+        if (isKhoa == 0 && Quyen == 'Duyệt'){
+          importDoAn.style.display = 'block';
+        }
 
         if (actionButton1 && actionButton2) {
           if (isKhoa === "0") {

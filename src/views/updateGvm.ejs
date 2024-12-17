@@ -121,7 +121,11 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
+                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -358,6 +362,8 @@
 
     function hideButton() {
       const isKhoa = localStorage.getItem("isKhoa");
+      const Quyen = localStorage.getItem("userRole");
+
       if (isKhoa === null) {
         console.log('Không tìm thấy giá trị isKhoa trong localStorage');
       } else {
@@ -367,6 +373,11 @@
         const actionButton1 = document.getElementById('actionButton1');
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
+
+        const importDoAn = document.getElementById('importDoAn');
+        if (isKhoa == 0 && Quyen == 'Duyệt'){
+          importDoAn.style.display = 'block';
+        }
 
         if (actionButton1 && actionButton2) {
           if (isKhoa === "0") {
@@ -382,7 +393,6 @@
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
         //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
         if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
           actionButton3.style.display = '';
         } else {

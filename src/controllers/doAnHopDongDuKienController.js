@@ -92,7 +92,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
       JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
     )
 
-    SELECT HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
+    SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
     FROM final
     WHERE dot = ? AND namhoc = ?
         `;
@@ -174,7 +174,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
   )
 
-  SELECT HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
+  SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
   FROM final
   WHERE dot = ? AND namhoc = ? AND MaKhoa = ?
     `;
