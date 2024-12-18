@@ -829,7 +829,7 @@ const validateKhoa = (khoa) => {
       return "LLCT";
     case "QS&GDTC":
       return "QS&GDTC";
-    case "Mật":
+    case "Mật mã":
       return "MM";
     case "Khác":
       return "Khác";
