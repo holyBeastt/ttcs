@@ -202,13 +202,17 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Đồ Án
               </a>
               <div class="dropdown-menu active" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
+                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
+                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
                 <a class="nav-link active" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
-
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -220,7 +224,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
@@ -360,6 +364,12 @@
               } else {
                 console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
               }
+
+              const importDoAn = document.getElementById('importDoAn');
+              if (isKhoa == 0 && Quyen == 'Duyệt'){
+                importDoAn.style.display = 'block';
+              }
+              
               //Ẩn site duyệt lớp gk
               if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
                 actionButton3.style.display = '';
@@ -672,6 +682,7 @@
         <script>
           document.addEventListener("DOMContentLoaded", () => {
             const Quyen = localStorage.getItem("userRole");
+            const isKhoa = localStorage.getItem("isKhoa");
 
             // Ẩn button ngay khi trang được tải
             const actionButton = document.getElementById('changeMessage');
