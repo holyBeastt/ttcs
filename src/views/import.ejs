@@ -303,7 +303,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-      <!-- Link script Sweet alert 2 -->
+  <!-- Link script Sweet alert 2 -->
   <!-- SweetAlert2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
 
@@ -389,24 +389,24 @@
               // Tạo bảng HTML từ dữ liệu JSON, bỏ qua cột "Ghi chú"
               let tableHtml = "";
 
-              // Lấy TT đầu tiên và cuối cùng
-              const ttValues = data.map((item) => parseInt(item.TT)).filter(Number.isInteger);
-              const ttMin = Math.min(...ttValues);
-              const ttMax = Math.max(...ttValues);
+              // Lấy tất cả các key và giá trị của item
+              const missingData = [];
 
-              // Tìm các TT bị thiếu
-              const missingTT = [];
-              for (let i = ttMin; i <= ttMax; i++) {
-                if (!ttValues.includes(i)) {
-                  missingTT.push(i);
+              data.forEach((item) => {
+                // Kiểm tra từng key trong item
+                for (const key in item) {
+                  if (item.hasOwnProperty(key) && item[key] === 0) {
+                    missingData.push(item.TT);  // Nếu giá trị của key bằng 0, thêm key vào mảng missingData
+                  }
                 }
-              }
+              });
 
               // Thêm thông báo cảnh báo nếu có TT bị thiếu
-              if (missingTT.length > 0) {
+              if (missingData.length > 0) {
                 tableHtml += `<div class="alert alert-warning">
-                  Các lớp có STT : ${missingTT.join(", ")} đang bị thiếu dữ liệu.
-                  Những lớp thiếu dữ liệu sẽ không được thêm vào bảng quy chuẩn dự kiến
+                  Các lớp có STT : ${missingData.join(", ")} đang bị thiếu dữ liệu.
+                  Những lớp này vẫn sẽ được thêm vào bảng quy chuẩn dự kiến.
+                  Yêu cầu cập nhật lại thông tin của các lớp này. 
                 </div>`;
               }
 

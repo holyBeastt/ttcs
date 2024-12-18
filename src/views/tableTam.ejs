@@ -79,6 +79,15 @@
       height: 45px;
       margin-left: 5px;
     }
+
+
+    /* cảnh báo */
+    .warning-row {
+      background-color: #ffe6e6;
+      /* Màu nền cảnh báo nhạt */
+      color: #ff0000;
+      /* Màu chữ cảnh báo */
+    }
   </style>
 
   <script>
@@ -377,7 +386,7 @@
         const actionButton3 = document.getElementById('actionButton3');
 
         const importDoAn = document.getElementById('importDoAn');
-        if (isKhoa==0 && Quyen == 'Duyệt'){
+        if (isKhoa == 0 && Quyen == 'Duyệt') {
           importDoAn.style.display = 'block';
         }
 
@@ -521,6 +530,122 @@
     // }
 
 
+    // async function renderTable() {
+    //   console.log(khoaArray);
+    //   let Dot = document.getElementById("combobox-dot").value;
+    //   let Ki = document.getElementById("comboboxki").value;
+    //   let Nam = document.getElementById("NamHoc").value;
+    //   let Khoa = document.getElementById("departmentFilter").value;
+
+    //   const body = {
+    //     Khoa: Khoa,
+    //     Dot: Dot,
+    //     Ki: Ki,
+    //     Nam: Nam,
+    //   };
+
+    //   try {
+    //     const response = await fetch("/qcdk", {
+    //       method: "POST", // Phương thức HTTP
+    //       headers: {
+    //         "Content-Type": "application/json", // Định dạng dữ liệu
+    //       },
+    //       body: JSON.stringify(body), // Gửi Khoa trong body
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error("Network response was not ok: " + response.statusText);
+    //     }
+
+    //     const data = await response.json();
+
+    //     // Cập nhật biến chung renderData
+    //     renderData = data;
+
+    //     console.log(renderData);
+
+    //     document.getElementById("data-table-body").innerHTML = "";
+    //     if (renderData.length === 0) {
+    //       document.getElementById("no-data-message").style.display = "block"; // Hiển thị thông báo nếu không có dữ liệu
+    //     } else {
+    //       document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
+    //       let tableHtml = "";
+    //       const headersMap = {
+    //         Khoa: "Khoa",
+    //         Dot: "Đợt",
+    //         Ki: "Kì",
+    //         Nam: "Năm",
+    //         GiaoVien: "Giảng viên theo TKB",
+    //         GiaoVienGiangDay: "Giảng viên giảng dạy",
+    //         MoiGiang: "Mời giảng?",
+    //         SoTinChi: "Số TC",
+    //         LopHocPhan: "Lớp học phần",
+    //         LL: "Số tiết LL",
+    //         SoTietCTDT: "Số tiết TKB",
+    //         HeSoT7CN: "Hệ số ngoài giờ",
+    //         SoSinhVien: "Số SV",
+    //         HeSoLopDong: "Hệ số lớp đông",
+    //         QuyChuan: "Số tiết QC",
+    //       };
+
+    //       const headers = Object.keys(renderData[0]).filter(
+    //         (header) => header !== "GhiChu" && header !== "ID"
+    //       ); // Loại bỏ "GhiChu" và "ID"
+    //       headers.forEach((header) => {
+    //         const newHeaderName = headersMap[header] || header;
+    //         tableHtml += `<th>${newHeaderName}</th>`;
+    //       });
+
+    //       const role = localStorage.getItem("userRole");
+
+    //       // Chỉ thêm cột hành động khi role là "Duyệt"
+    //       if (role === "Duyệt") {
+    //         tableHtml += `<th id="action-column">Hành động</th>`; // Thêm cột hành động
+    //       }
+
+    //       document.getElementById("table-header").innerHTML = tableHtml;
+
+    //       // Tạo mảng các key không thể sửa (không gắn id row => không tìm được id trong hàm sửa)
+    //       const keyNotEdit = ["ID", "GhiChu"];
+    //       renderData.forEach((item) => {
+    //         // Sử dụng ID từ dữ liệu làm định danh duy nhất cho từng hàng
+    //         const id = item.ID;
+
+    //         // Tạo nội dung cho mỗi hàng dựa trên các cột được xác định trong headers
+    //         const row = headers
+    //           .map((key) => {
+    //             if (keyNotEdit.includes(key)) {
+    //               return `<td>${item[key] !== null ? item[key] : ""}</td>`; // Không cho phép sửa
+    //             }
+    //             return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
+    //           })
+    //           .join("");
+
+    //         // Tạo HTML cho hàng và thêm nút Sửa, Xóa nếu role là "Duyệt"
+    //         let actionColumn = "";
+    //         if (role === "Duyệt") {
+    //           actionColumn = `
+    //                     <td>
+    //                         <button onclick="editRow(${id})">Sửa</button>
+    //                         <button onclick="deleteRow(${id})">Xóa</button>
+    //                     </td>
+    //                 `;
+    //         }
+
+    //         document.getElementById("data-table-body").innerHTML += `
+    //                 <tr id="row-${id}">
+    //                     ${row}
+    //                     ${actionColumn}  <!-- Chỉ thêm cột hành động nếu role là "Duyệt" -->
+    //                 </tr>`;
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching data:", error);
+    //     alert("Có lỗi xảy ra khi gọi API: " + error.message);
+    //   }
+    // }
+
+
     async function renderTable() {
       console.log(khoaArray);
       let Dot = document.getElementById("combobox-dot").value;
@@ -537,11 +662,11 @@
 
       try {
         const response = await fetch("/qcdk", {
-          method: "POST", // Phương thức HTTP
+          method: "POST",
           headers: {
-            "Content-Type": "application/json", // Định dạng dữ liệu
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(body), // Gửi Khoa trong body
+          body: JSON.stringify(body),
         });
 
         if (!response.ok) {
@@ -550,16 +675,15 @@
 
         const data = await response.json();
 
-        // Cập nhật biến chung renderData
         renderData = data;
 
         console.log(renderData);
 
         document.getElementById("data-table-body").innerHTML = "";
         if (renderData.length === 0) {
-          document.getElementById("no-data-message").style.display = "block"; // Hiển thị thông báo nếu không có dữ liệu
+          document.getElementById("no-data-message").style.display = "block";
         } else {
-          document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
+          document.getElementById("no-data-message").style.display = "none";
           let tableHtml = "";
           const headersMap = {
             Khoa: "Khoa",
@@ -581,7 +705,7 @@
 
           const headers = Object.keys(renderData[0]).filter(
             (header) => header !== "GhiChu" && header !== "ID"
-          ); // Loại bỏ "GhiChu" và "ID"
+          );
           headers.forEach((header) => {
             const newHeaderName = headersMap[header] || header;
             tableHtml += `<th>${newHeaderName}</th>`;
@@ -589,45 +713,46 @@
 
           const role = localStorage.getItem("userRole");
 
-          // Chỉ thêm cột hành động khi role là "Duyệt"
           if (role === "Duyệt") {
-            tableHtml += `<th id="action-column">Hành động</th>`; // Thêm cột hành động
+            tableHtml += `<th id="action-column">Hành động</th>`;
           }
 
           document.getElementById("table-header").innerHTML = tableHtml;
 
-          // Tạo mảng các key không thể sửa (không gắn id row => không tìm được id trong hàm sửa)
           const keyNotEdit = ["ID", "GhiChu"];
           renderData.forEach((item) => {
-            // Sử dụng ID từ dữ liệu làm định danh duy nhất cho từng hàng
             const id = item.ID;
 
-            // Tạo nội dung cho mỗi hàng dựa trên các cột được xác định trong headers
             const row = headers
               .map((key) => {
                 if (keyNotEdit.includes(key)) {
-                  return `<td>${item[key] !== null ? item[key] : ""}</td>`; // Không cho phép sửa
+                  return `<td>${item[key] !== null ? item[key] : ""}</td>`;
                 }
                 return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
               })
               .join("");
 
-            // Tạo HTML cho hàng và thêm nút Sửa, Xóa nếu role là "Duyệt"
             let actionColumn = "";
             if (role === "Duyệt") {
               actionColumn = `
-                        <td>
-                            <button onclick="editRow(${id})">Sửa</button>
-                            <button onclick="deleteRow(${id})">Xóa</button>
-                        </td>
-                    `;
+            <td>
+              <button onclick="editRow(${id})">Sửa</button>
+              <button onclick="deleteRow(${id})">Xóa</button>
+            </td>
+          `;
             }
 
+            // Kiểm tra nếu có key nào bằng 0 và thêm lớp cảnh báo
+            const hasZeroValue = Object.values(item).some(
+              (value) => !isNaN(value) && Number(value) === 0
+            );
+            const warningClass = hasZeroValue ? "warning-row" : "";
+
             document.getElementById("data-table-body").innerHTML += `
-                    <tr id="row-${id}">
-                        ${row}
-                        ${actionColumn}  <!-- Chỉ thêm cột hành động nếu role là "Duyệt" -->
-                    </tr>`;
+          <tr id="row-${id}" class="${warningClass}">
+            ${row}
+            ${actionColumn}
+          </tr>`;
           });
         }
       } catch (error) {
