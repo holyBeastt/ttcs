@@ -81,7 +81,7 @@
                 <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -497,6 +497,16 @@
       }
       //Ẩn site duyệt lớp gk
       const Quyen = localStorage.getItem("userRole");
+
+      // Ẩn button import đồ án
+      const importDoAn = document.getElementById('importDoAn');
+      const suaHD = document.getElementById('suaHD');
+
+      if (isKhoa == 0 && Quyen == 'Duyệt'){
+        importDoAn.style.display = 'block';
+        suaHD.style.display = 'block';
+      }
+      
       if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
         actionButton3.style.display = '';
       } else {

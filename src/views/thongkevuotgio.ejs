@@ -219,7 +219,7 @@
                 <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -719,12 +719,12 @@ function updateCharts(data, khoa) {
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const Quyen = localStorage.getItem("userRole");
+    const role = localStorage.getItem("userRole");
 
     // Ẩn button ngay khi trang được tải
     const actionButton = document.getElementById('changeMessage');
     //Ẩn site thêm thông báo
-    if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+    if (role === "Lãnh đạo khoa" || role === "Duyệt") {
       actionButton.style.display = '';
     } else {
       actionButton.style.display = 'none';
@@ -765,12 +765,12 @@ window.onload = function () {
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const Quyen = localStorage.getItem("userRole");
+    const role = localStorage.getItem("userRole");
 
     // Ẩn button ngay khi trang được tải
     const actionButton = document.getElementById('changeMessage');
     //Ẩn site thêm thông báo
-    if (Quyen === "Duyệt") {
+    if (role === "Duyệt") {
         actionButton.style.display = '';
     } else {
         actionButton.style.display = 'none';

@@ -167,7 +167,7 @@ input[type="file"] {
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Mời Giảng
               </a>
@@ -178,7 +178,6 @@ input[type="file"] {
                 <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
                 <a class="nav-link active " href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-
               </div>
             </div>
           </div>
@@ -377,8 +376,8 @@ input[type="file"] {
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
         //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        const role = localStorage.getItem("userRole");
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -494,12 +493,12 @@ input[type="file"] {
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const Quyen = localStorage.getItem("userRole");
+      const role = localStorage.getItem("userRole");
 
       // Ẩn button ngay khi trang được tải
       const actionButton = document.getElementById('changeMessage');
       //Ẩn site thêm thông báo
-      if (Quyen === "Duyệt") {
+      if (role === "Duyệt") {
         actionButton.style.display = '';
       } else {
         actionButton.style.display = 'none';
