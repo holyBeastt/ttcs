@@ -173,8 +173,8 @@
                 <li class="nav-item"></li>
                 <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
                 </li>
-                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-                <a class="nav-link  " href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
+                <a class="nav-link" href="/exportHD">Hợp Đồng</a>
+                <a class="nav-link" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -239,7 +239,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
@@ -470,8 +470,7 @@
             
         }
         //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -744,12 +743,12 @@ function closeNotification(index) {
   </script>
 <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
+        const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (role === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

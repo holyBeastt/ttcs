@@ -26,7 +26,7 @@ const AdminController = {
 
   // phần thêm
   themNhanVien: async (req, res) => {
-    const {
+    let {
       TenNhanVien,
       NgaySinh,
       GioiTinh,
@@ -56,6 +56,62 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
 
+      // Kiểm tra trùng CCCD
+      const checkDuplicateQuery =
+        "SELECT COUNT(*) as count FROM nhanvien WHERE CCCD = ?";
+      const [duplicateRows] = await connection.query(checkDuplicateQuery, [
+        CCCD,
+      ]);
+      if (duplicateRows[0].count > 0) {
+        connection.release(); // Giải phóng kết nối trước khi trả về
+        return res
+          .status(409)
+          .json({ message: "CCCD đã tồn tại. Vui lòng kiểm tra lại." });
+      }
+
+      // Kiểm tra trùng tài khoản
+      const checkDuplicateAcc =
+        "SELECT COUNT(*) as count FROM taikhoannguoidung WHERE TenDangNhap = ?";
+      const [duplicateAcc] = await connection.query(checkDuplicateAcc, [
+        TenDangNhap,
+      ]);
+
+      if (duplicateAcc[0].count > 0) {
+        connection.release(); // Giải phóng kết nối trước khi trả về
+        return res.status(409).json({
+          message:
+            "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
+        });
+      }
+
+      // Kiểm tra trùng lặp tên
+      const nvQuery = "select * from nhanvien";
+      const [NhanVienList] = await connection.query(nvQuery); // Truyền kết nối vào
+
+      let nameExists = true;
+      let modifiedName = TenNhanVien.trim(); // Biến tạm để lưu tên cuối cùng
+      let duplicateName = [];
+      let duplicateCount = 0;
+      let originalName = TenNhanVien;
+
+      while (nameExists) {
+        nameExists = NhanVienList.some(
+          (nv) => nv.TenNhanVien.trim() === modifiedName
+        );
+        if (nameExists) {
+          duplicateCount++;
+          modifiedName = `${originalName} (${String.fromCharCode(
+            64 + duplicateCount
+          )})`; // A, B, C...
+        }
+      }
+      // Khi xử lý xong, thêm tên cuối cùng vào danh sách trùng
+      if (modifiedName !== TenNhanVien) {
+        duplicateName.push(`${TenNhanVien} -> ${modifiedName}`); // Ghi lại thay đổi
+      }
+      TenNhanVien = modifiedName; // Cập nhật tên cuối cùng
+
+      // Thêm mới nhân viên vào csdl
       const queryInsert = `
         INSERT INTO nhanvien (
             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
@@ -127,6 +183,19 @@ const AdminController = {
         Quyen,
         isKhoa,
       ]);
+
+      if (duplicateName.length > 0) {
+        const message = "Tên giảng viên bị trùng sẽ được lưu như sau: ";
+
+        // Mã hóa duplicateName và nối với thông điệp
+        const encodedDuplicateNames = duplicateName.join(",");
+
+        // Nối thông điệp và danh sách tên đã mã hóa
+        return res.status(200).json({
+          message: `${message}${duplicateName}`,
+          MaNhanVien: MaNhanVien,
+        });
+      }
 
       res
         .status(200)
@@ -502,7 +571,7 @@ const AdminController = {
       //Lấy tên môn học
       const query4 = "SELECT * FROM bomon WHERE MaBoMon = ?";
       const [results4] = await connection.query(query4, [maBoMon]);
-      let TenBoMon = results4 && results4.length > 0 ? results4[0] : {};;
+      let TenBoMon = results4 && results4.length > 0 ? results4[0] : {};
 
       // Render trang với 2 biến: value và departmentLists
       res.render("viewNV.ejs", {
@@ -522,7 +591,8 @@ const AdminController = {
     let connection;
     try {
       const connection = await createPoolConnection();
-      const query1 = "SELECT *FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
+      const query1 =
+        "SELECT *FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
       const [result1] = await connection.query(query1);
       const query2 = "SELECT *FROM `ki` ORDER BY trangthai DESC";
       const [result2] = await connection.query(query2);
@@ -572,7 +642,10 @@ const AdminController = {
     const query = req.params.query;
     let connection = await createPoolConnection();
     try {
-      const results = await connection.query("SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ?", [`%${query}%`]);
+      const results = await connection.query(
+        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ?",
+        [`%${query}%`]
+      );
       res.json(results);
     } catch (error) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
@@ -588,7 +661,10 @@ const AdminController = {
     const MaPhongBan = req.params.MaPhongBan;
     let connection = await createPoolConnection();
     try {
-      const results = await connection.query("SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ? AND MaPhongBan = ?", [`%${query}%`, MaPhongBan]);
+      const results = await connection.query(
+        "SELECT TenNhanVien FROM nhanvien WHERE TenNhanVien LIKE ? AND MaPhongBan = ?",
+        [`%${query}%`, MaPhongBan]
+      );
       res.json(results);
     } catch (error) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", error);
@@ -672,7 +748,7 @@ const AdminController = {
   //     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
   //     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
-  //     const query = `UPDATE nhanvien SET 
+  //     const query = `UPDATE nhanvien SET
   //       TenNhanVien = ?,
   //       GioiTinh = ?,
   //       NgaySinh = ?,
@@ -795,10 +871,10 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
-      res.render('vuotGioKyTuBD', { 
+      const [kyTuBD] = await connection.query("SELECT * FROM hedonghocphi");
+      res.render("vuotGioKyTuBD", {
         kyTuBD,
-        message: req.query.success ? 'Thêm mới thành công!' : null 
+        message: req.query.success ? "Thêm mới thành công!" : null,
       });
     } catch (error) {
       console.error("Lỗi:", error);
@@ -819,14 +895,14 @@ const AdminController = {
         VALUES (?, ?)
       `;
       await connection.execute(insertQuery, [LopViDu, vietTat]);
-      
-      res.redirect('/kytubatdau?success=true');
+
+      res.redirect("/kytubatdau?success=true");
     } catch (error) {
       console.error("Lỗi khi thêm ký tự bắt đầu:", error);
-      const [kyTuBD] = await connection.query('SELECT * FROM hedonghocphi');
-      res.render('vuotGioKyTuBD', { 
+      const [kyTuBD] = await connection.query("SELECT * FROM hedonghocphi");
+      res.render("vuotGioKyTuBD", {
         kyTuBD,
-        message: 'Có lỗi xảy ra khi thêm mới!' 
+        message: "Có lỗi xảy ra khi thêm mới!",
       });
     } finally {
       if (connection) connection.release();
@@ -839,11 +915,13 @@ const AdminController = {
     try {
       const query = `DELETE FROM hedonghocphi WHERE LopViDu = ?`;
       const [results] = await connection.query(query, [LopViDu]);
-    
+
       if (results.affectedRows > 0) {
         res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
       } else {
-        res.status(404).json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
+        res
+          .status(404)
+          .json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
       }
     } catch (error) {
       console.error("Lỗi khi xóa dữ liệu: ", error);
@@ -856,36 +934,40 @@ const AdminController = {
     const oldLopViDu = req.params.LopViDu;
     const { LopViDu, VietTat } = req.body;
     let connection;
-    
+
     try {
-        connection = await createPoolConnection();
-        const query = `
+      connection = await createPoolConnection();
+      const query = `
             UPDATE hedonghocphi 
             SET LopViDu = ?, VietTat = ?
             WHERE LopViDu = ?
         `;
-        
-        const [result] = await connection.execute(query, [LopViDu, VietTat, oldLopViDu]);
-        
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy bản ghi để cập nhật"
-            });
-        }
 
-        res.status(200).json({
-            success: true,
-            message: "Cập nhật thành công"
+      const [result] = await connection.execute(query, [
+        LopViDu,
+        VietTat,
+        oldLopViDu,
+      ]);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy bản ghi để cập nhật",
         });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thành công",
+      });
     } catch (error) {
-        console.error("Lỗi khi cập nhật:", error);
-        res.status(500).json({
-            success: false,
-            message: "Đã xảy ra lỗi khi cập nhật"
-        });
+      console.error("Lỗi khi cập nhật:", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi khi cập nhật",
+      });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
   // Other methods can be added here as needed...

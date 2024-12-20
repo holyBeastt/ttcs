@@ -139,13 +139,19 @@
               <option value="Tiến sĩ">Tiến sĩ</option>
               <option value="Phó giáo sư. Tiến sĩ">Phó giáo sư. Tiến sĩ</option>
               <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
-            </select> 
+            </select>
           </div>
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="CCCD" class="form-label">CCCD</label>
-            <input type="text" class="form-control" id="CCCD" name="CCCD"/>
+            <input
+              type="text"
+              class="form-control"
+              id="CCCD"
+              name="CCCD"
+              required
+            />
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
@@ -198,7 +204,13 @@
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="ChucVu" class="form-label">Chức Vụ*</label>
-            <input type="text" class="form-control" id="ChucVu" name="ChucVu" required/>
+            <input
+              type="text"
+              class="form-control"
+              id="ChucVu"
+              name="ChucVu"
+              required
+            />
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
@@ -250,7 +262,12 @@
             </div>
             <div>
               <label for="Quyen" class="form-label">Quyền</label>
-              <select id="Quyen" class="form-control" name="Quyen" style="width: 250px;">
+              <select
+                id="Quyen"
+                class="form-control"
+                name="Quyen"
+                style="width: 250px"
+              >
                 <option value="GV">Giảng Viên</option>
                 <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
                 <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>
@@ -319,9 +336,11 @@
 
           <div class="col-md-4 input-wrapper">
             <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
-            <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh">
-
-            </select>
+            <select
+              class="form-control"
+              name="MonGiangDayChinh"
+              id="MonGiangDayChinh"
+            ></select>
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="CacMonLienQuan" class="form-label"
@@ -364,11 +383,19 @@
             type: "POST",
             data: formData,
             success: function (response) {
-              alert("Thêm nhân viên thành công!");
+              console.log("res = ", response);
+              alert(JSON.stringify(response.message));
               window.location.href = "/nhanVien";
             },
             error: function (xhr, status, error) {
-              alert("Có lỗi xảy ra: " + xhr.responseText);
+              try {
+                // Nếu responseText là JSON, parse và lấy thông báo lỗi
+                var response = JSON.parse(xhr.responseText);
+                alert(response.message || "Đã xảy ra lỗi");
+              } catch (e) {
+                // Nếu không parse được, hiển thị toàn bộ nội dung
+                alert("Đã xảy ra lỗi: " + xhr.responseText);
+              }
             },
           });
         });
@@ -431,65 +458,69 @@
       document.addEventListener("DOMContentLoaded", function () {
         const maPhongBan = document.getElementById("MaPhongBan").value;
         fetch(`/getMaBoMon/${maPhongBan}`)
-          .then(response => response.json())
-          .then(data => {
+          .then((response) => response.json())
+          .then((data) => {
             console.log(data); // In ra phản hồi để kiểm tra
-            const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-            
+            const maBoMonSelect = document.getElementById("MonGiangDayChinh");
+
             if (!maBoMonSelect) {
               console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
               return;
             }
-            
-            maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-    
+
+            maBoMonSelect.innerHTML = ""; // Xóa các option cũ
+
             // Kiểm tra success và dữ liệu maBoMon
             if (data.success && data.maBoMon) {
-              data.maBoMon.forEach(item => {
-                const option = document.createElement('option');
+              data.maBoMon.forEach((item) => {
+                const option = document.createElement("option");
                 option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
                 option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-                
+
                 maBoMonSelect.appendChild(option); // Thêm option vào select
               });
             } else {
-              console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
+              console.error(
+                "Dữ liệu maBoMon không tồn tại hoặc không thành công"
+              );
             }
           })
-          .catch(error => console.error('Error:', error));
+          .catch((error) => console.error("Error:", error));
       });
     </script>
     <script>
-      function fetchBoMon(){
+      function fetchBoMon() {
         const maPhongBan = document.getElementById("MaPhongBan").value;
         fetch(`/getMaBoMon/${maPhongBan}`)
-          .then(response => response.json())
-          .then(data => {
+          .then((response) => response.json())
+          .then((data) => {
             console.log(data); // In ra phản hồi để kiểm tra
-            const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-            
+            const maBoMonSelect = document.getElementById("MonGiangDayChinh");
+
             if (!maBoMonSelect) {
               console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
               return;
             }
-            
-            maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-    
+
+            maBoMonSelect.innerHTML = ""; // Xóa các option cũ
+
             // Kiểm tra success và dữ liệu maBoMon
             if (data.success && data.maBoMon) {
-              data.maBoMon.forEach(item => {
-                const option = document.createElement('option');
+              data.maBoMon.forEach((item) => {
+                const option = document.createElement("option");
                 option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
                 option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-                
+
                 maBoMonSelect.appendChild(option); // Thêm option vào select
               });
             } else {
-              console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
+              console.error(
+                "Dữ liệu maBoMon không tồn tại hoặc không thành công"
+              );
             }
           })
-          .catch(error => console.error('Error:', error));
-      };
+          .catch((error) => console.error("Error:", error));
+      }
     </script>
   </body>
 </html>

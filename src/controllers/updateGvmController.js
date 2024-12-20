@@ -61,16 +61,13 @@ const getViewGvm = async (req, res) => {
     const query = "SELECT * FROM `gvmoi` WHERE id_Gvm = ?";
     const [results] = await connection.query(query, [id_Gvm]);
 
-    const query1 = `SELECT * FROM phongban`
+    const query1 = `SELECT * FROM phongban`;
     const [phongban] = await connection.query(query1);
 
     let user = results && results.length > 0 ? results[0] : {};
     console.log("result = ", user);
     // Render trang viewGvm.ejs với dữ liệu người dùng
-    res.render("viewGvm.ejs", 
-      { value: user,
-        phongban: phongban
-      });
+    res.render("viewGvm.ejs", { value: user, phongban: phongban });
   } catch (err) {
     console.error(err);
     // Xử lý lỗi, có thể trả về phản hồi lỗi cho client
@@ -108,6 +105,21 @@ const postUpdateGvm = async (req, res) => {
   let oldFileLyLich = req.body.oldFileLyLich;
   let oldbangTotNghiep = req.body.oldbangTotNghiep;
 
+  // Khởi tạo connection
+  const connection = await createPoolConnection();
+
+  // Kiểm tra trùng lặp CCCD
+  const checkDuplicateQuery =
+    "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND HoTen != ?";
+  const [duplicateRows] = await connection.query(checkDuplicateQuery, [
+    CCCD,
+    HoTen,
+  ]);
+  if (duplicateRows[0].count > 0) {
+    connection.release(); // Giải phóng kết nối trước khi trả về
+    return res.redirect("/gvmList?message=duplicateCCCD");
+  }
+
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
     ? req.body.maPhongBan.join(",") // Nếu là mảng
     : req.body.maPhongBan || ""; // Nếu là chuỗi hoặc không có giá trị
@@ -116,9 +128,6 @@ const postUpdateGvm = async (req, res) => {
   const lastPart = parts[parts.length - 1]; // Lấy phần cuối cùng của mảng
 
   const MaGvm = MaPhongBan + "_GVM_" + lastPart;
-
-  console.log("kiểu dữ liệu: ", typeof req.body.tinhTrangGiangDay);
-  console.log("id =", req.body.tinhTrangGiangDay);
 
   let tinhTrangGiangDay = req.body.tinhTrangGiangDay;
   // let tinhTrangGiangDay =
@@ -129,11 +138,7 @@ const postUpdateGvm = async (req, res) => {
     tinhTrangGiangDay = 0;
   }
 
-  console.log("tinh trang = ", tinhTrangGiangDay);
-
   //let tinhTrangGiangDay = req.body.tinhTrangGiangDay ? 1 : 0;
-
-  const connection = await createPoolConnection();
 
   upload(req, res, async function (err) {
     if (err) {

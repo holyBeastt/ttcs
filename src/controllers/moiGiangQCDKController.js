@@ -6,7 +6,7 @@ const createPoolConnection = require("../config/databasePool");
 
 let tableTam = process.env.DB_TABLE_TAM;
 
-// render bảngbảng
+// render bảng
 const getTableTam = async (req, res) => {
     const { Khoa, Dot, Ki, Nam } = req.body;
 
@@ -43,7 +43,7 @@ const getTableTam = async (req, res) => {
     }
 };
 
-// xóa bảngbảng
+// xóa bảng
 const deleteTableTam = async (req, res) => {
     const { Khoa, Dot, Ki, Nam } = req.body; // Lấy thông tin từ body
     console.log("Xóa thành công dữ liệu bảng tạm khoa, đợt, kì, năm:", Khoa, Dot, Ki, Nam);
