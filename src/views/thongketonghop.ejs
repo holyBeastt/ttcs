@@ -375,7 +375,54 @@
     }
 
     fetchData();
+
+    
 </script>
+
+<h2 style="margin-top: 30px; text-align: center;">Chi tiết số tiết giảng dạy</h2>
+<table class="table table-bordered my-2" border="1" id="thongketonghopTable">
+    <thead>
+        <tr>
+            <th>Khoa</th>
+            <th>Số tiết mời giảng</th>
+            <th>Số tiết giảng dạy</th>
+            <th>Tổng số</th>
+        </tr>
+    </thead>
+    <tbody id="detailTable">
+        <!-- Dữ liệu sẽ được thêm vào đây -->
+    </tbody>
+</table>
+
+<script>
+  async function fetchThongKeMGData() {
+    try {
+        const response = await fetch('/api/thongketonghop-data');
+        const data = await response.json();
+        console.log("Dữ liệu nhận được:", data);
+
+        // Cập nhật bảng
+        const tableBody = document.querySelector('table tbody');
+        tableBody.innerHTML = ''; // Xóa nội dung cũ của bảng
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.Khoa}</td>
+                <td>${item.TongSoTietMoiGiang}</td>
+                <td>${item.TongSoTietVuotGio}</td>
+                <td>${item.Tongso}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+    }
+}
+
+fetchThongKeMGData();
+
+ </script>
 
 </body>
 </html>
