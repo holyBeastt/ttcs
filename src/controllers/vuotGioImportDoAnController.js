@@ -1033,6 +1033,7 @@ const checkExistDataFile = async (req, res) => {
     // Kết quả trả về từ cơ sở dữ liệu
     const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
 
+    console.log("trùng ", exist);
     if (exist) {
       return res.status(200).json({
         message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
