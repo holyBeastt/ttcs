@@ -50,64 +50,54 @@
       box-shadow: 0 0 3px rgba(76, 175, 80, 0.5);
     }
 
-    button {
-      background-color: inherit;
-      /* Giữ nguyên nút cập nhật */
+    /* Dropdown style */
+    .form-select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 16px;
     }
- /* Căn chỉnh chung cho toàn bộ form */
-.d-flex {
-  display: flex;
-  flex-direction: row; /* Các phần tử nằm ngang */
-  justify-content: center;
-  align-items: center;
-  gap: 10px; /* Khoảng cách giữa các phần tử */
-  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
-  padding: 20px;
-}
 
-/* Căn chỉnh cho các select box */
-#loaiHopDong {
-  padding: 10px;
-  font-size: 16px;
-  min-width: 120px; /* Đảm bảo combobox có chiều rộng tối thiểu */
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  flex-wrap: nowrap; /* Đảm bảo các phần tử không bị đẩy xuống dòng mới */
+    /* Button style */
+    button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
 
-}
+    button:hover {
+      background-color: #0056b3;
+    }
 
-/* Căn chỉnh cho button */
-button {
-  background-color: #4CAF50; /* Màu nền của nút */
-  color: white; /* Màu chữ */
-  font-size: 16px; /* Kích thước chữ */
-  padding: 10px 20px; /* Khoảng cách trong nút */
-  border: none; /* Không có border */
-  border-radius: 5px; /* Bo góc */
-  cursor: pointer; /* Con trỏ chuột khi hover */
-  transition: background-color 0.3s, transform 0.2s;
-}
+    /* File input style */
+    #fileInput {
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
 
-/* Hiệu ứng hover */
-button:hover {
-  background-color: #45a049; /* Màu nền khi hover */
-  transform: scale(1.05); /* Phóng to nút khi hover */
-}
+    /* Ghi chú */
+    .note {
+      font-size: 14px;
+      color: #555;
+      margin-top: 10px;
+      text-align: center;
+    }
 
-/* Hiệu ứng khi button được nhấn */
-button:active {
-  background-color: #388e3c;
-  transform: scale(0.98); /* Thu nhỏ nút khi nhấn */
-}
-
-/* Căn chỉnh input type file */
-input[type="file"] {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  min-width: 120px; /* Đảm bảo input có chiều rộng tối thiểu */
-}
+    .note strong {
+      color: #ff0000;
+    }
 
   </style>
 
@@ -167,7 +157,7 @@ input[type="file"] {
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Mời Giảng
               </a>
@@ -178,7 +168,6 @@ input[type="file"] {
                 <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
                 <a class="nav-link active " href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-
               </div>
             </div>
           </div>
@@ -253,10 +242,8 @@ input[type="file"] {
     </div>
   </nav>
   <div class="d-flex justify-content-center">
-    <!-- Main content -->
     <div class="gvmList">
       <div class="m-3">
-
         <!-- Combobox để chọn loại hợp đồng -->
         <select id="loaiHopDong" class="form-select mx-2 selectop">
           <option value="HopDongMM.docx">Mật mã</option>
@@ -265,12 +252,16 @@ input[type="file"] {
         </select>
   
         <!-- Nút tải file -->
-        <button id="downloadButton">Tải file</button>
+        <button id="downloadButton">Tải file hợp đồng mẫu</button>
   
         <!-- Chọn file để upload -->
         <input type="file" id="fileInput" />
-        <button id="uploadButton">Tải lên</button>
-  
+        <button id="uploadButton">Sửa file</button>
+
+        <!-- Ghi chú -->
+        <div class="note">
+          <strong>Ghi chú:</strong> File tải lên phải giống tên file gốc.
+        </div>
       </div>
     </div>
   </div>
@@ -377,8 +368,8 @@ input[type="file"] {
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
         //Ẩn site duyệt lớp gk
-        const Quyen = localStorage.getItem("userRole");
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        const role = localStorage.getItem("userRole");
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -494,12 +485,12 @@ input[type="file"] {
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const Quyen = localStorage.getItem("userRole");
+      const role = localStorage.getItem("userRole");
 
       // Ẩn button ngay khi trang được tải
       const actionButton = document.getElementById('changeMessage');
       //Ẩn site thêm thông báo
-      if (Quyen === "Duyệt") {
+      if (role === "Duyệt") {
         actionButton.style.display = '';
       } else {
         actionButton.style.display = 'none';

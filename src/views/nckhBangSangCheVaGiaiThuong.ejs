@@ -82,7 +82,7 @@
                 <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -823,9 +823,13 @@
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
 
+      // Ẩn button import đồ án
       const importDoAn = document.getElementById('importDoAn');
-      if (isKhoa == 0 && Quyen == 'Duyệt'){
+      const suaHD = document.getElementById('suaHD');
+
+      if (isKhoa == 0 && role == 'Duyệt'){
         importDoAn.style.display = 'block';
+        suaHD.style.display = 'block';
       }
       
       if (isKhoa == 0) {
@@ -838,8 +842,8 @@
 
       }
       //Ẩn site duyệt lớp gk
-      const Quyen = localStorage.getItem("userRole");
-      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+      const role = localStorage.getItem("userRole");
+      if (role === "Lãnh đạo khoa" || role === "Duyệt") {
         actionButton3.style.display = '';
       } else {
         actionButton3.style.display = 'none';

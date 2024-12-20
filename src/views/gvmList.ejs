@@ -214,6 +214,7 @@
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
                 <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
                 <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -387,7 +388,7 @@
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
-        const Quyen = localStorage.getItem("userRole");
+        const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('actionButton');
@@ -395,10 +396,13 @@
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
 
+        // Ẩn button import đồ án
         const importDoAn = document.getElementById('importDoAn');
+        const suaHD = document.getElementById('suaHD');
 
-        if (isKhoa == 0 && Quyen == 'Duyệt'){
+        if (isKhoa == 0 && role == 'Duyệt'){
           importDoAn.style.display = 'block';
+          suaHD.style.display = 'block';
         }
 
         if (isKhoa == 0) {
@@ -409,12 +413,12 @@
           actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
           actionButton2.style.display = 'none'; // Ẩn actionButton2
 
-          if (Quyen.toLowerCase() == 'gv') {
+          if (role.toLowerCase() == 'gv') {
             actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
           }
         }
         //Ẩn site duyệt lớp gk
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -793,12 +797,12 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
+        const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (role === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';
