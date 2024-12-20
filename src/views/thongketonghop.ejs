@@ -62,15 +62,9 @@
     }
 
     /* Định dạng cho biểu đồ */
-    #thongkemgCanvas {
+    .chart {
         width: 80%;
-        max-width: 1200px;
-        height: 400px;
-        margin: 30px auto;
-        padding: 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-left: 10%;
     }
 
     /* Định dạng cho tiêu đề */
@@ -124,8 +118,8 @@
 
     /* Responsive design */
     @media (max-width: 768px) {
-        #thongkemgCanvas {
-            width: 95%;
+        #thongkethonghopCanvas {
+            width: 70%;
             height: 300px;
         }
 
@@ -308,10 +302,11 @@
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <div>
+  <div class="chart">
     <h3>Thống kê tổng hợp</h3>
     <canvas id="chart"></canvas>
 </div>
+
 
 <script>
     async function fetchData() {
@@ -327,52 +322,53 @@
             // Tạo biểu đồ
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Tổng số tiết mời giảng',
-                            data: moiGiangData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                        },
-                        {
-                            label: 'Tổng số tiết vượt giờ',
-                            data: vuotGioData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
-                        },
-                    ],
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Tổng số tiết mời giảng',
+                data: moiGiangData,
+                backgroundColor: 'red',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Tổng số tiết vượt giờ',
+                data: vuotGioData,
+                backgroundColor: 'blue',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+            },
+        ],
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+        },
+        scales: {
+            x: {
+                stacked: true, // Chồng cột trên trục X
+                title: {
+                    display: true,
+                    text: 'Khoa',
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                    },
-                    scales: {
-                        x: {
-                            stacked: true, // Chồng cột trên trục X
-                            title: {
-                                display: true,
-                                text: 'Khoa',
-                            },
-                        },
-                        y: {
-                            stacked: true, // Chồng cột trên trục Y
-                            title: {
-                                display: true,
-                                text: 'Số tiết',
-                            },
-                            beginAtZero: true,
-                        },
-                    },
+            },
+            y: {
+                stacked: true, // Chồng cột trên trục Y
+                title: {
+                    display: true,
+                    text: 'Số tiết',
                 },
-            });
+                beginAtZero: true,
+            },
+        },
+    },
+});
+
         } catch (error) {
             console.error("Lỗi khi tải dữ liệu:", error);
         }
@@ -380,5 +376,6 @@
 
     fetchData();
 </script>
+
 </body>
 </html>

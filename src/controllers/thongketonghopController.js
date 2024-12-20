@@ -18,7 +18,7 @@ const thongketonghopController = {
             `);
             console.log("Dữ liệu mời giảng:", moiGiangData);
 
-            // Query lấy dữ liệu vượt giờ
+            // Query lấy dữ liệu vượt giờ với điều kiện id_User != 1
             console.log("Đang thực hiện query lấy dữ liệu vượt giờ...");
             const [vuotGioData] = await connection.query(`
                 SELECT 
@@ -30,6 +30,7 @@ const thongketonghopController = {
                     FROM giuaky
                     GROUP BY Khoa
                 ) gk ON gd.Khoa = gk.Khoa
+                WHERE gd.id_User != 1  -- Điều kiện loại trừ id_User = 1
                 GROUP BY gd.Khoa
             `);
             console.log("Dữ liệu vượt giờ:", vuotGioData);
