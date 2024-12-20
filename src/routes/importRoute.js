@@ -115,7 +115,10 @@ router.post("/viewtam", role.checkDaotaoRoleThiHanh, async (req, res) => {
 
 router.post("/get-table-tam", (req, res) => obj2.getTableTam(req, res));
 
-router.post("/kiem-tra-file", role.checkDaotaoRoleThiHanh, obj.checkFile);
+router.post("/kiem-tra-file", 
+  // role.checkDaotaoRoleThiHanh, 
+  obj.checkFile
+);
 
 router.post("/xoa-file", role.checkDaotaoRoleThiHanh, obj.deleteFile);
 
