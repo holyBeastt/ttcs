@@ -479,7 +479,7 @@ const AdminController = {
   getViewNV: async (req, res) => {
     let connection;
     try {
-      const id_User = parseInt(req.params.id) + 1;
+      const id_User = parseInt(req.params.id);
 
       // Lấy dữ liệu nhân viên
       connection = await createPoolConnection();
