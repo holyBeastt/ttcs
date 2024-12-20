@@ -34,13 +34,17 @@ const thongkemgRoute = require("./routes/thongkemgRoute");
 const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
+const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
+const thongketonghopRoute = require("./routes/thongketonghopRoute");
 
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
-const vuotGioExportDoAnRoute = require("./routes/vuotGioExportDoAnRoute");
 const doAnChinhThucRoute = require("./routes/doAnChinhThucRoute");
 const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
 const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
+const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
+const hopDongDARoute = require("./routes/hopDongDARoute");
+
 
 const app = express();
 const port = process.env.port || 8888;
@@ -103,13 +107,16 @@ app.use("/", thongkemgRoute);
 app.use("/", thongkenckhRoute);
 app.use("/", thongkedoanRoute);
 app.use("/", suaHDRoute);
+app.use("/", exportPhuLucDARoute);
+app.use("/", thongkevuotgioRoute)
+app.use("/", thongketonghopRoute)
 
 // Phần đồ án
 app.use("/", doAnChinhThucRoute);
 app.use("/", vuotGioImportDoAnRoute);
-app.use("/", vuotGioExportDoAnRoute);
 app.use("/", vuotGioDoAnDuKienRoute);
 app.use("/", doAnHopDongDuKienRoute);
+app.use("/", hopDongDARoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);

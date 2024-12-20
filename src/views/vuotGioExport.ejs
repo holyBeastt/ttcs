@@ -11,7 +11,87 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+  <style>
+    .teacher-group {
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+      border-collapse: separate;
+      margin-bottom: 10px;
+    }
 
+    .teacher-group td,
+    .teacher-group th {
+      padding: 8px;
+      text-align: left;
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+
+    }
+
+    .suggestions {
+      position: absolute;
+      /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
+      top: calc(100% + 5px);
+      /* Đặt gợi ý phía trên input với một khoảng cách */
+      font-size: 12px;
+      left: 0;
+      background-color: #f0f0f0;
+      color: #000;
+      border: 1px solid #ccc;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      /* Đảm bảo gợi ý nằm trên các thành phần khác */
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    /* Hiệu ứng lung linh khi hover */
+    .suggestions:hover {
+      background-color: #e0e0e0;
+      /* Thay đổi màu nền khi hover */
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      /* Tăng độ bóng khi hover */
+    }
+
+
+    /* CSS cho từng mục gợi ý */
+    .suggestion-item {
+      padding: 8px 12px;
+      /* Khoảng cách bên trong từng mục */
+      cursor: pointer;
+      /* Con trỏ chuột thay đổi khi hover */
+      transition: background-color 0.2s ease;
+      /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
+    }
+
+    /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
+    .suggestion-item:hover {
+      background-color: #f0f0f0;
+      /* Màu nền khi hover */
+    }
+
+    /* Đặt lại một số thuộc tính khi input mất focus */
+    input:focus+.suggestions {
+      display: block;
+      /* Đảm bảo khung hiển thị khi input được focus */
+    }
+
+    /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
+    .suggestions {
+      overflow: hidden;
+    }
+
+    #search-teacher {
+      margin-top: 20px;
+      /* Hạ thấp ô tìm kiếm giảng viên xuống 1 pixel */
+    }
+
+    #exportButton {
+      margin-top: 35px;
+      /* Hạ thấp nút xuất xuống 2 pixel */
+    }
+  </style>
 </head>
 
 <body>
@@ -82,7 +162,7 @@
                 <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -128,11 +208,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -144,7 +225,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
@@ -258,6 +339,16 @@
         <script>
           document.addEventListener("DOMContentLoaded", () => {
             const isKhoa = localStorage.getItem("isKhoa");
+            const role = localStorage.getItem("userRole");
+
+            // Ẩn button import đồ án
+            const importDoAn = document.getElementById('importDoAn');
+            const suaHD = document.getElementById('suaHD');
+
+            if (isKhoa == 0 && role == 'Duyệt'){
+              importDoAn.style.display = 'block';
+              suaHD.style.display = 'block';
+            }
 
             // Ẩn button ngay khi trang được tải
             const actionButton = document.getElementById('actionButton');
@@ -277,8 +368,8 @@
 
 
             //Ẩn site duyệt
-            const Quyen = localStorage.getItem("userRole");
-            if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+
+            if (role === "Lãnh đạo khoa" || role === "Duyệt") {
               actionButton3.style.display = '';
             } else {
               actionButton3.style.display = 'none';
@@ -434,15 +525,15 @@
               const suggestionsContainer = document.createElement('div');
               suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
       
-              // Đặt vị trí cho suggestionsContainer
-              const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-              suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-              suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-              suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-              suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-              suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-              suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-              suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
+       // Đặt vị trí cho suggestionsContainer
+       const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
+            suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
+            suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
+            suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
+            suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
+            suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
+            suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
+            suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
       
               // Thêm suggestionsContainer vào DOM
               document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
@@ -508,12 +599,12 @@
 
 <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
+        const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (role === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/gvmList.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
   <style>
     .teacher-group {
       border: 2px solid black;
@@ -25,6 +26,10 @@
       border: 2px solid black;
       /* Viền đen xung quanh nhóm giảng viên */
 
+    }
+
+    .btn {
+      height: 45px;
     }
 
     .suggestions {
@@ -80,12 +85,6 @@
     .suggestions {
       overflow: hidden;
     }
-    #search-teacher {
-      margin-top: 20px; /* Hạ thấp ô tìm kiếm giảng viên xuống 1 pixel */
-    }
-    #exportButton {
-    margin-top: 30px; /* Hạ thấp nút xuất xuống 2 pixel */
-  }
   </style>
 </head>
 
@@ -153,10 +152,10 @@
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
                 <a class="nav-link '" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <li class="nav-item"></li>
-                <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
+                <a class="nav-link " href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -167,10 +166,11 @@
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
 
               </div>
             </div>
@@ -196,16 +196,17 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link active" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -217,23 +218,25 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
             </div>
           </div>
+
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Hệ Thống
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="log">Xem File Log</a>
+                <a class="nav-link" id="" href="/log">Xem File Log</a>
               </div>
             </div>
           </div>
+
         </ul>
         <div class="navbar-nav">
           <div class="nav-item dropdown">
@@ -242,9 +245,9 @@
               Hi, Lê Đức Thuận
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -252,72 +255,81 @@
       </div>
     </div>
   </nav>
-  <div class="container mt-4">
-    <div class="col-12">
-      <!-- Tiêu đề -->
-      <h2 class="text-center mb-4">Hợp đồng đồ án giảng viên mời</h2>
 
-      <!-- Container chính -->
-      <div class="controls-container d-flex align-items-center">
-        <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
-          <option value="1">Đợt 1</option>
-          <option value="2">Đợt 2</option>
-        </select>
 
-        <select class="form-select w-100px mx-2 selectop" id="combobox-ki">
-          <option value="1">Kỳ 1</option>
-          <option value="2">Kỳ 2</option>
-        </select>
+  <div class="d-flex justify-content-center">
+    <!-- Main content -->
+    <div class="gvmList">
+      <div class="m-3">
+        <h1>HỢP ĐỒNG GIẢNG VIÊN MỜI</h1>
 
-        <select class="form-select w-100px mx-2 selectop" id="NamHoc">
-          <option value="">Năm học</option>
-        </select>
-        <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
-          <option value="">Chọn khoa</option>
-        </select>
+        <div class="controls-container d-flex align-items-center">
+          <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
         
-        <input type="text" class="form-control w-200px mx-2" id="search-teacher" 
-        oninput="showSuggestionsGvm(this)" onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên" style="height: 45px;">
+          </select>
+<!-- 
+          <select class="form-select w-100px mx-2 selectop" id="comboboxki">
+          </select> -->
 
-        <div class="d-flex justify-content-center">
-          <!-- Nút xuất dữ liệu với style được cải thiện -->
-          <button id="exportButton" class="btn btn-primary btn-lg hover-shadow">
-            <i class="fas fa-file-export me-2"></i>
-            Xuất dữ liệu hợp đồng đồ án giảng viên mời
-          </button>
+          <select class="form-select mx-2 selectop" style="width: max-content;" id="NamHoc">
+          </select>
+          <select class="form-select mx-2 selectop" style="width: max-content;" id="MaPhongBan">
+            <option value="">Chọn khoa</option>
+          </select>
+          <input type="text" class="form-control w-200px mx-2" id="search-teacher" oninput="showSuggestionsGvm(this)" onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên">
+
+          <select id="loaiHopDong" name="loaiHopDong" class="form-select w-200px mx-2 selectop">
+         
+            <option value="Đồ án">Đồ án</option>
+          </select>
+
+          <button type="button" class="btn mx-2" id="exportButton2"><i class="fas fa-file-export me-2"></i>Xuất Hợp
+            Đồng</button>
         </div>
-
-        <div id="dataContainer" data-gvm-list='<%= JSON.stringify(gvmoiList) %>'></div>
-
      
-  <script>
-    document.getElementById('exportButton').addEventListener('click', function() {
-        const dot = document.getElementById("combobox-dot").value;
-        const ki = document.getElementById("combobox-ki").value;
-        const namHoc = document.getElementById("NamHoc").value;
-        const khoa = document.getElementById("MaPhongBan").value;
-        const teacherName = document.getElementById("search-teacher").value;
+        <script>
+          // Trong file exportHD.ejs
+          document.getElementById("exportButton2").addEventListener("click", function () {
+            const dot = document.getElementById("combobox-dot").value;
+            // const ki = document.getElementById("comboboxki").value;
+            const namHoc = document.getElementById("NamHoc").value;
+            const khoa = document.getElementById("MaPhongBan").value;
+            const teacherName = document.getElementById("search-teacher").value;
+            const loaiHopDong = document.getElementById("loaiHopDong").value; // Lấy giá trị từ combobox "Loại hợp đồng"
+        
+            if (!dot ||  !namHoc) {
+              alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
+              return;
+            }
+        
+            let url = `/exportHDDA/Dowload?dot=${encodeURIComponent(dot)}&namHoc=${encodeURIComponent(namHoc)}`;
+        
+            if (khoa) {
+              url += `&khoa=${encodeURIComponent(khoa)}`;
+            }
+        
+            if (teacherName) {
+              url += `&teacherName=${encodeURIComponent(teacherName)}`;
+            }
+        
+            // Thêm loại hợp đồng vào URL
+            if (loaiHopDong) {
+              url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
+            }
+        
+            window.location.href = url;
+          });
+        </script>
+        </form>
+      </div>
+    </div>
 
-        if (!dot || !ki || !namHoc) {
-            alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học.");
-            return;
-        }
+    </form>
+  </div>
+  </div>
 
-        // Tạo URL với các tham số
-        let url = `/api/export-hop-dong-do-an-gvm?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
 
-        if (khoa) {
-            url += `&khoa=${encodeURIComponent(khoa)}`;
-        }
 
-        if (teacherName) {
-            url += `&teacherName=${encodeURIComponent(teacherName)}`;
-        }
-
-        // Chuyển hướng trực tiếp đến URL để tải file
-        window.location.href = url;
-    });
-</script>
 
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -331,8 +343,6 @@
 
     function hideButton() {
       const isKhoa = localStorage.getItem("isKhoa");
-      const Quyen = localStorage.getItem("userRole");
-
       if (isKhoa === null) {
         console.log('Không tìm thấy giá trị isKhoa trong localStorage');
       } else {
@@ -343,22 +353,32 @@
         const actionButton2 = document.getElementById('actionButton2');
         const actionButton3 = document.getElementById('actionButton3');
 
+        // Ẩn button import đồ án
+        const importDoAn = document.getElementById('importDoAn');
+        const suaHD = document.getElementById('suaHD');
+
+        if (isKhoa == 0 && role == 'Duyệt'){
+          importDoAn.style.display = 'block';
+          suaHD.style.display = 'block';
+        }
+
         if (actionButton1 && actionButton2) {
           if (isKhoa === "0") {
             actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
             actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+            console.log('Nút actionButton1 đã được ẩn, actionButton2 đã được hiển thị');
           } else {
             actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
             actionButton2.style.display = 'none'; // Ẩn actionButton2
-            if (Quyen.toLowerCase() == 'gv'){
-              actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
-            }
+            console.log('Nút actionButton1 đã được hiển thị, actionButton2 đã được ẩn');
           }
         } else {
           console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
         }
+
         //Ẩn site duyệt lớp gk
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        const role = localStorage.getItem("userRole");
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -409,6 +429,7 @@
 
         if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
           window.location.href = "/info2";
+
         } else {
           window.location.href = "/info";
         }
@@ -445,6 +466,38 @@
         // Hiển thị tên người dùng trên phần tử HTML
         document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
       } else {
+        window.location.href = "/info";
+      }
+    };
+
+    // Thêm sự kiện click cho phần tử có id="Home"
+
+    const Home = document.getElementById("Home");
+
+    Home.addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+      const isKhoa = localStorage.getItem("isKhoa")
+
+      if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
+        window.location.href = "/maindt";
+      } else {
+        window.location.href = "/mainkhoa";
+      }
+    });
+
+
+  </script>
+
+  <script>
+    window.onload = function () {
+      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+      const Role = localStorage.getItem("userRole");
+
+      if (TenNhanVien) {
+        // Hiển thị tên người dùng trên phần tử HTML
+        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
+      } else {
         document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
       }
 
@@ -452,32 +505,7 @@
 
     };
   </script>
-  <!-- <script>
-    document.getElementById('exportButton').addEventListener('click', function () {
-      // Gọi API hoặc xử lý dữ liệu để xuất
-      exportData();
-    });
 
-    function exportData() {
-      // Gửi yêu cầu xuất dữ liệu đến server
-      fetch('/api/export-phu-luc-giang-vien-moi', {
-        method: 'GET',
-      })
-        .then(response => response.blob())
-        .then(blob => {
-          // Tạo một URL cho blob và tải xuống file
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = 'phu_luc_giang_vien_moi.xlsx';
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-        })
-        .catch(error => console.error('Lỗi khi xuất dữ liệu:', error));
-    }
-  </script> -->
   <script>
     document.getElementById("changePasswordLink").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
@@ -491,10 +519,49 @@
       }
     });
   </script>
+
+  <script>
+    $(document).ready(function () {
+      // Xóa tùy chọn rỗng nếu có
+      $('#NamHoc option[value=""]').remove();
+
+      $.ajax({
+        url: '/getNamHoc',
+        method: 'GET',
+        success: function (response) {
+          if (response.success) {
+            const namHocList = response.NamHoc; // Giả sử NamHoc là một mảng
+            console.log(namHocList);
+
+            // Xóa tất cả các tùy chọn hiện có để tránh trùng lặp
+            $('#NamHoc').empty();
+
+            // Thêm các tùy chọn từ dữ liệu trả về
+            namHocList.forEach(function (item) {
+              $('#NamHoc').append(
+                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+              );
+            });
+
+            // Kiểm tra và thêm tùy chọn mặc định nếu không có tùy chọn nào được chọn
+            if ($('#NamHoc option:selected').length === 0) {
+              $('#NamHoc').prepend('<option value="">Chọn Năm Học</option>');
+            }
+          } else {
+            console.error("Không thể lấy năm học:", response.message);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+    });
+  </script>
+
   <script>
     $(document).ready(function () {
       $('#NamHoc option[value=""]').remove();
-      $('#combobox-ki option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
       $('#combobox-dot option[value=""]').remove();
 
       $.ajax({
@@ -512,7 +579,7 @@
 
             response.Ki.forEach(function (item) {
               console.log(item.Ki);
-              $('#combobox-ki').append(
+              $('#comboboxki').append(
                 `<option value="${item.value}">${item.Ki}</option>`
               );
             });
@@ -533,6 +600,9 @@
       });
     });
   </script>
+
+
+
   <script>
     $(document).ready(function () {
       $('#MaPhongBan option[value=""]').remove();
@@ -569,13 +639,12 @@
       });
     });
   </script>
+
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-    //const gvmList = <%- JSON.stringify(gvmoiList) %>;
-    const gvmList = JSON.parse(document.getElementById("dataContainer").getAttribute("data-gvm-list"));
-
-    localStorage.setItem("gvmList", JSON.stringify(gvmList));
-    console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
+  const gvmList = <%- JSON.stringify(gvmoiList) %>;
+  localStorage.setItem("gvmList", JSON.stringify(gvmList));
+  console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
 
     // Hàm gợi ý bộ môn ở ô nhập 
     function showSuggestionsGvm(input) {
@@ -607,7 +676,6 @@
 
       suggestions = gvmList.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
 
-      console.log("value= " + value);
 
       // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
       if (value) {
@@ -648,11 +716,9 @@
           // Điền tên gợi ý đã xử lý vào ô input
           input.value = processedName;
           // filterBoMon();
-          /*
           if (input.id == 'search-teacher') {
             filterKhoa();
           }
-            */
           hideSuggestionsGvm(); // Ẩn gợi ý sau khi chọn
         };
 
@@ -672,40 +738,43 @@
     function hideSuggestionsGvm() {
       const existingSuggestions = document.querySelectorAll('.suggestions');
       existingSuggestions.forEach(suggestion => suggestion.remove());
-    }  
+    }
+
+    // calculateTotals();
+
 
   </script>
   <script>
-    document.getElementById("infome").addEventListener("click", function(event) {
+    document.getElementById("infome").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
       if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
       } else {
-          alert("Không tìm thấy id_User trong localStorage.");
+        alert("Không tìm thấy id_User trong localStorage.");
       }
     });
   </script>
-  
-<script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
   <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      const role = localStorage.getItem("userRole");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (role === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
         if (MaPhongBan) {
             // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
@@ -715,6 +784,9 @@
         }
       });
     </script>
-  </body>
 
+
+
+  </body>
+          
 </html>

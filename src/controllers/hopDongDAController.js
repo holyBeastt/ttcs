@@ -222,151 +222,138 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const { dot,namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
-    if (!dot || !ki || !namHoc) {
-      return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    if (!dot || !namHoc) {
+      return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
     }
 
     connection = await createPoolConnection();
+    let query = `
+SELECT 
+  gv.CCCD,
+  gv.DienThoai,
+  gv.Email,
+  gv.MaSoThue,
+  gv.HoTen,
+  gv.NgaySinh,
+  gv.NgayCapCCCD,
+  gv.GioiTinh,
+gv.STK,
+  gv.HocVi,
+  gv.ChucVu,
+  gv.HSL,
+  gv.NoiCapCCCD,
+  gv.DiaChi ,
+  gv.NganHang,
+  gv.NoiCongTac,
+  ed.Dot, -- Thêm cột Dot từ bảng exportdoantotnghiep
+  ed.KhoaDaoTao, -- Thêm cột KhoaDaoTao từ bảng exportdoantotnghiep
+  MIN(ed.NgayBatDau) AS NgayBatDau,
+  MAX(ed.NgayKetThuc) AS NgayKetThuc,
+  SUM(ed.SoTiet) AS SoTiet,
+  ed.NamHoc,
+  gv.MaPhongBan
+FROM 
+  gvmoi gv
+JOIN 
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+WHERE 
+  ed.Dot = ?  AND ed.NamHoc = ?
+GROUP BY 
+  gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
+  gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+`;
 
-    let query = `SELECT
-    hd.id_Gvm,
-    hd.DienThoai,
-    hd.Email,
-    hd.MaSoThue,
-    hd.DanhXung,
-    hd.HoTen,
-    hd.NgaySinh,
-    hd.HocVi,
-    hd.ChucVu,
-    hd.HSL,
-    hd.CCCD,
-    hd.NoiCapCCCD,
-    hd.DiaChi,
-    hd.STK,
-    hd.NganHang,
-    MIN(hd.NgayBatDau) AS NgayBatDau,
-    MAX(hd.NgayKetThuc) AS NgayKetThuc,
-    SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
-    hd.NgayCap,
-    hd.ThucNhan,
-    hd.NgayNghiemThu,
-    hd.Dot,
-    hd.KiHoc,
-    hd.NamHoc,
-    hd.MaPhongBan,
-    hd.MaBoMon,
-    gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
-  FROM
-    hopdonggvmoi hd
-  JOIN
-    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-  WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ?
-  GROUP BY
-    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-    
-    let params = [dot, ki, namHoc];
+let params = [dot, namHoc];
 
-    // Xử lý các trường hợp khác nhau
-    if (khoa && khoa !== "ALL") {
-       query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-    WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`];
-    }
-    if (teacherName) {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-    WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-    
-      params = [dot, ki, namHoc, `%${teacherName}%`];
-    }
+// Xử lý trường hợp có khoa
+if (khoa && khoa !== "ALL") {
+  query = `
+  SELECT 
+    gv.CCCD,
+    gv.DienThoai,
+    gv.Email,
+    gv.MaSoThue,
+    gv.HoTen,
+    gv.NgaySinh,
+    gv.GioiTinh,
+    gv.HocVi,
+    gv.NgayCapCCCD,
+    gv.ChucVu,
+    gv.STK,
+    gv.HSL,
+    gv.NoiCapCCCD,
+    gv.DiaChi ,
+    gv.NganHang,
+    gv.NoiCongTac,
+    ed.Dot,
+    ed.KhoaDaoTao,
+    MIN(ed.NgayBatDau) AS NgayBatDau,
+    MAX(ed.NgayKetThuc) AS NgayKetThuc,
+    SUM(ed.SoTiet) AS SoTiet,
+    ed.NamHoc,
+    gv.MaPhongBan
+  FROM 
+    gvmoi gv
+  JOIN 
+    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+  WHERE 
+    ed.Dot = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+  GROUP BY 
+    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
+    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+  `;
+  params = [dot, namHoc, `%${khoa}%`];
+}
 
-    const [teachers] = await connection.execute(query, params);
+// Xử lý trường hợp có teacherName
+if (teacherName) {
+  query = `
+  SELECT 
+    gv.CCCD,
+    gv.DienThoai,
+    gv.Email,
+    gv.MaSoThue,
+    gv.HoTen,
+    gv.NgaySinh,
+        gv.NgayCapCCCD,
+gv.GioiTinh,
+    gv.HocVi,
+    gv.ChucVu,
+    gv.HSL,
+    gv.NoiCapCCCD,
+    gv.DiaChi ,
+    gv.STK,
+    gv.NganHang,
+    gv.NoiCongTac,
+    ed.Dot,
+    ed.KhoaDaoTao,
+    MIN(ed.NgayBatDau) AS NgayBatDau,
+    MAX(ed.NgayKetThuc) AS NgayKetThuc,
+    SUM(ed.SoTiet) AS SoTiet,
+    ed.NamHoc,
+  gv.MaPhongBan
+  FROM 
+    gvmoi gv
+  JOIN 
+    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+  WHERE 
+    ed.Dot = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+  GROUP BY 
+    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
+    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac,gv.STK, gv.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+  `;
+  params = [dot, namHoc, `%${teacherName}%`];
+}
+const [teachers] = await connection.execute(query, params);
 
     if (!teachers || teachers.length === 0) {
       return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportHD';</script>"
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/hopDongDA';</script>"
       );
     }
 
@@ -395,6 +382,33 @@ const exportMultipleContracts = async (req, res) => {
   } else {
     mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
   }
+  const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
+
+  let danhXung;
+
+// Giả sử bạn có biến gioiTinh chứa giá trị giới tính
+if (gioiTinh === "Nam") {
+    danhXung = "Ông";
+} else if (gioiTinh === "Nữ") {
+    danhXung = "Bà";
+} else {
+    danhXung = ""; // Hoặc có thể gán một giá trị mặc định khác
+}
+const maPhongBan = teacher.MaPhongBan; // Đảm bảo rằng bạn đang lấy giá trị đúng
+
+let tenNganh;
+
+// Giả sử bạn có biến maPhongBan chứa mã ngành
+if (maPhongBan === "ATTT") {
+    tenNganh = "An toàn thông tin";
+} else if (maPhongBan === "DVVT") {
+    tenNganh = "Điện tử viễn thông";
+} else if (maPhongBan === "CNTT") {
+    tenNganh = "Công Nghệ Thông tin";
+} else {
+    tenNganh = "Không xác định"; // Hoặc có thể gán một giá trị mặc định khác
+}
+
       const tienText = soTiet * 100000;
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
@@ -410,7 +424,7 @@ const exportMultipleContracts = async (req, res) => {
         Danh_xưng: teacher.DanhXung,
         Họ_và_tên: teacher.HoTen,
         CCCD: teacher.CCCD,
-        Ngày_cấp: formatDate1(teacher.NgayCap),
+        Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
@@ -428,7 +442,7 @@ const exportMultipleContracts = async (req, res) => {
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
-        Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
+        Đợt: teacher.Dot, 
         Năm_học: teacher.NamHoc, // Thêm trường NamHocs
         Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
         Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
@@ -438,7 +452,8 @@ const exportMultipleContracts = async (req, res) => {
         Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-
+        Khóa:teacher.KhoaDaoTao,
+        Ngành:tenNganh,
       };
  // Chọn template dựa trên loại hợp đồng
  let templateFileName;
@@ -483,7 +498,7 @@ const templatePath = path.resolve(__dirname, "../templates", templateFileName);
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
+    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${
       khoa || "all"
     }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
@@ -527,7 +542,7 @@ const templatePath = path.resolve(__dirname, "../templates", templateFileName);
   }
 };
 
-const getExportHDSite = async (req, res) => {
+const gethopDongDASite = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -536,7 +551,7 @@ const getExportHDSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("exportHD", {
+    res.render("hopDongDA", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
 
     });
@@ -550,6 +565,6 @@ const getExportHDSite = async (req, res) => {
 
 module.exports = {
   exportMultipleContracts,
-  getExportHDSite,
+  gethopDongDASite,
   
 };

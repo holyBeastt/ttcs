@@ -8,20 +8,16 @@ router.get('/tableQC', (req, res) => {
   res.render('tableQC'); // render file 'tableQC.ejs' trong thư mục 'views'
 });
 
-router.get('/tableTam', (req, res) => {
-  res.render('tableTam'); // render file 'tableQC.ejs' trong thư mục 'views'
-});
-
-// Route để lấy dữ liệu từ bảng quy chuẩn
-router.get('/bang-tam', async (req, res) => {
-  try {
-    const data = await obj.getTableTam(); // Gọi hàm lấy dữ liệu
-    res.json(data); // Trả về dữ liệu dưới dạng JSON
-  } catch (error) {
-    console.error('Lỗi khi lấy dữ liệu:', error);
-    res.status(500).json({ error: 'Đã xảy ra lỗi khi lấy dữ liệu.' }); // Trả về lỗi nếu có
-  }
-});
+// // Route để lấy dữ liệu từ bảng quy chuẩn
+// router.get('/bang-tam', async (req, res) => {
+//   try {
+//     const data = await obj.getTableTam(); // Gọi hàm lấy dữ liệu
+//     res.json(data); // Trả về dữ liệu dưới dạng JSON
+//   } catch (error) {
+//     console.error('Lỗi khi lấy dữ liệu:', error);
+//     res.status(500).json({ error: 'Đã xảy ra lỗi khi lấy dữ liệu.' }); // Trả về lỗi nếu có
+//   }
+// });
 
 // Route để lấy dữ liệu từ bảng quy chuẩn
 router.get('/bang-qc', async (req, res) => {

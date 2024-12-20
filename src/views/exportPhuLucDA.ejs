@@ -86,7 +86,7 @@
       /* Hạ thấp ô tìm kiếm giảng viên xuống 1 pixel */
     }
 
-    #exportButton {
+    #exportButton1 {
       margin-top: 30px;
       /* Hạ thấp nút xuất xuống 2 pixel */
     }
@@ -147,7 +147,7 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle " href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Mời Giảng
               </a>
@@ -157,7 +157,7 @@
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
                 <a class="nav-link '" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <li class="nav-item"></li>
-                <a class="nav-link active" href="/phulucHD">Phụ lục hợp đồng</a>
+                <a class="nav-link " href="/phulucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
                 <a class="nav-link  " href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
@@ -202,16 +202,16 @@
           </div>
           <div class="navbar-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 Đồ Án
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <div class="dropdown-menu active" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link active" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
                 <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
                 <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
@@ -263,24 +263,22 @@
   <div class="container mt-4">
     <div class="col-12">
       <!-- Tiêu đề -->
-      <h2 class="text-center mb-4">Phụ Lục Hợp Đồng Giảng Viên</h2>
+      <h2 class="text-center mb-4">Phụ Lục Đồ Án</h2>
 
       <!-- Container chính -->
       <div class="controls-container d-flex align-items-center">
         <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
-          <option value="1">Đợt 1</option>
-          <option value="2">Đợt 2</option>
+     
         </select>
 
-        <select class="form-select w-100px mx-2 selectop" id="comboboxki">
-          <option value="1">Kỳ 1</option>
-          <option value="2">Kỳ 2</option>
-        </select>
+        <!-- <select class="form-select w-100px mx-2 selectop" id="comboboxki">
+        
+        </select> -->
 
-        <select class="form-select mx-2 selectop" style="width: max-content;" id="NamHoc">
+        <select class="form-select w-100px mx-2 selectop" id="NamHoc">
           <option value="">Năm học</option>
         </select>
-        <select class="form-select mx-1 selectop" style="width: max-content;" id="MaPhongBan">
+        <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
           <option value="">Chọn khoa</option>
         </select>
 
@@ -289,9 +287,9 @@
 
         <div class="d-flex justify-content-center">
           <!-- Nút xuất dữ liệu với style được cải thiện -->
-          <button id="exportButton" class="btn btn-primary btn-lg hover-shadow">
+          <button id="exportButton1" class="btn btn-primary btn-lg hover-shadow">
             <i class="fas fa-file-export me-2"></i>
-            Xuất dữ liệu phụ lục giảng viên mời
+            Xuất dữ liệu phụ lục 
           </button>
         </div>
 
@@ -301,20 +299,20 @@
 
 
         <script>
-          document.getElementById('exportButton').addEventListener('click', function () {
+          document.getElementById('exportButton1').addEventListener('click', function () {
             const dot = document.getElementById("combobox-dot").value;
-            const ki = document.getElementById("comboboxki").value;
+            // const ki = document.getElementById("comboboxki").value;
             const namHoc = document.getElementById("NamHoc").value;
             const khoa = document.getElementById("MaPhongBan").value;
             const teacherName = document.getElementById("search-teacher").value;
 
-            if (!dot || !ki || !namHoc) {
-              alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học.");
+            if (!dot || !namHoc) {
+              alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
               return;
             }
 
             // Tạo URL với các tham số
-            let url = `/api/export-phu-luc-giang-vien-moi?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
+            let url = `/api/export-phu-luc-DA?dot=${encodeURIComponent(dot)}&namHoc=${encodeURIComponent(namHoc)}`;
 
             if (khoa) {
               url += `&khoa=${encodeURIComponent(khoa)}`;
@@ -353,15 +351,6 @@
               const actionButton2 = document.getElementById('actionButton2');
               const actionButton3 = document.getElementById('actionButton3');
 
-              // Ẩn button import đồ án
-              const importDoAn = document.getElementById('importDoAn');
-              const suaHD = document.getElementById('suaHD');
-
-              if (isKhoa == 0 && role == 'Duyệt'){
-                importDoAn.style.display = 'block';
-                suaHD.style.display = 'block';
-              }
-
               if (actionButton1 && actionButton2) {
                 if (isKhoa === "0") {
                   actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
@@ -376,6 +365,16 @@
               } else {
                 console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
               }
+
+              // Ẩn button import đồ án
+              const importDoAn = document.getElementById('importDoAn');
+              const suaHD = document.getElementById('suaHD');
+
+              if (isKhoa == 0 && role == 'Duyệt'){
+                importDoAn.style.display = 'block';
+                suaHD.style.display = 'block';
+              } 
+              
               //Ẩn site duyệt lớp gk
               if (role === "Lãnh đạo khoa" || role === "Duyệt") {
                 actionButton3.style.display = '';
@@ -471,32 +470,7 @@
 
           };
         </script>
-        <!-- <script>
-    document.getElementById('exportButton').addEventListener('click', function () {
-      // Gọi API hoặc xử lý dữ liệu để xuất
-      exportData();
-    });
-
-    function exportData() {
-      // Gửi yêu cầu xuất dữ liệu đến server
-      fetch('/api/export-phu-luc-giang-vien-moi', {
-        method: 'GET',
-      })
-        .then(response => response.blob())
-        .then(blob => {
-          // Tạo một URL cho blob và tải xuống file
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = 'phu_luc_giang_vien_moi.xlsx';
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-        })
-        .catch(error => console.error('Lỗi khi xuất dữ liệu:', error));
-    }
-  </script> -->
+       
         <script>
           document.getElementById("changePasswordLink").addEventListener("click", function (event) {
             event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
@@ -644,7 +618,7 @@
               const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
               suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
               suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
-0
+
               // Thêm sự kiện click để điền tên vào ô input
               // Thêm sự kiện click để điền tên vào ô input
               suggestionItem.onclick = function () {
@@ -713,6 +687,7 @@
         <script>
           document.addEventListener("DOMContentLoaded", () => {
             const role = localStorage.getItem("userRole");
+            const isKhoa = localStorage.getItem("isKhoa");
 
             // Ẩn button ngay khi trang được tải
             const actionButton = document.getElementById('changeMessage');

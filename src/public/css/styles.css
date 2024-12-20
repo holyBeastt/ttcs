@@ -158,6 +158,76 @@ body {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
 }
 
+.navbar-nav .dropdown:hover .dropdown-menu {
+  display: block;
+  margin-top: 0 !important;
+  /* Đảm bảo menu hiển thị ngay bên dưới */
+  padding-top: 0 !important;
+  /* Xóa padding trên cùng nếu có */
+}
+
+.dropdown-menu {
+  margin-top: 0 !important;
+  /* Không để khoảng trống phía trên */
+  padding: 0;
+  /* Xóa mọi padding không cần thiết */
+  width: max-content;
+  display: none;
+  display: none;
+}
+
+.dropdown-item1, .dropdown-submenu {
+  display: block;
+  width: 100%;
+  padding: var(--#{$prefix}dropdown-item-padding-y) var(--#{$prefix}dropdown-item-padding-x);
+  clear: both;
+  font-weight: $font-weight-normal;
+  color: white;
+  text-align: inherit;
+  text-decoration: if($link-decoration == none, null, none);
+  white-space: nowrap;
+  background-color: #3eacff; 
+  cursor: pointer;
+}
+.dropdown-item1{
+  width: 100px;
+  height: 30px;
+  font-size: 20;
+  text-align: center;
+  padding-top: 3px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  color: white !important;
+  background-color: #3eacff;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-top: 0;
+  margin-left: 0.1rem;
+  z-index: 1000;
+
+}
+.dropdown-menu1{
+  color: white !important;
+  background-color: #3eacff;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%; 
+  z-index: 1000;
+}
+.dropdown-submenu:hover .dropdown-menu1 {
+  display: block;
+}
+.dropdown-menu .dropdown-item1:hover {
+  background-color: #2d7fbe;
+  color: white;
+} 
 .login {
   color: red;
   font-weight: bold;

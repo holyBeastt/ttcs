@@ -202,11 +202,13 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -218,7 +220,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
@@ -358,8 +360,8 @@
               console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
             }
             //Ẩn site duyệt lớp gk
-            const Quyen = localStorage.getItem("userRole");
-            if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+            const role = localStorage.getItem("userRole");
+            if (role === "Lãnh đạo khoa" || role === "Duyệt") {
               actionButton3.style.display = '';
             } else {
               actionButton3.style.display = 'none';
@@ -442,42 +444,6 @@
 
       <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
       <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-      <!-- <script>
-        // Tìm kiếm giảng viên mời theo tên
-        function searchClass() {
-          let input = document.getElementById("searchInput").value.toLowerCase();
-          let table = document.getElementById("classTable");
-          let tr = table.getElementsByTagName("tr");
-
-          for (let i = 1; i < tr.length; i++) {
-            let td = tr[i].getElementsByTagName("td")[1];
-            if (td) {
-              let textValue = td.textContent || td.innerText;
-              if (textValue.toLowerCase().indexOf(input) > -1) {
-                tr[i].style.display = "";
-              } else {
-                tr[i].style.display = "none";
-              }
-            }
-          }
-        }
-
-
-        // Đóng modal
-        function closeModal() {
-          document.getElementById("modal").style.display = "none";
-        }
-
-        // Thêm sự kiện khi nhấn ra ngoài modal để đóng modal
-        window.onclick = function (event) {
-          let modal = document.getElementById("modal");
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
-        };
-
-      </script> -->
 
       <script>
         // Lấy query string từ URL
@@ -731,12 +697,22 @@
 
       <script>
         document.addEventListener("DOMContentLoaded", () => {
-          const Quyen = localStorage.getItem("userRole");
+          const role = localStorage.getItem("userRole");
+          const isKhoa = localStorage.getItem("isKhoa");
+
+          // Ẩn button import đồ án
+          const importDoAn = document.getElementById('importDoAn');
+          const suaHD = document.getElementById('suaHD');
+
+          if (isKhoa == 0 && role == 'Duyệt'){
+            importDoAn.style.display = 'block';
+            suaHD.style.display = 'block';
+          }
 
           // Ẩn button ngay khi trang được tải
           const actionButton = document.getElementById('changeMessage');
           //Ẩn site thêm thông báo
-          if (Quyen === "Duyệt") {
+          if (role === "Duyệt") {
             actionButton.style.display = '';
           } else {
             actionButton.style.display = 'none';

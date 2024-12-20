@@ -177,7 +177,7 @@
                 <a class="nav-link " href="/phuLucHD">Phụ lục hợp đồng</a>
                 </li>
                 <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-
+                <a class="nav-link" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
               </div>
             </div>
           </div>
@@ -223,11 +223,12 @@
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link active" id="" href="/importDoAn">Import đồ án</a>
+                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
                 <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
                 <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
                 <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportDoAn">Export hợp đồng đồ án</a>
+                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
+                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
               </div>
             </div>
           </div>
@@ -239,7 +240,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="#">Giảng viên cơ hữu</a>
+                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="#">Đồ Án</a>
                 <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
               </div>
@@ -430,13 +431,22 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const isKhoa = localStorage.getItem("isKhoa");
-      const Quyen = localStorage.getItem("userRole");
+      const role = localStorage.getItem("userRole");
 
       // Ẩn button ngay khi trang được tải
       const actionButton = document.getElementById('actionButton');
       const actionButton1 = document.getElementById('actionButton1');
       const actionButton2 = document.getElementById('actionButton2');
       const actionButton3 = document.getElementById('actionButton3');
+
+      // Ẩn button import đồ án
+      const importDoAn = document.getElementById('importDoAn');
+      const suaHD = document.getElementById('suaHD');
+
+      if (isKhoa == 0 && role == 'Duyệt'){
+        importDoAn.style.display = 'block';
+        suaHD.style.display = 'block';
+      }
 
       if (isKhoa == 0) {
         actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
@@ -445,12 +455,12 @@
       } else {
         actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
         actionButton2.style.display = 'none'; // Ẩn actionButton2
-        if (Quyen.toLowerCase() == 'gv'){
+        if (role.toLowerCase() == 'gv'){
           actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
         }
       }
       //Ẩn site duyệt lớp gk
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
           actionButton3.style.display = 'none';
@@ -490,7 +500,6 @@
               // Lấy bảng dữ liệu và lưu vào localstorage
               localStorage.setItem("tableData", JSON.stringify(data.content));
               // Gọi hàm renderTable để hiển thị dữ liệu
-              console.log(data.content)
               renderTable(data.content);
             } else {
               // Hiển thị thông báo nếu không có dữ liệu
@@ -506,6 +515,7 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan")
         const isKhoa = localStorage.getItem("isKhoa");
+        const duplicateGV = localStorage.getItem("duplicateGV");
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = ''; // Xóa nội dung cũ
 
@@ -545,7 +555,7 @@
           const giaoVienHuongDan1Td = document.createElement('td');
           const giaoVienHuongDan1Input = document.createElement('input');
           giaoVienHuongDan1Input.type = 'text';
-          giaoVienHuongDan1Input.placeholder = 'Nhập tên giảng viên 1';
+          giaoVienHuongDan1Input.placeholder = '';
           giaoVienHuongDan1Input.value = row.GiangVien1 || '';
           // Gán id cho input
           giaoVienHuongDan1Input.id = `GiangVien1-${id}`;
@@ -569,7 +579,7 @@
           const giaoVienHuongDan2Td = document.createElement('td');
           const giaoVienHuongDan2Input = document.createElement('input');
           giaoVienHuongDan2Input.type = 'text';
-          giaoVienHuongDan2Input.placeholder = 'Nhập tên giảng viên 2';
+          giaoVienHuongDan2Input.placeholder = '';
           giaoVienHuongDan2Input.value = row.GiangVien2 || '';
           // Gán id cho input
           giaoVienHuongDan2Input.id = `GiangVien2-${id}`;
@@ -594,12 +604,30 @@
           GiangVien1Real.textContent = row.GiangVien1Real || '';
           GiangVien1Real.id = `GiangVien1Real-${id}`;
           GiangVien1Real.style.display = 'none'; // Ẩn input bằng CSS
+
+
+          // Kiểm tra nếu GiangVien1Real nằm trong duplicateGV
+          if (duplicateGV.includes(GiangVien1Real.textContent)) {
+            giaoVienHuongDan1Td.style.backgroundColor = '#FFFACD'; // Vàng nhạt
+            giaoVienHuongDan1Td.style.border = '1px solid #FFD700'; // Thêm viền vàng đậm
+            giaoVienHuongDan1Td.style.borderRadius = '4px'; // Góc bo tròn cho đẹ
+            giaoVienHuongDan1Input.placeholder = 'TÊN GIẢNG VIÊN TRÙNG';
+          }
           tableRow.appendChild(GiangVien1Real);
 
           const GiangVien2Real = document.createElement('td');
           GiangVien2Real.textContent = row.GiangVien2Real || '';
           GiangVien2Real.id = `GiangVien2Real-${id}`;
           GiangVien2Real.style.display = 'none'; // Ẩn input bằng CSS
+
+          // Kiểm tra nếu GiangVien2Real nằm trong duplicateGV
+          if (duplicateGV.includes(GiangVien2Real.textContent) && row.GiangVien2!= 'không') {
+            giaoVienHuongDan2Td.style.backgroundColor = '#FFFACD'; // Vàng nhạt
+            giaoVienHuongDan2Td.style.border = '1px solid #FFD700'; // Thêm viền vàng đậm
+            giaoVienHuongDan2Td.style.borderRadius = '4px'; // Góc bo tròn cho đẹ
+            giaoVienHuongDan2Input.placeholder = 'TÊN GIẢNG VIÊN TRÙNG';
+          }
+
           tableRow.appendChild(GiangVien2Real);
 
 
@@ -1105,12 +1133,12 @@
   </script>
 <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const Quyen = localStorage.getItem("userRole");
+        const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (role === "Duyệt") {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

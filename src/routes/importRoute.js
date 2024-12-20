@@ -18,18 +18,22 @@ const upload = multer({
 });
 
 // render trang import
-router.get("/import", role.checkDaotaoRoleThiHanh, getMainHTML.getImport);
+router.get("/import",
+  // role.checkDaotaoRoleThiHanh, 
+  getMainHTML.getImport);
 
 // Route POST để xử lý upload 
 router.post(
   "/import",
-  role.checkDaotaoRoleThiHanh,
+  // role.checkDaotaoRoleThiHanh,
   upload.single("file"),
   obj.handleUploadAndRender
 );
 
 // Định tuyến cho POST request tới /index / save - data
-router.post("/save-data", role.checkDaotaoRoleThiHanh, async (req, res) => {
+router.post("/save-data", 
+  // role.checkDaotaoRoleThiHanh, 
+  async (req, res) => {
   try {
     // Gọi hàm xử lý dữ liệu import
     const result = await obj.importTableTam(req.body);
@@ -111,7 +115,10 @@ router.post("/viewtam", role.checkDaotaoRoleThiHanh, async (req, res) => {
 
 router.post("/get-table-tam", (req, res) => obj2.getTableTam(req, res));
 
-router.post("/kiem-tra-file", role.checkDaotaoRoleThiHanh, obj.checkFile);
+router.post("/kiem-tra-file", 
+  // role.checkDaotaoRoleThiHanh, 
+  obj.checkFile
+);
 
 router.post("/xoa-file", role.checkDaotaoRoleThiHanh, obj.deleteFile);
 
