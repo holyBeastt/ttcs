@@ -35,6 +35,7 @@ const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
+const thongketonghopRoute = require("./routes/thongketonghopRoute");
 
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
@@ -108,7 +109,7 @@ app.use("/", thongkedoanRoute);
 app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute)
-
+app.use("/", thongketonghopRoute)
 
 // Phần đồ án
 app.use("/", doAnChinhThucRoute);
