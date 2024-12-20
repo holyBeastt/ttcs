@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <style>
+    /* Định dạng cho bảng */
+    .table {
+        width: 70%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 20px;
+        font-size: 0.9em;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        overflow: hidden;
+        justify-self: center;
+    }
+
+    .table th,
+    .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        border-right: 2px solid #dee2e6;
+        border-left: 2px solid #dee2e6;
+    }
+
+    .table th {
+        background-color: blue;
+        color: white;
+        font-weight: bold;
+        border-right: 2px solid #fff;
+    }
+
+    .table th:last-child {
+        border-right: 2px solid #dee2e6;
+    }
+
+    .table tbody tr {
+        border-bottom: 1px solid #dddddd;
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #f3f3f3;
+    }
+
+    .table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f5f5f5;
+        transform: scale(1.01);
+    }
+
+    /* Định dạng cho biểu đồ */
+    #thongkemgCanvas {
+        width: 80%;
+        max-width: 1200px;
+        height: 400px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Định dạng cho tiêu đề */
+    h3 {
+        color: #009879;
+        text-align: center;
+        margin: 30px 0;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+    }
+
+    h3:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: #009879;
+    }
+
+    /* Định dạng cho tổng số tiết */
+    .total-label {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 20px auto;
+        width: fit-content;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        color: #009879;
+    }
+
+    .value {
+        color: #dc3545;
+        font-size: 1.1em;
+        margin-left: 5px;
+    }
+
+    /* Container cho các controls */
+    .controls-container {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 10px;
+        margin: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        #thongkemgCanvas {
+            width: 95%;
+            height: 300px;
+        }
+
+        .table {
+            font-size: 0.8em;
+        }
+    }
+
+    /* Thêm container cho 2 biểu đồ tất cả khoa */
+    .charts-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .chart-wrapper {
+        width: 48%;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+ <!-- Phần trên của navbar chứa logo và tiêu đề -->
+ <nav class="navbar-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+        <div class="navbar-title">
+          <img src="/dongchu_banner.png" alt="banner" />
+        </div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
+    <div class="" style="width: 100%;">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse " style="width: 100%;" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link " id="Home" href=""><i class="fa-solid fa-house"></i></a>
+          </li>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Giảng Viên Mời
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bng file</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Bảng Quy Chuẩn
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
+                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
+                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
+                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown" style="width: max-content;">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Mời Giảng
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+                <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
+                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+
+                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
+                <li class="nav-item"></li>
+                <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
+                </li>
+                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
+                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Vượt Giờ
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
+                <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
+                <a class="nav-link" href="/soTietDM">Số tiết định mức</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra già kỳ</a>
+                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
+
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Nghiên Cứu Khoa Học
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Đồ Án
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="#">COMING SOON</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Thống Kê
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/ThongkeMG">Mời Giảng</a>
+                <a class="nav-link active" id="" href="/thongkevuotgio">Vượt Giờ</a>
+                <a class="nav-link" id="" href="#">Đồ Án</a>
+                <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
+              </div>
+            </div>
+          </div>
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hệ Thống
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" id="" href="/log">Xem File Log</a>
+              </div>
+            </div>
+          </div>
+
+        </ul>
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Hi, Lê Đức Thuận
+            </a>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <div>
+    <h3>Thống kê tổng hợp</h3>
+    <canvas id="chart"></canvas>
+</div>
+
+<script>
+    async function fetchData() {
+        try {
+            const response = await fetch('/api/thongketonghop-data');
+            const data = await response.json();
+            console.log("Dữ liệu nhận được:", data);
+
+            const labels = data.map(item => item.Khoa);
+            const moiGiangData = data.map(item => item.TongSoTietMoiGiang);
+            const vuotGioData = data.map(item => item.TongSoTietVuotGio);
+
+            // Tạo biểu đồ
+            const ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Tổng số tiết mời giảng',
+                            data: moiGiangData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        },
+                        {
+                            label: 'Tổng số tiết vượt giờ',
+                            data: vuotGioData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        x: {
+                            stacked: true, // Chồng cột trên trục X
+                            title: {
+                                display: true,
+                                text: 'Khoa',
+                            },
+                        },
+                        y: {
+                            stacked: true, // Chồng cột trên trục Y
+                            title: {
+                                display: true,
+                                text: 'Số tiết',
+                            },
+                            beginAtZero: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            console.error("Lỗi khi tải dữ liệu:", error);
+        }
+    }
+
+    fetchData();
+</script>
+</body>
+</html>
