@@ -170,7 +170,7 @@ const exportPhuLucDA = async (req, res) => {
           gv.DiaChi
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE edt.Dot = ? AND edt.NamHoc = ? 
+      WHERE edt.Dot = ? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
     `;
 
     let params = [dot, namHoc];
@@ -201,7 +201,7 @@ const exportPhuLucDA = async (req, res) => {
       (acc[cur.GiangVien] = acc[cur.GiangVien] || []).push(cur);
       return acc;
     }, {});
-    const summarySheet = workbook.addWorksheet('Tổng hợp');
+    const summarySheet = workbook.addWorksheet("Tổng hợp");
 
     // Thiết lập các thông số cho trang
     summarySheet.pageSetup = {
@@ -260,23 +260,23 @@ const exportPhuLucDA = async (req, res) => {
 
     // Thiết lập tiêu đề cột
     const summaryHeader = [
-      'STT',
-      'Họ tên giảng viên',
-      'Tên đồ án ',
-      'Sinh viên thực hiện',
-      'Số tiết',
-      'Thời gian thực hiện',
-      'Địa chỉ',
-      'Học vị',
-      'Hệ số lương',
-      'Mức thanh toán',
-      'Thành tiền',
-      'Trừ thuế TNCN 10%',
-      'Còn lại',
+      "STT",
+      "Họ tên giảng viên",
+      "Tên đồ án ",
+      "Sinh viên thực hiện",
+      "Số tiết",
+      "Thời gian thực hiện",
+      "Địa chỉ",
+      "Học vị",
+      "Hệ số lương",
+      "Mức thanh toán",
+      "Thành tiền",
+      "Trừ thuế TNCN 10%",
+      "Còn lại",
     ];
 
     const headerRow = summarySheet.addRow(summaryHeader);
-    headerRow.font = { name: 'Times New Roman', bold: true };
+    headerRow.font = { name: "Times New Roman", bold: true };
 
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
@@ -311,8 +311,8 @@ const exportPhuLucDA = async (req, res) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -321,15 +321,17 @@ const exportPhuLucDA = async (req, res) => {
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet,
-          `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(item.NgayKetThuc)}`,
+          `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(
+            item.NgayKetThuc
+          )}`,
           //   convertToRoman(item.HocKy),
           item.DiaChi,
           hocViVietTat,
           item.HSL,
           100000, // Mức thanh toán
-          soTien.toLocaleString('vi-VN'), // Định dạng số tiền
-          truThue.toLocaleString('vi-VN'), // Định dạng số tiền
-          conLai.toLocaleString('vi-VN'), // Định dạng số tiền
+          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN"), // Định dạng số tiền
+          conLai.toLocaleString("vi-VN"), // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
@@ -389,7 +391,6 @@ const exportPhuLucDA = async (req, res) => {
           }
           cell.alignment = { horizontal: "center", vertical: "middle" }; // Căn giữa
           cell.alignment.wrapText = true; // Bật wrapText cho ô
-
         });
 
         stt++; // Tăng số thứ tự
@@ -408,9 +409,9 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
       "",
-      totalSoTien.toLocaleString('vi-VN'),
-      totalTruThue.toLocaleString('vi-VN'),
-      totalThucNhan.toLocaleString('vi-VN'),
+      totalSoTien.toLocaleString("vi-VN"),
+      totalTruThue.toLocaleString("vi-VN"),
+      totalThucNhan.toLocaleString("vi-VN"),
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
@@ -463,16 +464,11 @@ const exportPhuLucDA = async (req, res) => {
       };
     });
 
-
-
-
-
     // Tạo một sheet cho mỗi giảng viên
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       const worksheet = workbook.addWorksheet(giangVien);
 
       worksheet.addRow([]);
-
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
@@ -633,8 +629,8 @@ const exportPhuLucDA = async (req, res) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
