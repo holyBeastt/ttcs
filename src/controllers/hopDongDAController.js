@@ -383,7 +383,7 @@ const [teachers] = await connection.execute(query, params);
     mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
   }
   const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
-
+    
   let danhXung;
 
 // Giả sử bạn có biến gioiTinh chứa giá trị giới tính
@@ -421,7 +421,7 @@ if (maPhongBan === "ATTT") {
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
-        Danh_xưng: teacher.DanhXung,
+        Danh_xưng: danhXung,
         Họ_và_tên: teacher.HoTen,
         CCCD: teacher.CCCD,
         Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
