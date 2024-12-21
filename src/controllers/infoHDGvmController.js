@@ -484,7 +484,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ?
+        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -535,7 +535,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ? AND HeDaoTao = ?
+        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
     GROUP BY
         gv.HoTen,
         qc.KiHoc,

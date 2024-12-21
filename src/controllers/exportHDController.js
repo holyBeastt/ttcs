@@ -6,7 +6,6 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 
-
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
     fs.readdirSync(folderPath).forEach((file) => {
@@ -205,7 +204,7 @@ const formatDate = (date) => {
 const formatDateRange = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   // Định dạng ngày bắt đầu
   const startDay = start.getDate().toString().padStart(2, "0");
   const startMonth = (start.getMonth() + 1).toString().padStart(2, "0");
@@ -265,17 +264,17 @@ const exportMultipleContracts = async (req, res) => {
   JOIN
     gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
   WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ?
+    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HeDaoTao = ?
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
     hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-    
-    let params = [dot, ki, namHoc];
+
+    let params = [dot, ki, namHoc, loaiHopDong];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
-       query = `SELECT
+      query = `SELECT
       hd.id_Gvm,
       hd.DienThoai,
       hd.Email,
@@ -310,12 +309,12 @@ const exportMultipleContracts = async (req, res) => {
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
     WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ?
+                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.HeDaoTao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
     }
     if (teacherName) {
       query = `SELECT
@@ -353,13 +352,13 @@ const exportMultipleContracts = async (req, res) => {
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
     WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ?
+              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.HeDaoTao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
-    
-      params = [dot, ki, namHoc, `%${teacherName}%`];
+
+      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
     }
 
     const [teachers] = await connection.execute(query, params);
@@ -385,20 +384,23 @@ const exportMultipleContracts = async (req, res) => {
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
       const soTiet = teacher.SoTiet || 0;
-     
-  if (teacher.HocVi === "Tiến sĩ") {
-    mucTien = 120000; // Mức tiền cho tiến sĩ
-  } else if (teacher.HocVi === "Thạc sĩ") {
-    mucTien = 60000; // Mức tiền cho thạc sĩ
-  } else if (teacher.HocVi === "Giáo sư") {
-    mucTien = 120000; // Mức tiền cho giáo sư
-  } else {
-    mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
-  }
+
+      if (teacher.HocVi === "Tiến sĩ") {
+        mucTien = 120000; // Mức tiền cho tiến sĩ
+      } else if (teacher.HocVi === "Thạc sĩ") {
+        mucTien = 60000; // Mức tiền cho thạc sĩ
+      } else if (teacher.HocVi === "Giáo sư") {
+        mucTien = 120000; // Mức tiền cho giáo sư
+      } else {
+        mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
+      }
       const tienText = soTiet * 100000;
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
-      const thoiGianThucHien = formatDateRange(teacher.NgayBatDau, teacher.NgayKetThuc);
+      const thoiGianThucHien = formatDateRange(
+        teacher.NgayBatDau,
+        teacher.NgayKetThuc
+      );
 
       const tienText1 = soTiet * mucTien; // Tính tổng tiền
       const tienThueText1 = Math.round(tienText1 * 0.1);
@@ -438,24 +440,27 @@ const exportMultipleContracts = async (req, res) => {
         Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-
       };
- // Chọn template dựa trên loại hợp đồng
- let templateFileName;
- switch (loaiHopDong) {
-   case "Hệ học phí":
-     templateFileName = "HopDongHP.docx";
-     break;
-   case "Mật mã":
-    templateFileName = "HopDongMM.docx";
-    break;
-  case "Đồ án":
-    templateFileName = "HopDongDA.docx";
-    break;
-  default:
-    return res.status(400).send("Loại hợp đồng không hợp lệ.");
-}
-const templatePath = path.resolve(__dirname, "../templates", templateFileName);
+      // Chọn template dựa trên loại hợp đồng
+      let templateFileName;
+      switch (loaiHopDong) {
+        case "Hệ học phí":
+          templateFileName = "HopDongHP.docx";
+          break;
+        case "Mật mã":
+          templateFileName = "HopDongMM.docx";
+          break;
+        case "Đồ án":
+          templateFileName = "HopDongDA.docx";
+          break;
+        default:
+          return res.status(400).send("Loại hợp đồng không hợp lệ.");
+      }
+      const templatePath = path.resolve(
+        __dirname,
+        "../templates",
+        templateFileName
+      );
       const content = fs.readFileSync(templatePath, "binary");
       const zip = new PizZip(content);
 
@@ -538,7 +543,6 @@ const getExportHDSite = async (req, res) => {
 
     res.render("exportHD", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
-
     });
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -551,5 +555,4 @@ const getExportHDSite = async (req, res) => {
 module.exports = {
   exportMultipleContracts,
   getExportHDSite,
-  
 };

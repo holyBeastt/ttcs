@@ -343,6 +343,8 @@
 
     function hideButton() {
       const isKhoa = localStorage.getItem("isKhoa");
+      const role = localStorage.getItem("userRole");
+
       if (isKhoa === null) {
         console.log('Không tìm thấy giá trị isKhoa trong localStorage');
       } else {
@@ -377,7 +379,6 @@
         }
 
         //Ẩn site duyệt lớp gk
-        const role = localStorage.getItem("userRole");
         if (role === "Lãnh đạo khoa" || role === "Duyệt") {
           actionButton3.style.display = '';
         } else {
