@@ -204,6 +204,7 @@
                 <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
                 <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
                 <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
+                <a class="nav-link" id="" href="/thongketonghop">Tổng hợp</a>
               </div>
             </div>
           </div>
@@ -732,6 +733,22 @@
       actionButton.style.display = 'none';
     }
   });
+   // Thêm sự kiện click cho phần tử có id="Home"
+
+ const Home = document.getElementById("Home");
+
+Home.addEventListener("click", function (event) {
+event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+const isKhoa = localStorage.getItem("isKhoa");
+
+if (isKhoa == 0) {
+// Nếu là đào tạo hoặc tài chính
+window.location.href = "/maindt";
+} else {
+window.location.href = "/mainkhoa";
+}
+});
 </script>
 
 </body>
