@@ -324,6 +324,22 @@
         actionButton.style.display = 'none';
       }
     });
+     // Thêm sự kiện click cho phần tử có id="Home"
+
+ const Home = document.getElementById("Home");
+
+Home.addEventListener("click", function (event) {
+event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+const isKhoa = localStorage.getItem("isKhoa");
+
+if (isKhoa == 0) {
+// Nếu là đào tạo hoặc tài chính
+window.location.href = "/maindt";
+} else {
+window.location.href = "/mainkhoa";
+}
+});
   </script>
 </body>
 </html>

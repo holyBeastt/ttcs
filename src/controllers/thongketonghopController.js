@@ -35,13 +35,20 @@ const thongketonghopController = {
             `);
             console.log("Dữ liệu vượt giờ:", vuotGioData);
 
-            // Gộp dữ liệu mời giảng và vượt giờ
+            // Gộp dữ liệu mời giảng và vượt giờ, đồng thời làm tròn số thực
             const chartData = moiGiangData.map(item => {
                 const vuotGio = vuotGioData.find(v => v.Khoa === item.Khoa) || { TongSoTietVuotGio: 0 };
+                const tongSoTietMoiGiang = parseFloat(item.TongSoTietMoiGiang).toFixed(1);
+                const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(1);
+
+                // Tính tổng số
+                const tongso = (parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTietVuotGio)).toFixed(1);
+
                 return {
                     Khoa: item.Khoa,
-                    TongSoTietMoiGiang: parseFloat(item.TongSoTietMoiGiang) || 0,
-                    TongSoTietVuotGio: parseFloat(vuotGio.TongSoTietVuotGio) || 0,
+                    TongSoTietMoiGiang: tongSoTietMoiGiang,
+                    TongSoTietVuotGio: tongSoTietVuotGio,
+                    Tongso: tongso,  // Thêm trường tổng số
                 };
             });
 
