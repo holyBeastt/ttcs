@@ -296,34 +296,33 @@
         </div>
 
 
-
         <script>
-          //  nhấn nút Xuất dữ liệu
+          // Nhấn nút Xuất dữ liệu
           document.getElementById('exportButton').addEventListener('click', function () {
             // Thu thập giá trị từ các trường input
             const namHoc = document.getElementById("NamHoc").value.trim();
             const khoa = document.getElementById("MaPhongBan").value.trim();
             const teacherName = document.getElementById("search-teacher").value.trim();
-
+        
             // Kiểm tra thông tin bắt buộc: Năm học
             if (!namHoc) {
               alert("Vui lòng chọn năm học.");
               return;
             }
-
+        
             // Khởi tạo URL cơ bản với thông tin năm học
             let url = `/api/export-vuot-gio?namHoc=${encodeURIComponent(namHoc)}`;
-
+        
             // Thêm tham số khoa nếu được chọn
             if (khoa) {
               url += `&khoa=${encodeURIComponent(khoa)}`;
             }
-
+        
             // Thêm tham số tên giảng viên nếu có
             if (teacherName) {
               url += `&teacherName=${encodeURIComponent(teacherName)}`;
             }
-
+        
             // Chuyển hướng tới URL để tải file
             window.location.href = url;
           });
