@@ -15,6 +15,9 @@
       input, select{
         color: #2c9caf !important;
       }
+      th {
+        white-space: nowrap;
+      }
 
       .formcreate {
         display: flex;
@@ -303,7 +306,6 @@
                     Nghiên Cứu Khoa Học
                   </a>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <!-- <a class="nav-link" id="" href="#">COMING SOON</a>               -->
                     <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
                     <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
                     <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
@@ -311,7 +313,6 @@
                     <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
                     <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
                     <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
-                    <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
                   </div>
                 </div>
               </div>
@@ -403,7 +404,7 @@
                   <div id="suggestionBox"></div>
                 </div>
                 <div>
-                  <button id="xemlopgv" class="btn mx-2" style="margin: 0px;" onclick="loadInfoLopGV()">Xem</button>  
+                  <button id="xemlopgv" class="btn mx-2" style="margin: 0px; height: 45px;" onclick="loadInfoLopGV()">Xem</button>  
                 </div>
               </div>
             </div> 
@@ -416,7 +417,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 50px;">Số TC</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 50px;">Số tiết theo TKB</th>
                     <th style="width: 50px;">Số tiết QC</th>
                     <th style="width: 100px;">Lớp thuộc</th>
@@ -425,10 +426,22 @@
                 <tbody id="tableBodyA11" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (1): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalGiangDay1">0</span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <label class="flex"><span class="align-content-around">Tổng (1): </span><span class="value" id="totalGiangDay1">0</span></label>
-              </div>
               <h5>Học kỳ I - Đào tạo hệ đóng học phí</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -436,7 +449,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 50px;">Số TC</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 50px;">Số tiết theo TKB</th>
                     <th style="width: 50px;">Số tiết QC</th>
                     <th style="width: 100px;">Lớp thuộc</th>
@@ -445,10 +458,22 @@
                 <tbody id="tableBodyA12" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (2): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalGiangDay2">0</span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <label class="flex"><span class="align-content-around">Tổng (2): </span><span class="value" id="totalGiangDay2">0</span></label>
-              </div>
               <h5>Học kỳ II - Đào tạo chuyên ngành Kỹ thuật mật mã</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -456,7 +481,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 50px;">Số TC</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 50px;">Số tiết theo TKB</th>
                     <th style="width: 50px;">Số tiết QC</th>
                     <th style="width: 100px;">Lớp thuộc</th>
@@ -465,10 +490,22 @@
                 <tbody id="tableBodyA13" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (3): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalGiangDay3">0</span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <label class="flex"><span class="align-content-around">Tổng (3): </span><span class="value" id="totalGiangDay3">0</span></label>
-              </div>
               <h5>Học kỳ II - Đào tạo hệ đóng học phí</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -476,7 +513,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 50px;">Số TC</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 50px;">Số tiết theo TKB</th>
                     <th style="width: 50px;">Số tiết QC</th>
                     <th style="width: 100px;">Lớp thuộc</th>
@@ -485,13 +522,35 @@
                 <tbody id="tableBodyA14" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (4): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalGiangDay4">0</span>
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (A.1): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                      <span id="totalGiangDay">0</span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <label class="flex"><span class="align-content-around">Tổng (4): </span><span class="value" id="totalGiangDay4">0</span></label>
-              </div>
-              <div class="total-label">
-                <label class="flex"><span class="align-content-around">Tổng (A.1): </span><span class="value" id="totalGiangDay">0</span></label>
-              </div>
               <h4>A.2.Đánh giá giữa học phần</h4>
               <h5>Học kỳ I - Đào tạo chuyên ngành Kỹ thuật mật mã</h5>
               <table class=" text-center" style="width: 100%;">
@@ -500,7 +559,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 200px;">Ra đề/ coi thi/ chấm thi giữa học phần</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 200px;">Số SV</th>
                     <th style="width: 50px;">Số đề</th>
                     <th style="width: 100px;">Số tiết ra đề/ coi thi/ chấm thi</th>
@@ -509,11 +568,22 @@
                 <tbody id="tableBodyA21" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (5): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalSoTietKT1">0</span>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label class="flex"><span class="align-content-around">Tổng (5): </span><span class="value" id="totalSoTietKT1">0</span></label>
-              </div>
               <h5>Học kỳ I - Đào tạo hệ đóng học phí</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -521,7 +591,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 200px;">Ra đề/ coi thi/ chấm thi giữa học phần</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 200px;">Số SV</th>
                     <th style="width: 50px;">Số đề</th>
                     <th style="width: 100px;">Số tiết ra đề/ coi thi/ chấm thi</th>
@@ -530,11 +600,22 @@
                 <tbody id="tableBodyA22" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (6): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalSoTietKT2">0</span>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label class="flex"><span class="align-content-around">Tổng (6): </span><span class="value" id="totalSoTietKT2">0</span></label>
-              </div>
               <h5>Học kỳ II - Đào tạo chuyên ngành Kỹ thuật mật mã</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -542,7 +623,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 200px;">Ra đề/ coi thi/ chấm thi giữa học phần</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 200px;">Số SV</th>
                     <th style="width: 50px;">Số đề</th>
                     <th style="width: 100px;">Số tiết ra đề/ coi thi/ chấm thi</th>
@@ -551,11 +632,22 @@
                 <tbody id="tableBodyA23" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (7): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalSoTietKT3">0</span>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label class="flex"><span class="align-content-around">Tổng (7): </span><span class="value" id="totalSoTietKT3">0</span></label>
-              </div>
               <h5>Học kỳ II - Đào tạo hệ đóng học phí</h5>
               <table class=" text-center" style="width: 100%;">
                 <thead>
@@ -563,7 +655,7 @@
                     <th style="width: 50px;">TT</th>
                     <th style="width: 200px;">Tên học phần</th>
                     <th style="width: 200px;">Ra đề/ coi thi/ chấm thi giữa học phần</th>
-                    <th style="width: 200px;">Lớp học phần</th>
+                    <th style="width: 50px;">Lớp học phần</th>
                     <th style="width: 200px;">Số SV</th>
                     <th style="width: 50px;">Số đề</th>
                     <th style="width: 100px;">Số tiết ra đề/ coi thi/ chấm thi</th>
@@ -572,15 +664,35 @@
                 <tbody id="tableBodyA24" class="teacher-group">
                   <!-- Dữ liệu sẽ được chèn vào đây -->
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (8): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalSoTietKT1">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 50px;">
+                      <strong>Tổng (A.2): </strong>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="width: 50px;">
+                        <span id="totalSoTietKT">0</span>
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
-              <div class="total-label">
-                <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label class="flex"><span class="align-content-around">Tổng (8): </span><span class="value" id="totalSoTietKT4">0</span></label>
-              </div>
-              <div class="total-label">
-                <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label class="flex"><span class="align-content-around">Tổng (A.2): </span><span class="value" id="totalSoTietKT">0</span></label>
-              </div>
             </div>
             <!-- Label tổng số tiết tách riêng với bảng -->
           </div>
