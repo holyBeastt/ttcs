@@ -277,10 +277,10 @@
           <option value="2">Kỳ 2</option>
         </select> -->
 
-        <select class="form-select w-100px mx-2 selectop" id="NamHoc">
+        <select class="form-select w-100px mx-2 selectop" style="width: max-content !important;" id="NamHoc">
           <option value="">Năm học</option>
         </select>
-        <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
+        <select class="form-select w-100px mx-1 selectop" style="width: max-content !important;" id="MaPhongBan">
           <option value="">Chọn khoa</option>
         </select>
 
@@ -540,7 +540,8 @@
               let suggestions = []; // Khởi tạo mảng gợi ý
       
               // Tạo danh sách gợi ý với GiangVien và Khoa
-              suggestions = gvmList.map(item => `${item.GiangVien} - ${item.Khoa}`);
+              console.log("danh sách = ",gvmList)
+              suggestions = gvmList.map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`);
       
               // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
               if (value) {

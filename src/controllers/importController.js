@@ -30,6 +30,7 @@ const convertExcelToJSON = async (filePath) => {
     // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
     const header = data[0];
     const keys = Object.keys(header);
+
     const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
 
     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
@@ -41,7 +42,6 @@ const convertExcelToJSON = async (filePath) => {
       }, {});
     });
 
-    // console.log("Chuẩn bị validate dữ liệu quy chuẩn");
     validateFileExcelQC(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
@@ -198,11 +198,9 @@ const validateFileExcelQC = (data) => {
 //   }
 // };
 
-
-
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
-  const result = [];  // Khởi tạo mảng kết quả để chứa các đối tượng
+  const result = []; // Khởi tạo mảng kết quả để chứa các đối tượng
 
   lines.forEach((line, index) => {
     let currentItem = {}; // Khởi tạo đối tượng mới cho mỗi dòng
@@ -215,7 +213,7 @@ const parseDataToObjects = (lines) => {
       currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
     } else if (line.includes("học phần thuộc Khoa")) {
       const khoaMatch = line.match(/học phần thuộc Khoa\s+(.+)$/);
-      currentKhoa = khoaMatch[1].trim().replace(/\d+/g, '');; // Lấy tên Khoa từ dòng kiểm tra
+      currentKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
     }
 
     // Kiểm tra xem dòng có bắt đầu bằng một số theo định dạng "Số." hay không
@@ -242,7 +240,6 @@ const parseDataToObjects = (lines) => {
         currentItem["Số TC"] = 0;
       }
 
-
       // Bước 4: Gắn Lớp học phần (tất cả từ đầu dòng đến dấu đóng ngoặc đơn đầu tiên)
       // Tìm và lấy phần lớp học phần từ đầu dòng đến dấu đóng ngoặc đơn đầu tiên
       const classMatch = line.match(/^(.*?\))/); // Lấy tất cả đến dấu đóng ngoặc đơn đầu tiên
@@ -259,7 +256,6 @@ const parseDataToObjects = (lines) => {
         line = line.replace(teacherMatch[1], "").trim(); // Loại bỏ phần tên giáo viên khỏi dòng
       }
 
-
       // Bước 6: Trích xuất các số liệu
       // Tìm tất cả các số trong dòng, nếu không có thì trả về mảng rỗng
       const numbers = line.match(/(\d+(\.\d+)?)/g) || []; // Lấy tất cả các số, nếu không có thì trả về mảng rỗng
@@ -268,7 +264,9 @@ const parseDataToObjects = (lines) => {
       currentItem["Số tiết theo CTĐT"] = parseFloat(numbers[0] || 0);
       currentItem["Số SV"] = parseFloat(numbers[1] || 0);
       currentItem["Số tiết lên lớp theo TKB"] = parseFloat(numbers[2] || 0);
-      currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] = parseFloat(numbers[3] || 0);
+      currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] = parseFloat(
+        numbers[3] || 0
+      );
       currentItem["Hệ số lớp đông"] = parseFloat(numbers[4] || 0);
       currentItem["QC"] = parseFloat(numbers[5] || 0);
 
@@ -298,26 +296,27 @@ const splitAndCleanLines = (text) => {
     "Tiến sĩ",
     "Hệ số lớp đông",
     "QC",
-    "Ghi chú"
+    "Ghi chú",
   ];
 
   // Loại bỏ các từ không mong muốn
   let cleanedText = text;
-  unwantedWords.forEach(word => {
+  unwantedWords.forEach((word) => {
     // Kiểm tra xem có từ cần loại bỏ trong văn bản hay không và loại bỏ
     if (cleanedText.includes(word)) {
       cleanedText = cleanedText.split(word).join(""); // Xóa tất cả các lần xuất hiện của từ
     }
   });
 
-  cleanedText = cleanedText.replace(/\s+/g, ' ').trim();
-
+  cleanedText = cleanedText.replace(/\s+/g, " ").trim();
 
   // Biểu thức chính quy để tách chuỗi khi gặp số và dấu chấm, đảm bảo không có số tiếp theo
   const splitPattern = /\b\d+\.\s+/;
 
   // Tách chuỗi thành các phần nhỏ dựa vào dấu chấm và số
-  const lines = cleanedText.split(splitPattern).filter(part => part.trim() !== "");
+  const lines = cleanedText
+    .split(splitPattern)
+    .filter((part) => part.trim() !== "");
 
   const result = [];
 
@@ -333,7 +332,6 @@ const splitAndCleanLines = (text) => {
   return result;
 };
 
-
 // convert file quy chuẩn dạng word bằng thư viện mamoth
 const convertWordToJSON = async (filePath) => {
   const data = [];
@@ -346,21 +344,20 @@ const convertWordToJSON = async (filePath) => {
     let text = result.value;
 
     // Thay thế tất cả các ký tự xuống dòng (bao gồm cả \r\n và \n) bằng dấu cách
-    text = text.replace(/\r?\n/g, ' ');
+    text = text.replace(/\r?\n/g, " ");
 
     // Xóa các khoảng trắng thừa (liên tiếp nhiều khoảng trắng thành một khoảng trắng)
-    text = text.replace(/\s+/g, ' ').trim();
+    text = text.replace(/\s+/g, " ").trim();
 
     // Tách văn bản thành các phần bắt đầu bằng chỉ mục số và dấu chấm
-    const splitData = splitAndCleanLines(text)
+    const splitData = splitAndCleanLines(text);
 
-    // Chuyển văn bản thành dạng các đối tượng 
+    // Chuyển văn bản thành dạng các đối tượng
     const jsonData = parseDataToObjects(splitData);
 
     fs.unlinkSync(filePath);
 
     return jsonData;
-
   } catch (error) {
     console.error("Lỗi khi đọc file:", error);
     throw error; // Ném lỗi để biết có vấn đề trong quá trình xử lý
@@ -383,18 +380,17 @@ const convertPDFToJSON = async (filePath) => {
     extractedText = extractedText.replace(/\r?\n|\r/g, " ").trim();
 
     // Xóa các khoảng trắng thừa (liên tiếp nhiều khoảng trắng thành một khoảng trắng)
-    extractedText = extractedText.replace(/\s+/g, ' ').trim();
+    extractedText = extractedText.replace(/\s+/g, " ").trim();
 
     // Tách văn bản thành các phần bắt đầu bằng chỉ mục số và dấu chấm
     const splitData = splitAndCleanLines(extractedText);
 
-    // Chuyển văn bản thành dạng các đối tượng 
+    // Chuyển văn bản thành dạng các đối tượng
     const jsonData = parseDataToObjects(splitData);
 
     fs.unlinkSync(filePath);
 
     return jsonData;
-
   } catch (error) {
     console.error("Có lỗi xảy ra khi xử lý tệp PDF:", error);
     throw error; // Ném lỗi để biết có vấn đề trong quá trình xử lý
@@ -710,13 +706,20 @@ const importTableQC = async (jsonData) => {
     let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
 
     // Lặp qua tất cả các phần tử trong VietTatModified
-    for (let i = 0; i < VietTatModified.length; i++) {
-      const currentVietTat = VietTatModified[i];
+    for (const element of VietTatModified) {
+      const currentVietTat = element;
+
+      // CHAT sẽ auto là cao học an toàn, TSAT tương tự
+      if (Lop.includes("CHAT")) {
+        HeDaoTao = 'Cao học AT';
+        break;
+      } else if (Lop.includes("TSAT")) {
+        HeDaoTao = 'Tiến sĩ AT';
+        break;
+      }
 
       // Lấy độ dài của currentVietTat
       const lengthToCompare = currentVietTat.length;
-
-      // So sánh Lop với số ký tự tương ứng độ dài của currentVietTat
       if (Lop.slice(0, lengthToCompare) === currentVietTat) {
         HeDaoTao = "Đóng học phí";
         break; // Nếu tìm thấy "hệ đóng học phí", thoát khỏi vòng lặp
@@ -887,7 +890,7 @@ const importTableTam = async (jsonData) => {
 
   // hàm normalizeKeys chuẩn hóa lại đầu vào
   // phần filter sẽ lọc các lớp có quy chuẩn = 0 thì bỏ qua không thêm vào bảng tạm
-  const normalizedData = normalizeKeys(jsonData); 
+  const normalizedData = normalizeKeys(jsonData);
   const values = normalizedData
     // .filter((item) => {
     //   // Log giá trị của QC để kiểm tra
@@ -1798,7 +1801,7 @@ const saveDataGvmDongHocPhi = async (req, res) => {
     JOIN
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Đóng học phí'
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Đóng học phí' AND qc.MoiGiang = 1
     GROUP BY
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
@@ -1953,7 +1956,7 @@ const saveDataGvmMatMa = async (req, res) => {
     JOIN
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Mật mã'
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.HeDaoTao = 'Mật mã' AND qc.MoiGiang = 1
     GROUP BY
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,

@@ -484,7 +484,7 @@
         const importDoAn = document.getElementById('importDoAn');
         const suaHD = document.getElementById('suaHD');
 
-        if (isKhoa == 0 && role == 'Duyệt'){
+        if (isKhoa == 0 && role == 'Duyệt') {
           importDoAn.style.display = 'block';
           suaHD.style.display = 'block';
         }
@@ -531,17 +531,13 @@
     });
 
     const titleMap = {
-      "Khoa": "Khoa",
-      "Dot": "Đợt",
-      "Ki": "Kì",
-      "Nam": "Năm",
       "SoTinChi": "Số TC",
       "LopHocPhan": "Lớp học phần",
       "GiaoVien": "Giáo viên",
-      "LL": "Số tiết lên lớp theo TKB",
       "SoTietCTDT": "Số tiết CTĐT",
-      "HeSoT7CN": "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
       "SoSinhVien": "Số SV",
+      "LL": "Số tiết lên lớp theo TKB",
+      "HeSoT7CN": "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
       "HeSoLopDong": "Hệ số lớp đông",
       "QuyChuan": "Quy chuẩn"
     };
@@ -563,47 +559,117 @@
     }
 
     function exportToExcel() {
-      // Lọc qua các key trong renderData và chỉ giữ lại những key có ánh xạ trong titleMap
-      const headers = Object.keys(renderData[0]).filter(key => titleMap[key]).map(key => titleMap[key]);
-      const rows = renderData.map(item => headers.map(header => item[Object.keys(titleMap).find(key => titleMap[key] === header)] || ''));
+      // Mảng tiêu đề theo thứ tự mong muốn
+      const orderedKeys = [
+        "TT",
+        "SoTinChi",
+        "LopHocPhan",
+        "GiaoVien",
+        "SoTietCTDT",
+        "SoSinhVien",
+        "LL",
+        "HeSoT7CN",
+        "HeSoLopDong",
+        "QuyChuan",
+      ];
 
+      // Mảng tiêu đề dựa trên titleMap
+      const headers = orderedKeys.map(key => (key === "TT" ? "TT" : titleMap[key]));
+
+      // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
+      const rows = renderData.map((item, index) => {
+        return orderedKeys.map(key => {
+          if (key === "TT") {
+            return `${index + 1}.`; // Định dạng số thứ tự
+          }
+          return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
+        });
+      });
+
+      // Tạo dòng đầu tiên với nội dung tùy chỉnh
+      const headerTitle = [
+        [`SỐ TIẾT QUY CHUẨN HỌC KỲ ${renderData[0].Ki} năm học ${renderData[0].Nam}`],
+      ];
+
+      // Kết hợp tiêu đề và dữ liệu
+      const worksheetData = [
+        ...headerTitle, // Dòng tiêu đề đầu tiên
+        [], // Dòng trống giữa tiêu đề và bảng
+        headers, // Dòng tiêu đề cột
+        ...rows, // Dữ liệu
+      ];
+
+      // Tạo workbook và worksheet
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]); // Dữ liệu bảng đã lọc
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
 
-      // Tính toán độ rộng cột
+      // Căn chỉnh độ rộng cột
       const colWidths = headers.map((header, colIndex) => {
         const maxLength = Math.max(
           header.length,
           ...rows.map(row => String(row[colIndex]).length)
         );
-        return { wpx: maxLength * 6 };  // Cung cấp độ rộng cột
+        return { wpx: maxLength * 6 };
       });
 
-      ws['!cols'] = colWidths;
+      ws["!cols"] = colWidths;
+
+      // Gắn sheet vào workbook và xuất file
       XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
       XLSX.writeFile(wb, `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.xlsx`);
     }
 
     function exportToWord() {
-      // Lọc qua các key trong renderData và chỉ giữ lại những key có ánh xạ trong titleMap
-      const headers = Object.keys(renderData[0]).filter(key => titleMap[key]).map(key => titleMap[key]);
-      const rows = renderData.map(item => headers.map(header => item[Object.keys(titleMap).find(key => titleMap[key] === header)] || ''));
+      // Mảng tiêu đề theo thứ tự mong muốn
+      const orderedKeys = [
+        "TT",
+        "SoTinChi",
+        "LopHocPhan",
+        "GiaoVien",
+        "SoTietCTDT",
+        "SoSinhVien",
+        "LL",
+        "HeSoT7CN",
+        "HeSoLopDong",
+        "QuyChuan",
+      ];
 
+      // Mảng tiêu đề dựa trên titleMap
+      const headers = orderedKeys.map(key => (key === "TT" ? "TT" : titleMap[key]));
+
+      // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
+      const rows = renderData.map((item, index) => {
+        return orderedKeys.map(key => {
+          if (key === "TT") {
+            return `${index + 1}.`; // Định dạng số thứ tự
+          }
+          return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
+        });
+      });
+
+      // Tạo nội dung HTML cho bảng
       const htmlContent = `
-    <table border="1">
+    <table border="1" style="border-collapse: collapse; width: 100%; text-align: left;">
       <thead>
-        <tr>${headers.map(header => `<th>${header}</th>`).join("")}</tr>
+        <tr>${headers.map(header => `<th style="padding: 8px;">${header}</th>`).join("")}</tr>
       </thead>
       <tbody>
-        ${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}
+        ${rows
+          .map(
+            row =>
+              `<tr>${row.map(cell => `<td style="padding: 8px;">${cell}</td>`).join("")}</tr>`
+          )
+          .join("")}
       </tbody>
     </table>
   `;
 
+      // Tạo file Word từ nội dung HTML
       const blob = new Blob(['<html><body>' + htmlContent + '</body></html>'], {
         type: 'application/msword',
       });
 
+      // Tải xuống file Word
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.doc`;
