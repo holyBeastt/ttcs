@@ -77,3 +77,16 @@ tbody {
   overflow-y: auto;
   /* Cho phép cuộn khi quá nhiều nội dung */
 }
+
+/* Giữ tiêu đề bảng luôn ở trên cùng khi cuộn : tableTam */
+#table-header {
+  position: sticky;
+  top: 0;
+  /* Đảm bảo tiêu đề dính trên cùng khi cuộn */
+  background-color: white;
+  /* Đảm bảo rằng tiêu đề có nền trắng để dễ nhìn */
+  z-index: 1;
+  /* Đảm bảo tiêu đề luôn nằm trên các dòng dữ liệu */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Thêm bóng đổ để phân biệt tiêu đề với các dòng */
+}

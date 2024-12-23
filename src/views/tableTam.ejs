@@ -389,7 +389,7 @@
             <select class="selectop" id="departmentFilter">
               <option value="">Chọn khoa</option>
             </select>
-            <button onclick=renderTable() class="btn text-nowrap" id="render" style="margin-top: 17px;">
+            <button onclick=getDataTable() class="btn text-nowrap" id="render" style="margin-top: 17px;">
               Hiển thị
             </button>
             <button class="btn text-nowrap" id="xoa-qc-du-kien" style="margin-top: 17px; visibility: hidden;">
@@ -689,8 +689,8 @@
     // Mảng khoa ( để validate bảng)
     var khoaArray = [];
 
-    async function renderTable() {
-      console.log(khoaArray);
+
+    async function getDataTable() {
       let Dot = document.getElementById("combobox-dot").value;
       let Ki = document.getElementById("comboboxki").value;
       let Nam = document.getElementById("NamHoc").value;
@@ -717,93 +717,163 @@
         }
 
         const data = await response.json();
-
-        // lưu lại renderData và lưu vào localStorage cho hàm xuất sử dụng
-        renderData = data;
+        renderData = data;  // Lưu dữ liệu vào biến renderData
         console.log(renderData);
 
-        document.getElementById("data-table-body").innerHTML = "";
-        if (renderData.length === 0) {
-          document.getElementById("no-data-message").style.display = "block";
-        } else {
-          document.getElementById("no-data-message").style.display = "none";
-          let tableHtml = "";
-          const headersMap = {
-            Khoa: "Khoa",
-            Dot: "Đợt",
-            Ki: "Kì",
-            Nam: "Năm",
-            GiaoVien: "Giảng viên theo TKB",
-            GiaoVienGiangDay: "Giảng viên giảng dạy",
-            MoiGiang: "Mời giảng?",
-            SoTinChi: "Số TC",
-            LopHocPhan: "Lớp học phần",
-            LL: "Số tiết LL",
-            SoTietCTDT: "Số tiết TKB",
-            HeSoT7CN: "Hệ số ngoài giờ",
-            SoSinhVien: "Số SV",
-            HeSoLopDong: "Hệ số lớp đông",
-            QuyChuan: "Số tiết QC",
-          };
-
-          const headers = Object.keys(renderData[0]).filter(
-            (header) => header !== "GhiChu" && header !== "ID"
-          );
-          headers.forEach((header) => {
-            const newHeaderName = headersMap[header] || header;
-            tableHtml += `<th>${newHeaderName}</th>`;
-          });
-
-          const role = localStorage.getItem("userRole");
-
-          if (role === "Duyệt") {
-            tableHtml += `<th id="action-column">Hành động</th>`;
-          }
-
-          document.getElementById("table-header").innerHTML = tableHtml;
-
-          const keyNotEdit = ["ID", "GhiChu"];
-          renderData.forEach((item) => {
-            const id = item.ID;
-
-            const row = headers
-              .map((key) => {
-                if (keyNotEdit.includes(key)) {
-                  return `<td>${item[key] !== null ? item[key] : ""}</td>`;
-                }
-                return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
-              })
-              .join("");
-
-            let actionColumn = "";
-            if (role === "Duyệt") {
-              actionColumn = `
-            <td>
-              <button onclick="editRow(${id})">Sửa</button>
-              <button onclick="deleteRow(${id})">Xóa</button>
-            </td>
-          `;
-            }
-
-            // Kiểm tra nếu có key nào bằng 0 và thêm lớp cảnh báo
-            const hasZeroValue = Object.values(item).some(
-              (value) => !isNaN(value) && Number(value) === 0
-            );
-            const warningClass = hasZeroValue ? "warning-row" : "";
-
-            document.getElementById("data-table-body").innerHTML += `
-          <tr id="row-${id}" class="${warningClass}">
-            ${row}
-            ${actionColumn}
-          </tr>`;
-          });
-        }
+        // Gọi hàm renderTable để hiển thị dữ liệu
+        renderTable();
       } catch (error) {
         console.error("Error fetching data:", error);
         alert("Có lỗi xảy ra khi gọi API: " + error.message);
       }
     }
 
+    function renderTable() {
+      document.getElementById("data-table-body").innerHTML = "";
+
+      if (renderData.length === 0) {
+        document.getElementById("no-data-message").style.display = "block";
+      } else {
+        document.getElementById("no-data-message").style.display = "none";
+        let tableHtml = "";
+        const headersMap = {
+          Khoa: "Khoa",
+          Dot: "Đợt",
+          Ki: "Kì",
+          Nam: "Năm",
+          GiaoVien: "Giảng viên theo TKB",
+          GiaoVienGiangDay: "Giảng viên giảng dạy",
+          MoiGiang: "Mời giảng?",
+          SoTinChi: "Số TC",
+          LopHocPhan: "Lớp học phần",
+          LL: "Số tiết LL",
+          SoTietCTDT: "Số tiết TKB",
+          HeSoT7CN: "Hệ số ngoài giờ",
+          SoSinhVien: "Số SV",
+          HeSoLopDong: "Hệ số lớp đông",
+          QuyChuan: "Số tiết QC",
+        };
+
+        const headers = Object.keys(renderData[0]).filter(
+          (header) => header !== "GhiChu" && header !== "ID"
+        );
+
+        headers.forEach((header) => {
+          const newHeaderName = headersMap[header] || header;
+          tableHtml += `<th>${newHeaderName}</th>`;
+        });
+
+        const role = localStorage.getItem("userRole");
+
+        if (role === "Duyệt") {
+          tableHtml += `<th id="action-column">Hành động</th>`;
+        }
+
+        document.getElementById("table-header").innerHTML = tableHtml;
+
+        const keyNotEdit = ["ID", "GhiChu"];
+        renderData.forEach((item) => {
+          const id = item.ID;
+
+          const row = headers
+            .map((key) => {
+              if (keyNotEdit.includes(key)) {
+                return `<td>${item[key] !== null ? item[key] : ""}</td>`;
+              }
+              return `<td id="cell-${id}-${key}" style="display:${key === 'ID' ? 'none' : ''}">${item[key] !== null ? item[key] : ""}</td>`;
+            })
+            .join("");
+
+          let actionColumn = "";
+          if (role === "Duyệt") {
+            actionColumn = `
+          <td>
+            <button onclick="editRow(${id})">Sửa</button>
+            <button onclick="deleteRow(${id})">Xóa</button>
+          </td>
+          `;
+          }
+
+          const hasZeroValue = Object.values(item).some(
+            (value) => !isNaN(value) && Number(value) === 0
+          );
+          const warningClass = hasZeroValue ? "warning-row" : "";
+
+          document.getElementById("data-table-body").innerHTML += `
+          <tr id="row-${id}" class="${warningClass}">
+          ${row}
+          ${actionColumn}
+          </tr>`;
+        });
+      }
+    }
+
+    function renderRow(id, updatedRow) {
+      let rowElement = document.getElementById(`row-${id}`);
+      const role = localStorage.getItem("userRole");
+      const headersMap = {
+        Khoa: "Khoa",
+        Dot: "Đợt",
+        Ki: "Kì",
+        Nam: "Năm",
+        GiaoVien: "Giảng viên theo TKB",
+        GiaoVienGiangDay: "Giảng viên giảng dạy",
+        MoiGiang: "Mời giảng?",
+        SoTinChi: "Số TC",
+        LopHocPhan: "Lớp học phần",
+        LL: "Số tiết LL",
+        SoTietCTDT: "Số tiết TKB",
+        HeSoT7CN: "Hệ số ngoài giờ",
+        SoSinhVien: "Số SV",
+        HeSoLopDong: "Hệ số lớp đông",
+        QuyChuan: "Số tiết QC",
+      };
+
+      const keyNotEdit = ["ID", "GhiChu"];
+      const headers = Object.keys(updatedRow).filter(
+        (header) => header !== "GhiChu" && header !== "ID"
+      );
+
+      // Nếu dòng chưa tồn tại, tạo mới
+      if (!rowElement) {
+        rowElement = document.createElement("tr");
+        rowElement.id = `row-${id}`;
+        document.getElementById("data-table-body").appendChild(rowElement);
+      }
+
+      // Xây dựng các ô trong dòng
+      const rowHtml = headers
+        .map((key) => {
+          if (keyNotEdit.includes(key)) {
+            return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+          }
+          return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
+            }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+        })
+        .join("");
+
+      // Tạo cột hành động nếu role là "Duyệt"
+      let actionColumn = "";
+      if (role === "Duyệt") {
+        actionColumn = `
+      <td>
+        <button onclick="editRow(${id})">Sửa</button>
+        <button onclick="deleteRow(${id})">Xóa</button>
+      </td>`;
+      }
+
+      // Kiểm tra nếu bất kỳ giá trị nào là 0
+      const hasZeroValue = Object.values(updatedRow).some(
+        (value) => !isNaN(value) && Number(value) === 0
+      );
+      const warningClass = hasZeroValue ? "warning-row" : "";
+
+      // Cập nhật HTML của dòng
+      rowElement.className = warningClass;
+      rowElement.innerHTML = `
+        ${rowHtml}
+        ${actionColumn}`;
+    }
 
     // Hàm sửa gắn vào tt onclick
     function editRow(index) {
@@ -886,7 +956,7 @@
 
         // Gửi dữ liệu dòng đã sửa tới API
         const response = await fetch(`/update-row/${id}`, {
-          method: "PUT", // hoặc "POST" tùy API
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
@@ -897,26 +967,35 @@
           throw new Error(`Failed to update row: ${response.statusText}`);
         }
 
-        // API trả về dữ liệu dòng đã cập nhật (nếu cần)
-        const result = await response.json();
-
-        // Cập nhật renderData với dữ liệu mới
+        // Nếu API trả về trạng thái 200, tiếp tục cập nhật và hiển thị lại dòng
         const rowIndex = renderData.findIndex((row) => row.ID === id);
-        renderData[rowIndex] = result;
+        if (rowIndex !== -1) {
+          renderData[rowIndex] = updatedRow; // Thay thế dòng cũ bằng dòng đã chỉnh sửa
+        }
 
-        // Hiển thị lại bảng với dữ liệu đã cập nhật
-        renderTable();
+        // Hiển thị lại dòng đã chỉnh sửa
+        renderRow(id, updatedRow);
 
-        // alert("Cập nhật dòng thành công!");
       } catch (error) {
         console.error("Error updating row:", error);
-        alert(`Có lỗi xảy ra khi cập nhật dòng: ${error.message}`);
+        alert(`Có lỗi xảy ra khi cập nhật: ${error.message}`);
       }
     }
 
-    function cancelEdit(index) {
-      // Hiển thị lại bảng mà không render lại từ server
-      renderTable();
+    function cancelEdit(id) {
+      // Tìm dữ liệu gốc của dòng dựa trên ID
+      const originalRow = renderData.find((row) => row.ID === id);
+
+      if (!originalRow) {
+        console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
+        return;
+      }
+
+      // Render lại dòng theo dữ liệu gốc
+      renderRow(id, originalRow);
+
+      // Thông báo (tùy chọn)
+      console.log(`Đã hủy chỉnh sửa dòng với ID: ${id}`);
     }
 
     // Hàm xóa dòng khi sửa ( gọi api xóa 1 dòng )
@@ -931,19 +1010,31 @@
             },
           });
 
+          // Kiểm tra phản hồi từ server
           if (!response.ok) {
             throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
           }
 
-          // Hiển thị lại bảng với dữ liệu đã cập nhật
-          renderTable();
-          console.log("Xoá dòng thành công")
+          // Xóa dòng trong dữ liệu cục bộ renderData
+          renderData = renderData.filter((row) => row.ID !== id);
+
+          // Xóa trực tiếp dòng khỏi bảng trong giao diện
+          const rowElement = document.getElementById(`row-${id}`);
+          if (rowElement) {
+            rowElement.remove();
+          }
+
+          // Thông báo thành công (tuỳ chọn)
+          console.log(`Xóa dòng thành công: ID ${id}`);
         } catch (error) {
           console.error("Lỗi khi xóa dòng:", error);
-          alert(`Có lỗi xảy ra khi xóa dòng: ${error.message}`);
+          alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
         }
       }
     }
+
+    // Hàm thêm khi ấn nút THÊM
+    let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
 
     // Hàm thêm khi ấn nút THÊM
     function addRow() {
@@ -974,41 +1065,83 @@
         }
       });
 
-      // Tạo HTML cho các ô nhập liệu của dòng mới
-      let rowHtml = "";
-      headers.forEach((key) => {
-        let inputWidth = "100%"; // Độ rộng mặc định
+      // Tăng biến đếm
+      newRowCounter++;
 
-        // Tạo ô nhập liệu cho tất cả các trường
-        rowHtml += `<td><input type="text" id="input-new-${key}" value="${newRowData[key]}" placeholder="Nhập ${key}" style="width: ${inputWidth};"></td>`;
+      // Tạo phần tử dòng mới
+      const row = document.createElement("tr");
+      row.id = `new-row-${newRowCounter}`; // Đảm bảo id của dòng mới là duy nhất
+
+      // Tạo HTML cho các ô nhập liệu của dòng mới
+      headers.forEach((key) => {
+        // Tạo thẻ <td> cho mỗi cột
+        const cell = document.createElement("td");
+
+        // Tạo thẻ <input> cho ô nhập liệu
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `input-new-${key}-${newRowCounter}`; // Đảm bảo id của input là duy nhất
+        input.value = newRowData[key];
+        input.placeholder = `Nhập ${key}`;
+        input.style.width = "100%";
+
+        // Thêm ô nhập liệu vào thẻ <td>
+        cell.appendChild(input);
+
+        // Thêm thẻ <td> vào thẻ <tr>
+        row.appendChild(cell);
       });
 
-      // Thêm nút hành động (Lưu và Hủy) với ID dòng tương ứng
-      rowHtml += `<td>
-                <button onclick="saveNewRow()">Lưu</button>
-                <button onclick="cancelAddRow()">Hủy</button>
-            </td>`;
+      // Tạo thẻ <td> cho các nút hành động (Lưu và Hủy)
+      const actionCell = document.createElement("td");
 
-      // Thêm dòng mới vào bảng với ID "new-row"
-      document.getElementById("data-table-body").innerHTML += `
-  <tr id="new-row">
-      ${rowHtml}
-  </tr>`;
+      // Tạo nút Lưu
+      const saveButton = document.createElement("button");
+      saveButton.textContent = "Lưu";
+      saveButton.onclick = saveNewRow;
+
+      // Tạo nút Hủy
+      const cancelButton = document.createElement("button");
+      cancelButton.textContent = "Hủy";
+      cancelButton.onclick = cancelAddRow;
+
+      // Thêm các nút vào thẻ <td>
+      actionCell.appendChild(saveButton);
+      actionCell.appendChild(cancelButton);
+
+      // Thêm thẻ <td> (chứa các nút hành động) vào thẻ <tr>
+      row.appendChild(actionCell);
+
+      // Thêm dòng mới vào bảng
+      document.getElementById("data-table-body").appendChild(row);
 
       console.log("Dòng mới được khởi tạo:", newRowData);
     }
 
-    // Hàm lưu dòng mới ( gọi api lưu 1 dòng mới )
+    // Hàm lưu dòng mới (gọi api lưu 1 dòng mới)
     async function saveNewRow() {
       try {
-        // Lấy các giá trị từ ô nhập liệu
+        // Lấy dòng mới từ bảng có id bắt đầu bằng "new-row-"
+        const row = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
+
+        // Kiểm tra xem dòng mới có tồn tại không
+        if (!row) {
+          throw new Error("Không tìm thấy dòng mới!");
+        }
+
+        // Tạo đối tượng chứa dữ liệu của dòng mới
         const newRowData = {};
+
+        // Lấy danh sách các cột từ renderData[0] (loại bỏ "ID" và "GhiChu")
         const headers = Object.keys(renderData[0]).filter(header => !["ID", "GhiChu"].includes(header));
 
+        // Duyệt qua các ô nhập liệu trong dòng và lấy giá trị
         headers.forEach((key) => {
-          const input = document.getElementById(`input-new-${key}`);
+          // Lấy ô nhập liệu tương ứng với từng cột
+          const input = row.querySelector(`#input-new-${key}-${row.id.split('-')[2]}`); // Tìm ô nhập liệu với id duy nhất
+
           if (input) {
-            newRowData[key] = input.value.trim(); // Lấy giá trị nhập vào và loại bỏ khoảng trắng
+            newRowData[key] = input.value.trim(); // Lấy giá trị nhập vào
           }
         });
 
@@ -1021,34 +1154,44 @@
           body: JSON.stringify(newRowData),
         });
 
+        // Kiểm tra nếu phản hồi không thành công
         if (!response.ok) {
           throw new Error(`Không thể lưu dòng mới: ${response.statusText}`);
         }
 
-        // Cập nhật lại bảng sau khi lưu thành công
-        const result = await response.json();
-        console.log("Dòng mới đã được lưu thành công:", result);
+        // Nếu phản hồi là 200 OK, cập nhật dữ liệu dòng mới
+        console.log("Dòng mới đã được lưu thành công");
 
-        // Cập nhật renderData nếu cần
-        renderData.push(result); // Giả sử API trả về dòng đã được lưu
+        // Lấy ID dòng mới từ row (sử dụng ID dòng nếu cần thiết)
+        const rowId = row.id;
 
-        // Hiển thị lại bảng
-        renderTable();
+        // Gọi hàm renderRow để cập nhật giao diện với dòng đã lưu
+        renderRow(rowId, newRowData);  // Gọi hàm renderRow để hiển thị dòng mới với dữ liệu đã lưu
+
+        // Xóa bỏ dòng "new-row" cũ sau khi lưu thành công
+        row.remove(); // Xóa dòng này khỏi DOM nếu không cần hiển thị nữa
 
       } catch (error) {
+        // Xử lý lỗi và thông báo cho người dùng
         console.error("Lỗi khi lưu dòng mới:", error);
         alert("Có lỗi xảy ra khi lưu dòng mới: " + error.message);
       }
     }
 
     // Hàm hủy tạo dòng mới
+    // Hàm hủy thao tác thêm dòng mới
     function cancelAddRow() {
-      // Tìm và xóa dòng có ID "new-row"
-      const newRow = document.getElementById("new-row");
+      // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
+      const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
+
       if (newRow) {
         newRow.remove(); // Xóa dòng mới khỏi DOM
+        console.log("Đã hủy thao tác thêm dòng mới.");
+      } else {
+        console.log("Không tìm thấy dòng mới để hủy.");
       }
     }
+
 
     // async function submitData() {
     //   // Lấy dữ liệu từ các phần tử HTML

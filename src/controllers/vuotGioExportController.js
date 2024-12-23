@@ -727,7 +727,7 @@ const exportVuotGio = async (req, res) => {
     // Thêm dữ liệu từ resultsExportDoAnTotNghiep vào worksheet
     resultsExportDoAnTotNghiep.forEach((row, index) => {
       console.log(`Dữ liệu hàng ${index + 1}:`, row); // Ghi log từng hàng dữ liệu
-      worksheet.addRow([
+      const dataRowExport = worksheet.addRow([
         index + 1, // Số thứ tự
         row.SinhVien, // Họ tên NCS, Học viên, Sinh viên
         row.KhoaDaoTao, // Khóa đào tạo
