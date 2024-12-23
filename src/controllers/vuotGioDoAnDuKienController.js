@@ -96,17 +96,20 @@ const banHanhDoAn = async (req, res) => {
     // Kiểm tra số bản ghi bị xóa
     if (result.affectedRows > 0) {
       res.status(200).json({
+        success: true,
         message: "Ban hành dữ liệu thành công",
         deletedRows: result.affectedRows,
       });
     } else {
       res.status(404).json({
+        success: false,
         message: "Không có dữ liệu để banh hành",
       });
     }
   } catch (error) {
     console.error("Lỗi khi xóa dữ liệu:", error);
     res.status(500).json({
+      success: false,
       message: "Có lỗi xảy ra khi xóa dữ liệu",
       error: error.message,
     });
