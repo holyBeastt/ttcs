@@ -341,6 +341,10 @@
             <option value="">Năm học</option>
           </select>
 
+          <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
+          <select class=" selectop" id="MaPhongBan">
+          </select>
+
           <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
           <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
         </div>
@@ -647,14 +651,20 @@
   document.getElementById('infoGvm').addEventListener('click', loadLopMoiData);
 
   async function loadLopMoiData() {
-    const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    const isKhoa = localStorage.getItem("isKhoa");
+    let MaPhongBan;
+    if (isKhoa === "1") {
+      MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    } else {
+      MaPhongBan = document.getElementById('MaPhongBan').value
+    }
+
     const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
     if (!MaPhongBan) {
       alert("Mã phòng ban không tồn tại!");
       return;
     }
-
     try {
         const response = await fetch(`/getLopGK/${MaPhongBan}/${Ki}/${Nam}`, {
           method: 'GET', // Gửi yêu cầu GET
@@ -1202,7 +1212,41 @@
     }
   }
 </script>
+<script>
+    $(document).ready(function () {
+      $('#MaPhongBan option[value=""]').remove();
+      // Gọi AJAX để lấy dữ liệu JSON từ API
+      $.ajax({
+        url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+        method: 'GET',
+        success: function (response) {
+          // Kiểm tra nếu response thành công
+          const MaPhongBan = response.MaPhongBan;
+          if (response.success) {
+            // $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
+            // Lặp qua từng mục trong mảng MaPhongBan
+            response.MaPhongBan.forEach(function (item) {
+              // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+              $('#MaPhongBan').append(
+                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+              );
+            }
+            );
 
+            // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+            if (!$('#MaPhongBan option:selected').length) {
+              $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
+            }
+          } else {
+            console.error("Không lấy được dữ liệu phongBan:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+        }
+      });
+    });
+  </script>
 
 
 
