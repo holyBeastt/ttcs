@@ -877,3 +877,8 @@ select{
     margin-right: 10px;
     margin-bottom: 10px; /* Thêm khoảng cách dưới nếu các phần tử xuống dòng */
   }
+  .dropdown-item1 {
+    font-weight: bold;
+    text-transform: uppercase;
+    height: 40px;
+  }
