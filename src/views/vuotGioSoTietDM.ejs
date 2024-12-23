@@ -363,17 +363,17 @@
               <div class="mb-3">
                 <label for="gioGiangDay" class="form-label">Số tiết giảng dạy</label>
                 <input type="number" class="form-control" id="gioGiangDay" name="gioGiangDay" 
-                    value="300" required>
+                    value="<%= currentData.GiangDay %>" required>
               </div>
               <div class="mb-3">
                 <label for="gioVuotGio" class="form-label">Số tiết vượt giờ</label>
                 <input type="number" class="form-control" id="gioVuotGio" name="gioVuotGio" 
-                    value="330" required>
+                    value="<%= currentData.VuotGio %>" required>
               </div>
               <div class="mb-3">
                 <label for="gioNCKH" class="form-label">Số tiết NCKH</label>
                 <input type="number" class="form-control" id="gioNCKH" name="gioNCKH" 
-                    value="170" required>
+                    value="<%= currentData.NCKH %>" required>
               </div>
               <div class="text-center">
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
