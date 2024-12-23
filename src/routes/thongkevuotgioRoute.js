@@ -16,14 +16,21 @@ router.get("/getNamHoc", async (req, res) => {
     try {
         const connection = await createConnection();
         
+        // Lấy dữ liệu từ database
         const [namHoc] = await connection.query(
             "SELECT DISTINCT namhoc as NamHoc FROM namhoc ORDER BY namhoc DESC"
         );
+        const [hocky] = await connection.query(
+            "SELECT DISTINCT HocKy as value, HocKy as HocKy FROM giangday ORDER BY HocKy"
+        );
+
         const allNamHoc = [{ NamHoc: 'ALL' }, ...namHoc];
+        const allHocKy = [{ HocKy: 'Tất cả kỳ', value: 'ALL' }, ...hocky];
 
         const data = {
             success: true,
-            NamHoc: allNamHoc
+            NamHoc: allNamHoc,
+            HocKy: allHocKy // Thêm dữ liệu kỳ học vào response
         };
 
         connection.release();
