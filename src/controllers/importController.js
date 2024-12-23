@@ -709,14 +709,6 @@ const importTableQC = async (jsonData) => {
     for (const element of VietTatModified) {
       const currentVietTat = element;
 
-      // CHAT sẽ auto là cao học an toàn, TSAT tương tự
-      if (Lop.includes("CHAT")) {
-        HeDaoTao = 'Cao học AT';
-        break;
-      } else if (Lop.includes("TSAT")) {
-        HeDaoTao = 'Tiến sĩ AT';
-        break;
-      }
 
       // Lấy độ dài của currentVietTat
       const lengthToCompare = currentVietTat.length;

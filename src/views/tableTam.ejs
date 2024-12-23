@@ -358,8 +358,8 @@
     </div>
   </nav>
 
-  <div class="container-fluid my-4">
-    <div class="mx-5 flex-grow-1">
+  <div class="container-fluid my-4" style="padding-left: 0px;">
+    <div class="flex-grow-1">
       <div class="header-actions">
         <div class="left">
           <button class="btn" id="ban-hanh" style="margin-bottom: 0px; visibility: hidden;">
@@ -760,13 +760,20 @@
 
         headers.forEach((header) => {
           const newHeaderName = headersMap[header] || header;
-          tableHtml += `<th>${newHeaderName}</th>`;
+          const baseStyle = 'style="text-align: center; vertical-align: middle;"'; // Style mặc định căn giữa text
+          const headerStyle =
+    newHeaderName === "Số TC" || newHeaderName === "Số SV"
+      ? 'style="white-space: break-spaces"'
+      : baseStyle;
+
+  tableHtml += `<th ${headerStyle}>${newHeaderName}</th>`;
+          // tableHtml += `<th>${newHeaderName}</th>`;
         });
 
         const role = localStorage.getItem("userRole");
 
         if (role === "Duyệt") {
-          tableHtml += `<th id="action-column">Hành động</th>`;
+          tableHtml += `<th id="action-column" style="text-align: center; vertical-align: middle;">Hành động</th>`;
         }
 
         document.getElementById("table-header").innerHTML = tableHtml;
@@ -844,11 +851,23 @@
       // Xây dựng các ô trong dòng
       const rowHtml = headers
         .map((key) => {
+          const cellStyle =
+            key === "SoSinhVien" || key === "SoTinChi"
+              ? "background-color: #ffffff; font-weight: bold;" // Style tùy chỉnh
+              : "";
+
           if (keyNotEdit.includes(key)) {
-            return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+            return `<td style="${cellStyle}">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
           }
-          return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
-            }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+
+          return `<td id="cell-${id}-${key}" style="display:${
+            key === "ID" ? "none" : ""
+          }; ${cellStyle}">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+          // if (keyNotEdit.includes(key)) {
+          //   return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+          // }
+          // return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
+          //   }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
         })
         .join("");
 
