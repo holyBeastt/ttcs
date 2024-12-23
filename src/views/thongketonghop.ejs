@@ -130,19 +130,24 @@
 
     /* Thêm container cho 2 biểu đồ tất cả khoa */
     .charts-container {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        margin: 20px 0;
-    }
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 5px 0;
+    flex-wrap: wrap; /* Đảm bảo tương thích với màn hình nhỏ */
+}
 
-    .chart-wrapper {
-        width: 48%;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 15px;
-    }
+.chart-wrapper {
+    flex: 1; /* Chia đều chiều rộng */
+    min-width: 300px; /* Đảm bảo kích thước tối thiểu */
+    max-width: 33%; /* Đảm bảo không vượt quá 33% chiều rộng */
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
   </style>
 </head>
 
@@ -306,6 +311,27 @@
     <h3>Thống kê tổng hợp</h3>
     <canvas id="chart"></canvas>
 </div>
+<div class="charts-container">
+  <!-- Biểu đồ tròn 1: Số tiết mời giảng -->
+  <div class="chart-wrapper">
+      <h3>Phần trăm số tiết mời giảng </h3>
+      <canvas id="moiGiangPieChart"></canvas>
+  </div>
+
+  <!-- Biểu đồ tròn 2: Số tiết vượt giờ -->
+  <div class="chart-wrapper">
+      <h3>Phần trăm số tiết vượt giờ </h3>
+      <canvas id="vuotGioPieChart"></canvas>
+  </div>
+
+  <!-- Biểu đồ tròn 3: Tổng số tiết -->
+  <div class="chart-wrapper">
+      <h3>Tổng số tiết (Mời giảng + Vượt giờ)</h3>
+      <canvas id="tongTietPieChart"></canvas>
+  </div>
+</div>
+
+
 
 
 <script>
@@ -379,7 +405,7 @@
     
 </script>
 
-<h2 style="margin-top: 30px; text-align: center;">Chi tiết số tiết giảng dạy</h2>
+<h3 style="margin-top: 30px; text-align: center;">Chi tiết số tiết giảng dạy</h3>
 <table class="table table-bordered my-2" border="1" id="thongketonghopTable">
     <thead>
         <tr>
@@ -423,6 +449,97 @@
 fetchThongKeMGData();
 
  </script>
+<script>
+  
+  async function fetchData() {
+    try {
+        const response = await fetch('/api/thongketonghop-data');
+        const data = await response.json();
+        console.log("Dữ liệu nhận được:", data);
 
+        const labels = data.map(item => item.Khoa);
+        const moiGiangData = data.map(item => parseFloat(item.TongSoTietMoiGiang));
+        const vuotGioData = data.map(item => parseFloat(item.TongSoTietVuotGio));
+        const tongSoTietData = data.map(item => parseFloat(item.Tongso));
+
+        // Định nghĩa màu sắc cố định cho các khoa
+        const colors = [
+            '#FF6384', // Màu đỏ
+            '#36A2EB', // Màu xanh dương
+            '#FFCE56', // Màu vàng
+            '#4BC0C0', // Màu xanh ngọc
+            '#9966FF', // Màu tím
+            '#FF9F40', // Màu cam
+            '#C9CBCF'  // Màu xám
+        ];
+
+        // Biểu đồ tròn: Số tiết mời giảng
+        const moiGiangCtx = document.getElementById('moiGiangPieChart').getContext('2d');
+        new Chart(moiGiangCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số tiết mời giảng',
+                    data: moiGiangData,
+                    backgroundColor: colors,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+            }
+        });
+
+        // Biểu đồ tròn: Số tiết vượt giờ
+        const vuotGioCtx = document.getElementById('vuotGioPieChart').getContext('2d');
+        new Chart(vuotGioCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số tiết vượt giờ',
+                    data: vuotGioData,
+                    backgroundColor: colors,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+            }
+        });
+
+        // Biểu đồ tròn: Tổng số tiết
+        const tongTietCtx = document.getElementById('tongTietPieChart').getContext('2d');
+        new Chart(tongTietCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tổng số tiết',
+                    data: tongSoTietData,
+                    backgroundColor: colors,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+            }
+        });
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+    }
+}
+
+fetchData();
+
+
+</script>
 </body>
 </html>
