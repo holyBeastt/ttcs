@@ -533,9 +533,20 @@
           Nam: Nam
         };
 
-        const confirmed = confirm(`Bạn có chắc chắn muốn ban hành dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam} không?`);
+        //const confirmed = confirm(`Bạn có chắc chắn muốn ban hành dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam} không?`);
 
-        if (!confirmed) {
+        const confirmed = await Swal.fire({
+          title: 'Xác nhận',
+          html: `Bạn có chắc chắn muốn ban hành dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam} không?`,
+          icon: 'question',
+          showCancelButton: true, // Hiển thị nút Hủy
+          confirmButtonText: 'Đồng ý',
+          cancelButtonText: 'Hủy',
+          width: 'auto',
+          padding: '20px',
+        });
+
+        if (!confirmed.isConfirmed) {
           return; // Thoát nếu người dùng không đồng ý
         }
 
