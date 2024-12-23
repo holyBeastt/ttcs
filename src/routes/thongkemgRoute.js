@@ -20,9 +20,6 @@ router.get("/getNamHoc", async (req, res) => {
         const [ki] = await connection.query(
             "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
         );
-        const [dot] = await connection.query(
-            "SELECT DISTINCT dot as Dot, dot as value FROM hopdonggvmoi ORDER BY dot"
-        );
         const [khoa] = await connection.query(
             "SELECT DISTINCT MaPhongBan as value, MaPhongBan as Khoa FROM hopdonggvmoi ORDER BY MaPhongBan"
         );
@@ -30,14 +27,12 @@ router.get("/getNamHoc", async (req, res) => {
         // Thêm option "Tất cả" vào đầu mỗi mảng
         const allNamHoc = [{ NamHoc: 'ALL' }, ...namHoc];
         const allKi = [{ Ki: 'Tất cả kỳ', value: 'ALL' }, ...ki];
-        const allDot = [{ Dot: 'Tất cả đợt', value: 'ALL' }, ...dot];
         const allKhoa = [{ value: 'ALL', Khoa: 'Tất cả khoa' }, ...khoa];
 
         const data = {
             success: true,
             NamHoc: allNamHoc,
             Ki: allKi,
-            Dot: allDot,
             Khoa: allKhoa
         };
 

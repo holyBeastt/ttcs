@@ -739,7 +739,7 @@ const exportVuotGio = async (req, res) => {
 
 
       // Cộng dồn số tiết quy đổi
-      totalSoTietQuyDoi += row.SoTiet;
+      totalSoTietQuyDoi += parseFloat(row.SoTiet);
 
       dataRowExport.font = { name: "Times New Roman", size: 12 };
       dataRowExport.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
