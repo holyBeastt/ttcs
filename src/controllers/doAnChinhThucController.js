@@ -871,7 +871,7 @@ const getDuplicateUniqueGV = async () => {
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const NamHoc = req.body.NamHoc;
-  const MaPhongBan = req.body.MaPhongBan;
+  const MaKhoa = req.body.MaPhongBan;
 
   let connection;
   try {
@@ -885,7 +885,7 @@ const saveToExportDoAn = async (req, res) => {
 
     let queryData, data;
 
-    if (MaPhongBan == "ALL") {
+    if (MaKhoa == "ALL") {
       queryData = "select * from doantotnghiep where Dot = ? AND NamHoc = ?";
 
       [data] = await connection.query(queryData, [Dot, NamHoc]);
@@ -893,7 +893,7 @@ const saveToExportDoAn = async (req, res) => {
       queryData =
         "select * from doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
 
-      [data] = await connection.query(queryData, [Dot, NamHoc, MaPhongBan]);
+      [data] = await connection.query(queryData, [Dot, NamHoc, MaKhoa]);
     }
 
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
@@ -965,7 +965,7 @@ const saveToExportDoAn = async (req, res) => {
             SoTiet || null,
             item.NgayBatDau || null,
             item.NgayKetThuc || null,
-            MaPhongBan || null,
+            item.MaPhongBan || null,
             NamHoc || null,
             item.Dot || null,
             item.TT || null,
@@ -1015,7 +1015,7 @@ const saveToExportDoAn = async (req, res) => {
               SoTiet || null,
               item.NgayBatDau || null,
               item.NgayKetThuc || null,
-              MaPhongBan || null,
+              item.MaPhongBan || null,
               NamHoc || null,
               item.Dot || null,
               item.TT || null,
