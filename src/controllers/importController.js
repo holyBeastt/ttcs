@@ -30,6 +30,7 @@ const convertExcelToJSON = async (filePath) => {
     // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
     const header = data[0];
     const keys = Object.keys(header);
+
     const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
 
     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
@@ -41,7 +42,6 @@ const convertExcelToJSON = async (filePath) => {
       }, {});
     });
 
-    // console.log("Chuẩn bị validate dữ liệu quy chuẩn");
     validateFileExcelQC(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
@@ -706,13 +706,20 @@ const importTableQC = async (jsonData) => {
     let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
 
     // Lặp qua tất cả các phần tử trong VietTatModified
-    for (let i = 0; i < VietTatModified.length; i++) {
-      const currentVietTat = VietTatModified[i];
+    for (const element of VietTatModified) {
+      const currentVietTat = element;
+
+      // CHAT sẽ auto là cao học an toàn, TSAT tương tự
+      if (Lop.includes("CHAT")) {
+        HeDaoTao = 'Cao học AT';
+        break;
+      } else if (Lop.includes("TSAT")) {
+        HeDaoTao = 'Tiến sĩ AT';
+        break;
+      }
 
       // Lấy độ dài của currentVietTat
       const lengthToCompare = currentVietTat.length;
-
-      // So sánh Lop với số ký tự tương ứng độ dài của currentVietTat
       if (Lop.slice(0, lengthToCompare) === currentVietTat) {
         HeDaoTao = "Đóng học phí";
         break; // Nếu tìm thấy "hệ đóng học phí", thoát khỏi vòng lặp
@@ -904,12 +911,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
+      item["Số tiết lên lớp giờ HC"] ||
+      null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị

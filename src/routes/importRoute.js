@@ -31,38 +31,40 @@ router.post(
 );
 
 // Định tuyến cho POST request tới /index / save - data
-router.post("/save-data", 
+router.post("/save-data",
   // role.checkDaotaoRoleThiHanh, 
   async (req, res) => {
-  try {
-    // Gọi hàm xử lý dữ liệu import
-    const result = await obj.importTableTam(req.body);
+    try {
+      // Gọi hàm xử lý dữ liệu import
+      const result = await obj.importTableTam(req.body);
 
-    // Kiểm tra kết quả trả về và phản hồi cho client
-    if (result === true) {
-      res
-        .status(200)
-        .json({ success: true, message: "Dữ liệu đã được lưu thành công!" });
-    } else {
-      res
-        .status(500)
-        .json({ success: false, message: "Lưu dữ liệu thất bại!" });
+      // Kiểm tra kết quả trả về và phản hồi cho client
+      if (result === true) {
+        res
+          .status(200)
+          .json({ success: true, message: "Dữ liệu đã được lưu thành công!" });
+      } else {
+        res
+          .status(500)
+          .json({ success: false, message: "Lưu dữ liệu thất bại!" });
+      }
+    } catch (error) {
+      console.error("Lỗi server:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi trong quá trình lưu dữ liệu!",
+        error,
+      });
     }
-  } catch (error) {
-    console.error("Lỗi server:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi trong quá trình lưu dữ liệu!",
-      error,
-    });
-  }
-});
+  });
 
 // Định tuyến cho POST request tới /index / save - data
 // router.post("/ban-hanh", (req, res) => obj.importTableQC(req.body, res));
 
 // Định tuyến cho POST request tới /index / save - data
-router.post("/ban-hanh", role.checkDaotaoRoleThiHanh, async (req, res) => {
+router.post("/ban-hanh", 
+  // role.checkDaotaoRoleThiHanh, 
+  async (req, res) => {
   try {
     // Gọi hàm xử lý dữ liệu import
     const result = await obj.importTableQC(req.body);
@@ -115,12 +117,14 @@ router.post("/viewtam", role.checkDaotaoRoleThiHanh, async (req, res) => {
 
 router.post("/get-table-tam", (req, res) => obj2.getTableTam(req, res));
 
-router.post("/kiem-tra-file", 
+router.post("/kiem-tra-file",
   // role.checkDaotaoRoleThiHanh, 
   obj.checkFile
 );
 
-router.post("/xoa-file", role.checkDaotaoRoleThiHanh, obj.deleteFile);
+router.post("/xoa-file",
+  // role.checkDaotaoRoleThiHanh,
+  obj.deleteFile);
 
 router.post("/submitData2", obj.submitData2);
 
