@@ -31,7 +31,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
             15 AS SoTiet
         FROM doantotnghiep
         WHERE GiangVien1 IS NOT NULL
-            AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != ''
+            AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != ''  AND GiangVien1 NOT LIKE '%Cơ hữu%'
     ),
     gv2 AS (
         SELECT 
@@ -49,6 +49,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         WHERE GiangVien2 IS NOT NULL
             AND GiangVien2 != 'không' 
             AND GiangVien2 != ''
+            AND GiangVien2 NOT LIKE '%Cơ hữu%'
     ),
     two_gv AS (
         SELECT * FROM gv1 
