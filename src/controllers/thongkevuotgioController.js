@@ -7,7 +7,7 @@ const thongkevuotgioController = {
 
     getThongkevuotgioData: async (req, res) => {
         let connection;
-        const { namhoc, khoa } = req.query;
+        const { namhoc, khoa, hocky } = req.query;
 
         console.log("Nam hoc:", namhoc);
         console.log("Khoa:", khoa);
@@ -32,17 +32,17 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        WHERE NamHoc = ?
+                        WHERE NamHoc = ? AND HocKy = ?
                         GROUP BY id_User) gk 
                     ON gd.id_User = gk.id_User
                     WHERE 
-                        gd.NamHoc = ? AND gd.Khoa = ? AND gd.id_User != 1
+                        gd.NamHoc = ? AND gd.Khoa = ? AND gd.HocKy = ? AND gd.id_User != 1
                     GROUP BY 
                         gd.GiangVien
                     ORDER BY 
                         TongSoTiet DESC
                 `;
-                params.push(namhoc, namhoc, khoa);
+                params.push(namhoc, hocky, namhoc, khoa, hocky);
             } else {
                 // Tất cả khoa
                 query = `
@@ -57,17 +57,17 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         (SELECT Khoa, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        WHERE NamHoc = ? 
+                        WHERE NamHoc = ? AND HocKy = ?
                         GROUP BY Khoa) gk 
                     ON gd.Khoa = gk.Khoa
                     WHERE 
-                        gd.NamHoc = ? AND gd.id_User != 1 
+                        gd.NamHoc = ? AND gd.HocKy = ? AND gd.id_User != 1 
                     GROUP BY 
                         gd.Khoa
                     ORDER BY 
                         gd.Khoa DESC 
                 `;
-                params.push(namhoc, namhoc);
+                params.push(namhoc, hocky, namhoc, hocky);
             }
 
             // Add parameters for the query
@@ -111,9 +111,9 @@ const thongkevuotgioController = {
         try {
             connection = await createConnection();
             const query = `
-                SELECT DISTINCT NamHoc, Khoa 
+                SELECT DISTINCT HocKy, NamHoc, Khoa 
                 FROM giangday 
-                ORDER BY NamHoc DESC;
+                ORDER BY NamHoc DESC, HocKy DESC;
             `;
             const [result] = await connection.query(query);
             res.json(result);
@@ -127,7 +127,7 @@ const thongkevuotgioController = {
 
     getThongkeGiangDayData: async (req, res) => {
         let connection;
-        const { namhoc, khoa } = req.query;
+        const {hocky, namhoc, khoa } = req.query;
 
         try {
             connection = await createConnection();
@@ -139,7 +139,7 @@ const thongkevuotgioController = {
                     giangday gd
                 WHERE 
                     gd.id_User != 1
-                    gd.NamHoc = ? AND gd.Khoa = ?
+                    gd.NamHoc = ? AND gd.Khoa = ? AND gc.HocKy=?
                 GROUP BY 
                     gd.giangvien
                 ORDER BY 
@@ -149,6 +149,7 @@ const thongkevuotgioController = {
             // Xây dựng mảng tham số
             const params = [];
             if (namhoc) params.push(namhoc);
+            if (hocky) params.push(hocky);
             if (khoa && khoa !== 'ALL') params.push(khoa);
 
             // In ra câu truy vấn và tham số để kiểm tra
