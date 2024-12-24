@@ -480,8 +480,10 @@
       document.getElementById("khoaDuyet").style.display = '';
       document.getElementById("daoTaoDuyet").style.display = 'none';
       document.getElementById("taiChinhDuyet").style.display = 'none';
+      document.getElementById("MaPhongBan").style.display = 'none';
 
     } else {
+      document.getElementById("MaPhongBan").style.display = '';
       if (MaPhongBan === "DAOTAO") {
         document.getElementById("select").style.display = 'none';
         document.getElementById("khoaDuyet").style.display = '';
@@ -990,11 +992,24 @@
         return response.json(); // Chuyển đổi phản hồi thành JSON
       })
       .then(data => {
-        console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+        Swal.fire({
+          title: 'Thông báo',
+          html: data.message,
+          icon: 'success',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       })
       .catch(error => {
-        console.error('Có lỗi xảy ra:', error);
-        console.log(error.message);
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+          icon: 'error',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       });
   }
   function deleteLopGK(MaGiangDay) {
@@ -1038,11 +1053,24 @@
         return response.json(); // Chuyển đổi phản hồi thành JSON
       })
       .then(data => {
-        console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+        Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
       })
       .catch(error => {
-        console.error('Có lỗi xảy ra:', error);
-        console.log(error.message);
+        Swal.fire({
+            title: 'Thông báo',
+            html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+            icon: 'error',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
       });
   }
 
@@ -1277,6 +1305,7 @@
         }
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </body>
 
 </html>

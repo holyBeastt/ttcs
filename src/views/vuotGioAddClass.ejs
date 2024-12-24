@@ -1159,12 +1159,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json(); // Chuyển đổi phản hồi thành JSON
       })
       .then(data => {
-        console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+        Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
         loadLopMoiData();
       })
       .catch(error => {
-        console.error('Có lỗi xảy ra:', error);
-        console.log(error.message);
+        Swal.fire({
+            title: 'Thông báo',
+            html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+            icon: 'error',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
       });
   }
   function deleteData(MaGiangDay) {
@@ -1198,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   let currentRow; // Biến toàn cục để lưu hàng hiện tại
   let typeclass = "Lớp ngoài quy chuẩn"
