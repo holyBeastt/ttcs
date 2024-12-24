@@ -370,10 +370,6 @@
         <div class="mx-5 flex-grow-1">
             <div class="d-flex justify-content-start align-items-end mb-3">
 
-                <!-- Combo box Đợt -->
-                <select class="form-select w-100px mx-1 selectop" id="combobox-dot">
-                </select>
-
                 <!-- Combo box kì -->
                 <select class="form-select w-100px mx-1 selectop" id="comboboxki">
                 </select>
@@ -436,7 +432,7 @@
         $(document).ready(function () {
             // Biến để theo dõi số lượng combobox đã được khởi tạo
             let initializedComboboxes = 0;
-            const totalComboboxes = 4; // Tổng số combobox cần khởi tạo
+            const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
 
             function checkAndFetchData() {
                 initializedComboboxes++;
@@ -448,7 +444,6 @@
             // Xóa các option mặc định
             $('#NamHoc option').remove();
             $('#comboboxki option').remove();
-            $('#combobox-dot option').remove();
             $('#Khoa option').remove();
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
@@ -501,13 +496,6 @@
                         $('#comboboxki').prepend('<option value="ALL" selected>Tất cả kỳ</option>');
                         checkAndFetchData();
 
-                        // Thêm dữ liệu đợt
-                        response.Dot.forEach(function (item) {
-                            $('#combobox-dot').append(
-                                `<option value="${item.value}">${item.Dot}</option>`
-                            );
-                        });
-                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
@@ -524,17 +512,15 @@
 
         async function fetchThongkemgData() {
             try {
-                const dot = document.getElementById('combobox-dot').value;
                 const ki = document.getElementById('comboboxki').value;
                 const nam = document.getElementById('NamHoc').value;
                 const khoa = document.getElementById('Khoa').value;
 
-                console.log('Fetching with params:', { dot, ki, nam, khoa });
+                console.log('Fetching with params:', { ki, nam, khoa });
 
                 let url = '/api/thongkemg-data';
                 const params = new URLSearchParams();
 
-                if (dot) params.append('dot', dot);
                 if (ki) params.append('kihoc', ki);
                 if (nam) params.append('namhoc', nam);
                 if (khoa) params.append('khoa', khoa);
@@ -810,7 +796,6 @@
         };
 
         // Thêm event listeners
-        document.getElementById('combobox-dot').addEventListener('change', fetchThongkemgData);
         document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
         document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
         document.getElementById('Khoa').addEventListener('change', fetchThongkemgData);
