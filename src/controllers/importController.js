@@ -683,7 +683,7 @@ const importTableQC = async (jsonData) => {
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
-  const query = `SELECT VietTat FROM hedonghocphi`;
+  const query = `SELECT VietTat FROM kitubatdau`;
   const [rows] = await connection.query(query);
   // Gắn số từ 0 đến 9 vào từng giá trị VietTat
   const VietTatModified = rows

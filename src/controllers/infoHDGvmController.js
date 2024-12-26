@@ -454,7 +454,80 @@ const getHopDongDuKienData = async (req, res) => {
     let rows;
     if (khoa == undefined) {
       [rows] = await connection.execute(
-        `SELECT
+        `WITH gv1 AS (
+    SELECT 
+        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        15 AS SoTiet
+    FROM doantotnghiep
+    WHERE GiangVien1 IS NOT NULL
+        AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != '' AND GiangVien1 NOT LIKE '%Cơ hữu%'
+),
+gv2 AS (
+    SELECT 
+        SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
+        10 AS SoTiet
+    FROM doantotnghiep
+    WHERE GiangVien2 IS NOT NULL
+        AND GiangVien2 != 'không' 
+        AND GiangVien2 != ''
+        AND GiangVien2 NOT LIKE '%Cơ hữu%'
+),
+two_gv AS (
+    SELECT * FROM gv1 
+    UNION ALL
+    SELECT * FROM gv2
+),
+one_gv AS (
+    SELECT         
+        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        25 AS SoTiet 
+    FROM doantotnghiep 
+    WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
+), 
+gv_doan AS (
+    SELECT * FROM one_gv
+    UNION ALL
+    SELECT * FROM two_gv
+),
+final AS (
+    SELECT 
+        gv_doan.GiangVien AS HoTen,
+        SUM(gv_doan.SoTiet) AS SoTiet
+    FROM gv_doan
+    JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
+    GROUP BY gv_doan.GiangVien
+),
+qc_data AS (
+    SELECT
+        gv.HoTen,
+        SUM(qc.QuyChuan) AS TongSoTiet
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    WHERE qc.MoiGiang = 1
+    GROUP BY gv.HoTen
+),
+-- Mô phỏng FULL OUTER JOIN (Tính tổng số tiết quy chuẩn + đồ án)
+tong_so_tiet AS (SELECT 
+    COALESCE(f.HoTen, q.HoTen) AS HoTen,
+    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
+FROM 
+    final f
+LEFT JOIN 
+    qc_data q ON f.HoTen = q.HoTen
+UNION
+SELECT 
+    COALESCE(f.HoTen, q.HoTen) AS HoTen,
+    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
+FROM
+    qc_data q
+LEFT JOIN
+    final f ON q.HoTen = f.HoTen
+ORDER BY HoTen)
+
+-- Query
+SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
         qc.KiHoc,
@@ -473,16 +546,14 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-    (SELECT SUM(QuyChuan)         
-     FROM quychuan
-     WHERE 
-        SUBSTRING_INDEX(GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        AND NamHoc = qc.NamHoc) AS TongSoTiet
+        tong_so_tiet.TongTiet AS TongSoTiet
 
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    JOIN
+        tong_so_tiet ON SUBSTRING_INDEX(tong_so_tiet.HoTen, ' - ', 1) = gv.HoTen
     WHERE
         namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
     GROUP BY
@@ -505,7 +576,80 @@ const getHopDongDuKienData = async (req, res) => {
       );
     } else {
       [rows] = await connection.execute(
-        `SELECT
+        `WITH gv1 AS (
+    SELECT 
+        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        15 AS SoTiet
+    FROM doantotnghiep
+    WHERE GiangVien1 IS NOT NULL
+        AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != '' AND GiangVien1 NOT LIKE '%Cơ hữu%'
+),
+gv2 AS (
+    SELECT 
+        SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
+        10 AS SoTiet
+    FROM doantotnghiep
+    WHERE GiangVien2 IS NOT NULL
+        AND GiangVien2 != 'không' 
+        AND GiangVien2 != ''
+        AND GiangVien2 NOT LIKE '%Cơ hữu%'
+),
+two_gv AS (
+    SELECT * FROM gv1 
+    UNION ALL
+    SELECT * FROM gv2
+),
+one_gv AS (
+    SELECT         
+        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
+        25 AS SoTiet 
+    FROM doantotnghiep 
+    WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
+), 
+gv_doan AS (
+    SELECT * FROM one_gv
+    UNION ALL
+    SELECT * FROM two_gv
+),
+final AS (
+    SELECT 
+        gv_doan.GiangVien AS HoTen,
+        SUM(gv_doan.SoTiet) AS SoTiet
+    FROM gv_doan
+    JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
+    GROUP BY gv_doan.GiangVien
+),
+qc_data AS (
+    SELECT
+        gv.HoTen,
+        SUM(qc.QuyChuan) AS TongSoTiet
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    WHERE qc.MoiGiang = 1
+    GROUP BY gv.HoTen
+),
+-- Mô phỏng FULL OUTER JOIN (Tính tổng số tiết quy chuẩn + đồ án)
+tong_so_tiet AS (SELECT 
+    COALESCE(f.HoTen, q.HoTen) AS HoTen,
+    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
+FROM 
+    final f
+LEFT JOIN 
+    qc_data q ON f.HoTen = q.HoTen
+UNION
+SELECT 
+    COALESCE(f.HoTen, q.HoTen) AS HoTen,
+    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
+FROM
+    qc_data q
+LEFT JOIN
+    final f ON q.HoTen = f.HoTen
+ORDER BY HoTen)
+
+-- Query
+SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
         qc.KiHoc,
@@ -524,18 +668,16 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-    (SELECT SUM(QuyChuan)               
-     FROM quychuan
-     WHERE 
-        SUBSTRING_INDEX(GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-        AND NamHoc = qc.NamHoc) AS TongSoTiet
+        tong_so_tiet.TongTiet AS TongSoTiet
 
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    JOIN
+        tong_so_tiet ON SUBSTRING_INDEX(tong_so_tiet.HoTen, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND Khoa = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
+        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
     GROUP BY
         gv.HoTen,
         qc.KiHoc,

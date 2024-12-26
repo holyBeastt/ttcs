@@ -89,179 +89,10 @@
 </head>
 
 <body>
-  <nav class="navbar-top ">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
-        <div class="navbar-title">
-          <img src="/dongchu_banner.png" alt="banner">
-        </div>
-      </a>
-    </div>
-  </nav>
+    <!-- Phần header -->
+    <%- include('header') %>
 
-  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
-
-  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
-    <div class="" style="width: 100%;">
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
-          </li>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Giảng Viên Mời
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời
-                  bằng file</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Bảng Quy Chuẩn
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
-                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
-                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
-                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Mời Giảng
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
-                <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
-                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-                <a class="nav-link '" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
-                <li class="nav-item"></li>
-                <a class="nav-link " href="/phulucHD">Phụ lục hợp đồng</a>
-                </li>
-                <a class="nav-link active" href="/exportHD">Hợp Đồng</a>
-
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Vượt Giờ
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
-                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
-
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Nghiên Cứu Khoa Học
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
-                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
-                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
-                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
-                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
-                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
-                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
-                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
-                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Đồ Án
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
-                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
-                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
-                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
-                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
-                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Thống Kê
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <div class="dropdown-submenu">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Giảng Dạy</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
-                    <a class="dropdown-item1" href="/ThongkeMG">Mời Giảng</a>
-                    <a class="dropdown-item1" href="/thongkevuotgio">Vượt Giờ</a>
-                    <a class="dropdown-item1" href="/thongketonghop">Tổng hợp</a>
-                  </div>
-                </div>
-                <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
-                <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Hệ Thống
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/log">Xem File Log</a>
-              </div>
-            </div>
-          </div>
-
-        </ul>
-        <div class="navbar-nav">
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              Hi, Lê Đức Thuận
-            </a>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
-              <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
-              <a class="dropdown-item" href="/">Đăng xuất</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
+    <!-- Phần nội dung -->
 
 
   <div class="d-flex justify-content-center">
@@ -342,60 +173,6 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      const isKhoa = localStorage.getItem("isKhoa");
-      console.log('Giá trị isKhoa từ localStorage: ', isKhoa);
-      hideButton();
-    });
-
-    function hideButton() {
-      const isKhoa = localStorage.getItem("isKhoa");
-      if (isKhoa === null) {
-        console.log('Không tìm thấy giá trị isKhoa trong localStorage');
-      } else {
-        console.log('Giá trị isKhoa: ', isKhoa);
-
-        const actionButton = document.getElementById('actionButton');
-        const actionButton1 = document.getElementById('actionButton1');
-        const actionButton2 = document.getElementById('actionButton2');
-        const actionButton3 = document.getElementById('actionButton3');
-
-        if (actionButton1 && actionButton2) {
-          if (isKhoa === "0") {
-            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-            console.log('Nút actionButton1 đã được ẩn, actionButton2 đã được hiển thị');
-          } else {
-            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-            actionButton2.style.display = 'none'; // Ẩn actionButton2
-            console.log('Nút actionButton1 đã được hiển thị, actionButton2 đã được ẩn');
-          }
-        } else {
-          console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
-        }
-
-        //Ẩn site duyệt lớp gk
-        const role = localStorage.getItem("userRole");
-
-      // Ẩn button import đồ án
-      const importDoAn = document.getElementById('importDoAn');
-      const suaHD = document.getElementById('suaHD');
-
-      if (isKhoa == 0 && role == 'Duyệt'){
-        importDoAn.style.display = 'block';
-        suaHD.style.display = 'block';
-      }
-        
-        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
-          actionButton3.style.display = '';
-        } else {
-          actionButton3.style.display = 'none';
-        }
-      }
-    }
-  </script>
-
 
 
   <script>
@@ -464,21 +241,6 @@
   </script>
 
   <script>
-    window.onload = function () {
-      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-      let Role = localStorage.getItem("userRole");
-      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
-        Role = 'LĐK';
-      }
-
-      if (TenNhanVien) {
-        // Hiển thị tên người dùng trên phần tử HTML
-        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
-      } else {
-        window.location.href = "/info";
-      }
-    };
-
     // Thêm sự kiện click cho phần tử có id="Home"
 
     const Home = document.getElementById("Home");
@@ -496,23 +258,6 @@
     });
 
 
-  </script>
-
-  <script>
-    window.onload = function () {
-      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-      const Role = localStorage.getItem("userRole");
-
-      if (TenNhanVien) {
-        // Hiển thị tên người dùng trên phần tử HTML
-        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
-      } else {
-        document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
-      }
-
-      //document.querySelector('.role').innerText = `${Role}`;
-
-    };
   </script>
 
   <script>
