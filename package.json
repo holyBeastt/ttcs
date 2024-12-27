@@ -1,0 +1,41 @@
+{
+  "name": "bai6",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trongnghia6/fenckh.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "app-root-path": "3.0.0",
+    "archiver": "^7.0.1",
+    "bootstrap": "^5.3.3",
+    "docxtemplater": "^3.51.2",
+    "dotenv": "16.0.3",
+    "ejs": "3.1.8",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
+    "express-session": "^1.18.0",
+    "fs": "^0.0.1-security",
+    "jquery-ui": "^1.14.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.8.0",
+    "multer": "1.4.3",
+    "mysql2": "2.3.3",
+    "pdf-parse": "^1.1.1",
+    "pizzip": "^3.1.7",
+    "read-excel-file": "^5.8.6",
+    "xlsx": "^0.18.5",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.20"
+  }
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Phòng Ban</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar-top ">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
+            <div class="navbar-title">
+              <img src="/dongchu_banner.png" alt="banner">
+            </div>
+          </a>
+        </div>
+      </nav>
+    
+      <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+      <nav class="navbar navbar-expand-lg navbar-bottom">
+        <div class="" style="width: 100%;">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" style="width: 100%;" id="navbarNav">
+              <div>
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="/admin"><i class="bi bi-house"></i></a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="ThongTinTK" href="/thongTinTK">Thông Tin Tài Khoản </a>       
+                   </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="NhanVien" href="/nhanVien">Nhân Viên </a>        
+                     </li>
+                     <li class="nav-item">
+                      <a class="nav-link active" id="PhongBan" href="/phongBan">Phòng Ban </a>        
+                     </li>
+                     <li class="nav-item">
+                      <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>        
+                     </li>
+                     <li class="nav-item">
+                      <a class="nav-link" id="NamHoc" href="/namHoc">Năm học </a>        
+                     </li>
+                </ul>
+              </div>
+                
+              <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                    Hi, ADMIN
+                    </a>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                    <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                    <a class="dropdown-item" href="/">Đăng xuất</a>
+                  </div>
+                </div>
+            </div>
+        </div>
+      </nav>
+    <div class="container my-5 box">
+        <h2>Thêm Phòng Ban Mới</h2>
+        <form action="/themPhongBan" method="POST">
+            <div class="mb-3 col-md-4 input-wrapper">
+                <label for="maPhongBan" class="form-label">Mã Phòng Ban</label>
+                <input type="text" class="form-control" id="maPhongBan" name="maPhongBan" required>
+            </div>
+            <div class="mb-3 col-md-4 input-wrapper">
+                <label for="tenPhongBan" class="form-label">Tên Phòng Ban</label>
+                <input type="text" class="form-control" id="tenPhongBan" name="tenPhongBan" required>
+            </div>
+            <div class="mb-3 col-md-4 input-wrapper">
+            <label for="ghiChu" class="form-label">Ghi chú</label>
+            <input type="text" class="form-control" id="ghiChu" name="ghiChu">
+            </div>
+            <div class="mb-3 col-md-4">
+            <label for="khoa" class="form-label">Khoa</label>
+            <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="khoa" name="khoa">
+            <label class="form-check-label" for="khoa"> isKhoa </label>
+            </div>
+            </div>
+            <div>
+            <button type="submit" class="btn">Thêm Phòng ban</button>
+            <button type="button" class="btn mx-5" onclick="window.location.href='/phongBan'" >Trở về</button>
+            </div>
+        </form>
+    </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+          document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+    
+        if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+        }
+    });
+        </script>
+</body>

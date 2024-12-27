@@ -1,0 +1,92 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  font-weight: 100;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  border: 3px solid;
+  border-radius: 7px;
+}
+
+th {
+  text-align: center;
+  color: #ffffff;
+}
+
+thead {
+  th {
+    background-color: #007bff !important;
+  }
+}
+
+tbody {
+  tr {
+    &:hover {
+      background-color: rgba(119, 119, 119, 0.3) !important;
+    }
+  }
+
+  /* td {
+    position: relative;
+    &:hover {
+      &:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -9999px;
+        bottom: -9999px;
+        background-color: rgba(119, 119, 119, 0.3) !important;
+        z-index: -1;
+      }
+    }
+  } */
+}
+
+.class-table {
+  width: 100%;
+  /* hoặc một kích thước cố định, ví dụ 1000px */
+  table-layout: fixed;
+}
+
+.class-table th,
+.class-table td {
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hidden-row {
+  display: none;
+}
+
+.fixed-section {
+  height: 500px;
+  /* Cố định chiều cao của khung */
+  overflow-y: auto;
+  /* Cho phép cuộn khi quá nhiều nội dung */
+}
+
+/* Giữ tiêu đề bảng luôn ở trên cùng khi cuộn : tableTam */
+#table-header {
+  position: sticky;
+  top: 0;
+  /* Đảm bảo tiêu đề dính trên cùng khi cuộn */
+  background-color: white;
+  /* Đảm bảo rằng tiêu đề có nền trắng để dễ nhìn */
+  z-index: 1;
+  /* Đảm bảo tiêu đề luôn nằm trên các dòng dữ liệu */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Thêm bóng đổ để phân biệt tiêu đề với các dòng */
+}

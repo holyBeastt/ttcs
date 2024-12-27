@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+          <div class="navbar-title">
+            <img src="/dongchu_banner.png" alt="banner" />
+          </div>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+    <nav class="navbar navbar-expand-lg navbar-bottom">
+      <div class="" style="width: 100%">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse"
+          style="width: 100%"
+          id="navbarNav"
+        >
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin"
+                  ><i class="bi bi-house"></i
+                ></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="ThongTinTK" href="/thongTinTK"
+                  >Thông Tin Tài Khoản
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" id="NhanVien" href="/nhanVien"
+                  >Nhân Viên
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="PhongBan" href="/phongBan"
+                  >Phòng Ban
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="NamHoc" href="/namHoc">Năm học </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="/login"
+                id="navbarDropdownUser"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Hi, ADMIN
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink"
+                  >Đổi mật khẩu</a
+                >
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <!-- Main content -->
+    <div class="container my-5 box">
+      <h2>Xem Thông Tin Nhân Viên</h2>
+      <form id="viewNV" action="/viewNV/:id" method="GET">
+        <div class="row mb-3">
+          <input type="hidden" name="Id_User" value="<%= value.id_User %> " />
+          <div class="col-md-4 input-wrapper">
+            <label for="TenNhanVien" class="form-label">Tên Nhân Viên</label>
+            <input
+              type="text"
+              class="form-control"
+              id="TenNhanVien"
+              name="TenNhanVien"
+              value="<%= value.TenNhanVien %> "
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NgaySinh" class="form-label">Ngày Sinh</label>
+            <input
+              type="date"
+              class="form-control"
+              id="NgaySinh"
+              name="NgaySinh"
+              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="HocVi" class="form-label">Học Vị</label>
+            <input
+              type="text"
+              class="form-control"
+              id="HocVi"
+              name="HocVi"
+              value="<%= value.HocVi %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="CCCD" class="form-label">CCCD</label>
+            <input
+              type="text"
+              class="form-control"
+              id="CCCD"
+              name="CCCD"
+              value="<%= value.CCCD %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
+            <input
+              type="date"
+              class="form-control"
+              id="NgayCapCCCD"
+              name="NgayCapCCCD"
+              value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
+            <input
+              type="text"
+              class="form-control"
+              id="NoiCapCCCD"
+              name="NoiCapCCCD"
+              value="<%= value.NoiCapCCCD %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="gioitinh">Giới tính:</label>
+            <input
+              type="text"
+              class="form-control"
+              value="<%= value.GioiTinh %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="DienThoai" class="form-label">Điện Thoại</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="DienThoai"
+              name="DienThoai"
+              value="<%= value.DienThoai %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiCCCD" class="form-label"
+              >Địa Chỉ Trong CCCD</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="DiaChiCCCD"
+              name="DiaChiCCCD"
+              value="<%= value.DiaChiCCCD %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="ChucVu" class="form-label">Chức Vụ</label>
+            <input
+              type="text"
+              class="form-control"
+              id="ChucVu"
+              name="ChucVu"
+              value="<%= value.ChucVu %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
+            <input
+              type="text"
+              class="form-control"
+              id="NoiCongTac"
+              name="NoiCongTac"
+              value="<%= value.NoiCongTac %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiHienNay" class="form-label"
+              >Địa Chỉ Hiện Nay</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="DiaChiHienNay"
+              name="DiaChiHienNay"
+              value="<%= value.DiaChiHienNay %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="TenDangNhap" class="form-label">Tên đăng nhập</label>
+            <input
+              type="text"
+              class="form-control"
+              id="TenDangNhap"
+              name="TenDangNhap"
+              value="<%= account.TenDangNhap %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="MaPhongBan" class="form-label">Mã Phòng Ban</label>
+              <input
+                type="text"
+                class="form-control text-center"
+                value="<%= role.MaPhongBan %>"
+                style="width: 150px"
+                readonly
+              />
+            </div>
+            <div>
+              <label for="Quyen" class="form-label">Quyền</label>
+              <input
+                type="text"
+                class="form-control text-center"
+                value="<%= role.Quyen %>"
+                style="width: 250px"
+                readonly
+              />
+            </div>
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="HSL" class="form-label">Hệ số lương</label>
+            <input
+              type="text"
+              class="form-control"
+              id="HSL"
+              name="HSL"
+              value="<%= value.HSL %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="SoTaiKhoan" class="form-label">Số Tài Khoản</label>
+            <input
+              type="text"
+              class="form-control"
+              id="SoTaiKhoan"
+              name="SoTaiKhoan"
+              value="<%= value.SoTaiKhoan %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NganHang" class="form-label">Ngân Hàng</label>
+            <input
+              type="text"
+              class="form-control"
+              id="NganHang"
+              name="NganHang"
+              value="<%= value.NganHang %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="ChiNhanh" class="form-label">Chi Nhánh</label>
+            <input
+              type="text"
+              class="form-control"
+              id="ChiNhanh"
+              name="ChiNhanh"
+              value="<%= value.ChiNhanh %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
+            <input
+              type="text"
+              class="form-control"
+              id="MaSoThue"
+              name="MaSoThue"
+              value="<%= value.MaSoThue %>"
+              readonly
+            />
+          </div>
+
+          <div class="col-md-4 input-wrapper">
+            <label for="MonGiangDayChinh" class="form-label"
+              >Bộ môn</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="MonGiangDayChinh"
+              name="MonGiangDayChinh"
+              value="<%= tenBoMon.TenBoMon %>"
+              readonly
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="CacMonLienQuan" class="form-label"
+              >Các Môn Liên Quan</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="CacMonLienQuan"
+              name="CacMonLienQuan"
+              value="<%= value.CacMonLienQuan %>"
+              readonly
+            />
+          </div>
+        </div>
+        <div class="row mb-3"></div>
+        <button
+          type="button"
+          class="btn mx-5"
+          onclick="window.location.href='/nhanVien'"
+        >
+          Trở về
+        </button>
+      </form>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 
+  <script>
+    // Lấy query string từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    // Lấy phần tử div để hiển thị thông báo
+    const messageDiv = document.getElementById('message');
+
+    // Hiển thị thông báo dựa trên giá trị của message
+    if (message === 'insertSuccess') {
+      alert("insertSuccess")
+    } else if (message === 'insertFalse') {
+      alert("insertFalse")
+    }
+      // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+    if (message) {
+    // Sử dụng window.history để xóa query string mà không refresh lại trang
+        //const newUrl = window.location.origin + window.location.pathname;
+        //window.history.replaceState({}, document.title, newUrl);
+    }
+
+  </script> -->
+
+    <!-- Phần phân quyền -->
+    <script>
+      window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        const Role = localStorage.getItem("userRole");
+
+        if (TenNhanVien) {
+          // Hiển thị tên người dùng trên phần tử HTML
+          document.querySelector(
+            ".fullname"
+          ).innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+          document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+        }
+
+        //document.querySelector(".role").innerText = `${Role}`;
+      };
+    </script>
+    <script>
+      const imagetruocInput = document.getElementById("imgtruocinput");
+      const imagetruocPreview = document.getElementById("imgtruoc");
+
+      imagetruocInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            imagetruocPreview.src = e.target.result;
+            imagetruocPreview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+    <script>
+      const imagesauInput = document.getElementById("sauCCCD");
+      const imagesauPreview = document.getElementById("imgsau");
+
+      imagesauInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            imagesauPreview.src = e.target.result;
+            imagesauPreview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+    <script>
+      const imagebang = document.getElementById("bangTotNghiep");
+      const imagebangPreview = document.getElementById("imgbang");
+
+      imagebang.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            imagebangPreview.src = e.target.result;
+            imagebangPreview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+    <!-- <script>
+    function fetchQuyen() {
+const maPhongBan = document.getElementById('MaPhongBan').value;
+alert(maPhongBan);
+// Gọi API để lấy thông tin isKhoa
+fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
+  .then(response => response.json())
+  .then(data => {
+    const quyenSelect = document.getElementById('Quyen');
+    quyenSelect.innerHTML = ''; // Xóa các option cũ
+
+    // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
+    if (data.isKhoa === 1) {
+      quyenSelect.innerHTML = `
+        <option value="GV">Giảng Viên</option>
+        <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
+        <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+    } else {
+        quyenSelect.innerHTML = `
+        <option value="Thường">Thường</option>
+        <option value="Duyệt">Duyệt</option>`;
+      }
+      
+    }
+  )
+  .catch(error => console.error('Error:', error));
+  }
+  </script> -->
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>

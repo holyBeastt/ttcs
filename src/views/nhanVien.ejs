@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/table.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+          <div class="navbar-title">
+            <img src="/dongchu_banner.png" alt="banner" />
+          </div>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+    <nav class="navbar navbar-expand-lg navbar-bottom">
+      <div class="" style="width: 100%">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse"
+          style="width: 100%"
+          id="navbarNav"
+        >
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin"
+                  ><i class="bi bi-house"></i
+                ></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="ThongTinTK" href="/thongTinTK"
+                  >Thông Tin Tài Khoản
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" id="NhanVien" href="/nhanVien"
+                  >Nhân Viên
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="PhongBan" href="/phongBan"
+                  >Phòng Ban
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-center" id="NamHoc" href="/namHoc" style="width: fit-content;">Năm học </a>        
+               </li>
+               <li class="nav-item">
+                <a class="nav-link " id="KyTuBD" href="/kytubatdau">Ký tự bắt đầu </a>        
+               </li>
+            </ul>
+          </div>
+
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                Hi, ADMIN
+                </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="right: 0; left: auto; z-index: 1000;">
+                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+              </div>
+            </div>
+        </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container my-5 box">
+      <div class="d-flex justify-content-start mb-3">
+        <!-- Nút Lọc màu giống nút Hiển thị -->
+
+        <button id="createNv" class="btn">
+          <i class="bi bi-plus-circle"></i> Thêm Nhân Viên
+        </button>
+        <script>
+          document
+            .getElementById("createNv")
+            .addEventListener("click", function () {
+              window.location.href = "/themNhanVien";
+            });
+        </script>
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên nhân viên..."
+          class="search mx-3"
+          id="searchInput"
+          style="height: 40px; width: 300px"
+          onkeyup="searchClass()"
+        />
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo mã phòng ban..."
+          class="search mx-3"
+          id="searchPB"
+          style="height: 40px; width: 300px"
+          onkeyup="searchPB()"
+        />
+        <script>
+          function searchClass() {
+            let input = document
+              .getElementById("searchInput")
+              .value.toLowerCase();
+            let table = document.getElementById("nhanVienTable");
+            let rows = table.getElementsByTagName("tr");
+
+            let currentGroup = null;
+            let groupVisible = false;
+
+            for (let i = 1; i < rows.length; i++) {
+              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+              let row = rows[i];
+
+              if (row.classList.contains("nhanVien")) {
+                // Đây là hàng đầu tiên của một nhóm giảng viên mới
+                if (currentGroup) {
+                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+                  setGroupVisibility(currentGroup, groupVisible);
+                }
+
+                currentGroup = [];
+                groupVisible = false;
+              }
+
+              currentGroup.push(row);
+
+              let teacherNameCell = row.cells[2]; // Giả sử tên giảng viên ở cột thứ 2
+              if (teacherNameCell) {
+                let teacherName = teacherNameCell.textContent.toLowerCase();
+                if (teacherName.includes(input)) {
+                  groupVisible = true;
+                }
+              }
+            }
+
+            // Xử lý nhóm cuối cùng
+            if (currentGroup) {
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+          }
+          function searchPB() {
+            let input = document.getElementById("searchPB").value.toLowerCase();
+            let table = document.getElementById("nhanVienTable");
+            let rows = table.getElementsByTagName("tr");
+
+            let currentGroup = null;
+            let groupVisible = false;
+
+            for (let i = 1; i < rows.length; i++) {
+              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+              let row = rows[i];
+
+              if (row.classList.contains("nhanVien")) {
+                // Đây là hàng đầu tiên của một nhóm giảng viên mới
+                if (currentGroup) {
+                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+                  setGroupVisibility(currentGroup, groupVisible);
+                }
+
+                currentGroup = [];
+                groupVisible = false;
+              }
+
+              currentGroup.push(row);
+
+              let teacherNameCell = row.cells[4]; // Giả sử tên giảng viên ở cột thứ 2
+              if (teacherNameCell) {
+                let teacherName = teacherNameCell.textContent.toLowerCase();
+                if (teacherName.includes(input)) {
+                  groupVisible = true;
+                }
+              }
+            }
+
+            // Xử lý nhóm cuối cùng
+            if (currentGroup) {
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+          }
+
+          function setGroupVisibility(group, visible) {
+            group.forEach((row) => {
+              row.style.display = visible ? "" : "none";
+            });
+          }
+        </script>
+      </div>
+      <div class="pb-3">
+        <table id="nhanVienTable" class="table table-bordered">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Mã nhân viên</th>
+              <th>Tên nhân viên</th>
+              <th>Giới tính</th>
+              <th>Mã Phòng ban</th>
+              <th>Tên phòng ban</th>
+              <th>Chức vụ</th>
+              <th>Bộ môn</th>
+              <th>Điện thoại</th>
+              <th>CCCD</th>
+              <th>Ngày cấp CCCD</th>
+              <th>Nơi cấp CCCD</th>
+              <th>Học vị</th>
+              <th>Tên đăng nhập</th>
+              <th>Mật khẩu</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody class="nhanVien" id="data-table-body">
+            <% if (nhanvienLists && nhanvienLists.length > 0) { %> <% for (var i
+            = 0; i < nhanvienLists.length; i++) { %>
+            <tr class="nhanVien">
+              <td><%= i+1 %></td>
+              <td><%= nhanvienLists[i].MaNhanVien %></td>
+              <!-- Hiển thị tên tài khoản -->
+              <td><%= nhanvienLists[i].TenNhanVien %></td>
+              <!-- Hiển thị email -->
+              <td><%= nhanvienLists[i].GioiTinh %></td>
+              <td><%= nhanvienLists[i].MaPhongBan %></td>
+              <td><%= nhanvienLists[i].TenPhongBan %></td>
+              <td><%= nhanvienLists[i].ChucVu %></td>
+              <td><%= nhanvienLists[i].MonGiangDayChinh %></td>
+              <td><%= nhanvienLists[i].DienThoai %></td>
+              <td><%= nhanvienLists[i].CCCD %></td>
+              <% const options = { year: 'numeric', month: '2-digit', day:
+              '2-digit' }; %>
+              <td>
+                <%= nhanvienLists[i].NgayCapCCCD ? new
+                Date(nhanvienLists[i].NgayCapCCCD).toLocaleDateString('vi-VN',
+                options) : '' %>
+              </td>
+              <td><%= nhanvienLists[i].NoiCapCCCD %></td>
+              <td><%= nhanvienLists[i].HocVi %></td>
+              <td><%= nhanvienLists[i].TenDangNhap %></td>
+              <td><%= nhanvienLists[i].MatKhau %></td>
+              <td class="d-flex" style="border: none">
+                <button
+                  class="action-button edit"
+                  onclick="editNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
+                >
+                  ✏️
+                </button>
+                <button
+                  class="action-button view"
+                  onclick="viewNV(this, <%= parseInt(nhanvienLists[i].id_User) %>)"
+                >
+                  👁️
+                </button>
+              </td>
+            </tr>
+            <% } %> <% } else { %>
+            <tr>
+              <td colspan="3">Không có tài khoản nào.</td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Script xử lý checkbox -->
+    <!-- <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const selectAllCheckbox = document.getElementById("selectAll");
+        const rowCheckboxes = document.querySelectorAll(".row-checkbox");
+
+        selectAllCheckbox.addEventListener("change", function () {
+          rowCheckboxes.forEach((checkbox) => {
+            checkbox.checked = selectAllCheckbox.checked;
+          });
+        });
+
+        rowCheckboxes.forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            selectAllCheckbox.checked = Array.from(rowCheckboxes).every(
+              (cb) => cb.checked
+            );
+          });
+        });
+      });
+    </script> -->
+    <script>
+      function editNV(button, index) {
+        hre = "/updateNV/" + index;
+        window.location.href = hre;
+      }
+      function viewNV(button, index) {
+        hre = "/viewNV/" + index;
+        window.location.href = hre;
+      }
+    </script>
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>

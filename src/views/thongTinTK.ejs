@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <nav class="navbar-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
+          <div class="navbar-title">
+            <img src="/dongchu_banner.png" alt="banner" />
+          </div>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Phần dưới của navbar chứa các mục nằm ngang -->
+    <nav class="navbar navbar-expand-lg navbar-bottom">
+      <div class="" style="width: 100%">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse"
+          style="width: 100%"
+          id="navbarNav"
+        >
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/admin"
+                  ><i class="bi bi-house"></i
+                ></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="ThongTinTK" href="/thongTinTK"
+                  >Thông Tin Tài Khoản
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" id="NhanVien" href="/nhanVien"
+                  >Nhân Viên
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="PhongBan" href="/phongBan"
+                  >Phòng Ban
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="NamHoc" href="/namHoc">Năm học </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="/login"
+                id="navbarDropdownUser"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Hi, ADMIN
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#">Thông tin cá nhân</a>
+                <a class="dropdown-item" id="changePasswordLink"
+                  >Đổi mật khẩu</a
+                >
+                <a class="dropdown-item" href="/">Đăng xuất</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <!-- Phần nội dung -->
+
+    <div class="container my-5 box">
+      <div class="d-flex justify-content-start mb-3">
+        <button id="createTk" class="btn">
+          <i class="bi bi-plus-circle"></i> Thêm tài khoản
+        </button>
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên nhân viên..."
+          class="search mx-3"
+          id="searchInput"
+          style="height: 40px; width: 300px"
+          onkeyup="searchClass()"
+        />
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo mã phòng ban..."
+          class="search mx-3"
+          id="searchPB"
+          style="height: 40px; width: 300px"
+          onkeyup="searchPB()"
+        />
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên đăng nhập..."
+          class="search mx-3"
+          id="searchTK"
+          style="height: 40px; width: 300px"
+          onkeyup="searchTK()"
+        />
+        <script>
+          function searchClass() {
+            let input = document
+              .getElementById("searchInput")
+              .value.toLowerCase();
+            let table = document.getElementById("taiKhoanTable");
+            let rows = table.getElementsByTagName("tr");
+
+            let currentGroup = null;
+            let groupVisible = false;
+
+            for (let i = 1; i < rows.length; i++) {
+              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+              let row = rows[i];
+
+              if (row.classList.contains("taiKhoan")) {
+                // Đây là hàng đầu tiên của một nhóm giảng viên mới
+                if (currentGroup) {
+                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+                  setGroupVisibility(currentGroup, groupVisible);
+                }
+
+                currentGroup = [];
+                groupVisible = false;
+              }
+
+              currentGroup.push(row);
+
+              let teacherNameCell = row.cells[2]; // Giả sử tên giảng viên ở cột thứ 2
+              if (teacherNameCell) {
+                let teacherName = teacherNameCell.textContent.toLowerCase();
+                if (teacherName.includes(input)) {
+                  groupVisible = true;
+                }
+              }
+            }
+
+            // Xử lý nhóm cuối cùng
+            if (currentGroup) {
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+          }
+          function searchPB() {
+            let input = document.getElementById("searchPB").value.toLowerCase();
+            let table = document.getElementById("taiKhoanTable");
+            let rows = table.getElementsByTagName("tr");
+
+            let currentGroup = null;
+            let groupVisible = false;
+
+            for (let i = 1; i < rows.length; i++) {
+              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+              let row = rows[i];
+
+              if (row.classList.contains("taiKhoan")) {
+                // Đây là hàng đầu tiên của một nhóm giảng viên mới
+                if (currentGroup) {
+                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+                  setGroupVisibility(currentGroup, groupVisible);
+                }
+
+                currentGroup = [];
+                groupVisible = false;
+              }
+
+              currentGroup.push(row);
+
+              let teacherNameCell = row.cells[5]; // Giả sử tên giảng viên ở cột thứ 2
+              if (teacherNameCell) {
+                let teacherName = teacherNameCell.textContent.toLowerCase();
+                if (teacherName.includes(input)) {
+                  groupVisible = true;
+                }
+              }
+            }
+
+            // Xử lý nhóm cuối cùng
+            if (currentGroup) {
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+          }
+          function searchTK() {
+            let input = document.getElementById("searchTK").value.toLowerCase();
+            let table = document.getElementById("taiKhoanTable");
+            let rows = table.getElementsByTagName("tr");
+
+            let currentGroup = null;
+            let groupVisible = false;
+
+            for (let i = 1; i < rows.length; i++) {
+              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+              let row = rows[i];
+
+              if (row.classList.contains("taiKhoan")) {
+                // Đây là hàng đầu tiên của một nhóm giảng viên mới
+                if (currentGroup) {
+                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+                  setGroupVisibility(currentGroup, groupVisible);
+                }
+
+                currentGroup = [];
+                groupVisible = false;
+              }
+
+              currentGroup.push(row);
+
+              let teacherNameCell = row.cells[3]; // Giả sử tên giảng viên ở cột thứ 2
+              if (teacherNameCell) {
+                let teacherName = teacherNameCell.textContent.toLowerCase();
+                if (teacherName.includes(input)) {
+                  groupVisible = true;
+                }
+              }
+            }
+
+            // Xử lý nhóm cuối cùng
+            if (currentGroup) {
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+          }
+
+          function setGroupVisibility(group, visible) {
+            group.forEach((row) => {
+              row.style.display = visible ? "" : "none";
+            });
+          }
+        </script>
+        <script>
+          document
+            .getElementById("createTk")
+            .addEventListener("click", function () {
+              window.location.href = "/themTK";
+            });
+        </script>
+      </div>
+      <div class="pb-3">
+        <table class="table table-bordered" id="taiKhoanTable">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>ID User</th>
+              <th>Tên Nhân Viên</th>
+              <th>Tên tài khoản</th>
+              <th>Mật khẩu</th>
+              <th>Mã Phòng ban</th>
+              <th>Quyền</th>
+              <th>Khoa</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (accountLists && accountLists.length > 0) { %> <% for (var i =
+            0; i < accountLists.length; i++) { %>
+            <tr class="taiKhoan">
+              <td><%= i+1 %></td>
+              <!-- Số thứ tự -->
+              <td><%= accountLists[i].id_User %></td>
+              <!-- Hiển thị tên tài khoản -->
+              <td><%= accountLists[i].TenNhanVien %></td>
+              <td><%= accountLists[i].TenDangNhap %></td>
+              <!-- Hiển thị email -->
+              <td><%= accountLists[i].matkhau %></td>
+              <td><%= accountLists[i].MaPhongBan %></td>
+              <td><%= accountLists[i].Quyen %></td>
+              <td><%= accountLists[i].isKhoa %></td>
+              <td class="d-flex" style="border: none">
+                <button
+                  class="action-button edit"
+                  onclick="editTK(this, '<%=(accountLists[i].TenDangNhap)%>')"
+                >
+                  ✏️
+                </button>
+              </td>
+            </tr>
+            <% } %> <% } else { %>
+            <tr>
+              <td colspan="3">Không có tài khoản nào.</td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      function editTK(button, MaNhanVien) {
+        console.log(MaNhanVien);
+        hre = "/updateTK/" + MaNhanVien;
+        window.location.href = hre;
+      }
+    </script>
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>

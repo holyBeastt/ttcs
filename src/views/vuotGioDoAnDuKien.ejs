@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <style>
+      /* CSS cho bảng */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+      }
+
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      .table td {
+        vertical-align: middle;
+      }
+
+      .bg-custom {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .spinner-border {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+      }
+
+      .header-actions {
+        display: flex;
+        /* Flexbox container */
+        flex-wrap: wrap;
+        /* Wrap items if they don't fit in one line */
+        align-items: center;
+        /* Vertically center items */
+        gap: 10px;
+        /* Space between the elements */
+        justify-content: space-between;
+      }
+
+      .right {
+        margin-top: 20px;
+      }
+
+      .btn {
+        height: 45px;
+        margin-left: 5px;
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        const role = localStorage.getItem("userRole");
+
+        if (role == "Duyệt") {
+          document.getElementById("ban-hanh").style.visibility = "visible";
+          document.getElementById("doAnDuKien").style.visibility = "visible";
+          document.getElementById("xoa-qc-du-kien").style.visibility =
+            "visible";
+        }
+      });
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
+
+    <!-- Phần nội dung -->
+
+    <div class="container-fluid my-4">
+      <div class="mx-5 flex-grow-1">
+        <div class="header-actions">
+          <div class="left">
+            <button
+              class="btn"
+              id="ban-hanh"
+              style="margin-bottom: 0px; visibility: hidden"
+            >
+              Ban Hành
+            </button>
+            <button
+              class="btn text-nowrap"
+              id="doAnDuKien"
+              style="width: max-content; margin-bottom: 0px; visibility: hidden"
+            >
+              Thêm bảng quy chuẩn
+            </button>
+          </div>
+
+          <!-- <button class="btn btn-outline-primary button">
+          <a href="/import">Thêm bảng quy chuẩn</a>
+        </button> -->
+          <div class="right" style="margin-top: 0px">
+            <div class="loc d-flex align-items-center">
+              <select class="selectop" id="combobox-dot">
+                <option value="">Đợt</option>
+              </select>
+
+              <!-- Combo box Năm -->
+              <select class="selectop" id="NamHoc">
+                <option value="">Chọn năm học</option>
+              </select>
+              <select class="selectop" id="departmentFilter">
+                <option value="">Chọn khoa</option>
+              </select>
+              <!-- <button class="export" onclick="exportSelectedData()">Xuất dữ liệu</button> -->
+
+              <button
+                class="btn text-nowrap"
+                id="render"
+                style="margin-top: 17px"
+              >
+                Hiển thị
+              </button>
+              <!-- <button class="button text-nowrap" id="filter" style="margin-top: 17px" onclick="filterTable()">
+              Lọc
+            </button> -->
+              <button
+                class="btn text-nowrap"
+                id="xoa-qc-du-kien"
+                style="margin-top: 17px; visibility: hidden"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <table class="table table-bordered">
+            <thead>
+              <tr id="table-header"></tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+        <div
+          id="no-data-message"
+          class="text-center my-3"
+          style="display: none"
+        >
+          Không có dữ liệu để hiển thị.
+        </div>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <!-- render ra bảng k cần ấn gì cả -->
+    <script>
+      document.getElementById("render").addEventListener("click", function () {
+        let Dot = document.getElementById("combobox-dot").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let Khoa = document.getElementById("departmentFilter").value;
+
+        const body = {
+          Khoa: Khoa,
+          Dot: Dot,
+          Nam: Nam,
+        };
+
+        fetch("/getDoAnDuKien", {
+          method: "POST", // Phương thức HTTP
+          headers: {
+            "Content-Type": "application/json", // Định dạng dữ liệu
+          },
+          body: JSON.stringify(body), // Gửi Khoa trong body
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                "Network response was not ok: " + response.statusText
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Xóa dữ liệu cũ khỏi bảng trước khi thêm dữ liệu mới
+            document.getElementById("data-table-body").innerHTML = "";
+
+            if (data.length === 0) {
+              document.getElementById("no-data-message").style.display =
+                "block"; // Hiển thị thông báo nếu không có dữ liệu
+            } else {
+              document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
+              let tableHtml = "";
+              const headersMap = {
+                TT: "TT",
+                Dot: "Đợt",
+                Nam: "Năm",
+                SinhVien: "Sinh Viên",
+                MaSV: "Mã SV",
+                TenDeTai: "Tên đề tài",
+                GiangVienDefault: "Cán bộ, Giảng viên hướng dẫn",
+                SoTinChi: "Số tín chỉ",
+                GiangVien1: "Giảng viên hướng dẫn 1",
+                GiangVien2: "Giảng viên hướng dẫn 2",
+              };
+
+              const headers = Object.keys(data[0]);
+              headers.forEach((header) => {
+                const newHeaderName = headersMap[header] || header;
+                tableHtml += `<th>${newHeaderName}</th>`;
+              });
+
+              document.getElementById("table-header").innerHTML = tableHtml;
+
+              data.forEach((item) => {
+                const row = headers
+                  .map((key) => {
+                    const value = item[key] !== null ? item[key] : ""; // Kiểm tra giá trị
+                    const formattedValue = String(value).replace(/\n/g, "<br>"); // Chuyển đổi sang chuỗi và thay \n bằng <br>
+                    return `<td>${formattedValue}</td>`;
+                  })
+                  .join("");
+                document.getElementById(
+                  "data-table-body"
+                ).innerHTML += `<tr>${row}</tr>`;
+              });
+            }
+          })
+          .catch((error) => {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Có lỗi xảy ra khi gọi API: " + error.message,
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+          });
+      });
+    </script>
+
+    <!-- phần xóa bảng quy chuẩn dự kiến -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("xoa-qc-du-kien")
+          .addEventListener("click", async function () {
+            let Dot = document.getElementById("combobox-dot").value;
+            let Nam = document.getElementById("NamHoc").value;
+            let Khoa = document.getElementById("departmentFilter").value;
+
+            const body = {
+              Khoa: Khoa,
+              Dot: Dot,
+              Nam: Nam,
+            };
+
+            // Hiển thị hộp thoại xác nhận
+            const confirmation = confirm(
+              `Xóa dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam}`
+            );
+
+            if (confirmation) {
+              // Nếu người dùng chọn OK
+              try {
+                // Gọi tới API để xóa dữ liệu
+                const response = await fetch("/xoaDoAnDuKien", {
+                  // Đường dẫn tới API của bạn
+                  method: "POST", // Phương thức HTTP
+                  headers: {
+                    "Content-Type": "application/json", // Định dạng dữ liệu
+                  },
+                  body: JSON.stringify(body), // Gửi Khoa trong body
+                });
+
+                // Kiểm tra xem yêu cầu có thành công không
+                if (response.ok) {
+                  const result = await response.json(); // Chuyển đổi phản hồi sang JSON
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: result.message,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    width: "auto", // Tự động điều chỉnh chiều rộng
+                    padding: "20px", // Giữ khoảng cách cho nội dung
+                  });
+                  location.reload();
+                } else {
+                  const errorData = await response.json(); // Lấy thông tin lỗi
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: errorData.message,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    width: "auto", // Tự động điều chỉnh chiều rộng
+                    padding: "20px", // Giữ khoảng cách cho nội dung
+                  });
+                }
+              } catch (error) {
+                console.error("Đã xảy ra lỗi:", error);
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Đã xảy ra lỗi khi gọi API",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto", // Tự động điều chỉnh chiều rộng
+                  padding: "20px", // Giữ khoảng cách cho nội dung
+                });
+              }
+            } else {
+              // Nếu người dùng chọn Cancel
+              console.log("Đã hủy yêu cầu xóa dữ liệu."); // Thông báo đã hủy
+            }
+          });
+      });
+    </script>
+
+    <!-- phần ban hành -->
+    <script>
+      // Hàm xử lý sự kiện khi người dùng nhấn nút ban hành
+      document
+        .getElementById("ban-hanh")
+        .addEventListener("click", async function () {
+          // Xác nhận lại hành động ban hành
+          let Dot = document.getElementById("combobox-dot").value;
+          let Nam = document.getElementById("NamHoc").value;
+          let Khoa = document.getElementById("departmentFilter").value;
+
+          const clientData = {
+            Khoa: Khoa,
+            Dot: Dot,
+            Nam: Nam,
+          };
+
+          //const confirmed = confirm(`Bạn có chắc chắn muốn ban hành dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam} không?`);
+
+          const confirmed = await Swal.fire({
+            title: "Xác nhận",
+            html: `Bạn có chắc chắn muốn ban hành dữ liệu của Khoa ${Khoa} Đợt ${Dot} Năm ${Nam} không?`,
+            icon: "question",
+            showCancelButton: true, // Hiển thị nút Hủy
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: "Hủy",
+            width: "auto",
+            padding: "20px",
+          });
+
+          if (!confirmed.isConfirmed) {
+            return; // Thoát nếu người dùng không đồng ý
+          }
+
+          try {
+            const response = await fetch("/banHanhDoAn", {
+              method: "POST", // Phương thức HTTP
+              headers: {
+                "Content-Type": "application/json", // Định dạng dữ liệu
+              },
+              body: JSON.stringify(clientData), // Gửi Khoa trong body
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              Swal.fire({
+                title: "Thông báo",
+                html: result?.message || "Ban hành thành công!",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            } else {
+              Swal.fire({
+                title: "Thông báo",
+                html: result?.message || "Ban hành thất bại!",
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Gửi dữ liệu thất bại! Vui lòng thử lại.",
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+          }
+        });
+    </script>
+
+    <!-- Phần phân quyền -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const importQuyChuan = document.getElementById("doAnDuKien");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        const role = localStorage.getItem("userRole");
+
+        importQuyChuan.addEventListener("click", function (event) {
+          window.location.href = "/importDoAn";
+        });
+
+        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+        const ThongTinGD = document.getElementById("ThongTinGD");
+
+        ThongTinGD.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/info2";
+          } else {
+            window.location.href = "/info";
+          }
+        });
+
+        // Thêm sự kiện click cho phần tử có id="Home"
+
+        const Home = document.getElementById("Home");
+
+        Home.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+          const isKhoa = localStorage.getItem("isKhoa");
+
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/maindt";
+          } else {
+            window.location.href = "/mainkhoa";
+          }
+        });
+      });
+    </script>
+
+    <script>
+      function filterTable() {
+        // Lấy giá trị đã chọn từ các combobox
+        let dot = document.getElementById("combobox-dot").value;
+        let ki = document.getElementById("comboboxki").value;
+        let nam = document.getElementById("NamHoc").value;
+        let department = document
+          .getElementById("departmentFilter")
+          .value.trim();
+
+        let tbody = document.getElementById("data-table-body");
+        let rows = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          let row = rows[i];
+          let cells = row.getElementsByTagName("td");
+
+          // Giả sử thứ tự cột là: Khoa, Đợt, Kì, Năm
+          let rowDepartment = cells[0].textContent.trim(); // Khoa
+          let rowDot = cells[1].textContent.trim(); // Đợt
+          let rowKi = cells[2].textContent.trim(); // Kì
+          let rowNam = cells[3].textContent.trim(); // Năm
+
+          // Logic lọc
+          let matchesDepartment =
+            department === "" || rowDepartment === department;
+          let matchesDot = dot === "" || rowDot === dot;
+          let matchesKi = ki === "" || rowKi === ki;
+          let matchesNam = nam === "" || rowNam === nam; // Kiểm tra năm
+
+          // Hiển thị hoặc ẩn hàng dựa trên kết quả lọc
+          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+            row.style.display = ""; // Hiển thị hàng
+          } else {
+            row.style.display = "none"; // Ẩn hàng
+          }
+        }
+      }
+    </script>
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        $('#NamHoc option[value=""]').remove();
+        $('#comboboxki option[value=""]').remove();
+        $('#combobox-dot option[value=""]').remove();
+
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                $("#NamHoc").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              response.Ki.forEach(function (item) {
+                console.log(item.Ki);
+                $("#comboboxki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+              response.Dot.forEach(function (item) {
+                console.log(item.Dot);
+                $("#combobox-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+            } else {
+              console.error(
+                "Không lấy được dữ liệu năm học:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học:", error);
+          },
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function () {
+        $('#departmentFilter option[value=""]').remove();
+        // Gọi AJAX để lấy dữ liệu JSON từ API
+        $.ajax({
+          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          method: "GET",
+          success: function (response) {
+            // Kiểm tra nếu response thành công
+            const MaPhongBan = response.MaPhongBan;
+            if (response.success) {
+              $("#departmentFilter").prepend(
+                '<option value="ALL">Tất cả khoa</option>'
+              );
+              // Lặp qua từng mục trong mảng MaPhongBan
+              response.MaPhongBan.forEach(function (item) {
+                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+                console.log(item);
+                $("#departmentFilter").append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
+              });
+
+              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+              if (!$("#departmentFilter option:selected").length) {
+                $("#departmentFilter").prepend(
+                  '<option value="">Chọn Phòng Ban</option>'
+                );
+              }
+            } else {
+              console.error(
+                "Không lấy được dữ liệu phongBan:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+          },
+        });
+      });
+    </script>
+
+    <script>
+      document
+        .getElementById("infome")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+          if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+          } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+          }
+        });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        // Ẩn button import đồ án
+        const importDoAn = document.getElementById("importDoAn");
+        const suaHD = document.getElementById("suaHD");
+
+        if (isKhoa == 0 && role == "Duyệt") {
+          importDoAn.style.display = "block";
+          suaHD.style.display = "block";
+        }
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById("changeMessage");
+        //Ẩn site thêm thông báo
+        if (role === "Duyệt") {
+          actionButton.style.display = "";
+        } else {
+          actionButton.style.display = "none";
+        }
+      });
+    </script>
+    <script>
+      document
+        .getElementById("changeMessage")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+          if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+          } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>

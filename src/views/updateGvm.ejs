@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/forminput.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+  <style>
+    .thuocQuanDoiBox {
+      height: 30px;
+      line-height: 30px;
+      align-items: center;
+      gap: 8px; /* Khoảng cách giữa checkbox và nhãn */
+    }
+
+    .thuocQuanDoi-input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .thuocQuanDoi-label {
+      display: inline-block; /* Đảm bảo nhãn hiển thị riêng biệt */
+      margin-right: 20px !important;
+      font-size: 16px;
+      color: #333;
+      margin: 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Phần header -->
+  <%- include('header') %>
+
+  <!-- Main content -->
+  <div class="m-3 box">
+    <form action="/updateGvm/:<%= value.id_Gvm %>" method="POST" class="form d-flex flex-column"
+      enctype="multipart/form-data">
+      <!-- //enctype="multipart/form-data" -->
+      <fieldset>
+        <div style="display: none;">
+          <a>Id:<input class="input" type="text" name="IdGvm" id="IdGvm" value="<%= value.id_Gvm %> "></a>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="HoTen">Họ tên:</label>
+            <input required class="form-control" type="text" name="HoTen" id="HoTen" value="<%= value.HoTen %>">
+          </div>
+          <div class="col-md-4">
+            <label for="gioitinh">Giới tính:</label>
+            <select class="form-control" name="GioiTinh" id="gioitinh">
+              <option value="Nam" <%=value.GioiTinh==='Nam' ? 'selected' : '' %>>Nam</option>
+              <option value="Nu" <%=value.GioiTinh==='Nữ' ? 'selected' : '' %>>Nữ</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="ngaySinh">Ngày sinh:</label>
+            <input required class="form-control" type="date" name="NgaySinh" id="ngaySinh"
+              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="CCCD">CCCD:</label>
+            <input required class="form-control" type="text" name="CCCD" id="CCCD" value="<%= value.CCCD %>">
+          </div>
+          <div class="col-md-4">
+            <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
+            <input required class="form-control" type="date" name="NgayCapCCCD" id="NgayCapCCCD"
+              value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>">
+          </div>
+          <div class="col-md-4">
+            <label for="NoiCapCCCD">Nơi cấp CCCD:</label>
+            <input required class="form-control" type="text" name="NoiCapCCCD" id="NoiCapCCCD"
+              value="<%= value.NoiCapCCCD %>">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="DiaChi">Địa chỉ theo CCCD:</label>
+            <input required class="form-control" type="text" name="DiaChi" id="DiaChi" value="<%= value.DiaChi %>">
+          </div>
+          <div class="col-md-4">
+            <label for="msthue">Mã số thuế:</label>
+            <input required class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
+          </div>
+          <div class="col-md-4">
+            <label for="HocVi">Bằng cấp cao nhất:</label>
+            <select class="form-control" name="HocVi" id="HocVi">
+              <option value="">---</option>
+              <option value="Cử nhân" <%=value.HocVi==="Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+              <option value="Kỹ sư" <%=value.HocVi==="Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+              <option value="Thạc sĩ" <%=value.HocVi==="Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+              <option value="Tiến sĩ" <%=value.HocVi==="Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+              <option value="Phó giáo sư. Tiến sĩ" <%=value.HocVi==="Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo
+                sư. Tiến sĩ</option>
+              <option value="Giáo sư. Tiến sĩ" <%=value.HocVi==="Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label>Mặt trước CCCD:</label>
+            <img src="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" alt="Mặt trước CCCD"
+              id="imgtruoc">
+            <br>
+            <input class="form-control" type="file" name="truocCCCD" id="imgtruocinput"
+              value="<%= value.MatTruocCCCD %>">
+            <input type="hidden" name="oldTruocCCCD" value="<%= value.MatTruocCCCD %>">
+          </div>
+          <div class="col-md-4">
+            <label>Mặt sau CCCD:</label>
+            <img src="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" alt="Mặt sau CCCD" id="imgsau">
+            <br>
+            <input class="form-control" type="file" name="sauCCCD" id="sauCCCD" value="<%= value.MatSauCCCD %>">
+            <input type="hidden" name="oldSauCCCD" value="<%= value.MatSauCCCD %>">
+          </div>
+          <div class="col-md-4">
+            <label>Hình ảnh bằng cấp cao nhất:</label>
+            <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng cấp cao nhất" id="imgbang">
+            <br>
+            <input class="form-control" type="file" name="bangTotNghiep" id="bangTotNghiep"
+              value="<%= value.BangTotNghiep %>">
+            <input type="hidden" name="oldbangTotNghiep" value="<%= value.BangTotNghiep %>">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="dienThoai">Điện thoại:</label>
+            <input required class="form-control" type="text" name="DienThoai" id="dienThoai"
+              value="<%= value.DienThoai %>">
+          </div>
+          <div class="col-md-4">
+            <label for="email">Email:</label>
+            <input required class="form-control" type="email" name="email" id="email" value="<%= value.Email %>">
+          </div>
+          <div class="col-md-4">
+            <label>File lý lịch (PDF):</label>
+            <a href="/resumes/<%= value.FileLyLich %>" download>
+              <%= value.FileLyLich %>
+            </a>
+            <input class="form-control" type="file" name="FileLyLich" id="FileLyLich">
+            <input type="hidden" name="oldFileLyLich" value="<%= value.FileLyLich %>">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="NoiCongTac">Nơi công tác:</label>
+            <input required class="form-control" type="text" name="NoiCongTac" id="NoiCongTac"
+              value="<%= value.NoiCongTac %>">
+          </div>
+          <div class="col-md-4">
+            <label for="chucvu">Chức vụ:</label>
+            <input required class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>">
+          </div>
+          <div class="col-md-4">
+            <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
+            <select class="form-control" name="BangTotNghiepLoai" id="BangTotNghiepLoai">
+              <option value="">---</option>
+              <option value="Trung bình" <%=value.BangTotNghiepLoai==="Trung bình" ? "selected" : "" %>>Trung bình
+              </option>
+              <option value="Khá" <%=value.BangTotNghiepLoai==="Khá" ? "selected" : "" %>>Khá</option>
+              <option value="Giỏi" <%=value.BangTotNghiepLoai==="Giỏi" ? "selected" : "" %>>Giỏi</option>
+              <option value="Xuất sắc" <%=value.BangTotNghiepLoai==="Xuất sắc" ? "selected" : "" %>>Xuất sắc</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="hsl">Hệ số lương:</label>
+            <input required class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
+          </div>
+          <div class="col-md-4">
+            <label for="stk">Số tài khoản:</label>
+            <input required class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>">
+          </div>
+          <div class="col-md-4">
+            <label for="nganHang">Ngân hàng:</label>
+            <input required class="form-control" type="text" name="NganHang" id="nganHang"
+              value="<%= value.NganHang %>">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <p style="margin-bottom: 8px;">Mã phòng ban:</p>
+            <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan"
+              value="<%= value.MaPhongBan %>" readonly>
+            <!-- <select id="filterByDepartment" name="maPhongBan" class="form-control filter" style="cursor: pointer;">
+                <% phongBanList.forEach(function(phongBan) { %>
+                  <option value="<%= phongBan.MaPhongBan %>" <%= value.MaPhongBan === phongBan.MaPhongBan ? 'selected' : '' %>>
+                    <%= phongBan.MaPhongBan %>
+                  </option>
+                <% }); %>
+              </select> -->
+          </div>
+          <div class="col-md-4">
+            <label for="tinhTrang">Tình trạng giảng dạy:</label>
+            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
+              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="monGiangDayChinh">Bộ môn:</label>
+            <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
+              <option value="">---</option>
+            </select>
+          </div>
+          <div class="col-md-4 thuocQuanDoiBox">
+            <div class="form-group">
+              <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                >Thuộc quân đội:</label
+              >
+              <input
+                type="checkbox"
+                class="thuocQuanDoi-input"
+                id="thuocQuanDoi"
+                name="thuocQuanDoi"
+                value="1"
+                <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
+              />
+            </div>
+          </div>
+          <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
+          <div class="col-md-4 d-flex justify-content-between" style="margin-top: 15px;">
+            <button class="btn" id="submit">Cập nhật</button>
+            <button class="btn" id="return" type="button" onclick="window.location.href='/gvmList'">Quay lại</button>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const maPhongBan = localStorage.getItem("MaPhongBan");
+      const isKhoa = localStorage.getItem("isKhoa");
+      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
+
+      fetch(`/getMaBoMon/${maPhongBan}/${isKhoa}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data); // In ra phản hồi để kiểm tra
+          const maBoMonSelect = document.getElementById('monGiangDayChinh');
+
+          if (!maBoMonSelect) {
+            console.error("Không tìm thấy phần tử với ID 'monGiangDayChinh'");
+            return;
+          }
+
+          let foundMatch = false;
+
+          // Kiểm tra success và dữ liệu maBoMon
+          if (data.success && data.maBoMon) {
+            data.maBoMon.forEach(item => {
+              if (maPhongBan === item.MaPhongBan) {
+                const option = document.createElement('option');
+                option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
+                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+
+                // Kiểm tra nếu giá trị trùng với monGiangDayChinh
+                if (item.MaBoMon === monGiangDayChinh) {
+                  option.selected = true; // Đặt option thành selected nếu trùng
+                  foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
+                }
+
+                maBoMonSelect.appendChild(option); // Thêm option vào select
+              }
+
+
+
+            });
+          } else {
+            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
+          }
+
+          // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
+          if (!foundMatch) {
+            Swal.fire({
+              title: 'Thông báo',
+              html: "Không tồn tại mã bộ môn, vui lòng sửa lại",
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto', // Tự động điều chỉnh chiều rộng
+              padding: '20px', // Giữ khoảng cách cho nội dung
+            });
+          }
+
+        })
+        .catch(error => console.error('Error:', error));
+    });
+  </script>
+
+
+
+  <script>
+    // Lấy query string từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    // Lấy phần tử div để hiển thị thông báo
+    const messageDiv = document.getElementById('message');
+
+    // Hiển thị thông báo dựa trên giá trị của message
+    if (message === 'insertSuccess') {
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Thêm thành công",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
+    } else if (message === 'insertFalse') {
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Thêm thất bại",
+        icon: 'success',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      });
+    }
+    // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+    if (message) {
+      // Sử dụng window.history để xóa query string mà không refresh lại trang
+      //const newUrl = window.location.origin + window.location.pathname;
+      //window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // Quay lại trang cũ
+    function goBack() {
+      window.history.back(); // Quay lại trang trước đó
+    }
+  </script>
+
+  <!-- Phần phân quyền -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+      ThongTinGD.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+        if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/info2";
+        } else {
+          window.location.href = "/info";
+        }
+      });
+
+      // Thêm sự kiện click cho phần tử có id="Home"
+
+      const Home = document.getElementById("Home");
+
+      Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa")
+
+        if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+      });
+    });
+
+  </script>
+
+  <script>
+    const imagetruocInput = document.getElementById('imgtruocinput');
+    const imagetruocPreview = document.getElementById('imgtruoc');
+
+    imagetruocInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagetruocPreview.src = e.target.result;
+          imagetruocPreview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+  <script>
+    const imagesauInput = document.getElementById('sauCCCD');
+    const imagesauPreview = document.getElementById('imgsau');
+
+    imagesauInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagesauPreview.src = e.target.result;
+          imagesauPreview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+  <script>
+    const imagebang = document.getElementById('bangTotNghiep');
+    const imagebangPreview = document.getElementById('imgbang');
+
+    imagebang.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagebangPreview.src = e.target.result;
+          imagebangPreview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+      if (tenDangNhap) {
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+      } else {
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("infome").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+      if (id_User) {
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
+      } else {
+        alert("Không tìm thấy id_User trong localStorage.");
+      }
+    });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const Quyen = localStorage.getItem("userRole");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (Quyen === "Duyệt") {
+        actionButton.style.display = '';
+      } else {
+        actionButton.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+</body>
+
+</html>
