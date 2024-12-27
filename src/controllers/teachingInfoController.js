@@ -386,7 +386,11 @@ const renderInfo = async (req, res) => {
   const tableName = process.env.DB_TABLE_QC;
   let query = "";
 
-  console.log("Phòng ban " + MaPhongBan + ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`);
+  console.log(
+    "Phòng ban " +
+      MaPhongBan +
+      ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`
+  );
 
   // Xác định query SQL dựa trên isKhoa
   if (isKhoa == 1) {
@@ -494,7 +498,7 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
     const queryGVM = `
      SELECT gvmoi.HoTen, gvmoi.MaPhongBan
       FROM gvmoi
-      WHERE gvmoi.TinhTrangGiangDay = 1;
+      WHERE gvmoi.TinhTrangGiangDay = 1 AND gvmoi.isQuanDoi != 1;
     `;
     const [gvmResults] = await connection.query(queryGVM);
 

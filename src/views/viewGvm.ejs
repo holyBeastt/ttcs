@@ -172,6 +172,22 @@
             </select>
           </div>
           <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
+          <div class="col-md-4 thuocQuanDoiBox">
+            <div class="form-group">
+              <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                >Thuộc quân đội:</label
+              >
+              <input
+                disabled
+                type="checkbox"
+                class="thuocQuanDoi-input"
+                id="thuocQuanDoi"
+                name="thuocQuanDoi"
+                value="1"
+                <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
+              />
+            </div>
+          </div>
           <div class="col-md-4">
             <button class="btn mt-3" type="button" id="return" onclick="goBack()">Quay lại</button>
           </div>
