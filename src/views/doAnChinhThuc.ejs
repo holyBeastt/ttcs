@@ -746,7 +746,7 @@
               khoaCheckbox.style.display = "block";
 
               daoTaoCheckbox.style.display = "block";
-              taiChinhCheckboxTd.style.display = "none";
+              taiChinhCheckbox.style.display = "none";
             } else if (MaPhongBan == "TAICHINH") {
               // Checkbox cho Đào Tạo
               daoTaoCheckbox.style.display = "block";
@@ -1470,15 +1470,6 @@
         const MaPhongBan = localStorage.getItem("MaPhongBan");
         const isKhoa = localStorage.getItem("isKhoa");
 
-        // Ẩn button import đồ án
-        const importDoAn = document.getElementById("importDoAn");
-        const suaHD = document.getElementById("suaHD");
-
-        if (isKhoa == 0 && role == "Duyệt") {
-          importDoAn.style.display = "block";
-          suaHD.style.display = "block";
-        }
-
         // Thêm sự kiện click cho phần tử có id="ThongTinGD"
         const ThongTinGD = document.getElementById("ThongTinGD");
 
@@ -1536,6 +1527,8 @@
 
         if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
+            console.log("role = ", role);
+            alert("gà");
             // Ẩn cột 'taiChinhColumn'
             document.getElementById("taiChinhColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
