@@ -683,16 +683,9 @@ const importTableQC = async (jsonData) => {
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
-  const query = `SELECT VietTat FROM kitubatdau`;
+  const query = `SELECT * FROM kitubatdau`;
   const [rows] = await connection.query(query);
-  // Gắn số từ 0 đến 9 vào từng giá trị VietTat
-  const VietTatModified = rows
-    .map((row) => {
-      return Array.from({ length: 10 }, (_, i) => `${row.VietTat}${i}`);
-    })
-    .flat(); // Tạo danh sách phẳng chứa tất cả các biến VietTat
 
-  console.log(VietTatModified);
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
   jsonData.forEach((item, index) => {
     // tách lớp học phần
@@ -705,15 +698,11 @@ const importTableQC = async (jsonData) => {
     // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
     let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
 
-    // Lặp qua tất cả các phần tử trong VietTatModified
-    for (const element of VietTatModified) {
-      const currentVietTat = element;
-
-      // Lấy độ dài của currentVietTat
-      const lengthToCompare = currentVietTat.length;
-      if (Lop.slice(0, lengthToCompare) === currentVietTat) {
-        HeDaoTao = "Đóng học phí";
-        break; // Nếu tìm thấy "hệ đóng học phí", thoát khỏi vòng lặp
+    for (const row of rows) {
+      const prefix = row.VietTat; // Lấy giá trị VietTat
+      // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
+      if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
+        HeDaoTao = row.HeDaoTao;
       }
     }
 

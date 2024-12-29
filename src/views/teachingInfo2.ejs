@@ -1030,6 +1030,7 @@
       ThongTinGD.addEventListener("click", function (event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
 
+
         const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
 
         if (isKhoa == 0) {
@@ -1216,8 +1217,7 @@
   <script>
     // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
     const phongBanData = <% - JSON.stringify(phongBanList) %>
-      localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
-    console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
+    localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
 
     // Hàm gợi ý bộ môn ở ô nhập 
     function showSuggestionsKhoa(input) {
