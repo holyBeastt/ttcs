@@ -8,8 +8,7 @@ var appRoot = require("app-root-path");
 const router = express.Router();
 
 const {
-  //createGVM,
-  handleUploadFile,
+  createGvm,
   getBoMonList,
 } = require("../controllers/createGvmController");
 
@@ -64,8 +63,8 @@ router.post(
     { name: "bangTotNghiep", maxCount: 1 },
     { name: "FileLyLich", maxCount: 1 }, // Thêm dòng này để upload file PDF
   ]),
-  handleUploadFile
+  createGvm
 );
-router.get('/getMaBoMon/:maPhongBan/:isKhoa', getBoMonList);
+router.get("/getMaBoMon/:maPhongBan/:isKhoa", getBoMonList);
 
 module.exports = router;

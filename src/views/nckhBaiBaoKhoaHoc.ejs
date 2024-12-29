@@ -1,477 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/nckh.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="/css/admin.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/nckh.css">
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
-</head>
-
-<body>
-
-  <nav class="navbar-top ">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo">
-        <div class="navbar-title">
-          <img src="/dongchu_banner.png" alt="banner">
-        </div>
-      </a>
-    </div>
-  </nav>
-
-  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
-  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
-    <div class="" style="width: 100%">
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" id="Home" href=""><i class="fa-solid fa-house"></i></a>
-          </li>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Giảng Viên Mời
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời
-                  bằng file</a>
-              </div>
-            </div>
+    <!-- Phần nội dung -->
+    <!-- <div class="container my-5 box formNckh"> -->
+    <div class="my-3 box formNckh">
+      <h2 class="titleNckh">Bài báo khoa học</h2>
+      <form id="formData" class="">
+        <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
+        <div class="form-group flex-container">
+          <div class="flex-item">
+            <label for="phanLoai">Phân loại</label>
+            <select id="phanLoai" name="phanLoai" required>
+              <option value="baiBaoKhoaHoc">Bài báo khoa học</option>
+              <option value="baoCaoKhoaHoc">Báo cáo khoa học</option>
+            </select>
           </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Bảng Quy Chuẩn
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
-                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
-                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
-                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Mời Giảng
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
-
-                <a class="nav-link" href="/classInfoGvm">Thông tin lớp giảng viên mời</a>
-                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-
-                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
-                <li class="nav-item"></li>
-                <a class="nav-link" href="/phulucHD">Phụ lục hợp đồng</a>
-                </li>
-                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Vượt Giờ
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
-                <a class="nav-link" id="" href="/addclass">Thêm lớp giảng dạy</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Nghiên Cứu Khoa Học
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <!-- <a class="nav-link" id="" href="#">COMING SOON</a> -->
-                <a class="nav-link" href="/detaiduan">Đề tài và dự án</a>
-                <a class="nav-link" href="/baibaokhoahoc">Bài báo khoa học</a>
-                <a class="nav-link" id="" href="/bangsangchevagiaithuong">Bằng sáng chế và giải thưởng trong năm</a>
-                <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
-                <a class="nav-link" id="" href="/nckhvahuanluyendoituyen">NCKH và Huấn luyện đội tuyển</a>
-                <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
-                <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
-                <!-- <a class="nav-link" id="" href="/nhiemvukhoahocvacongnghe">Nhiệm vụ khoa học và công nghệ</a> -->
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Đồ Án
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="importDoAn" style="display: none;" href="/importDoAn">Import đồ án</a>
-                <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite">Đồ án dự kiến</a>
-                <a class="nav-link" id="" href="/doAnChinhThuc">Đồ án tốt nghiệp</a>
-                <a class="nav-link" id="" href="/doAnHopDongDuKienSite">Hợp đồng dự kiến</a>
-                <a class="nav-link" id="" href="/exportPhuLucDA">Phụ lục đồ án</a>
-                <a class="nav-link" id="" href="/hopDongDA">Hợp đồng đồ án</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Thống Kê
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/thongkemg">Mời Giảng</a>
-                <a class="nav-link" id="" href="/thongkevuotgio">Vượt giờ</a>
-                <a class="nav-link" id="" href="#">Đồ Án</a>
-                <a class="nav-link" id="" href="#">Nghiên cứu khoa học</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Hệ Thống
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/log">Xem File Log</a>
-              </div>
-            </div>
-          </div>
-        </ul>
-        <div class="navbar-nav">
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fullname active" href="/login" id="navbarDropdownUser"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              Hi, Lê Đức Thuận
-            </a>
-            <!-- <p class="nav-link dropdown-toggle role">Role</p> -->
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item active" id="infome">Thông tin cá nhân</a>
-              <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-              <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
-              <a class="dropdown-item" href="/">Đăng xuất</a>
-            </div>
+          <div class="flex-item">
+            <label for="namHocForm">Năm học</label>
+            <select class="namHoc" id="namHocForm" name="namHoc" required>
+              <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
+            </select>
           </div>
         </div>
-      </div>
-    </div>
-  </nav>
-  <!-- <div class="container my-5 box formNckh"> -->
-  <div class="my-3 box formNckh">
-    <h2 class="titleNckh">Bài báo khoa học</h2>
-    <form id="formData" class="">
-      <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
-      <div class="form-group flex-container">
-        <div class="flex-item">
-          <label for="phanLoai">Phân loại</label>
-          <select id="phanLoai" name="phanLoai" required>
-            <option value="baiBaoKhoaHoc">Bài báo khoa học</option>
-            <option value="baoCaoKhoaHoc">Báo cáo khoa học</option>
+
+        <!-- Tên bài báo -->
+        <div class="form-group">
+          <label for="tenBaiBao">Tên bài báo</label>
+          <input
+            type="text"
+            id="tenBaiBao"
+            name="tenBaiBao"
+            placeholder="Nhập tên bài báo"
+            required
+          />
+        </div>
+
+        <!-- Loại tạp chí (tùy thuộc vào loại bài báo) -->
+        <div class="form-group" id="loaiTapChiContainer">
+          <label for="loaiTapChi">Loại tạp chí, hội nghị</label>
+          <select id="loaiTapChi" name="loaiTapChi" required>
+            <option value="">-- Chọn loại tạp chí, hội nghị --</option>
+            <!-- Các loại tạp chí sẽ được thêm vào đây bằng JavaScript -->
           </select>
         </div>
-        <div class="flex-item">
-          <label for="namHocForm">Năm học</label>
-          <select class="namHoc" id="namHocForm" name="namHoc" required>
-            <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
+
+        <!-- Chỉ số tạp chí (tùy thuộc vào loại bài báo) -->
+        <div class="form-group" id="chiSoTapChiContainer">
+          <label for="chiSoTapChi">Chỉ số tạp chí, hội nghị</label>
+          <select id="chiSoTapChi" name="chiSoTapChi" required>
+            <option value="">-- Chọn chỉ số tạp chí, hội nghị --</option>
           </select>
         </div>
-      </div>
 
-      <!-- Tên bài báo -->
-      <div class="form-group">
-        <label for="tenBaiBao">Tên bài báo</label>
-        <input type="text" id="tenBaiBao" name="tenBaiBao" placeholder="Nhập tên bài báo" required>
-      </div>
+        <!-- Tác giả chính -->
+        <div class="form-group flex-container">
+          <div class="flex-item">
+            <label for="tacGia">
+              Tác giả chính
+              <input
+                type="checkbox"
+                id="tacGiaCheckbox"
+                name="tacGiaCheckbox"
+              />
+            </label>
+            <div id="tacGia-suggestions" class="suggestions-container"></div>
+            <!-- Chứa các gợi ý -->
+            <input
+              type="text"
+              id="tacGia"
+              name="tacGia"
+              placeholder="Nhập tên tác giả"
+              required
+            />
+          </div>
+          <div class="flex-item combo-box-wrapper">
+            <label for="tacGiaComboBox">Đơn vị</label>
+            <input
+              type="text"
+              id="tacGiaComboBox"
+              name="tacGiaComboBox"
+              class="combo-box"
+              placeholder="Nhập đơn vị"
+              required
+            />
+          </div>
+        </div>
 
-      <!-- Loại tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="loaiTapChiContainer">
-        <label for="loaiTapChi">Loại tạp chí, hội nghị</label>
-        <select id="loaiTapChi" name="loaiTapChi" required>
-          <option value="">-- Chọn loại tạp chí, hội nghị --</option>
-          <!-- Các loại tạp chí sẽ được thêm vào đây bằng JavaScript -->
-        </select>
-      </div>
+        <!-- Tác giả chịu trách nhiệm -->
+        <div class="form-group flex-container">
+          <div class="flex-item">
+            <label for="tacGiaCtn">
+              Tác giả chịu trách nhiệm
+              <input
+                type="checkbox"
+                id="tacGiaCtnCheckbox"
+                name="tacGiaCtnCheckbox"
+              />
+            </label>
+            <div id="tacGiaCtn-suggestions" class="suggestions-container"></div>
+            <!-- Chứa các gợi ý -->
+            <input
+              type="text"
+              id="tacGiaCtn"
+              name="tacGiaCtn"
+              placeholder="Nhập tên tác giả"
+            />
+          </div>
+          <div class="flex-item combo-box-wrapper">
+            <label for="tacGiaCtnComboBox">Đơn vị</label>
+            <input
+              type="text"
+              id="tacGiaCtnComboBox"
+              name="tacGiaCtnComboBox"
+              class="combo-box"
+              placeholder="Nhập đơn vị"
+              required
+            />
+          </div>
+        </div>
 
-      <!-- Chỉ số tạp chí (tùy thuộc vào loại bài báo) -->
-      <div class="form-group" id="chiSoTapChiContainer">
-        <label for="chiSoTapChi">Chỉ số tạp chí, hội nghị</label>
-        <select id="chiSoTapChi" name="chiSoTapChi" required>
-          <option value="">-- Chọn chỉ số tạp chí, hội nghị --</option>
-        </select>
-      </div>
+        <!-- Thành viên -->
+        <div class="form-group flex-container">
+          <div class="flex-item">
+            <label for="thanhVien">
+              Thành viên
+              <input
+                type="checkbox"
+                id="thanhVienCheckbox"
+                name="thanhVienCheckbox"
+              />
+            </label>
+            <div
+              id="themThanhVien-suggestions"
+              class="suggestions-container-dstv"
+            ></div>
+            <!-- Chứa các gợi ý -->
+            <input
+              type="text"
+              id="thanhVien"
+              name="thanhVien"
+              placeholder="Nhập tên thành viên"
+              class="input-field"
+              required
+            />
+          </div>
+          <div class="flex-item combo-box-wrapper">
+            <label for="thanhVienComboBox">Đơn vị</label>
+            <input
+              type="text"
+              id="thanhVienComboBox"
+              name="thanhVienComboBox"
+              class="combo-box"
+              placeholder="Nhập đơn vị"
+              required
+            />
+          </div>
+        </div>
 
-      <!-- Tác giả chính -->
-      <div class="form-group flex-container">
+        <!-- Thành viên -->
+        <div
+          id="memberListDisplay"
+          class="member-list-display form-group"
+        ></div>
+
+        <button type="button" class="btn" id="submitBtn">Gửi</button>
+      </form>
+    </div>
+    <div class="my-3 box formView">
+      <h2 class="titleNckh">Xem số giờ quy đổi</h2>
+      <div class="flex-container-view">
         <div class="flex-item">
-          <label for="tacGia">
-            Tác giả chính
-            <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox">
-          </label>
-          <div id="tacGia-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
+          <label for="namHocXem">Chọn Năm Học:</label>
+          <select id="namHocXem" class="namHoc"></select>
         </div>
-        <div class="flex-item combo-box-wrapper">
-          <label for="tacGiaComboBox">Đơn vị</label>
-          <input type="text" id="tacGiaComboBox" name="tacGiaComboBox" class="combo-box" placeholder="Nhập đơn vị"
-            required>
+        <div class="flex-item-view">
+          <button onclick="getData()" class="btn text-nowrap" id="render">
+            Hiển thị
+          </button>
         </div>
       </div>
 
-      <!-- Tác giả chịu trách nhiệm -->
-      <div class="form-group flex-container">
-        <div class="flex-item">
-          <label for="tacGiaCtn">
-            Tác giả chịu trách nhiệm
-            <input type="checkbox" id="tacGiaCtnCheckbox" name="tacGiaCtnCheckbox">
-          </label>
-          <div id="tacGiaCtn-suggestions" class="suggestions-container"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="tacGiaCtn" name="tacGiaCtn" placeholder="Nhập tên tác giả">
-        </div>
-        <div class="flex-item combo-box-wrapper">
-          <label for="tacGiaCtnComboBox">Đơn vị</label>
-          <input type="text" id="tacGiaCtnComboBox" name="tacGiaCtnComboBox" class="combo-box" placeholder="Nhập đơn vị"
-            required>
-        </div>
-      </div>
-
-      <!-- Thành viên -->
-      <div class="form-group flex-container">
-        <div class="flex-item">
-          <label for="thanhVien">
-            Thành viên
-            <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox">
-          </label>
-          <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div> <!-- Chứa các gợi ý -->
-          <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field"
-            required>
-        </div>
-        <div class="flex-item combo-box-wrapper">
-          <label for="thanhVienComboBox">Đơn vị</label>
-          <input type="text" id="thanhVienComboBox" name="thanhVienComboBox" class="combo-box" placeholder="Nhập đơn vị"
-            required>
-        </div>
-      </div>
-
-
-      <!-- Thành viên -->
-      <div id="memberListDisplay" class="member-list-display form-group"></div>
-
-      <button type="button" class="btn" id="submitBtn">Gửi</button>
-    </form>
-  </div>
-  <div class="my-3 box formView">
-    <h2 class="titleNckh">Xem số giờ quy đổi</h2>
-    <div class="flex-container-view">
-      <div class="flex-item">
-        <label for="namHocXem">Chọn Năm Học:</label>
-        <select id="namHocXem" class="namHoc"></select>
-      </div>
-      <div class="flex-item-view">
-        <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+      <div class="table-container">
+        <table border="1" class="table table-bordered">
+          <thead id="table-header">
+            <tr>
+              <th>Loại tạp chí</th>
+              <th>Tên bài báo</th>
+              <th>Tác giả</th>
+              <th>Tác giả CTN</th>
+              <th>Thành viên</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
       </div>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <div class="table-container">
-      <table border="1" class="table table-bordered">
-        <thead id="table-header">
-          <tr>
-            <th>Loại tạp chí</th>
-            <th>Tên bài báo</th>
-            <th>Tác giả</th>
-            <th>Tác giả CTN</th>
-            <th>Thành viên</th>
-          </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-      </table>
-    </div>
-  </div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- nckh view -->
+    <script>
+      // format giờ cho thành viên
+      function formatDanhSachThanhVien(DanhSachThanhVien) {
+        // Kiểm tra nếu đầu vào không phải chuỗi hoặc chuỗi rỗng
+        if (
+          typeof DanhSachThanhVien !== "string" ||
+          !DanhSachThanhVien.trim()
+        ) {
+          return ""; // Nếu không hợp lệ, trả về chuỗi rỗng
+        }
 
-  <!-- nckh view -->
-  <script>
+        // Tách chuỗi thành viên dựa trên dấu phẩy và xử lý từng thành viên
+        const thanhVienFormatted = DanhSachThanhVien.split(",") // Tách chuỗi thành viên bằng dấu phẩy
+          .map((member) => {
+            const trimmedMember = member.trim(); // Loại bỏ khoảng trắng thừa
+            if (trimmedMember) {
+              return formatHours(trimmedMember); // Định dạng giờ cho từng thành viên
+            }
+            return ""; // Nếu phần tử rỗng hoặc không hợp lệ, trả về chuỗi rỗng
+          })
+          .filter(Boolean) // Loại bỏ các phần tử rỗng trong mảng
+          .join(", "); // Nối lại thành chuỗi các thành viên đã được định dạng
 
-    // format giờ cho thành viên
-    function formatDanhSachThanhVien(DanhSachThanhVien) {
-      // Kiểm tra nếu đầu vào không phải chuỗi hoặc chuỗi rỗng
-      if (typeof DanhSachThanhVien !== 'string' || !DanhSachThanhVien.trim()) {
-        return ''; // Nếu không hợp lệ, trả về chuỗi rỗng
+        return thanhVienFormatted;
       }
 
-      // Tách chuỗi thành viên dựa trên dấu phẩy và xử lý từng thành viên
-      const thanhVienFormatted = DanhSachThanhVien
-        .split(',')  // Tách chuỗi thành viên bằng dấu phẩy
-        .map(member => {
-          const trimmedMember = member.trim(); // Loại bỏ khoảng trắng thừa
-          if (trimmedMember) {
-            return formatHours(trimmedMember);  // Định dạng giờ cho từng thành viên
-          }
-          return '';  // Nếu phần tử rỗng hoặc không hợp lệ, trả về chuỗi rỗng
-        })
-        .filter(Boolean)  // Loại bỏ các phần tử rỗng trong mảng
-        .join(', ');  // Nối lại thành chuỗi các thành viên đã được định dạng
+      // format giờ
+      function formatHours(text) {
+        // Kiểm tra nếu text không phải là chuỗi
+        if (typeof text !== "string") {
+          return text;
+        }
 
-      return thanhVienFormatted;
-    }
+        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
 
-    // format giờ
-    function formatHours(text) {
-      // Kiểm tra nếu text không phải là chuỗi
-      if (typeof text !== 'string') {
-        return text;
+        if (match) {
+          const hours = parseFloat(match[1].replace(",", "."));
+          const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
+          return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+        }
+
+        return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
       }
 
-      const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
+      // render table
+      function renderTable(data) {
+        const tbody = document.getElementById("table-body");
 
-      if (match) {
-        const hours = parseFloat(match[1].replace(',', '.'));
-        const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
-        return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
-      }
+        // Xóa dữ liệu cũ
+        tbody.innerHTML = "";
 
-      return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
-    }
+        // Duyệt qua dữ liệu và thêm từng hàng vào tbody
+        data.forEach((item) => {
+          const row = document.createElement("tr");
 
+          // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
+          const tacGiaFormated = formatHours(item.TacGia);
+          const tacGiaCtnFormated = formatHours(item.TacGiaChiuTrachNhiem);
+          const thanhVienFormatted = formatDanhSachThanhVien(
+            item.DanhSachThanhVien
+          );
 
-    // render table
-    function renderTable(data) {
-      const tbody = document.getElementById('table-body');
-
-      // Xóa dữ liệu cũ
-      tbody.innerHTML = '';
-
-      // Duyệt qua dữ liệu và thêm từng hàng vào tbody
-      data.forEach(item => {
-        const row = document.createElement('tr');
-
-        // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
-        const tacGiaFormated = formatHours(item.TacGia);
-        const tacGiaCtnFormated = formatHours(item.TacGiaChiuTrachNhiem);
-        const thanhVienFormatted = formatDanhSachThanhVien(item.DanhSachThanhVien)
-
-        row.innerHTML = `
+          row.innerHTML = `
       <td>${item.LoaiTapChi}</td>
       <td>${item.TenBaiBao}</td>
       <td>${tacGiaFormated}</td>
       <td>${tacGiaCtnFormated}</td>
       <td>${thanhVienFormatted}</td>
     `;
-        tbody.appendChild(row);
+          tbody.appendChild(row);
+        });
+      }
+
+      // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
+      async function getData() {
+        const year = document.getElementById("namHocXem").value; // Lấy năm học từ select
+        const url = `/baibaokhoahoc/${year}`; // Tạo URL với URL parameter 'NamHoc'
+
+        try {
+          fetch(url) // Thay URL bằng endpoint của bạn
+            .then((response) => response.json())
+            .then((data) => {
+              renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
+            })
+            .catch((error) => {
+              console.error("Lỗi khi lấy dữ liệu:", error);
+            });
+        } catch (error) {
+          console.error("Lỗi trong quá trình gửi yêu cầu:", error);
+        }
+      }
+    </script>
+    <!-- nckh form -->
+    <script>
+      // giảng viên cơ hữu của trường, để gợi ý tên
+      var giangVienCoHuu = [];
+
+      // check thì mới cho nhập đơn vị
+      document.addEventListener("DOMContentLoaded", function () {
+        // Lấy các checkbox và ô nhập đơn vị
+        const tacGiaCheckbox = document.getElementById("tacGiaCheckbox");
+        const tacGiaCtnCheckbox = document.getElementById("tacGiaCtnCheckbox");
+        const thanhVienCheckbox = document.getElementById("thanhVienCheckbox");
+
+        const tacGiaComboBox = document.getElementById("tacGiaComboBox");
+        const tacGiaCtnComboBox = document.getElementById("tacGiaCtnComboBox");
+        const thanhVienComboBox = document.getElementById("thanhVienComboBox");
+
+        // Hàm disable hoặc enable ô nhập đơn vị
+        function toggleComboBoxDisabled() {
+          // Tác giả chính
+          if (tacGiaCheckbox.checked) {
+            tacGiaComboBox.disabled = false;
+          } else {
+            tacGiaComboBox.disabled = true;
+            tacGiaComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
+          }
+
+          // Tác giả chịu trách nhiệm
+          if (tacGiaCtnCheckbox.checked) {
+            tacGiaCtnComboBox.disabled = false;
+          } else {
+            tacGiaCtnComboBox.disabled = true;
+            tacGiaCtnComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
+          }
+
+          // Thành viên
+          if (thanhVienCheckbox.checked) {
+            thanhVienComboBox.disabled = false;
+          } else {
+            thanhVienComboBox.disabled = true;
+            thanhVienComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
+          }
+        }
+
+        // Disable các ô nhập đơn vị khi tải trang
+        toggleComboBoxDisabled();
+
+        // Thêm sự kiện thay đổi (change) cho các checkbox
+        tacGiaCheckbox.addEventListener("change", toggleComboBoxDisabled);
+        tacGiaCtnCheckbox.addEventListener("change", toggleComboBoxDisabled);
+        thanhVienCheckbox.addEventListener("change", toggleComboBoxDisabled);
       });
-    }
 
+      // =================================================================
+      // Hàm cập nhật các tùy chọn cho loại tạp chí và chỉ số tạp chí
+      function updateOptions(phanLoai) {
+        const loaiTapChi = document.getElementById("loaiTapChi");
+        const chiSoTapChi = document.getElementById("chiSoTapChi");
 
-    // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
-    async function getData() {
-      const year = document.getElementById('namHocXem').value; // Lấy năm học từ select
-      const url = `/baibaokhoahoc/${year}`; // Tạo URL với URL parameter 'NamHoc'
+        // Làm trống các tùy chọn tạp chí và chỉ số tạp chí
+        loaiTapChi.innerHTML =
+          '<option value="">-- Chọn loại tạp chí --</option>';
+        chiSoTapChi.innerHTML =
+          '<option value="">-- Chọn chỉ số tạp chí --</option>';
 
-      try {
-        fetch(url) // Thay URL bằng endpoint của bạn
-          .then(response => response.json())
-          .then(data => {
-            renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
-          })
-          .catch(error => {
-            console.error('Lỗi khi lấy dữ liệu:', error);
-          });
-      } catch (error) {
-        console.error('Lỗi trong quá trình gửi yêu cầu:', error);
-      }
-    }
-  </script>
-  <!-- nckh form -->
-  <script>
-    // giảng viên cơ hữu của trường, để gợi ý tên
-    var giangVienCoHuu = []
-
-
-    // check thì mới cho nhập đơn vị
-    document.addEventListener('DOMContentLoaded', function () {
-      // Lấy các checkbox và ô nhập đơn vị
-      const tacGiaCheckbox = document.getElementById('tacGiaCheckbox');
-      const tacGiaCtnCheckbox = document.getElementById('tacGiaCtnCheckbox');
-      const thanhVienCheckbox = document.getElementById('thanhVienCheckbox');
-
-      const tacGiaComboBox = document.getElementById('tacGiaComboBox');
-      const tacGiaCtnComboBox = document.getElementById('tacGiaCtnComboBox');
-      const thanhVienComboBox = document.getElementById('thanhVienComboBox');
-
-      // Hàm disable hoặc enable ô nhập đơn vị
-      function toggleComboBoxDisabled() {
-        // Tác giả chính
-        if (tacGiaCheckbox.checked) {
-          tacGiaComboBox.disabled = false;
-        } else {
-          tacGiaComboBox.disabled = true;
-          tacGiaComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
-        }
-
-        // Tác giả chịu trách nhiệm
-        if (tacGiaCtnCheckbox.checked) {
-          tacGiaCtnComboBox.disabled = false;
-        } else {
-          tacGiaCtnComboBox.disabled = true;
-          tacGiaCtnComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
-        }
-
-        // Thành viên
-        if (thanhVienCheckbox.checked) {
-          thanhVienComboBox.disabled = false;
-        } else {
-          thanhVienComboBox.disabled = true;
-          thanhVienComboBox.value = ''; // Xóa giá trị đã nhập trong ô nhập đơn vị
-        }
-      }
-
-      // Disable các ô nhập đơn vị khi tải trang
-      toggleComboBoxDisabled();
-
-      // Thêm sự kiện thay đổi (change) cho các checkbox
-      tacGiaCheckbox.addEventListener('change', toggleComboBoxDisabled);
-      tacGiaCtnCheckbox.addEventListener('change', toggleComboBoxDisabled);
-      thanhVienCheckbox.addEventListener('change', toggleComboBoxDisabled);
-    });
-
-
-    // =================================================================
-    // Hàm cập nhật các tùy chọn cho loại tạp chí và chỉ số tạp chí
-    function updateOptions(phanLoai) {
-      const loaiTapChi = document.getElementById('loaiTapChi');
-      const chiSoTapChi = document.getElementById('chiSoTapChi');
-
-      // Làm trống các tùy chọn tạp chí và chỉ số tạp chí
-      loaiTapChi.innerHTML = '<option value="">-- Chọn loại tạp chí --</option>';
-      chiSoTapChi.innerHTML = '<option value="">-- Chọn chỉ số tạp chí --</option>';
-
-      if (phanLoai === 'baiBaoKhoaHoc') {
-        // Các tùy chọn cho bài báo khoa học
-        loaiTapChi.innerHTML += `
+        if (phanLoai === "baiBaoKhoaHoc") {
+          // Các tùy chọn cho bài báo khoa học
+          loaiTapChi.innerHTML += `
 <option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
 <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
 <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
@@ -487,8 +397,8 @@ Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức
 Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)
 </option>
 `;
-        // Các chỉ số tạp chí cho bài báo khoa học
-        chiSoTapChi.innerHTML += `
+          // Các chỉ số tạp chí cho bài báo khoa học
+          chiSoTapChi.innerHTML += `
 <option value="Tạp chí Nature; AAAS">Tạp chí Nature; AAAS</option>
 <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q1)</option>
 <option value="Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)">Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)</option>
@@ -498,9 +408,9 @@ Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức
 Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác
 </option>
 `;
-      } else if (phanLoai === 'baoCaoKhoaHoc') {
-        // Các tùy chọn cho báo cáo khoa học
-        loaiTapChi.innerHTML += `
+        } else if (phanLoai === "baoCaoKhoaHoc") {
+          // Các tùy chọn cho báo cáo khoa học
+          loaiTapChi.innerHTML += `
 <option value="Nội san học viện">Nội san/Kỷ yếu khoa học cấp học viện</option>
 <option value="Nội san cấp khoa">Nội san/Kỷ yếu khoa học cấp học khoa</option>
 <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
@@ -508,8 +418,8 @@ Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp 
 <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
 <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
 `;
-        // Các chỉ số tạp chí cho báo cáo khoa học
-        chiSoTapChi.innerHTML += `
+          // Các chỉ số tạp chí cho báo cáo khoa học
+          chiSoTapChi.innerHTML += `
 <option value="Nội san học viện">Nội san/Kỷ yếu khoa học cấp học viện</option>
 <option value="Nội san cấp khoa">Nội san/Kỷ yếu khoa học cấp học khoa</option>
 <option value="Hội thảo chuyên ngành">Hội thảo chuyên ngành</option>
@@ -517,369 +427,350 @@ Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp 
 <option value="Hội nghị, hội thảo khoa học quốc tế">Hội nghị, hội thảo khoa học quốc tế</option>
 <option value="Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)">Hội nghị, hội thảo khoa học quốc tế (ISI/Scopus)</option>
 `;
+        }
       }
-    }
 
-    // Đảm bảo form sẽ tự động cập nhật khi trang được tải, ngay cả khi mặc định là bài báo khoa học
-    window.addEventListener('DOMContentLoaded', function () {
-      // Cập nhật các tùy chọn khi trang tải
-      const phanLoai = document.getElementById('phanLoai').value; // Giá trị mặc định là bài báo khoa học
-      updateOptions(phanLoai);
-    });
-
-    // Thêm sự kiện khi thay đổi lựa chọn loại bài báo
-    document.getElementById('phanLoai').addEventListener('change', function () {
-      const phanLoai = this.value;
-      updateOptions(phanLoai);
-    });
-    // =================================================================
-
-    // check thì tắt gợi ý
-    document.addEventListener('DOMContentLoaded', function () {
-      // Lấy các phần tử
-      const chuNhiemInput = document.getElementById('tacGia');
-      const chuNhiemSuggestions = document.getElementById('tacGia-suggestions');
-      const chuNhiemCheckbox = document.getElementById('tacGiaCheckbox');
-      const thuKyCheckbox = document.getElementById('tacGiaCtnCheckbox');
-      const thuKyInput = document.getElementById('tacGiaCtn');
-      const thuKySuggestions = document.getElementById('tacGiaCtn-suggestions');
-      const thanhVienCheckbox = document.getElementById('thanhVienCheckbox');  // Thành viên checkbox
-      const thanhVienInput = document.getElementById('thanhVien');  // Thành viên input text
-      const thanhVienSuggestions = document.getElementById('themThanhVien-suggestions');  // Thành viên gợi ý
-
-      // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
-      chuNhiemCheckbox.addEventListener('change', function () {
-        if (this.checked) {
-          // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
-          chuNhiemSuggestions.style.display = 'none';
-        } else {
-          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
-          chuNhiemSuggestions.style.display = 'block';
-        }
+      // Đảm bảo form sẽ tự động cập nhật khi trang được tải, ngay cả khi mặc định là bài báo khoa học
+      window.addEventListener("DOMContentLoaded", function () {
+        // Cập nhật các tùy chọn khi trang tải
+        const phanLoai = document.getElementById("phanLoai").value; // Giá trị mặc định là bài báo khoa học
+        updateOptions(phanLoai);
       });
 
-      // Thêm sự kiện lắng nghe khi thuKyCheckbox thay đổi
-      thuKyCheckbox.addEventListener('change', function () {
-        if (this.checked) {
-          // Nếu checkbox thư ký được đánh dấu, ẩn phần gợi ý thư ký
-          thuKySuggestions.style.display = 'none';
-        } else {
-          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thư ký
-          thuKySuggestions.style.display = 'block';
-        }
+      // Thêm sự kiện khi thay đổi lựa chọn loại bài báo
+      document
+        .getElementById("phanLoai")
+        .addEventListener("change", function () {
+          const phanLoai = this.value;
+          updateOptions(phanLoai);
+        });
+      // =================================================================
+
+      // check thì tắt gợi ý
+      document.addEventListener("DOMContentLoaded", function () {
+        // Lấy các phần tử
+        const chuNhiemInput = document.getElementById("tacGia");
+        const chuNhiemSuggestions =
+          document.getElementById("tacGia-suggestions");
+        const chuNhiemCheckbox = document.getElementById("tacGiaCheckbox");
+        const thuKyCheckbox = document.getElementById("tacGiaCtnCheckbox");
+        const thuKyInput = document.getElementById("tacGiaCtn");
+        const thuKySuggestions = document.getElementById(
+          "tacGiaCtn-suggestions"
+        );
+        const thanhVienCheckbox = document.getElementById("thanhVienCheckbox"); // Thành viên checkbox
+        const thanhVienInput = document.getElementById("thanhVien"); // Thành viên input text
+        const thanhVienSuggestions = document.getElementById(
+          "themThanhVien-suggestions"
+        ); // Thành viên gợi ý
+
+        // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
+        chuNhiemCheckbox.addEventListener("change", function () {
+          if (this.checked) {
+            // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
+            chuNhiemSuggestions.style.display = "none";
+          } else {
+            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
+            chuNhiemSuggestions.style.display = "block";
+          }
+        });
+
+        // Thêm sự kiện lắng nghe khi thuKyCheckbox thay đổi
+        thuKyCheckbox.addEventListener("change", function () {
+          if (this.checked) {
+            // Nếu checkbox thư ký được đánh dấu, ẩn phần gợi ý thư ký
+            thuKySuggestions.style.display = "none";
+          } else {
+            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thư ký
+            thuKySuggestions.style.display = "block";
+          }
+        });
+
+        // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
+        thanhVienCheckbox.addEventListener("change", function () {
+          if (this.checked) {
+            // Nếu checkbox thành viên được đánh dấu, ẩn phần gợi ý thành viên
+            thanhVienSuggestions.style.display = "none";
+          } else {
+            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thành viên
+            thanhVienSuggestions.style.display = "block";
+          }
+        });
       });
+      // =================================================================
 
-      // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
-      thanhVienCheckbox.addEventListener('change', function () {
-        if (this.checked) {
-          // Nếu checkbox thành viên được đánh dấu, ẩn phần gợi ý thành viên
-          thanhVienSuggestions.style.display = 'none';
-        } else {
-          // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thành viên
-          thanhVienSuggestions.style.display = 'block';
-        }
-      });
-    });
-    // =================================================================
+      // =================================================================
+      // thực hiện gắn hàm gợi ý khi load trang
+      document.addEventListener("DOMContentLoaded", () => {
+        // Hàm xử lý sự kiện nhập liệu
+        function handleInput(inputId, suggestionId, comboBoxId, checkboxId) {
+          const inputElement = document.getElementById(inputId);
+          const suggestionContainer = document.getElementById(suggestionId);
+          const comboBoxElement = document.getElementById(comboBoxId);
+          const checkboxElement = document.getElementById(checkboxId); // Lấy checkbox
+          const errorMessage = document.createElement("div");
 
-    // =================================================================
-    // thực hiện gắn hàm gợi ý khi load trang
-    document.addEventListener("DOMContentLoaded", () => {
+          let isSuggestionSelected = false; // Biến theo dõi việc chọn gợi ý
 
-      // Hàm xử lý sự kiện nhập liệu
-      function handleInput(inputId, suggestionId, comboBoxId, checkboxId) {
-        const inputElement = document.getElementById(inputId);
-        const suggestionContainer = document.getElementById(suggestionId);
-        const comboBoxElement = document.getElementById(comboBoxId);
-        const checkboxElement = document.getElementById(checkboxId); // Lấy checkbox
-        const errorMessage = document.createElement("div");
+          // Gợi ý khi người dùng nhập
+          inputElement.addEventListener("input", () => {
+            const query = inputElement.value.trim(); // Trim đầu và cuối chuỗi của input
+            suggestionContainer.innerHTML = ""; // Xóa gợi ý cũ
 
-        let isSuggestionSelected = false; // Biến theo dõi việc chọn gợi ý
+            if (!checkboxElement.checked && query) {
+              // Nếu checkbox không được chọn và có nhập liệu
+              const suggestions = giangVienCoHuu.filter(
+                (item) =>
+                  item.HoTen.toLowerCase().trim().includes(query.toLowerCase()) // So sánh không phân biệt hoa thường
+              );
 
-        // Gợi ý khi người dùng nhập
-        inputElement.addEventListener("input", () => {
-          const query = inputElement.value.trim(); // Trim đầu và cuối chuỗi của input
-          suggestionContainer.innerHTML = ""; // Xóa gợi ý cũ
+              suggestions.forEach((item) => {
+                const suggestionItem = document.createElement("div");
+                suggestionItem.textContent = item.HoTen;
+                suggestionItem.className = "suggestion-item";
 
-          if (!checkboxElement.checked && query) { // Nếu checkbox không được chọn và có nhập liệu
-            const suggestions = giangVienCoHuu.filter(item =>
-              item.HoTen.toLowerCase().trim().includes(query.toLowerCase()) // So sánh không phân biệt hoa thường
-            );
+                suggestionItem.addEventListener("click", () => {
+                  // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
+                  const unit = comboBoxElement.value; // Lấy giá trị từ combo box
+                  inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
+                  suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
+                  isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
+                  if (inputId == "thanhVien") {
+                    addMember(inputElement.value);
+                  }
+                });
 
-            suggestions.forEach(item => {
-              const suggestionItem = document.createElement("div");
-              suggestionItem.textContent = item.HoTen;
-              suggestionItem.className = "suggestion-item";
-
-              suggestionItem.addEventListener("click", () => {
-                // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
-                const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
-                suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
-                isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
-                if (inputId == "thanhVien") {
-                  addMember(inputElement.value);
-                }
+                suggestionContainer.appendChild(suggestionItem);
               });
+            }
+          });
 
-              suggestionContainer.appendChild(suggestionItem);
-            });
-          }
-        });
+          // Kiểm tra giá trị khi người dùng nhấn Enter hoặc click ra ngoài (blur)
+          inputElement.addEventListener("blur", () => {
+            // Nếu gợi ý đã được chọn, ngừng xử lý sự kiện blur
+            if (isSuggestionSelected) {
+              isSuggestionSelected = false; // Reset lại trạng thái
+              return; // Không thực hiện cảnh báo
+            }
 
-        // Kiểm tra giá trị khi người dùng nhấn Enter hoặc click ra ngoài (blur)
-        inputElement.addEventListener("blur", () => {
-          // Nếu gợi ý đã được chọn, ngừng xử lý sự kiện blur
-          if (isSuggestionSelected) {
-            isSuggestionSelected = false; // Reset lại trạng thái
-            return; // Không thực hiện cảnh báo
-          }
-
-          // Nếu checkbox được đánh dấu, cho phép nhấn Enter để nhập trực tiếp
-          if (checkboxElement.checked) {
-            const value = inputElement.value.trim(); // Trim input value (không chuyển thành lowercase)
-            const isValid = giangVienCoHuu.some(item =>
-              item.HoTen.trim().toLowerCase() === value.toLowerCase() // So sánh không phân biệt hoa thường và trim cả hai đầu
-            );
-            // Không hiển thị cảnh báo nếu nhập không đúng nữa
-          }
-        });
-
-        // Xử lý khi nhấn Enter
-        inputElement.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();  // Ngừng hành động mặc định của phím Enter
-            // Nếu checkbox được đánh dấu, tự động điền giá trị vào input và gọi addMember
+            // Nếu checkbox được đánh dấu, cho phép nhấn Enter để nhập trực tiếp
             if (checkboxElement.checked) {
-              const query = inputElement.value.trim();
-              // Kiểm tra xem người dùng đã nhập tên hay chưa
-              if (query) {
-                const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                inputElement.value = `${query} - ${unit}`; // Điền giá trị vào ô input theo định dạng "Tên - Đơn vị"
-                suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi nhấn Enter
+              const value = inputElement.value.trim(); // Trim input value (không chuyển thành lowercase)
+              const isValid = giangVienCoHuu.some(
+                (item) =>
+                  item.HoTen.trim().toLowerCase() === value.toLowerCase() // So sánh không phân biệt hoa thường và trim cả hai đầu
+              );
+              // Không hiển thị cảnh báo nếu nhập không đúng nữa
+            }
+          });
 
-                if (inputId == "thanhVien") {
-                  addMember(inputElement.value);
+          // Xử lý khi nhấn Enter
+          inputElement.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              event.preventDefault(); // Ngừng hành động mặc định của phím Enter
+              // Nếu checkbox được đánh dấu, tự động điền giá trị vào input và gọi addMember
+              if (checkboxElement.checked) {
+                const query = inputElement.value.trim();
+                // Kiểm tra xem người dùng đã nhập tên hay chưa
+                if (query) {
+                  const unit = comboBoxElement.value; // Lấy giá trị từ combo box
+                  inputElement.value = `${query} - ${unit}`; // Điền giá trị vào ô input theo định dạng "Tên - Đơn vị"
+                  suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi nhấn Enter
+
+                  if (inputId == "thanhVien") {
+                    addMember(inputElement.value);
+                  }
                 }
               }
             }
-          }
-        });
+          });
 
-        // Ngăn chặn sự kiện blur khi đang hiển thị gợi ý
-        inputElement.addEventListener("focus", () => {
-          suggestionContainer.innerHTML = ""; // Dọn gọn gợi ý cũ khi focus lại vào input
-        });
+          // Ngăn chặn sự kiện blur khi đang hiển thị gợi ý
+          inputElement.addEventListener("focus", () => {
+            suggestionContainer.innerHTML = ""; // Dọn gọn gợi ý cũ khi focus lại vào input
+          });
 
-        // Ẩn gợi ý nếu checkbox được chọn
-        checkboxElement.addEventListener("change", () => {
-          if (checkboxElement.checked) {
-            suggestionContainer.innerHTML = ""; // Ẩn gợi ý
-          }
-        });
-      }
-
-      // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý, truyền thêm combo box và checkbox
-      handleInput("tacGia", "tacGia-suggestions", "tacGiaCtnComboBox", "tacGiaCtnCheckbox");
-      handleInput("tacGiaCtn", "tacGiaCtn-suggestions", "tacGiaCtnComboBox", "tacGiaCtnCheckbox");
-      handleInput("thanhVien", "themThanhVien-suggestions", "thanhVienComboBox", "thanhVienCheckbox");
-
-    });
-    // =================================================================
-
-
-    // lấy dữ liệu giảng viên cơ hữu
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const response = await fetch("/giangviencohuu"); // Gọi API
-        if (!response.ok) {
-          throw new Error("Không thể lấy dữ liệu từ API.");
+          // Ẩn gợi ý nếu checkbox được chọn
+          checkboxElement.addEventListener("change", () => {
+            if (checkboxElement.checked) {
+              suggestionContainer.innerHTML = ""; // Ẩn gợi ý
+            }
+          });
         }
 
-        // Thông báo nếu cần (chỉnh sửa alert nếu cần)
-        // alert("Dữ liệu đã được tải thành công!");
-
-        // Chuyển đổi dữ liệu sang JSON
-        const data = await response.json();
-        console.log(data);
-
-        // Gán dữ liệu vào mảng giangVienCoHuu
-        giangVienCoHuu = data;
-
-      } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
-      }
-    });
-
-    // gửi form lên sv
-    document.getElementById("submitBtn").addEventListener("click", function () {
-      // Lấy dữ liệu từ form
-      const formData = {
-        // loaiBaiBao: document.getElementById("loaiBaiBao").value,
-        namHoc: document.getElementById("namHocForm").value,
-        tenBaiBao: document.getElementById("tenBaiBao").value,
-        loaiTapChi: document.getElementById("loaiTapChi").value,
-        chiSoTapChi: document.getElementById("chiSoTapChi").value,
-        tacGia: document.getElementById("tacGia").value,
-        tacGiaCtn: document.getElementById("tacGiaCtn").value,
-        thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
-          (member) => member.textContent
-        ),
-      };
-
-      console.log(formData)
-
-      // Gửi dữ liệu lên server
-      fetch("/baibaokhoahoc", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Gửi dữ liệu thất bại!");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          alert(data.message);
-          // Reset form nếu cần
-          document.getElementById("formData").reset();
-          document.getElementById("memberListDisplay").innerHTML = "";
-          members = [];
-        })
-        .catch((error) => {
-          console.error("Lỗi:", error);
-          alert("Có lỗi xảy ra: " + error.message);
-        });
-    });
-
-    // // Xử lí ô nhập thư kí
-    // document.getElementById('capDeTai').addEventListener('change', function () {
-    //   const capDeTai = this.value; // Lấy giá trị cấp đề tài đã chọn
-    //   const thukiInput = document.getElementById('thuKy'); // Lấy ô nhập thư ký
-
-    //   // Kiểm tra nếu cấp đề tài là "Học viện, Cơ sở"
-    //   if (capDeTai === "Cơ sở, Học viện") {
-    //     // Vô hiệu hóa ô nhập thư ký
-    //     thukiInput.disabled = true;
-    //     thukiInput.value = ''; // Xóa giá trị đã nhập trong ô nhập thư ký
-    //   } else {
-    //     // Kích hoạt lại ô nhập thư ký
-    //     thukiInput.disabled = false;
-    //   }
-    // });
-
-
-    // =================================================================
-    let members = []
-    // Hàm thêm thành viên vào mảng member để hiển thị
-    function addMember(memberName) {
-      if (memberName) {
-        // Thêm thành viên vào mảng members
-        console.log(memberName)
-        members.push(memberName);
-        // Cập nhật danh sách thành viên hiển thị trên form
-        updateFormMemberList();
-        // Xóa nội dung ô input sau khi thêm thành viên
-        document.getElementById('thanhVien').value = '';
-      }
-    }
-    // Hàm cập nhật danh sách thành viên và hiển thị lên form
-    function updateFormMemberList() {
-      const memberListDisplay = document.getElementById('memberListDisplay');
-      memberListDisplay.innerHTML = ''; // Xóa danh sách cũ
-      // Duyệt qua mảng members để hiển thị từng thành viên
-      members.forEach((member, index) => {
-        const memberContainer = document.createElement('div');
-        memberContainer.style.display = 'flex';  // Đảm bảo các phần tử được hiển thị trên cùng một dòng
-        memberContainer.style.alignItems = 'center';  // Căn giữa tên và nút xóa
-        memberContainer.style.justifyContent = 'space-between'; // Đảm bảo tên thành viên và nút xóa được căn lề
-        // Tạo phần tử hiển thị tên thành viên
-        const span = document.createElement('span');
-        span.textContent = member;
-        span.style.flexGrow = 1; // Cho phép tên thành viên chiếm hết không gian còn lại trong div
-        // Thêm nút xóa cho từng thành viên
-        const removeButton = document.createElement('button');
-        removeButton.innerHTML = '<i class="fa fa-times"></i>';
-        removeButton.onclick = () => removeMember(index); // Gắn sự kiện xóa
-        // Thêm tên thành viên và nút xóa vào giao diện
-        memberContainer.appendChild(span);
-        memberContainer.appendChild(removeButton);
-        // Thêm container chứa thành viên vào danh sách hiển thị
-        memberListDisplay.appendChild(memberContainer);
+        // Gọi hàm cho từng cặp ô nhập liệu và container gợi ý, truyền thêm combo box và checkbox
+        handleInput(
+          "tacGia",
+          "tacGia-suggestions",
+          "tacGiaCtnComboBox",
+          "tacGiaCtnCheckbox"
+        );
+        handleInput(
+          "tacGiaCtn",
+          "tacGiaCtn-suggestions",
+          "tacGiaCtnComboBox",
+          "tacGiaCtnCheckbox"
+        );
+        handleInput(
+          "thanhVien",
+          "themThanhVien-suggestions",
+          "thanhVienComboBox",
+          "thanhVienCheckbox"
+        );
       });
-    }
-    // Hàm xóa thành viên
-    function removeMember(index) {
-      console.log('xóa')
-      members.splice(index, 1); // Xóa thành viên khỏi mảng
-      updateFormMemberList();   // Cập nhật lại danh sách hiển thị
-    }
-    // =================================================================
+      // =================================================================
 
-  </script>
-
-  <!-- Phần phân quyền -->
-  <!-- <script>
-    window.onload = function () {
-      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-      const Role = localStorage.getItem("userRole");
-
-      if (TenNhanVien) {
-        // Hiển thị tên người dùng trên phần tử HTML
-        document.querySelector('.fullname').innerText = `${TenNhanVien} - ${Role}`;
-      } else {
-        document.querySelector('.fullname').innerText = 'Hi, Guest'; // Hiển thị nếu không có tên người dùng
-      }
-
-      //document.querySelector('.role').innerText = `${Role}`;
-
-    };
-  </script> -->
-  <!-- <script>
-    function fetchQuyen() {
-      const maPhongBan = document.getElementById('MaPhongBan').value;
-      // Gọi API để lấy thông tin isKhoa
-      fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          const quyenSelect = document.getElementById('Quyen');
-          quyenSelect.innerHTML = ''; // Xóa các option cũ
-
-          // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
-          if (data.isKhoa === 1) {
-            quyenSelect.innerHTML = `
-              <option value="GV">Giảng Viên</option>
-              <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-              <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
-          } else {
-            quyenSelect.innerHTML = `
-              <option value="Thường">Thường</option>
-              <option value="Duyệt">Duyệt</option>`;
+      // lấy dữ liệu giảng viên cơ hữu
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await fetch("/giangviencohuu"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Không thể lấy dữ liệu từ API.");
           }
 
-        }
-        )
-        .catch(error => console.error('Error:', error));
-    }
-  </script> -->
-  <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+          // Thông báo nếu cần (chỉnh sửa alert nếu cần)
+          // alert("Dữ liệu đã được tải thành công!");
 
-      if (tenDangNhap) {
-        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-      } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
+          // Chuyển đổi dữ liệu sang JSON
+          const data = await response.json();
+          console.log(data);
+
+          // Gán dữ liệu vào mảng giangVienCoHuu
+          giangVienCoHuu = data;
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+
+      // gửi form lên sv
+      document
+        .getElementById("submitBtn")
+        .addEventListener("click", function () {
+          // Lấy dữ liệu từ form
+          const formData = {
+            // loaiBaiBao: document.getElementById("loaiBaiBao").value,
+            namHoc: document.getElementById("namHocForm").value,
+            tenBaiBao: document.getElementById("tenBaiBao").value,
+            loaiTapChi: document.getElementById("loaiTapChi").value,
+            chiSoTapChi: document.getElementById("chiSoTapChi").value,
+            tacGia: document.getElementById("tacGia").value,
+            tacGiaCtn: document.getElementById("tacGiaCtn").value,
+            thanhVien: Array.from(
+              document.querySelectorAll("#memberListDisplay span")
+            ).map((member) => member.textContent),
+          };
+
+          console.log(formData);
+
+          // Gửi dữ liệu lên server
+          fetch("/baibaokhoahoc", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Gửi dữ liệu thất bại!");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              alert(data.message);
+              // Reset form nếu cần
+              document.getElementById("formData").reset();
+              document.getElementById("memberListDisplay").innerHTML = "";
+              members = [];
+            })
+            .catch((error) => {
+              console.error("Lỗi:", error);
+              alert("Có lỗi xảy ra: " + error.message);
+            });
+        });
+
+      // // Xử lí ô nhập thư kí
+      // document.getElementById('capDeTai').addEventListener('change', function () {
+      //   const capDeTai = this.value; // Lấy giá trị cấp đề tài đã chọn
+      //   const thukiInput = document.getElementById('thuKy'); // Lấy ô nhập thư ký
+
+      //   // Kiểm tra nếu cấp đề tài là "Học viện, Cơ sở"
+      //   if (capDeTai === "Cơ sở, Học viện") {
+      //     // Vô hiệu hóa ô nhập thư ký
+      //     thukiInput.disabled = true;
+      //     thukiInput.value = ''; // Xóa giá trị đã nhập trong ô nhập thư ký
+      //   } else {
+      //     // Kích hoạt lại ô nhập thư ký
+      //     thukiInput.disabled = false;
+      //   }
+      // });
+
+      // =================================================================
+      let members = [];
+      // Hàm thêm thành viên vào mảng member để hiển thị
+      function addMember(memberName) {
+        if (memberName) {
+          // Thêm thành viên vào mảng members
+          console.log(memberName);
+          members.push(memberName);
+          // Cập nhật danh sách thành viên hiển thị trên form
+          updateFormMemberList();
+          // Xóa nội dung ô input sau khi thêm thành viên
+          document.getElementById("thanhVien").value = "";
+        }
       }
-    });
-  </script>
-  <!-- <script>
+      // Hàm cập nhật danh sách thành viên và hiển thị lên form
+      function updateFormMemberList() {
+        const memberListDisplay = document.getElementById("memberListDisplay");
+        memberListDisplay.innerHTML = ""; // Xóa danh sách cũ
+        // Duyệt qua mảng members để hiển thị từng thành viên
+        members.forEach((member, index) => {
+          const memberContainer = document.createElement("div");
+          memberContainer.style.display = "flex"; // Đảm bảo các phần tử được hiển thị trên cùng một dòng
+          memberContainer.style.alignItems = "center"; // Căn giữa tên và nút xóa
+          memberContainer.style.justifyContent = "space-between"; // Đảm bảo tên thành viên và nút xóa được căn lề
+          // Tạo phần tử hiển thị tên thành viên
+          const span = document.createElement("span");
+          span.textContent = member;
+          span.style.flexGrow = 1; // Cho phép tên thành viên chiếm hết không gian còn lại trong div
+          // Thêm nút xóa cho từng thành viên
+          const removeButton = document.createElement("button");
+          removeButton.innerHTML = '<i class="fa fa-times"></i>';
+          removeButton.onclick = () => removeMember(index); // Gắn sự kiện xóa
+          // Thêm tên thành viên và nút xóa vào giao diện
+          memberContainer.appendChild(span);
+          memberContainer.appendChild(removeButton);
+          // Thêm container chứa thành viên vào danh sách hiển thị
+          memberListDisplay.appendChild(memberContainer);
+        });
+      }
+      // Hàm xóa thành viên
+      function removeMember(index) {
+        console.log("xóa");
+        members.splice(index, 1); // Xóa thành viên khỏi mảng
+        updateFormMemberList(); // Cập nhật lại danh sách hiển thị
+      }
+      // =================================================================
+    </script>
+
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+    <!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
       const maPhongBan = document.getElementById("MaPhongBan").value;
       const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
@@ -928,7 +819,7 @@ Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp 
         .catch(error => console.error('Error:', error));
     });
   </script> -->
-  <!-- <script>
+    <!-- <script>
     function fetchBoMon() {
       const maPhongBan = document.getElementById("MaPhongBan").value;
       fetch(`/getMaBoMon/${maPhongBan}`)
@@ -960,138 +851,78 @@ Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp 
         .catch(error => console.error('Error:', error));
     };
   </script> -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const isKhoa = localStorage.getItem("isKhoa");
 
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('actionButton');
-      const actionButton1 = document.getElementById('actionButton1');
-      const actionButton2 = document.getElementById('actionButton2');
-      const actionButton3 = document.getElementById('actionButton3');
+    <!-- Phần phân quyền -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+        const ThongTinGD = document.getElementById("ThongTinGD");
 
-      // Ẩn button import đồ án
-      const importDoAn = document.getElementById('importDoAn');
-      const suaHD = document.getElementById('suaHD');
+        ThongTinGD.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
 
-      if (isKhoa == 0 && role == 'Duyệt'){
-        importDoAn.style.display = 'block';
-        suaHD.style.display = 'block';
-      }
-      
-      if (isKhoa == 0) {
-        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
 
-      } else {
-        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-        actionButton2.style.display = 'none'; // Ẩn actionButton2
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/info2";
+          } else {
+            window.location.href = "/info";
+          }
+        });
 
-      }
-      //Ẩn site duyệt lớp gk
-      const role = localStorage.getItem("userRole");
-      if (role === "Lãnh đạo khoa" || role === "Duyệt") {
-        actionButton3.style.display = '';
-      } else {
-        actionButton3.style.display = 'none';
-      }
-    });
-  </script>
+        // Thêm sự kiện click cho phần tử có id="Home"
 
-  <script>
-    window.onload = function () {
-      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-      //const Role = localStorage.getItem("userRole");
-      const TenDangNhap = localStorage.getItem("TenDangNhap");
+        const Home = document.getElementById("Home");
 
-      let Role = localStorage.getItem("userRole");
-      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
-        Role = 'LĐK';
-      }
+        Home.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
 
-      if (TenNhanVien) {
-        // Hiển thị tên người dùng trên phần tử HTML
-        document.querySelector(
-          ".fullname"
-        ).innerText = `${TenNhanVien} - ${Role}`;
-      } else {
-        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
-      }
+          const isKhoa = localStorage.getItem("isKhoa");
 
-      //document.querySelector('.role').innerText = `${Role}`;
-    };
-
-    const fullnameElement = document.querySelector(".fullname");
-    fullnameElement.addEventListener("click", function () {
-      console.log("Full name link clicked");
-    });
-  </script>
-
-  <!-- Phần phân quyền -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-      const ThongTinGD = document.getElementById("ThongTinGD");
-
-      ThongTinGD.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-        if (isKhoa == 0) {
-          // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/info2";
-        } else {
-          window.location.href = "/info";
-        }
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/maindt";
+          } else {
+            window.location.href = "/mainkhoa";
+          }
+        });
       });
+    </script>
 
-      // Thêm sự kiện click cho phần tử có id="Home"
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
-      const Home = document.getElementById("Home");
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+    <script>
+      document
+        .getElementById("infome")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+          if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+          } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+          }
+        });
+    </script>
 
-      Home.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-        const isKhoa = localStorage.getItem("isKhoa");
-
-        if (isKhoa == 0) {
-          // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/maindt";
-        } else {
-          window.location.href = "/mainkhoa";
-        }
-      });
-    });
-  </script>
-
-  <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-      if (tenDangNhap) {
-        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-      } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
-      }
-    });
-  </script>
-  <script>
-    document.getElementById("infome").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-      if (id_User) {
-        // Chuyển hướng đến trang infome và truyền id_User trong URL
-        window.location.href = `/infome/${id_User}`;
-      } else {
-        alert("Không tìm thấy id_User trong localStorage.");
-      }
-    });
-  </script>
-
-  <!-- <script>
+    <!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Lắng nghe sự kiện click trên nút có id là submitBtn
       document.getElementById("submitBtn").addEventListener("click", function (event) {
@@ -1141,53 +972,56 @@ Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp 
       });
     }); -->
 
+    <!-- </script> -->
 
-  <!-- </script> -->
+    <script>
+      document
+        .getElementById("changeMessage")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-  <script>
-    document.getElementById("changeMessage").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-      if (MaPhongBan) {
-        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-        window.location.href = `/changeMessage/${MaPhongBan}`;
-      } else {
-        alert("Không tìm thấy MaPhongBan trong localStorage.");
-      }
-    });
-  </script>
-  <script>
-    $(document).ready(function () {
-      // Xóa các option trống trong tất cả các select có class .namHoc
-      $('.namHoc option[value=""]').remove();
-
-      // Gửi yêu cầu AJAX để lấy danh sách năm học
-      $.ajax({
-        url: '/getNamHoc',
-        method: 'GET',
-        success: function (response) {
-          if (response.success) {
-            // Lặp qua mỗi select có class .namHoc
-            $('.namHoc').each(function () {
-              const selectElement = $(this); // Lấy select hiện tại
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                selectElement.append(
-                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                );
-              });
-            });
+          if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
           } else {
-            console.error("Không lấy được dữ liệu năm học:", response.message);
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
-        },
-        error: function (error) {
-          console.error("Lỗi khi lấy dữ liệu năm học:", error);
-        }
-      });
-    });
-  </script>
-</body>
+        });
+    </script>
+    <script>
+      $(document).ready(function () {
+        // Xóa các option trống trong tất cả các select có class .namHoc
+        $('.namHoc option[value=""]').remove();
 
+        // Gửi yêu cầu AJAX để lấy danh sách năm học
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              // Lặp qua mỗi select có class .namHoc
+              $(".namHoc").each(function () {
+                const selectElement = $(this); // Lấy select hiện tại
+                response.NamHoc.forEach(function (item) {
+                  console.log(item.NamHoc);
+                  selectElement.append(
+                    `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                  );
+                });
+              });
+            } else {
+              console.error(
+                "Không lấy được dữ liệu năm học:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học:", error);
+          },
+        });
+      });
+    </script>
+  </body>
 </html>

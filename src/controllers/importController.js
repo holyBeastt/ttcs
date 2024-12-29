@@ -683,7 +683,7 @@ const importTableQC = async (jsonData) => {
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
-  const query = `SELECT VietTat FROM hedonghocphi`;
+  const query = `SELECT VietTat FROM kitubatdau`;
   const [rows] = await connection.query(query);
   // Gắn số từ 0 đến 9 vào từng giá trị VietTat
   const VietTatModified = rows
@@ -708,15 +708,6 @@ const importTableQC = async (jsonData) => {
     // Lặp qua tất cả các phần tử trong VietTatModified
     for (const element of VietTatModified) {
       const currentVietTat = element;
-
-      // CHAT sẽ auto là cao học an toàn, TSAT tương tự
-      if (Lop.includes("CHAT")) {
-        HeDaoTao = 'Cao học AT';
-        break;
-      } else if (Lop.includes("TSAT")) {
-        HeDaoTao = 'Tiến sĩ AT';
-        break;
-      }
 
       // Lấy độ dài của currentVietTat
       const lengthToCompare = currentVietTat.length;
@@ -911,12 +902,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-      item["Số tiết lên lớp giờ HC"] ||
-      null,
+        item["Số tiết lên lớp giờ HC"] ||
+        null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      null,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị

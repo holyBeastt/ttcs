@@ -153,163 +153,18 @@
 </head>
 
 <body>
- <!-- Phần trên của navbar chứa logo và tiêu đề -->
- <nav class="navbar-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
-        <div class="navbar-title">
-          <img src="/dongchu_banner.png" alt="banner" />
-        </div>
-      </a>
-    </div>
-  </nav>
+  <!-- Phần header -->
+  <%- include('header') %>
 
-  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
-  <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
-    <div class="" style="width: 100%;">
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse " style="width: 100%;" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link " id="Home" href=""><i class="fa-solid fa-house"></i></a>
-          </li>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Giảng Viên Mời
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
-                <a class="nav-link" id="actionButton1" href="/importGvmList" style="width: 100%;">Thêm giảng viên mời bng file</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Bảng Quy Chuẩn
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/import" id="actionButton2" style="width: 100%;">Thêm file quy chuẩn</a>
-                <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
-                <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
-                <a class="nav-link" id="ThongTinGD" href="">Thông tin giảng viên theo lớp</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown" style="width: max-content;">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Mời Giảng
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
-                <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
-                <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-
-                <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
-                <li class="nav-item"></li>
-                <a class="nav-link " href="/phuLucHD" >Phụ lục hợp đồng</a>
-                </li>
-                <a class="nav-link " href="/exportHD">Hợp Đồng</a>
-                <a class="nav-link" id="suaHD" style="display: none;" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Vượt Giờ
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
-                <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
-                <a class="nav-link" href="/soTietDM">Số tiết định mức</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra già kỳ</a>
-                <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>              
-
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Nghiên Cứu Khoa Học
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Đồ Án
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="#">COMING SOON</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle active" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Thống Kê
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/ThongkeMG">Mời Giảng</a>
-                <a class="nav-link active" id="" href="/thongkevuotgio">Vượt Giờ</a>
-                <a class="nav-link" id="" href="#">Đồ Án</a>
-                <a class="nav-link" id="" href="/thongkenckh">Nghiên cứu khoa học</a>
-              </div>
-            </div>
-          </div>
-          <div class="navbar-nav">
-            <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Hệ Thống
-              </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" id="" href="/log">Xem File Log</a>
-              </div>
-            </div>
-          </div>
-
-        </ul>
-        <div class="navbar-nav">
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-              aria-expanded="false">
-              Hi, Lê Đức Thuận
-            </a>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item"id="infome">Thông tin cá nhân</a>
-                <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
-                <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
-                <a class="dropdown-item" href="/">Đăng xuất</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
+  <!-- Phần nội dung -->
+   
   <div class="container-fluid box m-4  "></div>
     <div class="mx-5 flex-grow-1">
       <div class="d-flex justify-content-start align-items-end mb-3">
 
+        <select class="form-select mx-1 selectop" style="width: 150px;" id="HocKy">
+          <option value="ALL">Tất cả kỳ</option>
+        </select>
         <!-- Combo box Năm -->
         <select class="form-select mx-1 selectop" style="width: 150px;" id="NamHoc">
           <option value="ALL">Tất cả năm</option>
@@ -372,7 +227,7 @@
 $(document).ready(function () {
             // Biến để theo dõi số lượng combobox đã được khởi tạo
             let initializedComboboxes = 0;
-            const totalComboboxes = 2; // Tổng số combobox cần khởi tạo
+            const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
 
            function checkAndFetchData() {
                 initializedComboboxes++;
@@ -384,6 +239,7 @@ $(document).ready(function () {
             // Xóa các option mặc định
             $('#NamHoc option').remove();
             $('#Khoa option').remove();
+            $('#HocKy option').remove();
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
             $.ajax({
@@ -423,6 +279,13 @@ $(document).ready(function () {
                             );
                         });
                         checkAndFetchData();
+
+                        response.Ki.forEach(function (item) {
+                            $('#HocKy').append(
+                                `<option value="${item.value}">${item.Ki}</option>`
+                            );
+                        });
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
@@ -430,8 +293,10 @@ $(document).ready(function () {
                     // Đảm bảo fetchThongkevuotgioData vẫn được gọi ngay cả khi có lỗi
                     checkAndFetchData();
                     checkAndFetchData();
+                    checkAndFetchData();
                 }
             });
+
         });
 
         let myChart = null;
@@ -440,18 +305,20 @@ $(document).ready(function () {
     try {
         const nam = document.getElementById('NamHoc').value;
         const khoa = document.getElementById('Khoa').value;
+        const hocky = document.getElementById('HocKy').value; // Lấy giá trị Kỳ
 
         console.log("Nam hoc:", nam);
         console.log("Khoa:", khoa);
+        console.log("Hoc Ky:", hocky); // Kiểm tra giá trị Kỳ
 
         let url = '/api/thongkevuotgio-data';
         const params = new URLSearchParams();
-
+        
         if (nam && nam !== 'ALL') params.append('namhoc', nam);
         if (khoa === 'ALL' || (khoa && khoa !== '')) {
-    params.append('khoa', khoa);
-}
- 
+            params.append('khoa', khoa);
+        }
+        if (hocky && hocky !== 'ALL') params.append('hocky', hocky); // Thêm hocky vào params
 
         if (params.toString()) {
             url += '?' + params.toString();
@@ -716,6 +583,7 @@ function updateCharts(data, khoa) {
       // Thêm event listeners
       document.getElementById('NamHoc').addEventListener('change', fetchThongkevuotgioData);
       document.getElementById('Khoa').addEventListener('change', fetchThongkevuotgioData);
+      document.getElementById('HocKy').addEventListener('change', fetchThongkevuotgioData); // Thêm event listener cho Kỳ
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -743,24 +611,6 @@ function updateCharts(data, khoa) {
         alert("Không tìm thấy MaPhongBan trong localStorage.");
     }
   });
-</script>
-
-<script>
-window.onload = function () {
-    const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-    let Role = localStorage.getItem("userRole");
-    if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
-        Role = 'LĐK';
-    }
-    if (TenNhanVien) {
-        // Hiển thị tên người dùng và role trên phần tử HTML
-        document.querySelector(
-            ".fullname"
-        ).innerText = `${TenNhanVien} - ${Role}`;
-    } else {
-        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
-    }
-};
 </script>
 
 <script>
