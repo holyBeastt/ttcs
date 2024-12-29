@@ -2255,6 +2255,80 @@ const insertGiangDay = async (
   }
 };
 
+// gộp data bảng quy chuẩn các lớp 2 tên với bảng nhân viên 
+const joinData = (dataArray, nhanvienList) => {
+  // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
+  const result = [];
+
+  // Duyệt qua mảng đối tượng dữ liệu
+  dataArray.forEach(item => {
+    // Tách tên giảng viên từ trường GiaoVienGiangDay, có thể có nhiều giảng viên
+    const giaoVienGiangDayArray = item.GiaoVienGiangDay.split(','); // Nếu có nhiều giảng viên
+    giaoVienGiangDayArray.forEach(gv => {
+      // Lấy tên giảng viên, bỏ phần (1) hay (2)
+      const tenGiangVien = gv.trim().split('(')[0].trim();
+
+      // Tìm giảng viên trong danh sách nhanvienList
+      const nhanVien = nhanvienList.find(nv => nv.TenNhanVien.toLowerCase().trim() === tenGiangVien.toLowerCase().trim());
+
+      if (nhanVien) {
+        // Tạo bản sao đối tượng gốc
+        const newItem = { ...item };
+
+        // Gộp tất cả thông tin từ nhanvien vào newItem
+        Object.keys(nhanVien).forEach(key => {
+          if (!newItem.hasOwnProperty(key)) {  // Kiểm tra xem key đã có trong newItem chưa
+            newItem[key] = nhanVien[key];  // Gán giá trị từ nhanvien vào newItem
+          }
+        });
+
+        // Gộp thông tin từ nhanvienList vào newItem (tất cả key sẽ được gộp)
+        newItem.GiaoVienGiangDay = `${tenGiangVien} (${giaoVienGiangDayArray.indexOf(gv) + 1})`;
+
+        // Thêm vào mảng kết quả
+        result.push(newItem);
+      }
+    });
+  });
+
+  return result;
+};
+
+
+// tách tên giảng viên giảng dạy, đánh dấu 1, 2 kèm chia số tiết quy chuẩn
+const splitTeachers = (data) => {
+  const result = [];
+
+  data.forEach(item => {
+    // Tách danh sách giảng viên từ trường 'GiaoVienGiangDay' bằng dấu phẩy
+    const teachers = item.GiaoVienGiangDay.split(',').map(teacher => teacher.trim());
+
+    // Giả sử trường QC là giá trị của lớp gốc (100%)
+    const originalQC = item.QuyChuan || 100;  // Nếu không có QC thì mặc định là 100%
+
+    // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
+    teachers.forEach((teacher, index) => {
+      const newItem = { ...item }; // sao chép đối tượng gốc
+
+      // Gắn (1) và (2) vào tên giảng viên
+      newItem.GiaoVienGiangDay = `${teacher} (${index + 1})`;
+
+      // Điều chỉnh giá trị QC
+      if (index === 0) {
+        newItem.QuyChuan = originalQC * 0.7; // Lớp có tên (1) nhận 70% của lớp gốc
+      } else if (index === 1) {
+        newItem.QuyChuan = originalQC * 0.3; // Lớp có tên (2) nhận 30% của lớp gốc
+      } else {
+        newItem.QuyChuan = originalQC; // Nếu có nhiều hơn 2 giảng viên, giữ nguyên QC cho các trường hợp còn lại
+      }
+
+      result.push(newItem); // thêm vào mảng kết quả
+    });
+  });
+
+  return result;
+};
+
 const insertGiangDay2 = async (
   req,
   res,
@@ -2275,13 +2349,40 @@ const insertGiangDay2 = async (
     qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0
   `;
 
-  const value = [dot, ki, namHoc];
-  try {
-    const [dataJoin] = await pool.query(query2, value);
 
+  // lấy lớp có 2 tên giảng viênviên
+  const query3 = `
+    SELECT *
+FROM quychuan 
+WHERE 
+  quychuan.DaLuu = 0 
+  AND quychuan.Dot = ?
+  AND quychuan.KiHoc = ? 
+  AND quychuan.NamHoc = ?
+  AND quychuan.MoiGiang = 0
+  AND quychuan.GiaoVienGiangDay LIKE '%,%'
+  `;
+
+
+  const value = [dot, ki, namHoc];
+  // join bình thường với lớp 1 giảng viên
+  const [dataJoin] = await pool.query(query2, value);
+
+  // lấy các lớp 2 giảng viên, tách tên + chia số tiết QC, gộp dữ liệu với bảng nhân viên
+  const [dataGiangVienSauDaiHoc] = await pool.query(query3, value);
+  const tachLopGiangVienSauDaiHoc = splitTeachers(dataGiangVienSauDaiHoc);
+  const gopLopSauDaiHocVoiBangNhanVien = joinData(tachLopGiangVienSauDaiHoc, nvList)
+
+  console.log(dataJoin);
+  console.log(gopLopSauDaiHocVoiBangNhanVien);
+
+  // gộp 2 mảng dữ liệu 
+  const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
+
+  try {
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
-      dataJoin
+      mergedArray
         .filter(
           (item) =>
             item.TaiChinhDuyet != 0 &&
