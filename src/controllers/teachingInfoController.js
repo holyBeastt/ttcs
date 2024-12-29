@@ -498,7 +498,7 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
     const queryGVM = `
      SELECT gvmoi.HoTen, gvmoi.MaPhongBan
       FROM gvmoi
-      WHERE gvmoi.TinhTrangGiangDay = 1 AND gvmoi.isQuanDoi != 1;
+      WHERE gvmoi.TinhTrangGiangDay = 1;
     `;
     const [gvmResults] = await connection.query(queryGVM);
 

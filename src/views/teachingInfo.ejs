@@ -373,6 +373,62 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+  <script>
+    $(document).ready(function () {
+      const isKhoa = localStorage.getItem("isKhoa");
+      console.log('Giá trị isKhoa từ localStorage: ', isKhoa);
+      hideButton();
+      const Ban = localStorage.getItem("MaPhongBan");
+      console.log('Giá trị Ban từ localStorage: ', Ban);
+      const role = localStorage.getItem("userRole");
+      console.log('Giá trị QUyền từ localStorage: ', role);
+    });
+
+    function hideButton() {
+      const isKhoa = localStorage.getItem("isKhoa");
+      const role = localStorage.getItem("userRole");
+      if (isKhoa === null) {
+        console.log('Không tìm thấy giá trị isKhoa trong localStorage');
+      } else {
+        console.log('Giá trị isKhoa: ', isKhoa);
+
+        const actionButton = document.getElementById('actionButton');
+        const actionButton1 = document.getElementById('actionButton1');
+        const actionButton2 = document.getElementById('actionButton2');
+        const actionButton3 = document.getElementById('actionButton3');
+
+        // Ẩn button import đồ án
+        const importDoAn = document.getElementById('importDoAn');
+        const suaHD = document.getElementById('suaHD');
+
+        if (isKhoa == 0 && role == 'Duyệt'){
+          importDoAn.style.display = 'block';
+          suaHD.style.display = 'block';
+        }
+
+        if (actionButton1 && actionButton2) {
+          if (isKhoa === "0") {
+            actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+            actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+          } else {
+            actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+            actionButton2.style.display = 'none'; // Ẩn actionButton2
+            if (role.toLowerCase() == 'gv') {
+              actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+            }
+          }
+        } else {
+          console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
+        }
+        //Ẩn site duyệt lớp gk
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+          actionButton3.style.display = '';
+        } else {
+          actionButton3.style.display = 'none';
+        }
+      }
+    }
+  </script>
 
   <!-- phần hiển thị phân theo role -->
   <script>
