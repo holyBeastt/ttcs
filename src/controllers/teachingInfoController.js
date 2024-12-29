@@ -386,7 +386,11 @@ const renderInfo = async (req, res) => {
   const tableName = process.env.DB_TABLE_QC;
   let query = "";
 
-  console.log("Phòng ban " + MaPhongBan + ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`);
+  console.log(
+    "Phòng ban " +
+      MaPhongBan +
+      ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`
+  );
 
   // Xác định query SQL dựa trên isKhoa
   if (isKhoa == 1) {
