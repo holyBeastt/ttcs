@@ -79,7 +79,7 @@ const exportVuotGio = async (req, res) => {
       Khoa, 
       GiangVien 
     FROM giangday
-    WHERE NamHoc = ? AND Khoa = ? AND GiangVien = ?`;
+    WHERE NamHoc = ?  `;
 
     let queryLopNgoaiQuyChuan = `
     SELECT DISTINCT
@@ -94,7 +94,7 @@ const exportVuotGio = async (req, res) => {
       Khoa, 
       GiangVien 
     FROM lopngoaiquychuan
-    WHERE NamHoc = ? AND Khoa = ? AND GiangVien = ?`;
+    WHERE NamHoc = ? `;
     let queryGiuaky = `
     SELECT DISTINCT
       TenHocPhan AS TenHocPhanGK, 
@@ -110,7 +110,7 @@ const exportVuotGio = async (req, res) => {
     FROM 
       giuaky 
     WHERE 
-      NamHoc = ? AND Khoa = ? AND GiangVien = ?`;
+      NamHoc = ? AND Khoa = ? `;
 
       let queryExportDoAnTotNghiep = `
       SELECT DISTINCT 
@@ -128,11 +128,25 @@ const exportVuotGio = async (req, res) => {
       FROM exportdoantotnghiep ed
       JOIN nhanvien nv ON ed.CCCD = nv.CCCD
       WHERE ed.NamHoc = ? AND nv.MaPhongBan = ? AND nv.TenNhanVien =?`;
+      let queryNhanVien = `
+      SELECT DISTINCT
+        nv.TenNhanVien AS GiangVien, 
+        nv.MaPhongBan AS Khoa, 
+        nv.HSL,
+        nv.NgaySinh, 
+        nv.HocVi, 
+        nv.ChucVu, 
+        nv.MonGiangDayChinh
+      FROM nhanvien nv
+      JOIN exportdoantotnghiep ed ON nv.CCCD = ed.CCCD
+      WHERE nv.MaPhongBan = ? AND ed.NamHoc = ? AND nv.TenNhanVien = ?`;
+    
     // Thực hiện các truy vấn
     const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, teacherName]);
     const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, teacherName]);
     const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, teacherName]);
     const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, teacherName]);
+    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, namHoc, teacherName]); // Truyền đúng giá trị
 
 
     // Ghi log kết quả truy vấn
@@ -140,15 +154,20 @@ const exportVuotGio = async (req, res) => {
     // Kết hợp dữ liệu từ các bảng
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
-    const GiangVien = resultsExportDoAnTotNghiep[0]?.GiangVien; // Lấy tên giảng viên từ kết quả
-    const NgaySinh = resultsExportDoAnTotNghiep[0]?.NgaySinh; // Lấy ngày sinh từ kết quả
-    const HocVi = resultsExportDoAnTotNghiep[0]?.HocVi; // Lấy ngày sinh từ kết quả
-    const ChucVu = resultsExportDoAnTotNghiep[0]?.ChucVu; // Lấy ngày sinh từ kết quả
-    const HSL = resultsExportDoAnTotNghiep[0]?.HSL; // Lấy ngày sinh từ kết quả
+  // Lấy thông tin từ bảng nhanvien
+const GiangVien = resultsNhanVien[0]?.GiangVien; // Lấy tên giảng viên từ kết quả
+const NgaySinh = resultsNhanVien[0]?.NgaySinh; // Lấy ngày sinh từ kết quả
+const HocVi = resultsNhanVien[0]?.HocVi; // Lấy học vị từ kết quả
+const ChucVu = resultsNhanVien[0]?.ChucVu; // Lấy chức vụ từ kết quả
+const HSL = resultsNhanVien[0]?.HSL; // Lấy; // Lấy ngày sinh từ kết quả
 
     // Kiểm tra kết quả truy vấn
-
-
+// Kiểm tra kết quả truy vấn
+if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resultsGiangDay.length === 0, resultsLopNgoaiQuyChuan.length === 0, resultsGiuaky.length === 0) {
+  return res.send(
+    "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
+  );
+}
     // Check if any results were returned
 
     // Nhóm dữ liệu theo kỳ và hệ
@@ -173,16 +192,7 @@ const exportVuotGio = async (req, res) => {
       },
     };
 
-    // const groupedResultsExportDoAnTotNghiep = {
-    //   "Kỳ 1": {
-    //     "Hệ đóng học phí": [],
-    //     "Hệ mật mã": []
-    //   },
-    //   "Kỳ 2": {
-    //     "Hệ đóng học phí": [],
-    //     "Hệ mật mã": []
-    //   }
-    // };
+   
     combinedResults.forEach((row) => {
       const className = row.Lop; // Giả sử tên lớp được lưu trong thuộc tính 'Lop'
       const isHeDongHocPhi = /^[A-Za-z]\d{1,}/.test(className); // Kiểm tra nếu tên lớp bắt đầu bằng chữ cái và có một hoặc nhiều chữ số
