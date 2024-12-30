@@ -116,18 +116,15 @@ const exportVuotGio = async (req, res) => {
       SELECT DISTINCT 
         ed.NamHoc AS Nam, 
         ed.MaPhongBan AS Khoa,  -- Đã xóa chú thích ở đây
-        nv.TenNhanVien AS GiangVien, 
         ed.SinhVien, 
         ed.KhoaDaoTao, 
         ed.SoNguoi, 
         ed.SoTiet, 
-        nv.HocVi,
-        nv.ChucVu,
         nv.NgaySinh,
         ed.isHDChinh
       FROM exportdoantotnghiep ed
       JOIN nhanvien nv ON ed.CCCD = nv.CCCD
-      WHERE ed.NamHoc = ? AND nv.MaPhongBan = ? AND nv.TenNhanVien =?`;
+      WHERE ed.NamHoc = ? AND nv.MaPhongBan = ? AND ed.GiangVien=?`;
       let queryNhanVien = `
       SELECT DISTINCT
         nv.TenNhanVien AS GiangVien, 
@@ -155,7 +152,7 @@ const exportVuotGio = async (req, res) => {
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
   // Lấy thông tin từ bảng nhanvien
-const GiangVien = resultsNhanVien[0]?.GiangVien; // Lấy tên giảng viên từ kết quả
+const GiangVien = resultsGiangDay[0]?.GiangVien; // Lấy tên giảng viên từ kết quả
 const NgaySinh = resultsNhanVien[0]?.NgaySinh; // Lấy ngày sinh từ kết quả
 const HocVi = resultsNhanVien[0]?.HocVi; // Lấy học vị từ kết quả
 const ChucVu = resultsNhanVien[0]?.ChucVu; // Lấy chức vụ từ kết quả
