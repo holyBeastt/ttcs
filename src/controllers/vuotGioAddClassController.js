@@ -423,21 +423,12 @@ const getLopGK = async (req,res) => {
     let connection;
     try {
         connection = await createPoolConnection();
-        if (MaPhongBan ==="DAOTAO" || MaPhongBan === "TAICHINH") {
-            const query = `SELECT * FROM giuaky WHERE HocKy = ? AND NamHoc = ?`;
-            const [rows] = await connection.query(query, [ Ki, Nam]);
-            res.json({
-                success: true,
-                maBoMon: rows,
-            });
-        } else {
-            const query2 = `SELECT * From giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ? `;
-            const [result] = await connection.query(query2, [MaPhongBan, Ki, Nam]);
-            res.json({
-                success: true,
-                maBoMon: result,
-            });
-        }
+        const query2 = `SELECT * From giuaky WHERE Khoa = ? AND HocKy = ? AND NamHoc = ? `;
+        const [result] = await connection.query(query2, [MaPhongBan, Ki, Nam]);
+        res.json({
+            success: true,
+            maBoMon: result,
+        });
     } catch (error) {
         console.error("Lỗi: ", error);
         res.status(500).send("Đã có lỗi xảy ra");

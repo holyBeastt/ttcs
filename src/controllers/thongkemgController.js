@@ -7,7 +7,7 @@ const thongkemgController = {
 
     getThongkemgData: async (req, res) => {
         let connection;
-        const { dot, kihoc, namhoc, khoa } = req.query;
+        const {kihoc, namhoc, khoa } = req.query;
 
         try {
             connection = await createConnection();
@@ -35,10 +35,6 @@ const thongkemgController = {
             }
 
             // Thêm các điều kiện lọc khác
-            if (dot && dot !== 'ALL') {
-                query += ` AND dot = ?`;
-                params.push(dot);
-            }
             if (kihoc && kihoc !== 'ALL') {
                 query += ` AND kihoc = ?`;
                 params.push(kihoc);
@@ -70,9 +66,9 @@ const thongkemgController = {
         try {
             connection = await createConnection();
             const query = `
-                SELECT DISTINCT dot, kihoc, namhoc 
+                SELECT DISTINCT kihoc, namhoc 
                 FROM hopdonggvmoi 
-                ORDER BY namhoc DESC, kihoc DESC, dot DESC;
+                ORDER BY namhoc DESC, kihoc DESC;
             `;
             const [result] = await connection.query(query);
             res.json(result);

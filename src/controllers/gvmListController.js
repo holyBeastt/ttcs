@@ -8,8 +8,6 @@ const mysql = require("mysql2/promise");
 const xlsx = require("xlsx");
 
 let gvmLists;
-
-let query;
 const getGvmList = async (req, res) => {
   let connection;
   try {
@@ -23,6 +21,7 @@ const getGvmList = async (req, res) => {
     // Lấy danh sách giảng viên mời
     const isKhoa = req.session.isKhoa;
     const MaPhongBan = req.session.MaPhongBan;
+    console.log("MaPhongBan = ", MaPhongBan);
     let query;
 
     if (isKhoa == 0) {

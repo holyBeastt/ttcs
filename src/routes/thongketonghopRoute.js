@@ -10,4 +10,8 @@ router.get("/thongketonghop", (req, res) => {
 // API để lấy dữ liệu biểu đồ tổng hợp
 router.get("/api/thongketonghop-data", thongketonghopController.getChartData);
 
+// Thêm route mới để lấy dữ liệu năm học
+router.get("/getNamHoc", thongketonghopController.getNamHocData);
+
+
 module.exports = router;

@@ -129,29 +129,46 @@
     <form action="/kytubatdau" method="POST" class="row">
       <div class="col-md-5">
         <div class="form-group">
-          <label for="LopViDu">Lớp ví dụ:</label>
-          <input type="text" class="form-control" id="LopViDu" name="LopViDu" required>
-        </div>
-      </div>
-      <div class="col-md-5">
-        <div class="form-group">
           <label for="vietTat">Viết tắt:</label>
           <input type="text" class="form-control" id="vietTat" name="vietTat" required>
         </div>
       </div>
+
+      <!-- Loại đào tạo -->
+      <div class="col-md-2">
+        <div class="form-group">
+          <select class="selectop" id="LoaiDaoTao" name="LoaiDaoTao">
+            <option value="Đại học">Đại học</option>
+            <option value="Cao học">Cao học</option>
+            <option value="Nghiên cứu sinh">Nghiên cứu sinh</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Hệ đào tạo -->
+      <div class="col-md-2">
+        <div class="form-group">
+          <select class="selectop" id="HeDaoTao" name="HeDaoTao">
+            <option value="Đóng học phí">Đóng học phí</option>
+            <option value="Đóng học phí">Mật mã</option>
+          </select>
+        </div>
+      </div>
+
       <div class="col-md-2 d-flex align-items-end">
         <button type="submit" class="btn btn-primary w-100" style="z-index: 1;">Thêm mới</button>
       </div>
     </form>
-        <!-- Nút Lọc màu giống nút Hiển thị -->
-
+    
+      <!-- Nút Lọc màu giống nút Hiển thị -->
       <div class="pb-3">
         <table id="NamHocTable" class="table table-bordered">
           <thead>
             <tr>
               <th>STT</th>
-              <th>Tên lớp</th>
               <th>Viết tắt</th>
+              <th>Tên lớp ví dụ</th>
+              <th>Hệ đào tạo</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -160,8 +177,9 @@
               <% for (var i = 0; i < kyTuBD.length; i++) { %>
                 <tr data-lop-vi-du="<%= kyTuBD[i].LopViDu %>" data-viet-tat="<%= kyTuBD[i].VietTat %>">
                   <td><%= i + 1 %></td>
-                  <td class="editable lopViDu-cell"><%= kyTuBD[i].LopViDu %></td>
                   <td class="editable vietTat-cell"><%= kyTuBD[i].VietTat %></td>
+                  <td class="editable lopViDu-cell"><%= kyTuBD[i].LopViDu %></td>
+                  <td class="editable"><%= kyTuBD[i].HeDaoTao %></td>
                   <td class="d-flex justify-content-center">
                     <button class="bi bi-pencil action-button edit-btn"></button>
                     <button class="bi bi-trash3 action-button me-2" 
@@ -175,6 +193,17 @@
         </table>
       </div>
   </div>
+
+    <!-- Link script Sweet alert 2 -->
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <script>
        function deleteKyTuBD(button, id) {
     if (confirm(`Bạn có chắc chắn muốn xóa ký tự bắt đầu ${id} không?`)) {
@@ -323,7 +352,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const newLopViDu = row.querySelector('.lopViDu-cell input').value;
             const newVietTat = row.querySelector('.vietTat-cell input').value;
             const originalLopViDu = row.dataset.lopViDu;
-
             try {
                 const response = await fetch(`/kytubatdau/${originalLopViDu}`, {
                     method: 'PUT',
@@ -387,6 +415,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Script thông báo khi thêm -->
+<script>
+  // Lấy query string từ URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const message = urlParams.get("message");
+
+  // Lấy phần tử div để hiển thị thông báo
+  const messageDiv = document.getElementById("message");
+
+  // Hiển thị thông báo dựa trên giá trị của message
+
+  if (message === "insertSuccess") {
+    Swal.fire({
+      title: 'Thông báo',
+      html: "Thành công",
+      icon: 'success',
+      confirmButtonText: 'OK',
+      width: 'auto', // Tự động điều chỉnh chiều rộng
+      padding: '20px', // Giữ khoảng cách cho nội dung
+    });
+  } else if (message === "duplicateKiTu") {
+    Swal.fire({
+      title: 'Thông báo',
+      html: "Kí tự bắt đầu đã tồn tại",
+      icon: 'info',
+      confirmButtonText: 'OK',
+      width: 'auto', // Tự động điều chỉnh chiều rộng
+      padding: '20px', // Giữ khoảng cách cho nội dung
+    });
+  } else if (message === "khoaALL") {
+    Swal.fire({
+      title: 'Thông báo',
+      html: "Vui lòng chọn 1 khoa cụ thể",
+      icon: 'info',
+      confirmButtonText: 'OK',
+      width: 'auto', // Tự động điều chỉnh chiều rộng
+      padding: '20px', // Giữ khoảng cách cho nội dung
+    });
+  } else if (message === "insertFalse") {
+    Swal.fire({
+      title: 'Thông báo',
+      html: "Đã xảy ra lỗi trong quá trình thêm giảng viên.",
+      icon: 'error',
+      confirmButtonText: 'OK',
+      width: 'auto', // Tự động điều chỉnh chiều rộng
+      padding: '20px', // Giữ khoảng cách cho nội dung
+    });
+  } else if (message == null) {
+  } else {
+    alert(message);
+  }
+
+
+  // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+  if (message) {
+    // Sử dụng window.history để xóa query string mà không refresh lại trang
+    const newUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+  }
+</script>
+
 </body>
 
 </html>

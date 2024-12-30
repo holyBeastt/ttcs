@@ -871,7 +871,7 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [kyTuBD] = await connection.query("SELECT * FROM hedonghocphi");
+      const [kyTuBD] = await connection.query("SELECT * FROM kitubatdau");
       res.render("vuotGioKyTuBD", {
         kyTuBD,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -885,21 +885,39 @@ const AdminController = {
   },
 
   postKyTuBD: async (req, res) => {
-    const { LopViDu, vietTat } = req.body;
+    let { vietTat, HeDaoTao } = req.body;
+    vietTat = vietTat.toUpperCase();
+    const LopViDu = vietTat + "10";
     let connection;
     try {
       connection = await createPoolConnection();
+      // Kiểm tra khoa
+      if (HeDaoTao == "ALL") {
+        return res.redirect("/kytubatdau?success=false&message=khoaALL");
+      }
 
+      // Kiểm tra trùng lặp kí tự bắt đầu
+      const [rows] = await connection.query(
+        `SELECT * FROM kitubatdau WHERE VietTat = ?`,
+        [vietTat]
+      );
+
+      // Xử lý kết quả
+      if (rows.length > 0) {
+        return res.redirect("/kytubatdau?success=false&message=duplicateKiTu");
+      }
+
+      // Thêm vào bảng kí tự bắt đầu
       const insertQuery = `
-        INSERT INTO hedonghocphi (LopViDu, vietTat) 
-        VALUES (?, ?)
+        INSERT INTO kitubatdau (LopViDu, vietTat, HeDaoTao) 
+        VALUES (?, ?, ?)
       `;
-      await connection.execute(insertQuery, [LopViDu, vietTat]);
+      await connection.execute(insertQuery, [LopViDu, vietTat, HeDaoTao]);
 
-      res.redirect("/kytubatdau?success=true");
+      res.redirect("/kytubatdau?success=true&message=insertSuccess");
     } catch (error) {
       console.error("Lỗi khi thêm ký tự bắt đầu:", error);
-      const [kyTuBD] = await connection.query("SELECT * FROM hedonghocphi");
+      const [kyTuBD] = await connection.query("SELECT * FROM kitubatdau");
       res.render("vuotGioKyTuBD", {
         kyTuBD,
         message: "Có lỗi xảy ra khi thêm mới!",
@@ -913,7 +931,7 @@ const AdminController = {
     const LopViDu = req.params.LopViDu;
     const connection = await createPoolConnection();
     try {
-      const query = `DELETE FROM hedonghocphi WHERE LopViDu = ?`;
+      const query = `DELETE FROM kitubatdau WHERE LopViDu = ?`;
       const [results] = await connection.query(query, [LopViDu]);
 
       if (results.affectedRows > 0) {
@@ -938,7 +956,7 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
       const query = `
-            UPDATE hedonghocphi 
+            UPDATE kitubatdau 
             SET LopViDu = ?, VietTat = ?
             WHERE LopViDu = ?
         `;
