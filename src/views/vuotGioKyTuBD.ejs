@@ -133,14 +133,24 @@
           <input type="text" class="form-control" id="vietTat" name="vietTat" required>
         </div>
       </div>
+
+      <!-- Loại đào tạo -->
+      <div class="col-md-2">
+        <div class="form-group">
+          <select class="selectop" id="LoaiDaoTao" name="LoaiDaoTao">
+            <option value="Đại học">Đại học</option>
+            <option value="Cao học">Cao học</option>
+            <option value="Nghiên cứu sinh">Nghiên cứu sinh</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Hệ đào tạo -->
-      <div class="col-md-5">
+      <div class="col-md-2">
         <div class="form-group">
           <select class="selectop" id="HeDaoTao" name="HeDaoTao">
-            <option value="ALL">Tất cả hệ</option>
             <option value="Đóng học phí">Đóng học phí</option>
-            <option value="Thạc sĩ an toàn">Thạc sĩ an toàn</option>
-            <option value="Tiến sĩ an toàn">Tiến sĩ an toàn</option>
+            <option value="Đóng học phí">Mật mã</option>
           </select>
         </div>
       </div>
@@ -149,8 +159,8 @@
         <button type="submit" class="btn btn-primary w-100" style="z-index: 1;">Thêm mới</button>
       </div>
     </form>
-        <!-- Nút Lọc màu giống nút Hiển thị -->
-
+    
+      <!-- Nút Lọc màu giống nút Hiển thị -->
       <div class="pb-3">
         <table id="NamHocTable" class="table table-bordered">
           <thead>
