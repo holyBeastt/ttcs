@@ -5,9 +5,8 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         getTenNhanVien, getQuyenByPhongBan, themBoMon, getNamHoc, getBoMonList, suggest,
         infome,
         updateMe,
-        getKyTuBD,
-        deleteKyTuBD, postKyTuBD,
-        updateKyTuBD,
+        getKyTuBD,deleteKyTuBD, postKyTuBD,updateKyTuBD,
+        getTienLuong,postTienLuong,updateTienLuong,deleteTienLuong,
         suggestPb
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
@@ -99,6 +98,12 @@ router.get('/kytubatdau', getKyTuBD);
 router.post('/kytubatdau', postKyTuBD);
 router.delete('/kytubatdau/:LopViDu', deleteKyTuBD);
 router.put('/kytubatdau/:LopViDu', updateKyTuBD); 
+
+//Tiền lương
+router.get('/tienluong', getTienLuong);
+router.post('/tienluong', postTienLuong);
+router.delete('/tienluong/:STT', deleteTienLuong);
+router.put('/tienluong/:STT', updateTienLuong); 
 
 //Thêm thông báo 
 router.get('/changeMessage/:MaPhongBan',

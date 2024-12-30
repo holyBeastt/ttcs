@@ -206,32 +206,32 @@
 
   <script>
        function deleteKyTuBD(button, id) {
-    if (confirm(`Bạn có chắc chắn muốn xóa ký tự bắt đầu ${id} không?`)) {
-      fetch(`/kytubatdau/${id}`, {
-    method: 'DELETE',
-    headers: {
-        'Content-Type': 'application/json',
-    }
-})
-.then(response => {
-    if (response.ok) {
-        alert("Xóa thành công!");
-        button.closest("tr").remove();
-    } else {
-        return response.text().then(text => {
-            // Kiểm tra nếu phản hồi là HTML, thường là trang đăng nhập hoặc lỗi
-            if (text.startsWith("<!DOCTYPE html>")) {
-                alert("Có lỗi xảy ra, có thể bạn cần đăng nhập lại hoặc endpoint không tồn tại.");
-            } else {
-                const data = JSON.parse(text); // Xử lý JSON nếu không phải HTML
-                alert("Xóa thất bại: " + data.message);
-            }
-        });
-    }
-})
-.catch(error => {
-    alert("Có lỗi xảy ra: " + error.message);
-});
+          if (confirm(`Bạn có chắc chắn muốn xóa ký tự bắt đầu ${id} không?`)) {
+            fetch(`/kytubatdau/${id}`, {
+          method: 'DELETE',
+          headers: {
+              'Content-Type': 'application/json',
+          }
+      })
+      .then(response => {
+          if (response.ok) {
+              alert("Xóa thành công!");
+              button.closest("tr").remove();
+          } else {
+              return response.text().then(text => {
+                  // Kiểm tra nếu phản hồi là HTML, thường là trang đăng nhập hoặc lỗi
+                  if (text.startsWith("<!DOCTYPE html>")) {
+                      alert("Có lỗi xảy ra, có thể bạn cần đăng nhập lại hoặc endpoint không tồn tại.");
+                  } else {
+                      const data = JSON.parse(text); // Xử lý JSON nếu không phải HTML
+                      alert("Xóa thất bại: " + data.message);
+                  }
+              });
+          }
+      })
+      .catch(error => {
+          alert("Có lỗi xảy ra: " + error.message);
+      });
 
 }}
     </script>

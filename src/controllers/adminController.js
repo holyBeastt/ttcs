@@ -989,6 +989,107 @@ const AdminController = {
     }
   },
   // Other methods can be added here as needed...
+
+  // Thêm các phương thức cho TienLuong
+  getTienLuong: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [tienLuong] = await connection.query("SELECT * FROM tienluong");
+      res.render("tienluong", {
+        tienluong: tienLuong,
+        message: req.query.success ? "Thêm mới thành công!" : null,
+      });
+    } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).send("Đã xảy ra lỗi");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  postTienLuong: async (req, res) => {
+    let { HeDaoTao, HocVi, SoTien } = req.body;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      // Thêm vào bảng TienLuong
+      const insertQuery = `
+        INSERT INTO tienluong (HeDaoTao, HocVi, SoTien) 
+        VALUES (?, ?, ?)
+      `;
+      await connection.execute(insertQuery, [HeDaoTao, HocVi, SoTien]);
+
+      res.redirect("/tienluong?success=true&message=insertSuccess");
+    } catch (error) {
+      console.error("Lỗi khi thêm tiền lương:", error);
+      res.status(500).send("Có lỗi xảy ra khi thêm mới!");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  updateTienLuong: async (req, res) => {
+    const STT = req.params.STT; // Sử dụng STT từ params
+    const { HeDaoTao, HocVi, SoTien } = req.body; // Lấy dữ liệu từ body
+    let connection;
+
+    try {
+        connection = await createPoolConnection();
+        const query = `
+            UPDATE tienluong 
+            SET HeDaoTao = ?, HocVi = ?, SoTien = ?
+            WHERE STT = ?
+        `;
+
+        const [result] = await connection.execute(query, [
+            HeDaoTao,
+            HocVi,
+            SoTien,
+            STT, // Sử dụng STT ở đây
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy bản ghi để cập nhật",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật thành công",
+        });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi cập nhật",
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+  },
+
+  deleteTienLuong: async (req, res) => {
+    const STT = req.params.STT; // ID của bản ghi cần xóa
+    const connection = await createPoolConnection();
+    try {
+      const query = `DELETE FROM tienluong WHERE STT = ?`;
+      const [results] = await connection.query(query, [STT]);
+
+      if (results.affectedRows > 0) {
+        res.status(200).json({ message: "Xóa thành công!" });
+      } else {
+        res.status(404).json({ message: "Không tìm thấy tiền lương để xóa." });
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa dữ liệu: ", error);
+      res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
 };
 
 module.exports = AdminController; // Export the entire controller
