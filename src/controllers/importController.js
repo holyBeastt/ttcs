@@ -696,7 +696,7 @@ const importTableQC = async (jsonData) => {
       processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
     // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
-    let HeDaoTao = "Mật mã"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+    let HeDaoTao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
 
     for (const row of rows) {
       const prefix = row.VietTat; // Lấy giá trị VietTat

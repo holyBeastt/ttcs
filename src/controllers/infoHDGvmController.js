@@ -447,90 +447,70 @@ const getHopDongDuKienData = async (req, res) => {
     connection = await createPoolConnection();
     const namHoc = req.query.namHoc;
     const dot = req.query.dot;
-    const ki = req.query.ki;
+    let ki = req.query.ki;
     const HeDaoTao = req.query.HeDaoTao;
     const khoa = req.query.khoa;
+
+    if (HeDaoTao == "Đồ án") {
+      ki = 0;
+    }
 
     let rows;
     if (khoa == undefined) {
       [rows] = await connection.execute(
-        `WITH gv1 AS (
-    SELECT 
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-        15 AS SoTiet
-    FROM doantotnghiep
-    WHERE GiangVien1 IS NOT NULL
-        AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != '' AND GiangVien1 NOT LIKE '%Cơ hữu%'
-),
-gv2 AS (
-    SELECT 
-        SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
-        10 AS SoTiet
-    FROM doantotnghiep
-    WHERE GiangVien2 IS NOT NULL
-        AND GiangVien2 != 'không' 
-        AND GiangVien2 != ''
-        AND GiangVien2 NOT LIKE '%Cơ hữu%'
-),
-two_gv AS (
-    SELECT * FROM gv1 
-    UNION ALL
-    SELECT * FROM gv2
-),
-one_gv AS (
-    SELECT         
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-        25 AS SoTiet 
-    FROM doantotnghiep 
-    WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
-), 
-gv_doan AS (
-    SELECT * FROM one_gv
-    UNION ALL
-    SELECT * FROM two_gv
-),
-final AS (
-    SELECT 
-        gv_doan.GiangVien AS HoTen,
-        SUM(gv_doan.SoTiet) AS SoTiet
-    FROM gv_doan
-    JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-    GROUP BY gv_doan.GiangVien
-),
-qc_data AS (
+        `WITH DoAnHopDongDuKien AS (
     SELECT
-        gv.HoTen,
-        SUM(qc.QuyChuan) AS TongSoTiet
-    FROM 
-        quychuan qc
-    JOIN 
-        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-    WHERE qc.MoiGiang = 1
-    GROUP BY gv.HoTen
-),
--- Mô phỏng FULL OUTER JOIN (Tính tổng số tiết quy chuẩn + đồ án)
-tong_so_tiet AS (SELECT 
-    COALESCE(f.HoTen, q.HoTen) AS HoTen,
-    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
-FROM 
-    final f
-LEFT JOIN 
-    qc_data q ON f.HoTen = q.HoTen
-UNION
-SELECT 
-    COALESCE(f.HoTen, q.HoTen) AS HoTen,
-    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
-FROM
-    qc_data q
-LEFT JOIN
-    final f ON q.HoTen = f.HoTen
-ORDER BY HoTen)
+        gv.*,
+        gv.HoTen AS GiangVien,
+        'Đồ án' AS HeDaoTao,
+        MIN(Combined.NgayBatDau) AS NgayBatDau,
+        MAX(Combined.NgayKetThuc) AS NgayKetThuc,
+        SUM(Combined.SoTiet) AS TongTiet,
+        dot,
+        0 AS KiHoc,
+        NamHoc
+    FROM (
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            GiangVien1 AS GiangVien,
+            Dot,
+            NamHoc,
+            CASE 
+                WHEN GiangVien2 = 'không' THEN 25
+                ELSE 15
+            END AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien1 IS NOT NULL
+            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien1, '-', -1)) = 'Giảng viên mời')
+        UNION ALL
 
--- Query
-SELECT
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            GiangVien2 AS GiangVien,
+            Dot,
+            NamHoc,
+            10 AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien2 IS NOT NULL 
+            AND GiangVien2 != 'không'
+            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', -1)) = 'Giảng viên mời')
+    ) AS Combined
+    JOIN 
+        gvmoi gv ON Combined.GiangVien = gv.HoTen
+    GROUP BY 
+        gv.HoTen
+    ), 
+    
+   DaiHocHopDongDuKien AS (
+    SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        qc.KiHoc,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -546,16 +526,16 @@ SELECT
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-        tong_so_tiet.TongTiet AS TongSoTiet
-
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-    JOIN
-        tong_so_tiet ON SUBSTRING_INDEX(tong_so_tiet.HoTen, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
+        qc.MoiGiang = 1
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -571,88 +551,222 @@ SELECT
         gv.DienThoai,
         gv.STK,
         gv.NganHang,
-        gv.MaPhongBan`,
-        [namHoc, dot, ki, HeDaoTao]
+        gv.MaPhongBan,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    ),
+   SauDaiHocHopDongDuKien AS (
+    SELECT
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(qc.QuyChuan/3) AS SoTiet,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+    WHERE
+        qc.GiaoVienGiangDay LIKE '%,%' AND qc.HeDaoTao NOT LIKE '%Đại học%'
+    GROUP BY
+        gv.HoTen,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    ),
+tableALL AS (SELECT
+    Dot,
+    KiHoc,
+    NamHoc,
+    'DoAn' AS LoaiHopDong,
+    GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    DoAnHopDongDuKien
+UNION ALL
+SELECT 
+    Dot,
+    KiHoc,
+    NamHoc,
+    'DaiHoc' AS LoaiHopDong,
+    HoTen AS GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    SoTiet AS TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    DaiHocHopDongDuKien
+UNION ALL
+SELECT 
+    Dot,
+    KiHoc,
+    NamHoc,
+    'SauDaiHoc' AS LoaiHopDong,
+    HoTen AS GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    SoTiet AS TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    SauDaiHocHopDongDuKien),
+TongSoTietGV AS (
+    SELECT 
+        GiangVien, 
+        SUM(TongTiet) AS TongSoTiet
+    FROM 
+        tableALL
+    GROUP BY 
+        GiangVien
+)
+SELECT 
+    ta.*,
+    tsgv.TongSoTiet
+FROM 
+    tableALL ta
+LEFT JOIN 
+    TongSoTietGV tsgv 
+ON 
+    ta.GiangVien = tsgv.GiangVien
+Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND HeDaoTao = ?
+ORDER BY 
+    tsgv.TongSoTiet DESC;
+`,
+        [dot, ki, namHoc, HeDaoTao]
       );
     } else {
       [rows] = await connection.execute(
-        `WITH gv1 AS (
-    SELECT 
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-        15 AS SoTiet
-    FROM doantotnghiep
-    WHERE GiangVien1 IS NOT NULL
-        AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != '' AND GiangVien1 NOT LIKE '%Cơ hữu%'
-),
-gv2 AS (
-    SELECT 
-        SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
-        10 AS SoTiet
-    FROM doantotnghiep
-    WHERE GiangVien2 IS NOT NULL
-        AND GiangVien2 != 'không' 
-        AND GiangVien2 != ''
-        AND GiangVien2 NOT LIKE '%Cơ hữu%'
-),
-two_gv AS (
-    SELECT * FROM gv1 
-    UNION ALL
-    SELECT * FROM gv2
-),
-one_gv AS (
-    SELECT         
-        SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-        25 AS SoTiet 
-    FROM doantotnghiep 
-    WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
-), 
-gv_doan AS (
-    SELECT * FROM one_gv
-    UNION ALL
-    SELECT * FROM two_gv
-),
-final AS (
-    SELECT 
-        gv_doan.GiangVien AS HoTen,
-        SUM(gv_doan.SoTiet) AS SoTiet
-    FROM gv_doan
-    JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-    GROUP BY gv_doan.GiangVien
-),
-qc_data AS (
+        `WITH DoAnHopDongDuKien AS (
     SELECT
-        gv.HoTen,
-        SUM(qc.QuyChuan) AS TongSoTiet
-    FROM 
-        quychuan qc
-    JOIN 
-        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-    WHERE qc.MoiGiang = 1
-    GROUP BY gv.HoTen
-),
--- Mô phỏng FULL OUTER JOIN (Tính tổng số tiết quy chuẩn + đồ án)
-tong_so_tiet AS (SELECT 
-    COALESCE(f.HoTen, q.HoTen) AS HoTen,
-    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
-FROM 
-    final f
-LEFT JOIN 
-    qc_data q ON f.HoTen = q.HoTen
-UNION
-SELECT 
-    COALESCE(f.HoTen, q.HoTen) AS HoTen,
-    COALESCE(f.SoTiet, 0) + COALESCE(q.TongSoTiet, 0) AS TongTiet
-FROM
-    qc_data q
-LEFT JOIN
-    final f ON q.HoTen = f.HoTen
-ORDER BY HoTen)
+        gv.*,
+        gv.HoTen AS GiangVien,
+        'Đồ án' AS HeDaoTao,
+        MIN(Combined.NgayBatDau) AS NgayBatDau,
+        MAX(Combined.NgayKetThuc) AS NgayKetThuc,
+        SUM(Combined.SoTiet) AS TongTiet,
+        dot,
+        0 AS KiHoc,
+        NamHoc
+    FROM (
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            GiangVien1 AS GiangVien,
+            Dot,
+            NamHoc,
+            CASE 
+                WHEN GiangVien2 = 'không' THEN 25
+                ELSE 15
+            END AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien1 IS NOT NULL
+            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien1, '-', -1)) = 'Giảng viên mời')
+            AND MaPhongBan = ?
+        UNION ALL
 
--- Query
-SELECT
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            GiangVien2 AS GiangVien,
+            Dot,
+            NamHoc,
+            10 AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien2 IS NOT NULL 
+            AND GiangVien2 != 'không'
+            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', -1)) = 'Giảng viên mời')
+            AND MaPhongBan = ?
+    ) AS Combined
+    JOIN 
+        gvmoi gv ON Combined.GiangVien = gv.HoTen
+    GROUP BY 
+        gv.HoTen
+    ), 
+    
+   DaiHocHopDongDuKien AS (
+    SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        qc.KiHoc,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -668,19 +782,18 @@ SELECT
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-        tong_so_tiet.TongTiet AS TongSoTiet
-
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-    JOIN
-        tong_so_tiet ON SUBSTRING_INDEX(tong_so_tiet.HoTen, ' - ', 1) = gv.HoTen
     WHERE
-        namhoc = ? AND dot = ? AND KiHoc = ? AND HeDaoTao = ? AND qc.MoiGiang = 1
+        qc.MoiGiang = 1 AND Khoa = ?
     GROUP BY
         gv.HoTen,
-        qc.KiHoc,
         gv.GioiTinh,
         gv.NgaySinh,
         gv.CCCD,
@@ -693,10 +806,169 @@ SELECT
         gv.DienThoai,
         gv.STK,
         gv.NganHang,
-        gv.MaPhongBan`,
-        [namHoc, dot, ki, khoa, HeDaoTao]
+        gv.MaPhongBan,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    ),
+   SauDaiHocHopDongDuKien AS (
+    SELECT
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(qc.QuyChuan/3) AS SoTiet,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+    WHERE
+        qc.GiaoVienGiangDay LIKE '%,%' AND qc.HeDaoTao NOT LIKE '%Đại học%'
+        AND Khoa = ?
+    GROUP BY
+        gv.HoTen,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        qc.HeDaoTao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot
+    ),
+tableALL AS (SELECT 
+	 Dot,
+	 KiHoc,
+	 NamHoc,
+    'DoAn' AS LoaiHopDong,
+    GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    DoAnHopDongDuKien
+UNION ALL
+SELECT 
+	 dot,
+	 KiHoc,
+	 namhoc,
+    'DaiHoc' AS LoaiHopDong,
+    HoTen AS GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    SoTiet AS TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    DaiHocHopDongDuKien
+UNION ALL
+SELECT 
+	 dot,
+	 KiHoc,
+	 namhoc,
+    'SauDaiHoc' AS LoaiHopDong,
+    HoTen AS GiangVien,
+    HeDaoTao,
+    NgayBatDau,
+    NgayKetThuc,
+    SoTiet AS TongTiet,
+    GioiTinh,
+    HoTen,
+    NgaySinh,
+    CCCD,
+    NoiCapCCCD,
+    Email,
+    MaSoThue,
+    HocVi,
+    ChucVu,
+    HSL,
+    DienThoai,
+    STK,
+    NganHang,
+    MaPhongBan
+FROM 
+    SauDaiHocHopDongDuKien),
+  TongSoTietGV AS (
+      SELECT 
+          GiangVien, 
+          SUM(TongTiet) AS TongSoTiet
+      FROM 
+          tableALL
+      GROUP BY 
+          GiangVien
+  )
+  SELECT 
+      ta.*,
+      tsgv.TongSoTiet
+  FROM 
+      tableALL ta
+  LEFT JOIN 
+      TongSoTietGV tsgv 
+  ON 
+      ta.GiangVien = tsgv.GiangVien
+  Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND HeDaoTao = ? 
+  ORDER BY 
+      tsgv.TongSoTiet DESC;
+`,
+        [khoa, khoa, khoa, khoa, dot, ki, namHoc, HeDaoTao]
       );
     }
+
+    console.log("rows = ", rows);
 
     res.json(rows);
   } catch (error) {
