@@ -1090,6 +1090,33 @@ const AdminController = {
       if (connection) connection.release();
     }
   },
+
+  checkExistence: async (req, res) => {
+    const { HeDaoTao, HocVi } = req.body;
+    let connection;
+
+    try {
+        connection = await createPoolConnection();
+        const query = `
+            SELECT COUNT(*) as count FROM tienluong 
+            WHERE HeDaoTao = ? AND HocVi = ?
+        `;
+        const [result] = await connection.execute(query, [HeDaoTao, HocVi]);
+
+        if (result[0].count > 0) {
+            return res.status(409).json({ 
+                message: `Hệ Đào Tạo và Học Vị đã chọn: ${HeDaoTao} và ${HocVi} đã tồn tại.` 
+            });
+        }
+
+        res.status(200).json({ message: "Kết hợp chưa tồn tại." });
+    } catch (error) {
+        console.error("Lỗi khi kiểm tra sự tồn tại:", error);
+        res.status(500).json({ message: "Đã xảy ra lỗi." });
+    } finally {
+        if (connection) connection.release();
+    }
+  },
 };
 
 module.exports = AdminController; // Export the entire controller

@@ -7,7 +7,8 @@ const { getBoMon, showThemNhanVien, showThemPhongBan, showThemTaiKhoan, themPhon
         updateMe,
         getKyTuBD,deleteKyTuBD, postKyTuBD,updateKyTuBD,
         getTienLuong,postTienLuong,updateTienLuong,deleteTienLuong,
-        suggestPb
+        suggestPb,
+        checkExistence
         } = require('../controllers/adminController');
 const { getaccountList, getnhanvienList, getdepartmentList, getMaPhongBanList, getUpdatePhongBan, getupdateBoMon,
         getchangePassword, updatePassword, postNamHoc, deleteNamHoc, getNamHocList,
@@ -104,6 +105,7 @@ router.get('/tienluong', getTienLuong);
 router.post('/tienluong', postTienLuong);
 router.delete('/tienluong/:STT', deleteTienLuong);
 router.put('/tienluong/:STT', updateTienLuong); 
+router.post('/checkExistence', checkExistence);
 
 //Thêm thông báo 
 router.get('/changeMessage/:MaPhongBan',
@@ -114,5 +116,6 @@ router.post('/changeMessage/:MaPhongBan', addMessage);
 router.post('/updateMessage', updateMessage);
 router.get('/getMessage/:MaPhongBan', getshowMessage);
 router.post('/deleteMessage', deleteMessage);
+
 
 module.exports = router;

@@ -140,37 +140,6 @@
 
   <script>
 
-    document.getElementById('addButton').addEventListener('click', function() {
-      const heDaoTao = document.getElementById('HeDaoTao').value;
-      const hocVi = document.getElementById('HocVi').value;
-      const soTien = document.getElementById('SoTien').value;
-
-      const data = {
-        HeDaoTao: heDaoTao,
-        HocVi: hocVi,
-        SoTien: soTien
-      };
-
-      fetch('/tienluong', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-      .then(response => {
-        if (response.ok) {
-          alert("Thêm mới thành công!");
-          location.reload();
-        } else {
-          alert("Có lỗi xảy ra khi thêm mới.");
-        }
-      })
-      .catch(error => {
-        console.error("Lỗi:", error);
-        alert("Có lỗi xảy ra: " + error.message);
-      });
-    });
 
     $(document).ready(function() {
         let originalValues = {};
@@ -278,6 +247,54 @@
                 </button>
             `);
         });
+
+        $('#addButton').click(function(event) {
+            event.preventDefault(); // Ngăn chặn hành động mặc định của nút
+
+            const heDaoTao = $('#HeDaoTao').val();
+            const hocVi = $('#HocVi').val();
+            const soTien = $('#SoTien').val();
+
+            // Kiểm tra sự tồn tại
+            $.ajax({
+                url: '/checkExistence',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi }),
+                success: function(response) {
+                    // Nếu không tồn tại, tiếp tục thêm mới
+                    addNewEntry(heDaoTao, hocVi, soTien);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 409) {
+                        alert(xhr.responseJSON.message); // Hiển thị thông báo đã tồn tại
+                    } else {
+                        alert('Có lỗi xảy ra khi kiểm tra sự tồn tại.');
+                    }
+                }
+            });
+        });
+
+        function addNewEntry(heDaoTao, hocVi, soTien) {
+          const VND = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          });
+            // Logic để thêm mới vào cơ sở dữ liệu
+            $.ajax({
+                url: '/tienluong',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi, SoTien: VND.format(soTien) }),
+                success: function(response) {
+                    alert('Thêm mới thành công!');
+                    location.reload(); // Tải lại trang để cập nhật dữ liệu
+                },
+                error: function(error) {
+                    alert('Có lỗi xảy ra khi thêm mới.');
+                }
+            });
+        }
     });
 
     function deleteTienLuong(button, STT) {
