@@ -209,7 +209,8 @@
                     // Cập nhật giao diện
                     row.find('.HeDaoTao-cell').text(updatedData.HeDaoTao);
                     row.find('.HocVi-cell').text(updatedData.HocVi);
-                    row.find('.SoTien-cell').text(updatedData.SoTien);
+                    // Định dạng lại số tiền
+                    row.find('.SoTien-cell').text(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(updatedData.SoTien));
 
                     // Khôi phục nút Edit
                     const actionCell = row.find('td:last-child');
