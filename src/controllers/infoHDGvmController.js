@@ -70,6 +70,11 @@ const exportHDGvmToExcel = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
+ // Truy vấn bảng tienluong để lấy mức tiền
+ const tienLuongQuery = `SELECT HocVi, HeDaoTao, SoTien FROM tienluong`;
+ const [tienLuongList] = await connection.execute(tienLuongQuery);
+
+
     const { dot, ki, namHoc, khoa } = req.query;
 
     if (!dot || !ki || !namHoc) {
