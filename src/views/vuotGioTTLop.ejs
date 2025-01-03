@@ -664,6 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       const data = await response.json(); // Lấy dữ liệu từ server
       if (data.success) {
+        console.log(data)
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24'];
 

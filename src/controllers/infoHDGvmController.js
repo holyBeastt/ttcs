@@ -70,6 +70,28 @@ const exportHDGvmToExcel = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
+// Lấy danh sách mức tiền từ bảng tienluong
+const tienLuongQuery = `
+SELECT 
+  HeDaoTao, 
+  HocVi, 
+  SoTien 
+FROM 
+  tienluong
+`;
+const [tienLuongList] = await connection.execute(tienLuongQuery);
+
+// Lấy danh sách gvmoi
+const gvmoiQuery = `
+  SELECT 
+    HoTen, 
+    HeDaoTao, 
+    HocVi 
+  FROM 
+    hopdonggvmoi
+`;
+const [gvmoiList] = await connection.execute(gvmoiQuery);
+
     const { dot, ki, namHoc, khoa } = req.query;
 
     if (!dot || !ki || !namHoc) {
@@ -192,12 +214,22 @@ const exportHDGvmToExcel = async (req, res) => {
       { header: "Ngày Nghiệm Thu", key: "NgayNghiemThu", width: 15 }, // Thêm cột Ngày Nghiệm Thu
     ];
 
+
+    function tinhSoTien(gvmoi, soTiet) {
+      const tienLuong = tienLuongList.find((tl) => tl.HeDaoTao === gvmoi.HeDaoTao && tl.HocVi === gvmoi.HocVi);
+      if (tienLuong) {
+        return soTiet * tienLuong.SoTien;
+      } else {
+        return 0;
+      }
+    }
     // Thêm dữ liệu vào bảng và tính toán các cột mới
     rows.forEach((row, index) => {
-      const soTien = row.SoTiet * 100000; // Số Tiền = Số Tiết * 100000
+      const soTiet = row.SoTiet;
+      const soTien = tinhSoTien(row, soTiet); // Tính toán soTien
       const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
       const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-      // Sửa lại ngày
+      // ...
       // Sửa lại ngày bắt đầu
       const utcBatDau = new Date(row.NgayBatDau);
       row.NgayBatDau = utcBatDau.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
@@ -215,7 +247,7 @@ const exportHDGvmToExcel = async (req, res) => {
       const thoiGianThucHien = `${utcBatDau.toLocaleDateString(
         "vi-VN"
       )} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
-
+    
       // het
       worksheet.addRow({
         stt: index + 1, // Thêm số thứ tự

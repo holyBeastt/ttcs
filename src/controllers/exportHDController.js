@@ -266,7 +266,7 @@ const exportMultipleContracts = async (req, res) => {
   FROM
     hopdonggvmoi hd
   JOIN
-    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
+    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
   WHERE
     hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HeDaoTao = ?
   GROUP BY
@@ -354,7 +354,7 @@ const exportMultipleContracts = async (req, res) => {
     FROM
       hopdonggvmoi hd
     JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
+      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
     WHERE
               hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.HeDaoTao = ?
     GROUP BY
@@ -394,7 +394,7 @@ const exportMultipleContracts = async (req, res) => {
       );
       
       if (!tienLuong) {
-        return res.status(404).send("Không tìm thấy mức tiền phù hợp");
+        return res.status(404).send("<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>");
       }
       
       // Tính toán số tiền
@@ -440,19 +440,19 @@ const exportMultipleContracts = async (req, res) => {
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
       switch (loaiHopDong) {
-        case "Hệ học phí":
+        case "Đại học(Đóng học phí)":
           templateFileName = "HopDongHP.docx";
           break;
-        case "Mật mã":
+        case "Đại học(Mật mã)":
           templateFileName = "HopDongMM.docx";
           break;
         case "Đồ án":
           templateFileName = "HopDongDA.docx";
           break;
-          case "Nghiên cứu sinh":
+          case "Nghiên cứu sinh(Đóng học phí)":
             templateFileName = "HopDongHP.docx";
             break;
-          case "Cao học":
+          case "Cao học(Đóng học phí)":
               templateFileName = "HopDongHP.docx";
               break;
         default:
