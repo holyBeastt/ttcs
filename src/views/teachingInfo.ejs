@@ -1014,7 +1014,6 @@
       function showSuggestions(input, moiGiang, id) {
         const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
         const bangDuLieu = globalData;
-        console.log("ID trong db của lớp này : ", id);
 
         const rawValue = input.value.trim(); // Lấy toàn bộ giá trị trong ô input
         const value = rawValue.split(',').pop().trim().toLowerCase(); // Lấy phần sau dấu phẩy (tên cuối cùng)
