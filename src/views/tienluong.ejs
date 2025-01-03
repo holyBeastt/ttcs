@@ -158,19 +158,19 @@
             // Chuyển text thành combobox cho HeDaoTao
             row.find('.HeDaoTao-cell').html(`
                 <select class="form-control">
-                    <option value="Đại học" ${originalValues[STT].HeDaoTao === 'Đại học (đóng học phí)' ? 'selected' : ''}>Đại học (đóng học phí)</option>
-                    <option value="Đại học (mật mã)" ${originalValues[STT].HeDaoTao === 'Đại học (mật mã)' ? 'selected' : ''}>Đại học (mật mã)</option>
-                    <option value="Cao học" ${originalValues[STT].HeDaoTao === 'Cao học' ? 'selected' : ''}>Cao học</option>
-                    <option value="Nghiên cứu sinh" ${originalValues[STT].HeDaoTao === 'Nghiên cứu sinh' ? 'selected' : ''}>Nghiên cứu sinh</option>
+                    <option value="Đại học (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Đại học (Đóng học phí)' ? 'selected' : ''}>Đại học (Đóng học phí)</option>
+                    <option value="Đại học (Mật mã)" ${originalValues[STT].HeDaoTao === 'Đại học (Mật mã)' ? 'selected' : ''}>Đại học (Mật mã)</option>
+                    <option value="Cao học (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Cao học (Đóng học phí)' ? 'selected' : ''}>Cao học (Đóng học phí)</option>
+                    <option value="Nghiên cứu sinh (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Nghiên cứu sinh (Đóng học phí)' ? 'selected' : ''}>Nghiên cứu sinh (Đóng học phí)</option>
                 </select>
             `);
 
             // Chuyển text thành combobox cho HocVi
             row.find('.HocVi-cell').html(`
                 <select class="form-control">
-                    <option value="Thạc Sĩ" ${originalValues[STT].HocVi === 'Thạc Sĩ' ? 'selected' : ''}>Thạc Sĩ</option>
-                    <option value="Tiến Sĩ" ${originalValues[STT].HocVi === 'Tiến Sĩ' ? 'selected' : ''}>Tiến Sĩ</option>
-                    <option value="Giáo Sư" ${originalValues[STT].HocVi === 'Giáo Sư' ? 'selected' : ''}>Giáo Sư</option>
+                    <option value="Thạc sĩ" ${originalValues[STT].HocVi === 'Thạc sĩ' ? 'selected' : ''}>Thạc sĩ</option>
+                    <option value="Tiến sĩ" ${originalValues[STT].HocVi === 'Tiến sĩ' ? 'selected' : ''}>Tiến sĩ</option>
+                    <option value="Giáo sư" ${originalValues[STT].HocVi === 'Giáo sư' ? 'selected' : ''}>Giáo sư</option>
                 </select>
             `);
 
