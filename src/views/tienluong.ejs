@@ -123,7 +123,7 @@
                 <td><%= i + 1 %></td>
                 <td class="editable HeDaoTao-cell"><%= tienluong[i].HeDaoTao %></td>
                 <td class="editable HocVi-cell"><%= tienluong[i].HocVi %></td>
-                <td class="editable SoTien-cell"><%= tienluong[i].SoTien %></td>
+                <td class="editable SoTien-cell"><%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(tienluong[i].SoTien) %></td>
                 <td class="d-flex justify-content-center">
                   <button class="bi bi-pencil action-button edit-btn"></button>
                   <button class="bi bi-trash3 action-button me-2" 
@@ -276,16 +276,12 @@
         });
 
         function addNewEntry(heDaoTao, hocVi, soTien) {
-          const VND = new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-          });
             // Logic để thêm mới vào cơ sở dữ liệu
             $.ajax({
                 url: '/tienluong',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi, SoTien: VND.format(soTien) }),
+                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi, SoTien: soTien }),
                 success: function(response) {
                     alert('Thêm mới thành công!');
                     location.reload(); // Tải lại trang để cập nhật dữ liệu
