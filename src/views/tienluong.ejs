@@ -85,7 +85,7 @@
           <option value="Đại học (Đóng học phí)" selected>Đại học (Đóng học phí)</option>
           <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
           <option value="Cao học (Đóng học phí)">Cao học (Đóng học phí)</option>
-          <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh</option>
+          <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh (Đóng học phí)</option>
         </select>
       </div>
       <div class="col-md-4" id="hocViContainer">
@@ -144,7 +144,8 @@
     $(document).ready(function() {
         let originalValues = {};
 
-        $('.edit-btn').click(function() {
+        // Gán sự kiện cho nút Edit
+        $(document).on('click', '.edit-btn', function() {
             const row = $(this).closest('tr');
             const STT = row.data('id');
 
@@ -176,7 +177,7 @@
 
             // Giữ nguyên input cho SoTien
             row.find('.SoTien-cell').html(`
-                <input type="number" class="form-control" value="${originalValues[STT].SoTien}">
+                <input type="number" class="form-control" value="${parseFloat(originalValues[STT].SoTien.replace(/[^0-9-]+/g,""))}">
             `);
 
             // Thêm nút Save và Cancel vào cell cuối
