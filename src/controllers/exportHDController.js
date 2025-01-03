@@ -228,6 +228,10 @@ const exportMultipleContracts = async (req, res) => {
     }
 
     connection = await createPoolConnection();
+  // Truy vấn bảng tienluong để lấy mức tiền
+  const tienLuongQuery = `SELECT HocVi, HeDaoTao, SoTien FROM tienluong`;
+  const [tienLuongList] = await connection.execute(tienLuongQuery);
+
 
     let query = `SELECT
     hd.id_Gvm,
@@ -385,16 +389,16 @@ const exportMultipleContracts = async (req, res) => {
     for (const teacher of teachers) {
       const soTiet = teacher.SoTiet || 0;
 
-      if (teacher.HocVi === "Tiến sĩ") {
-        mucTien = 120000; // Mức tiền cho tiến sĩ
-      } else if (teacher.HocVi === "Thạc sĩ") {
-        mucTien = 60000; // Mức tiền cho thạc sĩ
-      } else if (teacher.HocVi === "Giáo sư") {
-        mucTien = 120000; // Mức tiền cho giáo sư
-      } else {
-        mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
+      const tienLuong = tienLuongList.find(
+        (item) => item.HocVi === teacher.HocVi && item.HeDaoTao === loaiHopDong
+      );
+      
+      if (!tienLuong) {
+        return res.status(404).send("Không tìm thấy mức tiền phù hợp");
       }
-      const tienText = soTiet * 100000;
+      
+      // Tính toán số tiền
+      const tienText = tienLuong.SoTien * soTiet;
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
@@ -402,10 +406,7 @@ const exportMultipleContracts = async (req, res) => {
         teacher.NgayKetThuc
       );
 
-      const tienText1 = soTiet * mucTien; // Tính tổng tiền
-      const tienThueText1 = Math.round(tienText1 * 0.1);
-      const tienThucNhanText1 = tienText1 - tienThueText1;
-
+   
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
@@ -433,12 +434,7 @@ const exportMultipleContracts = async (req, res) => {
         Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
         Năm_học: teacher.NamHoc, // Thêm trường NamHocs
         Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
-        Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
-        Tiền_text1: tienText1.toLocaleString("vi-VN"),
-        Bằng_chữ_số_tiền1: numberToWords(tienText1),
-        Tiền_thuế_Text1: tienThueText1.toLocaleString("vi-VN"),
-        Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
-        Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
+        Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
       };
       // Chọn template dựa trên loại hợp đồng
@@ -453,6 +449,12 @@ const exportMultipleContracts = async (req, res) => {
         case "Đồ án":
           templateFileName = "HopDongDA.docx";
           break;
+          case "Nghiên cứu sinh":
+            templateFileName = "HopDongHP.docx";
+            break;
+          case "Cao học":
+              templateFileName = "HopDongHP.docx";
+              break;
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
       }
