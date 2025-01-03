@@ -897,12 +897,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-      item["Số tiết lên lớp giờ HC"] ||
-      null,
+        item["Số tiết lên lớp giờ HC"] ||
+        null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      null,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -2260,66 +2260,85 @@ const insertGiangDay = async (
   }
 };
 
-// data các lớp 2 tên sau khi tách thành 2 lớp, gộp với bảng nhân viên
-const joinData = async (dataArray) => {
+// gộp data bảng quy chuẩn các lớp 2 tên với bảng nhân viên
+const joinData = (dataArray, nhanvienList, gvmList) => {
   // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
   const result = [];
 
-  try {
-    // Truy vấn danh sách giảng viên từ bảng nhanvien
-    const [nhanvienList] = await pool.query('SELECT * FROM nhanvien');
-    // Truy vấn danh sách giảng viên từ bảng gvmoi
-    const [gvmoiList] = await pool.query('SELECT * FROM gvmoi');
+  // Duyệt qua mảng đối tượng dữ liệu
+  dataArray.forEach((item) => {
+    // Tách tên giảng viên từ trường GiaoVienGiangDay, có thể có nhiều giảng viên
+    const giaoVienGiangDayArray = item.GiaoVienGiangDay.split(","); // Nếu có nhiều giảng viên
+    giaoVienGiangDayArray.forEach((gv) => {
+      // Lấy tên giảng viên, bỏ phần (1) hay (2)
 
-    console.log(nhanvienList);
+      // Nếu là giảng viên (1) thì là Giảng viên cơ hữu
+      if (gv.includes("(1)")) {
+        const tenGiangVien = gv.trim().split("(")[0].trim();
 
-    // Duyệt qua mảng đối tượng dữ liệu
-    for (const item of dataArray) {
-      // Giả sử GiaoVienGiangDay chứa chuỗi "Tên (1)" hoặc "Tên (2)"
-      const giaoVienGiangDay = item.GiaoVienGiangDay.trim();
-
-      // Lấy tên giảng viên và loại giảng viên (kiểu "(1)" hoặc "(2)")
-      const tenGiangVien = giaoVienGiangDay.split("(")[0].trim();
-      const teacherType = giaoVienGiangDay.includes("(1)") ? "(1)" : giaoVienGiangDay.includes("(2)") ? "(2)" : null;
-
-      // Tìm giảng viên trong danh sách nhanvienList hoặc gvmoiList tùy theo (1) hay (2)
-      let nhanVien;
-      if (teacherType === "(1)") {
-        nhanVien = nhanvienList.find(
-          (nv) => nv.TenNhanVien.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
+        // Tìm giảng viên trong danh sách nhanvienList
+        const nhanVien = nhanvienList.find(
+          (nv) =>
+            nv.TenNhanVien.toLowerCase().trim() ===
+            tenGiangVien.toLowerCase().trim()
         );
-      } else if (teacherType === "(2)") {
-        nhanVien = gvmoiList.find(
-          (nv) => nv.HoTen.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
+
+        if (nhanVien) {
+          // Tạo bản sao đối tượng gốc
+          const newItem = { ...item };
+
+          // Gộp tất cả thông tin từ nhanvien vào newItem
+          Object.keys(nhanVien).forEach((key) => {
+            if (!newItem.hasOwnProperty(key)) {
+              // Kiểm tra xem key đã có trong newItem chưa
+              newItem[key] = nhanVien[key]; // Gán giá trị từ nhanvien vào newItem
+            }
+          });
+
+          // Gộp thông tin từ nhanvienList vào newItem (tất cả key sẽ được gộp)
+          // newItem.GiaoVienGiangDay = `${tenGiangVien} (${
+          //   giaoVienGiangDayArray.indexOf(gv) + 1
+          // })`;
+          newItem.GiaoVienGiangDay = `${tenGiangVien}`;
+
+          // Thêm vào mảng kết quả
+          result.push(newItem);
+        }
+      } else {
+        const tenGiangVien = gv.trim().split("(")[0].trim();
+
+        // Tìm giảng viên trong danh sách nhanvienList
+        const gvmoi = gvmList.find(
+          (gvm) =>
+            gvm.HoTen.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
         );
+
+        if (gvmoi) {
+          // Tạo bản sao đối tượng gốc
+          const newItem = { ...item };
+
+          // Gộp tất cả thông tin từ gvmoi vào newItem
+          Object.keys(gvmoi).forEach((key) => {
+            if (!newItem.hasOwnProperty(key)) {
+              // Kiểm tra xem key đã có trong newItem chưa
+              newItem[key] = gvmoi[key]; // Gán giá trị từ gvmoi vào newItem
+            }
+          });
+
+          // Gộp thông tin từ nhanvienList vào newItem (tất cả key sẽ được gộp)
+          // newItem.GiaoVienGiangDay = `${tenGiangVien} (${
+          //   giaoVienGiangDayArray.indexOf(gv) + 1
+          // })`;
+          newItem.GiaoVienGiangDay = `${tenGiangVien}`;
+
+          // Thêm vào mảng kết quả
+          result.push(newItem);
+        }
       }
+    });
+  });
 
-      if (nhanVien) {
-        // Tạo bản sao đối tượng gốc
-        const newItem = { ...item };
-
-        // Gộp tất cả thông tin từ nhanvien vào newItem
-        Object.keys(nhanVien).forEach((key) => {
-          if (!newItem.hasOwnProperty(key)) {
-            // Kiểm tra xem key đã có trong newItem chưa
-            newItem[key] = nhanVien[key]; // Gán giá trị từ nhanvien vào newItem
-          }
-        });
-
-        // Gộp thông tin từ nhanvienList vào newItem (tất cả key sẽ được gộp)
-        newItem.GiaoVienGiangDay = `${tenGiangVien} ${teacherType}`;
-
-        // Thêm vào mảng kết quả
-        result.push(newItem);
-      }
-    }
-
-    // Trả về mảng kết quả
-    return result;
-  } catch (error) {
-    console.error("Lỗi truy vấn:", error);
-    throw new Error("Đã xảy ra lỗi trong quá trình xử lý dữ liệu.");
-  }
+  return result;
 };
 
 // tách tên giảng viên giảng dạy, đánh dấu 1, 2 kèm chia số tiết quy chuẩn
@@ -2344,9 +2363,9 @@ const splitTeachers = (data) => {
 
       // Điều chỉnh giá trị QC
       if (index === 0) {
-        newItem.QuyChuan = originalQC * 0.7; // Lớp có tên (1) nhận 70% của lớp gốc
+        newItem.QuyChuan = (originalQC * 2) / 3; // Lớp có tên (1) nhận 70% của lớp gốc
       } else if (index === 1) {
-        newItem.QuyChuan = originalQC * 0.3; // Lớp có tên (2) nhận 30% của lớp gốc
+        newItem.QuyChuan = originalQC / 3; // Lớp có tên (2) nhận 30% của lớp gốc
       } else {
         newItem.QuyChuan = originalQC; // Nếu có nhiều hơn 2 giảng viên, giữ nguyên QC cho các trường hợp còn lại
       }
@@ -2362,6 +2381,7 @@ const insertGiangDay2 = async (
   req,
   res,
   nvList,
+  gvmList,
   hocPhanList,
   daDuyetHetArray
 ) => {
@@ -2375,20 +2395,20 @@ const insertGiangDay2 = async (
     FROM quychuan qc
     JOIN nhanvien ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = nhanvien.TenNhanVien
     WHERE 
-    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0
+    qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0 
+    AND qc.GiaoVienGiangDay NOT LIKE '%,%'
   `;
 
   // lấy lớp có 2 tên giảng viên
   const query3 = `
-    SELECT *
-FROM quychuan 
-WHERE 
-  quychuan.DaLuu = 0 
-  AND quychuan.Dot = ?
-  AND quychuan.KiHoc = ? 
-  AND quychuan.NamHoc = ?
-  AND quychuan.MoiGiang = 0
-  AND quychuan.GiaoVienGiangDay LIKE '%,%'
+      SELECT *
+  FROM quychuan 
+  WHERE 
+    quychuan.DaLuu = 0 
+    AND quychuan.Dot = ?
+    AND quychuan.KiHoc = ? 
+    AND quychuan.NamHoc = ?
+    AND quychuan.GiaoVienGiangDay LIKE '%,%'
   `;
 
   const value = [dot, ki, namHoc];
@@ -2397,13 +2417,12 @@ WHERE
 
   // lấy các lớp 2 giảng viên
   const [dataGiangVienSauDaiHoc] = await pool.query(query3, value);
-
-  // tách 1 lớp thành 2 lớp mỗi lớp 1 giảng viên đưng têntên
-  const tachLop2Ten = splitTeachers(dataGiangVienSauDaiHoc);
-  const gopLopSauDaiHocVoiBangNhanVien = await joinData(tachLop2Ten);
-
-  // console.log(tachLop2Ten);
-  console.log("data gộp với bảng nhân viên : ", gopLopSauDaiHocVoiBangNhanVien);
+  const tachLopGiangVienSauDaiHoc = splitTeachers(dataGiangVienSauDaiHoc);
+  const gopLopSauDaiHocVoiBangNhanVien = joinData(
+    tachLopGiangVienSauDaiHoc,
+    nvList,
+    gvmList
+  );
 
   // gộp 2 mảng dữ liệu
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
@@ -2694,7 +2713,7 @@ const submitData2 = async (req, res) => {
       saveDataGvmDongHocPhi(req, res, daDuyetHetArray), // Hợp đồng hệ đóng học phí
       saveDataGvmMatMa(req, res, daDuyetHetArray), // Hợp đồng hệ mật mã
       saveHopDongGvmSauDaiHoc(req, res, daDuyetHetArray), // Hợp đồng sau đại học
-      insertGiangDay2(req, res, nvList, hocPhanList, daDuyetHetArray), // Lưu các lớp cơ hữu vào bảng giảng dạy
+      insertGiangDay2(req, res, nvList, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp cơ hữu vào bảng giảng dạy
       insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp mời giảng vào bảng giảng dạy
     ]);
 
