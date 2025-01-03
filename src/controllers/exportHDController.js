@@ -440,19 +440,19 @@ const exportMultipleContracts = async (req, res) => {
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
       switch (loaiHopDong) {
-        case "Đại học(Đóng học phí)":
+        case "Đại học (Đóng học phí)":
           templateFileName = "HopDongHP.docx";
           break;
-        case "Đại học(Mật mã)":
+        case "Đại học (Mật mã)":
           templateFileName = "HopDongMM.docx";
           break;
         case "Đồ án":
           templateFileName = "HopDongDA.docx";
           break;
-          case "Nghiên cứu sinh(Đóng học phí)":
+          case "Nghiên cứu sinh (Đóng học phí)":
             templateFileName = "HopDongHP.docx";
             break;
-          case "Cao học(Đóng học phí)":
+          case "Cao học (Đóng học phí)":
               templateFileName = "HopDongHP.docx";
               break;
         default:
