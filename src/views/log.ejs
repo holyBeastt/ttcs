@@ -14,23 +14,18 @@
 </head>
 
 <body>
-  <!-- Phần trên của navbar chứa logo và tiêu đề -->
-  <nav class="navbar-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <img src="/Logo-Hoc-Vien-Ky-Thuat-Mat-Ma-ACTVN.webp" alt="Logo" />
-        <div class="navbar-title">
-          <img src="/dongchu_banner.png" alt="banner" />
-        </div>
-      </a>
-    </div>
-  </nav>
+  <%- include('header') %>
 
-  <!-- Phần dưới của navbar chứa các mục nằm ngang -->
-  
-  <div style="text-align: left;">
-    <button type="return" class="btn m-3" onclick="window.history.back()">Quay Lại</button>
+  <!-- Bộ lọc theo thời gian -->
+  <div class="my-2">
+    <label for="startDate">Từ Ngày:</label>
+    <input type="date" id="startDate" class="mx-2">
+    <label for="endDate">Đến Ngày:</label>
+    <input type="date" id="endDate" class="mx-2">
+    <button id="filterButton" class="btn btn-primary" style="margin-top: 14px;">Lọc</button>
   </div>
+
+
   <table class="table table-bordered my-2" border="1" id="logTable">
     <thead>
         <tr>
@@ -51,14 +46,21 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    async function fetchLogData() {
+    async function fetchLogData(startDate, endDate) {
         try {
             const response = await fetch('/api/log'); // Gọi đến API
             const data = await response.json(); // Chuyển đổi dữ liệu thành JSON
 
             const tableBody = document.getElementById('logTableBody');
-            if (data.length > 0) {
-                data.forEach((item, index) => {
+            tableBody.innerHTML = ''; // Xóa nội dung bảng trước khi thêm dữ liệu mới
+
+            const filteredData = data.filter(item => {
+                const itemDate = new Date(item.ThoiGianThayDoi);
+                return (!startDate || itemDate >= new Date(startDate)) && (!endDate || itemDate <= new Date(endDate));
+            });
+
+            if (filteredData.length > 0) {
+                filteredData.forEach((item, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${item.MaLichSuNhap}</td>
@@ -78,7 +80,13 @@
         }
     }
 
+    document.getElementById('filterButton').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        fetchLogData(startDate, endDate); // Gọi hàm với các tham số ngày
+    });
+
     // Gọi hàm khi trang được tải
-    window.onload = fetchLogData; // Tự động gọi hàm fetchLogData khi trang tải
-</script>
+    window.onload = () => fetchLogData(); // Tự động gọi hàm fetchLogData khi trang tải
+  </script>
 </body>

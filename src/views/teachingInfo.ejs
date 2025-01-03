@@ -149,8 +149,7 @@
 
 <body>
   <!-- Phần header -->
-  <%- include('header') %>
-
+ <%- include('header') %>
   <!-- Phần nội dung -->
 
   <div class="container-fluid box m-4">
@@ -171,8 +170,6 @@
             <option value="">Năm học</option>
           </select>
           <button id="getData" class="btn text-nowrap mx-3" style="width: max-content;">Hiển thị</button>
-          <!-- <button id="infoGvm" class="button text-nowrap">Xem bảng cục bộ</button> -->
-          <!-- <button id="update-qc" onclick="updateLocalTable()" class="btn mx-3 luuTamThoi">Lưu</button> -->
           <button id="update-qc" onclick="submitData()" class="btn mx-3 luu">Cập nhật</button>
         </div>
 
@@ -401,7 +398,7 @@
         const importDoAn = document.getElementById('importDoAn');
         const suaHD = document.getElementById('suaHD');
 
-        if (isKhoa == 0 && role == 'Duyệt'){
+        if (isKhoa == 0 && role == 'Duyệt') {
           importDoAn.style.display = 'block';
           suaHD.style.display = 'block';
         }
@@ -1013,10 +1010,12 @@
       // Hàm hiển thị gợi ý đã được cập nhật
       function showSuggestions(input, moiGiang, id) {
         const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
-        const bangDuLieu = globalData;
+        const bangDuLieu = globalData; // Assuming globalData is available in the current scope
+        console.log("ID trong db của lớp này: ", id);
 
         const rawValue = input.value.trim(); // Lấy toàn bộ giá trị trong ô input
-        const value = rawValue.split(',').pop().trim().toLowerCase(); // Lấy phần sau dấu phẩy (tên cuối cùng)
+        const values = rawValue.split(',').map(val => val.trim()); // Tách các tên đã nhập
+        const value = values.pop().toLowerCase(); // Lấy giá trị cuối cùng (tên mới nhập)
         hideSuggestions(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý
 
         const suggestionsContainer = document.createElement('div');
@@ -1035,15 +1034,40 @@
         const nameGvm = JSON.parse(localStorage.getItem("nameGvm")) || [];
         const nameGv = JSON.parse(localStorage.getItem("nameGv")) || [];
 
-        if (moiGiang) {
-          suggestions = nameGvm.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
-        } else {
-          suggestions = nameGv.map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`);
+        // Kiểm tra id trong bangDuLieu
+        const currentObject = bangDuLieu.find(item => item.ID === id);
+        if (!currentObject) {
+          console.warn("Không tìm thấy đối tượng với ID này trong bangDuLieu.");
+          return;
         }
 
-        // Lọc gợi ý dựa trên phần cuối cùng của input
-        if (value) {
-          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+        const heDaoTao = currentObject.HeDaoTao;
+        const validHeDaoTao = ["Nghiên cứu sinh(Đóng học phí)", "Cao học(Đóng học phí)"];
+
+        // Kiểm tra điều kiện để gợi ý
+        if (values.length > 0 && !validHeDaoTao.includes(heDaoTao)) {
+          console.warn("Không thể gợi ý tên thứ 2 do heDaoTao không hợp lệ.");
+          suggestionsContainer.remove();
+          return;
+        }
+
+        // Gợi ý từ nameGvm nếu là tên thứ 2 và heDaoTao hợp lệ
+        // Gợi ý từ nameGvm nếu là tên thứ 2 và heDaoTao hợp lệ
+        if (values.length > 0 && validHeDaoTao.includes(heDaoTao)) {
+          suggestions = nameGvm
+            .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+            .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+        } else if (values.length === 0) {
+          // Nếu chưa có tên nào, lấy tất cả các giảng viên, phân biệt theo moiGiang
+          if (moiGiang) {
+            suggestions = nameGvm
+              .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+              .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+          } else {
+            suggestions = nameGv
+              .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
+              .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+          }
         }
 
         if (suggestions.length === 0) {
@@ -1059,17 +1083,10 @@
           suggestionItem.onclick = function () {
             const selectedName = name.split(" - ")[0];
 
-            // Lấy giá trị hiện tại của input
-            const currentValue = input.value.trim();
-
-            // Kiểm tra xem có dấu phẩy trong input hay không
-            if (currentValue.includes(',')) {
-              // Nếu có dấu phẩy, nối thêm tên mới
-              input.value = `${currentValue} ${selectedName}`;
-            } else {
-              // Nếu không có dấu phẩy, ghi đè tên mới
-              input.value = selectedName;
-            }
+            // Cập nhật giá trị của input
+            input.value = values.length > 0
+              ? `${values.join(', ')}, ${selectedName}`
+              : selectedName;
             console.log(input.value);
 
             const lecturerFound = boMonTheoGiangVien.find(lecturer => lecturer.HoTen === selectedName.trim());
@@ -1120,8 +1137,6 @@
         const existingSuggestions = document.querySelectorAll('.suggestions');
         existingSuggestions.forEach(suggestion => suggestion.remove());
       }
-
-
     });
 
     function calculateTotals() {

@@ -653,7 +653,7 @@ const tongHopDuLieuGiangVien = async () => {
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
-  const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
+  const dataGiangVien = await tongHopDuLieuGiangVien();
   // console.log(dataGiangVien);
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
@@ -695,15 +695,21 @@ const importTableQC = async (jsonData) => {
     const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
       processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
-    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
-    let HeDaoTao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+    // Hệ đào tạo mặc định là đại học mật mã ( else các trường hợp còn lại )
+    let HeDaoTao = "Đại học (Mật mã)";
 
-    for (const row of rows) {
-      const prefix = row.VietTat; // Lấy giá trị VietTat
-      // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
-      if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
-        HeDaoTao = row.giaTriSoSanh;
-      }
+    // Các trường hợp còn lại sẽ kiểm tra và gắn key tương ứng
+    // Điều kiện 1: Nếu Lop chứa "CHAT" thì là Cao học(Đóng học phí)
+    if (Lop.includes("CHAT")) {
+      HeDaoTao = "Cao học(Đóng học phí)";
+    }
+    // Điều kiện 2: Nếu Lop chứa "TSAT" thì là Nghiên cứu sinh(Đóng học phí)
+    else if (Lop.includes("TSAT")) {
+      HeDaoTao = "Nghiên cứu sinh(Đóng học phí)";
+    }
+    // Điều kiện 3: Nếu Lop có định dạng là A/B/D kèm số (ví dụ: A1, B1, A1B1, A1C1)
+    else if (/^(A|B|C|D)\d+([A-D]\d+)*$/.test(Lop)) {
+      HeDaoTao = "Đại học(Đóng học phí)";
     }
 
     allValues.push([
@@ -2393,7 +2399,7 @@ const insertGiangDay2 = async (
     AND qc.GiaoVienGiangDay NOT LIKE '%,%'
   `;
 
-  // lấy lớp có 2 tên giảng viênviên
+  // lấy lớp có 2 tên giảng viên
   const query3 = `
       SELECT *
   FROM quychuan 
@@ -2409,7 +2415,7 @@ const insertGiangDay2 = async (
   // join bình thường với lớp 1 giảng viên
   const [dataJoin] = await pool.query(query2, value);
 
-  // lấy các lớp 2 giảng viên, tách tên + chia số tiết QC, gộp dữ liệu với bảng nhân viên
+  // lấy các lớp 2 giảng viên
   const [dataGiangVienSauDaiHoc] = await pool.query(query3, value);
   const tachLopGiangVienSauDaiHoc = splitTeachers(dataGiangVienSauDaiHoc);
   const gopLopSauDaiHocVoiBangNhanVien = joinData(
