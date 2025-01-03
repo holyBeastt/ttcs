@@ -607,7 +607,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan/3) AS SoTiet,
+        SUM(qc.QuyChuan * 0.3) AS SoTiet,
         qc.HeDaoTao,
         qc.NamHoc,
         qc.KiHoc,
@@ -862,7 +862,7 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan/3) AS SoTiet,
+        SUM(qc.QuyChuan * 0.3) AS SoTiet,
         qc.HeDaoTao,
         qc.NamHoc,
         qc.KiHoc,
@@ -999,8 +999,6 @@ FROM
         [khoa, khoa, khoa, khoa, dot, ki, namHoc, HeDaoTao]
       );
     }
-
-    console.log("rows = ", rows);
 
     res.json(rows);
   } catch (error) {
