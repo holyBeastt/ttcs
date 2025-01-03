@@ -653,7 +653,7 @@ const tongHopDuLieuGiangVien = async () => {
 const importTableQC = async (jsonData) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
-  const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
+  const dataGiangVien = await tongHopDuLieuGiangVien();
   // console.log(dataGiangVien);
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
@@ -695,15 +695,21 @@ const importTableQC = async (jsonData) => {
     const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
       processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
-    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
-    let HeDaoTao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+    // Hệ đào tạo mặc định là đại học mật mã ( else các trường hợp còn lại )
+    let HeDaoTao = "Đại học (Mật mã)";
 
-    for (const row of rows) {
-      const prefix = row.VietTat; // Lấy giá trị VietTat
-      // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
-      if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
-        HeDaoTao = row.giaTriSoSanh;
-      }
+    // Các trường hợp còn lại sẽ kiểm tra và gắn key tương ứng
+    // Điều kiện 1: Nếu Lop chứa "CHAT" thì là Cao học(Đóng học phí)
+    if (Lop.includes("CHAT")) {
+      HeDaoTao = "Cao học(Đóng học phí)";
+    }
+    // Điều kiện 2: Nếu Lop chứa "TSAT" thì là Nghiên cứu sinh(Đóng học phí)
+    else if (Lop.includes("TSAT")) {
+      HeDaoTao = "Nghiên cứu sinh(Đóng học phí)";
+    }
+    // Điều kiện 3: Nếu Lop có định dạng là A/B/D kèm số (ví dụ: A1, B1, A1B1, A1C1)
+    else if (/^(A|B|C|D)\d+([A-D]\d+)*$/.test(Lop)) {
+      HeDaoTao = "Đại học(Đóng học phí)";
     }
 
     allValues.push([
@@ -891,12 +897,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
+      item["Số tiết lên lớp giờ HC"] ||
+      null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -2254,25 +2260,39 @@ const insertGiangDay = async (
   }
 };
 
-// gộp data bảng quy chuẩn các lớp 2 tên với bảng nhân viên
-const joinData = (dataArray, nhanvienList) => {
+// data các lớp 2 tên sau khi tách thành 2 lớp, gộp với bảng nhân viên
+const joinData = async (dataArray) => {
   // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
   const result = [];
 
-  // Duyệt qua mảng đối tượng dữ liệu
-  dataArray.forEach((item) => {
-    // Tách tên giảng viên từ trường GiaoVienGiangDay, có thể có nhiều giảng viên
-    const giaoVienGiangDayArray = item.GiaoVienGiangDay.split(","); // Nếu có nhiều giảng viên
-    giaoVienGiangDayArray.forEach((gv) => {
-      // Lấy tên giảng viên, bỏ phần (1) hay (2)
-      const tenGiangVien = gv.trim().split("(")[0].trim();
+  try {
+    // Truy vấn danh sách giảng viên từ bảng nhanvien
+    const [nhanvienList] = await pool.query('SELECT * FROM nhanvien');
+    // Truy vấn danh sách giảng viên từ bảng gvmoi
+    const [gvmoiList] = await pool.query('SELECT * FROM gvmoi');
 
-      // Tìm giảng viên trong danh sách nhanvienList
-      const nhanVien = nhanvienList.find(
-        (nv) =>
-          nv.TenNhanVien.toLowerCase().trim() ===
-          tenGiangVien.toLowerCase().trim()
-      );
+    console.log(nhanvienList);
+
+    // Duyệt qua mảng đối tượng dữ liệu
+    for (const item of dataArray) {
+      // Giả sử GiaoVienGiangDay chứa chuỗi "Tên (1)" hoặc "Tên (2)"
+      const giaoVienGiangDay = item.GiaoVienGiangDay.trim();
+
+      // Lấy tên giảng viên và loại giảng viên (kiểu "(1)" hoặc "(2)")
+      const tenGiangVien = giaoVienGiangDay.split("(")[0].trim();
+      const teacherType = giaoVienGiangDay.includes("(1)") ? "(1)" : giaoVienGiangDay.includes("(2)") ? "(2)" : null;
+
+      // Tìm giảng viên trong danh sách nhanvienList hoặc gvmoiList tùy theo (1) hay (2)
+      let nhanVien;
+      if (teacherType === "(1)") {
+        nhanVien = nhanvienList.find(
+          (nv) => nv.TenNhanVien.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
+        );
+      } else if (teacherType === "(2)") {
+        nhanVien = gvmoiList.find(
+          (nv) => nv.HoTen.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
+        );
+      }
 
       if (nhanVien) {
         // Tạo bản sao đối tượng gốc
@@ -2287,17 +2307,19 @@ const joinData = (dataArray, nhanvienList) => {
         });
 
         // Gộp thông tin từ nhanvienList vào newItem (tất cả key sẽ được gộp)
-        newItem.GiaoVienGiangDay = `${tenGiangVien} (${
-          giaoVienGiangDayArray.indexOf(gv) + 1
-        })`;
+        newItem.GiaoVienGiangDay = `${tenGiangVien} ${teacherType}`;
 
         // Thêm vào mảng kết quả
         result.push(newItem);
       }
-    });
-  });
+    }
 
-  return result;
+    // Trả về mảng kết quả
+    return result;
+  } catch (error) {
+    console.error("Lỗi truy vấn:", error);
+    throw new Error("Đã xảy ra lỗi trong quá trình xử lý dữ liệu.");
+  }
 };
 
 // tách tên giảng viên giảng dạy, đánh dấu 1, 2 kèm chia số tiết quy chuẩn
@@ -2356,7 +2378,7 @@ const insertGiangDay2 = async (
     qc.DaLuu = 0 AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 0
   `;
 
-  // lấy lớp có 2 tên giảng viênviên
+  // lấy lớp có 2 tên giảng viên
   const query3 = `
     SELECT *
 FROM quychuan 
@@ -2373,16 +2395,15 @@ WHERE
   // join bình thường với lớp 1 giảng viên
   const [dataJoin] = await pool.query(query2, value);
 
-  // lấy các lớp 2 giảng viên, tách tên + chia số tiết QC, gộp dữ liệu với bảng nhân viên
+  // lấy các lớp 2 giảng viên
   const [dataGiangVienSauDaiHoc] = await pool.query(query3, value);
-  const tachLopGiangVienSauDaiHoc = splitTeachers(dataGiangVienSauDaiHoc);
-  const gopLopSauDaiHocVoiBangNhanVien = joinData(
-    tachLopGiangVienSauDaiHoc,
-    nvList
-  );
 
-  console.log(dataJoin);
-  console.log(gopLopSauDaiHocVoiBangNhanVien);
+  // tách 1 lớp thành 2 lớp mỗi lớp 1 giảng viên đưng têntên
+  const tachLop2Ten = splitTeachers(dataGiangVienSauDaiHoc);
+  const gopLopSauDaiHocVoiBangNhanVien = await joinData(tachLop2Ten);
+
+  // console.log(tachLop2Ten);
+  console.log("data gộp với bảng nhân viên : ", gopLopSauDaiHocVoiBangNhanVien);
 
   // gộp 2 mảng dữ liệu
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
