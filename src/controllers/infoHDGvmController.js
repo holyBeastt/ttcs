@@ -81,16 +81,6 @@ FROM
 `;
 const [tienLuongList] = await connection.execute(tienLuongQuery);
 
-// Lấy danh sách gvmoi
-const gvmoiQuery = `
-  SELECT 
-    HoTen, 
-    HeDaoTao, 
-    HocVi 
-  FROM 
-    hopdonggvmoi
-`;
-const [gvmoiList] = await connection.execute(gvmoiQuery);
 
     const { dot, ki, namHoc, khoa } = req.query;
 
@@ -125,6 +115,7 @@ const [gvmoiList] = await connection.execute(gvmoiQuery);
       hd.NganHang,
       SUM(hd.SoTiet) AS SoTiet,
       hd.DiaChi,
+      hd.HeDaoTao,
       gv.NoiCongTac
     FROM
       hopdonggvmoi hd
@@ -156,7 +147,7 @@ const [gvmoiList] = await connection.execute(gvmoiQuery);
 
     if (rows.length === 0) {
       return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/infoHDGvm';</script>"
+        "<script>alert('Không tìm thấy giảng viêsn phù hợp điều kiện'); window.location.href='/infoHDGvm';</script>"
       );
     }
 
@@ -214,9 +205,8 @@ const [gvmoiList] = await connection.execute(gvmoiQuery);
       { header: "Ngày Nghiệm Thu", key: "NgayNghiemThu", width: 15 }, // Thêm cột Ngày Nghiệm Thu
     ];
 
-
-    function tinhSoTien(gvmoi, soTiet) {
-      const tienLuong = tienLuongList.find((tl) => tl.HeDaoTao === gvmoi.HeDaoTao && tl.HocVi === gvmoi.HocVi);
+    function tinhSoTien(row, soTiet) {
+      const tienLuong = tienLuongList.find((tl) => tl.HeDaoTao === row.HeDaoTao && tl.HocVi === row.HocVi);
       if (tienLuong) {
         return soTiet * tienLuong.SoTien;
       } else {
