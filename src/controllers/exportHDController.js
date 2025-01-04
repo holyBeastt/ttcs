@@ -450,10 +450,10 @@ const exportMultipleContracts = async (req, res) => {
           templateFileName = "HopDongDA.docx";
           break;
           case "Nghiên cứu sinh (Đóng học phí)":
-            templateFileName = "HopDongHP.docx";
+            templateFileName = "HopDongNCS.docx";
             break;
           case "Cao học (Đóng học phí)":
-              templateFileName = "HopDongHP.docx";
+              templateFileName = "HopDongCH.docx";
               break;
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
