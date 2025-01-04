@@ -2527,8 +2527,6 @@ const splitTeachers = (data) => {
     const secondQC = parseFloat((originalQC * 0.3).toFixed(2));
     const firstQC = originalQC - secondQC;
 
-    console.log("f = ", firstQC, secondQC);
-
     // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
     teachers.forEach((teacher, index) => {
       const newItem = { ...item }; // sao chép đối tượng gốc
