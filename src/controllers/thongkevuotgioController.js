@@ -48,9 +48,9 @@ const thongkevuotgioController = {
                 query = `
                     SELECT 
                         gd.Khoa AS Khoa,
-                        SUM(gd.QuyChuan) AS SoTietGiangDay,
+                        SUM(COALESCE(gd.QuyChuan, 0)) AS SoTietGiangDay,
                         COALESCE(gk.TotalSoTietKT, 0) AS SoTietKTGK,
-                        SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
+                        SUM(COALESCE(gd.QuyChuan, 0)) + COALESCE(gk.TotalSoTietKT, 0) AS TongSoTiet,
                         COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien
                     FROM 
                         giangday gd 
