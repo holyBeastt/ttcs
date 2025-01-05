@@ -158,31 +158,67 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     }
 
     let query = `
-      SELECT DISTINCT
-          SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) AS GiangVien, 
-          qc.TenLop AS Lop, 
-          qc.QuyChuan AS SoTiet, 
-          qc.LopHocPhan AS TenHocPhan, 
-          qc.KiHoc AS HocKy,
-          gv.HocVi, 
-          gv.HSL,
-          qc.NgayBatDau, 
-          qc.NgayKetThuc,
-          gv.DiaChi
-      FROM quychuan qc
-      JOIN gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-      WHERE qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.DaLuu = 1 AND qc.MoiGiang = 1
+    WITH 
+    phuLucSauDH AS (
+        SELECT DISTINCT
+            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
+            qc.TenLop AS Lop, 
+            ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
+            qc.LopHocPhan AS TenHocPhan, 
+            qc.KiHoc AS HocKy,
+            gv.HocVi, 
+            gv.HSL,
+            qc.NgayBatDau, 
+            qc.NgayKetThuc,
+            gv.DiaChi,
+            qc.Dot,
+            qc.KiHoc,
+            qc.NamHoc,
+            qc.Khoa
+        FROM quychuan qc
+        JOIN gvmoi gv 
+            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
+        WHERE qc.GiaoVienGiangDay LIKE '%,%'
+    ),
+    phuLucDH AS (
+        SELECT DISTINCT
+            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
+            qc.TenLop AS Lop, 
+            qc.QuyChuan AS SoTiet, 
+            qc.LopHocPhan AS TenHocPhan, 
+            qc.KiHoc AS HocKy,
+            gv.HocVi, 
+            gv.HSL,
+            qc.NgayBatDau, 
+            qc.NgayKetThuc,
+            gv.DiaChi,
+            qc.Dot,
+            qc.KiHoc,
+            qc.NamHoc,
+            qc.Khoa
+        FROM quychuan qc
+        JOIN gvmoi gv 
+            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+        WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
+    ),
+    table_ALL AS (
+        SELECT * FROM phuLucSauDH
+        UNION
+        SELECT * FROM phuLucDH
+    )
+
+    SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? 
     `;
 
     let params = [dot, ki, namHoc];
 
     if (khoa && khoa !== "ALL") {
-      query += ` AND qc.Khoa = ?`;
+      query += ` AND Khoa = ?`;
       params.push(khoa);
     }
 
     if (teacherName) {
-      query += ` AND gv.HoTen LIKE ?`;
+      query += ` AND GiangVien LIKE ?`;
       params.push(`%${teacherName}%`);
     }
 
