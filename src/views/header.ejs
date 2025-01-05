@@ -364,46 +364,28 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+    const isKhoa = localStorage.getItem("isKhoa");
+
+    // Thêm sự kiện cho phần tử có id="ThongTinGD"
     const ThongTinGD = document.getElementById("ThongTinGD");
-
-    ThongTinGD.addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-      const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-      if (isKhoa == 0) {
-        // Nếu là đào tạo hoặc tài chính
-        window.location.href = "/info2";
-      } else {
-        window.location.href = "/info";
-      }
-    });
-
-    // Thêm sự kiện click cho phần tử có id="Home"
-
+    // Thêm sự kiện cho phần tử có id="Home"
     const Home = document.getElementById("Home");
 
-    Home.addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-      const isKhoa = localStorage.getItem("isKhoa");
-
-      if (isKhoa == 0) {
-        // Nếu là đào tạo hoặc tài chính
-
-        window.location.href = "/maindt";
-      } else {
-        window.location.href = "/mainkhoa";
-      }
-    });
+    if (isKhoa == 0) {
+      ThongTinGD.href = "/info2";
+      Home.href = "/maindt";
+    } else if (isKhoa == 1) {
+      ThongTinGD.href = "/info";
+      Home.href = "/mainkhoa";
+    }
   });
 
   // Hàm xử lý trạng thái active
   document.addEventListener("DOMContentLoaded", function () {
+    console.log("tt = ", ThongTinGD.getAttribute("href"));
+
     // Lấy đường dẫn hiện tại
     const currentPath = window.location.pathname;
-    console.log("tt = ", ThongTinGD.getAttribute("href"));
 
     // Lấy tất cả các liên kết trong navbar
     const navLinks = document.querySelectorAll(".navbar-nav .nav-link");

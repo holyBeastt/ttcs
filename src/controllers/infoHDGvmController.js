@@ -70,9 +70,16 @@ const exportHDGvmToExcel = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
- // Truy vấn bảng tienluong để lấy mức tiền
- const tienLuongQuery = `SELECT HocVi, HeDaoTao, SoTien FROM tienluong`;
- const [tienLuongList] = await connection.execute(tienLuongQuery);
+// Lấy danh sách mức tiền từ bảng tienluong
+const tienLuongQuery = `
+SELECT 
+  HeDaoTao, 
+  HocVi, 
+  SoTien 
+FROM 
+  tienluong
+`;
+const [tienLuongList] = await connection.execute(tienLuongQuery);
 
 
     const { dot, ki, namHoc, khoa } = req.query;
@@ -108,6 +115,7 @@ const exportHDGvmToExcel = async (req, res) => {
       hd.NganHang,
       SUM(hd.SoTiet) AS SoTiet,
       hd.DiaChi,
+      hd.HeDaoTao,
       gv.NoiCongTac
     FROM
       hopdonggvmoi hd
@@ -139,7 +147,7 @@ const exportHDGvmToExcel = async (req, res) => {
 
     if (rows.length === 0) {
       return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/infoHDGvm';</script>"
+        "<script>alert('Không tìm thấy giảng viêsn phù hợp điều kiện'); window.location.href='/infoHDGvm';</script>"
       );
     }
 
@@ -197,12 +205,21 @@ const exportHDGvmToExcel = async (req, res) => {
       { header: "Ngày Nghiệm Thu", key: "NgayNghiemThu", width: 15 }, // Thêm cột Ngày Nghiệm Thu
     ];
 
+    function tinhSoTien(row, soTiet) {
+      const tienLuong = tienLuongList.find((tl) => tl.HeDaoTao === row.HeDaoTao && tl.HocVi === row.HocVi);
+      if (tienLuong) {
+        return soTiet * tienLuong.SoTien;
+      } else {
+        return 0;
+      }
+    }
     // Thêm dữ liệu vào bảng và tính toán các cột mới
     rows.forEach((row, index) => {
-      const soTien = row.SoTiet * 100000; // Số Tiền = Số Tiết * 100000
+      const soTiet = row.SoTiet;
+      const soTien = tinhSoTien(row, soTiet); // Tính toán soTien
       const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
       const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-      // Sửa lại ngày
+      // ...
       // Sửa lại ngày bắt đầu
       const utcBatDau = new Date(row.NgayBatDau);
       row.NgayBatDau = utcBatDau.toLocaleDateString("vi-VN"); // Chỉ lấy phần ngày
@@ -220,7 +237,7 @@ const exportHDGvmToExcel = async (req, res) => {
       const thoiGianThucHien = `${utcBatDau.toLocaleDateString(
         "vi-VN"
       )} - ${utcKetThuc.toLocaleDateString("vi-VN")}`;
-
+    
       // het
       worksheet.addRow({
         stt: index + 1, // Thêm số thứ tự
@@ -580,7 +597,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan/3) AS SoTiet,
+        SUM(qc.QuyChuan * 0.3) AS SoTiet,
         qc.HeDaoTao,
         qc.NamHoc,
         qc.KiHoc,
@@ -835,7 +852,7 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan/3) AS SoTiet,
+        SUM(qc.QuyChuan * 0.3) AS SoTiet,
         qc.HeDaoTao,
         qc.NamHoc,
         qc.KiHoc,
@@ -972,8 +989,6 @@ FROM
         [khoa, khoa, khoa, khoa, dot, ki, namHoc, HeDaoTao]
       );
     }
-
-    console.log("rows = ", rows);
 
     res.json(rows);
   } catch (error) {
