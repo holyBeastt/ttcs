@@ -209,9 +209,10 @@
           <tr>
               <th>STT</th>
               <th>Họ tên</th>
-              <th>Số tiết giảng dạy</th>
-              <th>Giữa kỳ</th>
               <th>Tổng số tiết</th>
+              <th>Số tiết phải hoàn thành</th>
+              <th>Số tiết miễn giảm</th>
+              <th>Số tiết vượt giờ</th>
           </tr>
       </thead>
       <tbody id="tableBody">
@@ -357,21 +358,22 @@ $(document).ready(function () {
         if (tableHeader) {
             tableHeader.innerHTML = (khoa === 'ALL') ?
                 `<th>Khoa</th>
-                <th>Tổng số tiết</th>
+                <th>Số tiết vượt giờ</th>
                 <th>Số lượng giảng viên</th>` :
 
                 `<th>STT</th>
                 <th>Họ tên</th>
-                <th>Số tiết giảng dạy</th>
-                <th>Giữa kỳ</th>
-                <th>Tổng số tiết</th>`;
+                <th>Tổng số tiết</th>
+                <th>Số tiết phải hoàn thành</th>
+                <th>Số tiết miễn giảm</th>
+                <th>Số tiết vượt giờ</th>`;
         }
 
         if (khoa === 'ALL') {
             data.forEach((item) => {
                 const row = tableBody.insertRow();
                 row.insertCell(0).textContent = item.Khoa || 'Không xác định';
-                row.insertCell(1).textContent = parseFloat(item.TongSoTiet).toFixed(2);
+                row.insertCell(1).textContent = parseFloat(item.SoTietVuotGio).toFixed(2);
                 row.insertCell(2).textContent = item.SoLuongGiangVien || 0;
                 console.log('KTGK: ',item.SoTietKTGK);
               });
@@ -381,13 +383,14 @@ $(document).ready(function () {
                 console.log('KTGK: ',item.SoTietKTGK);
                 row.insertCell(0).textContent = index + 1;
                 row.insertCell(1).textContent = item.GiangVien || 'Không xác định';
-                row.insertCell(2).textContent = ((item.SoTietGiangDay ? parseFloat(item.SoTietGiangDay) : 0).toFixed(2));
-                row.insertCell(3).textContent = ((item.SoTietKTGK ? parseFloat(item.SoTietKTGK) : 0).toFixed(2));
-                row.insertCell(4).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
+                row.insertCell(2).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
+                row.insertCell(3).textContent = parseFloat(item.STPHT || 0).toFixed(2);
+                row.insertCell(4).textContent = parseFloat((300-item.STPHT) || 0).toFixed(2);
+                row.insertCell(5).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
             });
         }
 
-        const total = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0) , 0);
+        const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0) , 0);
         document.getElementById('total').textContent = total.toFixed(2);
 
         updateCharts(data, khoa);
@@ -428,14 +431,14 @@ function updateCharts(data, khoa) {
             }
 
             // Tính tổng số tiết
-            const totalHours = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+            const totalHours = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
             console.log('Tổng số tiết:', totalHours); // Kiểm tra tổng số tiết
             window.pieChart = new Chart(ctxPie, {
                 type: 'pie',
                 data: {
                     labels: data.map(item => item.Khoa || 'Không xác định'),
                     datasets: [{
-                        data: data.map(item => (parseFloat(item.SoTietGiangDay) + parseFloat(item.SoTietKTGK)).toFixed(2) || 0),
+                        data: data.map(item => (parseFloat(item.SoTietVuotGio)).toFixed(2) || 0),
                         backgroundColor: [
                             '#FF6384', '#36A2EB', '#FFCE56',
                             '#4BC0C0', '#9966FF', '#FF9F40'
@@ -500,7 +503,7 @@ function updateCharts(data, khoa) {
                     labels: data.map(item => item.Khoa || 'Không xác định'),
                     datasets: [{
                         label: 'Số tiết vượt giờ',
-                        data: data.map(item => parseFloat(item.TongSoTiet) || 0),
+                        data: data.map(item => parseFloat(item.SoTietVuotGio) || 0),
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -545,8 +548,8 @@ function updateCharts(data, khoa) {
                 data: {
                     labels: data.map(item => item.GiangVien || 'Không xác định'),
                     datasets: [{
-                        label: 'Số tiết giảng dạy',
-                        data: data.map(item => parseFloat(item.TongSoTiet) || 0),
+                        label: 'Số tiết vượt giờ',
+                        data: data.map(item => parseFloat(item.SoTietVuotGio) || 0),
                         backgroundColor: 'blue',
                         borderColor: 'black',
                         borderWidth: 1
@@ -559,7 +562,7 @@ function updateCharts(data, khoa) {
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Số tiết giảng dạy của giảng viên'
+                            text: 'Số tiết vượt giờ của giảng viên'
                         }
                     },
                     scales: {

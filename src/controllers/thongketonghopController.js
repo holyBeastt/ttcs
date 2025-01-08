@@ -38,7 +38,7 @@ const thongketonghopController = {
             let queryVuotGio = `
                 SELECT 
                     gd.Khoa AS Khoa,
-                    SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTietVuotGio
+                    SUM(gd.QuyChuan) + COALESCE(gk.TotalSoTietKT, 0) AS TongSoTietVuotGio
                 FROM giangday gd
                 LEFT JOIN (
                     SELECT Khoa, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
@@ -61,14 +61,14 @@ const thongketonghopController = {
                     GROUP BY Khoa
                 ) gk ON gd.Khoa = gk.Khoa
                 WHERE gd.id_User != 1
+                GROUP BY gd.Khoa
             `;
 
-            queryVuotGio += ` GROUP BY gd.Khoa`;
 
             // Execute the vượt giờ query
             const [vuotGioData] = await connection.query(queryVuotGio, paramsVuotGio);
             console.log("Dữ liệu vượt giờ:", vuotGioData);
-
+            console.log("Năm " ,namhoc);
             // Combine the data
             const chartData = moiGiangData.map(item => {
                 const vuotGio = vuotGioData.find(v => v.Khoa === item.Khoa) || { TongSoTietVuotGio: 0 };
