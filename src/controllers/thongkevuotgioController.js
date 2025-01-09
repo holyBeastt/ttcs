@@ -20,13 +20,39 @@ const thongkevuotgioController = {
             console.log("Received query parameters:", req.query);
 
             if (khoa !== 'ALL') {
-                // Query when selecting all departments
+                // Query when selecting specific department
                 query = `
                     SELECT 
                         gd.GiangVien AS GiangVien,
                         SUM(gd.QuyChuan) AS SoTietGiangDay,
                         COALESCE(gk.TotalSoTietKT, 0) AS SoTietKTGK,
-                        SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet
+                        SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
+                        nv.ChucVu AS ChucVu,
+                        CASE 
+                            WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
+                            WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
+                            WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
+                            WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
+                            WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Giảng viên' THEN 300
+                            ELSE 0
+                        END AS STPHT,
+                        GREATEST(0, (SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
+                        CASE 
+                            WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
+                            WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
+                            WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
+                            WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
+                            WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Giảng viên' THEN 300
+                            ELSE 0
+                        END)) AS SoTietVuotGio
                     FROM 
                         giangday gd 
                     LEFT JOIN 
@@ -35,6 +61,8 @@ const thongkevuotgioController = {
                         WHERE NamHoc = ? AND HocKy = ?
                         GROUP BY id_User) gk 
                     ON gd.id_User = gk.id_User
+                    LEFT JOIN 
+                        nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
                         gd.NamHoc = ? AND gd.Khoa = ? AND gd.HocKy = ? AND gd.id_User != 1
                     GROUP BY 
@@ -44,28 +72,49 @@ const thongkevuotgioController = {
                 `;
                 params.push(namhoc, hocky, namhoc, khoa, hocky);
             } else {
-                // Tất cả khoa
+                // Query for all departments
                 query = `
-                    SELECT 
-                        gd.Khoa AS Khoa,
+                    WITH Final as (SELECT 
+                        gd.Khoa,
+                        gd.GiangVien AS GiangVien,
                         SUM(gd.QuyChuan) AS SoTietGiangDay,
                         COALESCE(gk.TotalSoTietKT, 0) AS SoTietKTGK,
                         SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
-                        COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien
+                        nv.ChucVu AS ChucVu,
+                        COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien,
+                        GREATEST(0, (SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
+                        CASE 
+                            WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
+                            WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
+                            WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
+                            WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
+                            WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
+                            WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
+                            WHEN nv.ChucVu = 'Giảng viên' THEN 300
+                            ELSE 0
+                        END)) AS SoTietVuotGio
                     FROM 
                         giangday gd 
                     LEFT JOIN 
-                        (SELECT Khoa, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
+                        (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        WHERE NamHoc = ? AND HocKy = ?
-                        GROUP BY Khoa) gk 
-                    ON gd.Khoa = gk.Khoa
+                        WHERE NamHoc=? AND HocKy=?
+                        GROUP BY id_User ) gk 
+                    ON gd.id_User = gk.id_User
+                    LEFT JOIN 
+                        nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
-                        gd.NamHoc = ? AND gd.HocKy = ? AND gd.id_User != 1 
+                    gd.NamHoc=? AND gd.HocKy=? AND gd.id_User != 1
                     GROUP BY 
-                        gd.Khoa
+                        gd.GiangVien
                     ORDER BY 
-                        gd.Khoa DESC 
+                        TongSoTiet DESC)
+                        
+                    SELECT Khoa as Khoa, sum(sotietvuotgio) as SoTietVuotGio,
+                    SUM(SoLuongGiangVien) AS SoLuongGiangVien
+                    FROM final
                 `;
                 params.push(namhoc, hocky, namhoc, hocky);
             }
@@ -84,7 +133,7 @@ const thongkevuotgioController = {
             // Check if result is empty
             if (result.length === 0) {
                 console.log("No data found for the query.");
-                return res.json([]); // Return an empty array if no data found
+                return res.json([{ message: "Không có dữ liệu cho khoảng thời gian này" }]); // Return message if no data found
             }
 
             // Calculate total hours for each lecturer

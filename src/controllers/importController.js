@@ -527,30 +527,71 @@ function tachLopHocPhan(chuoi) {
 }
 
 // Hàm thực thi auto fill tên, bộ môn, kiểm tra mời giảng
-function processLecturerInfo(input, dataGiangVien) {
+// function processLecturerInfo(input, dataGiangVien) {
+//   // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi input
+//   input = input.trim();
+
+//   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
+//   const namesArray = input.split(/[,;]/).map((part) => part.trim()); // Tách tại cả "," và ";"
+
+//   // Xử lý các key với tên đầu tiên trong mảng
+//   const giangVienGiangDay = cleanName(namesArray[0]); // HoTen: Loại bỏ ký tự đặc biệt, xử lý tên
+//   const moiGiang = checkIfGuestLecturer(namesArray[0]); // isGuestLecturer: Kiểm tra mời giảng
+//   const monGiangDayChinh = getMainTeachingSubject(namesArray[0], dataGiangVien); // mainTeachingSubject: Tìm môn giảng dạy chính
+
+//   // Nếu có môn giảng dạy chính thì gán giá trị giảng viên, nếu không gán là null
+//   // Nếu có bộ môn tương ứng thì giảng viên này đang hoạt động, thì mới fill tên
+//   // Tránh fill tên với một số trường hợp : Khoa ATTT, Giảng viên mời
+//   const giangVienResult = monGiangDayChinh ? giangVienGiangDay : null;
+
+//   // Trả về kết quả
+//   return {
+//     giangVienGiangDay: giangVienResult,
+//     moiGiang: moiGiang,
+//     monGiangDayChinh: monGiangDayChinh,
+//   };
+// }
+
+function processLecturerInfo(input, dataGiangVien, soGiangVien) {
   // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi input
   input = input.trim();
 
   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
-  const namesArray = input.split(/[,;]/).map((part) => part.trim()); // Tách tại cả "," và ";"
+  const namesArray = input.split(/[,;]/).map((part) => part.trim());
 
-  // Xử lý các key với tên đầu tiên trong mảng
-  const giangVienGiangDay = cleanName(namesArray[0]); // HoTen: Loại bỏ ký tự đặc biệt, xử lý tên
-  const moiGiang = checkIfGuestLecturer(namesArray[0]); // isGuestLecturer: Kiểm tra mời giảng
-  const monGiangDayChinh = getMainTeachingSubject(namesArray[0], dataGiangVien); // mainTeachingSubject: Tìm môn giảng dạy chính
+  // Kiểm tra số lượng giảng viên cần xử lý
+  let giangVienGiangDay;
+  if (soGiangVien === 1) {
+    // Lấy tên đầu tiên trong mảng, như hàm gốc
+    giangVienGiangDay = cleanName(namesArray[0]);
+  } else if (soGiangVien === 2) {
+    // Lấy 2 tên đầu tiên trong mảng, nối chúng thành chuỗi
+    giangVienGiangDay = namesArray
+      .slice(0, 2)
+      .map((name) => cleanName(name))
+      .join(", "); // Nối thành chuỗi cách nhau bởi dấu phẩy
+  } else {
+    // Nếu soGiangVien không hợp lệ, gán giá trị mặc định là null
+    giangVienGiangDay = null;
+  }
 
-  // Nếu có môn giảng dạy chính thì gán giá trị giảng viên, nếu không gán là null
-  // Nếu có bộ môn tương ứng thì giảng viên này đang hoạt động, thì mới fill tên
-  // Tránh fill tên với một số trường hợp : Khoa ATTT, Giảng viên mời
-  const giangVienResult = monGiangDayChinh ? giangVienGiangDay : null;
+  // Xử lý các giá trị còn lại
+  const moiGiang = checkIfGuestLecturer(namesArray[0]); // Kiểm tra giảng viên mời
+  const monGiangDayChinh = getMainTeachingSubject(namesArray[0], dataGiangVien); // Tìm môn giảng dạy chính
 
-  // Trả về kết quả
+  // Nếu không có môn giảng dạy chính, giảng viên giảng dạy sẽ là null
+  if (!monGiangDayChinh && soGiangVien === 1) {
+    giangVienGiangDay = null;
+  }
+
+  // Trả về kết quả dưới dạng chuỗi
   return {
-    giangVienGiangDay: giangVienResult,
+    giangVienGiangDay: giangVienGiangDay || "",
     moiGiang: moiGiang,
     monGiangDayChinh: monGiangDayChinh,
   };
 }
+
 
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
@@ -797,8 +838,18 @@ const importTableQC = async (jsonData) => {
     const { TenLop, HocKi, NamHoc, Lop } = tachLopHocPhan(item["LopHocPhan"]);
 
     // tách từ cột giảng viên theo tkb, xử lí mời giảng?, tự điền tên, tự điền bộ môn
-    const { giangVienGiangDay, moiGiang, monGiangDayChinh } =
-      processLecturerInfo(item["GiaoVien"], dataGiangVien);
+    // tham số 1 và 2 đại diện cho số lượng giảng viên giảng dạy của lớp đóđó
+    let giangVienGiangDay, moiGiang, monGiangDayChinh;
+
+    if (Lop.includes("CHAT") || Lop.includes("TSAT")) {
+      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } =
+        processLecturerInfo(item["GiaoVien"], dataGiangVien, 2));
+    } else {
+      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } =
+        processLecturerInfo(item["GiaoVien"], dataGiangVien, 1));
+    }
+
+    console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
     // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
     let HeDaoTao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
@@ -997,12 +1048,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
+      item["Số tiết lên lớp giờ HC"] ||
+      null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị

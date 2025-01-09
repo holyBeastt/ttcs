@@ -50,123 +50,126 @@ const exportVuotGio = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    const { namHoc, khoa, teacherName } = req.query;
+    const { namHoc, khoa } = req.query;
 
     // Kiểm tra các tham số đầu vào
-    if (!namHoc || !khoa || !teacherName) {
+    if (!namHoc || !khoa) {
       return res.status(400).json({
         success: false,
-        message: "Thiếu thông tin năm học, khoa hoặc tên giảng viên",
+        message: "Thiếu thông tin năm học hoặc khoa",
       });
     }
 
-    // Sanitize file names after ensuring the parameters are defined
     // Sanitize file names
     const sanitizedNamHoc = sanitizeFileName(namHoc);
     const sanitizedKhoa = sanitizeFileName(khoa);
-    const sanitizedTeacherName = sanitizeFileName(teacherName);
 
-    // Truy vấn cơ sở dữ liệu
-    let queryGiangDay = `
-    SELECT DISTINCT
-      TenHocPhan AS TenHocPhan, 
-      SoTC, 
-      Lop, 
-      QuyChuan, 
-      LenLop, 
-      HocKy, 
-      NamHoc AS Nam, 
-      Khoa, 
-      GiangVien 
-    FROM giangday
-    WHERE NamHoc = ?  `;
 
-    let queryLopNgoaiQuyChuan = `
-    SELECT DISTINCT
-
-      TenHocPhan AS TenHocPhan, 
-      SoTC, 
-      Lop, 
-      QuyChuan, 
-      LenLop, 
-      HocKy, 
-      NamHoc AS Nam, 
-      Khoa, 
-      GiangVien 
-    FROM lopngoaiquychuan
-    WHERE NamHoc = ? `;
-    let queryGiuaky = `
-    SELECT DISTINCT
-      TenHocPhan AS TenHocPhanGK, 
-      NamHoc AS Nam, 
-      Khoa, 
-      GiangVien, 
-      HinhThucKTGiuaKy, 
-      SoDe, 
-      SoTietKT, 
-      SoSV, 
-      Lop AS LopGK ,
-      HocKy
-    FROM 
-      giuaky 
-    WHERE 
-      NamHoc = ? AND Khoa = ? `;
-
-      let queryExportDoAnTotNghiep = `
-      SELECT DISTINCT 
-        ed.NamHoc AS Nam, 
-        ed.MaPhongBan AS Khoa,  -- Đã xóa chú thích ở đây
-        ed.SinhVien, 
-        ed.KhoaDaoTao, 
-        ed.SoNguoi, 
-        ed.SoTiet, 
-        nv.NgaySinh,
-        ed.isHDChinh
-      FROM exportdoantotnghiep ed
-      JOIN nhanvien nv ON ed.CCCD = nv.CCCD
-      WHERE ed.NamHoc = ? AND nv.MaPhongBan = ? AND ed.GiangVien=?`;
-      let queryNhanVien = `
+    // Truy vấn dữ liệu cho năm học và khoa đã chọn
+    const queryGiangDay = `
       SELECT DISTINCT
-        nv.TenNhanVien AS GiangVien, 
-        nv.MaPhongBan AS Khoa, 
-        nv.HSL,
-        nv.NgaySinh, 
-        nv.HocVi, 
-        nv.ChucVu, 
-        nv.MonGiangDayChinh
-      FROM nhanvien nv
-      JOIN exportdoantotnghiep ed ON nv.CCCD = ed.CCCD
-      WHERE nv.MaPhongBan = ? AND ed.NamHoc = ? AND nv.TenNhanVien = ?`;
+        TenHocPhan AS TenHocPhan, 
+        SoTC, 
+        Lop, 
+        QuyChuan, 
+        LenLop, 
+        HocKy, 
+        NamHoc AS Nam, 
+        Khoa, 
+        GiangVien 
+      FROM giangday
+      WHERE NamHoc = ? AND Khoa = ?
+    `;
     
-    // Thực hiện các truy vấn
-    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, teacherName]);
-    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, teacherName]);
-    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, teacherName]);
-    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, teacherName]);
-    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, namHoc, teacherName]); // Truyền đúng giá trị
+    const queryLopNgoaiQuyChuan = `
+      SELECT DISTINCT
+        TenHocPhan AS TenHocPhan, 
+        SoTC, 
+        Lop, 
+        QuyChuan, 
+        LenLop, 
+        HocKy, 
+        NamHoc AS Nam, 
+        Khoa, 
+        GiangVien 
+      FROM lopngoaiquychuan
+      WHERE NamHoc = ? AND Khoa = ?
+    `;
+
+    const queryGiuaky = `
+      SELECT DISTINCT
+        TenHocPhan AS TenHocPhanGK, 
+        NamHoc AS Nam, 
+        Khoa, 
+        GiangVien, 
+        HinhThucKTGiuaKy, 
+        SoDe, 
+        SoTietKT, 
+        SoSV, 
+        Lop AS LopGK,
+        HocKy
+      FROM giuaky
+      WHERE NamHoc = ? AND Khoa = ?
+    `;
+
+    const queryExportDoAnTotNghiep = `
+    SELECT DISTINCT
+      NamHoc AS Nam, 
+      MaPhongBan AS Khoa, 
+      SinhVien, 
+      KhoaDaoTao, 
+      SoNguoi, 
+      SoTiet, 
+      isHDChinh
+    FROM exportdoantotnghiep 
+    WHERE NamHoc = ? AND MaPhongBan = ?
+  `;
+    const queryNhanVien = `
+      SELECT DISTINCT
+        TenNhanVien AS GiangVien, 
+        MaPhongBan AS Khoa, 
+        HSL,
+        NgaySinh, 
+        HocVi, 
+        ChucVu, 
+        MonGiangDayChinh
+      FROM nhanvien
+      WHERE MaPhongBan = ? 
+    `;
 
 
-    // Ghi log kết quả truy vấn
-    console.log("Kết quả truy vấn từ bảng exportdoantotnghiep:", resultsExportDoAnTotNghiep);
+    // Truy vấn dữ liệu cho năm học và khoa
+    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa]);
+    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa]);
+    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa]);
+    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);   
+     const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
+
+    // Kiểm tra kết quả truy vấn
+    if (
+      resultsGiangDay.length === 0 &&
+      resultsLopNgoaiQuyChuan.length === 0 &&
+      resultsGiuaky.length === 0
+    ) {
+      return res.send(
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
+      );
+    }
+
     // Kết hợp dữ liệu từ các bảng
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
-  // Lấy thông tin từ bảng nhanvien
-const GiangVien = resultsGiangDay[0]?.GiangVien; // Lấy tên giảng viên từ kết quả
-const NgaySinh = resultsNhanVien[0]?.NgaySinh; // Lấy ngày sinh từ kết quả
-const HocVi = resultsNhanVien[0]?.HocVi; // Lấy học vị từ kết quả
-const ChucVu = resultsNhanVien[0]?.ChucVu; // Lấy chức vụ từ kết quả
-const HSL = resultsNhanVien[0]?.HSL; // Lấy; // Lấy ngày sinh từ kết quả
 
-    // Kiểm tra kết quả truy vấn
-// Kiểm tra kết quả truy vấn
-if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resultsGiangDay.length === 0, resultsLopNgoaiQuyChuan.length === 0, resultsGiuaky.length === 0) {
-  return res.send(
-    "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
-  );
-}
-    // Check if any results were returned
+    // Lấy danh sách giảng viên
+    const giangVienList = [...new Set(resultsGiangDay&&resultsExportDoAnTotNghiep&&resultsGiuaky&&resultsLopNgoaiQuyChuan&&resultsNhanVien.map((row) => row.GiangVien))];
 
+    const workbook = new ExcelJS.Workbook();
+
+    giangVienList.forEach((giangVien) => {
+      const worksheet = workbook.addWorksheet(giangVien);
+
+      // Lọc dữ liệu cho giảng viên này
+      const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien === giangVien);
     // Nhóm dữ liệu theo kỳ và hệ
     const groupedResults = {
       "Kỳ 1": {
@@ -228,9 +231,7 @@ if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resul
       }
     });
 
-    // Tạo file Excel
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Dữ liệu vượt giờ");
+    
 
     worksheet.pageSetup = {
       paperSize: 9, // A4 paper size
@@ -260,7 +261,7 @@ if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resul
     worksheet.mergeCells(`D${titleRow1.number}:G${titleRow1.number}`);
     titleRow1.height = 25; // Tăng chiều cao hàng
 
-    const titleRow2 = worksheet.addRow([`Khoa: ${sanitizedKhoa}`, "", "", "Độc lập - Tự do - Hạnh phúc"]);
+    const titleRow2 = worksheet.addRow([`Khoa: ${giangVienInfo?.MaPhongBan}`, "", "", "Độc lập - Tự do - Hạnh phúc"]);
     titleRow2.font = { name: "Times New Roman", size: 12, bold: true, };
 
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
@@ -314,26 +315,23 @@ if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resul
 
     worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
     // Thêm dòng thông tin cá nhân
-    const titleRow9 = worksheet.addRow([`Họ và tên: ${GiangVien}`, "", "", `Ngày sinh:  ${formatDateDMY(new Date(NgaySinh))}`]); // Cập nhật để có định dạng giống như yêu cầu
+    // Thêm dòng thông tin cá nhân
+    const titleRow9 = worksheet.addRow([`Họ và tên: ${giangVien}`, "", "", `Ngày sinh:  ${formatDateDMY(new Date(giangVienInfo?.NgaySinh))}`]); 
     titleRow9.font = { name: "Times New Roman", size: 12 };
     titleRow9.alignment = { horizontal: "left", vertical: "middle" };
     worksheet.mergeCells(`A9:C9`); // Gộp ô A9 đến C9
 
-
-
-    const titleRow11 = worksheet.addRow([`Học hàm / học vị: ${HocVi}`]); // Tiêu đề cho học hàm / học vị
-
+    const titleRow11 = worksheet.addRow([`Học hàm / học vị: ${giangVienInfo?.HocVi}`]); // Tiêu đề cho học hàm / học vị
     titleRow11.font = { name: "Times New Roman", size: 12 };
     titleRow11.alignment = { horizontal: "left", vertical: "middle" };
     worksheet.mergeCells(`A10:C10`); // Gộp ô A10 đến C10
 
-    const titleRow12 = worksheet.addRow([`Chức vụ hiện nay (Đảng, CQ, đoàn thể):${ChucVu}`]); // Tiêu đề cho chức v
-
+    const titleRow12 = worksheet.addRow([`Chức vụ hiện nay (Đảng, CQ, đoàn thể):${giangVienInfo?.ChucVu}`]); // Tiêu đề cho chức vụ
     titleRow12.font = { name: "Times New Roman", size: 12 };
     titleRow12.alignment = { horizontal: "left", vertical: "middle" };
     worksheet.mergeCells(`A11:E11`); // Gộp ô A11 đến E11
 
-    const titleRow13 = worksheet.addRow([`Hệ số lương: ${HSL}`]); // Tiêu đề cho hệ số lương
+    const titleRow13 = worksheet.addRow([`Hệ số lương: ${giangVienInfo?.HSL}`]); // Tiêu đề cho hệ số lương
     titleRow13.font = { name: "Times New Roman", size: 12 };
     titleRow13.alignment = { horizontal: "left", vertical: "middle" };
     worksheet.mergeCells(`A12:D12`); // Gộp ô A12 đến D12
@@ -344,8 +342,6 @@ if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resul
     titleRow14.font = { name: "Times New Roman", size: 12 };
     titleRow14.alignment = { horizontal: "left", vertical: "middle" };
     worksheet.mergeCells(`A13:G13`); // Gộp ô A13 đến G13
-
-    worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
 
     // Tiêu đề cho phần giảng dạy
     const titleRow15 = worksheet.addRow([
@@ -809,66 +805,11 @@ if (resultsNhanVien.length === 0, resultsExportDoAnTotNghiep.length === 0, resul
         };
       });
     }
-
-    // const titleRow19 = worksheet.addRow([
-    //   "B. HƯỚNG DẪN LUẬN ÁN, LUẬN VĂN, ĐỒ ÁN TỐT NGHIỆP (Phụ lục I.3 Quyết định số 1409/QĐ-HVM)",
-    // ]);
-    // titleRow19.font = { name: "Times New Roman", size: 12, bold: true };
-    // titleRow19.alignment = {
-    //   horizontal: "center",
-    //   vertical: "left",
-    //   wrapText: true,
-    // };
-    // worksheet.mergeCells(`A${titleRow19.number}:G${titleRow19.number}`);
-    // titleRow19.height = 40; // Tăng chiều cao hàng
-
-    // for(groupedResultsExportDoAnTotNghiep){
-
-    //         // Thêm tiêu đề cho bảng dữ liệu
-    //         const headerRow = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo ", "Số QĐ Giao Luận án, Luận văn, đồ án", "Sớ người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
-    //         headerRow.font = { name: "Times New Roman", size: 12, bold: true };
-    //         headerRow.alignment = { horizontal: "center", vertical: "middle" };
-
-    //         // Điều chỉnh chiều rộng cột
-    //         worksheet.getColumn('A').width = 4.1; // Cột TT
-    //         worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
-    //         worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
-    //         worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
-    //         worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
-    //         worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
-    //         worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
-    //         // Khởi tạo biến đếm cho cột TT
-    //         let index = 1;
-
-    //         // Khởi tạo các biến tổng cho bảng
-    //         let totalSoTietTKB = 0;
-    //         let totalSoTietQC = 0;
-
-    //         // Thêm dữ liệu vào bảng
-    //         groupedResults[ky][he].forEach((row) => {
-    //           const dataRow = worksheet.addRow([
-    //             index++, // Tăng dần cho cột TT
-    //             row.TenHocPhan, // Tên học phần
-    //             row.SoTC,       // Số TC
-    //             row.Lop,        // Lớp học phần
-    //             he === "Hệ mật mã" ? "Mật Mã" : "", // Nếu là hệ mật mã thì ghi "mật mã", ngược lại để trống
-    //             row.LenLop,     // Số
-    //             row.QuyChuan,   // Quy chuẩn
-    //           ]);
-
-    //           // Cộng dồn các giá trị
-    //           totalSoTietTKB += row.LenLop; // Số tiết theo TKB
-    //           totalSoTietQC += row.QuyChuan; // Số tiết quy chuẩn
-    //           // Cộng dồn cho tổng tất cả bảng
-    //           totalSoTietTKBAll += row.LenLop;
-    //           totalSoTietQCAll += row.QuyChuan;
-    //           dataRow.font = { name: "Times New Roman", size: 12 };
-    //           dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    //         });
-
+  });
 
     // Xuất file Excel
-    const fileName = `vuotGio_${sanitizedNamHoc}_${sanitizedKhoa}_${sanitizedTeacherName}.xlsx`;
+    const fileName = `vuotGio_${sanitizedNamHoc}_${sanitizedKhoa}.xlsx`;
+
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
