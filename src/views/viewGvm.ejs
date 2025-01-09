@@ -104,13 +104,13 @@
               alt="Mặt trước CCCD" 
               width="100" 
               id="imgtruoc" 
-              style="display: <%= value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
             
             <a 
               href="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" 
               target="_blank" 
               id="linktruoc" 
-              style="display: <%= value.MatTruocCCCD.endsWith('.pdf') ? 'block' : 'none' %>;">
+              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
               Xem file PDF
             </a>
             
@@ -126,13 +126,12 @@
               alt="Mặt sau CCCD" 
               width="100" 
               id="imgsau" 
-              style="display: <%= value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
-            
+              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
             <a 
               href="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" 
               target="_blank" 
               id="linksau" 
-              style="display: <%= value.MatSauCCCD.endsWith('.pdf') ? 'block' : 'none' %>;">
+              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
               Xem file PDF
             </a>
             <br>
@@ -147,13 +146,13 @@
               alt="Bằng cấp cao nhất" 
               width="100" 
               id="imgbang" 
-              style="display: <%= value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
-            
+              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
+
             <a 
               href="/images/certificates/<%= value.BangTotNghiep %>" 
               target="_blank" 
               id="linkbang" 
-              style="display: <%= value.BangTotNghiep.endsWith('.pdf') ? 'block' : 'none' %>;">
+              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
               Xem file PDF
             </a>
             <br>

@@ -66,6 +66,20 @@
     .suggestions {
       overflow: hidden;
     }
+
+    /* css chữ to hơn */
+    #classTable {
+      font-size: 14px; /* Kích thước chữ của toàn bộ bảng */
+    }
+  
+    #classTable th {
+      font-size: 16px; /* Kích thước chữ của tiêu đề */
+      font-weight: bold;
+    }
+  
+    #classTable td {
+      font-size: 14px; /* Kích thước chữ của các ô */
+    }
   </style>
 </head>
 
@@ -140,8 +154,8 @@
           <table class="class-table" id="classTable">
             <thead>
               <tr>
-                <th>STT</th>
-                <th>Mã giảng viên mời</th>
+                <th style="width: 100px;">STT</th>
+                <th>Căn cước công dân</th>
                 <th>Tên giảng viên mời</th>
                 <th>Ngày sinh</th>
                 <th style="display: none;">Khoa</th>
@@ -157,7 +171,7 @@
                       <%= i + 1 %>
                     </td>
                     <td>
-                      <%= gvmLists[i].MaGvm %>
+                      <%= gvmLists[i].CCCD %>
                     </td>
                     <td>
                       <%= gvmLists[i].HoTen %>
