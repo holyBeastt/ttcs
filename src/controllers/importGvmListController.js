@@ -106,14 +106,20 @@ const saveToDB = async (req, res) => {
     connection = await createPoolConnection(); // Kết nối đến DB
     const data = JSON.parse(req.body.data); // Lấy dữ liệu từ request (dữ liệu đã render ra)
 
-    // Lấy Mã giảng viên mời = Mã Khoa + _GVM_ + id
-
     const MaPhongBan = req.session.MaPhongBan;
-    console.log(MaPhongBan);
+
+    // Lấy danh sách bộ môn trong khoa
+    const [boMonList] = await connection.query(
+      `select * from bomon where MaPhongBan = ?`,
+      MaPhongBan
+    );
+
     const TinhTrangGiangDay = 1; // Tình trạng giảng dạy
 
     const duplicateCCCDs = [];
     const duplicateName = [];
+    const khoaFalse = [];
+    const boMonFalse = [];
 
     if (data && data.length > 0) {
       const gvms = await gvmList.getGvmLists(req, res);
@@ -121,14 +127,9 @@ const saveToDB = async (req, res) => {
 
       for (const row of data) {
         const MaGvm = MaPhongBan + "_GVM_" + length;
-
-        // Chuyển đổi dữ liệu để phù hợp với cột trong DB
-        // const GioiTinh = row["Danh xưng"] === "Ông" ? "Nam" : "Nữ";
         const GioiTinh = row["Giới tính"];
         let HoTen = row["Họ và tên"];
-        // const NgaySinh = row["Ngày sinh"] || " ";
         const CCCD = row["Số CCCD"];
-        // const NgayCapCCCD = row["Ngày cấp"];
         const NoiCapCCCD = row["Nơi cấp"] || " ";
         const DiaChi = row["Địa chỉ theo CCCD"];
         const Email = row["Email"] || " ";
@@ -145,9 +146,29 @@ const saveToDB = async (req, res) => {
         const dateSinh = row["Ngày sinh"]; // '1985-09-13T00:00:00.000Z'
         const NgaySinh = formatDateForMySQL(dateSinh); // Kết quả: '1985-09-13'
         const dateCap = row["Ngày cấp CCCD"]; // '1985-09-13T00:00:00.000Z'
-        console.log("date cấp = ", dateCap);
         const NgayCapCCCD = formatDateForMySQL(dateCap); // Kết quả: '1985-09-13'
-        console.log("Ngày cấp sau format", NgayCapCCCD);
+
+        // Check Khoa để nhỡ import nhầm file
+        const Khoa = row["Khoa"] || " ";
+        let khoaIsFalse = false;
+        if (Khoa.trim() != MaPhongBan && Khoa.trim() != "") {
+          khoaFalse.push(HoTen + " - " + Khoa);
+          khoaIsFalse = true;
+        }
+
+        if (khoaIsFalse) continue;
+
+        // Check Khoa và bộ môn (Môn giảng dạy chính) có đúng không
+        if (MonGiangDayChinh.trim() != "") {
+          const isInBoMonList = boMonList.some(
+            (bm) => bm.MaBoMon.trim() === MonGiangDayChinh.trim()
+          );
+
+          if (!isInBoMonList) {
+            boMonFalse.push(HoTen + " - " + MonGiangDayChinh);
+            continue;
+          }
+        }
 
         // Xử lý nếu HSL có dấu ,
         // Kiểm tra nếu HSL chỉ chứa khoảng trắng hoặc rỗng, gán giá trị mặc định là "0"
@@ -169,21 +190,6 @@ const saveToDB = async (req, res) => {
         }
 
         if (isDuplicate) continue;
-
-        // if (!isDuplicate) {
-        //   let nameExists = true;
-        //   while (nameExists) {
-        //     nameExists = gvms.some((gvm) => gvm.HoTen === HoTen);
-        //     if (nameExists) {
-        //       duplicateCount++;
-        //       HoTen = `${originalName} (${String.fromCharCode(
-        //         64 + duplicateCount
-        //       )})`; // A, B, C...
-
-        //       duplicateName.push(HoTen);
-        //     }
-        //   }
-        // }
 
         if (!isDuplicate) {
           let nameExists = true;
@@ -238,13 +244,6 @@ const saveToDB = async (req, res) => {
         length++; // Tăng độ dài sau mỗi lần chèn thành công
       }
 
-      // if (duplicateCCCDs.length > 0) {
-      //   return res.status(400).json({
-      //     message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: \n${duplicateCCCDs.join(
-      //       "\n "
-      //     )}`,
-      //   });
-      // }
       let mess = "";
 
       if (duplicateCCCDs.length > 0) {
@@ -255,6 +254,18 @@ const saveToDB = async (req, res) => {
 
       if (duplicateName.length > 0) {
         mess += `\n<b>Tên các giảng viên bị trùng sẽ được lưu như sau:</b> \n${duplicateName.join(
+          "\n "
+        )}`;
+      }
+
+      if (khoaFalse.length > 0) {
+        mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng khoa:</b> \n${khoaFalse.join(
+          "\n "
+        )}`;
+      }
+
+      if (boMonFalse.length > 0) {
+        mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng mã bộ môn trong khoa:</b> \n${boMonFalse.join(
           "\n "
         )}`;
       }

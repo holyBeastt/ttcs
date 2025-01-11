@@ -65,6 +65,7 @@ router.post(
   ]),
   createGvm
 );
+
 router.get("/getMaBoMon/:maPhongBan/:isKhoa", getBoMonList);
 
 module.exports = router;

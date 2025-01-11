@@ -99,27 +99,67 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <label>Mặt trước CCCD:</label>
-            <img src="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" alt="Mặt trước CCCD" width="100"
-              id="imgtruoc">
+            <img 
+              src="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" 
+              alt="Mặt trước CCCD" 
+              width="100" 
+              id="imgtruoc" 
+              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+            
+            <a 
+              href="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" 
+              target="_blank" 
+              id="linktruoc" 
+              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+              Xem file PDF
+            </a>
+            
             <br>
             <input class="form-control" type="file" name="truocCCCD" id="imgtruocinput" disabled>
             <input type="hidden" name="oldTruocCCCD" value="<%= value.MatTruocCCCD %>" disabled>
           </div>
+          
           <div class="col-md-4">
             <label>Mặt sau CCCD:</label>
-            <img src="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" alt="Mặt sau CCCD" width="100"
-              id="imgsau">
+            <img 
+              src="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" 
+              alt="Mặt sau CCCD" 
+              width="100" 
+              id="imgsau" 
+              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+            <a 
+              href="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" 
+              target="_blank" 
+              id="linksau" 
+              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+              Xem file PDF
+            </a>
             <br>
             <input class="form-control" type="file" name="sauCCCD" id="sauCCCD" disabled>
             <input type="hidden" name="oldSauCCCD" value="<%= value.MatSauCCCD %>" disabled>
           </div>
+          
           <div class="col-md-4">
             <label>Hình ảnh bằng cấp cao nhất:</label>
-            <img src="/images/certificates/<%= value.BangTotNghiep %>" alt="Bằng cấp cao nhất" width="100" id="imgbang">
+            <img 
+              src="/images/certificates/<%= value.BangTotNghiep %>" 
+              alt="Bằng cấp cao nhất" 
+              width="100" 
+              id="imgbang" 
+              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
+
+            <a 
+              href="/images/certificates/<%= value.BangTotNghiep %>" 
+              target="_blank" 
+              id="linkbang" 
+              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
+              Xem file PDF
+            </a>
             <br>
             <input class="form-control" type="file" name="BangTotNghiep" id="BangTotNghiep" disabled>
             <input type="hidden" name="oldimgbangdh" value="<%= value.BangTotNghiep %>" disabled>
           </div>
+          
         </div>
         <div class="row mb-3">
           <div class="col-md-4">
@@ -229,93 +269,118 @@
       window.history.back();
     }
   </script>
-  <!-- Phần phân quyền -->
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-
-      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-      const ThongTinGD = document.getElementById("ThongTinGD");
-
-      ThongTinGD.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-        if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/info2";
-        } else {
-          window.location.href = "/info";
+    document.addEventListener('DOMContentLoaded', function () {
+      const imgInput = document.getElementById('imgtruocinput');
+      const imgElement = document.getElementById('imgtruoc');
+      const linkElement = document.getElementById('linktruoc');
+    
+      imgInput.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+    
+        if (!file) {
+          imgElement.style.display = 'none';
+          linkElement.style.display = 'none';
+          return;
+        }
+    
+        const fileType = file.type;
+        const reader = new FileReader();
+    
+        // Xử lý ảnh
+        if (fileType.startsWith('image/')) {
+          reader.onload = function (e) {
+            imgElement.src = e.target.result;
+            imgElement.style.display = 'block';
+            linkElement.style.display = 'none'; // Ẩn liên kết PDF
+          };
+          reader.readAsDataURL(file);
+        } 
+        // Xử lý PDF
+        else if (fileType === 'application/pdf') {
+          reader.onload = function (e) {
+            linkElement.href = e.target.result;
+            linkElement.textContent = `Xem file PDF`;
+            linkElement.style.display = 'block';
+            imgElement.style.display = 'none'; // Ẩn hình ảnh
+          };
+          reader.readAsDataURL(file);
+        } 
+        // Xử lý file không hợp lệ
+        else {
+          alert('Chỉ chấp nhận tệp hình ảnh hoặc PDF!');
+          imgElement.style.display = 'none';
+          linkElement.style.display = 'none';
         }
       });
-
-      // Thêm sự kiện click cho phần tử có id="Home"
-
-      const Home = document.getElementById("Home");
-
-      Home.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-        const isKhoa = localStorage.getItem("isKhoa")
-
-        if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/maindt";
-        } else {
-          window.location.href = "/mainkhoa";
-        }
-      });
-
     });
-
+    
   </script>
-
-  <script>
-    const imagetruocInput = document.getElementById('imgtruocinput');
-    const imagetruocPreview = document.getElementById('imgtruoc');
-
-    imagetruocInput.addEventListener('change', function (event) {
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Mặt sau CCCD
+    const imgSauInput = document.getElementById('sauCCCD');
+    const imgSauElement = document.getElementById('imgsau');
+    const linkSauElement = document.getElementById('linksau');
+  
+    // Hình ảnh bằng cấp cao nhất
+    const imgBangInput = document.getElementById('BangTotNghiep');
+    const imgBangElement = document.getElementById('imgbang');
+    const linkBangElement = document.getElementById('linkbang');
+  
+    // Xử lý hiển thị file mặt sau CCCD
+    imgSauInput.addEventListener('change', function (event) {
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
+      handleFilePreview(file, imgSauElement, linkSauElement);
+    });
+  
+    // Xử lý hiển thị file bằng cấp cao nhất
+    imgBangInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      handleFilePreview(file, imgBangElement, linkBangElement);
+    });
+  
+    // Hàm xử lý hiển thị file
+    function handleFilePreview(file, imgElement, linkElement) {
+      if (!file) {
+        imgElement.style.display = 'none';
+        linkElement.style.display = 'none';
+        return;
+      }
+  
+      const fileType = file.type;
+      const reader = new FileReader();
+  
+      // Xử lý ảnh
+      if (fileType.startsWith('image/')) {
         reader.onload = function (e) {
-          imagetruocPreview.src = e.target.result;
-          imagetruocPreview.style.display = 'block';
-        }
+          imgElement.src = e.target.result;
+          imgElement.style.display = 'block';
+          linkElement.style.display = 'none';
+        };
         reader.readAsDataURL(file);
       }
-    });
-  </script>
-  <script>
-    const imagesauInput = document.getElementById('sauCCCD');
-    const imagesauPreview = document.getElementById('imgsau');
-
-    imagesauInput.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
+      // Xử lý PDF
+      else if (fileType === 'application/pdf') {
         reader.onload = function (e) {
-          imagesauPreview.src = e.target.result;
-          imagesauPreview.style.display = 'block';
-        }
+          linkElement.href = e.target.result;
+          linkElement.textContent = `Xem file PDF`;
+          linkElement.style.display = 'block';
+          imgElement.style.display = 'none';
+        };
         reader.readAsDataURL(file);
       }
-    });
-  </script>
-  <script>
-    const imagebang = document.getElementById('imgbangdh');
-    const imagebangPreview = document.getElementById('imgbang');
-
-    imagebang.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          imagebangPreview.src = e.target.result;
-          imagebangPreview.style.display = 'block';
-        }
-        reader.readAsDataURL(file);
+      // Xử lý file không hợp lệ
+      else {
+        alert('Chỉ chấp nhận tệp hình ảnh hoặc PDF!');
+        imgElement.style.display = 'none';
+        linkElement.style.display = 'none';
       }
-    });
-  </script>
+    }
+  });
+  
+</script>
   <script>
     document.getElementById("changePasswordLink").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
