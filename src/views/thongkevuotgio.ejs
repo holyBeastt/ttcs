@@ -342,7 +342,7 @@ $(document).ready(function () {
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = '';
 
-        if (data.length === 0) {
+        if (data.length === 0 || data === null || data.some(item => item.SoTietVuotGio === null || isNaN(item.SoTietVuotGio))) {
             const row = tableBody.insertRow();
             const cell = row.insertCell(0);
             cell.colSpan = 5;
@@ -373,14 +373,16 @@ $(document).ready(function () {
             data.forEach((item) => {
                 const row = tableBody.insertRow();
                 row.insertCell(0).textContent = item.Khoa || 'Không xác định';
+                console.log("vuot hio = ", item.SoTietVuotGio);
                 row.insertCell(1).textContent = parseFloat(item.SoTietVuotGio).toFixed(2);
                 row.insertCell(2).textContent = item.SoLuongGiangVien || 0;
-                console.log('KTGK: ',item.SoTietKTGK);
-              });
-            } else {
-              data.forEach((item, index) => {
+            });
+        } else {
+            data.forEach((item, index) => {
                 const row = tableBody.insertRow();
-                console.log('KTGK: ',item.SoTietKTGK);
+                if (parseFloat(item.SoTietVuotGio) === 0) {
+                    row.style.backgroundColor = '#ffcccc';
+                }
                 row.insertCell(0).textContent = index + 1;
                 row.insertCell(1).textContent = item.GiangVien || 'Không xác định';
                 row.insertCell(2).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
