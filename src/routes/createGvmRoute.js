@@ -1,11 +1,9 @@
 const express = require("express");
-
-// import multer from "multer";
 const multer = require("multer");
 const path = require("path");
-// import path from "path";
 var appRoot = require("app-root-path");
 const router = express.Router();
+const fs = require("fs");
 
 const {
   createGvm,
@@ -14,29 +12,29 @@ const {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // cb(null, appRoot + "/src/public/images/userIdCardPhotos/frontPhotos");
-    if (file.fieldname == "truocCCCD") {
-      cb(null, appRoot + "/src/public/images/userIdCardPhotos/frontPhotos/");
-    } else if (file.fieldname == "sauCCCD") {
-      cb(null, appRoot + "/src/public/images/userIdCardPhotos/backPhotos/");
-    } else if (file.fieldname == "bangTotNghiep") {
-      cb(null, appRoot + "/src/public/images/certificates");
-    } else if (file.fieldname == "FileLyLich") {
-      // Xử lý file PDF
-      cb(null, appRoot + "/src/public/resumes/");
+    let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user"; // Sử dụng Họ tên làm định danh
+    let Khoa = req.session.MaPhongBan; // Lấy thông tin Khoa từ session
+    let BoMon = req.body.monGiangDayChinh; // Lấy thông tin Bộ môn từ body
+
+    // Tạo đường dẫn thư mục chứa các folder con: Khoa/BoMon/HoTen
+    const userFolderPath =
+      appRoot + `/Giang_Vien_Moi/${Khoa}/${BoMon}/${HoTen}`;
+
+    // Kiểm tra và tạo thư mục con nếu chưa tồn tại
+    if (!fs.existsSync(userFolderPath)) {
+      fs.mkdirSync(userFolderPath, { recursive: true });
     }
+
+    // Trả về đường dẫn để lưu file
+    cb(null, userFolderPath);
   },
-  // By default, multer removes file extensions so let's add them back
   filename: function (req, file, cb) {
-    let idUser = req.body.CCCD ? req.body.CCCD : "unknown-user";
-    cb(
-      null,
-      idUser +
-        // file.fieldname +
-        // "-" +
-        // Date.now() +
-        path.extname(file.originalname)
-    );
+    let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user";
+    let fieldName = file.fieldname; // Tên trường (fieldname) để phân loại file
+
+    // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
+    let fileName = `${fieldName}${path.extname(file.originalname)}`;
+    cb(null, fileName); // Đặt tên file theo định dạng: HoTen_fieldname.extension
   },
 });
 

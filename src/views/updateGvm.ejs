@@ -89,9 +89,15 @@
             <label for="DiaChi">Địa chỉ theo CCCD:</label>
             <input required class="form-control" type="text" name="DiaChi" id="DiaChi" value="<%= value.DiaChi %>">
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <label for="msthue">Mã số thuế:</label>
             <input required class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
+          </div> -->
+          <div class="col-md-4">
+            <label for="monGiangDayChinh">Bộ môn:</label>
+            <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
+              <option value="">---</option>
+            </select>
           </div>
           <div class="col-md-4">
             <label for="HocVi">Bằng cấp cao nhất:</label>
@@ -113,15 +119,15 @@
           <div class="col-md-4">
             <label>Mặt trước CCCD:</label>
             <img 
-              src="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" 
+              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.MatTruocCCCD %>" 
               alt="Mặt trước CCCD" 
               id="imgtruoc" 
               style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
               <a 
-              href="/images/userIdCardPhotos/frontPhotos/<%= value.MatTruocCCCD %>" 
+              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.MatTruocCCCD %>" 
               target="_blank" 
               id="linktruoc" 
-              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+              style="display: <%= value.MatTruocCCCD && value.MatTruocCCCD.endsWith('.pdf') ? 'block' : 'none' %>;">
               Xem file PDF
             </a>
             <br>
@@ -133,15 +139,15 @@
           <div class="col-md-4">
             <label>Mặt sau CCCD:</label>
             <img 
-              src="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" 
+              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.MatSauCCCD %>" 
               alt="Mặt sau CCCD" 
               id="imgsau" 
               style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
               <a 
-              href="/images/userIdCardPhotos/backPhotos/<%= value.MatSauCCCD %>" 
+              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.MatSauCCCD %>" 
               target="_blank" 
               id="linksau" 
-              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'none' : 'block' %>;">
+              style="display: <%= value.MatSauCCCD && value.MatSauCCCD.endsWith('.pdf') ? 'block' : 'none' %>;">
               Xem file PDF
             </a>
             <br>
@@ -153,15 +159,15 @@
           <div class="col-md-4">
             <label>Hình ảnh bằng cấp cao nhất:</label>
             <img 
-              src="/images/certificates/<%= value.BangTotNghiep %>" 
+              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.BangTotNghiep %>" 
               alt="Bằng cấp cao nhất" 
               id="imgbang" 
               style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
             <a 
-              href="/images/certificates/<%= value.BangTotNghiep %>" 
+              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.BangTotNghiep %>" 
               target="_blank" 
               id="linkbang" 
-              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'none' : 'block' %>;">
+              style="display: <%= value.BangTotNghiep && value.BangTotNghiep.endsWith('.pdf') ? 'block' : 'none' %>;">
               Xem file PDF
             </a>
             <br>
@@ -182,7 +188,7 @@
           </div>
           <div class="col-md-4">
             <label>File lý lịch (PDF):</label>
-            <a href="/resumes/<%= value.FileLyLich %>" download>
+            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" download>
               <%= value.FileLyLich %>
             </a>
             <input class="form-control" type="file" name="FileLyLich" id="FileLyLich">
@@ -246,11 +252,15 @@
               <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <label for="monGiangDayChinh">Bộ môn:</label>
             <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
               <option value="">---</option>
             </select>
+          </div> -->
+          <div class="col-md-4">
+            <label for="msthue">Mã số thuế:</label>
+            <input required class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
           </div>
           <div class="col-md-4 thuocQuanDoiBox">
               <label for="thuocQuanDoi" class="thuocQuanDoi-label">Thuộc quân đội:</label>

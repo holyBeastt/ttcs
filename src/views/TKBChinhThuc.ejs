@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <style>
+      /* CSS cho bảng */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        white-space: nowrap;
+        /* Ngăn chặn xuống dòng */
+      }
+
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      .table td {
+        vertical-align: middle;
+      }
+
+      .bg-custom {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .spinner-border {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+      }
+
+      .header-actions {
+        display: flex;
+        /* Flexbox container */
+        flex-wrap: wrap;
+        /* Wrap items if they don't fit in one line */
+        align-items: center;
+        /* Vertically center items */
+        gap: 10px;
+        /* Space between the elements */
+        justify-content: space-between;
+      }
+
+      .right {
+        margin-top: 20px;
+      }
+
+      .btn {
+        height: 45px;
+        margin-left: 5px;
+      }
+
+      /* cảnh báo khi thiếu dữ liệu */
+      .warning-row {
+        background-color: #ffe6e6;
+        /* Màu nền cảnh báo nhạt */
+        color: #ff0000;
+        /* Màu chữ cảnh báo */
+      }
+
+      /* nút xuất file */
+      /* Định dạng cho dropdown */
+      #file-format-menu {
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        transform: translateX(53%);
+        /* Thêm hiệu ứng nhấp nháy màu chéo */
+        /* animation: flashColors 2s linear infinite, diagonalMove 2s linear infinite; */
+      }
+
+      .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f8f9fa;
+      }
+
+      /* Animation nháy màu liên tục */
+      @keyframes flashColors {
+        0% {
+          background-color: rgba(255, 0, 0, 0.8);
+        }
+
+        /* Màu đỏ rực */
+        10% {
+          background-color: rgba(255, 105, 180, 0.8);
+        }
+
+        /* Màu hồng đậm */
+        20% {
+          background-color: rgba(255, 215, 0, 0.8);
+        }
+
+        /* Màu vàng kim */
+        30% {
+          background-color: rgba(34, 193, 195, 0.8);
+        }
+
+        /* Màu xanh dương ngọc bích */
+        40% {
+          background-color: rgba(0, 255, 255, 0.8);
+        }
+
+        /* Màu cyan sáng */
+        50% {
+          background-color: rgba(75, 0, 130, 0.8);
+        }
+
+        /* Màu tím đậm */
+        60% {
+          background-color: rgba(255, 165, 0, 0.8);
+        }
+
+        /* Màu cam sáng */
+        70% {
+          background-color: rgba(128, 0, 128, 0.8);
+        }
+
+        /* Màu tím ngọc */
+        80% {
+          background-color: rgba(0, 255, 0, 0.8);
+        }
+
+        /* Màu xanh lá cây sáng */
+        90% {
+          background-color: rgba(255, 69, 0, 0.8);
+        }
+
+        /* Màu cam đỏ */
+        100% {
+          background-color: rgba(255, 0, 0, 0.8);
+        }
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        const role = localStorage.getItem("userRole");
+
+        if (role == "Duyệt") {
+          document.getElementById("ban-hanh").style.visibility = "visible";
+          document.getElementById("quychuandukien").style.visibility =
+            "visible";
+          document.getElementById("xoa-qc-du-kien").style.visibility =
+            "visible";
+        }
+        /*
+            if (MaPhongBan != "DAOTAO" || role == "Thường") {
+              document.getElementById("ban-hanh").style.visibility = "hidden";
+              document.getElementById("quychuandukien").style.visibility = "hidden";
+              document.getElementById("xoa-qc-du-kien").style.visibility = "hidden";
+            }
+              */
+      });
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
+
+    <!-- Phần nội dung -->
+
+    <div class="container-fluid my-4" style="padding-left: 0px">
+      <div class="flex-grow-1">
+        <div class="header-actions">
+          <div class="left">
+            <button
+              class="btn"
+              id="ban-hanh"
+              style="margin-bottom: 0px; visibility: hidden"
+            >
+              Ban Hành
+            </button>
+            <button
+              class="btn text-nowrap"
+              id="quychuandukien"
+              style="width: max-content; margin-bottom: 0px; visibility: hidden"
+            >
+              Thêm bảng quy chuẩn
+            </button>
+          </div>
+
+          <div class="right" style="margin-top: 0px">
+            <div class="loc d-flex align-items-center">
+              <select class="selectop" id="combobox-dot">
+                <option value="">Đợt</option>
+              </select>
+
+              <!-- Combo box kì -->
+              <select class="selectop" id="comboboxki">
+                <option value="">Kì</option>
+              </select>
+
+              <!-- Combo box Năm -->
+              <select class="selectop" id="NamHoc">
+                <option value="">Chọn năm học</option>
+              </select>
+              <select class="selectop" id="departmentFilter">
+                <option value="">Chọn khoa</option>
+              </select>
+              <button
+                onclick="getDataTable()"
+                class="btn text-nowrap"
+                id="render"
+                style="margin-top: 17px"
+              >
+                Hiển thị
+              </button>
+              <button
+                class="btn text-nowrap"
+                id="xoa-qc-du-kien"
+                style="margin-top: 17px; visibility: hidden"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <table class="table table-bordered">
+            <thead>
+              <tr id="table-header"></tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+          <button class="btn text-nowrap" id="add-row-btn" onclick="addRow()">
+            Thêm
+          </button>
+          <!-- <button class="btn text-nowrap" id="save-btn" onclick="submitData()">Lưu</button> -->
+          <!-- Nút xuất file -->
+          <button class="btn text-nowrap" id="export-file-btn">
+            Xuất file
+          </button>
+
+          <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
+          <div
+            id="file-format-menu"
+            class="dropdown-menu"
+            aria-labelledby="export-file-btn"
+            style="display: none; position: absolute"
+          >
+            <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
+            <button class="dropdown-item" onclick="exportToExcel()">
+              Excel
+            </button>
+            <button class="dropdown-item" onclick="exportToWord()">Word</button>
+          </div>
+        </div>
+
+        <div
+          id="no-data-message"
+          class="text-center my-3"
+          style="display: none"
+        >
+          Không có dữ liệu để hiển thị.
+        </div>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Link script Sweet alert 2 -->
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <!-- link thư viện excel  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+
+        // hideButton2 ẩn các chức năng thêm sửa xóa
+        hideButton2(role);
+      });
+
+      function hideButton2(role) {
+        if (role != "Duyệt") {
+          const themBtn = document.getElementById("add-row-btn");
+          const xuatFileBtn = document.getElementById("export-file-btn");
+
+          // const hanhDongTh = document.querySelector('th:contains("Hành động")');
+          // const hanhDongTh = document.getElementById('action-column');
+          if (themBtn) {
+            themBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
+            xuatFileBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
+          }
+        }
+      }
+    </script>
+    <!-- phần xuất file -->
+    <script>
+      // renderData là biến var
+      document
+        .getElementById("export-file-btn")
+        .addEventListener("click", function (event) {
+          // Toggle menu hiển thị
+          const menu = document.getElementById("file-format-menu");
+          menu.style.display = menu.style.display === "none" ? "block" : "none";
+
+          // Đảm bảo menu không bị ẩn khi click ra ngoài
+          window.addEventListener("click", function (event) {
+            if (
+              !event.target.closest("#file-format-menu") &&
+              !event.target.closest("#export-file-btn")
+            ) {
+              menu.style.display = "none";
+            }
+          });
+        });
+
+      const titleMap = {
+        SoTinChi: "Số TC",
+        LopHocPhan: "Lớp học phần",
+        GiaoVien: "Giáo viên",
+        SoTietCTDT: "Số tiết CTĐT",
+        SoSinhVien: "Số SV",
+        LL: "Số tiết lên lớp theo TKB",
+        HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+        HeSoLopDong: "Hệ số lớp đông",
+        QuyChuan: "Quy chuẩn",
+      };
+
+      function exportToPDF() {
+        // Lọc qua các key trong renderData và chỉ giữ lại những key có ánh xạ trong titleMap
+        const headers = Object.keys(renderData[0])
+          .filter((key) => titleMap[key])
+          .map((key) => titleMap[key]);
+        const rows = renderData.map((item) =>
+          headers.map(
+            (header) =>
+              item[
+                Object.keys(titleMap).find((key) => titleMap[key] === header)
+              ] || ""
+          )
+        );
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.autoTable({
+          head: [headers], // Tiêu đề bảng
+          body: rows, // Dữ liệu bảng
+        });
+
+        doc.save("table.pdf");
+      }
+
+      function exportToExcel() {
+        // Mảng tiêu đề theo thứ tự mong muốn
+        const orderedKeys = [
+          "TT",
+          "SoTinChi",
+          "LopHocPhan",
+          "GiaoVien",
+          "SoTietCTDT",
+          "SoSinhVien",
+          "LL",
+          "HeSoT7CN",
+          "HeSoLopDong",
+          "QuyChuan",
+        ];
+
+        // Mảng tiêu đề dựa trên titleMap
+        const headers = orderedKeys.map((key) =>
+          key === "TT" ? "TT" : titleMap[key]
+        );
+
+        // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
+        const rows = renderData.map((item, index) => {
+          return orderedKeys.map((key) => {
+            if (key === "TT") {
+              return `${index + 1}.`; // Định dạng số thứ tự
+            }
+            return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
+          });
+        });
+
+        // Tạo dòng đầu tiên với nội dung tùy chỉnh
+        const headerTitle = [
+          [
+            `SỐ TIẾT QUY CHUẨN HỌC KỲ ${renderData[0].Ki} năm học ${renderData[0].Nam}`,
+          ],
+        ];
+
+        // Kết hợp tiêu đề và dữ liệu
+        const worksheetData = [
+          ...headerTitle, // Dòng tiêu đề đầu tiên
+          [], // Dòng trống giữa tiêu đề và bảng
+          headers, // Dòng tiêu đề cột
+          ...rows, // Dữ liệu
+        ];
+
+        // Tạo workbook và worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Căn chỉnh độ rộng cột
+        const colWidths = headers.map((header, colIndex) => {
+          const maxLength = Math.max(
+            header.length,
+            ...rows.map((row) => String(row[colIndex]).length)
+          );
+          return { wpx: maxLength * 6 };
+        });
+
+        ws["!cols"] = colWidths;
+
+        // Gắn sheet vào workbook và xuất file
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(
+          wb,
+          `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.xlsx`
+        );
+      }
+
+      function exportToWord() {
+        // Mảng tiêu đề theo thứ tự mong muốn
+        const orderedKeys = [
+          "TT",
+          "SoTinChi",
+          "LopHocPhan",
+          "GiaoVien",
+          "SoTietCTDT",
+          "SoSinhVien",
+          "LL",
+          "HeSoT7CN",
+          "HeSoLopDong",
+          "QuyChuan",
+        ];
+
+        // Mảng tiêu đề dựa trên titleMap
+        const headers = orderedKeys.map((key) =>
+          key === "TT" ? "TT" : titleMap[key]
+        );
+
+        // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
+        const rows = renderData.map((item, index) => {
+          return orderedKeys.map((key) => {
+            if (key === "TT") {
+              return `${index + 1}.`; // Định dạng số thứ tự
+            }
+            return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
+          });
+        });
+
+        // Tạo nội dung HTML cho bảng
+        const htmlContent = `
+    <table border="1" style="border-collapse: collapse; width: 100%; text-align: left;">
+      <thead>
+        <tr>${headers
+          .map((header) => `<th style="padding: 8px;">${header}</th>`)
+          .join("")}</tr>
+      </thead>
+      <tbody>
+        ${rows
+          .map(
+            (row) =>
+              `<tr>${row
+                .map((cell) => `<td style="padding: 8px;">${cell}</td>`)
+                .join("")}</tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+
+        // Tạo file Word từ nội dung HTML
+        const blob = new Blob(
+          ["<html><body>" + htmlContent + "</body></html>"],
+          {
+            type: "application/msword",
+          }
+        );
+
+        // Tải xuống file Word
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    </script>
+
+    <!-- render bảng -->
+    <script>
+      // Biến chung để lưu dữ liệu render
+      var renderData = [];
+      // Mảng khoa ( để validate bảng)
+      var khoaArray = [];
+
+      async function getDataTable() {
+        let Dot = document.getElementById("combobox-dot").value;
+        let Ki = document.getElementById("comboboxki").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let Khoa = document.getElementById("departmentFilter").value;
+
+        const body = {
+          Khoa: Khoa,
+          Dot: Dot,
+          Ki: Ki,
+          Nam: Nam,
+        };
+
+        try {
+          const response = await fetch("/qcdk", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              "Network response was not ok: " + response.statusText
+            );
+          }
+
+          const data = await response.json();
+          renderData = data; // Lưu dữ liệu vào biến renderData
+          console.log(renderData);
+
+          // Gọi hàm renderTable để hiển thị dữ liệu
+          renderTable();
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          alert("Có lỗi xảy ra khi gọi API: " + error.message);
+        }
+      }
+
+      function renderTable() {
+        document.getElementById("data-table-body").innerHTML = "";
+
+        if (renderData.length === 0) {
+          document.getElementById("no-data-message").style.display = "block";
+        } else {
+          document.getElementById("no-data-message").style.display = "none";
+          let tableHtml = "";
+          const headersMap = {
+            Khoa: "Khoa",
+            Dot: "Đợt",
+            Ki: "Kì",
+            Nam: "Năm",
+            GiaoVien: "Giảng viên theo TKB",
+            GiaoVienGiangDay: "Giảng viên giảng dạy",
+            MoiGiang: "Mời giảng?",
+            SoTinChi: "Số TC",
+            LopHocPhan: "Lớp học phần",
+            LL: "Số tiết LL",
+            SoTietCTDT: "Số tiết TKB",
+            HeSoT7CN: "Hệ số ngoài giờ",
+            SoSinhVien: "Số SV",
+            HeSoLopDong: "Hệ số lớp đông",
+            QuyChuan: "Số tiết QC",
+          };
+
+          const headers = Object.keys(renderData[0]).filter(
+            (header) => header !== "GhiChu" && header !== "ID"
+          );
+
+          headers.forEach((header) => {
+            const newHeaderName = headersMap[header] || header;
+            const baseStyle =
+              'style="text-align: center; vertical-align: middle;"'; // Style mặc định căn giữa text
+            const headerStyle =
+              newHeaderName === "Số TC" || newHeaderName === "Số SV"
+                ? 'style="white-space: break-spaces"'
+                : baseStyle;
+
+            tableHtml += `<th ${headerStyle}>${newHeaderName}</th>`;
+            // tableHtml += `<th>${newHeaderName}</th>`;
+          });
+
+          const role = localStorage.getItem("userRole");
+
+          if (role === "Duyệt") {
+            tableHtml += `<th id="action-column" style="text-align: center; vertical-align: middle;">Hành động</th>`;
+          }
+
+          document.getElementById("table-header").innerHTML = tableHtml;
+
+          const keyNotEdit = ["ID", "GhiChu"];
+          renderData.forEach((item) => {
+            const id = item.ID;
+
+            const row = headers
+              .map((key) => {
+                if (keyNotEdit.includes(key)) {
+                  return `<td>${item[key] !== null ? item[key] : ""}</td>`;
+                }
+                return `<td id="cell-${id}-${key}" style="display:${
+                  key === "ID" ? "none" : ""
+                }">${item[key] !== null ? item[key] : ""}</td>`;
+              })
+              .join("");
+
+            let actionColumn = "";
+            if (role === "Duyệt") {
+              actionColumn = `
+          <td>
+            <button onclick="editRow(${id})">Sửa</button>
+            <button onclick="deleteRow(${id})">Xóa</button>
+          </td>
+          `;
+            }
+
+            const hasZeroValue = Object.values(item).some(
+              (value) => !isNaN(value) && Number(value) === 0
+            );
+            const warningClass = hasZeroValue ? "warning-row" : "";
+
+            document.getElementById("data-table-body").innerHTML += `
+          <tr id="row-${id}" class="${warningClass}">
+          ${row}
+          ${actionColumn}
+          </tr>`;
+          });
+        }
+      }
+
+      function renderRow(id, updatedRow) {
+        let rowElement = document.getElementById(`row-${id}`);
+        const role = localStorage.getItem("userRole");
+        const headersMap = {
+          Khoa: "Khoa",
+          Dot: "Đợt",
+          Ki: "Kì",
+          Nam: "Năm",
+          GiaoVien: "Giảng viên theo TKB",
+          GiaoVienGiangDay: "Giảng viên giảng dạy",
+          MoiGiang: "Mời giảng?",
+          SoTinChi: "Số TC",
+          LopHocPhan: "Lớp học phần",
+          LL: "Số tiết LL",
+          SoTietCTDT: "Số tiết TKB",
+          HeSoT7CN: "Hệ số ngoài giờ",
+          SoSinhVien: "Số SV",
+          HeSoLopDong: "Hệ số lớp đông",
+          QuyChuan: "Số tiết QC",
+        };
+
+        const keyNotEdit = ["ID", "GhiChu"];
+        const headers = Object.keys(updatedRow).filter(
+          (header) => header !== "GhiChu" && header !== "ID"
+        );
+
+        // Nếu dòng chưa tồn tại, tạo mới
+        if (!rowElement) {
+          rowElement = document.createElement("tr");
+          rowElement.id = `row-${id}`;
+          document.getElementById("data-table-body").appendChild(rowElement);
+        }
+
+        // Xây dựng các ô trong dòng
+        const rowHtml = headers
+          .map((key) => {
+            const cellStyle =
+              key === "SoSinhVien" || key === "SoTinChi"
+                ? "background-color: #ffffff; font-weight: bold;" // Style tùy chỉnh
+                : "";
+
+            if (keyNotEdit.includes(key)) {
+              return `<td style="${cellStyle}">${
+                updatedRow[key] !== null ? updatedRow[key] : ""
+              }</td>`;
+            }
+
+            return `<td id="cell-${id}-${key}" style="display:${
+              key === "ID" ? "none" : ""
+            }; ${cellStyle}">${
+              updatedRow[key] !== null ? updatedRow[key] : ""
+            }</td>`;
+            // if (keyNotEdit.includes(key)) {
+            //   return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+            // }
+            // return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
+            //   }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
+          })
+          .join("");
+
+        // Tạo cột hành động nếu role là "Duyệt"
+        let actionColumn = "";
+        if (role === "Duyệt") {
+          actionColumn = `
+      <td>
+        <button onclick="editRow(${id})">Sửa</button>
+        <button onclick="deleteRow(${id})">Xóa</button>
+      </td>`;
+        }
+
+        // Kiểm tra nếu bất kỳ giá trị nào là 0
+        const hasZeroValue = Object.values(updatedRow).some(
+          (value) => !isNaN(value) && Number(value) === 0
+        );
+        const warningClass = hasZeroValue ? "warning-row" : "";
+
+        // Cập nhật HTML của dòng
+        rowElement.className = warningClass;
+        rowElement.innerHTML = `
+        ${rowHtml}
+        ${actionColumn}`;
+      }
+
+      // Hàm sửa gắn vào tt onclick
+      function editRow(index) {
+        // Lọc ra đối tượng trong renderData có ID tương ứng với index
+        const item = renderData.find((item) => item.ID === index);
+
+        if (!item) {
+          console.error(`Không tìm thấy đối tượng với ID: ${index}`);
+          return; // Nếu không tìm thấy đối tượng, thoát khỏi hàm
+        }
+
+        const row = document.getElementById(`row-${index}`);
+        if (!row) {
+          console.error(`Không tìm thấy row-${index}`);
+          return; // Nếu không tìm thấy row, thoát khỏi hàm
+        }
+
+        // Lọc các cột cần sửa (Loại bỏ cột không sửa được như: "GhiChu" "ID")
+        const headers = Object.keys(renderData[0]).filter(
+          (header) => !["GhiChu", "ID"].includes(header)
+        );
+
+        headers.forEach((key) => {
+          // Lấy giá trị của trường tương ứng từ item
+          const currentValue = item[key];
+
+          // Tìm phần tử cell tương ứng với ID và keyss
+          const cell = document.getElementById(`cell-${index}-${key}`);
+          if (cell) {
+            let inputWidth = "100%"; // Mặc định độ rộng là 100%
+            if (key === "LopHocPhan" || key === "GiaoVien") {
+              inputWidth = "100%"; // Nếu là "LopHocPhan" hoặc "GiaoVien", đặt độ rộng là 100%
+            }
+
+            // Tạo ô nhập liệu với giá trị hiện tại và độ rộng tùy chỉnh
+            cell.innerHTML = `<input type="text" id="input-${index}-${key}" value="${currentValue}" placeholder="${currentValue}" style="width: ${inputWidth};">`;
+          } else {
+            console.error(`Không tìm thấy cell-${index}-${key}`);
+          }
+        });
+
+        // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
+        const actionCell = row.querySelector("td:last-child");
+        actionCell.innerHTML = `
+    <button onclick="saveRow(${index})">Lưu</button>
+    <button onclick="cancelEdit(${index})">Hủy</button>
+  `;
+      }
+
+      // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
+      async function saveRow(id) {
+        try {
+          // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
+          const headers = Object.keys(renderData[0]);
+
+          // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
+          const updatedRow = {};
+
+          // Duyệt qua từng cột và cập nhật giá trị của nó
+          headers.forEach((key) => {
+            // Lấy phần tử input tương ứng với từng cột và dòng
+            const input = document.getElementById(`input-${id}-${key}`);
+
+            if (input) {
+              // Kiểm tra xem ô nhập liệu có tồn tại không
+              const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
+
+              // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
+              if (newValue === "") {
+                throw new Error(`Giá trị của cột ${key} không thể để trống!`);
+              }
+
+              // Thêm giá trị mới vào đối tượng updatedRow
+              updatedRow[key] = newValue;
+            } else {
+              console.warn(
+                `Không tìm thấy ô nhập liệu cho cột ${key} tại dòng ${id}`
+              );
+              // Nếu không có input, giữ nguyên giá trị cũ
+              updatedRow[key] = renderData.find((row) => row.ID === id)[key];
+            }
+          });
+
+          // Gửi dữ liệu dòng đã sửa tới API
+          const response = await fetch(`/update-row/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to update row: ${response.statusText}`);
+          }
+
+          // Nếu API trả về trạng thái 200, tiếp tục cập nhật và hiển thị lại dòng
+          const rowIndex = renderData.findIndex((row) => row.ID === id);
+          if (rowIndex !== -1) {
+            renderData[rowIndex] = updatedRow; // Thay thế dòng cũ bằng dòng đã chỉnh sửa
+          }
+
+          // Hiển thị lại dòng đã chỉnh sửa
+          renderRow(id, updatedRow);
+        } catch (error) {
+          console.error("Error updating row:", error);
+          alert(`Có lỗi xảy ra khi cập nhật: ${error.message}`);
+        }
+      }
+
+      function cancelEdit(id) {
+        // Tìm dữ liệu gốc của dòng dựa trên ID
+        const originalRow = renderData.find((row) => row.ID === id);
+
+        if (!originalRow) {
+          console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
+          return;
+        }
+
+        // Render lại dòng theo dữ liệu gốc
+        renderRow(id, originalRow);
+
+        // Thông báo (tùy chọn)
+        console.log(`Đã hủy chỉnh sửa dòng với ID: ${id}`);
+      }
+
+      // Hàm xóa dòng khi sửa ( gọi api xóa 1 dòng )
+      async function deleteRow(id) {
+        if (confirm("Bạn có chắc chắn muốn xóa dòng này?")) {
+          // Xác nhận xóa
+          try {
+            // Gửi yêu cầu DELETE tới API để xóa dòng
+            const response = await fetch(`/delete-row/${id}`, {
+              method: "DELETE", // Phương thức DELETE
+              headers: {
+                "Content-Type": "application/json", // Định dạng dữ liệu
+              },
+            });
+
+            // Kiểm tra phản hồi từ server
+            if (!response.ok) {
+              throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
+            }
+
+            // Xóa dòng trong dữ liệu cục bộ renderData
+            renderData = renderData.filter((row) => row.ID !== id);
+
+            // Xóa trực tiếp dòng khỏi bảng trong giao diện
+            const rowElement = document.getElementById(`row-${id}`);
+            if (rowElement) {
+              rowElement.remove();
+            }
+
+            // Thông báo thành công (tuỳ chọn)
+            console.log(`Xóa dòng thành công: ID ${id}`);
+          } catch (error) {
+            console.error("Lỗi khi xóa dòng:", error);
+            alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
+          }
+        }
+      }
+
+      // Hàm thêm khi ấn nút THÊM
+      let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
+
+      // Hàm thêm khi ấn nút THÊM
+      function addRow() {
+        // Lấy các giá trị mặc định từ các combo box
+        const Khoa = document.getElementById("departmentFilter").value;
+        const Dot = document.getElementById("combobox-dot").value;
+        const Ki = document.getElementById("comboboxki").value;
+        const Nam = document.getElementById("NamHoc").value;
+
+        // Tạo một đối tượng rỗng cho dòng mới
+        const newRowData = {};
+
+        // Lấy danh sách các cột từ renderData[0] để đảm bảo khởi tạo đủ key, ngoại trừ "ID" và "GhiChu"
+        const headers = Object.keys(renderData[0]).filter(
+          (header) => !["ID", "GhiChu"].includes(header)
+        );
+
+        // Khởi tạo dữ liệu cho các cột
+        headers.forEach((key) => {
+          if (key === "Khoa") {
+            newRowData[key] = Khoa; // Lấy giá trị từ combo box
+          } else if (key === "Dot") {
+            newRowData[key] = Dot; // Lấy giá trị từ combo box
+          } else if (key === "Ki") {
+            newRowData[key] = Ki; // Lấy giá trị từ combo box
+          } else if (key === "Nam") {
+            newRowData[key] = Nam; // Lấy giá trị từ combo box
+          } else {
+            newRowData[key] = ""; // Các trường khác để trống mặc định
+          }
+        });
+
+        // Tăng biến đếm
+        newRowCounter++;
+
+        // Tạo phần tử dòng mới
+        const row = document.createElement("tr");
+        row.id = `new-row-${newRowCounter}`; // Đảm bảo id của dòng mới là duy nhất
+
+        // Tạo HTML cho các ô nhập liệu của dòng mới
+        headers.forEach((key) => {
+          // Tạo thẻ <td> cho mỗi cột
+          const cell = document.createElement("td");
+
+          // Tạo thẻ <input> cho ô nhập liệu
+          const input = document.createElement("input");
+          input.type = "text";
+          input.id = `input-new-${key}-${newRowCounter}`; // Đảm bảo id của input là duy nhất
+          input.value = newRowData[key];
+          input.placeholder = `Nhập ${key}`;
+          input.style.width = "100%";
+
+          // Thêm ô nhập liệu vào thẻ <td>
+          cell.appendChild(input);
+
+          // Thêm thẻ <td> vào thẻ <tr>
+          row.appendChild(cell);
+        });
+
+        // Tạo thẻ <td> cho các nút hành động (Lưu và Hủy)
+        const actionCell = document.createElement("td");
+
+        // Tạo nút Lưu
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Lưu";
+        saveButton.onclick = saveNewRow;
+
+        // Tạo nút Hủy
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Hủy";
+        cancelButton.onclick = cancelAddRow;
+
+        // Thêm các nút vào thẻ <td>
+        actionCell.appendChild(saveButton);
+        actionCell.appendChild(cancelButton);
+
+        // Thêm thẻ <td> (chứa các nút hành động) vào thẻ <tr>
+        row.appendChild(actionCell);
+
+        // Thêm dòng mới vào bảng
+        document.getElementById("data-table-body").appendChild(row);
+
+        console.log("Dòng mới được khởi tạo:", newRowData);
+      }
+
+      // Hàm lưu dòng mới (gọi api lưu 1 dòng mới)
+      async function saveNewRow() {
+        try {
+          // Lấy dòng mới từ bảng có id bắt đầu bằng "new-row-"
+          const row = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
+
+          // Kiểm tra xem dòng mới có tồn tại không
+          if (!row) {
+            throw new Error("Không tìm thấy dòng mới!");
+          }
+
+          // Tạo đối tượng chứa dữ liệu của dòng mới
+          const newRowData = {};
+
+          // Lấy danh sách các cột từ renderData[0] (loại bỏ "ID" và "GhiChu")
+          const headers = Object.keys(renderData[0]).filter(
+            (header) => !["ID", "GhiChu"].includes(header)
+          );
+
+          // Duyệt qua các ô nhập liệu trong dòng và lấy giá trị
+          headers.forEach((key) => {
+            // Lấy ô nhập liệu tương ứng với từng cột
+            const input = row.querySelector(
+              `#input-new-${key}-${row.id.split("-")[2]}`
+            ); // Tìm ô nhập liệu với id duy nhất
+
+            if (input) {
+              newRowData[key] = input.value.trim(); // Lấy giá trị nhập vào
+            }
+          });
+
+          // Gửi dữ liệu dòng mới lên server
+          const response = await fetch("/add-row", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newRowData),
+          });
+
+          // Kiểm tra nếu phản hồi không thành công
+          if (!response.ok) {
+            throw new Error(`Không thể lưu dòng mới: ${response.statusText}`);
+          }
+
+          // Nếu phản hồi là 200 OK, cập nhật dữ liệu dòng mới
+          console.log("Dòng mới đã được lưu thành công");
+
+          // Lấy ID dòng mới từ row (sử dụng ID dòng nếu cần thiết)
+          const rowId = row.id;
+
+          // Gọi hàm renderRow để cập nhật giao diện với dòng đã lưu
+          renderRow(rowId, newRowData); // Gọi hàm renderRow để hiển thị dòng mới với dữ liệu đã lưu
+
+          // Xóa bỏ dòng "new-row" cũ sau khi lưu thành công
+          row.remove(); // Xóa dòng này khỏi DOM nếu không cần hiển thị nữa
+        } catch (error) {
+          // Xử lý lỗi và thông báo cho người dùng
+          console.error("Lỗi khi lưu dòng mới:", error);
+          alert("Có lỗi xảy ra khi lưu dòng mới: " + error.message);
+        }
+      }
+
+      // Hàm hủy tạo dòng mới
+      // Hàm hủy thao tác thêm dòng mới
+      function cancelAddRow() {
+        // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
+        const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
+
+        if (newRow) {
+          newRow.remove(); // Xóa dòng mới khỏi DOM
+          console.log("Đã hủy thao tác thêm dòng mới.");
+        } else {
+          console.log("Không tìm thấy dòng mới để hủy.");
+        }
+      }
+    </script>
+
+    <!-- phần xóa bảng quy chuẩn dự kiến -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("xoa-qc-du-kien")
+          .addEventListener("click", async function () {
+            let Dot = document.getElementById("combobox-dot").value;
+            let Ki = document.getElementById("comboboxki").value;
+            let Nam = document.getElementById("NamHoc").value;
+            let Khoa = document.getElementById("departmentFilter").value;
+
+            const body = {
+              Khoa: Khoa,
+              Dot: Dot,
+              Ki: Ki,
+              Nam: Nam,
+            };
+
+            console.log(body);
+
+            // Hiển thị hộp thoại xác nhận
+            const confirmation = confirm(
+              `Xóa dữ liệu của Khoa ${Khoa} Đợt ${Dot} Kì ${Ki} Năm ${Nam}`
+            );
+
+            if (confirmation) {
+              // Nếu người dùng chọn OK
+              try {
+                // Gọi tới API để xóa dữ liệu
+                const response = await fetch("/xoa-qcdk", {
+                  // Đường dẫn tới API của bạn
+                  method: "POST", // Phương thức HTTP
+                  headers: {
+                    "Content-Type": "application/json", // Định dạng dữ liệu
+                  },
+                  body: JSON.stringify(body), // Gửi Khoa trong body
+                });
+
+                // Kiểm tra xem yêu cầu có thành công không
+                if (response.ok) {
+                  const result = await response.json(); // Chuyển đổi phản hồi sang JSON
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: result.message,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    width: "auto", // Tự động điều chỉnh chiều rộng
+                    padding: "20px", // Giữ khoảng cách cho nội dung
+                  });
+                  // location.reload();
+                } else {
+                  const errorData = await response.json(); // Lấy thông tin lỗi
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: `Lỗi: ${errorData.message}`,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    width: "auto", // Tự động điều chỉnh chiều rộng
+                    padding: "20px", // Giữ khoảng cách cho nội dung
+                  });
+                }
+              } catch (error) {
+                console.error("Đã xảy ra lỗi:", error);
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Đã xảy ra lỗi khi gọi API",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto", // Tự động điều chỉnh chiều rộng
+                  padding: "20px", // Giữ khoảng cách cho nội dung
+                });
+              }
+            } else {
+              // Nếu người dùng chọn Cancel
+              // alert('Đã hủy yêu cầu xóa dữ liệu.'); // Thông báo đã hủy
+            }
+          });
+      });
+    </script>
+
+    <!-- phần ban hành -->
+    <script>
+      let dataQC = [];
+
+      // Hàm fetch lần đầu để lấy dữ liệu từ server
+      async function fetchData() {
+        // Lấy giá trị từ các phần tử đầu vào và kiểm tra xem có tồn tại hay không
+        let Dot = document.getElementById("combobox-dot")?.value;
+        let Ki = document.getElementById("comboboxki")?.value;
+        let Nam = document.getElementById("NamHoc")?.value;
+        let Khoa = document.getElementById("departmentFilter")?.value;
+
+        // Kiểm tra nếu có phần tử nào chưa được chọn
+        if (!Dot || !Ki || !Nam || !Khoa) {
+          alert("Vui lòng điền đầy đủ các thông tin cần thiết.");
+          return;
+        }
+
+        const body = {
+          Khoa: Khoa,
+          Dot: Dot,
+          Ki: Ki,
+          Nam: Nam,
+        };
+
+        try {
+          const response = await fetch("/qcdk", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          // Kiểm tra phản hồi từ server
+          if (!response.ok) {
+            throw new Error("Lấy dữ liệu thất bại");
+          }
+
+          const data = await response.json();
+          dataQC = data; // Lưu dữ liệu vào dataQC
+          console.log("Dữ liệu lấy được:", dataQC);
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Lấy dữ liệu thất bại! Vui lòng kiểm tra lại kết nối.");
+        }
+      }
+
+      // Hàm xử lý sự kiện khi người dùng nhấn nút "ban-hanh"
+      document
+        .getElementById("ban-hanh")
+        .addEventListener("click", async function () {
+          // Xác nhận lại hành động ban hành
+          const confirmed = confirm("Bạn có chắc chắn muốn ban hành không?");
+          if (!confirmed) {
+            return; // Thoát nếu người dùng không đồng ý
+          }
+
+          // Gọi hàm fetchData để lấy dữ liệu từ server
+          await fetchData();
+
+          // Kiểm tra nếu dữ liệu không có gì để gửi
+          if (!dataQC || dataQC.length === 0) {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Không có dữ liệu để ban hành",
+              icon: "info",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+            return;
+          }
+
+          console.log("Dữ liệu sẽ được gửi:", dataQC);
+
+          try {
+            const response = await fetch("/ban-hanh", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(dataQC),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              Swal.fire({
+                title: "Thông báo",
+                html: result.message || "Ban hành thành công!",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            } else {
+              Swal.fire({
+                title: "Thông báo",
+                html: result.message || "Ban hành thất bại!",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+              title: "Thông báo",
+              html: "Gửi dữ liệu thất bại! Vui lòng thử lại.",
+              icon: "success",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+          }
+        });
+    </script>
+
+    <script>
+      function filterTable() {
+        // Lấy giá trị đã chọn từ các combobox
+        let dot = document.getElementById("combobox-dot").value;
+        let ki = document.getElementById("comboboxki").value;
+        let nam = document.getElementById("NamHoc").value;
+        let department = document
+          .getElementById("departmentFilter")
+          .value.trim();
+
+        let tbody = document.getElementById("data-table-body");
+        let rows = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          let row = rows[i];
+          let cells = row.getElementsByTagName("td");
+
+          // Giả sử thứ tự cột là: Khoa, Đợt, Kì, Năm
+          let rowDepartment = cells[0].textContent.trim(); // Khoa
+          let rowDot = cells[1].textContent.trim(); // Đợt
+          let rowKi = cells[2].textContent.trim(); // Kì
+          let rowNam = cells[3].textContent.trim(); // Năm
+
+          // Logic lọc
+          let matchesDepartment =
+            department === "" || rowDepartment === department;
+          let matchesDot = dot === "" || rowDot === dot;
+          let matchesKi = ki === "" || rowKi === ki;
+          let matchesNam = nam === "" || rowNam === nam; // Kiểm tra năm
+
+          // Hiển thị hoặc ẩn hàng dựa trên kết quả lọc
+          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+            row.style.display = ""; // Hiển thị hàng
+          } else {
+            row.style.display = "none"; // Ẩn hàng
+          }
+        }
+      }
+    </script>
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+
+    <script>
+      $(document).ready(function () {
+        $('#NamHoc option[value=""]').remove();
+        $('#comboboxki option[value=""]').remove();
+        $('#combobox-dot option[value=""]').remove();
+
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                $("#NamHoc").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              response.Ki.forEach(function (item) {
+                console.log(item.Ki);
+                $("#comboboxki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+              response.Dot.forEach(function (item) {
+                console.log(item.Dot);
+                $("#combobox-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+            } else {
+              console.error(
+                "Không lấy được dữ liệu năm học:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học:", error);
+          },
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function () {
+        $('#departmentFilter option[value=""]').remove();
+        // Gọi AJAX để lấy dữ liệu JSON từ API
+        $.ajax({
+          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          method: "GET",
+          success: function (response) {
+            // Kiểm tra nếu response thành công
+            const MaPhongBan = response.MaPhongBan;
+            if (response.success) {
+              $("#departmentFilter").prepend(
+                '<option value="ALL">Tất cả khoa</option>'
+              );
+              // Lặp qua từng mục trong mảng MaPhongBan
+              response.MaPhongBan.forEach(function (item) {
+                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+                console.log(item);
+                // Push vào mảng Khoa để validate bảng
+                khoaArray.push(item.MaPhongBan);
+                $("#departmentFilter").append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
+              });
+
+              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+              if (!$("#departmentFilter option:selected").length) {
+                $("#departmentFilter").prepend(
+                  '<option value="">Chọn Phòng Ban</option>'
+                );
+              }
+            } else {
+              console.error(
+                "Không lấy được dữ liệu phongBan:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+          },
+        });
+      });
+    </script>
+    <script>
+      document
+        .getElementById("ban-hanh")
+        .addEventListener("click", async function () {
+          // Xác nhận lại hành động ban hành
+          // const confirmed = confirm("Bạn có chắc chắn muốn đặt năm đợt kì mặc định không?");
+          // if (!confirmed) {
+          //     return; // Thoát nếu người dùng không đồng ý
+          // }
+
+          // Lấy giá trị của option đang được chọn
+          let Dot = document.getElementById("combobox-dot")?.value;
+          let Ki = document.getElementById("comboboxki")?.value;
+          let NamHoc = document.getElementById("NamHoc")?.value;
+
+          try {
+            const updateResult = await updateDatabase(NamHoc, Ki, Dot); // Gọi hàm updateDatabase với NamHoc
+
+            if (updateResult.success) {
+              // alert(updateResult.message || "Cập nhật thành công!");
+            } else {
+              // alert(updateResult.message || "Cập nhật thất bại!");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Cập nhật dữ liệu thất bại! Vui lòng thử lại.");
+          }
+
+          // Gọi hàm updateDatabase để update dữ liệu
+          async function updateDatabase(NamHoc) {
+            const response = await fetch(`/update/${NamHoc}/${Ki}/${Dot}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              // body: JSON.stringify(dataQC), // Nếu cần gửi dữ liệu khác, hãy mở comment và thêm dataQC
+            });
+
+            const result = await response.json();
+            return result;
+          }
+        });
+    </script>
+    <script>
+      document
+        .getElementById("infome")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+          if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+          } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+          }
+        });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById("changeMessage");
+        //Ẩn site thêm thông báo
+        if (role === "Duyệt") {
+          actionButton.style.display = "";
+        } else {
+          actionButton.style.display = "none";
+        }
+      });
+    </script>
+    <script>
+      document
+        .getElementById("changeMessage")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+          if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+          } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>
