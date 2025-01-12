@@ -64,8 +64,7 @@ const exportVuotGio = async (req, res) => {
     const sanitizedNamHoc = sanitizeFileName(namHoc);
     const sanitizedKhoa = sanitizeFileName(khoa);
 
-
-    // Truy vấn dữ liệu cho năm học và khoa đã chọn
+    // Các truy vấn SQL
     const queryGiangDay = `
       SELECT DISTINCT
         TenHocPhan AS TenHocPhan, 
@@ -113,17 +112,18 @@ const exportVuotGio = async (req, res) => {
     `;
 
     const queryExportDoAnTotNghiep = `
-    SELECT DISTINCT
-      NamHoc AS Nam, 
-      MaPhongBan AS Khoa, 
-      SinhVien, 
-      KhoaDaoTao, 
-      SoNguoi, 
-      SoTiet, 
-      isHDChinh
-    FROM exportdoantotnghiep 
-    WHERE NamHoc = ? AND MaPhongBan = ?
-  `;
+      SELECT DISTINCT
+        NamHoc AS Nam, 
+        MaPhongBan AS Khoa, 
+        SinhVien, 
+        KhoaDaoTao, 
+        SoNguoi, 
+        SoTiet, 
+        isHDChinh
+      FROM exportdoantotnghiep 
+      WHERE NamHoc = ? AND MaPhongBan = ?
+    `;
+
     const queryNhanVien = `
       SELECT DISTINCT
         TenNhanVien AS GiangVien, 
@@ -137,13 +137,12 @@ const exportVuotGio = async (req, res) => {
       WHERE MaPhongBan = ? 
     `;
 
-
-    // Truy vấn dữ liệu cho năm học và khoa
+    // Thực thi các truy vấn
     const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa]);
     const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa]);
     const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa]);
-    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);   
-     const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
+    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);
+    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
 
     // Kiểm tra kết quả truy vấn
     if (
@@ -159,12 +158,18 @@ const exportVuotGio = async (req, res) => {
     // Kết hợp dữ liệu từ các bảng
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
-
     // Lấy danh sách giảng viên
-    const giangVienList = [...new Set(resultsGiangDay&&resultsExportDoAnTotNghiep&&resultsGiuaky&&resultsLopNgoaiQuyChuan&&resultsNhanVien.map((row) => row.GiangVien))];
+    const giangVienList = [...new Set([
+      ...resultsGiangDay.map(row => row.GiangVien),
+      ...resultsLopNgoaiQuyChuan.map(row => row.GiangVien),
+      ...resultsGiuaky.map(row => row.GiangVien),
+      ...resultsExportDoAnTotNghiep.map(row => row.GiangVien),
+      ...resultsNhanVien.map(row => row.GiangVien),
+    ])];
 
     const workbook = new ExcelJS.Workbook();
 
+    // Xử lý từng giảng viên
     giangVienList.forEach((giangVien) => {
       const worksheet = workbook.addWorksheet(giangVien);
 
