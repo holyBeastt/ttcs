@@ -37,6 +37,9 @@ const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
 
+// Phần thời khóa biểu
+const TKBRoute = require("./routes/TKBRoute");
+
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const doAnChinhThucRoute = require("./routes/doAnChinhThucRoute");
@@ -109,6 +112,9 @@ app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute);
 app.use("/", thongketonghopRoute);
+
+// Phần thời khóa biểu
+app.use("/", TKBRoute);
 
 // Phần đồ án
 app.use("/", doAnChinhThucRoute);
