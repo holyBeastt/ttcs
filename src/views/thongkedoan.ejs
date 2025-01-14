@@ -102,14 +102,24 @@
  <%- include('header') %>
 
     <!-- Phần nội dung -->
-
+ 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <h3>
-      Thống kê số đồ án tốt nghiệp theo giảng viên
-  </h3>
-  
+    <div class="d-flex justify-content-start align-items-end mb-3">
+      
+    <!-- Combo box Năm -->
+    <select class="form-select  mx-1 selectop" id="NamHoc">
+    </select>
+    
+    <!-- Combo box Khoa -->
+    <select class="form-select  mx-1 selectop" id="Khoa" style="width: 150px;">
+    </select>
+    
+  </div>
+  <h3>
+    Thống kê số đồ án tốt nghiệp theo giảng viên
+</h3>
   <div style="margin-top: 20px;">
       <canvas id="chartCoHuu" style="width: 100%; height: 600px; margin-bottom: 20px;"></canvas>
   </div>
@@ -159,7 +169,75 @@
   </div>
   
   <script>
-      $(document).ready(function () {
+    $(document).ready(function () {
+            // Biến để theo dõi số lượng combobox đã được khởi tạo
+            let initializedComboboxes = 0;
+            const totalComboboxes = 2; // Tổng số combobox cần khởi tạo
+
+            function checkAndFetchData() {
+                initializedComboboxes++;
+                if (initializedComboboxes === totalComboboxes) {
+                    fetchThongkeData();
+                }
+            }
+
+            // Xóa các option mặc định
+            $('#NamHoc option').remove();
+            $('#comboboxki option').remove();
+            $('#Khoa option').remove();
+
+            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            $.ajax({
+                url: '/getPhongBan',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm option "Tất cả khoa"
+                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+
+                        // Thêm các option khoa không trùng lặp
+                        response.MaPhongBan.forEach(function (item) {
+                            $('#Khoa').append(
+                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                            );
+                        });
+                        checkAndFetchData();
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+                    checkAndFetchData();
+                }
+            });
+
+            // Khởi tạo các combobox khác
+            $.ajax({
+                url: '/getNamHoc',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Thêm dữ liệu năm học
+                        response.NamHoc.forEach(function (item) {
+                            $('#NamHoc').append(
+                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
+                            );
+                        });
+                        // Thêm option "Tất cả năm" vào đầu
+                        $('#NamHoc').prepend('<option value="ALL" selected>Tất cả năm</option>');
+                        checkAndFetchData();
+
+                    }
+                },
+                error: function (error) {
+                    console.error("Lỗi khi lấy dữ liệu:", error);
+                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
+                    checkAndFetchData();
+                    checkAndFetchData();
+                }
+            });
+        
+
+      
           function fetchThongkeData() {
               const namhoc = $("#NamHoc").val();
               const khoa = $("#Khoa").val();
