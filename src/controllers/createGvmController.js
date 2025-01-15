@@ -64,8 +64,6 @@ let createGvm = async (req, res) => {
     const MaPhongBan = khoa;
     let isQuanDoi = req.body.thuocQuanDoi;
 
-    console.log("k bm = ", req.body.monGiangDayChinh);
-
     // Kiểm tra trùng lặp CCCD
     const checkDuplicateQuery =
       "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ?";
@@ -119,9 +117,12 @@ let createGvm = async (req, res) => {
       let FileLyLich = req.files["FileLyLich"]
         ? req.files["FileLyLich"][0].filename
         : null;
+      let fileBoSung = req.files["fileBoSung"]
+        ? req.files["fileBoSung"][0].filename
+        : null;
 
-      const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
         await con2.query(query, [
@@ -151,6 +152,7 @@ let createGvm = async (req, res) => {
           BangTotNghiepLoai,
           MonGiangDayChinh,
           isQuanDoi,
+          fileBoSung,
         ]);
 
         if (duplicateName.length > 0) {
