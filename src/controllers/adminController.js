@@ -49,6 +49,7 @@ const AdminController = {
       MatKhau,
       Quyen,
       HSL,
+      Luong,
     } = req.body;
     let TenDangNhap = req.body.TenDangNhap;
 
@@ -83,7 +84,13 @@ const AdminController = {
             "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
         });
       }
-
+      if (!/^\d+$/.test(Luong)) { // Kiểm tra nếu Luong không phải là chuỗi số
+        connection.release(); // Giải phóng kết nối trước khi trả về
+        return res.status(400).json({
+            message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+        });
+      }
+    
       // Kiểm tra trùng lặp tên
       const nvQuery = "select * from nhanvien";
       const [NhanVienList] = await connection.query(nvQuery); // Truyền kết nối vào
@@ -117,8 +124,8 @@ const AdminController = {
             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
-            MonGiangDayChinh, CacMonLienQuan, HSL
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            MonGiangDayChinh, CacMonLienQuan, HSL, Luong
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const valuesInsert = [
@@ -142,6 +149,7 @@ const AdminController = {
         MonGiangDayChinh,
         CacMonLienQuan,
         HSL,
+        Luong,
       ];
 
       const [result] = await connection.execute(queryInsert, valuesInsert);

@@ -285,16 +285,15 @@
               />
             </div>
           </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="HSL" class="form-label">Hệ số lương</label>
-            <input
-              type="text"
-              class="form-control"
-              id="HSL"
-              name="HSL"
-              value="<%= value.HSL %>"
-              readonly
-            />
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="HSL" class="form-label">Hệ số lương*</label>
+              <input type="text" class="form-control" id="HSL" name="HSL" value="<%= value.HSL %>" readonly />
+            </div>
+            <div>
+              <label for="Luong" class="form-label">Lương*</label>
+              <input type="text" class="form-control" id="Luong" name="Luong" value="<%= value.Luong %>" readonly/>
+            </div>
           </div>
         </div>
         <div class="row mb-3">
