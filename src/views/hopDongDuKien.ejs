@@ -120,7 +120,7 @@
               <option value="">Chọn khoa</option>
             </select>
 
-            <select class="form-select mx-1 selectop" id="HeDaoTao">
+            <select class="form-select mx-1 selectop" id="he_dao_tao">
               <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
               <option value="Đại học (Mật mã)">Hệ mật mã</option>
               <option value="Cao học (Đóng học phí)">Cao học</option>
@@ -183,14 +183,14 @@
               const dot = document.getElementById('combobox-dot').value;
               const ki = document.getElementById('comboboxki').value;
               const khoa = document.getElementById('MaPhongBan').value;
-              const HeDaoTao = document.getElementById('HeDaoTao').value;
+              const he_dao_tao = document.getElementById('he_dao_tao').value;
 
-              if (!namHoc || !dot || !ki || !HeDaoTao) {
+              if (!namHoc || !dot || !ki || !he_dao_tao) {
                 alert('Vui lòng chọn đầy đủ Năm học, Đợt và Kỳ');
                 return;
               }
 
-              let url = `/hop-dong-du-kien?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&HeDaoTao=${encodeURIComponent(HeDaoTao)}`;
+              let url = `/hop-dong-du-kien?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
               if (khoa && khoa !== 'ALL') {
                 url += `&khoa=${encodeURIComponent(khoa)}`;
               }

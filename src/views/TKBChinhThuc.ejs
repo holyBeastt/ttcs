@@ -646,7 +646,7 @@
             tableHeader.innerHTML = headerHtml;
           }
 
-          const keyNotEdit = ["ID", "GhiChu"];
+          const keyNotEdit = ["id", "GhiChu"];
 
           // Đặt chiều cao bảng ảo để mô phỏng toàn bộ dữ liệu
           tableBody.style.position = "relative";
@@ -748,9 +748,9 @@
           qc: "Quy chuẩn",
         };
 
-        const keyNotEdit = ["ID", "GhiChu"];
+        const keyNotEdit = ["id", "GhiChu"];
         const headers = Object.keys(updatedRow).filter(
-          (header) => header !== "description" && header !== "ID"
+          (header) => header !== "description"
         );
 
         // Nếu dòng chưa tồn tại, tạo mới
@@ -835,8 +835,11 @@
           // Lấy giá trị của trường tương ứng từ item
           const currentValue = item[key];
 
+          console.log("key = ", key);
+
           // Tìm phần tử cell tương ứng với ID và keyss
           const cell = document.getElementById(`cell-${index}-${key}`);
+
           if (cell) {
             let inputWidth = "100%"; // Mặc định độ rộng là 100%
             if (key === "LopHocPhan" || key === "GiaoVien") {
@@ -890,7 +893,7 @@
                 `Không tìm thấy ô nhập liệu cho cột ${key} tại dòng ${id}`
               );
               // Nếu không có input, giữ nguyên giá trị cũ
-              updatedRow[key] = renderData.find((row) => row.ID === id)[key];
+              updatedRow[key] = renderData.find((row) => row.id === id)[key];
             }
           });
 
@@ -908,7 +911,7 @@
           }
 
           // Nếu API trả về trạng thái 200, tiếp tục cập nhật và hiển thị lại dòng
-          const rowIndex = renderData.findIndex((row) => row.ID === id);
+          const rowIndex = renderData.findIndex((row) => row.id === id);
           if (rowIndex !== -1) {
             renderData[rowIndex] = updatedRow; // Thay thế dòng cũ bằng dòng đã chỉnh sửa
           }
