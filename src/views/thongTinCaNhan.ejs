@@ -386,24 +386,33 @@
           const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
 
           if (id_User) {
+            // Kiểm tra giá trị Luong trong formObject
+            const luong = formObject.Luong;
+
+            // Kiểm tra xem Luong có phải là chuỗi số không
+            if (!/^\d+$/.test(luong)) {
+                alert("Giá trị Lương phải là một dãy số hợp lệ.");
+                return; // Dừng việc gửi dữ liệu nếu không hợp lệ
+            }
+
             // Sử dụng fetch để gửi dữ liệu đến server
             fetch(`/infome/${id_User}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
-              },
-              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
+                },
+                body: JSON.stringify(formObject) // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
             })
-              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
-              .then(data => {
+            .then(response => response.json()) // Giả sử server trả về dữ liệu JSON
+            .then(data => {
                 console.log("Dữ liệu phản hồi từ server:", data);
-                alert(data.message)
+                alert(data.message);
                 // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
-              })
-              .catch(error => {
+            })
+            .catch(error => {
                 console.error("Có lỗi xảy ra:", error);
                 // Xử lý lỗi nếu có
-              });
+            });
           } else {
             alert("Không tìm thấy id_User trong form.");
           }

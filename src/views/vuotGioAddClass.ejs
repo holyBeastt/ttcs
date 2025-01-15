@@ -297,7 +297,7 @@
               </label>
 
               <label>
-                <select class="input" name="HeDaoTao" id="HeDaoTao">
+                <select class="input" name="he_dao_tao" id="he_dao_tao">
                   <option value="Mật mã">Mật mã</option>
                   <option value="Đóng học phí">Đóng học phí</option>
                 </select>
@@ -546,7 +546,7 @@
         const HinhThucKTGiuaKy =
           document.getElementById("HinhThucKTGiuaKy").value;
         const Lop = document.getElementById("Lop").value;
-        const HeDaoTao = document.getElementById("HeDaoTao").value;
+        const he_dao_tao = document.getElementById("he_dao_tao").value;
         const response = await fetch(`/addclass/${MaPhongBan}`, {
           method: "POST",
           body: JSON.stringify({
@@ -561,7 +561,7 @@
             HinhThucKTGiuaKy,
             Lop,
             GiangVien,
-            HeDaoTao,
+            he_dao_tao,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -745,11 +745,11 @@
           tableRow.appendChild(maLopTd);
 
           //Thẻ select hình thức thi giữa kỳ
-          let heDaoTaoTd;
-          let heDaoTaoSelect;
-          heDaoTaoTd = document.createElement("td");
-          heDaoTaoSelect = document.createElement("select");
-          heDaoTaoSelect.name = "heDaoTao";
+          let he_dao_taoTd;
+          let he_dao_taoSelect;
+          he_dao_taoTd = document.createElement("td");
+          he_dao_taoSelect = document.createElement("select");
+          he_dao_taoSelect.name = "he_dao_tao";
 
           // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
           const option = [
@@ -762,16 +762,16 @@
             const option = document.createElement("option");
             option.value = optionData.value;
             option.textContent = optionData.text;
-            if (row.HeDaoTao === optionData.value) {
+            if (row.he_dao_tao === optionData.value) {
               option.selected = true;
             }
-            heDaoTaoSelect.appendChild(option);
+            he_dao_taoSelect.appendChild(option);
           });
 
-          heDaoTaoTd.appendChild(heDaoTaoSelect);
+          he_dao_taoTd.appendChild(he_dao_taoSelect);
           // Thêm id để lấy dữ liệu
-          heDaoTaoSelect.id = `heDaoTao_${index}`;
-          tableRow.appendChild(heDaoTaoTd);
+          he_dao_taoSelect.id = `he_dao_tao_${index}`;
+          tableRow.appendChild(he_dao_taoTd);
 
           // Số sinh viên
           const soSVTd = document.createElement("td");
@@ -994,8 +994,10 @@
           const heSoT7CNInput = document.getElementById(`heSoT7CN_${index}`);
           const heSoT7CN = heSoT7CNInput ? heSoT7CNInput.value : "";
 
-          const heDaoTaoInput = document.getElementById(`heDaoTao_${index}`);
-          const heDaoTao = heDaoTaoInput ? heDaoTaoInput.value : "";
+          const he_dao_taoInput = document.getElementById(
+            `he_dao_tao_${index}`
+          );
+          const he_dao_tao = he_dao_taoInput ? he_dao_taoInput.value : "";
 
           console.log(hinhThucKTGiuaKy);
           console.log(heSoT7CN);
@@ -1010,7 +1012,7 @@
             soTietQC,
             hinhThucKTGiuaKy,
             heSoT7CN,
-            heDaoTao,
+            he_dao_tao,
             MaGiangDay: row.dataset.id, // Thêm thông tin index vào để theo dõi
           });
           console.log(globalData);

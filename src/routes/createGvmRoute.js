@@ -60,6 +60,7 @@ router.post(
     { name: "sauCCCD", maxCount: 1 },
     { name: "bangTotNghiep", maxCount: 1 },
     { name: "FileLyLich", maxCount: 1 }, // Thêm dòng này để upload file PDF
+    { name: "fileBoSung", maxCount: 1 },
   ]),
   createGvm
 );
