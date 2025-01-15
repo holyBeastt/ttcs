@@ -37,6 +37,9 @@ const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
 
+// Phần thời khóa biểu
+const TKBRoute = require("./routes/TKBRoute");
+
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
 const doAnChinhThucRoute = require("./routes/doAnChinhThucRoute");
@@ -44,7 +47,6 @@ const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
 const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
 const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
 const hopDongDARoute = require("./routes/hopDongDARoute");
-
 
 const app = express();
 const port = process.env.port || 8888;
@@ -108,8 +110,11 @@ app.use("/", thongkenckhRoute);
 app.use("/", thongkedoanRoute);
 app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
-app.use("/", thongkevuotgioRoute)
-app.use("/", thongketonghopRoute)
+app.use("/", thongkevuotgioRoute);
+app.use("/", thongketonghopRoute);
+
+// Phần thời khóa biểu
+app.use("/", TKBRoute);
 
 // Phần đồ án
 app.use("/", doAnChinhThucRoute);
@@ -131,7 +136,6 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public/js"))); // cấu hình tệp js
-// app.use(express.static(path.join(__dirname, "public"))); // cấu hình tệp js
 
 //app.use(express.json()); // Thêm dòng này để xử lý JSON
 

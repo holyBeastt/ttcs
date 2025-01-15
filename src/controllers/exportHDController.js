@@ -228,10 +228,9 @@ const exportMultipleContracts = async (req, res) => {
     }
 
     connection = await createPoolConnection();
-  // Truy vấn bảng tienluong để lấy mức tiền
-  const tienLuongQuery = `SELECT HocVi, HeDaoTao, SoTien FROM tienluong`;
-  const [tienLuongList] = await connection.execute(tienLuongQuery);
-
+    // Truy vấn bảng tienluong để lấy mức tiền
+    const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
+    const [tienLuongList] = await connection.execute(tienLuongQuery);
 
     let query = `SELECT
     hd.id_Gvm,
@@ -268,7 +267,7 @@ const exportMultipleContracts = async (req, res) => {
   JOIN
     gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
   WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HeDaoTao = ?
+    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
@@ -313,7 +312,7 @@ const exportMultipleContracts = async (req, res) => {
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
     WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.HeDaoTao = ?
+                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
@@ -356,7 +355,7 @@ const exportMultipleContracts = async (req, res) => {
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
     WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.HeDaoTao = ?
+              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
@@ -390,13 +389,18 @@ const exportMultipleContracts = async (req, res) => {
       const soTiet = teacher.SoTiet || 0;
 
       const tienLuong = tienLuongList.find(
-        (item) => item.HocVi === teacher.HocVi && item.HeDaoTao === loaiHopDong
+        (item) =>
+          item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
       );
-      
+
       if (!tienLuong) {
-        return res.status(404).send("<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>");
+        return res
+          .status(404)
+          .send(
+            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
+          );
       }
-      
+
       // Tính toán số tiền
       const tienText = tienLuong.SoTien * soTiet;
       const tienThueText = Math.round(tienText * 0.1);
@@ -406,7 +410,6 @@ const exportMultipleContracts = async (req, res) => {
         teacher.NgayKetThuc
       );
 
-   
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
@@ -417,14 +420,14 @@ const exportMultipleContracts = async (req, res) => {
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
-        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace('.', ','),
+        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace(".", ","),
         Địa_chỉ_theo_CCCD: teacher.DiaChi,
         Điện_thoại: teacher.DienThoai,
         Mã_số_thuế: teacher.MaSoThue,
         Số_tài_khoản: teacher.STK,
         Email: teacher.Email,
         Tại_ngân_hàng: teacher.NganHang,
-        Số_tiết: teacher.SoTiet.toString().replace('.', ','),
+        Số_tiết: teacher.SoTiet.toString().replace(".", ","),
         Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
         Tiền_text: tienText.toLocaleString("vi-VN"),
         Bằng_chữ_số_tiền: numberToWords(tienText),
@@ -449,12 +452,12 @@ const exportMultipleContracts = async (req, res) => {
         case "Đồ án":
           templateFileName = "HopDongDA.docx";
           break;
-          case "Nghiên cứu sinh (Đóng học phí)":
-            templateFileName = "HopDongNCS.docx";
-            break;
-          case "Cao học (Đóng học phí)":
-              templateFileName = "HopDongCH.docx";
-              break;
+        case "Nghiên cứu sinh (Đóng học phí)":
+          templateFileName = "HopDongNCS.docx";
+          break;
+        case "Cao học (Đóng học phí)":
+          templateFileName = "HopDongCH.docx";
+          break;
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
       }

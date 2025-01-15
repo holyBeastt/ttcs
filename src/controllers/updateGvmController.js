@@ -107,8 +107,6 @@ const postUpdateGvm = async (req, res) => {
 
   let isQuanDoi = req.body.thuocQuanDoi;
 
-  console.log("isqd = ", isQuanDoi);
-
   // Khởi tạo connection
   const connection = await createPoolConnection();
 
@@ -162,8 +160,9 @@ const postUpdateGvm = async (req, res) => {
     let FileLyLich = req.files["FileLyLich"]
       ? req.files["FileLyLich"][0].filename
       : oldFileLyLich;
-
-    console.log("Dữ liệu bangTotNghiep:", bangTotNghiep);
+    let fileBoSung = req.files["fileBoSung"]
+      ? req.files["fileBoSung"][0].filename
+      : oldFileBoSung;
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
     const query = `UPDATE gvmoi SET 
@@ -192,7 +191,8 @@ const postUpdateGvm = async (req, res) => {
       MaPhongBan = ?,
       TinhTrangGiangDay = ?, 
       MonGiangDayChinh = ?,
-      isQuanDoi = ?
+      isQuanDoi = ?,
+      fileBoSung = ?
     WHERE id_Gvm = ?`;
 
     try {
@@ -223,6 +223,7 @@ const postUpdateGvm = async (req, res) => {
         tinhTrangGiangDay,
         MonGiangDayChinh,
         isQuanDoi,
+        fileBoSung,
         IdGvm,
       ]);
       res.redirect("/gvmList?message=insertSuccess");

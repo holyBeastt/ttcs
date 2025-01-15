@@ -31,6 +31,29 @@
               ><i class="fa-solid fa-house"></i
             ></a>
           </li>
+          <!--  -->
+          <div class="navbar-nav">
+            <div class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href=""
+                id="navbarDropdownUser"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Thời khóa biểu
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/getImportTKBSite"
+                  >Thêm thời khóa biểu</a
+                >
+                <a class="nav-link" href="/getTKBChinhThucSite"
+                  >Thời khóa biểu chính thức</a
+                >
+              </div>
+            </div>
+          </div>
+          <!--  -->
           <div class="navbar-nav">
             <div class="nav-item dropdown">
               <a
@@ -471,6 +494,15 @@
       document.querySelector(
         ".fullname"
       ).innerText = `${TenNhanVien} - ${Role}`;
+    }
+
+    // Ẩn thêm thông báo nếu không phải đào tạo hoặc tài chính
+    const actionButton = document.getElementById("changeMessage");
+    //Ẩn site thêm thông báo
+    if (role === "Duyệt") {
+      actionButton.style.display = "";
+    } else {
+      actionButton.style.display = "none";
     }
   });
   // Phần thêm tên người dùng

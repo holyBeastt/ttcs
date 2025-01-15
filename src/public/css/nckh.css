@@ -1,7 +1,7 @@
 /* Đảm bảo container chiếm hết chiều rộng màn hình, nhưng có khoảng cách từ hai bên */
 .formNckh {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1250px;
     /* Giới hạn chiều rộng tối đa của form */
     margin: 0 auto;
     /* Căn giữa form */
@@ -580,7 +580,87 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
 
 /* làm mờ span */
 .faded-text {
-    color: #888; /* Màu mờ */
-    font-size: 0.9em; /* Giảm kích thước font một chút để nhấn mạnh */
+    color: #888;
+    /* Màu mờ */
+    font-size: 0.9em;
+    /* Giảm kích thước font một chút để nhấn mạnh */
 }
 
+
+
+/* thanh nav form */
+.tabs>ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tabs>ul>li {
+    display: inline;
+}
+
+/* Đảm bảo thanh điều hướng chiếm 100% chiều rộng */
+.tabs-nav {
+    display: flex;
+    /* Sắp xếp các phần tử theo hàng ngang */
+    width: 100%;
+    /* Chiếm toàn bộ chiều rộng */
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    /* Loại bỏ dấu chấm của danh sách */
+}
+
+.tab-item {
+    flex: 1;
+    /* Chia đều không gian cho các tab */
+}
+
+.tab-link {
+    display: block;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #4a4a4a;
+    /* Màu chữ mặc định */
+    border: 1px solid #007bff;
+    /* Đường viền cho tab */
+    text-decoration: none;
+    /* Góc bo tròn cho phần trên của tab */
+}
+
+.tab-link:focus {
+    outline: none;
+    border-color: #0066cc;
+    background-color: #d3d3d3;
+    /* Đổi màu viền khi tab được chọn */
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.5);
+    /* Hiệu ứng viền khi tab được chọn */
+}
+
+/* active nav */
+.tab-link.active {
+    background-color: #007bff;
+    /* Màu nền của tab được chọn */
+    color: white;
+    /* Màu chữ của tab được chọn */
+    border-color: #007bff;
+    /* Đổi màu viền khi tab active */
+}
+
+
+/* ẩn hiện nội dúng */
+.tab-content {
+    display: none;
+}
+
+.tab-content:not(.hidden) {
+    display: block;
+}
+
+.tab-link.active {
+    font-weight: bold;
+    /* Ví dụ: làm đậm tab đang được chọn */
+}

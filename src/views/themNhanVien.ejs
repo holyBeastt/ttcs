@@ -144,31 +144,54 @@
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
-            <label for="CCCD" class="form-label">CCCD</label>
+            <label for="TenDangNhap" class="form-label">Tên đăng nhập*</label>
             <input
               type="text"
               class="form-control"
-              id="CCCD"
-              name="CCCD"
+              id="TenDangNhap"
+              name="TenDangNhap"
               required
             />
           </div>
           <div class="col-md-4 input-wrapper">
-            <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
-            <input
-              type="date"
-              class="form-control"
-              id="NgayCapCCCD"
-              name="NgayCapCCCD"
-            />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
+            <label for="ChucVu" class="form-label">Chức Vụ*</label>
             <input
               type="text"
               class="form-control"
-              id="NoiCapCCCD"
-              name="NoiCapCCCD"
+              id="ChucVu"
+              name="ChucVu"
+              required
+            />
+          </div>
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="HSL" class="form-label">Hệ số lương*</label>
+              <input
+                type="text"
+                class="form-control"
+                id="HSL"
+                name="HSL"
+                required
+              />
+            </div>
+            <div>
+              <label for="Luong" class="form-label">Lương*</label>
+              <input
+                type="text"
+                class="form-control"
+                id="Luong"
+                name="Luong"
+              />
+            </div>
+            
+          </div>
+          <div class="col-md-4 input-wrapper" hidden>
+            <label for="MatKhau" class="form-label">Mật khẩu</label>
+            <input
+              type="text"
+              class="form-control"
+              id="MatKhau"
+              name="MatKhau"
             />
           </div>
         </div>
@@ -181,68 +204,12 @@
             </select>
           </div>
           <div class="col-md-4 input-wrapper">
-            <label for="DienThoai" class="form-label">Điện Thoại</label>
-            <input
-              type="tel"
+            <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
+            <select
               class="form-control"
-              id="DienThoai"
-              name="DienThoai"
-            />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="DiaChiCCCD" class="form-label"
-              >Địa Chỉ trong CCCD</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="DiaChiCCCD"
-              name="DiaChiCCCD"
-            />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="ChucVu" class="form-label">Chức Vụ*</label>
-            <input
-              type="text"
-              class="form-control"
-              id="ChucVu"
-              name="ChucVu"
-              required
-            />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
-            <input
-              type="text"
-              class="form-control"
-              id="NoiCongTac"
-              name="NoiCongTac"
-            />
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="DiaChiHienNay" class="form-label"
-              >Địa Chỉ Hiện Nay</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="DiaChiHienNay"
-              name="DiaChiHienNay"
-            />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="TenDangNhap" class="form-label">Tên đăng nhập*</label>
-            <input
-              type="text"
-              class="form-control"
-              id="TenDangNhap"
-              name="TenDangNhap"
-              required
-            />
+              name="MonGiangDayChinh"
+              id="MonGiangDayChinh"
+            ></select>
           </div>
           <div class="col-md-4 input-wrapper d-flex justify-content-between">
             <div class="ml-2">
@@ -274,23 +241,98 @@
               </select>
             </div>
           </div>
+        </div>
+        <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
-            <label for="HSL" class="form-label">Hệ số lương*</label>
+            <label for="CCCD" class="form-label">CCCD</label>
             <input
               type="text"
               class="form-control"
-              id="HSL"
-              name="HSL"
+              id="CCCD"
+              name="CCCD"
               required
             />
           </div>
-          <div class="col-md-4 input-wrapper" hidden>
-            <label for="MatKhau" class="form-label">Mật khẩu</label>
+          <div class="col-md-4 input-wrapper">
+            <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
+            <input
+              type="date"
+              class="form-control"
+              id="NgayCapCCCD"
+              name="NgayCapCCCD"
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
             <input
               type="text"
               class="form-control"
-              id="MatKhau"
-              name="MatKhau"
+              id="NoiCapCCCD"
+              name="NoiCapCCCD"
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="DienThoai" class="form-label">Điện Thoại</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="DienThoai"
+              name="DienThoai"
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiCCCD" class="form-label"
+              >Địa Chỉ trong CCCD</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="DiaChiCCCD"
+              name="DiaChiCCCD"
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="CacMonLienQuan" class="form-label"
+              >Các Môn Liên Quan</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="CacMonLienQuan"
+              name="CacMonLienQuan"
+            />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
+            <input
+              type="text"
+              class="form-control"
+              id="NoiCongTac"
+              name="NoiCongTac"
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="DiaChiHienNay" class="form-label"
+              >Địa Chỉ Hiện Nay</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="DiaChiHienNay"
+              name="DiaChiHienNay"
+            />
+          </div>
+          <div class="col-md-4 input-wrapper">
+            <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
+            <input
+              type="text"
+              class="form-control"
+              id="MaSoThue"
+              name="MaSoThue"
             />
           </div>
         </div>
@@ -320,37 +362,6 @@
               class="form-control"
               id="ChiNhanh"
               name="ChiNhanh"
-            />
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
-            <input
-              type="text"
-              class="form-control"
-              id="MaSoThue"
-              name="MaSoThue"
-            />
-          </div>
-
-          <div class="col-md-4 input-wrapper">
-            <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
-            <select
-              class="form-control"
-              name="MonGiangDayChinh"
-              id="MonGiangDayChinh"
-            ></select>
-          </div>
-          <div class="col-md-4 input-wrapper">
-            <label for="CacMonLienQuan" class="form-label"
-              >Các Môn Liên Quan</label
-            >
-            <input
-              type="text"
-              class="form-control"
-              id="CacMonLienQuan"
-              name="CacMonLienQuan"
             />
           </div>
         </div>
