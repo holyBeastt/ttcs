@@ -84,13 +84,14 @@ const AdminController = {
             "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
         });
       }
-      if (!/^\d+$/.test(Luong)) { // Kiểm tra nếu Luong không phải là chuỗi số
+      if (!/^\d+$/.test(Luong)) {
+        // Kiểm tra nếu Luong không phải là chuỗi số
         connection.release(); // Giải phóng kết nối trước khi trả về
         return res.status(400).json({
-            message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+          message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
         });
       }
-    
+
       // Kiểm tra trùng lặp tên
       const nvQuery = "select * from nhanvien";
       const [NhanVienList] = await connection.query(nvQuery); // Truyền kết nối vào
@@ -893,21 +894,21 @@ const AdminController = {
   },
 
   postKyTuBD: async (req, res) => {
-    let { vietTat, HeDaoTao } = req.body;
-    vietTat = vietTat.toUpperCase();
-    const LopViDu = vietTat + "10";
+    let { viet_tat, he_dao_tao } = req.body;
+    viet_tat = viet_tat.toUpperCase();
+    const lop_vi_du = viet_tat + "10";
     let connection;
     try {
       connection = await createPoolConnection();
       // Kiểm tra khoa
-      if (HeDaoTao == "ALL") {
+      if (he_dao_tao == "ALL") {
         return res.redirect("/kytubatdau?success=false&message=khoaALL");
       }
 
       // Kiểm tra trùng lặp kí tự bắt đầu
       const [rows] = await connection.query(
-        `SELECT * FROM kitubatdau WHERE VietTat = ?`,
-        [vietTat]
+        `SELECT * FROM kitubatdau WHERE viet_tat = ?`,
+        [viet_tat]
       );
 
       // Xử lý kết quả
@@ -917,10 +918,10 @@ const AdminController = {
 
       // Thêm vào bảng kí tự bắt đầu
       const insertQuery = `
-        INSERT INTO kitubatdau (LopViDu, vietTat, HeDaoTao) 
+        INSERT INTO kitubatdau (lop_vi_du, viet_tat, he_dao_tao) 
         VALUES (?, ?, ?)
       `;
-      await connection.execute(insertQuery, [LopViDu, vietTat, HeDaoTao]);
+      await connection.execute(insertQuery, [lop_vi_du, viet_tat, he_dao_tao]);
 
       res.redirect("/kytubatdau?success=true&message=insertSuccess");
     } catch (error) {
@@ -936,11 +937,11 @@ const AdminController = {
   },
 
   deleteKyTuBD: async (req, res) => {
-    const LopViDu = req.params.LopViDu;
+    const lop_vi_du = req.params.lop_vi_du;
     const connection = await createPoolConnection();
     try {
-      const query = `DELETE FROM kitubatdau WHERE LopViDu = ?`;
-      const [results] = await connection.query(query, [LopViDu]);
+      const query = `DELETE FROM kitubatdau WHERE lop_vi_du = ?`;
+      const [results] = await connection.query(query, [lop_vi_du]);
 
       if (results.affectedRows > 0) {
         res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
@@ -957,22 +958,23 @@ const AdminController = {
     }
   },
   updateKyTuBD: async (req, res) => {
-    const oldLopViDu = req.params.LopViDu;
-    const { LopViDu, VietTat } = req.body;
+    const oldlop_vi_du = req.params.lop_vi_du;
+    const { lop_vi_du, viet_tat } = req.body;
+    console.log("l = ", oldlop_vi_du, lop_vi_du, viet_tat);
     let connection;
 
     try {
       connection = await createPoolConnection();
       const query = `
             UPDATE kitubatdau 
-            SET LopViDu = ?, VietTat = ?
-            WHERE LopViDu = ?
+            SET lop_vi_du = ?, viet_tat = ?
+            WHERE lop_vi_du = ?
         `;
 
       const [result] = await connection.execute(query, [
-        LopViDu,
-        VietTat,
-        oldLopViDu,
+        lop_vi_du,
+        viet_tat,
+        oldlop_vi_du,
       ]);
 
       if (result.affectedRows === 0) {
@@ -1017,16 +1019,16 @@ const AdminController = {
   },
 
   postTienLuong: async (req, res) => {
-    let { HeDaoTao, HocVi, SoTien } = req.body;
+    let { he_dao_tao, HocVi, SoTien } = req.body;
     let connection;
     try {
       connection = await createPoolConnection();
       // Thêm vào bảng TienLuong
       const insertQuery = `
-        INSERT INTO tienluong (HeDaoTao, HocVi, SoTien) 
+        INSERT INTO tienluong (he_dao_tao, HocVi, SoTien) 
         VALUES (?, ?, ?)
       `;
-      await connection.execute(insertQuery, [HeDaoTao, HocVi, SoTien]);
+      await connection.execute(insertQuery, [he_dao_tao, HocVi, SoTien]);
 
       res.redirect("/tienluong?success=true&message=insertSuccess");
     } catch (error) {
@@ -1039,43 +1041,43 @@ const AdminController = {
 
   updateTienLuong: async (req, res) => {
     const STT = req.params.STT; // Sử dụng STT từ params
-    const { HeDaoTao, HocVi, SoTien } = req.body; // Lấy dữ liệu từ body
+    const { he_dao_tao, HocVi, SoTien } = req.body; // Lấy dữ liệu từ body
     let connection;
 
     try {
-        connection = await createPoolConnection();
-        const query = `
+      connection = await createPoolConnection();
+      const query = `
             UPDATE tienluong 
-            SET HeDaoTao = ?, HocVi = ?, SoTien = ?
+            SET he_dao_tao = ?, HocVi = ?, SoTien = ?
             WHERE STT = ?
         `;
 
-        const [result] = await connection.execute(query, [
-            HeDaoTao,
-            HocVi,
-            SoTien,
-            STT, // Sử dụng STT ở đây
-        ]);
+      const [result] = await connection.execute(query, [
+        he_dao_tao,
+        HocVi,
+        SoTien,
+        STT, // Sử dụng STT ở đây
+      ]);
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy bản ghi để cập nhật",
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Cập nhật thành công",
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy bản ghi để cập nhật",
         });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thành công",
+      });
     } catch (error) {
-        console.error("Lỗi khi cập nhật:", error);
-        res.status(500).json({
-            success: false,
-            message: "Đã xảy ra lỗi khi cập nhật",
-        });
+      console.error("Lỗi khi cập nhật:", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi khi cập nhật",
+      });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 
@@ -1100,29 +1102,29 @@ const AdminController = {
   },
 
   checkExistence: async (req, res) => {
-    const { HeDaoTao, HocVi } = req.body;
+    const { he_dao_tao, HocVi } = req.body;
     let connection;
 
     try {
-        connection = await createPoolConnection();
-        const query = `
+      connection = await createPoolConnection();
+      const query = `
             SELECT COUNT(*) as count FROM tienluong 
-            WHERE HeDaoTao = ? AND HocVi = ?
+            WHERE he_dao_tao = ? AND HocVi = ?
         `;
-        const [result] = await connection.execute(query, [HeDaoTao, HocVi]);
+      const [result] = await connection.execute(query, [he_dao_tao, HocVi]);
 
-        if (result[0].count > 0) {
-            return res.status(409).json({ 
-                message: `Hệ Đào Tạo và Học Vị đã chọn: ${HeDaoTao} và ${HocVi} đã tồn tại.` 
-            });
-        }
+      if (result[0].count > 0) {
+        return res.status(409).json({
+          message: `Hệ Đào Tạo và Học Vị đã chọn: ${he_dao_tao} và ${HocVi} đã tồn tại.`,
+        });
+      }
 
-        res.status(200).json({ message: "Kết hợp chưa tồn tại." });
+      res.status(200).json({ message: "Kết hợp chưa tồn tại." });
     } catch (error) {
-        console.error("Lỗi khi kiểm tra sự tồn tại:", error);
-        res.status(500).json({ message: "Đã xảy ra lỗi." });
+      console.error("Lỗi khi kiểm tra sự tồn tại:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi." });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 };

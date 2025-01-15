@@ -592,7 +592,6 @@ function processLecturerInfo(input, dataGiangVien, soGiangVien) {
   };
 }
 
-
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
   const prefixes = [
@@ -719,7 +718,7 @@ const tongHopDuLieuGiangVien = async () => {
 //     HeSoLopDong,
 //     QuyChuan,
 //     GhiChu,
-//     HeDaoTao
+//     he_dao_tao
 //   ) VALUES ?;`; // Dấu '?' cho phép chèn nhiều giá trị một lần
 
 //   // Mảng để lưu tất cả giá trị cần chèn
@@ -737,20 +736,20 @@ const tongHopDuLieuGiangVien = async () => {
 //       processLecturerInfo(item["GiaoVien"], dataGiangVien);
 
 //     // Hệ đào tạo mặc định là đại học mật mã ( else các trường hợp còn lại )
-//     let HeDaoTao = "Đại học (Mật mã)";
+//     let he_dao_tao = "Đại học (Mật mã)";
 
 //     // Các trường hợp còn lại sẽ kiểm tra và gắn key tương ứng
 //     // Điều kiện 1: Nếu Lop chứa "CHAT" thì là Cao học(Đóng học phí)
 //     if (Lop.includes("CHAT")) {
-//       HeDaoTao = "Cao học (Đóng học phí)";
+//       he_dao_tao = "Cao học (Đóng học phí)";
 //     }
 //     // Điều kiện 2: Nếu Lop chứa "TSAT" thì là Nghiên cứu sinh(Đóng học phí)
 //     else if (Lop.includes("TSAT")) {
-//       HeDaoTao = "Nghiên cứu sinh (Đóng học phí)";
+//       he_dao_tao = "Nghiên cứu sinh (Đóng học phí)";
 //     }
 //     // Điều kiện 3: Nếu Lop có định dạng là A/B/D kèm số (ví dụ: A1, B1, A1B1, A1C1)
 //     else if (/^(A|B|C|D)\d+([A-D]\d+)*$/.test(Lop)) {
-//       HeDaoTao = "Đại học (Đóng học phí)";
+//       he_dao_tao = "Đại học (Đóng học phí)";
 //     }
 
 //     allValues.push([
@@ -773,7 +772,7 @@ const tongHopDuLieuGiangVien = async () => {
 //       item["HeSoLopDong"] || null,
 //       item["QuyChuan"] || null,
 //       item["GhiChu"] || null,
-//       HeDaoTao,
+//       he_dao_tao,
 //     ]);
 //   });
 
@@ -823,7 +822,7 @@ const importTableQC = async (jsonData) => {
     HeSoLopDong,
     QuyChuan,
     GhiChu,
-    HeDaoTao,
+    he_dao_tao,
     isHdChinh
   ) VALUES ?;`; // Dấu '?' cho phép chèn nhiều giá trị một lần
 
@@ -842,23 +841,29 @@ const importTableQC = async (jsonData) => {
     let giangVienGiangDay, moiGiang, monGiangDayChinh;
 
     if (Lop.includes("CHAT") || Lop.includes("TSAT")) {
-      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } =
-        processLecturerInfo(item["GiaoVien"], dataGiangVien, 2));
+      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } = processLecturerInfo(
+        item["GiaoVien"],
+        dataGiangVien,
+        2
+      ));
     } else {
-      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } =
-        processLecturerInfo(item["GiaoVien"], dataGiangVien, 1));
+      ({ giangVienGiangDay, moiGiang, monGiangDayChinh } = processLecturerInfo(
+        item["GiaoVien"],
+        dataGiangVien,
+        1
+      ));
     }
 
     console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
     // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
-    let HeDaoTao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+    let he_dao_tao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
 
     for (const row of rows) {
-      const prefix = row.VietTat; // Lấy giá trị VietTat
+      const prefix = row.viet_tat; // Lấy giá trị viet_tat
       // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
       if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
-        HeDaoTao = row.giaTriSoSanh;
+        he_dao_tao = row.gia_tri_so_sanh;
       }
     }
 
@@ -882,7 +887,7 @@ const importTableQC = async (jsonData) => {
       item["HeSoLopDong"] || null,
       item["QuyChuan"] || null,
       item["GhiChu"] || null,
-      HeDaoTao,
+      he_dao_tao,
       1,
     ]);
   });
@@ -1048,12 +1053,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-      item["Số tiết lên lớp giờ HC"] ||
-      null,
+        item["Số tiết lên lớp giờ HC"] ||
+        null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      null,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -1595,7 +1600,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         NgayBatDau,
         NgayKetThuc,
-        HeDaoTao,
+        he_dao_tao,
       } = item;
 
       if (KhoaDuyet == 1) {
@@ -1634,7 +1639,7 @@ const updateQC = async (req, res) => {
           TaiChinhDuyet = ?,
           NgayBatDau = ?,
           NgayKetThuc = ?,
-          HeDaoTao = ?
+          he_dao_tao = ?
         WHERE ID = ?
       `;
 
@@ -1663,7 +1668,7 @@ const updateQC = async (req, res) => {
         TaiChinhDuyet,
         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-        HeDaoTao,
+        he_dao_tao,
         ID,
       ];
 
@@ -1926,7 +1931,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   // Lưu hệ mật mã
   const query2 = `
     SELECT
-        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
@@ -1939,7 +1944,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND HeDaoTao like '%Đại học%' AND qc.MoiGiang = 1
+        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
     GROUP BY
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
@@ -2000,7 +2005,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             GioiTinh,
-            HeDaoTao,
+            he_dao_tao,
           } = item;
 
           req.session.tmp++;
@@ -2044,7 +2049,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             KhoaDuyet,
             DaoTaoDuyet,
             TaiChinhDuyet,
-            HeDaoTao,
+            he_dao_tao,
           ];
         })
     );
@@ -2054,7 +2059,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, HeDaoTao
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
       ) VALUES ?;
     `;
 
@@ -2079,7 +2084,7 @@ const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
   // Lưu hệ mật mã
   const query2 = `
     SELECT
-        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
@@ -2092,7 +2097,7 @@ const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND HeDaoTao like '%Đại học%' AND qc.MoiGiang = 1
+        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
     GROUP BY
         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
@@ -2153,7 +2158,7 @@ const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             GioiTinh,
-            HeDaoTao,
+            he_dao_tao,
           } = item;
 
           req.session.tmp++;
@@ -2197,7 +2202,7 @@ const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
             KhoaDuyet,
             DaoTaoDuyet,
             TaiChinhDuyet,
-            HeDaoTao,
+            he_dao_tao,
           ];
         })
     );
@@ -2207,7 +2212,7 @@ const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, HeDaoTao
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
       ) VALUES ?;
     `;
 
@@ -2327,7 +2332,7 @@ const insertGiangDay = async (
             TenLop,
             Dot,
             BoMon,
-            HeDaoTao,
+            he_dao_tao,
             isHdChinh,
           } = item;
 
@@ -2381,7 +2386,7 @@ const insertGiangDay = async (
             Dot,
             Khoa,
             BoMon,
-            HeDaoTao,
+            he_dao_tao,
             isHdChinh,
           ];
         })
@@ -2396,7 +2401,7 @@ const insertGiangDay = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao, isHdChinh
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, he_dao_tao, isHdChinh
       ) VALUES ?;
     `;
 
@@ -2683,7 +2688,7 @@ const insertGiangDay2 = async (
             TenLop,
             Dot,
             BoMon,
-            HeDaoTao,
+            he_dao_tao,
             isHdChinh,
           } = item;
 
@@ -2742,7 +2747,7 @@ const insertGiangDay2 = async (
             Dot,
             Khoa,
             BoMon,
-            HeDaoTao,
+            he_dao_tao,
             isHdChinh,
           ];
         })
@@ -2757,7 +2762,7 @@ const insertGiangDay2 = async (
     const queryInsert = `
       INSERT INTO giangday (
         GiangVien, SoTC, TenHocPhan, id_User, id_Gvm, LenLop, SoTietCTDT, HeSoT7CN, SoSV, HeSoLopDong, 
-        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, HeDaoTao, isHdChinh
+        QuyChuan, HocKy, NamHoc, MaHocPhan, Lop, Dot, Khoa, BoMon, he_dao_tao, isHdChinh
       ) VALUES ?;
     `;
 
@@ -2780,7 +2785,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
   // Lưu hệ sau đại học
   const query = `
     SELECT
-        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
@@ -2794,10 +2799,10 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
     WHERE
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
         AND (gvmoi.isQuanDoi != 1 or gvmoi.isQuanDoi is null) 
-        AND HeDaoTao not like '%Đại học%'   
+        AND he_dao_tao not like '%Đại học%'   
         AND qc.GiaoVienGiangDay LIKE '%,%'
     GROUP BY
-        qc.Khoa, qc.HeDaoTao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
@@ -2851,7 +2856,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             GioiTinh,
-            HeDaoTao,
+            he_dao_tao,
           } = item;
 
           req.session.tmp++;
@@ -2895,7 +2900,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             KhoaDuyet,
             DaoTaoDuyet,
             TaiChinhDuyet,
-            HeDaoTao,
+            he_dao_tao,
           ];
         })
     );
@@ -2905,7 +2910,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, HeDaoTao
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
       ) VALUES ?;
     `;
 

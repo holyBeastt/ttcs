@@ -173,7 +173,7 @@
           </div>
           <div class="col-md-4">
             <label>File lý lịch (PDF):</label>
-            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" download>
+            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" target="_blank">
               <%= value.FileLyLich %>
             </a>
             <input class="form-control" type="file" name="FileLyLich" id="FileLyLich" disabled>
@@ -233,6 +233,14 @@
             </select>
           </div>
           <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
+          <div class="col-md-4">
+            <label>File bổ sung: </label>
+            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.fileBoSung %>" target="_blank">
+              <%= value.fileBoSung %>
+            </a>
+            <input class="form-control" type="file" name="fileBoSung" id="fileBoSung" disabled>
+            <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>" disabled>
+          </div>
           <div class="col-md-4 thuocQuanDoiBox">      
               <label for="thuocQuanDoi" class="thuocQuanDoi-label"
                 >Thuộc quân đội:</label

@@ -730,11 +730,11 @@
       tableRow.appendChild(boMonTd);
 
       //Thẻ select hình thức thi giữa kỳ
-      let heDaoTaoTd;
-      let heDaoTaoSelect;
-      heDaoTaoTd = document.createElement('td');
-      heDaoTaoSelect = document.createElement('select');
-      heDaoTaoSelect.name = 'heDaoTao';
+      let he_dao_taoTd;
+      let he_dao_taoSelect;
+      he_dao_taoTd = document.createElement('td');
+      he_dao_taoSelect = document.createElement('select');
+      he_dao_taoSelect.name = 'he_dao_tao';
 
       // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
       const options = [
@@ -747,20 +747,20 @@
         const option = document.createElement('option');
         option.value = optionData.value;
         option.textContent = optionData.text;
-        if (row.HeDaoTao === optionData.value) {
+        if (row.he_dao_tao === optionData.value) {
           option.selected = true;
         }
-        heDaoTaoSelect.appendChild(option);
+        he_dao_taoSelect.appendChild(option);
       });
       // Thêm style trực tiếp
-      heDaoTaoSelect.style.setProperty('background-color', 'white', 'important');
-      heDaoTaoSelect.style.setProperty('color', 'black', 'important');
-      heDaoTaoSelect.style.padding = '5px';
+      he_dao_taoSelect.style.setProperty('background-color', 'white', 'important');
+      he_dao_taoSelect.style.setProperty('color', 'black', 'important');
+      he_dao_taoSelect.style.padding = '5px';
 
-      heDaoTaoTd.appendChild(heDaoTaoSelect);
+      he_dao_taoTd.appendChild(he_dao_taoSelect);
       // Thêm id để lấy dữ liệu 
-      heDaoTaoSelect.id = `heDaoTao-${row.ID}`;
-      tableRow.appendChild(heDaoTaoTd);
+      he_dao_taoSelect.id = `he_dao_tao-${row.ID}`;
+      tableRow.appendChild(he_dao_taoTd);
 
       // Kiểm tra ngày bắt đầu 
       console.log(row.NgayBatDau)
@@ -793,7 +793,7 @@
         NgayBatDauInput.disabled = true; // Chỉ xem
         NgayKetThucInput.disabled = true; // Chỉ xem
         boMonInput.disabled = true;
-        heDaoTaoSelect.disabled = true;
+        he_dao_taoSelect.disabled = true;
       }
 
       const soTietLLTd = document.createElement('td');
@@ -809,7 +809,7 @@
       if ((isKhoa == 1 && role == "GV") || (isKhoa == 1 && row.KhoaDuyet == 1)) {
         giaoVienGiangDayInput.disabled = true;
         boMonInput.disabled = true;
-        heDaoTaoSelect.disabled = true;
+        he_dao_taoSelect.disabled = true;
         NgayBatDauInput.disabled = true;
         // Ngăn người dùng thay đổi trạng thái ngày kết thúc
         NgayKetThucInput.disabled = true;
@@ -909,7 +909,7 @@
         if (check.includes(MaPhongBan)) {
           //giaoVienGiangDayInput.disabled = true;
           boMonInput.disabled = true;
-          heDaoTaoSelect.disabled = true;
+          he_dao_taoSelect.disabled = true;
 
           NgayBatDauInput.disabled = true;
           // Ngăn người dùng thay đổi trạng thái ngày kết thúc
@@ -926,7 +926,7 @@
 
       if (MaPhongBan.toLowerCase() === "daotao" && role.toLowerCase() !== "thường") {
         // Nếu khoa đã check thì hiện check bên đào tạo
-        heDaoTaoSelect.disabled = true;
+        he_dao_taoSelect.disabled = true;
 
         if (!check.includes(row.Khoa)) {
           // Ngăn thay đổi trạng thái check box khoa
