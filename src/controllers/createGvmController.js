@@ -64,9 +64,7 @@ let createGvm = async (req, res) => {
     const MaPhongBan = khoa;
     let isQuanDoi = req.body.thuocQuanDoi;
 
-    // const MaPhongBan = Array.isArray(req.body.maPhongBan)
-    //   ? req.body.maPhongBan.join(",")
-    //   : req.body.maPhongBan || "";
+    console.log("k bm = ", req.body.monGiangDayChinh);
 
     // Kiểm tra trùng lặp CCCD
     const checkDuplicateQuery =
@@ -186,6 +184,7 @@ let createGvm = async (req, res) => {
     res.status(500).send("Lỗi khi xử lý tải lên");
   }
 };
+
 const getBoMonList = async (req, res) => {
   let maPhongBan = req.params.maPhongBan;
   let isKhoa = req.params.isKhoa === "true"; // Chuyển đổi isKhoa thành boolean

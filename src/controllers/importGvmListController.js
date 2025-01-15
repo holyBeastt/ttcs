@@ -3,6 +3,7 @@ const createPoolConnection = require("../config/databasePool");
 const gvmList = require("../services/gvmServices");
 require("dotenv").config();
 const path = require("path");
+const fs = require("fs");
 
 const multer = require("multer");
 const readXlsxFile = require("read-excel-file/node");
@@ -100,20 +101,217 @@ const getArrValue = async (req, res) => {
   });
 };
 
+// const saveToDB = async (req, res) => {
+//   let connection;
+//   try {
+//     connection = await createPoolConnection(); // Kết nối đến DB
+//     const data = JSON.parse(req.body.data); // Lấy dữ liệu từ request (dữ liệu đã render ra)
+
+//     const MaPhongBan = req.session.MaPhongBan;
+
+//     // Lấy danh sách bộ môn trong khoa
+//     const [boMonList] = await connection.query(
+//       `select * from bomon where MaPhongBan = ?`,
+//       MaPhongBan
+//     );
+
+//     const TinhTrangGiangDay = 1; // Tình trạng giảng dạy
+
+//     const duplicateCCCDs = [];
+//     const duplicateName = [];
+//     const khoaFalse = [];
+//     const boMonFalse = [];
+
+//     if (data && data.length > 0) {
+//       const gvms = await gvmList.getGvmLists(req, res);
+//       let length = parseInt(gvms.length) + 1;
+
+//       for (const row of data) {
+//         const MaGvm = MaPhongBan + "_GVM_" + length;
+//         const GioiTinh = row["Giới tính"];
+//         let HoTen = row["Họ và tên"];
+//         const CCCD = row["Số CCCD"];
+//         const NoiCapCCCD = row["Nơi cấp"] || " ";
+//         const DiaChi = row["Địa chỉ theo CCCD"];
+//         const Email = row["Email"] || " ";
+//         const MaSoThue = row["Mã số thuế"] || " ";
+//         const HocVi = row["Học vị"] || " ";
+//         const ChucVu = row["Chức vụ"] || " ";
+//         let HSL = row["Hệ số lương"] || " ";
+//         const DienThoai = row["Điện thoại"] || " ";
+//         const STK = row["Số tài khoản"] || " ";
+//         const NganHang = row["Tại ngân hàng"] || " ";
+//         const NoiCongTac = row["Nơi công tác"] || " ";
+//         const MonGiangDayChinh = row["Bộ môn"] || " ";
+//         const BangTotNghiepLoai = row["Bằng loại"] || " ";
+//         const dateSinh = row["Ngày sinh"]; // '1985-09-13T00:00:00.000Z'
+//         const NgaySinh = formatDateForMySQL(dateSinh); // Kết quả: '1985-09-13'
+//         const dateCap = row["Ngày cấp CCCD"]; // '1985-09-13T00:00:00.000Z'
+//         const NgayCapCCCD = formatDateForMySQL(dateCap); // Kết quả: '1985-09-13'
+
+//         // Check Khoa để nhỡ import nhầm file
+//         const Khoa = row["Khoa"] || " ";
+//         let khoaIsFalse = false;
+//         if (Khoa.trim() != MaPhongBan && Khoa.trim() != "") {
+//           khoaFalse.push(HoTen + " - " + Khoa);
+//           khoaIsFalse = true;
+//         }
+
+//         if (khoaIsFalse) continue;
+
+//         // Check Khoa và bộ môn (Môn giảng dạy chính) có đúng không
+//         if (MonGiangDayChinh.trim() != "") {
+//           const isInBoMonList = boMonList.some(
+//             (bm) => bm.MaBoMon.trim() === MonGiangDayChinh.trim()
+//           );
+
+//           if (!isInBoMonList) {
+//             boMonFalse.push(HoTen + " - " + MonGiangDayChinh);
+//             continue;
+//           }
+//         }
+
+//         // Xử lý nếu HSL có dấu ,
+//         // Kiểm tra nếu HSL chỉ chứa khoảng trắng hoặc rỗng, gán giá trị mặc định là "0"
+//         if (typeof HSL === "string" && HSL.includes(",")) {
+//           HSL = parseFloat(HSL.replace(",", "."));
+//         } else {
+//           HSL = parseFloat(HSL); // Trường hợp HSL là số hoặc chuỗi đã chuẩn
+//         }
+
+//         let isDuplicate = false;
+//         let duplicateCount = 0;
+//         let originalName = HoTen;
+//         // Kiểm tra trùng CCCD
+//         for (const gvm of gvms) {
+//           if (gvm.CCCD == CCCD) {
+//             duplicateCCCDs.push(HoTen + " - " + CCCD);
+//             isDuplicate = true; // Bỏ qua và tiếp tục
+//           }
+//         }
+
+//         if (isDuplicate) continue;
+
+//         if (!isDuplicate) {
+//           let nameExists = true;
+//           let modifiedName = HoTen; // Biến tạm để lưu tên cuối cùng
+//           while (nameExists) {
+//             nameExists = gvms.some((gvm) => gvm.HoTen === modifiedName);
+//             if (nameExists) {
+//               duplicateCount++;
+//               modifiedName = `${originalName} (${String.fromCharCode(
+//                 64 + duplicateCount
+//               )})`; // A, B, C...
+//             }
+//           }
+//           // Khi xử lý xong, thêm tên cuối cùng vào danh sách trùng
+//           if (modifiedName !== HoTen) {
+//             duplicateName.push(`${HoTen} -> ${modifiedName}`); // Ghi lại thay đổi
+//           }
+//           HoTen = modifiedName; // Cập nhật tên cuối cùng
+//         }
+
+//         const sql = `
+//         INSERT INTO gvmoi
+//         (GioiTinh, MaGvm, HoTen, NgaySinh, BangTotNghiepLoai, NoiCongTac, MonGiangDayChinh, DiaChi, Email, MaSoThue, HocVi, ChucVu, HSL, DienThoai, STK, NganHang, MaPhongBan, TinhTrangGiangDay, CCCD, NgayCapCCCD, NoiCapCCCD)
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//       `;
+
+//         const values = [
+//           GioiTinh,
+//           MaGvm,
+//           HoTen,
+//           NgaySinh,
+//           BangTotNghiepLoai,
+//           NoiCongTac,
+//           MonGiangDayChinh,
+//           DiaChi,
+//           Email,
+//           MaSoThue,
+//           HocVi,
+//           ChucVu,
+//           HSL,
+//           DienThoai,
+//           STK,
+//           NganHang,
+//           MaPhongBan,
+//           TinhTrangGiangDay,
+//           CCCD,
+//           NgayCapCCCD,
+//           NoiCapCCCD,
+//         ];
+
+//         await connection.query(sql, values);
+//         length++; // Tăng độ dài sau mỗi lần chèn thành công
+//       }
+
+//       let mess = "";
+
+//       if (duplicateCCCDs.length > 0) {
+//         mess = `<b>Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD:</b> \n${duplicateCCCDs.join(
+//           "\n "
+//         )}`;
+//       }
+
+//       if (duplicateName.length > 0) {
+//         mess += `\n<b>Tên các giảng viên bị trùng sẽ được lưu như sau:</b> \n${duplicateName.join(
+//           "\n "
+//         )}`;
+//       }
+
+//       if (khoaFalse.length > 0) {
+//         mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng khoa:</b> \n${khoaFalse.join(
+//           "\n "
+//         )}`;
+//       }
+
+//       if (boMonFalse.length > 0) {
+//         mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng mã bộ môn trong khoa:</b> \n${boMonFalse.join(
+//           "\n "
+//         )}`;
+//       }
+
+//       // Trả về phản hồi nếu có thông báo
+//       if (mess !== "") {
+//         return res.status(400).json({ message: mess });
+//       }
+
+//       // Gửi phản hồi thành công
+//       res.json({ message: "Dữ liệu đã được lưu thành công vào database!" });
+//     } else {
+//       // Gửi phản hồi lỗi nếu không có dữ liệu
+//       res.status(400).json({ message: "Không có dữ liệu để lưu." });
+//     }
+//   } catch (error) {
+//     console.error("Lỗi khi lưu dữ liệu vào database:", error);
+//     if (!res.headersSent) {
+//       res.status(500).send("Đã xảy ra lỗi khi lưu dữ liệu vào database!");
+//     }
+//   } finally {
+//     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+//   }
+// };
+
 const saveToDB = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection(); // Kết nối đến DB
     const data = JSON.parse(req.body.data); // Lấy dữ liệu từ request (dữ liệu đã render ra)
 
-    // Lấy Mã giảng viên mời = Mã Khoa + _GVM_ + id
-
     const MaPhongBan = req.session.MaPhongBan;
-    console.log(MaPhongBan);
+
+    // Lấy danh sách bộ môn trong khoa
+    const [boMonList] = await connection.query(
+      `select * from bomon where MaPhongBan = ?`,
+      MaPhongBan
+    );
+
     const TinhTrangGiangDay = 1; // Tình trạng giảng dạy
 
     const duplicateCCCDs = [];
     const duplicateName = [];
+    const khoaFalse = [];
+    const boMonFalse = [];
 
     if (data && data.length > 0) {
       const gvms = await gvmList.getGvmLists(req, res);
@@ -121,14 +319,9 @@ const saveToDB = async (req, res) => {
 
       for (const row of data) {
         const MaGvm = MaPhongBan + "_GVM_" + length;
-
-        // Chuyển đổi dữ liệu để phù hợp với cột trong DB
-        // const GioiTinh = row["Danh xưng"] === "Ông" ? "Nam" : "Nữ";
         const GioiTinh = row["Giới tính"];
         let HoTen = row["Họ và tên"];
-        // const NgaySinh = row["Ngày sinh"] || " ";
         const CCCD = row["Số CCCD"];
-        // const NgayCapCCCD = row["Ngày cấp"];
         const NoiCapCCCD = row["Nơi cấp"] || " ";
         const DiaChi = row["Địa chỉ theo CCCD"];
         const Email = row["Email"] || " ";
@@ -145,49 +338,51 @@ const saveToDB = async (req, res) => {
         const dateSinh = row["Ngày sinh"]; // '1985-09-13T00:00:00.000Z'
         const NgaySinh = formatDateForMySQL(dateSinh); // Kết quả: '1985-09-13'
         const dateCap = row["Ngày cấp CCCD"]; // '1985-09-13T00:00:00.000Z'
-        console.log("date cấp = ", dateCap);
         const NgayCapCCCD = formatDateForMySQL(dateCap); // Kết quả: '1985-09-13'
-        console.log("Ngày cấp sau format", NgayCapCCCD);
 
-        // Xử lý nếu HSL có dấu ,
-        // Kiểm tra nếu HSL chỉ chứa khoảng trắng hoặc rỗng, gán giá trị mặc định là "0"
+        const Khoa = row["Khoa"] || " ";
+        let khoaIsFalse = false;
+
+        if (Khoa.trim() != MaPhongBan && Khoa.trim() != "") {
+          khoaFalse.push(HoTen + " - " + Khoa);
+          khoaIsFalse = true;
+        }
+
+        if (khoaIsFalse) continue;
+
+        if (MonGiangDayChinh.trim() != "") {
+          const isInBoMonList = boMonList.some(
+            (bm) => bm.MaBoMon.trim() === MonGiangDayChinh.trim()
+          );
+
+          if (!isInBoMonList) {
+            boMonFalse.push(HoTen + " - " + MonGiangDayChinh);
+            continue;
+          }
+        }
+
         if (typeof HSL === "string" && HSL.includes(",")) {
           HSL = parseFloat(HSL.replace(",", "."));
         } else {
-          HSL = parseFloat(HSL); // Trường hợp HSL là số hoặc chuỗi đã chuẩn
+          HSL = parseFloat(HSL);
         }
 
         let isDuplicate = false;
         let duplicateCount = 0;
         let originalName = HoTen;
-        // Kiểm tra trùng CCCD
+
         for (const gvm of gvms) {
           if (gvm.CCCD == CCCD) {
             duplicateCCCDs.push(HoTen + " - " + CCCD);
-            isDuplicate = true; // Bỏ qua và tiếp tục
+            isDuplicate = true;
           }
         }
 
         if (isDuplicate) continue;
 
-        // if (!isDuplicate) {
-        //   let nameExists = true;
-        //   while (nameExists) {
-        //     nameExists = gvms.some((gvm) => gvm.HoTen === HoTen);
-        //     if (nameExists) {
-        //       duplicateCount++;
-        //       HoTen = `${originalName} (${String.fromCharCode(
-        //         64 + duplicateCount
-        //       )})`; // A, B, C...
-
-        //       duplicateName.push(HoTen);
-        //     }
-        //   }
-        // }
-
         if (!isDuplicate) {
           let nameExists = true;
-          let modifiedName = HoTen; // Biến tạm để lưu tên cuối cùng
+          let modifiedName = HoTen;
           while (nameExists) {
             nameExists = gvms.some((gvm) => gvm.HoTen === modifiedName);
             if (nameExists) {
@@ -197,11 +392,10 @@ const saveToDB = async (req, res) => {
               )})`; // A, B, C...
             }
           }
-          // Khi xử lý xong, thêm tên cuối cùng vào danh sách trùng
           if (modifiedName !== HoTen) {
-            duplicateName.push(`${HoTen} -> ${modifiedName}`); // Ghi lại thay đổi
+            duplicateName.push(`${HoTen} -> ${modifiedName}`);
           }
-          HoTen = modifiedName; // Cập nhật tên cuối cùng
+          HoTen = modifiedName;
         }
 
         const sql = `
@@ -235,16 +429,21 @@ const saveToDB = async (req, res) => {
         ];
 
         await connection.query(sql, values);
-        length++; // Tăng độ dài sau mỗi lần chèn thành công
+
+        // Tạo thư mục
+        const basePath = path.join(
+          __dirname,
+          "../../Giang_Vien_Moi",
+          MaPhongBan,
+          MonGiangDayChinh,
+          HoTen
+        );
+
+        fs.mkdirSync(basePath, { recursive: true });
+
+        length++;
       }
 
-      // if (duplicateCCCDs.length > 0) {
-      //   return res.status(400).json({
-      //     message: `Dữ liệu không được lưu cho các giảng viên sau do trùng CCCD: \n${duplicateCCCDs.join(
-      //       "\n "
-      //     )}`,
-      //   });
-      // }
       let mess = "";
 
       if (duplicateCCCDs.length > 0) {
@@ -259,15 +458,24 @@ const saveToDB = async (req, res) => {
         )}`;
       }
 
-      // Trả về phản hồi nếu có thông báo
+      if (khoaFalse.length > 0) {
+        mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng khoa:</b> \n${khoaFalse.join(
+          "\n "
+        )}`;
+      }
+
+      if (boMonFalse.length > 0) {
+        mess += `\n<b>Dữ liệu không được lưu cho các giảng viên sau do không đúng mã bộ môn trong khoa:</b> \n${boMonFalse.join(
+          "\n "
+        )}`;
+      }
+
       if (mess !== "") {
         return res.status(400).json({ message: mess });
       }
 
-      // Gửi phản hồi thành công
       res.json({ message: "Dữ liệu đã được lưu thành công vào database!" });
     } else {
-      // Gửi phản hồi lỗi nếu không có dữ liệu
       res.status(400).json({ message: "Không có dữ liệu để lưu." });
     }
   } catch (error) {
@@ -276,7 +484,7 @@ const saveToDB = async (req, res) => {
       res.status(500).send("Đã xảy ra lỗi khi lưu dữ liệu vào database!");
     }
   } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+    if (connection) connection.release();
   }
 };
 

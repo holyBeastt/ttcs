@@ -107,8 +107,6 @@ const postUpdateGvm = async (req, res) => {
 
   let isQuanDoi = req.body.thuocQuanDoi;
 
-  console.log("isqd = ", isQuanDoi);
-
   // Khởi tạo connection
   const connection = await createPoolConnection();
 
