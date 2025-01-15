@@ -417,8 +417,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
             ]);
 
             // Cộng dồn các giá trị
-            totalSoTietTKB += row.LenLop; // Số tiết theo TKB
-            totalSoTietQC += row.QuyChuan; // Số tiết quy chuẩn
+            totalSoTietTKB += parseFloat(row.LenLop); // Số tiết theo TKB
+            totalSoTietQC += parseFloat (row.QuyChuan); // Số tiết quy chuẩn
             // Cộng dồn cho tổng tất cả bảng
             totalSoTietTKBAll += row.LenLop;
             totalSoTietQCAll += row.QuyChuan;
@@ -529,8 +529,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
               row.SoTietKT, // Số tiết ra đề/ Coi thi/ Chấm thi
             ]);
 
-            totalSoTietKT += row.SoTietKT; // Số tiết theo TKB
-            totalSoTietKTAll += row.SoTietKT; // Cộng dồn vào tổng số tiết cho tất cả các bảng
+            totalSoTietKT += parseFloat(row.SoTietKT) ; // Số tiết theo TKB
+            totalSoTietKTAll += parseFloat(row.SoTietKT) ; // Cộng dồn vào tổng số tiết cho tất cả các bảng
 
             // Định dạng dòng dữ liệu
             dataRow.font = { name: "Times New Roman", size: 12 };
@@ -636,8 +636,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
           
             ]);
 
-            totalSoTietKT1 += row.SoTietKT; // Số tiết theo TKB
-            totalSoTietKTAll1 += row.SoTietKT; // Cộng dồn vào tổng số tiết cho tất cả các bảng
+            totalSoTietKT1 += parseFloat(row.SoTietKT); // Số tiết theo TKB
+            totalSoTietKTAll1 += parseFloat(row.SoTietKT); // Cộng dồn vào tổng số tiết cho tất cả các bảng
 
             // Định dạng dòng dữ liệu
             dataRow.font = { name: "Times New Roman", size: 12 };
