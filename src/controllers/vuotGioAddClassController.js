@@ -834,8 +834,8 @@ const updatelopngoaiquychuan = async (req, res) => {
 
 // hàm sửa
 const getLopGiangDay = async (req, res) => {
-  const { Nam, MaPhongBan } = req.params;
-  console.log(Nam, MaPhongBan);
+  const { Nam, MaPhongBan, TenNhanVien } = req.params;
+  console.log(Nam, MaPhongBan, TenNhanVien);
   let connection;
 
   try {
@@ -845,86 +845,86 @@ const getLopGiangDay = async (req, res) => {
     const query = `
             SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp quy chuẩn' AS source 
             FROM giangday 
-            WHERE Khoa = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
+            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
             UNION ALL
             SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp ngoài quy chuẩn' AS source 
             FROM lopngoaiquychuan 
-            WHERE Khoa = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
 
     // Truy vấn giuaky
     const query1 = `
             SELECT * 
             FROM giuaky 
-            WHERE Khoa = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
 
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Mật mã%",
       Nam,
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Mật mã%",
       Nam,
     ]);
     const [rows12] = await connection.query(query, [
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Đóng học phí%",
       Nam,
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Đóng học phí%",
       Nam,
     ]);
     const [rows13] = await connection.query(query, [
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Mật mã%",
       Nam,
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Mật mã%",
       Nam,
     ]);
     const [rows14] = await connection.query(query, [
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Đóng học phí%",
       Nam,
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Đóng học phí%",
       Nam,
     ]);
 
     const [rows21] = await connection.query(query1, [
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Mật mã%",
       Nam,
     ]);
     const [rows22] = await connection.query(query1, [
-      MaPhongBan,
+      TenNhanVien,
       1,
       "%Đóng học phí%",
       Nam,
     ]);
     const [rows23] = await connection.query(query1, [
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Mật mã%",
       Nam,
     ]);
     const [rows24] = await connection.query(query1, [
-      MaPhongBan,
+      TenNhanVien,
       2,
       "%Đóng học phí%",
       Nam,
     ]);
 
-    console.log(rows14);
+    // console.log(rows12);
     // Trả về kết quả giống cấu trúc cũ
     res.json({
       success: true,

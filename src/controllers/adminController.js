@@ -946,9 +946,7 @@ const AdminController = {
       if (results.affectedRows > 0) {
         res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
       } else {
-        res
-          .status(404)
-          .json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
+        res.status(404).json({ message: "Không tìm thấy Hệ đào tạođể xóa." }); // Nếu không tìm thấy ký tự bắt đầu
       }
     } catch (error) {
       console.error("Lỗi khi xóa dữ liệu: ", error);

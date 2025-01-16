@@ -106,7 +106,7 @@
                   <a class="nav-link text-center" id="NamHoc" href="/namHoc" style="width: fit-content;">Năm học </a>        
                  </li>
                  <li class="nav-item">
-                  <a class="nav-link active" id="KyTuBD" href="/kytubatdau">Ký tự bắt đầu </a>        
+                  <a class="nav-link active" id="KyTuBD" href="/kytubatdau">Hệ đào tạo</a>        
                  </li>
             </ul>
           </div>
@@ -206,7 +206,7 @@
 
   <script>
        function deleteKyTuBD(button, id) {
-          if (confirm(`Bạn có chắc chắn muốn xóa ký tự bắt đầu ${id} không?`)) {
+          if (confirm(`Bạn có chắc chắn muốn xóa Hệ đào tạo${id} không?`)) {
             fetch(`/kytubatdau/${id}`, {
           method: 'DELETE',
           headers: {
