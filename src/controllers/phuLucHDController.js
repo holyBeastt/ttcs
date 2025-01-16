@@ -368,9 +368,9 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
           hocViVietTat,
           item.HSL,
           100000, // Mức thanh toán
-          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN"), // Định dạng số tiền
-          conLai.toLocaleString("vi-VN"), // Định dạng số tiền
+          soTien.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
+          conLai.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
@@ -449,9 +449,9 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       "",
       "",
       "",
-      totalSoTien.toLocaleString("vi-VN"),
-      totalTruThue.toLocaleString("vi-VN"),
-      totalThucNhan.toLocaleString("vi-VN"),
+      totalSoTien.toLocaleString("vi-VN").replace(/\./g, ','),
+      totalTruThue.toLocaleString("vi-VN").replace(/\./g, ','),
+      totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ','),
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 14 };

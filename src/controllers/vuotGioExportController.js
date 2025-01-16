@@ -147,9 +147,7 @@ const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa]);
 
 const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);
 
-const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
-
-
+const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
     // Kiểm tra kết quả truy vấn
     if (
       resultsGiangDay.length === 0 &&
@@ -436,8 +434,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
             "",
             "", // Lớp học phần
             "", // Loại hình đào tạo
-            totalSoTietTKB, // Tổng Số tiết theo TKB
-            totalSoTietQC, // Tổng Số tiết quy chuẩn
+            parseFloat(totalSoTietTKB).toFixed(2), // Tổng Số tiết theo TKB
+            parseFloat(totalSoTietQC).toFixed(2), // Tổng Số tiết quy chuẩn
           ]);
           worksheet.mergeCells(`A${totalRow.number}:E${totalRow.number}`);
 
@@ -455,8 +453,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Số TC
         "", // Lớp học phần
         "", // Loại hình đào tạo
-        totalSoTietTKBAll, // Tổng số tiết theo TKB cho tất cả các bảng
-        totalSoTietQCAll, // Tổng số tiết quy chuẩn cho tất cả các bảng
+        parseFloat(totalSoTietTKBAll).toFixed(2), // Tổng số tiết theo TKB cho tất cả các bảng
+        parseFloat(totalSoTietQCAll).toFixed(2), // Tổng số tiết quy chuẩn cho tất cả các bảng
       ]);
 
       // Gộp cột A và B cho dòng tổng kết
@@ -550,7 +548,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
             "", // Lớp học phần
             "", // Loại hình đào tạo
             "", // Tổng Số tiết theo TKB
-            totalSoTietKT, // Tổng Số tiết quy chuẩn
+            parseFloat(totalSoTietKT), // Tổng Số tiết quy chuẩn
           ]);
           worksheet.mergeCells(`A${totalRow.number}:E${totalRow.number}`);
 
@@ -569,7 +567,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Lớp học phần
         "", // Loại hình đào tạo
         "", // Tổng số tiết theo TKB cho tất cả các bảng
-        totalSoTietKTAll, // Tổng số tiết quy chuẩn cho tất cả các bảng
+       parseFloat(totalSoTietKTAll), // Tổng số tiết quy chuẩn cho tất cả các bảng
       ]);
 
       // Gộp cột A và B cho dòng tổng kết
@@ -675,7 +673,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Lớp học phần
         "", // Loại hình đào tạo
         "", // Tổng số tiết theo TKB cho tất cả các bảng
-        totalSoTietKTAll1, // Tổng số tiết quy chuẩn cho tất cả các bảng
+        parseFloat(totalSoTietKTAll1).toFixed(2), // Tổng số tiết quy chuẩn cho tất cả các bảng
       ]);
 
       // Gộp cột A và B cho dòng tổng kết
@@ -686,7 +684,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
       grandTotalRow2.alignment = { horizontal: "center", vertical: "middle" };
 
       // Sau khi thêm dòng tổng cho A.1, A.2
-      const totalA = totalSoTietTKBAll + totalSoTietKTAll ; // Tính tổng A
+      const totalA = parseFloat(totalSoTietTKBAll + totalSoTietKTAll) ; // Tính tổng A
 
       // Thêm dòng tổng A
       const grandTotalRowA = worksheet.addRow([
@@ -695,8 +693,8 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Số TC
         "", // Lớp học phần
         "", // Loại hình đào tạo
-        totalA, // Tổng số tiết theo TKB cho tất cả các bảng
-        totalSoTietQCAll + totalSoTietKTAll // Tổng số tiết quy chuẩn cho tất cả các bảng
+        parseFloat(totalA), // Tổng số tiết theo TKB cho tất cả các bảng
+        parseFloat(totalSoTietQCAll + totalSoTietKTAll) // Tổng số tiết quy chuẩn cho tất cả các bảng
       ]);
       worksheet.mergeCells(`A${grandTotalRowA.number}:E${grandTotalRowA.number}`);
       grandTotalRowA.font = { name: "Times New Roman", size: 12, bold: true };
@@ -754,7 +752,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Số QĐ Giao Luận án, Luận văn, đồ án
         "", // Số người HD
         "", // HD chính/HD hai
-        totalSoTietQuyDoi // Tổng số tiết quy đổi
+        parseFloat(totalSoTietQuyDoi).toFixed(2) // Tổng số tiết quy đổi
       ]);
 
       // Gộp cột A và B cho dòng tổng
@@ -775,7 +773,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
         "", // Số QĐ Giao Luận án, Luận văn, đồ án
         "", // Số người HD
         "", // HD chính/HD hai
-        totalA + totalB // Tổng A+B
+        parseFloat(totalA + totalB).toFixed(2) // Tổng A+B
       ]);
 
       // Gộp cột A và B cho dòng tổng
@@ -807,7 +805,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa]);
     });
 
     // Xuất file Excel
-    const fileName = `vuotGio_${sanitizedNamHoc}_${sanitizedKhoa}.xlsx`;
+    const fileName = `vuotGio_nam${namHoc}.xlsx`;
 
     res.setHeader(
       "Content-Type",

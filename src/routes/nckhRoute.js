@@ -8,7 +8,7 @@ router.get("/detaiduan", nckh.getDeTaiDuAn);
 // lưu đề tài dự án
 router.post("/detaiduan", nckh.saveDeTaiDuAn);
 // render table đề tài, dự án
-router.get("/tabledetaiduan/:NamHoc", nckh.getTableDeTaiDuAn);
+router.get("/tabledetaiduan/:NamHoc/:Khoa", nckh.getTableDeTaiDuAn);
 
 // lấy dữ liệu giảng viên cơ hữu
 router.get("/giangviencohuu", nckh.getTeacher);
@@ -18,7 +18,7 @@ router.get("/baibaokhoahoc", nckh.getBaiBaoKhoaHoc);
 // lưu bài báo khoa học
 router.post("/baibaokhoahoc", nckh.saveBaiBaoKhoaHoc);
 // render table bài báo khoa học
-router.get("/baibaokhoahoc/:NamHoc", nckh.getTableBaiBaoKhoaHoc);
+router.get("/baibaokhoahoc/:NamHoc/:Khoa", nckh.getTableBaiBaoKhoaHoc);
 
 // render site bằng sáng chế và giải thưởng
 router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
