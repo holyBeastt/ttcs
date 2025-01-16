@@ -684,7 +684,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
       grandTotalRow2.alignment = { horizontal: "center", vertical: "middle" };
 
       // Sau khi thêm dòng tổng cho A.1, A.2
-      const totalA = totalSoTietTKBAll + totalSoTietKTAll ; // Tính tổng A
+      const totalA = parseFloat(totalSoTietTKBAll + totalSoTietKTAll) ; // Tính tổng A
 
       // Thêm dòng tổng A
       const grandTotalRowA = worksheet.addRow([
@@ -693,7 +693,7 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
         "", // Số TC
         "", // Lớp học phần
         "", // Loại hình đào tạo
-        totalA, // Tổng số tiết theo TKB cho tất cả các bảng
+        parseFloat(totalA), // Tổng số tiết theo TKB cho tất cả các bảng
         parseFloat(totalSoTietQCAll + totalSoTietKTAll) // Tổng số tiết quy chuẩn cho tất cả các bảng
       ]);
       worksheet.mergeCells(`A${grandTotalRowA.number}:E${grandTotalRowA.number}`);
