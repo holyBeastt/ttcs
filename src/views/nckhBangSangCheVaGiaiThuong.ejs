@@ -1,33 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link rel="stylesheet" href="/css/admin.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/css/nckh.css" />
-  </head>
 
-  <body>
-    <!-- Phần header -->
-    <%- include('header') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/nckh.css" />
+</head>
+
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
 
     <!-- Phần nội dung -->
-
-    <!-- <div class="container my-5 box formNckh"> -->
     <div class="my-3 box formNckh">
       <h2 class="titleNckh">Bằng sáng chế và giải thưởng</h2>
 
@@ -64,13 +54,8 @@
         <!-- Tên bằng sáng chế, giải thưởng -->
         <div class="form-group">
           <label for="tenBangSangChe">Tên bằng sáng chế, giải thưởng</label>
-          <input
-            type="text"
-            id="tenBangSangChe"
-            name="tenBangSangChe"
-            placeholder="Nhập tên bằng sáng chế hoặc giải thưởng"
-            required
-          />
+          <input type="text" id="tenBangSangChe" name="tenBangSangChe"
+            placeholder="Nhập tên bằng sáng chế hoặc giải thưởng" required />
         </div>
 
         <!-- Ngày quyết định, số quyết định, tác giả trên cùng một dòng -->
@@ -78,24 +63,13 @@
           <!-- Số quyết định công nhận -->
           <div class="flex-item">
             <label for="soQuyetDinh">Số quyết định công nhận</label>
-            <input
-              type="text"
-              id="soQuyetDinh"
-              name="soQuyetDinh"
-              placeholder="VD: 1277/QĐ-HVM"
-              required
-            />
+            <input type="text" id="soQuyetDinh" name="soQuyetDinh" placeholder="VD: 1277/QĐ-HVM" required />
           </div>
 
           <!-- Ngày quyết định công nhận -->
           <div class="flex-item">
             <label for="ngayQuyetDinh">Ngày quyết định công nhận</label>
-            <input
-              type="date"
-              id="ngayQuyetDinh"
-              name="ngayQuyetDinh"
-              required
-            />
+            <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required />
           </div>
         </div>
 
@@ -103,21 +77,11 @@
           <div class="flex-item">
             <label for="tacGia">
               Tác giả chính
-              <input
-                type="checkbox"
-                id="tacGiaCheckbox"
-                name="tacGiaCheckbox"
-              />
+              <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox" />
             </label>
             <div id="tacGia-suggestions" class="suggestions-container"></div>
             <!-- Chứa các gợi ý -->
-            <input
-              type="text"
-              id="tacGia"
-              name="tacGia"
-              placeholder="Nhập tên tác giả"
-              required
-            />
+            <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required />
           </div>
           <div class="flex-item">
             <!-- Combobox thêm vào -->
@@ -134,24 +98,11 @@
           <div class="flex-item">
             <label for="thanhVien">
               Thành viên
-              <input
-                type="checkbox"
-                id="thanhVienCheckbox"
-                name="thanhVienCheckbox"
-              />
+              <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox" />
             </label>
-            <div
-              id="themThanhVien-suggestions"
-              class="suggestions-container-dstv"
-            ></div>
+            <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div>
             <!-- Chứa các gợi ý -->
-            <input
-              type="text"
-              id="thanhVien"
-              name="thanhVien"
-              placeholder="Nhập tên thành viên"
-              class="input-field"
-            />
+            <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field" />
           </div>
           <div class="flex-item">
             <!-- Combobox cho đơn vị -->
@@ -164,13 +115,11 @@
         </div>
 
         <!-- Thành viên -->
-        <div
-          id="memberListDisplay"
-          class="member-list-display form-group"
-        ></div>
+        <div id="memberListDisplay" class="member-list-display form-group"></div>
         <button type="button" class="btn" id="submitBtn">Gửi</button>
       </form>
     </div>
+
     <div class="my-3 box formView">
       <h2 class="titleNckh">Xem số giờ quy đổi</h2>
       <div class="flex-container-view">
@@ -201,6 +150,8 @@
         </table>
       </div>
     </div>
+
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -312,7 +263,7 @@
       }
     </script>
 
-    <!-- nckh -->
+    <!-- nckh form -->
     <script>
       // giảng viên cơ hữu của trường, để gợi ý tên
       var giangVienCoHuu = [];
@@ -585,207 +536,12 @@
       // =================================================================
     </script>
 
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+    <!-- nckh chung -->
+    <script src="/js/nckh.js"></script>
+    <!-- link href -->
+    <script src="/js/href.js"></script>
+    <!-- srcipt năm học, khoa -->
+    <script src="/js/getdata.js"></script>
+</body>
 
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
-
-    <!-- Phần phân quyền -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
-    </script>
-
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
-    <script>
-      document
-        .getElementById("infome")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-          if (id_User) {
-            // Chuyển hướng đến trang infome và truyền id_User trong URL
-            window.location.href = `/infome/${id_User}`;
-          } else {
-            alert("Không tìm thấy id_User trong localStorage.");
-          }
-        });
-    </script>
-
-    <!-- <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Lắng nghe sự kiện click trên nút có id là submitBtn
-      document.getElementById("submitBtn").addEventListener("click", function (event) {
-        event.preventDefault();  // Ngừng hành vi gửi form mặc định
-
-        const form = document.getElementById("formData");  // Lấy form theo id
-
-        // Kiểm tra xem form có tồn tại không
-        if (form) {
-          // Tạo đối tượng FormData từ form
-          const formData = new FormData(form);
-
-          // Chuyển FormData thành một đối tượng JSON để dễ đọc và xử lý
-          const formObject = {};
-          formData.forEach((value, key) => {
-            formObject[key] = value;
-          });
-
-          // Lấy id_User từ dữ liệu trong form
-          const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
-
-          if (id_User) {
-            // Sử dụng fetch để gửi dữ liệu đến server
-            fetch(`/infome/${id_User}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
-              },
-              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
-            })
-              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
-              .then(data => {
-                console.log("Dữ liệu phản hồi từ server:", data);
-                alert(data.message)
-                // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
-              })
-              .catch(error => {
-                console.error("Có lỗi xảy ra:", error);
-                // Xử lý lỗi nếu có
-              });
-          } else {
-            alert("Không tìm thấy id_User trong form.");
-          }
-        } else {
-          console.log("Không tìm thấy form với id 'infome'.");
-        }
-      });
-    }); -->
-
-    <!-- </script> -->
-    <!-- <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const Quyen = localStorage.getItem("userRole");
-
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('changeMessage');
-      //Ẩn site thêm thông báo
-      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-        actionButton.style.display = '';
-      } else {
-        actionButton.style.display = 'none';
-      }
-    });
-  </script> -->
-    <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-          if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-          } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-          }
-        });
-    </script>
-    <script>
-      $(document).ready(function () {
-        // Xóa các option trống trong tất cả các select có class .namHoc
-        $('.namHoc option[value=""]').remove();
-
-        // Gửi yêu cầu AJAX để lấy danh sách năm học
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              // Lặp qua mỗi select có class .namHoc
-              $(".namHoc").each(function () {
-                const selectElement = $(this); // Lấy select hiện tại
-                response.NamHoc.forEach(function (item) {
-                  console.log(item.NamHoc);
-                  selectElement.append(
-                    `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                  );
-                });
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
-      });
-    </script>
-  </body>
 </html>

@@ -28,7 +28,7 @@ const getBienSoanGiaoTrinhBaiGiang = (req, res) => {
 // lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng detaiduan Năm:", NamHoc);
 
@@ -39,18 +39,9 @@ const getTableDeTaiDuAn = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
-        queryParams.push(NamHoc);
+        query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
+        queryParams.push(NamHoc, Khoa);
 
-
-        // // Xây dựng truy vấn dựa vào giá trị của Khoa
-        // if (Khoa !== "ALL") {
-        // query = `SELECT * FROM detaiduan WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Khoa, Dot, Ki, Nam);
-        // } else {
-        // query = `SELECT * FROM detaiduan WHERE Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Dot, Ki, Nam);
-        // }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -303,7 +294,7 @@ const saveDeTaiDuAn = async (req, res) => {
         chuNhiem,
         thuKy,
         ngayNghiemThu,
-        xepLoaiKetQua,
+        khoa,
         thanhVien, // Đây là một mảng từ client
     } = data;
 
@@ -317,7 +308,7 @@ const saveDeTaiDuAn = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO detaiduan (
-CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, ThuKy, NgayNghiemThu, XepLoai, DanhSachThanhVien
+CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, ThuKy, NgayNghiemThu, Khoa, DanhSachThanhVien
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
@@ -329,7 +320,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 chuNhiem,
                 thuKy,
                 ngayNghiemThu,
-                xepLoaiKetQua,
+                khoa,
                 thanhVien,
             ]
         );
@@ -354,7 +345,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 // lấy bảng đề tài dự án
 const getTableBaiBaoKhoaHoc = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng baibaokhoahoc Năm:", NamHoc);
 
@@ -365,18 +356,8 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
-        queryParams.push(NamHoc);
-
-
-        // // Xây dựng truy vấn dựa vào giá trị của Khoa
-        // if (Khoa !== "ALL") {
-        // query = `SELECT * FROM detaiduan WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Khoa, Dot, Ki, Nam);
-        // } else {
-        // query = `SELECT * FROM detaiduan WHERE Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Dot, Ki, Nam);
-        // }
+        query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
+        queryParams.push(NamHoc, Khoa);
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -501,6 +482,7 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
         tacGia,
         tacGiaCtn,
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
 
     // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
@@ -512,6 +494,7 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
         tacGia,
         tacGiaCtn,
         danhSachThanhVien: thanhVien, // Sử dụng danh sách thành viên dưới dạng mảng
+        khoa,
     };
 
     const updatedBody = quyDoiSoTietBaiBaoKhoaHoc(body); // Gọi hàm quy đổi
@@ -526,9 +509,9 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO baibaokhoahoc (
-NamHoc, TenBaiBao, LoaiTapChi, ChiSoTapChi, TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
+NamHoc, TenBaiBao, LoaiTapChi, ChiSoTapChi, TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 namHoc,
@@ -538,6 +521,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
                 tacGiaUpdated, // Thông tin tác giả chính đã quy đổi
                 tacGiaCtnUpdated, // Thông tin tác giả chịu trách nhiệm đã quy đổi
                 thanhVienUpdated, // Thông tin thành viên đã quy đổi
+                khoa,
             ]
         );
 

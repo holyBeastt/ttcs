@@ -84,6 +84,11 @@ button:hover {
     /* Mỗi trường chiếm 1 phần không gian bằng nhau */
 }
 
+/* xung đột css phần Khoa */
+#MaPhongBan {
+    flex: 1;
+}
+
 /* Đảm bảo trường "Thư ký" ẩn khi không cần thiết */
 .hidden {
     display: none;
@@ -446,7 +451,7 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
     /* Giới hạn chiều rộng của checkbox */
 }
 
-/* css bảng xem với form */
+/*  form view */
 .formView {
     width: 100%;
     max-width: 1000px;
@@ -664,3 +669,4 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
     font-weight: bold;
     /* Ví dụ: làm đậm tab đang được chọn */
 }
+

@@ -18,6 +18,8 @@
   <%- include('header') %>
 
     <div class="my-3 box formNckh">
+      <h2 class="titleNckh">Đề tài và dự án</h2>
+
       <div class="tabs">
         <ul class="tabs-nav">
           <li class="tab-item">
@@ -36,7 +38,6 @@
 
       <!-- form tab -->
       <div id="formTab" class="tab-content py-4">
-        <h2 class="titleNckh"></h2>
         <form id="formData" class="">
           <!-- Cấp đề tài và Năm học (cùng trên 1 dòng) -->
           <div class="form-group flex-container">
@@ -133,10 +134,8 @@
               <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
             </div>
             <div class="flex-item">
-              <label for="xepLoaiKetQua">Xếp loại kết quả</label>
-              <select id="xepLoaiKetQua" name="xepLoaiKetQua" required>
-                <option value="Đạt" selected>Đạt</option>
-                <option value="Không đạt">Không đạt</option>
+              <label for="MaPhongBanForm">Khoa</label>
+              <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
               </select>
             </div>
           </div>
@@ -152,6 +151,10 @@
           <div class="flex-item">
             <label for="namHocXem">Chọn Năm Học:</label>
             <select id="namHocXem" class="namHoc"></select>
+          </div>
+          <div class="flex-item">
+            <label for="MaPhongBanView">Khoa</label>
+            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;"></select>
           </div>
           <div class="flex-item-view">
             <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
@@ -169,7 +172,7 @@
                 <th>Thư ký</th>
                 <th>Thành viên</th>
                 <th>Ngày nghiệm thu</th>
-                <th>Xếp loại</th>
+                <!-- <th>Xếp loại</th> -->
               </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -181,48 +184,6 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- control -->
-    <script>
-      function toggleTabs(event, tabId, activeTabId) {
-        event.preventDefault(); // Ngừng hành động mặc định của thẻ <a>
-
-        // Loại bỏ lớp 'active' khỏi tất cả các tab link
-        const allTabs = document.querySelectorAll('.tab-link');
-        allTabs.forEach(tab => {
-          tab.classList.remove('active');
-        });
-
-        // Thêm lớp 'active' cho tab được chỉ định bằng activeTabId
-        const activeTab = document.getElementById(activeTabId);
-        if (activeTab) {
-          activeTab.classList.add('active');
-        }
-
-        // Ẩn tất cả các nội dung tab
-        const allTabContents = document.querySelectorAll('.tab-content');
-        allTabContents.forEach(content => {
-          content.classList.add('hidden');
-        });
-
-        // Hiển thị nội dung của tab được chọn
-        const activeContent = document.getElementById(tabId);
-        if (activeContent) {
-          activeContent.classList.remove('hidden');
-        }
-      }
-
-      // Đảm bảo khi trang tải, tab đầu tiên được chọn mặc định
-      document.addEventListener('DOMContentLoaded', function () {
-        const firstTab = document.querySelector('.tab-link');
-        if (firstTab) {
-          firstTab.classList.add('active');
-        }
-      });
-
-
-    </script>
-
 
     <!-- nckh view -->
     <script>
@@ -279,7 +240,6 @@
       <td>${thuKyFormatted}</td>
       <td>${thanhVienFormatted}</td>
       <td>${ngayNghiemThuFormatted}</td>
-      <td>${item.XepLoai}</td>
     `;
           tbody.appendChild(row);
         });
@@ -288,7 +248,8 @@
       // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
       async function getData() {
         const year = document.getElementById("namHocXem").value; // Lấy năm học từ select
-        const url = `/tabledetaiduan/${year}`; // Tạo URL với URL parameter 'NamHoc'
+        const department = document.getElementById("MaPhongBanView").value; // Lấy năm học từ select
+        const url = `/tabledetaiduan/${year}/${department}`; // Tạo URL với URL parameter 'NamHoc'
 
         try {
           fetch(url) // Thay URL bằng endpoint của bạn
@@ -565,7 +526,7 @@
             chuNhiem: document.getElementById("chuNhiem").value,
             thuKy: document.getElementById("thuKy").value,
             ngayNghiemThu: document.getElementById("ngayNghiemThu").value,
-            xepLoaiKetQua: document.getElementById("xepLoaiKetQua").value,
+            khoa: document.getElementById("MaPhongBanForm").value,
             thanhVien: Array.from(
               document.querySelectorAll("#memberListDisplay span")
             ).map((member) => member.textContent),
@@ -674,315 +635,13 @@
       // =================================================================
     </script>
 
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+    <!-- nckh chung -->
+    <script src="/js/nckh.js"></script>
+    <!-- link href -->
+    <script src="/js/href.js"></script>
+    <!-- srcipt năm học, khoa -->
+    <script src="/js/getdata.js"></script>
 
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
-    <!-- <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const maPhongBan = document.getElementById("MaPhongBan").value;
-      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
-
-      fetch(`/getMaBoMon/${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log(data); // In ra phản hồi để kiểm tra
-          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-
-          if (!maBoMonSelect) {
-            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-            return;
-          }
-
-          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-          let foundMatch = false;
-
-          // Kiểm tra success và dữ liệu maBoMon
-          if (data.success && data.maBoMon) {
-            data.maBoMon.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-              // Kiểm tra nếu giá trị trùng với monGiangDayChinh
-              if (item.MaBoMon === monGiangDayChinh) {
-                option.selected = true; // Đặt option thành selected nếu trùng
-                foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
-              }
-
-              maBoMonSelect.appendChild(option); // Thêm option vào select
-
-
-            });
-          } else {
-            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
-          }
-
-          // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
-          if (!foundMatch) {
-            alert("Không tồn tại mã bộ môn vui lòng sửa lại");
-          }
-
-        })
-        .catch(error => console.error('Error:', error));
-    });
-  </script> -->
-    <!-- <script>
-    function fetchBoMon() {
-      const maPhongBan = document.getElementById("MaPhongBan").value;
-      fetch(`/getMaBoMon/${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log(data); // In ra phản hồi để kiểm tra
-          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-
-          if (!maBoMonSelect) {
-            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-            return;
-          }
-
-          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-
-          // Kiểm tra success và dữ liệu maBoMon
-          if (data.success && data.maBoMon) {
-            data.maBoMon.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-              maBoMonSelect.appendChild(option); // Thêm option vào select
-            });
-          } else {
-            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
-          }
-        })
-        .catch(error => console.error('Error:', error));
-    };
-  </script> -->
-
-    <!-- Phần phân quyền -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
-    </script>
-
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
-    <script>
-      document
-        .getElementById("infome")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-          if (id_User) {
-            // Chuyển hướng đến trang infome và truyền id_User trong URL
-            window.location.href = `/infome/${id_User}`;
-          } else {
-            alert("Không tìm thấy id_User trong localStorage.");
-          }
-        });
-    </script>
-
-    <!-- <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Lắng nghe sự kiện click trên nút có id là submitBtn
-      document.getElementById("submitBtn").addEventListener("click", function (event) {
-        event.preventDefault();  // Ngừng hành vi gửi form mặc định
-
-        const form = document.getElementById("formData");  // Lấy form theo id
-
-        // Kiểm tra xem form có tồn tại không
-        if (form) {
-          // Tạo đối tượng FormData từ form
-          const formData = new FormData(form);
-
-          // Chuyển FormData thành một đối tượng JSON để dễ đọc và xử lý
-          const formObject = {};
-          formData.forEach((value, key) => {
-            formObject[key] = value;
-          });
-
-          // Lấy id_User từ dữ liệu trong form
-          const id_User = formObject.Id_User; // `Id_User` là tên của trường ẩn trong form
-
-          if (id_User) {
-            // Sử dụng fetch để gửi dữ liệu đến server
-            fetch(`/infome/${id_User}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json', // Gửi dữ liệu dưới dạng JSON
-              },
-              body: JSON.stringify(formObject)  // Chuyển đổi đối tượng dữ liệu thành chuỗi JSON
-            })
-              .then(response => response.json())  // Giả sử server trả về dữ liệu JSON
-              .then(data => {
-                console.log("Dữ liệu phản hồi từ server:", data);
-                alert(data.message)
-                // Xử lý dữ liệu từ server, ví dụ như thông báo thành công
-              })
-              .catch(error => {
-                console.error("Có lỗi xảy ra:", error);
-                // Xử lý lỗi nếu có
-              });
-          } else {
-            alert("Không tìm thấy id_User trong form.");
-          }
-        } else {
-          console.log("Không tìm thấy form với id 'infome'.");
-        }
-      });
-    }); -->
-
-    <!-- </script> -->
-    <!-- <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const Quyen = localStorage.getItem("userRole");
-
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('changeMessage');
-      //Ẩn site thêm thông báo
-      if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-        actionButton.style.display = '';
-      } else {
-        actionButton.style.display = 'none';
-      }
-    });
-  </script> -->
-    <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-          if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-          } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-          }
-        });
-    </script>
-    <!-- <script>
-    $(document).ready(function () {
-      $('#namHoc option[value=""]').remove();
-
-      $.ajax({
-        url: '/getNamHoc',
-        method: 'GET',
-        success: function (response) {
-          if (response.success) {
-
-            response.NamHoc.forEach(function (item) {
-              console.log(item.NamHoc);
-              $('#namHoc').append(
-                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-              );
-            });
-          } else {
-            console.error("Không lấy được dữ liệu năm học:", response.message);
-          }
-        },
-        error: function (error) {
-          console.error("Lỗi khi lấy dữ liệu năm học:", error);
-        }
-      });
-    });
-  </script> -->
-    <script>
-      $(document).ready(function () {
-        // Xóa các option trống trong tất cả các select có class .namHoc
-        $('.namHoc option[value=""]').remove();
-
-        // Gửi yêu cầu AJAX để lấy danh sách năm học
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              // Lặp qua mỗi select có class .namHoc
-              $(".namHoc").each(function () {
-                const selectElement = $(this); // Lấy select hiện tại
-                response.NamHoc.forEach(function (item) {
-                  console.log(item.NamHoc);
-                  selectElement.append(
-                    `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                  );
-                });
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
-      });
-    </script>
 </body>
 
 </html>
