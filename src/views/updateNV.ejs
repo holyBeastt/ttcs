@@ -170,9 +170,15 @@
                                 </select>
                               </div>
                               </div>
-                              <div class="col-md-4 input-wrapper">
-                                <label for="HSL" class="form-label">Hệ số lương*</label>
-                                <input type="text" class="form-control" id="HSL" name="HSL" value="<%= value.HSL %>" required>
+                              <div class="col-md-4 input-wrapper d-flex justify-content-between">
+                                <div>
+                                  <label for="HSL" class="form-label">Hệ số lương*</label>
+                                  <input type="text" class="form-control" id="HSL" name="HSL" value="<%= value.HSL %>" required />
+                                </div>
+                                <div>
+                                  <label for="Luong" class="form-label">Lương*</label>
+                                  <input type="text" class="form-control" id="Luong" name="Luong" value="<%= value.Luong %>"/>
+                                </div>
                               </div>
                               <div class="col-md-4 input-wrapper" hidden>
                                 <label for="MatKhau" class="form-label">Mật khẩu</label>

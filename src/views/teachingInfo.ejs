@@ -789,11 +789,11 @@
           };
 
           //Thẻ select hình thức thi giữa kỳ
-          let heDaoTaoTd;
-          let heDaoTaoSelect;
-          heDaoTaoTd = document.createElement('td');
-          heDaoTaoSelect = document.createElement('select');
-          heDaoTaoSelect.name = 'heDaoTao';
+          let he_dao_taoTd;
+          let he_dao_taoSelect;
+          he_dao_taoTd = document.createElement('td');
+          he_dao_taoSelect = document.createElement('select');
+          he_dao_taoSelect.name = 'he_dao_tao';
 
           // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
           const options = [
@@ -808,20 +808,20 @@
             const option = document.createElement('option');
             option.value = optionData.value;
             option.textContent = optionData.text;
-            if (row.HeDaoTao === optionData.value) {
+            if (row.he_dao_tao === optionData.value) {
               option.selected = true;
             }
-            heDaoTaoSelect.appendChild(option);
+            he_dao_taoSelect.appendChild(option);
           });
           // Thêm style trực tiếp
-          heDaoTaoSelect.style.setProperty('background-color', 'white', 'important');
-          heDaoTaoSelect.style.setProperty('color', 'black', 'important');
-          heDaoTaoSelect.style.padding = '5px';
+          he_dao_taoSelect.style.setProperty('background-color', 'white', 'important');
+          he_dao_taoSelect.style.setProperty('color', 'black', 'important');
+          he_dao_taoSelect.style.padding = '5px';
 
-          heDaoTaoTd.appendChild(heDaoTaoSelect);
+          he_dao_taoTd.appendChild(he_dao_taoSelect);
           // Thêm id để lấy dữ liệu 
-          heDaoTaoSelect.id = `heDaoTao-${row.ID}`;
-          tableRow.appendChild(heDaoTaoTd);
+          he_dao_taoSelect.id = `he_dao_tao-${row.ID}`;
+          tableRow.appendChild(he_dao_taoTd);
 
 
           const soTietLLTd = document.createElement('td');
@@ -917,7 +917,7 @@
             inviteCheckbox.disabled = true
             giaoVienGiangDayInput.disabled = true;
             boMonInput.disabled = true;
-            heDaoTaoSelect.disabled = true;
+            he_dao_taoSelect.disabled = true;
             ngayBatDauInput.disabled = true;
             // Ngăn người dùng thay đổi trạng thái ngày kết thúc
             ngayKetThucInput.disabled = true;
@@ -932,7 +932,7 @@
 
               giaoVienGiangDayInput.disabled = true;
               boMonInput.disabled = true;
-              heDaoTaoSelect.disabled = true;
+              he_dao_taoSelect.disabled = true;
               ngayBatDauInput.disabled = true;
               // Ngăn người dùng thay đổi trạng thái ngày kết thúc
               ngayKetThucInput.disabled = true;
@@ -1041,19 +1041,19 @@
           return;
         }
 
-        const heDaoTao = currentObject.HeDaoTao;
-        const validHeDaoTao = ["Nghiên cứu sinh (Đóng học phí)", "Cao học (Đóng học phí)"];
+        const he_dao_tao = currentObject.he_dao_tao;
+        const validhe_dao_tao = ["Nghiên cứu sinh (Đóng học phí)", "Cao học (Đóng học phí)"];
 
         // Kiểm tra điều kiện để gợi ý
-        if (values.length > 0 && !validHeDaoTao.includes(heDaoTao)) {
-          console.warn("Không thể gợi ý tên thứ 2 do heDaoTao không hợp lệ.");
+        if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao)) {
+          console.warn("Không thể gợi ý tên thứ 2 do he_dao_tao không hợp lệ.");
           suggestionsContainer.remove();
           return;
         }
 
-        // Gợi ý từ nameGvm nếu là tên thứ 2 và heDaoTao hợp lệ
-        // Gợi ý từ nameGvm nếu là tên thứ 2 và heDaoTao hợp lệ
-        if (values.length > 0 && validHeDaoTao.includes(heDaoTao)) {
+        // Gợi ý từ nameGvm nếu là tên thứ 2 và he_dao_tao hợp lệ
+        // Gợi ý từ nameGvm nếu là tên thứ 2 và he_dao_tao hợp lệ
+        if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
           suggestions = nameGvm
             .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
             .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
@@ -1298,14 +1298,14 @@
         // Lấy các giá trị từ các ô nhập và checkbox
         const giaoVienGiangDayInput = row.querySelector('input[type="text"][placeholder="Nhập tên giảng viên"]');
         const boMonInput = row.querySelector('input[type="text"][placeholder="Nhập tên bộ môn"]');
-        const heDaoTaoSelect = row.querySelector('select[name="heDaoTao"]');
+        const he_dao_taoSelect = row.querySelector('select[name="he_dao_tao"]');
         const moiGiangCheckbox = row.querySelector('input[type="checkbox"][name="moigiang"]');
         const khoaCheckbox = row.querySelector('input[type="checkbox"][name="khoa"]');
 
         // Lấy giá trị từ các ô nhập liệu
         const giaoVienGiangDay = giaoVienGiangDayInput ? giaoVienGiangDayInput.value : '';
         const boMon = boMonInput ? boMonInput.value : '';
-        const heDaoTao = heDaoTaoSelect ? heDaoTaoSelect.value : '';
+        const he_dao_tao = he_dao_taoSelect ? he_dao_taoSelect.value : '';
 
         // Lấy trạng thái của checkbox "Khoa" và "Đào Tạo"
         const khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false;
@@ -1336,7 +1336,7 @@
         globalData[index].KhoaDuyet = khoaDuyet;
         globalData[index].MoiGiang = moiGiang;
         globalData[index].BoMon = boMon;
-        globalData[index].HeDaoTao = heDaoTao;
+        globalData[index].he_dao_tao = he_dao_tao;
       });
 
       // In kết quả ra console để kiểm tra dữ liệu đã được cập nhật vào globalData

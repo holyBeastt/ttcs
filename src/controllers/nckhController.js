@@ -54,7 +54,7 @@ const getTableDeTaiDuAn = async (req, res) => {
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
-
+        console.log(results)
         // Trả về kết quả dưới dạng JSON
         res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
@@ -64,34 +64,6 @@ const getTableDeTaiDuAn = async (req, res) => {
             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
-
-// Hàm lấy dữ liệu tổng hợp của giảng viên đang giảng dạy
-const tongHopDuLieuGiangVien = async () => {
-    const connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-    try {
-        // Thực hiện hai truy vấn song song bằng Promise.all
-        const [results1, results2] = await Promise.all([
-            connection.execute(`SELECT HoTen, MonGiangDayChinh
-FROM gvmoi
-WHERE TinhTrangGiangDay = 1;
-`),
-            connection.execute(
-                "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM nhanvien"
-            ),
-        ]);
-
-        // Kết hợp kết quả từ hai truy vấn thành một mảng duy nhất
-        const allResults = results1[0].concat(results2[0]);
-
-        return allResults;
-    } catch (error) {
-        console.error("Error while fetching lecturer data:", error);
-        return []; // Trả về mảng rỗng nếu có lỗi
-    } finally {
-        connection.release(); // Giải phóng kết nối sau khi hoàn thành
     }
 };
 

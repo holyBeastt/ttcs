@@ -80,8 +80,8 @@
   <div class="container my-5 box">
     <form id="tienluongForm" action="/tienluong" method="POST" class="row">
       <div class="col-md-4">
-        <label for="HeDaoTao">Hệ Đào Tạo</label>
-        <select name="HeDaoTao" id="HeDaoTao" class="form-control" required>
+        <label for="he_dao_tao">Hệ Đào Tạo</label>
+        <select name="he_dao_tao" id="he_dao_tao" class="form-control" required>
           <option value="Đại học (Đóng học phí)" selected>Đại học (Đóng học phí)</option>
           <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
           <option value="Cao học (Đóng học phí)">Cao học (Đóng học phí)</option>
@@ -121,7 +121,7 @@
             <% for (var i = 0; i < tienluong.length; i++) { %>
               <tr data-id="<%= tienluong[i].STT %>">
                 <td><%= i + 1 %></td>
-                <td class="editable HeDaoTao-cell"><%= tienluong[i].HeDaoTao %></td>
+                <td class="editable he_dao_tao-cell"><%= tienluong[i].he_dao_tao %></td>
                 <td class="editable HocVi-cell"><%= tienluong[i].HocVi %></td>
                 <td class="editable SoTien-cell"><%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(tienluong[i].SoTien) %></td>
                 <td class="d-flex justify-content-center">
@@ -151,18 +151,18 @@
 
             // Lưu giá trị gốc
             originalValues[STT] = {
-                HeDaoTao: row.find('.HeDaoTao-cell').text().trim(),
+                he_dao_tao: row.find('.he_dao_tao-cell').text().trim(),
                 HocVi: row.find('.HocVi-cell').text().trim(),
                 SoTien: row.find('.SoTien-cell').text().trim()
             };
 
-            // Chuyển text thành combobox cho HeDaoTao
-            row.find('.HeDaoTao-cell').html(`
+            // Chuyển text thành combobox cho he_dao_tao
+            row.find('.he_dao_tao-cell').html(`
                 <select class="form-control">
-                    <option value="Đại học (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Đại học (Đóng học phí)' ? 'selected' : ''}>Đại học (Đóng học phí)</option>
-                    <option value="Đại học (Mật mã)" ${originalValues[STT].HeDaoTao === 'Đại học (Mật mã)' ? 'selected' : ''}>Đại học (Mật mã)</option>
-                    <option value="Cao học (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Cao học (Đóng học phí)' ? 'selected' : ''}>Cao học (Đóng học phí)</option>
-                    <option value="Nghiên cứu sinh (Đóng học phí)" ${originalValues[STT].HeDaoTao === 'Nghiên cứu sinh (Đóng học phí)' ? 'selected' : ''}>Nghiên cứu sinh (Đóng học phí)</option>
+                    <option value="Đại học (Đóng học phí)" ${originalValues[STT].he_dao_tao === 'Đại học (Đóng học phí)' ? 'selected' : ''}>Đại học (Đóng học phí)</option>
+                    <option value="Đại học (Mật mã)" ${originalValues[STT].he_dao_tao === 'Đại học (Mật mã)' ? 'selected' : ''}>Đại học (Mật mã)</option>
+                    <option value="Cao học (Đóng học phí)" ${originalValues[STT].he_dao_tao === 'Cao học (Đóng học phí)' ? 'selected' : ''}>Cao học (Đóng học phí)</option>
+                    <option value="Nghiên cứu sinh (Đóng học phí)" ${originalValues[STT].he_dao_tao === 'Nghiên cứu sinh (Đóng học phí)' ? 'selected' : ''}>Nghiên cứu sinh (Đóng học phí)</option>
                 </select>
             `);
 
@@ -196,7 +196,7 @@
             const row = $(this).closest('tr');
             const STT = row.data('id');
             const updatedData = {
-                HeDaoTao: row.find('.HeDaoTao-cell select').val(),
+                he_dao_tao: row.find('.he_dao_tao-cell select').val(),
                 HocVi: row.find('.HocVi-cell select').val(),
                 SoTien: row.find('.SoTien-cell input').val()
             };
@@ -208,7 +208,7 @@
                 data: JSON.stringify(updatedData),
                 success: function(response) {
                     // Cập nhật giao diện
-                    row.find('.HeDaoTao-cell').text(updatedData.HeDaoTao);
+                    row.find('.he_dao_tao-cell').text(updatedData.he_dao_tao);
                     row.find('.HocVi-cell').text(updatedData.HocVi);
                     // Định dạng lại số tiền
                     row.find('.SoTien-cell').text(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(updatedData.SoTien));
@@ -236,7 +236,7 @@
             const STT = row.data('id');
 
             // Khôi phục giá trị gốc
-            row.find('.HeDaoTao-cell').text(originalValues[STT].HeDaoTao);
+            row.find('.he_dao_tao-cell').text(originalValues[STT].he_dao_tao);
             row.find('.HocVi-cell').text(originalValues[STT].HocVi);
             row.find('.SoTien-cell').text(originalValues[STT].SoTien);
 
@@ -253,7 +253,7 @@
         $('#addButton').click(function(event) {
             event.preventDefault(); // Ngăn chặn hành động mặc định của nút
 
-            const heDaoTao = $('#HeDaoTao').val();
+            const he_dao_tao = $('#he_dao_tao').val();
             const hocVi = $('#HocVi').val();
             const soTien = $('#SoTien').val();
 
@@ -262,10 +262,10 @@
                 url: '/checkExistence',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi }),
+                data: JSON.stringify({ he_dao_tao: he_dao_tao, HocVi: hocVi }),
                 success: function(response) {
                     // Nếu không tồn tại, tiếp tục thêm mới
-                    addNewEntry(heDaoTao, hocVi, soTien);
+                    addNewEntry(he_dao_tao, hocVi, soTien);
                 },
                 error: function(xhr) {
                     if (xhr.status === 409) {
@@ -277,13 +277,13 @@
             });
         });
 
-        function addNewEntry(heDaoTao, hocVi, soTien) {
+        function addNewEntry(he_dao_tao, hocVi, soTien) {
             // Logic để thêm mới vào cơ sở dữ liệu
             $.ajax({
                 url: '/tienluong',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ HeDaoTao: heDaoTao, HocVi: hocVi, SoTien: soTien }),
+                data: JSON.stringify({ he_dao_tao: he_dao_tao, HocVi: hocVi, SoTien: soTien }),
                 success: function(response) {
                     alert('Thêm mới thành công!');
                     location.reload(); // Tải lại trang để cập nhật dữ liệu
