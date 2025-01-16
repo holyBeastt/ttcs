@@ -595,47 +595,36 @@
           document.getElementById("no-data-message").style.display = "none";
 
           const headersMap = {
-            id: "ID",
-            major: "Khoa",
-            ll_code: "Số tiết theo TKB",
-            ll_total: "Lên lớp",
-            course_code: "Mã lớp học",
-            day_of_week: "Ngày trong tuần",
-            student_quantity: "Số lượng sinh viên",
-            student_bonus: "Hệ số lớp đông",
-            bonus_time: "Hệ số T7/CN",
-            bonus_teacher: "Hệ số giảng viên",
-            course_id: "Mã bộ môn",
-            lecturer: "Giảng viên theo TKB",
-            credit_hours: "Số TC",
-            classroom: "Lớp học",
-            course_name: "Lớp học phần",
-            course_code: "Mã học phần",
-            study_format: "Hình thức",
-            periods_per_week: "Số tiết/tuần",
-            period_start: "Tiết bắt đầu",
-            period_end: "Tiết kết thúc",
-            start_date: "Ngày bắt đầu",
-            end_date: "Ngày kết thúc",
-            qc: "Quy chuẩn",
+            id: { name: "ID", width: "50px" },
+            major: { name: "Khoa", width: "120px" },
+            ll_code: { name: "Số tiết theo TKB", width: "100px" },
+            ll_total: { name: "Lên lớp", width: "80px" },
+            student_quantity: { name: "Số lượng sinh viên", width: "150px" },
+            student_bonus: { name: "Hệ số lớp đông", width: "120px" },
+            bonus_time: { name: "Hệ số T7/CN", width: "120px" },
+            bonus_teacher: { name: "Hệ số giảng viên", width: "120px" },
+            course_id: { name: "Mã bộ môn", width: "100px" },
+            lecturer: { name: "Giảng viên theo TKB", width: "200px" },
+            credit_hours: { name: "Số TC", width: "80px" },
+            course_name: { name: "Lớp học phần", width: "200px" },
+            course_code: { name: "Mã học phần", width: "150px" },
+            start_date: { name: "Ngày bắt đầu", width: "150px" },
+            end_date: { name: "Ngày kết thúc", width: "150px" },
+            bonus_total: { name: "Quy chuẩn", width: "50px" },
+            semester: { name: "Năm học", width: "50px" },
           };
 
           const headers = Object.keys(renderData[0]).filter(
             (header) => header !== "GhiChu" && header !== "description"
           );
-
-          // Render tiêu đề bảng
           const headerHtml = headers
             .map((header) => {
-              const newHeaderName = headersMap[header] || header;
-              const baseStyle =
-                'style="text-align: center; vertical-align: middle;"';
-              const headerStyle =
-                newHeaderName === "Số TC" || newHeaderName === "Số SV"
-                  ? 'style="white-space: break-spaces"'
-                  : baseStyle;
-
-              return `<th ${headerStyle}>${newHeaderName}</th>`;
+              const headerInfo = headersMap[header] || {
+                name: header,
+                width: "auto",
+              };
+              const baseStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
+              return `<th ${baseStyle}>${headerInfo.name}</th>`;
             })
             .join("");
 
@@ -651,7 +640,7 @@
           // Đặt chiều cao bảng ảo để mô phỏng toàn bộ dữ liệu
           tableBody.style.position = "relative";
           tableBody.style.height = `${totalRows * rowHeight}px`;
-
+          /*
           // Hàm render các hàng trong viewport
           function renderRows(startIndex, endIndex) {
             const fragment = document.createDocumentFragment();
@@ -680,6 +669,64 @@
                     <button onclick="editRow(${id})">Sửa</button>
                     <button onclick="deleteRow(${id})">Xóa</button>
                   </td>`;
+              }
+
+              const hasZeroValue = Object.values(item).some(
+                (value) => !isNaN(value) && Number(value) === 0
+              );
+              const warningClass = hasZeroValue ? "warning-row" : "";
+
+              const tr = document.createElement("tr");
+              tr.style.position = "absolute";
+              tr.style.top = `${i * rowHeight}px`;
+              tr.style.height = `${rowHeight}px`;
+              tr.id = `row-${id}`;
+              tr.className = warningClass;
+              tr.innerHTML = `${row}${actionColumn}`;
+
+              fragment.appendChild(tr);
+            }
+
+            // Xóa các dòng cũ trong viewport trước khi thêm dòng mới
+            tableBody.innerHTML = "";
+            tableBody.appendChild(fragment);
+          }
+*/
+          function renderRows(startIndex, endIndex) {
+            const fragment = document.createDocumentFragment();
+
+            for (let i = startIndex; i < endIndex; i++) {
+              if (i >= totalRows) break;
+
+              const item = renderData[i];
+              const id = item.id;
+
+              const row = headers
+                .map((key) => {
+                  const headerInfo = headersMap[key] || {
+                    name: key,
+                    width: "auto",
+                  };
+                  const cellStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
+
+                  if (keyNotEdit.includes(key)) {
+                    return `<td ${cellStyle}>${
+                      item[key] !== null ? item[key] : ""
+                    }</td>`;
+                  }
+                  return `<td id="cell-${id}-${key}" ${cellStyle}>${
+                    item[key] !== null ? item[key] : ""
+                  }</td>`;
+                })
+                .join("");
+
+              let actionColumn = "";
+              if (role === "Duyệt") {
+                actionColumn = `
+        <td style="text-align: center; vertical-align: middle;">
+          <button onclick="editRow(${id})">Sửa</button>
+          <button onclick="deleteRow(${id})">Xóa</button>
+        </td>`;
               }
 
               const hasZeroValue = Object.values(item).some(
@@ -731,21 +778,13 @@
         const headersMap = {
           id: "ID",
           major: "Khoa",
-          Dot: "Đợt",
-          Ki: "Kì",
-          Nam: "Năm",
           lecturer: "Giảng viên theo TKB",
           credit_hours: "Số TC",
           classroom: "Lớp học",
           course_name: "Lớp học phần",
           course_code: "Mã học phần",
-          study_format: "Hình thức",
-          periods_per_week: "Số tiết/tuần",
-          period_start: "Tiết bắt đầu",
-          period_end: "Tiết kết thúc",
           start_date: "Ngày bắt đầu",
           end_date: "Ngày kết thúc",
-          qc: "Quy chuẩn",
         };
 
         const keyNotEdit = ["id", "GhiChu"];
@@ -760,6 +799,23 @@
           document.getElementById("data-table-body").appendChild(rowElement);
         }
 
+        const rowHtml = headers
+          .map((key) => {
+            const headerInfo = headersMap[key] || { name: key, width: "auto" };
+            const cellStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
+
+            if (keyNotEdit.includes(key)) {
+              return `<td ${cellStyle}>${
+                updatedRow[key] !== null ? updatedRow[key] : ""
+              }</td>`;
+            }
+
+            return `<td id="cell-${id}-${key}" ${cellStyle}>${
+              updatedRow[key] !== null ? updatedRow[key] : ""
+            }</td>`;
+          })
+          .join("");
+        /*
         // Xây dựng các ô trong dòng
         const rowHtml = headers
           .map((key) => {
@@ -786,7 +842,7 @@
             //   }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
           })
           .join("");
-
+*/
         // Tạo cột hành động nếu role là "Duyệt"
         let actionColumn = "";
         if (role === "Duyệt") {

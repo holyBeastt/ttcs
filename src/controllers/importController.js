@@ -290,7 +290,6 @@ const parseDataToObjects = (lines) => {
   return result; // Trả về mảng kết quả chứa các đối tượng đã xử lý
 };
 
-
 // Hàm tách dữ liệu thô ( chuỗi văn bản ) ra thành mảng chuỗi các lớp
 const splitAndCleanLines = (text) => {
   // Danh sách các ký tự hoặc từ cần loại bỏ (dùng "includes" để kiểm tra sự tồn tại của chuỗi)
@@ -1065,12 +1064,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-      item["Số tiết lên lớp giờ HC"] ||
-      null,
+        item["Số tiết lên lớp giờ HC"] ||
+        null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      null,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
@@ -2668,8 +2667,7 @@ const insertGiangDay2 = async (
   // gộp 2 mảng dữ liệu
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
 
-
-  console.log(mergedArray)
+  console.log(mergedArray);
   try {
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
