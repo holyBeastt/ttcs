@@ -913,8 +913,8 @@ const saveToExportDoAn = async (req, res) => {
           let SoNguoi = 2; // Mặc định là 2 giảng viên
 
           if (
-            item.GiangVien2 == "null" ||
-            item.GiangVien2 == "không" ||
+            item.GiangVien2.toLowerCase() == "null" ||
+            item.GiangVien2.toLowerCase() == "không" ||
             item.GiangVien2 == ""
           ) {
             SoNguoi = 1;

@@ -2656,6 +2656,8 @@ const insertGiangDay2 = async (
   // gộp 2 mảng dữ liệu
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
 
+
+  console.log(mergedArray)
   try {
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
