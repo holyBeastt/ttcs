@@ -1,27 +1,24 @@
 const createConnection = require("../config/databasePool");
 
 const thongkevuotgioController = {
-    showThongkevuotgioPage: (req, res) => {
-        res.render("thongkevuotgio");
-    },
+  showThongkevuotgioPage: (req, res) => {
+    res.render("thongkevuotgio");
+  },
 
-    getThongkevuotgioData: async (req, res) => {
-        let connection;
-        const { namhoc, khoa, hocky } = req.query;
+  getThongkevuotgioData: async (req, res) => {
+    let connection;
+    const { namhoc, khoa, hocky } = req.query;
 
-        console.log("Nam hoc:", namhoc);
-        console.log("Khoa:", khoa);
+    try {
+      connection = await createConnection();
+      let query;
+      const params = [];
 
-        try {
-            connection = await createConnection();
-            let query;
-            const params = [];
+      console.log("Received query parameters:", req.query);
 
-            console.log("Received query parameters:", req.query);
-
-            if (khoa !== 'ALL') {
-                // Query when selecting specific department
-                query = `
+      if (khoa !== "ALL") {
+        // Query when selecting specific department
+        query = `
                     SELECT 
                         gd.GiangVien AS GiangVien,
                         SUM(gd.QuyChuan) AS SoTietGiangDay,
@@ -70,10 +67,10 @@ const thongkevuotgioController = {
                     ORDER BY 
                         TongSoTiet DESC
                 `;
-                params.push(namhoc, hocky, namhoc, khoa, hocky);
-            } else {
-                // Query for all departments
-                query = `
+        params.push(namhoc, hocky, namhoc, khoa, hocky);
+      } else {
+        // Query for all departments
+        query = `
                     WITH Final as (SELECT 
                         gd.Khoa,
                         gd.GiangVien AS GiangVien,
@@ -116,71 +113,71 @@ const thongkevuotgioController = {
                     SUM(SoLuongGiangVien) AS SoLuongGiangVien
                     FROM final
                 `;
-                params.push(namhoc, hocky, namhoc, hocky);
-            }
+        params.push(namhoc, hocky, namhoc, hocky);
+      }
 
-            // Add parameters for the query
-            if (namhoc) {
-                params.push(namhoc);
-            }
+      // Add parameters for the query
+      if (namhoc) {
+        params.push(namhoc);
+      }
 
-            console.log("Executing query:", query);
-            console.log("With parameters:", params);
-            console.log("Query:", query);
+      const [result] = await connection.query(query, params);
 
-            const [result] = await connection.query(query, params);
+      // Check if result is empty
+      if (result.length === 0) {
+        console.log("No data found for the query.");
+        return res.json([
+          { message: "Không có dữ liệu cho khoảng thời gian này" },
+        ]); // Return message if no data found
+      }
 
-            // Check if result is empty
-            if (result.length === 0) {
-                console.log("No data found for the query.");
-                return res.json([{ message: "Không có dữ liệu cho khoảng thời gian này" }]); // Return message if no data found
-            }
+      // Calculate total hours for each lecturer
+      const finalResult = result.map((item) => ({
+        ...item,
 
-            // Calculate total hours for each lecturer
-            const finalResult = result.map(item => ({
-                ...item,
+        TongSoTiet: (
+          parseFloat(item.SoTietGiangDay) + parseFloat(item.SoTietKTGK || 0)
+        ) // Bao gồm SoTietKTGK
+          .toFixed(2), // Cột "Tổng số tiết"
+      }));
 
-                TongSoTiet: (
-                    parseFloat(item.SoTietGiangDay) + 
-                    parseFloat(item.SoTietKTGK || 0) // Bao gồm SoTietKTGK
-                ).toFixed(2) // Cột "Tổng số tiết"
-            }));
+      res.json(finalResult);
+    } catch (err) {
+      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Lỗi máy chủ", error: err.message });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
 
-            res.json(finalResult);
-        } catch (err) {
-            console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-            res.status(500).json({ success: false, message: "Lỗi máy chủ", error: err.message });
-        } finally {
-            if (connection) connection.release();
-        }
-    },
-
-    getFilterOptions: async (req, res) => {
-        let connection;
-        try {
-            connection = await createConnection();
-            const query = `
+  getFilterOptions: async (req, res) => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const query = `
                 SELECT DISTINCT HocKy, NamHoc, Khoa 
                 FROM giangday 
                 ORDER BY NamHoc DESC, HocKy DESC;
             `;
-            const [result] = await connection.query(query);
-            res.json(result);
-        } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu filter:", err);
-            res.status(500).send("Lỗi máy chủ");
-        } finally {
-            if (connection) connection.release();
-        }
-    },
+      const [result] = await connection.query(query);
+      res.json(result);
+    } catch (err) {
+      console.error("Lỗi khi lấy dữ liệu filter:", err);
+      res.status(500).send("Lỗi máy chủ");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
 
-    getThongkeGiangDayData: async (req, res) => {
-        let connection;
-        const {hocky, namhoc, khoa } = req.query;
+  getThongkeGiangDayData: async (req, res) => {
+    let connection;
+    const { hocky, namhoc, khoa } = req.query;
 
-        try {
-            connection = await createConnection();
-            let query = `
+    try {
+      connection = await createConnection();
+      let query = `
                 SELECT 
                     gd.giangvien AS GiangVien,
                     COALESCE(SUM(gd.QuyChuan), 0) AS SoTietGiangDay
@@ -195,26 +192,26 @@ const thongkevuotgioController = {
                     SoTietGiangDay DESC
             `;
 
-            // Xây dựng mảng tham số
-            const params = [];
-            if (namhoc) params.push(namhoc);
-            if (hocky) params.push(hocky);
-            if (khoa && khoa !== 'ALL') params.push(khoa);
+      // Xây dựng mảng tham số
+      const params = [];
+      if (namhoc) params.push(namhoc);
+      if (hocky) params.push(hocky);
+      if (khoa && khoa !== "ALL") params.push(khoa);
 
-            // In ra câu truy vấn và tham số để kiểm tra
-            console.log("Query:", query);
-            console.log("Params:", params);
+      // In ra câu truy vấn và tham số để kiểm tra
 
-            const [result] = await connection.query(query, params);
+      const [result] = await connection.query(query, params);
 
-            res.json(result);
-        } catch (err) {
-            console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-            res.status(500).json({ success: false, message: "Lỗi máy chủ", error: err.message });
-        } finally {
-            if (connection) connection.release();
-        }
+      res.json(result);
+    } catch (err) {
+      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Lỗi máy chủ", error: err.message });
+    } finally {
+      if (connection) connection.release();
     }
+  },
 };
 
 module.exports = thongkevuotgioController;

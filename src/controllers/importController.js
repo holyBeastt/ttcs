@@ -207,7 +207,7 @@ const parseDataToObjects = (lines) => {
 
     // Lấy Khoa nếu như có dòng Khoa trong file, nếu không có thì phải chọn ở combobox
     line = line.trim(); // Loại bỏ khoảng trắng thừa ở đầu và cuối dòng
-    if (line.includes("học phần khác")) {
+    if (line.toLowerCase().includes(". khác")) {
       currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
     } else if (line.includes("Trung tâm thực hành")) {
       currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"

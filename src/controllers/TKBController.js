@@ -16,7 +16,6 @@ const getTKBChinhThucSite = async (req, res) => {
 const getDataTKBChinhThuc = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body;
 
-  console.log("Lấy dữ liệu bảng tạm Khoa Đợt Kì Năm:", Khoa, Dot, Ki, Nam);
   const semester = `${Dot}, ${Ki}, ${Nam}`;
 
   let connection;
@@ -28,7 +27,7 @@ const getDataTKBChinhThuc = async (req, res) => {
 
     // Xây dựng truy vấn dựa vào giá trị của Khoa
     if (Khoa !== "ALL") {
-      query = `SELECT * FROM course_schedule_details WHERE major = ? AND semester = ?`;
+      query = `SELECT id, course_name, course_id, major, lecturer, start_date, end_date, student_quantity, student_bonus, bonus_time, bonus_teacher, bonus_total, semester FROM course_schedule_details WHERE major = ? AND semester = ?`;
       queryParams.push(Khoa, semester);
     } else {
       query = `SELECT * FROM course_schedule_details WHERE semester = ?`;
