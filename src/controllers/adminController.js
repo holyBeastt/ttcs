@@ -937,9 +937,7 @@ const AdminController = {
       if (results.affectedRows > 0) {
         res.status(200).json({ message: "Xóa thành công!" }); // Trả về thông báo thành công
       } else {
-        res
-          .status(404)
-          .json({ message: "Không tìm thấy ký tự bắt đầu để xóa." }); // Nếu không tìm thấy ký tự bắt đầu
+        res.status(404).json({ message: "Không tìm thấy Hệ đào tạođể xóa." }); // Nếu không tìm thấy ký tự bắt đầu
       }
     } catch (error) {
       console.error("Lỗi khi xóa dữ liệu: ", error);
@@ -1035,39 +1033,39 @@ const AdminController = {
     let connection;
 
     try {
-        connection = await createPoolConnection();
-        const query = `
+      connection = await createPoolConnection();
+      const query = `
             UPDATE tienluong 
             SET HeDaoTao = ?, HocVi = ?, SoTien = ?
             WHERE STT = ?
         `;
 
-        const [result] = await connection.execute(query, [
-            HeDaoTao,
-            HocVi,
-            SoTien,
-            STT, // Sử dụng STT ở đây
-        ]);
+      const [result] = await connection.execute(query, [
+        HeDaoTao,
+        HocVi,
+        SoTien,
+        STT, // Sử dụng STT ở đây
+      ]);
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy bản ghi để cập nhật",
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Cập nhật thành công",
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy bản ghi để cập nhật",
         });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thành công",
+      });
     } catch (error) {
-        console.error("Lỗi khi cập nhật:", error);
-        res.status(500).json({
-            success: false,
-            message: "Đã xảy ra lỗi khi cập nhật",
-        });
+      console.error("Lỗi khi cập nhật:", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi khi cập nhật",
+      });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 
@@ -1096,25 +1094,25 @@ const AdminController = {
     let connection;
 
     try {
-        connection = await createPoolConnection();
-        const query = `
+      connection = await createPoolConnection();
+      const query = `
             SELECT COUNT(*) as count FROM tienluong 
             WHERE HeDaoTao = ? AND HocVi = ?
         `;
-        const [result] = await connection.execute(query, [HeDaoTao, HocVi]);
+      const [result] = await connection.execute(query, [HeDaoTao, HocVi]);
 
-        if (result[0].count > 0) {
-            return res.status(409).json({ 
-                message: `Hệ Đào Tạo và Học Vị đã chọn: ${HeDaoTao} và ${HocVi} đã tồn tại.` 
-            });
-        }
+      if (result[0].count > 0) {
+        return res.status(409).json({
+          message: `Hệ Đào Tạo và Học Vị đã chọn: ${HeDaoTao} và ${HocVi} đã tồn tại.`,
+        });
+      }
 
-        res.status(200).json({ message: "Kết hợp chưa tồn tại." });
+      res.status(200).json({ message: "Kết hợp chưa tồn tại." });
     } catch (error) {
-        console.error("Lỗi khi kiểm tra sự tồn tại:", error);
-        res.status(500).json({ message: "Đã xảy ra lỗi." });
+      console.error("Lỗi khi kiểm tra sự tồn tại:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi." });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 };
