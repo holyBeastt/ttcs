@@ -215,7 +215,7 @@ const parseDataToObjects = (lines) => {
     }
 
     // Kiểm tra và lưu thông tin "Khoa" vào "nextKhoa"
-    if (line.toLowerCase().includes("khác")) {
+    if (line.toLowerCase().includes(". khác")) {
       nextKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác" cho dòng sau
       return; // Bỏ qua dòng hiện tại
     } else if (line.includes("Trung tâm thực hành")) {
