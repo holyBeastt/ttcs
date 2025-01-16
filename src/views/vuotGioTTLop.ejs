@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       console.log("Gửi dữ liệu");
-      const response = await fetch(`/xemlopgiangday/${MaPhongBan}/${Nam}`, {
+      const response = await fetch(`/xemlopgiangday/${MaPhongBan}/${Nam}/${TenNhanVien}`, {
         method: 'GET', // Gửi yêu cầu GET
       });
       if (!response.ok) {
@@ -664,16 +664,16 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       const data = await response.json(); // Lấy dữ liệu từ server
       if (data.success) {
-        console.log(data)
+        // console.log(data)
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24'];
 
         // Áp dụng filter cho tất cả các bảng
-        rowsKeys.forEach(key => {
-          if (data[key]) {
-            data[key] = data[key].filter(row => row.GiangVien.trim() === TenNhanVien.trim());
-          }
-        });
+        // rowsKeys.forEach(key => {
+        //   if (data[key]) {
+        //     data[key] = data[key].filter(row => row.GiangVien.trim() === TenNhanVien.trim());
+        //   }
+        // });
         // Kiểm tra xem tất cả các bảng đều là mảng rỗng
         const allRowsEmpty = rowsKeys.every(key => !data[key] || data[key].length === 0);
 
@@ -1305,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       console.log("Gửi dữ liệu");
-      const response = await fetch(`/xemlopgiangday/${MaPhongBan}/${Nam}`, {
+      const response = await fetch(`/xemlopgiangday/${MaPhongBan}/${Nam}/${TenNhanVien}`, {
         method: 'GET', // Gửi yêu cầu GET
       });
       if (!response.ok) {
@@ -1317,11 +1317,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24'];
 
         // Áp dụng filter cho tất cả các bảng
-        rowsKeys.forEach(key => {
-          if (data[key]) {
-            data[key] = data[key].filter(row => row.GiangVien.trim() === TenNhanVien.trim());
-          }
-        });
+        // rowsKeys.forEach(key => {
+        //   if (data[key]) {
+        //     data[key] = data[key].filter(row => row.GiangVien.trim() === TenNhanVien.trim());
+        //   }
+        // });
         // Kiểm tra xem tất cả các bảng đều là mảng rỗng
         const allRowsEmpty = rowsKeys.every(key => !data[key] || data[key].length === 0);
 
