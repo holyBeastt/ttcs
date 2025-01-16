@@ -201,71 +201,78 @@ const validateFileExcelQC = (data) => {
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
   const result = []; // Khởi tạo mảng kết quả để chứa các đối tượng
-  let currentKhoa = null; // Biến lưu trữ "Khoa" hiện tại
-  let nextKhoa = null; // Biến lưu trữ "Khoa" cho dòng tiếp theo
-
+  let currentKhoa = '';
+  let nextKhoa = '';
   lines.forEach((line, index) => {
     let currentItem = {}; // Khởi tạo đối tượng mới cho mỗi dòng
+
+    // Lấy Khoa nếu như có dòng Khoa trong file, nếu không có thì phải chọn ở combobox
     line = line.trim(); // Loại bỏ khoảng trắng thừa ở đầu và cuối dòng
-
-    // Nếu "nextKhoa" có giá trị, gán vào "currentKhoa" và reset "nextKhoa"
-    if (nextKhoa) {
-      currentKhoa = nextKhoa;
-      nextKhoa = null;
-    }
-
-    // Kiểm tra và lưu thông tin "Khoa" vào "nextKhoa"
     if (line.toLowerCase().includes("khác")) {
-      nextKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác" cho dòng sau
-      return; // Bỏ qua dòng hiện tại
+      nextKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
+      if (index == 0) {
+        currentKhoa = nextKhoa
+      }
     } else if (line.includes("Trung tâm thực hành")) {
-      nextKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa cho dòng sau
-      return; // Bỏ qua dòng hiện tại
+      nextKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
+      if (index == 0) {
+        currentKhoa = nextKhoa
+      }
     } else if (line.includes("học phần thuộc Khoa")) {
       const khoaMatch = line.match(/học phần thuộc Khoa\s+(.+)$/);
-      if (khoaMatch) {
-        nextKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
+      nextKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
+      if (index == 0) {
+        currentKhoa = nextKhoa
       }
-      return; // Bỏ qua dòng hiện tại
     }
 
     // Kiểm tra xem dòng có bắt đầu bằng một số theo định dạng "Số." hay không
     if (/^\d+\./.test(line)) {
       // Bước 2: Gắn TT (Số đầu dòng)
+      // Tìm số đầu dòng (TT) và gắn vào đối tượng
       const ttMatch = line.match(/^\d+/);
       if (ttMatch) {
         currentItem["TT"] = ttMatch[0]; // Gắn giá trị TT (Số đầu dòng)
         line = line.replace(/^\d+\./, "").trim(); // Loại bỏ phần TT (bao gồm cả dấu chấm) khỏi dòng
       }
 
-      // Gắn Khoa vào dòng hiện tại
+      // Gắn Khoa
       currentItem["Khoa"] = currentKhoa;
 
+      currentKhoa = nextKhoa;
+
       // Bước 3: Gắn Số TC (là số đầu tiên sau TT)
-      const tcMatch = line.match(/^\d+/);
+      const tcMatch = line.match(/^\d+/); // Tìm số đầu tiên trong dòng
       if (tcMatch) {
+        // Nếu tìm thấy số đầu tiên, gắn vào Số TC
         currentItem["Số TC"] = parseInt(tcMatch[0], 10); // Chuyển thành số nguyên
         line = line.replace(/^\d+/, "").trim(); // Loại bỏ Số TC khỏi dòng
       } else {
+        // Nếu không tìm thấy số đầu tiên, gắn mặc định là 0
         currentItem["Số TC"] = 0;
       }
 
-      // Bước 4: Gắn Lớp học phần
-      const classMatch = line.match(/^(.*?\))/);
+      // Bước 4: Gắn Lớp học phần (tất cả từ đầu dòng đến dấu đóng ngoặc đơn đầu tiên)
+      // Tìm và lấy phần lớp học phần từ đầu dòng đến dấu đóng ngoặc đơn đầu tiên
+      const classMatch = line.match(/^(.*?\))/); // Lấy tất cả đến dấu đóng ngoặc đơn đầu tiên
       if (classMatch) {
-        currentItem["Lớp học phần"] = classMatch[0].trim();
-        line = line.replace(classMatch[0], "").trim();
+        currentItem["Lớp học phần"] = classMatch[0].trim(); // Gắn phần Lớp học phần (bao gồm dấu đóng ngoặc đơn)
+        line = line.replace(classMatch[0], "").trim(); // Loại bỏ phần đã xử lý (Lớp học phần)
       }
 
-      // Bước 5: Trích xuất tên giáo viên
-      const teacherMatch = line.match(/^(.*?)(\d+)/);
+      // Bước 5: Trích xuất tên giáo viên (bắt đầu từ sau dấu ngoặc đơn, đến trước số đầu tiên)
+      // Tìm và trích xuất tên giáo viên từ sau dấu ngoặc đơn đến trước số đầu tiên
+      const teacherMatch = line.match(/^(.*?)(\d+)/); // Lấy tất cả từ đầu dòng đến trước số đầu tiên
       if (teacherMatch) {
-        currentItem["Giáo viên"] = teacherMatch[1].trim();
-        line = line.replace(teacherMatch[1], "").trim();
+        currentItem["Giáo viên"] = teacherMatch[1].trim(); // Gắn phần trước số đầu tiên là tên giáo viên
+        line = line.replace(teacherMatch[1], "").trim(); // Loại bỏ phần tên giáo viên khỏi dòng
       }
 
       // Bước 6: Trích xuất các số liệu
-      const numbers = line.match(/(\d+(\.\d+)?)/g) || [];
+      // Tìm tất cả các số trong dòng, nếu không có thì trả về mảng rỗng
+      const numbers = line.match(/(\d+(\.\d+)?)/g) || []; // Lấy tất cả các số, nếu không có thì trả về mảng rỗng
+
+      // Gắn giá trị tương ứng cho các số liệu. Nếu thiếu giá trị thì gắn 0
       currentItem["Số tiết theo CTĐT"] = parseFloat(numbers[0] || 0);
       currentItem["Số SV"] = parseFloat(numbers[1] || 0);
       currentItem["Số tiết lên lớp theo TKB"] = parseFloat(numbers[2] || 0);
@@ -354,7 +361,6 @@ const convertWordToJSON = async (filePath) => {
 
     // Xóa các khoảng trắng thừa (liên tiếp nhiều khoảng trắng thành một khoảng trắng)
     text = text.replace(/\s+/g, " ").trim();
-    console.log(text);
 
     // Tách văn bản thành các phần bắt đầu bằng chỉ mục số và dấu chấm
     const splitData = splitAndCleanLines(text);
