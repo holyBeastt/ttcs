@@ -104,6 +104,7 @@ const postUpdateGvm = async (req, res) => {
   let oldSauCCCD = req.body.oldSauCCCD;
   let oldFileLyLich = req.body.oldFileLyLich;
   let oldbangTotNghiep = req.body.oldbangTotNghiep;
+  let oldFileBoSung = req.body.oldFileBoSung;
 
   let isQuanDoi = req.body.thuocQuanDoi;
 
