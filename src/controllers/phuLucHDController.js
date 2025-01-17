@@ -144,7 +144,6 @@ function formatDateDMY(date) {
 }
 const getTienLuongList = async (connection) => {
   const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
-  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
   const [tienLuongList] = await connection.execute(query);
   return tienLuongList;
 };
@@ -687,7 +686,6 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
