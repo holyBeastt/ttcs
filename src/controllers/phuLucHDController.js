@@ -143,7 +143,7 @@ function formatDateDMY(date) {
   return `${day}/${month}/${year}`;
 }
 const getTienLuongList = async (connection) => {
-  const query = `SELECT HeDaoTao, HocVi, SoTien FROM tienLuong`;
+  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
   const [tienLuongList] = await connection.execute(query);
   return tienLuongList;
 };
@@ -191,7 +191,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc,
             qc.NamHoc,
             qc.Khoa,
-            qc.HeDaoTao
+            qc.he_dao_tao
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
@@ -213,7 +213,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc,
             qc.NamHoc,
             qc.Khoa,   
-           qc.HeDaoTao
+           qc.he_dao_tao
 
         FROM quychuan qc
         JOIN gvmoi gv 
@@ -366,7 +366,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
   const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
   const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
   const tienLuong = tienLuongList.find(
-    (tl) => tl.HeDaoTao === item.HeDaoTao && tl.HocVi === item.HocVi
+    (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
   );
   const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
@@ -684,7 +684,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.HeDaoTao === item.HeDaoTao && tl.HocVi === item.HocVi
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const thoiGianThucHien = `${formatDateDMY(

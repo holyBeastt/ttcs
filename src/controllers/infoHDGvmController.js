@@ -72,7 +72,7 @@ const exportHDGvmToExcel = async (req, res) => {
     // Lấy danh sách mức tiền từ bảng tienluong
     const tienLuongQuery = `
 SELECT 
- HeDaoTao, 
+ he_dao_tao, 
   HocVi, 
   SoTien 
 FROM 
@@ -113,14 +113,14 @@ FROM
       hd.NganHang,
       SUM(hd.SoTiet) AS SoTiet,
       hd.DiaChi,
-      hd.HeDaoTao,
+      hd.he_dao_tao,
       gv.NoiCongTac
     FROM
       hopdonggvmoi hd
     JOIN
       gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
-      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ? AND hd.HeDaoTao = ?`;
+      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ? AND hd.he_dao_tao = ?`;
 
     // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
     if (khoa && khoa !== "ALL") {
@@ -132,7 +132,7 @@ FROM
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
       hd.Email, hd.MaSoThue, hd.HocVi, hd.ChucVu, hd.HSL, hd.DienThoai, 
       hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
-      gv.MonGiangDayChinh, gv.BangTotNghiepLoai, hd.HeDaoTao;
+      gv.MonGiangDayChinh, gv.BangTotNghiepLoai, hd.he_dao_tao;
     `;
 
     // Tạo mảng tham số
@@ -205,7 +205,7 @@ FROM
 
     function tinhSoTien(row, soTiet) {
       const tienLuong = tienLuongList.find(
-        (tl) => tl.HeDaoTao === row.HeDaoTao && tl.HocVi === row.HocVi
+        (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
       );
       if (tienLuong) {
         return soTiet * tienLuong.SoTien;
@@ -433,7 +433,7 @@ const getHDGvmData = async (req, res) => {
     FROM
       hopdonggvmoi
     WHERE
-      NamHoc = ? AND Dot = ? AND KiHoc = ? AND HeDaoTao = ?
+      NamHoc = ? AND Dot = ? AND KiHoc = ? AND he_dao_tao = ?
   `;
 
     const queryParams = [namHoc, dot, ki, loaiHopDong];
@@ -469,10 +469,10 @@ const getHopDongDuKienData = async (req, res) => {
     const namHoc = req.query.namHoc;
     const dot = req.query.dot;
     let ki = req.query.ki;
-    const HeDaoTao = req.query.HeDaoTao;
+    const he_dao_tao = req.query.he_dao_tao;
     const khoa = req.query.khoa;
 
-    if (HeDaoTao == "Đồ án") {
+    if (he_dao_tao == "Đồ án") {
       ki = 0;
     }
 
@@ -483,7 +483,7 @@ const getHopDongDuKienData = async (req, res) => {
     SELECT
         gv.*,
         gv.HoTen AS GiangVien,
-        'Đồ án' AS HeDaoTao,
+        'Đồ án' AS he_dao_tao,
         MIN(Combined.NgayBatDau) AS NgayBatDau,
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
         SUM(Combined.SoTiet) AS TongTiet,
@@ -547,7 +547,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -573,7 +573,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -597,7 +597,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan * 0.3) AS SoTiet,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -606,7 +606,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.GiaoVienGiangDay LIKE '%,%' AND qc.HeDaoTao NOT LIKE '%Đại học%'
+        qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
     GROUP BY
         gv.HoTen,
         gv.GioiTinh,
@@ -622,7 +622,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -633,7 +633,7 @@ tableALL AS (SELECT
     NamHoc,
     'DoAn' AS LoaiHopDong,
     GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     TongTiet,
@@ -660,7 +660,7 @@ SELECT
     NamHoc,
     'DaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     SoTiet AS TongTiet,
@@ -687,7 +687,7 @@ SELECT
     NamHoc,
     'SauDaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     SoTiet AS TongTiet,
@@ -725,11 +725,11 @@ LEFT JOIN
     TongSoTietGV tsgv 
 ON 
     ta.GiangVien = tsgv.GiangVien
-Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND HeDaoTao = ?
+Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
 ORDER BY 
     tsgv.TongSoTiet DESC;
 `,
-        [dot, ki, namHoc, HeDaoTao]
+        [dot, ki, namHoc, he_dao_tao]
       );
     } else {
       [rows] = await connection.execute(
@@ -737,7 +737,7 @@ ORDER BY
     SELECT
         gv.*,
         gv.HoTen AS GiangVien,
-        'Đồ án' AS HeDaoTao,
+        'Đồ án' AS he_dao_tao,
         MIN(Combined.NgayBatDau) AS NgayBatDau,
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
         SUM(Combined.SoTiet) AS TongTiet,
@@ -803,7 +803,7 @@ ORDER BY
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan) AS SoTiet,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -828,7 +828,7 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -852,7 +852,7 @@ ORDER BY
         gv.NganHang,
         gv.MaPhongBan,
         SUM(qc.QuyChuan * 0.3) AS SoTiet,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -861,7 +861,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.GiaoVienGiangDay LIKE '%,%' AND qc.HeDaoTao NOT LIKE '%Đại học%'
+        qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
         AND Khoa = ?
     GROUP BY
         gv.HoTen,
@@ -878,7 +878,7 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        qc.HeDaoTao,
+        qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot
@@ -889,7 +889,7 @@ tableALL AS (SELECT
 	 NamHoc,
     'DoAn' AS LoaiHopDong,
     GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     TongTiet,
@@ -916,7 +916,7 @@ SELECT
 	 namhoc,
     'DaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     SoTiet AS TongTiet,
@@ -943,7 +943,7 @@ SELECT
 	 namhoc,
     'SauDaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
-    HeDaoTao,
+    he_dao_tao,
     NgayBatDau,
     NgayKetThuc,
     SoTiet AS TongTiet,
@@ -981,11 +981,11 @@ FROM
       TongSoTietGV tsgv 
   ON 
       ta.GiangVien = tsgv.GiangVien
-  Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND HeDaoTao = ? 
+  Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ? 
   ORDER BY 
       tsgv.TongSoTiet DESC;
 `,
-        [khoa, khoa, khoa, khoa, dot, ki, namHoc, HeDaoTao]
+        [khoa, khoa, khoa, khoa, dot, ki, namHoc, he_dao_tao]
       );
     }
 
