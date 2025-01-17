@@ -62,7 +62,6 @@ async function fetchHDGvmData() {
   }
 }
 
-
 // Hàm xuất dữ liệu ra Excel với định dạng đẹp hơn
 const exportHDGvmToExcel = async (req, res) => {
   let connection;
