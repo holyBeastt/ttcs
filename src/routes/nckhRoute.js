@@ -25,7 +25,7 @@ router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
 // lưu bằng sáng chế và giải thưởng
 router.post("/bangsangchevagiaithuong", nckh.saveBangSangCheVaGiaiThuong);
 // render table bằng sáng chế và giải thưởng
-router.get("/bangsangchevagiaithuong/:NamHoc", nckh.getTableBangSangCheVaGiaiThuong);
+router.get("/bangsangchevagiaithuong/:NamHoc/:Khoa", nckh.getTableBangSangCheVaGiaiThuong);
 
 // render site sách và giáo trình
 router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);

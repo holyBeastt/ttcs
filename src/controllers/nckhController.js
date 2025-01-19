@@ -89,136 +89,6 @@ const extractNameAndUnit = (fullName) => {
     return { name: fullName.trim(), unit: "" };
 };
 
-// const quyDoiSoTietDeTaiDuAn = (body) => {
-//     const {
-//         capDeTai,
-//         namHoc,
-//         tenDeTai,
-//         maDeTai,
-//         chuNhiem,
-//         thuKy,
-//         ngayNghiemThu,
-//         xepLoaiKetQua,
-//         thanhVien, // Đây là một mảng từ client
-//     } = body;
-
-
-
-//     let soTietChuNhiem = 0;
-//     let soTietThuKy = 0;
-//     let soTietThanhVien = [];
-
-//     // Kiểm tra cấp đề tài và tính toán số tiết quy đổi
-//     if (capDeTai === "Quốc gia, Nghị định thư") {
-//         if (chuNhiem) soTietChuNhiem = 400; // Chủ nhiệm cấp quốc gia được 400 tiết
-//         if (thuKy) soTietThuKy = 120; // Thư ký cấp quốc gia được 120 tiết
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soTietThanhVien = Array(thanhVien.length).fill(280 / thanhVien.length); // 280 tiết chia đều cho thành viên
-//         }
-//     } else if (capDeTai === "Ban, Bộ và tương đương") {
-//         if (chuNhiem) soTietChuNhiem = 250; // Chủ nhiệm cấp ban bộ được 250 tiết
-//         if (thuKy) soTietThuKy = 75; // Thư ký cấp ban bộ được 75 tiết
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soTietThanhVien = Array(thanhVien.length).fill(125 / thanhVien.length); // 125 tiết chia đều cho thành viên
-//         }
-//     } else if (capDeTai === "Cơ sở, Học viện") {
-//         if (chuNhiem) soTietChuNhiem = 150; // Chủ nhiệm cấp học viện cơ sở được 150 tiết
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soTietThanhVien = Array(thanhVien.length).fill(50 / thanhVien.length); // 50 tiết chia đều cho thành viên
-//         } else {
-//             // Nếu không có thành viên, cộng thêm 50 tiết cho chủ nhiệm
-//             soTietChuNhiem += 50;
-//         }
-//     }
-
-//     // Tách và format thông tin của chủ nhiệm
-//     if (chuNhiem) {
-//         const { name, unit } = extractNameAndUnit(chuNhiem);
-//         body.chuNhiem = `${name} (${unit} - ${soTietChuNhiem} giờ)`.trim();
-//     }
-
-//     // Tách và format thông tin của thư ký
-//     if (thuKy) {
-//         const { name, unit } = extractNameAndUnit(thuKy);
-//         body.thuKy = `${name} (${unit} - ${soTietThuKy} giờ)`.trim();
-//     }
-
-//     // Tách và format thông tin của thành viên
-//     if (thanhVien && Array.isArray(thanhVien)) {
-//         body.thanhVien = thanhVien.map((member, index) => {
-//             const { name, unit } = extractNameAndUnit(member);
-//             return `${name} (${unit} - ${soTietThanhVien[index]} giờ)`.trim();
-//         }).join(", ");
-//     }
-
-//     // Trả về body đã được cập nhật
-//     return body;
-// };
-
-// const quyDoiSoGioDeTaiDuAn = (body) => {
-//     const {
-//         capDeTai,
-//         namHoc,
-//         tenDeTai,
-//         maDeTai,
-//         chuNhiem,
-//         thuKy,
-//         ngayNghiemThu,
-//         xepLoaiKetQua,
-//         thanhVien, // Đây là một mảng từ client
-//     } = body;
-
-//     let soGioChuNhiem = 0;
-//     let soGioThuKy = 0;
-//     let soGioThanhVien = [];
-
-//     // Kiểm tra cấp đề tài và tính toán số giờ quy đổi
-//     if (capDeTai === "Quốc gia, Nghị định thư") {
-//         if (chuNhiem) soGioChuNhiem = 400; // Chủ nhiệm cấp quốc gia được 400 giờ
-//         if (thuKy) soGioThuKy = 120; // Thư ký cấp quốc gia được 120 giờ
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soGioThanhVien = Array(thanhVien.length).fill((280 / thanhVien.length).toFixed(2)); // 280 giờ chia đều cho thành viên
-//         }
-//     } else if (capDeTai === "Ban, Bộ và tương đương") {
-//         if (chuNhiem) soGioChuNhiem = 250; // Chủ nhiệm cấp ban bộ được 250 giờ
-//         if (thuKy) soGioThuKy = 75; // Thư ký cấp ban bộ được 75 giờ
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soGioThanhVien = Array(thanhVien.length).fill((125 / thanhVien.length).toFixed(2)); // 125 giờ chia đều cho thành viên
-//         }
-//     } else if (capDeTai === "Cơ sở, Học viện") {
-//         if (chuNhiem) soGioChuNhiem = 150; // Chủ nhiệm cấp học viện cơ sở được 150 giờ
-//         if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-//             soGioThanhVien = Array(thanhVien.length).fill(parseFloat((280 / thanhVien.length).toFixed(1)));
-//             // soGioThanhVien = Array(thanhVien.length).fill((50 / thanhVien.length).toFixed(2)); // 50 giờ chia đều cho thành viên
-//         } else {
-//             // Nếu không có thành viên, cộng thêm 50 giờ cho chủ nhiệm
-//             soGioChuNhiem += 50;
-//         }
-//     }
-
-//     // Tách và format thông tin của chủ nhiệm
-//     if (chuNhiem) {
-//         const { name, unit } = extractNameAndUnit(chuNhiem);
-//         body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2)} giờ)`.trim();
-//     }
-
-//     // Tách và format thông tin của thư ký
-//     if (thuKy) {
-//         const { name, unit } = extractNameAndUnit(thuKy);
-//         body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2)} giờ)`.trim();
-//     }
-
-//     // Tách và format thông tin của thành viên
-//     if (thanhVien && Array.isArray(thanhVien)) {
-//         body.thanhVien = thanhVien.map((member, index) => {
-//             const { name, unit } = extractNameAndUnit(member);
-//             return `${name} (${unit} - ${soGioThanhVien[index]} giờ)`.trim();
-//         }).join(", ");
-//     }
-
-//     // Trả về body đã được cập nhật
-//     return body;
-// };
 
 const quyDoiSoGioDeTaiDuAn = (body) => {
     const {
@@ -554,6 +424,7 @@ const saveBangSangCheVaGiaiThuong = async (req, res) => {
         NgayQDCongNhan, // Ngày quyết định công nhận
         tacGia,
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
 
     // Gọi hàm quy đổi
@@ -574,9 +445,9 @@ const saveBangSangCheVaGiaiThuong = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO bangsangchevagiaithuong (
-PhanLoai, NamHoc, TenBangSangCheVaGiaiThuong, SoQDCongNhan, NgayQDCongNhan, TacGia, DanhSachThanhVien
+PhanLoai, NamHoc, TenBangSangCheVaGiaiThuong, SoQDCongNhan, NgayQDCongNhan, TacGia, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 phanLoai, // Phân loại
@@ -586,6 +457,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
                 NgayQDCongNhan, // Ngày quyết định công nhận
                 tacGiaFormatted, // Tác giả đã được format
                 thanhVienFormatted, // Danh sách thành viên đã được format
+                khoa,
             ]
         );
 
@@ -610,7 +482,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 // lấy bảng đề tài dự án
 const getTableBangSangCheVaGiaiThuong = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc,Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng bangsangchevagiaithuong Năm:", NamHoc);
 
@@ -621,8 +493,8 @@ const getTableBangSangCheVaGiaiThuong = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ?`;
-        queryParams.push(NamHoc);
+        query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
+        queryParams.push(NamHoc, Khoa);
 
 
         // // Xây dựng truy vấn dựa vào giá trị của Khoa
