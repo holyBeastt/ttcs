@@ -62,8 +62,6 @@ async function fetchHDGvmData() {
   }
 }
 
-// Hàm xuất dữ liệu ra Excel
-
 // Hàm xuất dữ liệu ra Excel với định dạng đẹp hơn
 const exportHDGvmToExcel = async (req, res) => {
   let connection;
@@ -73,7 +71,7 @@ const exportHDGvmToExcel = async (req, res) => {
     // Lấy danh sách mức tiền từ bảng tienluong
     const tienLuongQuery = `
 SELECT 
-  he_dao_tao, 
+ he_dao_tao, 
   HocVi, 
   SoTien 
 FROM 
@@ -81,7 +79,7 @@ FROM
 `;
     const [tienLuongList] = await connection.execute(tienLuongQuery);
 
-    const { dot, ki, namHoc, khoa } = req.query;
+    const { dot, ki, namHoc, loaiHopDong, khoa } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -121,7 +119,7 @@ FROM
     JOIN
       gvmoi gv ON hd.HoTen = gv.HoTen
     WHERE
-      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ?`;
+      hd.NamHoc = ? AND hd.Dot = ? AND hd.KiHoc = ? AND hd.he_dao_tao = ?`;
 
     // Chỉ thêm điều kiện MaPhongBan nếu khoa được định nghĩa và không phải là "ALL"
     if (khoa && khoa !== "ALL") {
@@ -133,11 +131,11 @@ FROM
       hd.HoTen, hd.KiHoc, gv.GioiTinh, hd.NgaySinh, hd.CCCD, hd.NoiCapCCCD, 
       hd.Email, hd.MaSoThue, hd.HocVi, hd.ChucVu, hd.HSL, hd.DienThoai, 
       hd.STK, hd.NganHang, hd.DiaChi, hd.NgayCap, gv.NoiCongTac, gv.MaPhongBan, 
-      gv.MonGiangDayChinh, gv.BangTotNghiepLoai;
+      gv.MonGiangDayChinh, gv.BangTotNghiepLoai, hd.he_dao_tao;
     `;
 
     // Tạo mảng tham số
-    let params = [namHoc, dot, ki];
+    let params = [namHoc, dot, ki, loaiHopDong];
 
     if (khoa && khoa !== "ALL") {
       params.push(khoa);
@@ -410,6 +408,7 @@ const getHDGvmData = async (req, res) => {
     const dot = req.query.dot;
     const ki = req.query.ki;
     const khoa = req.query.khoa;
+    const loaiHopDong = req.query.loaiHopDong;
 
     let query = `
     SELECT
@@ -433,10 +432,10 @@ const getHDGvmData = async (req, res) => {
     FROM
       hopdonggvmoi
     WHERE
-      NamHoc = ? AND Dot = ? AND KiHoc = ?
+      NamHoc = ? AND Dot = ? AND KiHoc = ? AND he_dao_tao = ?
   `;
 
-    const queryParams = [namHoc, dot, ki];
+    const queryParams = [namHoc, dot, ki, loaiHopDong];
 
     // Thêm điều kiện lọc theo khoa nếu có
     if (khoa && khoa !== "ALL") {
@@ -451,8 +450,6 @@ const getHDGvmData = async (req, res) => {
   `;
 
     const [rows] = await connection.execute(query, queryParams);
-
-    console.log("row = ", rows);
 
     res.json(rows);
   } catch (error) {

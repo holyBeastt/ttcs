@@ -142,11 +142,27 @@ function formatDateDMY(date) {
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
-
+const getTienLuongList = async (connection) => {
+  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
+  const [tienLuongList] = await connection.execute(query);
+  return tienLuongList;
+};
+function tinhSoTien(row, soTiet, tienLuongList) {
+  const tienLuong = tienLuongList.find(
+    (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
+  );
+  if (tienLuong) {
+    return soTiet * tienLuong.SoTien;
+  } else {
+    return 0;
+  }
+}
 const exportPhuLucGiangVienMoi = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
+
+    const tienLuongList = await getTienLuongList(connection);
 
     const { dot, ki, namHoc, khoa, teacherName } = req.query;
 
@@ -174,7 +190,9 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.Dot,
             qc.KiHoc,
             qc.NamHoc,
-            qc.Khoa
+            qc.Khoa,
+            qc.he_dao_tao
+            qc.he_dao_tao
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
@@ -195,7 +213,10 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.Dot,
             qc.KiHoc,
             qc.NamHoc,
-            qc.Khoa
+            qc.Khoa,   
+           qc.he_dao_tao
+           qc.he_dao_tao
+
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
@@ -342,10 +363,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
-        const soTien = item.SoTiet * 100000; // Giả sử mức thanh toán là 100000
-        const truThue = soTien * 0.1; // Trừ thuế TNCN 10%
-        const conLai = soTien - truThue; // Còn lại
-
+     const soTiet = item.SoTiet;
+  const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
+  const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+  const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+  const tienLuong = tienLuongList.find(
+    (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+  );
+  const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"
@@ -367,17 +392,17 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
           item.DiaChi,
           hocViVietTat,
           item.HSL,
-          100000, // Mức thanh toán
-          soTien.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
-          conLai.toLocaleString("vi-VN").replace(/\./g, ','), // Định dạng số tiền
+          mucThanhToan, // Mức thanh toán
+          soTien.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
+          thucNhan.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
         totalSoTiet += parseFloat(item.SoTiet);
         totalSoTien += soTien;
         totalTruThue += truThue;
-        totalThucNhan += conLai;
+        totalThucNhan += thucNhan;
 
         // Căn chỉnh cỡ chữ và kiểu chữ cho từng ô trong hàng dữ liệu
         summaryRow.eachCell((cell, colNumber) => {
@@ -449,9 +474,9 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       "",
       "",
       "",
-      totalSoTien.toLocaleString("vi-VN").replace(/\./g, ','),
-      totalTruThue.toLocaleString("vi-VN").replace(/\./g, ','),
-      totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ','),
+      totalSoTien.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalTruThue.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ","),
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
@@ -656,10 +681,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       let totalThucNhan = 0;
 
       giangVienData.forEach((item, index) => {
-        const mucThanhToan = 100000;
-        const soTien = item.SoTiet * mucThanhToan;
-        const truThue = soTien * 0.1;
-        const thucNhan = soTien - truThue;
+        const soTiet = item.SoTiet;
+        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
+        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;

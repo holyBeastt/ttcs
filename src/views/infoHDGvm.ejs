@@ -92,6 +92,13 @@
               <option value="">Chọn khoa</option>
             </select>
 
+            <select id="loaiHopDong" name="loaiHopDong" class="form-select w-200px mx-2 selectop">
+              <option value="Đại học (Mật mã)">Đại học(Mật mã)</option>
+              <option value="Đại học (Đóng học phí)">Đại học(Đóng học phí)</option>
+              <option value="Cao học (Đóng học phí)">Cao học(Đóng học phí)</option>
+              <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh(Đóng học phí)</option>
+            </select>
+
             <button id="viewDataBtn" class="btn view">Xem dữ liệu</button>
             <button id="exportButton" class="btn export" onclick="exportData()">
               <i class="fas fa-file-export me-2"></i>Xuất dữ liệu
@@ -140,15 +147,16 @@
           const ki = document.getElementById("comboboxki").value;
           const namHoc = document.getElementById("NamHoc").value;
           const khoa = document.getElementById("MaPhongBan").value;
+          const loaiHopDong = document.getElementById("loaiHopDong").value;
 
           // Kiểm tra các trường bắt buộc
-          if (!dot || !ki || !namHoc) {
-            alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học");
+          if (!dot || !ki || !namHoc || !loaiHopDong) {
+            alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ, năm học và loại hợp đồng");
             return;
           }
 
           // Tạo URL với các tham số
-          let url = `/hdgvm/export-excel?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
+          let url = `/hdgvm/export-excel?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
 
           if (khoa && khoa !== "ALL") {
             url += `&khoa=${encodeURIComponent(khoa)}`;
@@ -175,13 +183,14 @@
               const dot = document.getElementById('combobox-dot').value;
               const ki = document.getElementById('comboboxki').value;
               const khoa = document.getElementById('MaPhongBan').value;
+              const loaiHopDong = document.getElementById('loaiHopDong').value;
 
-              if (!namHoc || !dot || !ki) {
-                alert('Vui lòng chọn đầy đủ Năm học, Đợt và Kỳ');
+              if (!namHoc || !dot || !ki || !loaiHopDong) {
+                alert('Vui lòng chọn đầy đủ Năm học, Đợt, Kỳ và hệ đào tạo');
                 return;
               }
 
-              let url = `/api/hdgvm?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}`;
+              let url = `/api/hdgvm?namHoc=${encodeURIComponent(namHoc)}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
               if (khoa && khoa !== 'ALL') {
                 url += `&khoa=${encodeURIComponent(khoa)}`;
               }

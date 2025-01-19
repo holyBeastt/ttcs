@@ -2954,7 +2954,7 @@ const submitData2 = async (req, res) => {
     // Thực hiện các cập nhật và thêm dữ liệu song song
     const [updateResult, update2, insertResult] = await Promise.all([
       saveDataGvmDongHocPhi(req, res, daDuyetHetArray), // Hợp đồng hệ đóng học phí
-      saveDataGvmMatMa(req, res, daDuyetHetArray), // Hợp đồng hệ mật mã
+      //saveDataGvmMatMa(req, res, daDuyetHetArray), // Hợp đồng hệ mật mã
       saveHopDongGvmSauDaiHoc(req, res, daDuyetHetArray), // Hợp đồng sau đại học
       insertGiangDay2(req, res, nvList, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp cơ hữu vào bảng giảng dạy
       insertGiangDay(req, res, gvmList, hocPhanList, daDuyetHetArray), // Lưu các lớp mời giảng vào bảng giảng dạy
