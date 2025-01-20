@@ -177,6 +177,11 @@
             <option value="">Năm học</option>
           </select>
 
+          <select id="loaiHopDong" name="loaiHopDong" class=" w-200px mx-2 selectop">
+            <option value="Đại học">Đại học</option>
+            <option value="Sau đại học">Sau đại học</option>
+          </select>
+
           <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
           <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
           <!-- <button onclick="submitData2()" class="btn mx-2" id="save-data-all" style="display: none;">Lưu</button> -->
@@ -500,13 +505,14 @@
       const dotValue = document.getElementById('combobox-dot').value;
       const kiValue = document.getElementById('comboboxki').value;
       const namValue = document.getElementById('NamHoc').value;
-
+      const he_dao_tao = document.getElementById('loaiHopDong').value;
 
       // Tạo đối tượng dữ liệu để gửi
       const requestData = {
         Dot: dotValue,
         Ki: kiValue,
         Nam: namValue,
+        he_dao_tao: he_dao_tao,
       };
 
 
@@ -740,6 +746,8 @@
       const options = [
         { value: 'Đại học (Mật mã)', text: 'Mật mã' },
         { value: 'Đại học (Đóng học phí)', text: 'Đóng học phí' },
+        { value: 'Cao học (Đóng học phí)', text: 'Cao học' },
+        { value: 'Nghiên cứu sinh (Đóng học phí)', text: 'Nghiên cứu sinh' },
       ];
 
       // Thêm các tùy chọn vào select

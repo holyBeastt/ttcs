@@ -17,8 +17,6 @@ const getClassInfoGvmData = async (req, res) => {
   const isKhoa = req.session.isKhoa;
   const { dot, ki, nam, department } = req.body; // Nhận dữ liệu lọc từ client
 
-  console.log("depart = ", department);
-
   let connection; // Khai báo biến connection
 
   if (isKhoa == 0) {
@@ -62,8 +60,6 @@ const getClassInfoGvmData = async (req, res) => {
       acc[teacher].push(current);
       return acc;
     }, {});
-
-    console.log("groupo = ", groupedByTeacher);
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
     res.json(groupedByTeacher);
