@@ -1045,16 +1045,16 @@ const importTableTam = async (jsonData) => {
   // phần filter sẽ lọc các lớp có quy chuẩn = 0 thì bỏ qua không thêm vào bảng tạm
   const normalizedData = normalizeKeys(jsonData);
   const values = normalizedData
-    // .filter((item) => {
-    //   // Log giá trị của QC để kiểm tra
-    //   // console.log("QC value:", item["QC"]);
+    .filter((item) => {
+      // Log giá trị của QC để kiểm tra
+      // console.log("QC value:", item["QC"]);
 
-    //   // Chuyển QC về kiểu số và kiểm tra xem nó có phải là NaN hoặc bằng 0 không
-    //   const qcValue = parseFloat(item["QC"]);
+      // Chuyển QC về kiểu số và kiểm tra xem nó có phải là NaN hoặc bằng 0 không
+      const qcValue = parseFloat(item["QC"]);
 
-    //   // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
-    //   return !isNaN(qcValue) && qcValue !== 0;
-    // })
+      // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
+      return !isNaN(qcValue) && qcValue !== 0;
+    })
     .map((item) => [
       validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
       item["Dot"] || null,
@@ -1064,12 +1064,12 @@ const importTableTam = async (jsonData) => {
       item["Số TC"] || null,
       item["Lớp học phần"] || null,
       item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
+      item["Số tiết lên lớp giờ HC"] ||
+      null,
       item["Số tiết theo CTĐT"] || null,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      null,
       item["Số SV"] || null,
       item["Hệ số lớp đông"] || null,
       item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị

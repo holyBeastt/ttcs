@@ -156,189 +156,189 @@
   <!-- Phần header -->
   <%- include('header') %>
 
-  <!-- Phần nội dung -->
+    <!-- Phần nội dung -->
 
 
-  <div class="container-fluid box m-4">
-    <div class="">
-      <div class="d-flex">
-        <div class="cbb d-flex" style="margin-top: 20px;">
-          <select class="selectop mx-1" id="combobox-dot">
-            <option value="">Đợt</option>
-          </select>
+    <div class="container-fluid box m-4">
+      <div class="">
+        <div class="d-flex">
+          <div class="cbb d-flex" style="margin-top: 20px;">
+            <select class="selectop mx-1" id="combobox-dot">
+              <option value="">Đợt</option>
+            </select>
 
-          <!-- Combo box Kỳ -->
-          <select class="selectop mx-1" id="comboboxki">
-            <option value="">Kỳ</option>
-          </select>
+            <!-- Combo box Kỳ -->
+            <select class="selectop mx-1" id="comboboxki">
+              <option value="">Kỳ</option>
+            </select>
 
-          <!-- Combo box Năm -->
-          <select class="selectop mx-1" id="NamHoc">
-            <option value="">Năm học</option>
-          </select>
+            <!-- Combo box Năm -->
+            <select class="selectop mx-1" id="NamHoc">
+              <option value="">Năm học</option>
+            </select>
 
-          <select id="loaiHopDong" name="loaiHopDong" class=" w-200px mx-2 selectop">
-            <option value="Đại học">Đại học</option>
-            <option value="Sau đại học">Sau đại học</option>
-          </select>
+            <select id="loaiHopDong" name="loaiHopDong" class=" w-200px mx-2 selectop">
+              <option value="Đại học">Đại học</option>
+              <option value="Sau đại học">Sau đại học</option>
+            </select>
 
-          <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
-          <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
-          <!-- <button onclick="submitData2()" class="btn mx-2" id="save-data-all" style="display: none;">Lưu</button> -->
+            <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
+            <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
+            <!-- <button onclick="submitData2()" class="btn mx-2" id="save-data-all" style="display: none;">Lưu</button> -->
+          </div>
         </div>
-      </div>
 
-      <div class="date-all-container" style="display: none;">
-        <div class="input-group m-2" style="width: 350px;" id="batdau">
-          <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
-          <input required type="date" id="startDate" class="form-control" />
+        <div class="date-all-container" style="display: none;">
+          <div class="input-group m-2" style="width: 350px;" id="batdau">
+            <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
+            <input required type="date" id="startDate" class="form-control" />
+          </div>
+          <div class="input-group m-2" style="width: 350px;" id="ketthuc">
+
+            <label for="endDate" class="input-group-text">Ngày kết thúc</label>
+            <input required type="date" id="endDate" class="form-control" />
+          </div>
+          <button id="fillDay" class="btn text-nowrap" style="margin: 8px;">Chèn ngày</button>
         </div>
-        <div class="input-group m-2" style="width: 350px;" id="ketthuc">
 
-          <label for="endDate" class="input-group-text">Ngày kết thúc</label>
-          <input required type="date" id="endDate" class="form-control" />
-        </div>
-        <button id="fillDay" class="btn text-nowrap" style="margin: 8px;">Chèn ngày</button>
-      </div>
-
-      <!-- Phần tìm kiếm xuống dưới -->
-      <div class="d-flex my-3" style="height: 70px;">
-        <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
-          style="width: 200px;" />
-        <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
-          style="width: 200px;" />
-        <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)" onkeyup="showSuggestionsKhoa(this)"
-          class="form-control m-2 search" style="width: 200px; display: none;" />
-        <!-- <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
+        <!-- Phần tìm kiếm xuống dưới -->
+        <div class="d-flex my-3" style="height: 70px;">
+          <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
+            style="width: 200px;" />
+          <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
+            style="width: 200px;" />
+          <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
+            onkeyup="showSuggestionsKhoa(this)" class="form-control m-2 search" style="width: 200px; display: none;" />
+          <!-- <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
         class="form-control m-2 search" /> -->
 
-        <!-- Tìm kiếm theo bộ môn -->
-        <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" onkeyup=" showSuggestionsBoMon(this)"
-          onclick="showSuggestionsBoMon(this)" class="form-control m-2 search" style="width: 180px;" />
-      </div>
-      <script>
-        function filterTable() {
-          const nameFilter = document.getElementById('filterName').value.toLowerCase();
-          const classFilter = document.getElementById('filterClass').value.toLowerCase();
-          const departmentInput = document.getElementById("filterKhoa").value.toLowerCase();
-          const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
-          const tableRows = document.querySelectorAll('#tableBody tr');
+          <!-- Tìm kiếm theo bộ môn -->
+          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" onkeyup=" showSuggestionsBoMon(this)"
+            onclick="showSuggestionsBoMon(this)" class="form-control m-2 search" style="width: 180px;" />
+        </div>
+        <script>
+          function filterTable() {
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const classFilter = document.getElementById('filterClass').value.toLowerCase();
+            const departmentInput = document.getElementById("filterKhoa").value.toLowerCase();
+            const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
+            const tableRows = document.querySelectorAll('#tableBody tr');
 
-          tableRows.forEach(row => {
-            const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-            const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-            const departmentCell = row.querySelector("td:nth-child(6)"); // Khoa
-            const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
+            tableRows.forEach(row => {
+              const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
+              const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
+              const departmentCell = row.querySelector("td:nth-child(6)"); // Khoa
+              const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
 
-            const name = nameCell ? nameCell.textContent.toLowerCase() : '';
-            const className = classCell ? classCell.textContent.toLowerCase() : '';
-            const departmentValue = departmentCell ? departmentCell.textContent.toLowerCase() : '';
-            const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
+              const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+              const className = classCell ? classCell.textContent.toLowerCase() : '';
+              const departmentValue = departmentCell ? departmentCell.textContent.toLowerCase() : '';
+              const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
 
-            // Kiểm tra điều kiện lọc
-            const matchesName = name.includes(nameFilter);
-            const matchesClass = className.includes(classFilter);
-            const departmentMatch = departmentValue.includes(departmentInput);
-            const matchesBoMon = boMon.includes(boMonFilter);
+              // Kiểm tra điều kiện lọc
+              const matchesName = name.includes(nameFilter);
+              const matchesClass = className.includes(classFilter);
+              const departmentMatch = departmentValue.includes(departmentInput);
+              const matchesBoMon = boMon.includes(boMonFilter);
 
-            // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-            if (matchesName && matchesClass && departmentMatch && matchesBoMon) {
-              row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
-            } else {
-              row.style.display = 'none'; // Ẩn hàng nếu không khớp
-            }
-          });
+              // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+              if (matchesName && matchesClass && departmentMatch && matchesBoMon) {
+                row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
+              } else {
+                row.style.display = 'none'; // Ẩn hàng nếu không khớp
+              }
+            });
 
-          calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
-        }
+            calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
+          }
 
-        // Gán sự kiện cho các input filter
-        document.getElementById('filterName').addEventListener('input', filterTable);
-        document.getElementById('filterClass').addEventListener('input', filterTable);
-        document.getElementById("filterKhoa").addEventListener("input", filterTable);
-        document.getElementById('filterBoMon').addEventListener('input', filterTable);
-      </script>
+          // Gán sự kiện cho các input filter
+          document.getElementById('filterName').addEventListener('input', filterTable);
+          document.getElementById('filterClass').addEventListener('input', filterTable);
+          document.getElementById("filterKhoa").addEventListener("input", filterTable);
+          document.getElementById('filterBoMon').addEventListener('input', filterTable);
+        </script>
 
-      <div id="renderInfo">
-        <table class=" text-center" style="width: 100%;">
-          <thead>
-            <tr>
-              <th style="width: 200px;">Học phần</th>
-              <th style="width: 50px;">Số TC</th>
-              <th style="width: 200px;">GV theo TKB</th>
-              <th style="width: 50px;">Mời giảng?</th>
-              <th style="width: 100px;">GV giảng dạy</th>
-              <th style="width: 50px;">Khoa</th>
-              <th style="width: 100px;">Bộ môn</th>
-              <th style="width: 100px;">Hệ đào tạo</th>
-              <th>Ngày bắt đầu</th>
-              <th>Ngày kết thúc</th>
-              <th style="width: 50px;">Số tiết LL</th>
-              <th style="width: 50px;">Số tiết QC</th>
-              <th style="width: 50px;">Ghi chú</th>
+        <div id="renderInfo">
+          <table class=" text-center" style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 200px;">Học phần</th>
+                <th style="width: 50px;">Số TC</th>
+                <th style="width: 200px;">GV theo TKB</th>
+                <th style="width: 50px;">Mời giảng?</th>
+                <th style="width: 100px;">GV giảng dạy</th>
+                <th style="width: 50px;">Khoa</th>
+                <th style="width: 100px;">Bộ môn</th>
+                <th style="width: 100px;">Hệ đào tạo</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th style="width: 50px;">Số tiết LL</th>
+                <th style="width: 50px;">Số tiết QC</th>
+                <th style="width: 50px;">Ghi chú</th>
 
-              <th style="width: 80px; " id="khoaColumn">
-                <div class="form-check d-flex ">
-                  <input class="check" type="checkbox" id="checkAllKhoa" onclick="checkAll('khoa')">
-                  <label class="form-check-label" for="checkAllKhoa">Khoa</label>
-                </div>
-              </th>
-              <th style="width: 50px;" id="daoTaoColumn">
-                <div class="form-check d-flex">
-                  <input class="check" type="checkbox" id="checkAllDaoTao" onclick="checkAll('daoTao')">
-                  <label class="form-check-label text-nowrap" for="checkAllDaoTao">Đào Tạo</label>
-                </div>
-              </th>
-              <th style="width: 50px;" id="taiChinhColumn">
-                <div class="form-check d-flex">
-                  <input class="check" type="checkbox" id="checkAllTaiChinh" onclick="checkAll('taiChinh')">
-                  <label class="form-check-label text-nowrap" for="checkAllTaiChinh">Tài Chính</label>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- Dữ liệu sẽ được chèn vào đây -->
-          </tbody>
-        </table>
-      </div>
-      <!-- Label tổng số tiết tách riêng với bảng -->
-      <div class="total-label">
-        <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
-        <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
+                <th style="width: 80px; " id="khoaColumn">
+                  <div class="form-check d-flex ">
+                    <input class="check" type="checkbox" id="checkAllKhoa" onclick="checkAll('khoa')">
+                    <label class="form-check-label" for="checkAllKhoa">Khoa</label>
+                  </div>
+                </th>
+                <th style="width: 50px;" id="daoTaoColumn">
+                  <div class="form-check d-flex">
+                    <input class="check" type="checkbox" id="checkAllDaoTao" onclick="checkAll('daoTao')">
+                    <label class="form-check-label text-nowrap" for="checkAllDaoTao">Đào Tạo</label>
+                  </div>
+                </th>
+                <th style="width: 50px;" id="taiChinhColumn">
+                  <div class="form-check d-flex">
+                    <input class="check" type="checkbox" id="checkAllTaiChinh" onclick="checkAll('taiChinh')">
+                    <label class="form-check-label text-nowrap" for="checkAllTaiChinh">Tài Chính</label>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Label tổng số tiết tách riêng với bảng -->
+        <div class="total-label">
+          <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
+          <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Modal form -->
-  <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
-  <div id="noteForm" style="display: none;">
-    <h3>Ghi chú</h3>
-    <label for="noteInput">Nội dung:</label>
-    <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
-    <br />
-    <label for="deadlineInput">Hạn:</label>
-    <input type="date" id="deadlineInput"
-      style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" />
-    <br />
-    <div class="d-flex text-nowrap" style="text-align: right;">
-      <button onclick="saveNote()">Lưu</button>
-      <button onclick="doneNote()">Hoàn Thành</button>
-      <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+    <!-- Modal form -->
+    <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
+    <div id="noteForm" style="display: none;">
+      <h3>Ghi chú</h3>
+      <label for="noteInput">Nội dung:</label>
+      <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
+      <br />
+      <label for="deadlineInput">Hạn:</label>
+      <input type="date" id="deadlineInput"
+        style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      <br />
+      <div class="d-flex text-nowrap" style="text-align: right;">
+        <button onclick="saveNote()">Lưu</button>
+        <button onclick="doneNote()">Hoàn Thành</button>
+        <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+      </div>
     </div>
-  </div>
-<script>
+    <script>
       document.addEventListener("DOMContentLoaded", () => {
         const role = localStorage.getItem("userRole");
         const isKhoa = localStorage.getItem("isKhoa");
 
-      // Ẩn button import đồ án
-      const importDoAn = document.getElementById('importDoAn');
-      const suaHD = document.getElementById('suaHD');
+        // Ẩn button import đồ án
+        const importDoAn = document.getElementById('importDoAn');
+        const suaHD = document.getElementById('suaHD');
 
-      if (isKhoa == 0 && role == 'Duyệt'){
-        importDoAn.style.display = 'block';
-        suaHD.style.display = 'block';
-      }
+        if (isKhoa == 0 && role == 'Duyệt') {
+          importDoAn.style.display = 'block';
+          suaHD.style.display = 'block';
+        }
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
@@ -349,7 +349,7 @@
         }
       });
     </script>
-  </body>
+</body>
 
 </html>
 
@@ -357,12 +357,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Link script Sweet alert 2 -->
-  <!-- SweetAlert2 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
+<!-- Link script Sweet alert 2 -->
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
 
-  <!-- SweetAlert2 JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+<!-- SweetAlert2 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
 <!-- auto fill  -->
 <script>
@@ -693,11 +693,11 @@
       giaoVienGiangDayInput.value = row.GiaoVienGiangDay || '';
 
       giaoVienGiangDayInput.onclick = () => {
-        showSuggestions(giaoVienGiangDayInput, index);
+        showSuggestions(giaoVienGiangDayInput, index, row.ID);
       };
 
       giaoVienGiangDayInput.oninput = () => {
-        showSuggestions(giaoVienGiangDayInput, index);
+        showSuggestions(giaoVienGiangDayInput, index, row.ID);
       };
 
       // Thêm id để lấy dữ liệu 
@@ -1010,8 +1010,13 @@
   }
 
   // Hàm hiển thị gợi ý đã được cập nhật
-  function showSuggestions(input, id) {
-    const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+  function showSuggestions(input, id, ID_trongDB) {
+    // const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+
+
+    const rawValue = input.value.trim(); // Lấy toàn bộ giá trị trong ô input
+    const values = rawValue.split(',').map(val => val.trim()); // Tách các tên đã nhập
+    const value = values.pop().toLowerCase(); // Lấy giá trị cuối cùng (tên mới nhập)
     hideSuggestions(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
 
     const bangDuLieu = JSON.parse(localStorage.getItem("tableData")) || [];
@@ -1040,26 +1045,47 @@
 
     // Lấy dữ liệu từ localStorage
     const nameGvm = JSON.parse(localStorage.getItem("nameGvm")) || []; // Giảng viên mời
-    //const nameGv = JSON.parse(localStorage.getItem("nameGv")) || []; // Giảng viên
+    const nameGv = JSON.parse(localStorage.getItem("nameGv")) || []; // Giảng viên
 
-    // Kiểm tra giá trị moiGiang để xác định dữ liệu nào sẽ hiển thị
-    // if (moiGiang) {
-    // Hiển thị toàn bộ giảng viên mời
-    suggestions = nameGvm.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
-    //} else {
-    // Hiển thị toàn bộ giảng viên
-    //suggestions = nameGv.map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`);
-    //}
+
+    // Kiểm tra id trong bangDuLieu
+    const currentObject = bangDuLieu.find(item => item.ID === ID_trongDB);
+    if (!currentObject) {
+      console.warn("Không tìm thấy đối tượng với ID này trong bangDuLieu.");
+      return;
+    }
+
+    const he_dao_tao = currentObject.he_dao_tao;
+    const validhe_dao_tao = ["Nghiên cứu sinh (Đóng học phí)", "Cao học (Đóng học phí)"];
+
+    // Kiểm tra điều kiện để gợi ý
+    if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao)) {
+      console.warn("Không thể gợi ý tên thứ 2 do he_dao_tao không hợp lệ.");
+      suggestionsContainer.remove();
+      return;
+    }
+
+    // Gợi ý từ nameGvm nếu là tên thứ 2 và he_dao_tao hợp lệ
+    if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
+      suggestions = nameGvm
+        .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+        .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+    } else if (values.length === 0) {
+      // Nếu chưa có tên nào, gợi ý tên gvm
+      suggestions = nameGvm.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
+    }
+
+    if (suggestions.length === 0) {
+      suggestionsContainer.remove();
+      return;
+    }
+
+    // =================
+
 
     // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
     if (value) {
       suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-    }
-
-    // Nếu không có gợi ý, ẩn container
-    if (suggestions.length === 0) {
-      suggestionsContainer.remove();
-      return; // Kết thúc hàm nếu không có gợi ý
     }
 
     // Tạo gợi ý dưới dạng danh sách (list)
@@ -1081,6 +1107,14 @@
         const selectedName = name.split(" - ")[0]; // Tách tên ra khỏi mã phòng ban
         // console.log(selectedName)
 
+
+        // Cập nhật giá trị của input
+        input.value = values.length > 0
+          ? `${values.join(', ')}, ${selectedName}`
+          : selectedName;
+        console.log(input.value);
+
+
         // So sánh với boMonTheoGiangVien
         const lecturerFound = boMonTheoGiangVien.find(lecturer => lecturer.HoTen === selectedName.trim());
         console.log(lecturerFound)
@@ -1092,12 +1126,12 @@
           if (itemIndex !== -1) { // Kiểm tra nếu có id
 
             var data = {
-              GiaoVienGiangDay: lecturerFound.HoTen,
+              GiaoVienGiangDay: input.value,
               BoMon: lecturerFound.MonGiangDayChinh,
               ID: ID
             }
 
-            input.value = lecturerFound.HoTen;
+            input.value = input.value;
             const boMonInput = document.getElementById(`boMon_${itemIndex}`);
             boMonInput.value = lecturerFound.MonGiangDayChinh;
 
@@ -2394,7 +2428,7 @@
   // Bây giờ bọc phần còn lại của mã trong DOMContentLoaded
   document.addEventListener("DOMContentLoaded", function () {
 
-    const phongBanData = <%- JSON.stringify(phongBanList) %>;
+    const phongBanData = <% - JSON.stringify(phongBanList) %>;
     console.log("Dữ liệu phòng ban:", phongBanData);
     localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
     console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", phongBanData);
@@ -2437,18 +2471,18 @@
 
 
 <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+  document.getElementById("changeMessage").addEventListener("click", function (event) {
+    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+    const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
+    if (MaPhongBan) {
+      // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+      window.location.href = `/changeMessage/${MaPhongBan}`;
+    } else {
+      alert("Không tìm thấy MaPhongBan trong localStorage.");
+    }
+  });
+</script>
+</body>
 
 </html>
