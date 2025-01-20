@@ -214,6 +214,21 @@
                     <option value="">Chọn khoa</option>
                   </select>
 
+                  <select
+                    id="he_dao_tao"
+                    name="he_dao_tao"
+                    class="w-200px mx-2 selectop"
+                  >
+                    <option value="Đại học (Đóng học phí)">
+                      Đại học (Đóng học phí)
+                    </option>
+                    <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
+                    <option value="Cao học (Đóng học phí)">Cao học</option>
+                    <option value="Nghiên cứu sinh (Đóng học phí)">
+                      Nghiên cứu sinh
+                    </option>
+                  </select>
+
                   <button
                     class="btn text-nowrap mx-2"
                     id="render"
@@ -280,6 +295,7 @@
         let department = document
           .getElementById("departmentFilter")
           .value.trim();
+        const he_dao_tao = document.getElementById("he_dao_tao").value;
 
         // Tạo dữ liệu gửi đến server
         const filterData = {
@@ -287,6 +303,7 @@
           ki: ki,
           nam: nam,
           department: department,
+          he_dao_tao: he_dao_tao,
         };
 
         // Gửi request tới server để lấy dữ liệu lọc
@@ -317,14 +334,14 @@
         Object.keys(data).forEach((teacher) => {
           const courses = data[teacher];
           const totalSoTiet = courses.reduce(
-            (total, course) => total + (parseFloat(course.QuyChuan) || 0),
+            (total, course) => total + (parseFloat(course.SoTiet) || 0),
             0
           );
 
           // Duyệt qua từng khóa học của giảng viên
           courses.forEach((course, courseIndex) => {
             const tr = document.createElement("tr");
-            tr.setAttribute("data-department", course.MaPhongBan);
+            tr.setAttribute("data-department", course.Khoa);
             tr.setAttribute("data-dot", course.Dot);
             tr.setAttribute("data-ki", course.KiHoc);
             tr.setAttribute("data-nam", course.NamHoc);
@@ -334,31 +351,29 @@
               tr.classList.add("teacher-group"); // Gán class "teacher-group"
               tr.innerHTML = `
               <td rowspan="${courses.length}">${index}</td>
-              <td rowspan="${courses.length}">${
-                course.GiaoVienGiangDay.split(" - ")[0]
-              }</td>
+              <td rowspan="${courses.length}">${course.GiangVien}</td>
             `;
               index++; // Tăng index cho giảng viên tiếp theo
             }
 
             // Thêm các ô dữ liệu cho từng môn học
             tr.innerHTML += `
-            <td>${course.LopHocPhan}</td>
-            <td>${course.TenLop}</td>
+            <td>${course.TenHocPhan}</td>
+            <td>${course.Lop}</td>
             <td>${course.SoTinChi}</td>
             <td>${course.Dot}</td>
             <td>${course.KiHoc}</td>
             <td>${course.NamHoc}</td>
             <td>${formatDate(course.NgayBatDau)}</td>
             <td>${formatDate(course.NgayKetThuc)}</td>
-            <td>${course.QuyChuan}</td>
+            <td>${course.SoTiet}</td>
           `;
 
             // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
             if (courseIndex === 0) {
               tr.innerHTML += `
               <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
-              <td rowspan="${courses.length}">${course.MaPhongBan}</td>
+              <td rowspan="${courses.length}">${course.Khoa}</td>
               <td rowspan="${courses.length}">
                 <button class="action-button view" onclick="viewClass(this, '${
                   parseInt(course.id_Gvm) - 1
