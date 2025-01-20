@@ -140,22 +140,30 @@ const TaiChinhCheckAll = async (req, Dot, KiHoc, NamHoc) => {
   return kq;
 };
 
-// mới
+// Hiển thị lớp
 const renderInfo = async (req, res) => {
   const role = req.session.role;
   const isKhoa = req.session.isKhoa;
   const MaPhongBan = req.session.MaPhongBan;
-  console.log("Mã phòng ban = ", MaPhongBan);
 
-  const { Dot, Ki, Nam } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
-  const tableName = process.env.DB_TABLE_QC;
-  const MoiGiang = 1;
+  const { Dot, Ki, Nam, he_dao_tao } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
 
   // Xác định query SQL dựa trên isKhoa
-  const query =
-    isKhoa == 1
-      ? `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND Khoa = ? AND MoiGiang = ?;`
-      : `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = ?;`;
+  let queryAppend = " AND he_dao_tao not like '%Đại học%'";
+  if (he_dao_tao == "Đại học") {
+    queryAppend = " AND he_dao_tao like '%Đại học%'";
+  }
+  let query = "";
+  let queryParams = [Dot, Ki, Nam];
+
+  if (isKhoa == 1) {
+    query = `SELECT * FROM quychuan WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND Khoa = ? AND MoiGiang = 1`;
+    queryParams.push(MaPhongBan); // Thêm MaPhongBan nếu có Khoa
+  } else {
+    query = `SELECT * FROM quychuan WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND MoiGiang = 1`;
+  }
+
+  query += queryAppend;
 
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
@@ -166,12 +174,7 @@ const renderInfo = async (req, res) => {
     const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, Ki, Nam);
 
     // Thực hiện truy vấn với tham số an toàn
-    const [results] = await connection.query(
-      query,
-      isKhoa == 0
-        ? [Dot, Ki, Nam, MoiGiang]
-        : [Dot, Ki, Nam, MaPhongBan, MoiGiang]
-    );
+    const [results] = await connection.query(query, queryParams);
 
     // Kiểm tra kết quả truy vấn
     if (results.length === 0) {
