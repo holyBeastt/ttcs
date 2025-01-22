@@ -96,9 +96,7 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       z-index: 1000;
       padding: 10px;
-      transform: translateX(53%);
-      /* Thêm hiệu ứng nhấp nháy màu chéo */
-      /* animation: flashColors 2s linear infinite, diagonalMove 2s linear infinite; */
+      transform: translateX(218%);
     }
 
     .dropdown-item {
@@ -108,63 +106,6 @@
 
     .dropdown-item:hover {
       background-color: #f8f9fa;
-    }
-
-    /* Animation nháy màu liên tục */
-    @keyframes flashColors {
-      0% {
-        background-color: rgba(255, 0, 0, 0.8);
-      }
-
-      /* Màu đỏ rực */
-      10% {
-        background-color: rgba(255, 105, 180, 0.8);
-      }
-
-      /* Màu hồng đậm */
-      20% {
-        background-color: rgba(255, 215, 0, 0.8);
-      }
-
-      /* Màu vàng kim */
-      30% {
-        background-color: rgba(34, 193, 195, 0.8);
-      }
-
-      /* Màu xanh dương ngọc bích */
-      40% {
-        background-color: rgba(0, 255, 255, 0.8);
-      }
-
-      /* Màu cyan sáng */
-      50% {
-        background-color: rgba(75, 0, 130, 0.8);
-      }
-
-      /* Màu tím đậm */
-      60% {
-        background-color: rgba(255, 165, 0, 0.8);
-      }
-
-      /* Màu cam sáng */
-      70% {
-        background-color: rgba(128, 0, 128, 0.8);
-      }
-
-      /* Màu tím ngọc */
-      80% {
-        background-color: rgba(0, 255, 0, 0.8);
-      }
-
-      /* Màu xanh lá cây sáng */
-      90% {
-        background-color: rgba(255, 69, 0, 0.8);
-      }
-
-      /* Màu cam đỏ */
-      100% {
-        background-color: rgba(255, 0, 0, 0.8);
-      }
     }
   </style>
 
@@ -211,6 +152,18 @@
               style="width: max-content; margin-bottom: 0px; visibility: hidden">
               Thêm bảng quy chuẩn
             </button>
+            <button class="btn text-nowrap" id="export-file-btn" style="width: max-content; margin-bottom: 0px;">
+              Xuất file
+            </button>
+            <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
+            <div id="file-format-menu" class="dropdown-menu" aria-labelledby="export-file-btn"
+              style="display: none; position: absolute">
+              <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
+              <button class="dropdown-item" onclick="exportToExcel()">
+                Excel
+              </button>
+              <button class="dropdown-item" onclick="exportToWord()">Word</button>
+            </div>
           </div>
 
           <div class="right" style="margin-top: 0px">
@@ -251,21 +204,6 @@
           <button class="btn text-nowrap" id="add-row-btn" onclick="addRow()">
             Thêm
           </button>
-          <!-- <button class="btn text-nowrap" id="save-btn" onclick="submitData()">Lưu</button> -->
-          <!-- Nút xuất file -->
-          <button class="btn text-nowrap" id="export-file-btn">
-            Xuất file
-          </button>
-
-          <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
-          <div id="file-format-menu" class="dropdown-menu" aria-labelledby="export-file-btn"
-            style="display: none; position: absolute">
-            <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
-            <button class="dropdown-item" onclick="exportToExcel()">
-              Excel
-            </button>
-            <button class="dropdown-item" onclick="exportToWord()">Word</button>
-          </div>
         </div>
 
         <div id="no-data-message" class="text-center my-3" style="display: none">
@@ -414,16 +352,43 @@
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(worksheetData);
 
-        // Căn chỉnh độ rộng cột
+        // Căn chỉnh độ rộng cột sao cho vừa vặn
         const colWidths = headers.map((header, colIndex) => {
           const maxLength = Math.max(
             header.length,
             ...rows.map((row) => String(row[colIndex]).length)
           );
-          return { wpx: maxLength * 6 };
+          return { wpx: Math.min(maxLength * 10, 150) }; // Điều chỉnh độ rộng cột
         });
 
         ws["!cols"] = colWidths;
+
+        // Làm đậm và thay đổi background cho dòng tiêu đề (dòng 3)
+        const headerRowIndex = 2; // Dòng tiêu đề là dòng 3, tương ứng với index 2 trong mảng
+
+        orderedKeys.forEach((key, colIndex) => {
+          const cellRef = XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex });  // Vị trí ô trong dòng tiêu đề
+
+          // Khởi tạo nếu ô chưa có
+          if (!ws[cellRef]) {
+            ws[cellRef] = { v: headers[colIndex] }; // Nếu ô chưa có, gán giá trị
+          }
+
+          // Áp dụng style cho từng ô trong dòng tiêu đề
+          ws[cellRef].s = {
+            fill: {
+              fgColor: { rgb: "FFFF00" }, // Màu nền vàng
+            },
+            font: {
+              bold: true, // Làm đậm chữ
+              color: { rgb: "000000" }, // Màu chữ đen
+            },
+            alignment: {
+              horizontal: 'center', // Căn giữa văn bản
+              vertical: 'center',
+            }
+          };
+        });
 
         // Gắn sheet vào workbook và xuất file
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
@@ -1005,7 +970,7 @@
       }
 
       // Hàm hủy thao tác thêm dòng mới
-      // Tạm thời không dùng, không nên xóa, ai xóa là chó 
+      // Tạm thời không dùng, không nên xóa, ai xóa là chó
       // function cancelAddRow() {
       //   // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
       //   const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
