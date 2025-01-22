@@ -170,7 +170,8 @@
               <option value="">Năm học</option>
             </select>
             <button id="getData" class="btn text-nowrap mx-3" style="width: max-content;">Hiển thị</button>
-            <button id="update-qc" onclick="submitData()" class="btn mx-3 luu">Cập nhật</button>
+            <button id="update-qc"  class="btn mx-3 luu">Cập nhật</button> 
+            <!-- onclick="submitData()" -->
           </div>
 
         </div>
@@ -564,6 +565,98 @@
               alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
             });
         });
+
+            // Gắn sự kiện click cho nút
+    document.getElementById('update-qc').addEventListener('click', submitData);
+
+        function submitData() {
+
+          // Lưu bảng hiện có vào biến globalData
+          updateGlobalDataFromTable();
+  
+          // Fomart lại ngày tháng năm
+          globalData.forEach(item => {
+            item.NgayBatDau = format(item.NgayBatDau); // Định dạng ngày bắt đầu
+            item.NgayKetThuc = format(item.NgayKetThuc); // Định dạng ngày bắt đầu
+          });
+  
+          console.log('Dữ liệu khi click Cập nhật : ', globalData);
+          // Gửi dữ liệu lên server
+          fetch('/check-teaching', {
+            method: 'POST', // Phương thức POST
+            headers: {
+              'Content-Type': 'application/json' // Định dạng gửi là JSON
+            },
+            body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Lỗi khi gửi dữ liệu');
+              }
+              return response.json(); // Chuyển đổi phản hồi thành JSON
+            })
+            .then(data => {
+              // Hiển thị thông báo từ server
+              const messageWithLineBreaks = data.message.replace(/\n/g, "<br>");
+  
+              Swal.fire({
+                title: 'Thông báo',
+                html: messageWithLineBreaks,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto', // Tự động điều chỉnh chiều rộng
+                padding: '20px', // Giữ khoảng cách cho nội dung
+              }).then(() => {
+                loadDataAfterUpdate();
+                //location.reload();
+              });
+            })
+            .catch(error => {
+              console.error('Có lỗi xảy ra:', error);
+              alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
+            });
+  
+        }
+  
+        async function loadDataAfterUpdate() {
+          const dotValue = document.getElementById('combobox-dot').value;
+          const kiValue = document.getElementById('comboboxki').value;
+          const namValue = document.getElementById('NamHoc').value;
+  
+          // Tạo đối tượng dữ liệu để gửi
+          const requestData = {
+            Dot: dotValue,
+            Ki: kiValue,
+            Nam: namValue,
+          };
+        const teachingResponse = await fetch('/thong-tin-giang-day', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+        if (!teachingResponse.ok) {
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Không tìm thấy dữ liệu",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto', // Tự động điều chỉnh chiều rộng
+            padding: '20px', // Giữ khoảng cách cho nội dung
+          });
+          return; // Dừng lại nếu có lỗi
+        }
+        const rs = await teachingResponse.json();
+  
+        // Lưu dữ liệu kết quả
+        globalData = rs.results; // Dữ liệu kết quả
+        const check = rs.check; // Dữ liệu check
+        localStorage.setItem('check', check);
+  
+        // Hiển thị dữ liệu
+        viewData(globalData);
+      }
 
         // load data lấy dữ liệu từ server
         document.getElementById('getData').addEventListener('click', loadData);
@@ -1428,7 +1521,7 @@
         const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
         checkAllCheckbox.checked = allChecked; // Cập nhật trạng thái của checkbox "Check All"
       }
-
+/*
       // Hàm đẩy dữ liệu lên server
       function submitData() {
 
@@ -1468,7 +1561,8 @@
               width: 'auto', // Tự động điều chỉnh chiều rộng
               padding: '20px', // Giữ khoảng cách cho nội dung
             }).then(() => {
-              location.reload();
+              loadDataAfterUpdate();
+              //location.reload();
             });
           })
           .catch(error => {
@@ -1478,7 +1572,46 @@
 
       }
 
+      async function loadDataAfterUpdate() {
+        const dotValue = document.getElementById('combobox-dot').value;
+        const kiValue = document.getElementById('comboboxki').value;
+        const namValue = document.getElementById('NamHoc').value;
 
+        // Tạo đối tượng dữ liệu để gửi
+        const requestData = {
+          Dot: dotValue,
+          Ki: kiValue,
+          Nam: namValue,
+        };
+      const teachingResponse = await fetch('/thong-tin-giang-day', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+      if (!teachingResponse.ok) {
+        Swal.fire({
+          title: 'Thông báo',
+          html: "Không tìm thấy dữ liệu",
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
+        return; // Dừng lại nếu có lỗi
+      }
+      const rs = await teachingResponse.json();
+
+      // Lưu dữ liệu kết quả
+      globalData = rs.results; // Dữ liệu kết quả
+      const check = rs.check; // Dữ liệu check
+      localStorage.setItem('check', check);
+
+      // Hiển thị dữ liệu
+      viewData(globalData);
+    }
+*/
       // Hàm định dạng ngày thành chuỗi YYYY-MM-DD
       function format(dateStr) {
         const date = new Date(dateStr);
