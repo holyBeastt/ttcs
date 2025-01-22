@@ -20,23 +20,83 @@ const thongkevuotgioController = {
         // Query when selecting specific department
         query = `
                     SELECT 
+                      gd.GiangVien AS GiangVien,
+                      SUM(gd.QuyChuan) AS SoTietGiangDay,
+                      SUM(COALESCE(gk.TotalSoTietKT, 0)) AS SoTietKTGK,
+                      SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
+                      nv.ChucVu AS ChucVu,
+                      CASE 
+                          WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
+                          WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
+                          WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
+                          WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
+                          WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
+                          WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
+                          WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
+                          WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
+                          WHEN nv.ChucVu = 'Giảng viên' THEN 300
+                          ELSE 0
+                      END AS STPHT,
+                      GREATEST(
+                          0, 
+                          SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
+                          CASE 
+                              WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
+                              WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
+                              WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
+                              WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
+                              WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
+                              WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
+                              WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
+                              WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
+                              WHEN nv.ChucVu = 'Giảng viên' THEN 300
+                              ELSE 0
+                          END
+                      ) AS SoTietVuotGio
+                  FROM 
+                      giangday gd 
+                  LEFT JOIN 
+                      (
+                          SELECT 
+                              id_User, 
+                              SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
+                          FROM 
+                              giuaky
+                          WHERE 
+                              NamHoc = ? AND HocKy = ?
+                          GROUP BY 
+                              id_User
+                      ) gk 
+                  ON 
+                      gd.id_User = gk.id_User
+                  LEFT JOIN 
+                      nhanvien nv 
+                  ON 
+                      gd.id_User = nv.id_User
+                  WHERE 
+                      gd.NamHoc = ? 
+                      AND gd.Khoa = ? 
+                      AND gd.HocKy = ? 
+                      AND gd.id_User != 1
+                  GROUP BY 
+                      gd.GiangVien, nv.ChucVu -- Thêm nv.ChucVu vào GROUP BY
+                  ORDER BY 
+                      TongSoTiet DESC;
+
+                `;
+        params.push(namhoc, hocky, namhoc, khoa, hocky);
+      } else {
+        // Query for all departments
+        query = `
+                    WITH final AS (
+                    SELECT 
+                        gd.Khoa,
                         gd.GiangVien AS GiangVien,
                         SUM(gd.QuyChuan) AS SoTietGiangDay,
-                        COALESCE(gk.TotalSoTietKT, 0) AS SoTietKTGK,
+                        SUM(COALESCE(gk.TotalSoTietKT, 0)) AS SoTietKTGK,
                         SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
                         nv.ChucVu AS ChucVu,
-                        CASE 
-                            WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
-                            WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
-                            WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
-                            WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
-                            WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
-                            WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
-                            WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
-                            WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
-                            WHEN nv.ChucVu = 'Giảng viên' THEN 300
-                            ELSE 0
-                        END AS STPHT,
+                        COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien,
                         GREATEST(0, (SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
                         CASE 
                             WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
@@ -61,57 +121,17 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
-                        gd.NamHoc = ? AND gd.Khoa = ? AND gd.HocKy = ? AND gd.id_User != 1
+                        gd.NamHoc = ? AND gd.HocKy = ? AND gd.id_User != 1
                     GROUP BY 
-                        gd.GiangVien
-                    ORDER BY 
-                        TongSoTiet DESC
-                `;
-        params.push(namhoc, hocky, namhoc, khoa, hocky);
-      } else {
-        // Query for all departments
-        query = `
-                    WITH Final as (SELECT 
-                        gd.Khoa,
-                        gd.GiangVien AS GiangVien,
-                        SUM(gd.QuyChuan) AS SoTietGiangDay,
-                        COALESCE(gk.TotalSoTietKT, 0) AS SoTietKTGK,
-                        SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
-                        nv.ChucVu AS ChucVu,
-                        COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien,
-                        GREATEST(0, (SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
-                        CASE 
-                            WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
-                            WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
-                            WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
-                            WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
-                            WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
-                            WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
-                            WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
-                            WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
-                            WHEN nv.ChucVu = 'Giảng viên' THEN 300
-                            ELSE 0
-                        END)) AS SoTietVuotGio
-                    FROM 
-                        giangday gd 
-                    LEFT JOIN 
-                        (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
-                        FROM giuaky
-                        WHERE NamHoc=? AND HocKy=?
-                        GROUP BY id_User ) gk 
-                    ON gd.id_User = gk.id_User
-                    LEFT JOIN 
-                        nhanvien nv ON gd.id_User = nv.id_User
-                    WHERE 
-                    gd.NamHoc=? AND gd.HocKy=? AND gd.id_User != 1
-                    GROUP BY 
-                        gd.GiangVien
-                    ORDER BY 
-                        TongSoTiet DESC)
-                        
-                    SELECT Khoa as Khoa, sum(sotietvuotgio) as SoTietVuotGio,
+                        gd.Khoa, gd.GiangVien, nv.ChucVu
+                )
+                SELECT 
+                    Khoa AS Khoa, 
+                    SUM(SoTietVuotGio) AS SoTietVuotGio,
                     SUM(SoLuongGiangVien) AS SoLuongGiangVien
-                    FROM final
+                FROM final
+                GROUP BY Khoa 
+                ORDER BY SoTietVuotGio DESC;
                 `;
         params.push(namhoc, hocky, namhoc, hocky);
       }
