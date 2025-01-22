@@ -1460,9 +1460,11 @@
           })
           .then(data => {
             // Hiển thị thông báo từ server
+            const messageWithLineBreaks = data.message.replace(/\n/g, "<br>");
+
             Swal.fire({
               title: 'Thông báo',
-              html: data.message,
+              html: messageWithLineBreaks,
               icon: 'success',
               confirmButtonText: 'OK',
               width: 'auto', // Tự động điều chỉnh chiều rộng

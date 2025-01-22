@@ -192,7 +192,6 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.NamHoc,
             qc.Khoa,
             qc.he_dao_tao
-            qc.he_dao_tao
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
@@ -215,8 +214,6 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.NamHoc,
             qc.Khoa,   
            qc.he_dao_tao
-           qc.he_dao_tao
-
         FROM quychuan qc
         JOIN gvmoi gv 
             ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
@@ -363,14 +360,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
-     const soTiet = item.SoTiet;
-  const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-  const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-  const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-  const tienLuong = tienLuongList.find(
-    (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
-  );
-  const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTiet = item.SoTiet;
+        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
+        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"

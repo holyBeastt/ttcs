@@ -192,7 +192,7 @@
 
 <body>
   <!-- Phần header -->
-  <%- include('header') %>
+  <%- include('adminHeader') %>
 
   <!-- Phần nội dung -->
 
@@ -291,39 +291,7 @@
     }
   });
 </script>
-<script>
-  $(document).ready(function () {
-    $('#NamHoc option[value=""]').remove();
-    $('#comboboxki option[value=""]').remove();
-    $.ajax({
-      url: '/getNamHoc',
-      method: 'GET',
-      success: function (response) {
-        if (response.success) {
 
-          response.NamHoc.forEach(function (item) {
-            console.log(item.NamHoc);
-            $('#NamHoc').append(
-              `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-            );
-          });
-
-          response.Ki.forEach(function (item) {
-            console.log(item.Ki);
-            $('#comboboxki').append(
-              `<option value="${item.value}">${item.Ki}</option>`
-            );
-          });
-        } else {
-          console.error("Không lấy được dữ liệu năm học:", response.message);
-        }
-      },
-      error: function (error) {
-        console.error("Lỗi khi lấy dữ liệu năm học:", error);
-      }
-    });
-  });
-</script>
 <script>
   document.getElementById('infoGvm').addEventListener('click', loadLopMoiData);
 

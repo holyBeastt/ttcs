@@ -12,48 +12,91 @@ const getClassInfoGvm = async (req, res) => {
 };
 
 const getClassInfoGvmData = async (req, res) => {
-  let query;
   const MaPhongBan = req.session.MaPhongBan;
   const isKhoa = req.session.isKhoa;
-  const { dot, ki, nam, department } = req.body; // Nhận dữ liệu lọc từ client
+  const { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
 
   let connection; // Khai báo biến connection
 
+  let query = `
+  WITH 
+  phuLucSauDH AS (
+      SELECT DISTINCT
+          TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
+          qc.TenLop AS Lop, 
+          ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
+          qc.LopHocPhan AS TenHocPhan, 
+          qc.KiHoc AS HocKy,
+          qc.SoTinChi,
+          gv.id_Gvm,
+          gv.HocVi, 
+          gv.HSL,
+          qc.NgayBatDau, 
+          qc.NgayKetThuc,
+          gv.DiaChi,
+          qc.Dot,
+          qc.KiHoc,
+          qc.NamHoc,
+          qc.Khoa,
+          qc.he_dao_tao
+      FROM quychuan qc
+      JOIN gvmoi gv 
+          ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
+      WHERE qc.GiaoVienGiangDay LIKE '%,%'
+  ),
+  phuLucDH AS (
+      SELECT DISTINCT
+          TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
+          qc.TenLop AS Lop, 
+          qc.QuyChuan AS SoTiet, 
+          qc.LopHocPhan AS TenHocPhan, 
+          qc.KiHoc AS HocKy,
+          qc.SoTinChi,
+          gv.id_Gvm,
+          gv.HocVi, 
+          gv.HSL,
+          qc.NgayBatDau, 
+          qc.NgayKetThuc,
+          gv.DiaChi,
+          qc.Dot,
+          qc.KiHoc,
+          qc.NamHoc,
+          qc.Khoa,   
+          qc.he_dao_tao
+      FROM quychuan qc
+      JOIN gvmoi gv 
+          ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+      WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
+  ),
+  table_ALL AS (
+      SELECT * FROM phuLucSauDH
+      UNION
+      SELECT * FROM phuLucDH
+  )
+
+  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
+  `;
+
   if (isKhoa == 0) {
-    if (department == "ALL") {
-      query = `
-      SELECT distinct
-      *
-      FROM quychuan
-      JOIN gvmoi 
-      ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;
-      `;
-    } else {
-      query = `
-      SELECT distinct
-      *
-      FROM quychuan
-      JOIN gvmoi 
-      ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND MaPhongBan LIKE '%${department}%';
-      `;
+    if (department != "ALL") {
+      query += ` AND Khoa LIKE '%${department}%'`;
     }
   } else {
-    query = `
-    SELECT distinct * 
-    FROM quychuan 
-    JOIN gvmoi ON SUBSTRING_INDEX(quychuan.GiaoVienGiangDay, '-', 1) = gvmoi.HoTen
-    WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND MaPhongBan LIKE '%${MaPhongBan}%'`;
+    query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
   }
 
   try {
     connection = await createPoolConnection();
-    const [results, fields] = await connection.query(query, [dot, ki, nam]);
+    const [results, fields] = await connection.query(query, [
+      dot,
+      ki,
+      nam,
+      he_dao_tao,
+    ]);
 
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = results.reduce((acc, current) => {
-      const teacher = current.GiaoVienGiangDay;
+      const teacher = current.GiangVien;
       if (!acc[teacher]) {
         acc[teacher] = [];
       }

@@ -276,6 +276,78 @@
               <tbody id="data-table-body"></tbody>
             </table>
           </div>
+          <div
+            id="addRowModal"
+            style="
+              display: none;
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 400px;
+              background: white;
+              border: 1px solid #ccc;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+              z-index: 1000;
+              padding: 20px;
+              border-radius: 8px;
+            "
+          >
+            <h3>Thêm Dòng Mới</h3>
+            <div>
+              <label for="inputKhoa">Khoa:</label>
+              <input
+                id="inputKhoa"
+                type="text"
+                placeholder="Nhập khoa"
+                style="width: 100%; margin-bottom: 10px"
+              />
+            </div>
+            <div>
+              <label for="inputDot">Đợt:</label>
+              <input
+                id="inputDot"
+                type="text"
+                placeholder="Nhập đợt"
+                style="width: 100%; margin-bottom: 10px"
+              />
+            </div>
+            <div>
+              <label for="inputKi">Kỳ:</label>
+              <input
+                id="inputKi"
+                type="text"
+                placeholder="Nhập kỳ"
+                style="width: 100%; margin-bottom: 10px"
+              />
+            </div>
+            <div>
+              <label for="inputNam">Năm:</label>
+              <input
+                id="inputNam"
+                type="text"
+                placeholder="Nhập năm"
+                style="width: 100%; margin-bottom: 10px"
+              />
+            </div>
+            <div style="text-align: right">
+              <button id="saveRowButton" style="margin-right: 10px">Lưu</button>
+              <button id="cancelRowButton">Hủy</button>
+            </div>
+          </div>
+          <div
+            id="overlay"
+            style="
+              display: none;
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.5);
+              z-index: 999;
+            "
+          ></div>
 
           <button class="btn text-nowrap" id="add-row-btn" onclick="addRow()">
             Thêm
@@ -776,15 +848,23 @@
         let rowElement = document.getElementById(`row-${id}`);
         const role = localStorage.getItem("userRole");
         const headersMap = {
-          id: "ID",
-          major: "Khoa",
-          lecturer: "Giảng viên theo TKB",
-          credit_hours: "Số TC",
-          classroom: "Lớp học",
-          course_name: "Lớp học phần",
-          course_code: "Mã học phần",
-          start_date: "Ngày bắt đầu",
-          end_date: "Ngày kết thúc",
+          id: { name: "ID", width: "50px" },
+          major: { name: "Khoa", width: "120px" },
+          ll_code: { name: "Số tiết theo TKB", width: "100px" },
+          ll_total: { name: "Lên lớp", width: "80px" },
+          student_quantity: { name: "Số lượng sinh viên", width: "150px" },
+          student_bonus: { name: "Hệ số lớp đông", width: "120px" },
+          bonus_time: { name: "Hệ số T7/CN", width: "120px" },
+          bonus_teacher: { name: "Hệ số giảng viên", width: "120px" },
+          course_id: { name: "Mã bộ môn", width: "100px" },
+          lecturer: { name: "Giảng viên theo TKB", width: "200px" },
+          credit_hours: { name: "Số TC", width: "80px" },
+          course_name: { name: "Lớp học phần", width: "200px" },
+          course_code: { name: "Mã học phần", width: "150px" },
+          start_date: { name: "Ngày bắt đầu", width: "150px" },
+          end_date: { name: "Ngày kết thúc", width: "150px" },
+          bonus_total: { name: "Quy chuẩn", width: "50px" },
+          semester: { name: "Năm học", width: "50px" },
         };
 
         const keyNotEdit = ["id", "GhiChu"];
@@ -1002,7 +1082,7 @@
           // Xác nhận xóa
           try {
             // Gửi yêu cầu DELETE tới API để xóa dòng
-            const response = await fetch(`/delete-row/${id}`, {
+            const response = await fetch(`/TKB-delete-row/${id}`, {
               method: "DELETE", // Phương thức DELETE
               headers: {
                 "Content-Type": "application/json", // Định dạng dữ liệu
@@ -1036,6 +1116,7 @@
       let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
 
       // Hàm thêm khi ấn nút THÊM
+      /*
       function addRow() {
         // Lấy các giá trị mặc định từ các combo box
         const Khoa = document.getElementById("departmentFilter").value;
@@ -1118,6 +1199,64 @@
 
         console.log("Dòng mới được khởi tạo:", newRowData);
       }
+*/
+      function addRow() {
+        // Hiển thị modal và overlay
+        document.getElementById("addRowModal").style.display = "block";
+        document.getElementById("overlay").style.display = "block";
+      }
+
+      function closeModal() {
+        // Đóng modal và xóa dữ liệu nhập
+        document.getElementById("addRowModal").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("inputKhoa").value = "";
+        document.getElementById("inputDot").value = "";
+        document.getElementById("inputKi").value = "";
+        document.getElementById("inputNam").value = "";
+      }
+
+      function saveRow() {
+        // Lấy dữ liệu từ các input
+        const Khoa = document.getElementById("inputKhoa").value;
+        const Dot = document.getElementById("inputDot").value;
+        const Ki = document.getElementById("inputKi").value;
+        const Nam = document.getElementById("inputNam").value;
+
+        // Kiểm tra dữ liệu (nếu cần)
+        if (!Khoa || !Dot || !Ki || !Nam) {
+          alert("Vui lòng điền đầy đủ thông tin!");
+          return;
+        }
+
+        // Tạo dòng mới
+        const newRowData = {
+          id: renderData.length + 1, // ID tự tăng
+          Khoa,
+          Dot,
+          Ki,
+          Nam,
+          // Các cột khác có thể để trống hoặc gán giá trị mặc định
+        };
+
+        // Thêm dòng mới vào renderData
+        renderData.push(newRowData);
+
+        // Render lại bảng
+        renderTable();
+
+        // Đóng modal
+        closeModal();
+      }
+
+      // Gắn sự kiện cho các nút
+      document
+        .getElementById("saveRowButton")
+        .addEventListener("click", saveRow);
+      document
+        .getElementById("cancelRowButton")
+        .addEventListener("click", closeModal);
+      document.getElementById("overlay").addEventListener("click", closeModal);
 
       // Hàm lưu dòng mới (gọi api lưu 1 dòng mới)
       async function saveNewRow() {
