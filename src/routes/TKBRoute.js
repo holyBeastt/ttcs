@@ -14,4 +14,7 @@ router.post("/getDataTKBChinhThuc", TKBController.getDataTKBChinhThuc);
 // Cập nhật dữ liệu 1 dòng
 router.put("/updateRowTKB/:id", TKBController.updateRowTKB);
 
+// xóa 1 dòng
+router.delete("/TKB-delete-row/:id", TKBController.deleteRow);
+
 module.exports = router;

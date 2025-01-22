@@ -30,7 +30,7 @@ const getDataTKBChinhThuc = async (req, res) => {
       query = `SELECT id, course_name, course_id, major, lecturer, start_date, end_date, student_quantity, student_bonus, bonus_time, bonus_teacher, bonus_total, semester FROM course_schedule_details WHERE major = ? AND semester = ?`;
       queryParams.push(Khoa, semester);
     } else {
-      query = `SELECT * FROM course_schedule_details WHERE semester = ?`;
+      query = `SELECT id, course_name, course_id, major, lecturer, start_date, end_date, student_quantity, student_bonus, bonus_time, bonus_teacher, bonus_total, semester FROM course_schedule_details WHERE semester = ?`;
       queryParams.push(semester);
     }
 
@@ -140,10 +140,43 @@ const updateRowTKB = async (req, res) => {
   }
 };
 
+// hàm xóa 1 dòng
+const deleteRow = async (req, res) => {
+  const { id } = req.params; // Lấy ID từ URL
+
+  console.log(`Xóa ${id} trong bảng TKB:`);
+
+  let connection;
+
+  try {
+    connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+    // Kiểm tra xem ID có hợp lệ không
+    if (!id) {
+      return res.status(400).json({ message: "ID không hợp lệ." });
+    }
+
+    // Chuẩn bị truy vấn DELETE
+    const deleteQuery = `DELETE FROM course_schedule_details WHERE id = ?`;
+
+    // Thực thi truy vấn
+    await connection.query(deleteQuery, [id]);
+
+    // Trả về phản hồi thành công
+    return res.json({ message: "Dòng dữ liệu đã được xóa thành công." });
+  } catch (error) {
+    console.error("Lỗi khi xóa dòng dữ liệu:", error);
+    return res.status(500).json({ message: "Đã xảy ra lỗi khi xóa dữ liệu." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getImportTKBSite,
   getTKBChinhThucSite,
   getDataTKBChinhThuc,
   updateRowTKB,
+  deleteRow,
 };
