@@ -50,104 +50,106 @@ const exportVuotGio = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    const { namHoc, khoa } = req.query;
+    const { namHoc } = req.query;
 
     // Kiểm tra các tham số đầu vào
-    if (!namHoc || !khoa) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu thông tin năm học hoặc khoa",
-      });
-    }
+if (!namHoc) {
+  return res.status(400).json({
+    success: false,
+    message: "Thiếu thông tin năm học",
+  });
+}
 
-    // Sanitize file names
-    const sanitizedNamHoc = sanitizeFileName(namHoc);
-    const sanitizedKhoa = sanitizeFileName(khoa);
+let khoa = req.query.khoa;
+let giangVien = req.query.giangVien;
 
-    // Các truy vấn SQL
-    let queryGiangDay = `
-      SELECT DISTINCT
-        TenHocPhan AS TenHocPhan, 
-        SoTC, 
-        Lop, 
-        QuyChuan, 
-        LenLop, 
-        HocKy, 
-        NamHoc AS Nam, 
-        Khoa, 
-        GiangVien 
-      FROM giangday
-      WHERE NamHoc = ? AND Khoa = ?  AND id_User !=1
-    `;
+const sanitizedNamHoc = sanitizeFileName(namHoc)
+const sanitizedKhoa = sanitizeFileName(khoa);
 
-    let queryLopNgoaiQuyChuan = `
-      SELECT DISTINCT
-        TenHocPhan AS TenHocPhan, 
-        SoTC, 
-        Lop, 
-        QuyChuan, 
-        LenLop, 
-        HocKy, 
-        NamHoc AS Nam, 
-        Khoa, 
-        GiangVien 
-      FROM lopngoaiquychuan
-      WHERE NamHoc = ? AND Khoa = ? 
-    `;
+// Các truy vấn SQL
+let queryGiangDay = `
+  SELECT DISTINCT
+    TenHocPhan AS TenHocPhan, 
+    SoTC, 
+    Lop, 
+    QuyChuan, 
+    LenLop, 
+    HocKy, 
+    NamHoc AS Nam, 
+    Khoa, 
+    GiangVien 
+  FROM giangday
+  WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) AND id_User !=1
+`;
 
-    let queryGiuaky = `
-      SELECT DISTINCT
-        TenHocPhan AS TenHocPhanGK, 
-        NamHoc AS Nam, 
-        Khoa, 
-        GiangVien, 
-        HinhThucKTGiuaKy, 
-        SoDe, 
-        SoTietKT, 
-        SoSV, 
-        Lop AS LopGK,
-        HocKy
-      FROM giuaky
-      WHERE NamHoc = ? AND Khoa = ? 
-    `;
+let queryLopNgoaiQuyChuan = `
+  SELECT DISTINCT
+    TenHocPhan AS TenHocPhan, 
+    SoTC, 
+    Lop, 
+    QuyChuan, 
+    LenLop, 
+    HocKy, 
+    NamHoc AS Nam, 
+    Khoa, 
+    GiangVien 
+  FROM lopngoaiquychuan
+  WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
+`;
 
-    let queryExportDoAnTotNghiep = `
-      SELECT DISTINCT
-        NamHoc AS Nam, 
-        GiangVien,
-        MaPhongBan AS Khoa, 
-        SinhVien, 
-        KhoaDaoTao, 
-        SoNguoi, 
-        SoTiet, 
-        isHDChinh
-      FROM exportdoantotnghiep 
-      WHERE NamHoc = ? AND MaPhongBan = ? AND isMoiGiang !=1
-    `;
+let queryGiuaky = `
+  SELECT DISTINCT
+    TenHocPhan AS TenHocPhanGK, 
+    NamHoc AS Nam, 
+    Khoa, 
+    GiangVien, 
+    HinhThucKTGiuaKy, 
+    SoDe, 
+    SoTietKT, 
+    SoSV, 
+    Lop AS LopGK,
+    HocKy
+  FROM giuaky
+  WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
+`;
 
-    let queryNhanVien = `
-      SELECT DISTINCT
-        TenNhanVien AS GiangVien, 
-        MaPhongBan AS Khoa, 
-        HSL,
-        NgaySinh, 
-        HocVi, 
-        ChucVu, 
-        MonGiangDayChinh
-      FROM nhanvien
-      WHERE MaPhongBan = ? 
-    `;
+let queryExportDoAnTotNghiep = `
+  SELECT DISTINCT
+    NamHoc AS Nam, 
+    GiangVien,
+    MaPhongBan AS Khoa, 
+    SinhVien, 
+    KhoaDaoTao, 
+    SoNguoi, 
+    SoTiet, 
+    isHDChinh
+  FROM exportdoantotnghiep 
+  WHERE NamHoc = ? AND (MaPhongBan = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) AND isMoiGiang !=1
+`;
+
+let queryNhanVien = `
+  SELECT DISTINCT
+    TenNhanVien AS GiangVien, 
+    MaPhongBan AS Khoa, 
+    HSL,
+    NgaySinh, 
+    HocVi, 
+    ChucVu, 
+    MonGiangDayChinh
+  FROM nhanvien
+  WHERE (MaPhongBan = ? OR ? IS NULL) AND (TenNhanVien = ? OR ? IS NULL) 
+`;
 
 // Thực thi các truy vấn
-const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa]);
+const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, khoa, giangVien, giangVien]);
 
-const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa]);
+const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, khoa, giangVien, giangVien]);
 
-const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa]);
+const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, khoa, giangVien, giangVien]);
 
-const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);
+const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, khoa, giangVien, giangVien]);
 
-const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
+const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, khoa, giangVien, giangVien]);
     // Kiểm tra kết quả truy vấn
     if (
       resultsGiangDay.length === 0 &&
@@ -161,20 +163,10 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
 
     // Kết hợp dữ liệu từ các bảng
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
-
-    const giangVienList = [...new Set([
-      ...resultsGiangDay.map(row => row.GiangVien.trim()),
-      ...resultsLopNgoaiQuyChuan.map(row => row.GiangVien.trim()),
-      ...resultsGiuaky.map(row => row.GiangVien.trim()),
-      ...resultsExportDoAnTotNghiep.map(row => row.GiangVien.trim()),
-      ...resultsNhanVien.map(row => row.GiangVien.trim()),
-    ])].filter(giangVien => 
-      resultsNhanVien.some(nv => nv.GiangVien.trim() === giangVien)
-    );
     
+    const giangVienList = giangVien ? [giangVien] : 
+    resultsNhanVien.map(nv => nv.GiangVien.trim()); // Lấy giảng viên từ bảng nhanvien
   
-
-
     const workbook = new ExcelJS.Workbook();
 
     console.log("giangVienList", giangVienList);
@@ -184,16 +176,18 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
    giangVienList.forEach((giangVien) => {
   const worksheet = workbook.addWorksheet(giangVien);
 
-
   // Lọc dữ liệu cho giảng viên này
-   giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() == giangVien.trim());
+  const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() === giangVien.trim());
 
-  
   const filteredCombinedResults = combinedResults.filter(
     (row) => row.GiangVien === giangVien
   );
 
-  const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(row => row.GiangVien.trim() === giangVien.trim());
+  const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
+    row => row.GiangVien.trim() === giangVien.trim()
+  );
+
+  // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {
     "Kỳ 1": {

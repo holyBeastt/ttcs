@@ -164,7 +164,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc, khoa, teacherName } = req.query;
+    const { dot, ki, namHoc, khoa, teacherName,loaiHopDong } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -174,64 +174,61 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     }
 
     let query = `
-    WITH 
-    phuLucSauDH AS (
-        SELECT DISTINCT
-            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
-            qc.TenLop AS Lop, 
-            ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
-            qc.LopHocPhan AS TenHocPhan, 
-            qc.KiHoc AS HocKy,
-            gv.HocVi, 
-            gv.HSL,
-            qc.NgayBatDau, 
-            qc.NgayKetThuc,
-            gv.DiaChi,
-            qc.Dot,
-            qc.KiHoc,
-            qc.NamHoc,
-            qc.Khoa,
-            qc.he_dao_tao
-            qc.he_dao_tao
-        FROM quychuan qc
-        JOIN gvmoi gv 
-            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
-        WHERE qc.GiaoVienGiangDay LIKE '%,%'
-    ),
-    phuLucDH AS (
-        SELECT DISTINCT
-            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
-            qc.TenLop AS Lop, 
-            qc.QuyChuan AS SoTiet, 
-            qc.LopHocPhan AS TenHocPhan, 
-            qc.KiHoc AS HocKy,
-            gv.HocVi, 
-            gv.HSL,
-            qc.NgayBatDau, 
-            qc.NgayKetThuc,
-            gv.DiaChi,
-            qc.Dot,
-            qc.KiHoc,
-            qc.NamHoc,
-            qc.Khoa,   
-           qc.he_dao_tao
-           qc.he_dao_tao
+   WITH 
+phuLucSauDH AS (
+    SELECT DISTINCT
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
+        qc.TenLop AS Lop, 
+        ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
+    WHERE qc.GiaoVienGiangDay LIKE '%,%'
+),
+phuLucDH AS (
+    SELECT DISTINCT
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
+        qc.TenLop AS Lop, 
+        qc.QuyChuan AS SoTiet, 
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+    WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
+),
+table_ALL AS (
+    SELECT * FROM phuLucSauDH
+    UNION
+    SELECT * FROM phuLucDH
+)
 
-        FROM quychuan qc
-        JOIN gvmoi gv 
-            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
-        WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
-    ),
-    table_ALL AS (
-        SELECT * FROM phuLucSauDH
-        UNION
-        SELECT * FROM phuLucDH
-    )
-
-    SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? 
+SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao=?
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc,loaiHopDong];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND Khoa = ?`;
