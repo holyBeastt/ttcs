@@ -360,14 +360,14 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
-     const soTiet = item.SoTiet;
-  const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-  const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-  const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-  const tienLuong = tienLuongList.find(
-    (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
-  );
-  const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTiet = item.SoTiet;
+        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
+        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"

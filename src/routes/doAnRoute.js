@@ -6,11 +6,17 @@ const router = express.Router();
 
 const doAnChinhThuc = require("../controllers/doAnChinhThucController");
 
+// Lấy site thông tin đồ án tốt nghiệp
+router.get("/thongTinDoAnTotNghiep", doAnChinhThuc.getthongTinDoAnTotNghiep);
+
 // Lấy site đồ án chính thức
 router.get("/doAnChinhThuc", doAnChinhThuc.getDoAnChinhThuc);
 
-// Lấy thông tin bảng đồ án chính thức để hiển thị
+// Lấy thông tin cho site thông tin đồ án tốt nghiệp để hiển thị
 router.post("/getInfoDoAn", doAnChinhThuc.getInfoDoAn);
+
+// Lấy thông tin bảng đồ án chính thức để hiển thị
+router.post("/getDataDoAnChinhThuc", doAnChinhThuc.getDataDoAnChinhThuc);
 
 // Lấy thông tin giảng viên cơ hữu và giảng viên mời
 router.get("/getInfoGiangVien", doAnChinhThuc.getInfoGiangVien);

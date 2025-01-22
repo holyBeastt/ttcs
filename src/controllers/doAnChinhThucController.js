@@ -616,8 +616,8 @@ const saveToDB = async (req, res) => {
   }
 };
 
-const getDoAnChinhThuc = (req, res) => {
-  res.render("doAnChinhThuc.ejs");
+const getthongTinDoAnTotNghiep = (req, res) => {
+  res.render("thongTinDoAnTotNghiep.ejs");
 };
 
 const getInfoDoAn = async (req, res) => {
@@ -1146,9 +1146,51 @@ const DoneNote = async (req, res) => {
   }
 };
 
+const getDoAnChinhThuc = async (req, res) => {
+  res.render("doAnChinhThuc.ejs");
+};
+
+// Lấy dữ liệu để hiển thị site đồ án chính thức
+const getDataDoAnChinhThuc = async (req, res) => {
+  const Dot = req.body.Dot;
+  const NamHoc = req.body.Nam;
+  const MaPhongBan = req.body.Khoa;
+
+  console.log(req.body);
+
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    let query, values;
+    if (MaPhongBan == "ALL") {
+      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
+      values = [Dot, NamHoc];
+    } else {
+      query =
+        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
+      values = [Dot, NamHoc, MaPhongBan];
+    }
+    const [result] = await connection.query(query, values);
+
+    console.log("đb = ", result);
+    // Trả dữ liệu về client dưới dạng JSON
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu từ database:", error);
+
+    // Trả lỗi về client
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getDoAnChinhThuc,
+  getDataDoAnChinhThuc,
+  getthongTinDoAnTotNghiep,
   getInfoDoAn,
   updateDoAn,
   saveToDB,

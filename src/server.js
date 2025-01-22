@@ -45,7 +45,7 @@ const TKBRoute = require("./routes/TKBRoute");
 
 // Phần đồ án
 const vuotGioImportDoAnRoute = require("./routes/vuotGioImportDoAnRoute");
-const doAnChinhThucRoute = require("./routes/doAnChinhThucRoute");
+const doAnRoute = require("./routes/doAnRoute");
 const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
 const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
 const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
@@ -123,7 +123,7 @@ app.use("/", adminThemFileHocPhanRoute);
 app.use("/", TKBRoute);
 
 // Phần đồ án
-app.use("/", doAnChinhThucRoute);
+app.use("/", doAnRoute);
 app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioDoAnDuKienRoute);
 app.use("/", doAnHopDongDuKienRoute);
