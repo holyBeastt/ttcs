@@ -815,12 +815,6 @@
         namHoc: namHoc
       };
 
-      // Kiểm tra giá trị của các biến
-      console.log("data = ", duLieu)
-      console.log('Đợt:', dot);
-      console.log('Kì:', ki);
-      console.log('Năm học:', namHoc);
-
       try {
         const response = await fetch("/submitData2", {
           method: "POST", // Dùng POST nếu bạn muốn gửi tín hiệu theo yêu cầu HTTP POST
