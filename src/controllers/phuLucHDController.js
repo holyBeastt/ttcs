@@ -241,7 +241,14 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     }
 
     const [data] = await connection.execute(query, params);
-
+    console.log('loaiHopDong:', loaiHopDong);
+    console.log('dot:', dot);
+    console.log('ki:', ki);
+    console.log('namHoc:', namHoc);
+    console.log('khoa:', khoa);
+    console.log('teacherName:', teacherName);
+    console.log('query:', query);
+    console.log('data:', data);
     if (data.length === 0) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>"

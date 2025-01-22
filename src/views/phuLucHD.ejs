@@ -156,13 +156,13 @@
               const loaiHopDong = document.getElementById("loaiHopDong").value;
 
 
-              if (!dot || !ki || !namHoc || !loaiHopDong) {
+              if (!dot || !ki || !namHoc) {
                 alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học.");
                 return;
               }
 
               // Tạo URL với các tham số
-              let url = `/api/export-phu-luc-giang-vien-moi?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
+              let url = `/api/export-phu-luc-giang-vien-moi?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
 
               if (khoa) {
                 url += `&khoa=${encodeURIComponent(khoa)}`;
@@ -171,7 +171,10 @@
               if (teacherName) {
                 url += `&teacherName=${encodeURIComponent(teacherName)}`;
               }
-            
+             // Thêm loại hợp đồng vào URL
+             if (loaiHopDong) {
+              url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
+            }
               // Chuyển hướng trực tiếp đến URL để tải file
               window.location.href = url;
             });
