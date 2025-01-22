@@ -1,6 +1,35 @@
 const express = require("express");
 const createPoolConnection = require("../config/databasePool");
 
+const getQuyDinhSoGioNCKH = async (req, res) => {
+    let connection;
+    try {
+        // Lấy kết nối từ pool
+        connection = await createPoolConnection();
+        
+        // Truy vấn dữ liệu từ bảng quydoisogionckh
+        const [rows, fields] = await connection.execute('SELECT * FROM quydoisogionckh');
+        
+        // Kiểm tra nếu không có dữ liệu
+        if (rows.length === 0) {
+            return res.status(404).send('Không có dữ liệu');
+        }
+        
+        // Dữ liệu đầu tiên trong mảng rows (vì LIMIT 1)
+        const data = rows[0];
+        
+        // Render view và truyền dữ liệu vào EJS
+        res.render('nckhQuyDinhSoGioNCKH.ejs', { data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Lỗi trong quá trình truy vấn dữ liệu');
+    } finally {
+        // Giải phóng kết nối
+        if (connection) {
+            connection.release();
+        }
+    }
+};
 
 const getDeTaiDuAn = (req, res) => {
     res.render("nckhDeTaiDuAn.ejs");
@@ -89,72 +118,79 @@ const extractNameAndUnit = (fullName) => {
     return { name: fullName.trim(), unit: "" };
 };
 
-
-const quyDoiSoGioDeTaiDuAn = (body) => {
-    const {
-        capDeTai,
-        chuNhiem,
-        thuKy,
-        thanhVien, // Đây là một mảng từ client
-    } = body;
+// Hàm quy đổi đề tài dự án 
+const quyDoiSoGioDeTaiDuAn = async (body) => {
+    const { capDeTai, chuNhiem, thuKy, thanhVien } = body;
 
     let soGioChuNhiem = 0;
     let soGioThuKy = 0;
     let soGioThanhVien = [];
 
-    // Kiểm tra cấp đề tài và tính toán số giờ quy đổi
-    if (capDeTai === "Quốc gia, Nghị định thư") {
-        soGioChuNhiem = chuNhiem ? 400 : 0; // Chủ nhiệm cấp quốc gia được 400 giờ
-        soGioThuKy = thuKy ? 120 : 0; // Thư ký cấp quốc gia được 120 giờ
-        if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            const gioThanhVien = 280 / thanhVien.length; // 280 giờ chia đều cho thành viên
-            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
-        }
-    } else if (capDeTai === "Ban, Bộ và tương đương") {
-        soGioChuNhiem = chuNhiem ? 250 : 0; // Chủ nhiệm cấp ban bộ được 250 giờ
-        soGioThuKy = thuKy ? 75 : 0; // Thư ký cấp ban bộ được 75 giờ
-        if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            const gioThanhVien = 125 / thanhVien.length; // 125 giờ chia đều cho thành viên
-            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
-        }
-    } else if (capDeTai === "Cơ sở, Học viện") {
-        soGioChuNhiem = chuNhiem ? 150 : 0; // Chủ nhiệm cấp học viện cơ sở được 150 giờ
-        if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
-            const gioThanhVien = 50 / thanhVien.length; // 50 giờ chia đều cho thành viên
-            soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
+    try {
+        // Tạo kết nối từ pool
+        const connection = await createPoolConnection();
+
+        // Lấy thông tin quy đổi từ bảng quydoisogionckh
+        const [rows] = await connection.execute(
+            `SELECT * FROM quydoisogionckh WHERE MaQuyDoi = ? AND PhanLoai = ? `,
+            ["detaiduan", capDeTai]  // Dùng các giá trị truyền vào để lọc dữ liệu
+        );
+
+        // Kiểm tra nếu có dữ liệu trả về
+        if (rows.length > 0) {
+            const data = rows[0]; // Lấy kết quả đầu tiên từ bảng
+
+            // Quy đổi giờ cho chủ nhiệm
+            soGioChuNhiem = chuNhiem ? parseFloat(data.GiangVien1) : 0;
+
+            // Quy đổi giờ cho thư ký
+            soGioThuKy = thuKy ? parseFloat(data.GiangVien2) : 0;
+
+            // Quy đổi giờ cho thành viên
+            if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+                const gioThanhVien = parseFloat(data.ThanhVien) / thanhVien.length; // Chia đều giờ cho thành viên
+                soGioThanhVien = thanhVien.map(() => parseFloat(gioThanhVien.toFixed(2)));
+            }
         } else {
-            soGioChuNhiem += 50; // Nếu không có thành viên, cộng thêm 50 giờ cho chủ nhiệm
+            throw new Error("Không tìm thấy dữ liệu quy đổi cho cấp đề tài này.");
         }
-    }
 
-    // Tách và format thông tin của chủ nhiệm
-    if (chuNhiem) {
-        const { name, unit } = extractNameAndUnit(chuNhiem);
-        body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2)} giờ)`.trim();
-    }
+        // Đóng kết nối
+        connection.release(); // Giải phóng kết nối sau khi hoàn thành
 
-    // Tách và format thông tin của thư ký
-    if (thuKy) {
-        const { name, unit } = extractNameAndUnit(thuKy);
-        body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2)} giờ)`.trim();
-    }
 
-    // Tách và format thông tin của thành viên
-    if (thanhVien && Array.isArray(thanhVien)) {
-        body.thanhVien = thanhVien.map((member, index) => {
-            const { name, unit } = extractNameAndUnit(member);
-            return `${name} (${unit} - ${soGioThanhVien[index]} giờ)`.trim();
-        }).join(", ");
-    }
+        // Tách và format thông tin của chủ nhiệm
+        if (chuNhiem) {
+            const { name, unit } = extractNameAndUnit(chuNhiem);
+            body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2)} giờ)`.trim();
+        }
 
-    // Trả về body đã được cập nhật
-    return body;
+        // Tách và format thông tin của thư ký
+        if (thuKy) {
+            const { name, unit } = extractNameAndUnit(thuKy);
+            body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2)} giờ)`.trim();
+        }
+
+        // Tách và format thông tin của thành viên
+        if (thanhVien && Array.isArray(thanhVien)) {
+            body.thanhVien = thanhVien.map((member, index) => {
+                const { name, unit } = extractNameAndUnit(member);
+                return `${name} (${unit} - ${soGioThanhVien[index]} giờ)`.trim();
+            }).join(", ");
+        }
+
+        // Trả về body đã được cập nhật
+        return body;
+
+    } catch (error) {
+        console.error("Lỗi khi quy đổi số giờ:", error);
+        throw error; // Ném lỗi nếu có vấn đề trong quá trình truy vấn
+    }
 };
-
 
 // thêm đề tài dự án
 const saveDeTaiDuAn = async (req, res) => {
-    const data = quyDoiSoGioDeTaiDuAn(req.body)
+    const data = await quyDoiSoGioDeTaiDuAn(req.body)
     // Lấy dữ liệu từ body
     const {
         capDeTai,
@@ -482,7 +518,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 // lấy bảng đề tài dự án
 const getTableBangSangCheVaGiaiThuong = async (req, res) => {
 
-    const { NamHoc,Khoa } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng bangsangchevagiaithuong Năm:", NamHoc);
 
@@ -1228,6 +1264,7 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
 
 
 module.exports = {
+    getQuyDinhSoGioNCKH,
     getDeTaiDuAn,
     getTableDeTaiDuAn,
     saveDeTaiDuAn,

@@ -9,4 +9,10 @@ router.get('/log', logController.showLogTable);
 // Route API để trả về dữ liệu JSON
 router.get('/api/log', logController.getLogData);
 
+// Route API để trả về dữ liệu năm học
+router.get('/api/namhoc', logController.getNamHocData);
+
+// Route API để trả về dữ liệu nhân viên
+router.get('/api/nhanvien', logController.getNhanVienData);
+
 module.exports = router;

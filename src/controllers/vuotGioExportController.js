@@ -50,17 +50,16 @@ const exportVuotGio = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    const { namHoc, khoa } = req.query;
+    const { namHoc, khoa, teacherName } = req.query;  // Dùng teacherName thay cho giangVien
 
     // Kiểm tra các tham số đầu vào
-    if (!namHoc || !khoa) {
+    if (!namHoc) {
       return res.status(400).json({
         success: false,
-        message: "Thiếu thông tin năm học hoặc khoa",
+        message: "Thiếu thông tin năm học",
       });
     }
 
-    // Sanitize file names
     const sanitizedNamHoc = sanitizeFileName(namHoc);
     const sanitizedKhoa = sanitizeFileName(khoa);
 
@@ -77,7 +76,7 @@ const exportVuotGio = async (req, res) => {
         Khoa, 
         GiangVien 
       FROM giangday
-      WHERE NamHoc = ? AND Khoa = ?  AND id_User !=1
+      WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) AND id_User != 1
     `;
 
     let queryLopNgoaiQuyChuan = `
@@ -92,7 +91,7 @@ const exportVuotGio = async (req, res) => {
         Khoa, 
         GiangVien 
       FROM lopngoaiquychuan
-      WHERE NamHoc = ? AND Khoa = ? 
+      WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
     `;
 
     let queryGiuaky = `
@@ -108,7 +107,7 @@ const exportVuotGio = async (req, res) => {
         Lop AS LopGK,
         HocKy
       FROM giuaky
-      WHERE NamHoc = ? AND Khoa = ? 
+      WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
     `;
 
     let queryExportDoAnTotNghiep = `
@@ -122,7 +121,7 @@ const exportVuotGio = async (req, res) => {
         SoTiet, 
         isHDChinh
       FROM exportdoantotnghiep 
-      WHERE NamHoc = ? AND MaPhongBan = ? AND isMoiGiang !=1
+      WHERE NamHoc = ? AND (MaPhongBan = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) AND isMoiGiang != 1
     `;
 
     let queryNhanVien = `
@@ -135,19 +134,16 @@ const exportVuotGio = async (req, res) => {
         ChucVu, 
         MonGiangDayChinh
       FROM nhanvien
-      WHERE MaPhongBan = ? 
+      WHERE (MaPhongBan = ? OR ? IS NULL) AND (TenNhanVien = ? OR ? IS NULL) 
     `;
 
-// Thực thi các truy vấn
-const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa]);
+    // Thực thi các truy vấn với tham số teacherName (giảng viên)
+    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, khoa, teacherName || null, teacherName || null]);
 
-const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa]);
-
-const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa]);
-
-const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa]);
-
-const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
     // Kiểm tra kết quả truy vấn
     if (
       resultsGiangDay.length === 0 &&
@@ -162,38 +158,36 @@ const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa])
     // Kết hợp dữ liệu từ các bảng
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
-    const giangVienList = [...new Set([
-      ...resultsGiangDay.map(row => row.GiangVien.trim()),
-      ...resultsLopNgoaiQuyChuan.map(row => row.GiangVien.trim()),
-      ...resultsGiuaky.map(row => row.GiangVien.trim()),
-      ...resultsExportDoAnTotNghiep.map(row => row.GiangVien.trim()),
-      ...resultsNhanVien.map(row => row.GiangVien.trim()),
-    ])].filter(giangVien => 
-      resultsNhanVien.some(nv => nv.GiangVien.trim() === giangVien)
-    );
-    
-  
+    // Nếu không có giảng viên chọn, lấy danh sách tất cả giảng viên trong khoa
+    const giangVienList = teacherName
+      ? [teacherName] 
+      : [
+          ...resultsNhanVien.map(nv => nv.GiangVien.trim()),
+          ...resultsGiangDay.map(gd => gd.GiangVien.trim()),
+          ...resultsLopNgoaiQuyChuan.map(lq => lq.GiangVien.trim()),
+          ...resultsGiuaky.map(gy => gy.GiangVien.trim()),
+          ...resultsExportDoAnTotNghiep.map(ed => ed.GiangVien.trim())
+        ];
 
+    // Loại bỏ các giảng viên trùng lặp
+    const uniqueGiangVienList = [...new Set(giangVienList)];
 
     const workbook = new ExcelJS.Workbook();
 
-    console.log("giangVienList", giangVienList);
-   // Xử lý từng giảng viên
-   let giangVienInfo ;
+    // Xử lý từng giảng viên
+    uniqueGiangVienList.forEach((giangVien) => {
+      const worksheet = workbook.addWorksheet(giangVien);
 
-   giangVienList.forEach((giangVien) => {
-  const worksheet = workbook.addWorksheet(giangVien);
+      // Lọc dữ liệu cho giảng viên này
+      const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() === giangVien.trim());
+      const filteredCombinedResults = combinedResults.filter(
+        (row) => row.GiangVien === giangVien
+      );
 
-
-  // Lọc dữ liệu cho giảng viên này
-   giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() == giangVien.trim());
-
-  
-  const filteredCombinedResults = combinedResults.filter(
-    (row) => row.GiangVien === giangVien
-  );
-
-  const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(row => row.GiangVien.trim() === giangVien.trim());
+      const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
+        row => row.GiangVien.trim() === giangVien.trim()
+      );
+  // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {
     "Kỳ 1": {
