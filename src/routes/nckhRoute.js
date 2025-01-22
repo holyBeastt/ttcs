@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const nckh = require("../controllers/nckhController"); // Import hàm xử lý từ controller
 
+// render site quy định số giờ quy đổi nckh
+router.get("/quydinhsogionckh", nckh.getQuyDinhSoGioNCKH);
 
 // render site đề tài, dự án
 router.get("/detaiduan", nckh.getDeTaiDuAn);
