@@ -686,8 +686,6 @@
             const check = rs.check; // Dữ liệu check
             localStorage.setItem('check', check);
 
-            console.log('Bảng: ', globalData);
-
             // Hiển thị dữ liệu
             viewData(globalData);
           } catch (error) {
@@ -1469,6 +1467,9 @@
               confirmButtonText: 'OK',
               width: 'auto', // Tự động điều chỉnh chiều rộng
               padding: '20px', // Giữ khoảng cách cho nội dung
+            }).then(() => {
+              location.reload();
+              loadData();
             });
           })
           .catch(error => {
