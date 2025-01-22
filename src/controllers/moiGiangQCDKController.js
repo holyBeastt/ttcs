@@ -2,7 +2,8 @@ require("dotenv").config();
 const path = require("path");
 const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
-
+const fs = require("fs");
+const { Document, Packer, Table, TableRow, TableCell, Paragraph, HeadingLevel } = require("docx");
 
 let tableTam = process.env.DB_TABLE_TAM;
 
@@ -95,99 +96,6 @@ const deleteTableTam = async (req, res) => {
         if (connection) connection.release(); // Giải phóng kết nối
     }
 };
-
-// cập nhật bảng tạm
-// const updateTableTam = async (req, res) => {
-//     const data = req.body; // Lấy dữ liệu từ body (mảng các đối tượng dữ liệu cần lưu)
-//     console.log("Dữ liệu nhận để lưu vào bảng tạm:", data);
-
-//     const tableTam = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
-//     let connection; // Khai báo biến kết nối
-
-//     try {
-//         connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-//         // Nếu dữ liệu không tồn tại hoặc không phải là mảng
-//         if (!Array.isArray(data) || data.length === 0) {
-//             return res.status(400).json({ message: "Dữ liệu không hợp lệ hoặc rỗng." });
-//         }
-
-//         // Phân loại dữ liệu thành các hàng cần cập nhật (có ID) và các hàng cần thêm mới (không có ID)
-//         const rowsToUpdate = data.filter(row => row.ID); // Các hàng có ID
-//         const rowsToInsert = data.filter(row => !row.ID); // Các hàng không có ID
-
-//         // Xử lý cập nhật các hàng có ID
-//         if (rowsToUpdate.length > 0) {
-//             for (const row of rowsToUpdate) {
-//                 const updateQuery = `UPDATE ?? SET 
-//                     Khoa = ?,
-//                     Dot = ?,
-//                     Ki = ?,
-//                     Nam = ?,
-//                     GiaoVien = ?,
-//                     HeSoLopDong = ?,
-//                     HeSoT7CN = ?,
-//                     LL = ?,
-//                     LopHocPhan = ?,
-//                     QuyChuan = ?,
-//                     SoSinhVien = ?,
-//                     SoTietCTDT = ?,
-//                     SoTinChi = ?
-//                     WHERE ID = ?`;
-
-//                 const updateValues = [
-//                     tableTam,
-//                     row.Khoa,
-//                     row.Dot,
-//                     row.Ki,
-//                     row.Nam,
-//                     row.GiaoVien || null,
-//                     row.HeSoLopDong || null,
-//                     row.HeSoT7CN || null,
-//                     row.LL || null,
-//                     row.LopHocPhan || null,
-//                     row.QuyChuan || null,
-//                     row.SoSinhVien || null,
-//                     row.SoTietCTDT || null,
-//                     row.SoTinChi || null,
-//                     row.ID
-//                 ];
-
-//                 await connection.query(updateQuery, updateValues);
-//             }
-//         }
-
-//         // Xử lý thêm mới các hàng không có ID
-//         if (rowsToInsert.length > 0) {
-//             const insertQuery = `INSERT INTO ?? (Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi) VALUES ?`;
-
-//             const insertValues = rowsToInsert.map(row => [
-//                 row.Khoa,
-//                 row.Dot,
-//                 row.Ki,
-//                 row.Nam,
-//                 row.GiaoVien || null,
-//                 row.HeSoLopDong || null,
-//                 row.HeSoT7CN || null,
-//                 row.LL || null,
-//                 row.LopHocPhan || null,
-//                 row.QuyChuan || null,
-//                 row.SoSinhVien || null,
-//                 row.SoTietCTDT || null,
-//                 row.SoTinChi || null
-//             ]);
-
-//             await connection.query(insertQuery, [tableTam, insertValues]);
-//         }
-
-//         return res.json({ message: "Cập nhật và thêm mới dữ liệu thành công." });
-//     } catch (error) {
-//         console.error("Lỗi khi xử lý dữ liệu:", error);
-//         return res.status(500).json({ message: "Đã xảy ra lỗi khi xử lý dữ liệu." });
-//     } finally {
-//         if (connection) connection.release(); // Giải phóng kết nối
-//     }
-// };
 
 const updateTableTam = async (req, res) => {
     const data = req.body; // Lấy dữ liệu từ body (mảng các đối tượng dữ liệu cần lưu)
@@ -358,55 +266,172 @@ const deleteRow = async (req, res) => {
 const addNewRow = async (req, res) => {
     const data = req.body;  // Lấy dữ liệu dòng mới từ body
     console.log("Dữ liệu nhận để thêm dòng mới:", data);
-  
+
     const tableTam = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
     let connection;
-  
+
     try {
-      connection = await createPoolConnection(); // Tạo kết nối mới từ pool
-  
-      // Kiểm tra dữ liệu đầu vào
-      if (!data || typeof data !== "object") {
-        return res.status(400).json({ message: "Dữ liệu không hợp lệ." });
-      }
-  
-      // Chuẩn bị câu truy vấn INSERT
-      const insertValues = [
-        data.Khoa,
-        data.Dot,
-        data.Ki,
-        data.Nam,
-        data.GiaoVien || null,
-        data.HeSoLopDong || null,
-        data.HeSoT7CN || null,
-        data.LL || null,
-        data.LopHocPhan || null,
-        data.QuyChuan || null,
-        data.SoSinhVien || null,
-        data.SoTietCTDT || null,
-        data.SoTinChi || null,
-      ];
-  
-      const insertQuery = `
+        connection = await createPoolConnection(); // Tạo kết nối mới từ pool
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!data || typeof data !== "object") {
+            return res.status(400).json({ message: "Dữ liệu không hợp lệ." });
+        }
+
+        // Chuẩn bị câu truy vấn INSERT
+        const insertValues = [
+            data.Khoa,
+            data.Dot,
+            data.Ki,
+            data.Nam,
+            data.GiaoVien || null,
+            data.HeSoLopDong || null,
+            data.HeSoT7CN || null,
+            data.LL || null,
+            data.LopHocPhan || null,
+            data.QuyChuan || null,
+            data.SoSinhVien || null,
+            data.SoTietCTDT || null,
+            data.SoTinChi || null,
+        ];
+
+        const insertQuery = `
         INSERT INTO ?? 
         (Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
-  
-      // Thực thi câu truy vấn INSERT
-      const [result] = await connection.query(insertQuery, [tableTam, ...insertValues]);
-  
-      // Trả về phản hồi thành công, bao gồm ID của dòng mới
-      res.json({ message: "Dòng đã được thêm thành công", ID: result.insertId });
-  
+
+        // Thực thi câu truy vấn INSERT
+        const [result] = await connection.query(insertQuery, [tableTam, ...insertValues]);
+
+        // Trả về phản hồi thành công, bao gồm ID của dòng mới
+        res.json({ message: "Dòng đã được thêm thành công", ID: result.insertId });
+
     } catch (error) {
-      console.error("Lỗi khi thêm dòng:", error);
-      res.status(500).json({ message: "Đã xảy ra lỗi khi thêm dòng." });
+        console.error("Lỗi khi thêm dòng:", error);
+        res.status(500).json({ message: "Đã xảy ra lỗi khi thêm dòng." });
     } finally {
-      if (connection) connection.release(); // Giải phóng kết nối
+        if (connection) connection.release(); // Giải phóng kết nối
     }
-  };
-  
+};
+
+const exportToWord = async (req, res) => {
+    const { data, titleMap, orderedKeys } = req.body; // Dữ liệu gửi từ client
+
+    // Định nghĩa ánh xạ Khoa
+    const khoaMap = {
+        "CB": "Cơ bản",
+        "ATTT": "An toàn thông tin",
+        "QS&GDTC": "QS&GDTC",
+        "LLCT": "Lý luận chính trị",
+        "TTTH": "Trung tâm thực hành",
+        "CNTT": "Công nghệ thông tin",
+        "ĐTVT": "Điện tử - Viễn thông",
+        "MM": "Mật mã"
+    };
+
+    try {
+        // Kiểm tra dữ liệu đầu vào
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({ message: "Dữ liệu không hợp lệ hoặc rỗng." });
+        }
+
+        // Nhóm dữ liệu theo Khoa
+        const groupedByKhoa = data.reduce((groups, item) => {
+            const khoa = item.Khoa;  // Dùng giá trị của Khoa làm key để nhóm
+            if (!groups[khoa]) {
+                groups[khoa] = []; // Nếu chưa có nhóm cho khoa này, tạo nhóm mới
+            }
+            groups[khoa].push(item); // Thêm đối tượng vào nhóm tương ứng
+            return groups;
+        }, {});
+
+        // Tạo tài liệu Word với từng nhóm khoa
+        const sections = [];
+
+        // Duyệt qua các nhóm khoa và tạo bảng cho từng khoa
+        for (const khoa in groupedByKhoa) {
+            const khoaName = khoaMap[khoa] || khoa;  // Sử dụng ánh xạ Khoa hoặc giữ nguyên nếu không có ánh xạ
+
+            // Thêm dòng đánh dấu cho Khoa (dòng 1 cột)
+            sections.push(
+                new Table({
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    children: [
+                                        new Paragraph({
+                                            text: `Các học phần thuộc Khoa ${khoaName}`,
+                                            alignment: "center",  // Căn giữa dòng
+                                            bold: true,  // In đậm dòng "Khoa"
+                                        })
+                                    ],
+                                    columnSpan: orderedKeys.length - 1, // Giảm số cột vì bỏ cột Khoa
+                                })
+                            ],
+                        })
+                    ],
+                })
+            );
+
+            // Tạo bảng cho các học phần trong khoa
+            const filteredKeys = orderedKeys.filter(key => key !== "Khoa"); // Loại bỏ cột "Khoa"
+            const tableRows = [
+                // Header row (sử dụng titleMap)
+                new TableRow({
+                    children: filteredKeys.map((key) =>
+                        new TableCell({
+                            children: [new Paragraph({ text: titleMap[key] || key, bold: true })],
+                        })
+                    ),
+                }),
+                // Data rows (dùng orderedKeys để sắp xếp thứ tự các cột)
+                ...groupedByKhoa[khoa].map((row, index) =>
+                    new TableRow({
+                        children: filteredKeys.map((key) => {
+                            // Nếu là "TT", tạo số thứ tự
+                            const cellValue = key === "TT" ? `${index + 1}.` : row[key];
+                            return new TableCell({
+                                children: [new Paragraph({ text: cellValue !== null ? String(cellValue) : "" })],
+                            });
+                        }),
+                    })
+                ),
+            ];
+
+            const table = new Table({
+                rows: tableRows,
+            });
+
+            // Thêm bảng vào phần tương ứng trong tài liệu
+            sections.push(table);
+        }
+
+        // Tạo tài liệu Word với tất cả các phần
+        const doc = new Document({
+            sections: [
+                {
+                    children: sections,
+                },
+            ],
+        });
+
+        // Lưu tài liệu vào buffer
+        const buffer = await Packer.toBuffer(doc);
+
+        // Đặt tên file
+        const fileName = `exported_data_${new Date().toISOString()}.docx`;
+
+        // Gửi file về client
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+        res.send(buffer);
+    } catch (error) {
+        console.error("Lỗi khi xuất file docx:", error);
+        res.status(500).json({ message: "Đã xảy ra lỗi khi xuất file docx." });
+    }
+};
 
 // Xuất các hàm để sử dụng
 module.exports = {
@@ -416,4 +441,5 @@ module.exports = {
     updateRow,
     deleteRow,
     addNewRow,
+    exportToWord
 };
