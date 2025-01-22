@@ -164,7 +164,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc, khoa, teacherName,loaiHopDong } = req.query;
+    const { dot, ki, namHoc,loaiHopDong ,khoa, teacherName } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -228,7 +228,7 @@ table_ALL AS (
 SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao=?
     `;
 
-    let params = [dot, ki, namHoc,loaiHopDong];
+    let params = [dot, ki, namHoc, loaiHopDong];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND Khoa = ?`;
