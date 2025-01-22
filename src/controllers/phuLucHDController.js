@@ -143,7 +143,7 @@ function formatDateDMY(date) {
   return `${day}/${month}/${year}`;
 }
 const getTienLuongList = async (connection) => {
-  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
+  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienluong`;
   const [tienLuongList] = await connection.execute(query);
   return tienLuongList;
 };
@@ -164,7 +164,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc,loaiHopDong ,khoa, teacherName } = req.query;
+    const { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -241,14 +241,14 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     }
 
     const [data] = await connection.execute(query, params);
-    console.log('loaiHopDong:', loaiHopDong);
-    console.log('dot:', dot);
-    console.log('ki:', ki);
-    console.log('namHoc:', namHoc);
-    console.log('khoa:', khoa);
-    console.log('teacherName:', teacherName);
-    console.log('query:', query);
-    console.log('data:', data);
+    console.log("loaiHopDong:", loaiHopDong);
+    console.log("dot:", dot);
+    console.log("ki:", ki);
+    console.log("namHoc:", namHoc);
+    console.log("khoa:", khoa);
+    console.log("teacherName:", teacherName);
+    console.log("query:", query);
+    console.log("data:", data);
     if (data.length === 0) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>"

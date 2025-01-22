@@ -399,6 +399,8 @@
       }
 
       function exportToWord() {
+        console.log(renderData)
+
         // Mảng tiêu đề theo thứ tự mong muốn
         const orderedKeys = [
           "TT",
@@ -411,60 +413,62 @@
           "HeSoT7CN",
           "HeSoLopDong",
           "QuyChuan",
+          "Khoa"
         ];
 
-        // Mảng tiêu đề dựa trên titleMap
-        const headers = orderedKeys.map((key) =>
-          key === "TT" ? "TT" : titleMap[key]
-        );
+        // Map tiêu đề hiển thị
+        const titleMap = {
+          TT: "TT",
+          SoTinChi: "Số TC",
+          LopHocPhan: "Lớp học phần",
+          GiaoVien: "Giáo Viên",
+          SoTietCTDT: "Số tiết theo CTĐT",
+          SoSinhVien: "Số SV",
+          LL: "Số tiết lên lớp theo TKB",
+          HeSoT7CN: "Hệ số T7/CNlên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+          HeSoLopDong: "Hệ số lớp đông",
+          QuyChuan: "QC",
+          Khoa: "Khoa"
+        };
 
-        // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
-        const rows = renderData.map((item, index) => {
-          return orderedKeys.map((key) => {
-            if (key === "TT") {
-              return `${index + 1}.`; // Định dạng số thứ tự
+        // Đặt STT và sắp xếp dữ liệu gửi
+        const formattedData = renderData.map((item, index) => {
+          const row = { TT: index + 1 }; // Thêm STT
+          orderedKeys.forEach((key) => {
+            if (key !== "TT") {
+              row[key] = item[key] || ""; // Gán giá trị, nếu không có thì để trống
             }
-            return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
           });
+          return row;
         });
 
-        // Tạo nội dung HTML cho bảng
-        const htmlContent = `
-    <table border="1" style="border-collapse: collapse; width: 100%; text-align: left;">
-      <thead>
-        <tr>${headers
-            .map((header) => `<th style="padding: 8px;">${header}</th>`)
-            .join("")}</tr>
-      </thead>
-      <tbody>
-        ${rows
-            .map(
-              (row) =>
-                `<tr>${row
-                  .map((cell) => `<td style="padding: 8px;">${cell}</td>`)
-                  .join("")}</tr>`
-            )
-            .join("")}
-      </tbody>
-    </table>
-  `;
-
-        // Tạo file Word từ nội dung HTML
-        const blob = new Blob(
-          ["<html><body>" + htmlContent + "</body></html>"],
-          {
-            type: "application/msword",
-          }
-        );
-
-        // Tải xuống file Word
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Gửi dữ liệu đến server
+        fetch("/qcdk-export-word", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: formattedData, titleMap, orderedKeys }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Lỗi xuất file");
+            }
+            return response.blob();
+          })
+          .then((blob) => {
+            // Tải xuống file
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `file_quy_chuan_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.docx`;
+            link.click();
+          })
+          .catch((error) => {
+            console.error("Lỗi khi tải file:", error);
+          });
       }
+
     </script>
 
     <!-- render bảng -->
