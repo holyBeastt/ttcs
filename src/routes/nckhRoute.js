@@ -34,7 +34,7 @@ router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);
 // lưu sách và giáo trình
 router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
 // render table sách và giáo trình 
-router.get("/sachvagiaotrinh/:NamHoc", nckh.getTableSachVaGiaoTrinh);
+router.get("/sachvagiaotrinh/:NamHoc/:Khoa", nckh.getTableSachVaGiaoTrinh);
 
 // render site nckh và huấn luyện đội tuyển
 router.get("/nckhvahuanluyendoituyen", nckh.getNckhVaHuanLuyenDoiTuyen);

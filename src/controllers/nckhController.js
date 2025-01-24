@@ -6,18 +6,18 @@ const getQuyDinhSoGioNCKH = async (req, res) => {
     try {
         // Lấy kết nối từ pool
         connection = await createPoolConnection();
-        
+
         // Truy vấn dữ liệu từ bảng quydoisogionckh
         const [rows, fields] = await connection.execute('SELECT * FROM quydoisogionckh');
-        
+
         // Kiểm tra nếu không có dữ liệu
         if (rows.length === 0) {
             return res.status(404).send('Không có dữ liệu');
         }
-        
+
         // Dữ liệu đầu tiên trong mảng rows (vì LIMIT 1)
         const data = rows[0];
-        
+
         // Render view và truyền dữ liệu vào EJS
         res.render('nckhQuyDinhSoGioNCKH.ejs', { data });
     } catch (err) {
@@ -532,16 +532,6 @@ const getTableBangSangCheVaGiaiThuong = async (req, res) => {
         query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
         queryParams.push(NamHoc, Khoa);
 
-
-        // // Xây dựng truy vấn dựa vào giá trị của Khoa
-        // if (Khoa !== "ALL") {
-        // query = `SELECT * FROM detaiduan WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Khoa, Dot, Ki, Nam);
-        // } else {
-        // query = `SELECT * FROM detaiduan WHERE Dot = ? AND Ki = ? AND Nam = ?`;
-        // queryParams.push(Dot, Ki, Nam);
-        // }
-
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
 
@@ -629,6 +619,7 @@ const saveSachVaGiaoTrinh = async (req, res) => {
         tacGia,
         dongChuBien,
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
     console.log(req.body)
 
@@ -663,9 +654,9 @@ const saveSachVaGiaoTrinh = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO sachvagiaotrinh (
-PhanLoai, NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DongChuBien, DanhSachThanhVien
+PhanLoai, NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DongChuBien, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 phanLoai,
@@ -676,6 +667,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 tacGiaFormatted, // Tác giả đã format sau quy đổi
                 dongChuBienFormatted, // Tác giả chịu trách nhiệm đã format sau quy đổi
                 thanhVienFormatted, // Danh sách thành viên đã format sau quy đổi
+                khoa,
             ]
         );
 
@@ -786,7 +778,7 @@ const quyDoiSachVaGiaoTrinh = (body) => {
 // Lấy bảng sách và giáo trình
 const getTableSachVaGiaoTrinh = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng sachvagiaotrinh Năm:", NamHoc);
 
@@ -798,8 +790,8 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
         const queryParams = [];
 
         // Truy vấn dữ liệu từ bảng sachvagiaotrinh
-        query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
-        queryParams.push(NamHoc);
+        query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
+        queryParams.push(NamHoc, Khoa);
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -825,6 +817,7 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
         soQDGiaoNhiemVu, // Số quyết định công nhận
         ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
 
     // Gọi hàm quy đổi
@@ -843,9 +836,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO nckhvahuanluyendoituyen (
-PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien
+PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 phanLoai, // Phân loại
@@ -854,6 +847,7 @@ VALUES (?, ?, ?, ?, ?, ?)
                 soQDGiaoNhiemVu, // Số quyết định công nhận
                 ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
                 thanhVienFormatted, // Danh sách thành viên đã được format
+                khoa,
             ]
         );
 
