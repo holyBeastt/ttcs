@@ -1640,10 +1640,176 @@ const updateDateAll = async (req, res) => {
 //   }
 // };
 
+// backup kiểu nhanh hơn
+// const updateQC = async (req, res) => {
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ createPoolConnection
+//     connection = await createPoolConnection();
+
+//     const [gvmList] = await connection.query("select HoTen as name from gvmoi");
+//     const [coHuuList] = await connection.query(
+//       "select TenNhanVien as name from nhanvien"
+//     );
+
+//     let error_gv_rows = [];
+//     const batchSize = 50; // Kích thước mỗi batch
+//     const totalBatches = Math.ceil(jsonData.length / batchSize); // Tổng số batch cần xử lý
+
+//     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+//       const batch = jsonData.slice(
+//         batchIndex * batchSize,
+//         (batchIndex + 1) * batchSize
+//       );
+
+//       const batchPromises = batch.map(async (item) => {
+//         const {
+//           ID,
+//           GiaoVienGiangDay,
+//           MoiGiang,
+//           BoMon,
+//           GhiChu,
+//           KhoaDuyet,
+//           DaoTaoDuyet,
+//           TaiChinhDuyet,
+//           NgayBatDau,
+//           NgayKetThuc,
+//           he_dao_tao,
+//           LopHocPhan,
+//           TenLop,
+//         } = item;
+
+//         // Kiểm tra nếu thiếu dữ liệu giảng viên
+//         if (KhoaDuyet == 1) {
+//           // Nếu chưa điền giảng viên giảng dạy
+//           if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
+//             error_gv_rows.push(
+//               `${LopHocPhan} (${TenLop}) - chưa được điền giảng viên`
+//             );
+//             return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//           }
+
+//           // Kiểm tra có bị thừa dấu , không
+//           if (GiaoVienGiangDay.includes(",")) {
+//             if (
+//               he_dao_tao.includes("Đại học") ||
+//               GiaoVienGiangDay.trim().endsWith(",")
+//             ) {
+//               error_gv_rows.push(
+//                 `${LopHocPhan} (${TenLop}) - bị thừa dấu ',' `
+//               );
+//               return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//             }
+//           }
+
+//           // Nếu giảng viên giảng dạy không trùng khớp với dữ liệu db
+//           let isValidName1 = false,
+//             isValidName2 = true;
+
+//           if (he_dao_tao.includes("Đại học")) {
+//             if (MoiGiang == 1) {
+//               isValidName1 = gvmList.some(
+//                 (item) => item.name.trim() == GiaoVienGiangDay.trim()
+//               );
+//             } else {
+//               isValidName1 = coHuuList.some(
+//                 (item) => item.name.trim() == GiaoVienGiangDay.trim()
+//               );
+//             }
+//           } else {
+//             let GiangVien1 = GiaoVienGiangDay.trim();
+//             let GiangVien2;
+//             if (GiaoVienGiangDay.includes(",")) {
+//               [GiangVien1 = "", GiangVien2 = ""] = GiaoVienGiangDay.split(
+//                 ","
+//               ).map((item) => item.trim());
+
+//               if (MoiGiang == 1) {
+//                 isValidName2 = gvmList.some(
+//                   (item) => item.name.trim() == GiangVien2.trim()
+//                 );
+//               } else {
+//                 isValidName2 = coHuuList.some(
+//                   (item) => item.name.trim() == GiangVien2.trim()
+//                 );
+//               }
+//             }
+
+//             isValidName1 = coHuuList.some(
+//               (item) => item.name.trim() == GiangVien1.trim()
+//             );
+//           }
+
+//           if (isValidName1 == false || isValidName2 == false) {
+//             error_gv_rows.push(
+//               `${LopHocPhan} (${TenLop}) - vui lòng điền lại giảng viên`
+//             );
+//             return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//           }
+//         }
+
+//         const updateQuery = `
+//           UPDATE quychuan
+//           SET
+//             GiaoVienGiangDay = ?,
+//             MoiGiang = ?,
+//             BoMon = ?,
+//             GhiChu = ?,
+//             KhoaDuyet = ?,
+//             DaoTaoDuyet = ?,
+//             TaiChinhDuyet = ?,
+//             NgayBatDau = ?,
+//             NgayKetThuc = ?,
+//             he_dao_tao = ?
+//           WHERE ID = ?
+//         `;
+
+//         const updateValues = [
+//           GiaoVienGiangDay,
+//           MoiGiang,
+//           BoMon,
+//           GhiChu,
+//           KhoaDuyet,
+//           DaoTaoDuyet,
+//           TaiChinhDuyet,
+//           isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//           isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//           he_dao_tao,
+//           ID,
+//         ];
+
+//         return connection.query(updateQuery, updateValues);
+//       });
+
+//       // Chờ xử lý tất cả các promise trong batch
+//       await Promise.all(batchPromises);
+//     }
+
+//     let mess = "";
+
+//     if (error_gv_rows.length > 0) {
+//       mess = `<b>Dữ liệu không được lưu cho lớp sau do lỗi dữ liệu ở ô Giảng viên:</b> \n${error_gv_rows.join(
+//         "\n "
+//       )}`;
+//     }
+
+//     if (mess !== "") {
+//       return res.status(200).json({ message: mess });
+//     }
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
 const updateQC = async (req, res) => {
-  const role = req.session.role;
-  const duyet = process.env.DUYET;
-  const tableName = process.env.DB_TABLE_QC;
   const jsonData = req.body;
 
   let connection;
@@ -1652,142 +1818,137 @@ const updateQC = async (req, res) => {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    const [gvmList] = await connection.query("select HoTen as name from gvmoi");
+    const [gvmList] = await connection.query("SELECT HoTen AS name FROM gvmoi");
     const [coHuuList] = await connection.query(
-      "select TenNhanVien as name from nhanvien"
+      "SELECT TenNhanVien AS name FROM nhanvien"
     );
 
-    let error_gv_rows = [];
-    const batchSize = 50; // Kích thước mỗi batch
-    const totalBatches = Math.ceil(jsonData.length / batchSize); // Tổng số batch cần xử lý
+    const validNames = new Set([
+      ...gvmList.map((gvm) => gvm.name.trim()),
+      ...coHuuList.map((nv) => nv.name.trim()),
+    ]);
 
-    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-      const batch = jsonData.slice(
-        batchIndex * batchSize,
-        (batchIndex + 1) * batchSize
-      );
+    const error_gv_rows = [];
+    const updates = [];
+    const updateIDs = [];
 
-      const batchPromises = batch.map(async (item) => {
-        const {
-          ID,
-          GiaoVienGiangDay,
-          MoiGiang,
-          BoMon,
-          GhiChu,
-          KhoaDuyet,
-          DaoTaoDuyet,
-          TaiChinhDuyet,
-          NgayBatDau,
-          NgayKetThuc,
-          he_dao_tao,
-          LopHocPhan,
-          TenLop,
-        } = item;
+    // Chuẩn bị dữ liệu cập nhật
+    for (const item of jsonData) {
+      const {
+        ID,
+        GiaoVienGiangDay,
+        MoiGiang,
+        BoMon,
+        GhiChu,
+        KhoaDuyet,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
+        NgayBatDau,
+        NgayKetThuc,
+        he_dao_tao,
+        LopHocPhan,
+        TenLop,
+      } = item;
 
-        // Kiểm tra nếu thiếu dữ liệu giảng viên
-        if (KhoaDuyet == 1) {
-          // Nếu chưa điền giảng viên giảng dạy
-          if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
-            error_gv_rows.push(
-              `${LopHocPhan} (${TenLop}) - chưa được điền giảng viên`
-            );
-            return Promise.resolve(); // Bỏ qua bản ghi lỗi
-          }
+      if (KhoaDuyet == 1) {
+        const names = GiaoVienGiangDay.split(",").map((name) => name.trim());
+        const invalidNames = names.filter((name) => !validNames.has(name));
 
-          // Kiểm tra có bị thừa dấu , không
-          if (GiaoVienGiangDay.includes(",")) {
-            if (
-              he_dao_tao.includes("Đại học") ||
-              GiaoVienGiangDay.trim().endsWith(",")
-            ) {
-              error_gv_rows.push(
-                `${LopHocPhan} (${TenLop}) - bị thừa dấu ',' `
-              );
-              return Promise.resolve(); // Bỏ qua bản ghi lỗi
-            }
-          }
-
-          // Nếu giảng viên giảng dạy không trùng khớp với dữ liệu db
-          let isValidName1 = false,
-            isValidName2 = true;
-
-          if (he_dao_tao.includes("Đại học")) {
-            if (MoiGiang == 1) {
-              isValidName1 = gvmList.some(
-                (item) => item.name.trim() == GiaoVienGiangDay.trim()
-              );
-            } else {
-              isValidName1 = coHuuList.some(
-                (item) => item.name.trim() == GiaoVienGiangDay.trim()
-              );
-            }
-          } else {
-            let GiangVien1 = GiaoVienGiangDay.trim();
-            let GiangVien2;
-            if (GiaoVienGiangDay.includes(",")) {
-              [GiangVien1 = "", GiangVien2 = ""] = GiaoVienGiangDay.split(
-                ","
-              ).map((item) => item.trim());
-
-              if (MoiGiang == 1) {
-                isValidName2 = gvmList.some(
-                  (item) => item.name.trim() == GiangVien2.trim()
-                );
-              } else {
-                isValidName2 = coHuuList.some(
-                  (item) => item.name.trim() == GiangVien2.trim()
-                );
-              }
-            }
-
-            isValidName1 = coHuuList.some(
-              (item) => item.name.trim() == GiangVien1.trim()
-            );
-          }
-
-          if (isValidName1 == false || isValidName2 == false) {
-            error_gv_rows.push(
-              `${LopHocPhan} (${TenLop}) - vui lòng điền lại giảng viên`
-            );
-            return Promise.resolve(); // Bỏ qua bản ghi lỗi
-          }
+        if (invalidNames.length > 0) {
+          error_gv_rows.push(
+            `${LopHocPhan} (${TenLop}) - giảng viên không hợp lệ: ${invalidNames.join(
+              ", "
+            )}`
+          );
+          continue;
         }
+      }
 
-        const updateQuery = `
-          UPDATE quychuan
-          SET
-            GiaoVienGiangDay = ?,
-            MoiGiang = ?,
-            BoMon = ?,
-            GhiChu = ?,
-            KhoaDuyet = ?,
-            DaoTaoDuyet = ?,
-            TaiChinhDuyet = ?,
-            NgayBatDau = ?,
-            NgayKetThuc = ?,
-            he_dao_tao = ?
-          WHERE ID = ?
-        `;
-
-        const updateValues = [
-          GiaoVienGiangDay,
-          MoiGiang,
-          BoMon,
-          GhiChu,
-          KhoaDuyet,
-          DaoTaoDuyet,
-          TaiChinhDuyet,
-          isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-          isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-          he_dao_tao,
-          ID,
-        ];
-
-        return connection.query(updateQuery, updateValues);
+      updateIDs.push(ID);
+      updates.push({
+        ID,
+        GiaoVienGiangDay,
+        MoiGiang,
+        BoMon,
+        GhiChu,
+        KhoaDuyet,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
+        NgayBatDau: isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+        NgayKetThuc: isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc,
+        he_dao_tao,
       });
+    }
 
-      // Chờ xử lý tất cả các promise trong batch
-      await Promise.all(batchPromises);
+    if (updates.length > 0) {
+      const updateQuery = `
+        UPDATE quychuan
+        SET
+          GiaoVienGiangDay = CASE ID
+            ${updates
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
+          END,
+          MoiGiang = CASE ID
+            ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
+          END,
+          BoMon = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
+          END,
+          GhiChu = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
+          END,
+          KhoaDuyet = CASE ID
+            ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
+          END,
+          DaoTaoDuyet = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
+          END,
+          TaiChinhDuyet = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
+          END,
+          NgayBatDau = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END,
+          NgayKetThuc = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END,
+          he_dao_tao = CASE ID
+            ${updates
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
+          END
+        WHERE ID IN (${updateIDs.join(", ")});
+      `;
+
+      await connection.query(updateQuery);
     }
 
     let mess = "";
@@ -2073,7 +2234,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
         AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
     GROUP BY
-        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;

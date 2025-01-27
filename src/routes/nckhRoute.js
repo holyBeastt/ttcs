@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const nckh = require("../controllers/nckhController"); // Import hàm xử lý từ controller
 
+// render site quy định số giờ quy đổi nckh
+router.get("/quydinhsogionckh", nckh.getQuyDinhSoGioNCKH);
 
 // render site đề tài, dự án
 router.get("/detaiduan", nckh.getDeTaiDuAn);
@@ -32,7 +34,7 @@ router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);
 // lưu sách và giáo trình
 router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
 // render table sách và giáo trình 
-router.get("/sachvagiaotrinh/:NamHoc", nckh.getTableSachVaGiaoTrinh);
+router.get("/sachvagiaotrinh/:NamHoc/:Khoa", nckh.getTableSachVaGiaoTrinh);
 
 // render site nckh và huấn luyện đội tuyển
 router.get("/nckhvahuanluyendoituyen", nckh.getNckhVaHuanLuyenDoiTuyen);

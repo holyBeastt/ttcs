@@ -33,7 +33,7 @@ const thongkedoanController = {
       }
   
       query += `
-        GROUP BY GiangVien, isMoiGiang
+        GROUP BY GiangVien, isMoiGiang, MaPhongBan
         ORDER BY soDoAn DESC
       `;
   

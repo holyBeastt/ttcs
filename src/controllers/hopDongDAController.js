@@ -6,7 +6,6 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 
-
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
     fs.readdirSync(folderPath).forEach((file) => {
@@ -205,7 +204,7 @@ const formatDate = (date) => {
 const formatDateRange = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   // Định dạng ngày bắt đầu
   const startDay = start.getDate().toString().padStart(2, "0");
   const startMonth = (start.getMonth() + 1).toString().padStart(2, "0");
@@ -222,7 +221,7 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot,namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
@@ -266,11 +265,11 @@ GROUP BY
   ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
 `;
 
-let params = [dot, namHoc];
+    let params = [dot, namHoc];
 
-// Xử lý trường hợp có khoa
-if (khoa && khoa !== "ALL") {
-  query = `
+    // Xử lý trường hợp có khoa
+    if (khoa && khoa !== "ALL") {
+      query = `
   SELECT 
     nv.CCCD,
     nv.DienThoai,
@@ -306,12 +305,12 @@ if (khoa && khoa !== "ALL") {
     nv.HSL, nv.NoiCapCCCD, nv.DiaChiHienNay, nv.NganHang, nv.NoiCongTac, nv.STK,nv.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
   `;
-  params = [dot, namHoc, `%${khoa}%`];
-}
+      params = [dot, namHoc, `%${khoa}%`];
+    }
 
-// Xử lý trường hợp có teacherName
-if (teacherName) {
-  query = `
+    // Xử lý trường hợp có teacherName
+    if (teacherName) {
+      query = `
   SELECT 
     nv.CCCD,
     nv.DienThoai,
@@ -347,9 +346,9 @@ nv.GioiTinh,
     nv.HSL, nv.NoiCapCCCD, nv.DiaChiHienNay, nv.NganHang, nv.NoiCongTac,nv.STK, nv.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
   `;
-  params = [dot, namHoc, `%${teacherName}%`];
-}
-const [teachers] = await connection.execute(query, params);
+      params = [dot, namHoc, `%${teacherName}%`];
+    }
+    const [teachers] = await connection.execute(query, params);
 
     if (!teachers || teachers.length === 0) {
       return res.send(
@@ -372,47 +371,50 @@ const [teachers] = await connection.execute(query, params);
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
       const soTiet = teacher.SoTiet || 0;
-     
-  if (teacher.HocVi === "Tiến sĩ") {
-    mucTien = 120000; // Mức tiền cho tiến sĩ
-  } else if (teacher.HocVi === "Thạc sĩ") {
-    mucTien = 60000; // Mức tiền cho thạc sĩ
-  } else if (teacher.HocVi === "Giáo sư") {
-    mucTien = 120000; // Mức tiền cho giáo sư
-  } else {
-    mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
-  }
-  const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
-    
-  let danhXung;
 
-// Giả sử bạn có biến gioiTinh chứa giá trị giới tính
-if (gioiTinh === "Nam") {
-    danhXung = "Ông";
-} else if (gioiTinh === "Nữ") {
-    danhXung = "Bà";
-} else {
-    danhXung = ""; // Hoặc có thể gán một giá trị mặc định khác
-}
-const maPhongBan = teacher.MaPhongBan; // Đảm bảo rằng bạn đang lấy giá trị đúng
+      if (teacher.HocVi === "Tiến sĩ") {
+        mucTien = 120000; // Mức tiền cho tiến sĩ
+      } else if (teacher.HocVi === "Thạc sĩ") {
+        mucTien = 60000; // Mức tiền cho thạc sĩ
+      } else if (teacher.HocVi === "Giáo sư") {
+        mucTien = 120000; // Mức tiền cho giáo sư
+      } else {
+        mucTien = 0; // Nếu không phải thạc sĩ, tiến sĩ hoặc giáo sư
+      }
+      const gioiTinh = teacher.GioiTinh; // Đảm bảo rằng bạn đang lấy giá trị đúng
 
-let tenNganh;
+      let danhXung;
 
-// Giả sử bạn có biến maPhongBan chứa mã ngành
-if (maPhongBan === "ATTT") {
-    tenNganh = "An toàn thông tin";
-} else if (maPhongBan === "DVVT") {
-    tenNganh = "Điện tử viễn thông";
-} else if (maPhongBan === "CNTT") {
-    tenNganh = "Công Nghệ Thông tin";
-} else {
-    tenNganh = "Không xác định"; // Hoặc có thể gán một giá trị mặc định khác
-}
+      // Giả sử bạn có biến gioiTinh chứa giá trị giới tính
+      if (gioiTinh === "Nam") {
+        danhXung = "Ông";
+      } else if (gioiTinh === "Nữ") {
+        danhXung = "Bà";
+      } else {
+        danhXung = ""; // Hoặc có thể gán một giá trị mặc định khác
+      }
+      const maPhongBan = teacher.MaPhongBan; // Đảm bảo rằng bạn đang lấy giá trị đúng
+
+      let tenNganh;
+
+      // Giả sử bạn có biến maPhongBan chứa mã ngành
+      if (maPhongBan === "ATTT") {
+        tenNganh = "An toàn thông tin";
+      } else if (maPhongBan === "DVVT") {
+        tenNganh = "Điện tử viễn thông";
+      } else if (maPhongBan === "CNTT") {
+        tenNganh = "Công Nghệ Thông tin";
+      } else {
+        tenNganh = "Không xác định"; // Hoặc có thể gán một giá trị mặc định khác
+      }
 
       const tienText = soTiet * 100000;
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
-      const thoiGianThucHien = formatDateRange(teacher.NgayBatDau, teacher.NgayKetThuc);
+      const thoiGianThucHien = formatDateRange(
+        teacher.NgayBatDau,
+        teacher.NgayKetThuc
+      );
 
       const tienText1 = soTiet * mucTien; // Tính tổng tiền
       const tienThueText1 = Math.round(tienText1 * 0.1);
@@ -435,13 +437,14 @@ if (maPhongBan === "ATTT") {
         Số_tài_khoản: teacher.STK,
         Email: teacher.Email,
         Tại_ngân_hàng: teacher.NganHang,
-        Số_tiết: teacher.SoTiet.toString().replace('.', ','),        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
+        Số_tiết: teacher.SoTiet.toString().replace(".", ","),
+        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
         Tiền_text: tienText.toLocaleString("vi-VN"),
         Bằng_chữ_số_tiền: numberToWords(tienText),
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
-        Đợt: teacher.Dot, 
+        Đợt: teacher.Dot,
         Năm_học: teacher.NamHoc, // Thêm trường NamHocs
         Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
         Mức_Tiền: mucTien.toLocaleString("vi-VN"), // Thêm mức tiền vào dữ liệu
@@ -451,25 +454,29 @@ if (maPhongBan === "ATTT") {
         Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-        Khóa:teacher.KhoaDaoTao,
-        Ngành:tenNganh,
+        Khóa: teacher.KhoaDaoTao,
+        Ngành: tenNganh,
       };
- // Chọn template dựa trên loại hợp đồng
- let templateFileName;
- switch (loaiHopDong) {
-   case "Hệ học phí":
-     templateFileName = "HopDongHP.docx";
-     break;
-   case "Mật mã":
-    templateFileName = "HopDongMM.docx";
-    break;
-  case "Đồ án":
-    templateFileName = "HopDongDA.docx";
-    break;
-  default:
-    return res.status(400).send("Loại hợp đồng không hợp lệ.");
-}
-const templatePath = path.resolve(__dirname, "../templates", templateFileName);
+      // Chọn template dựa trên loại hợp đồng
+      let templateFileName;
+      switch (loaiHopDong) {
+        case "Hệ học phí":
+          templateFileName = "HopDongHP.docx";
+          break;
+        case "Mật mã":
+          templateFileName = "HopDongMM.docx";
+          break;
+        case "Đồ án":
+          templateFileName = "HopDongDA.docx";
+          break;
+        default:
+          return res.status(400).send("Loại hợp đồng không hợp lệ.");
+      }
+      const templatePath = path.resolve(
+        __dirname,
+        "../templates",
+        templateFileName
+      );
       const content = fs.readFileSync(templatePath, "binary");
       const zip = new PizZip(content);
 
@@ -497,9 +504,7 @@ const templatePath = path.resolve(__dirname, "../templates", templateFileName);
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
 
@@ -558,7 +563,6 @@ const gethopDongDASite = async (req, res) => {
 
     res.render("hopDongDA", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
-
     });
   } catch (error) {
     console.error("Error fetching data:", error);
@@ -571,5 +575,4 @@ const gethopDongDASite = async (req, res) => {
 module.exports = {
   exportMultipleContracts,
   gethopDongDASite,
-  
 };
