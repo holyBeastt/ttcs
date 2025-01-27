@@ -231,39 +231,39 @@ const exportMultipleContracts = async (req, res) => {
     connection = await createPoolConnection();
     let query = `
 SELECT 
-  gv.CCCD,
-  gv.DienThoai,
-  gv.Email,
-  gv.MaSoThue,
-  gv.HoTen,
-  gv.NgaySinh,
-  gv.NgayCapCCCD,
-  gv.GioiTinh,
-gv.STK,
-  gv.HocVi,
-  gv.ChucVu,
-  gv.HSL,
-  gv.NoiCapCCCD,
-  gv.DiaChi ,
-  gv.NganHang,
-  gv.NoiCongTac,
+  nv.CCCD,
+  nv.DienThoai,
+  nv.Email,
+  nv.MaSoThue,
+  nv.TenNhanVien,
+  nv.NgaySinh,
+  nv.NgayCapCCCD,
+  nv.GioiTinh,
+nv.STK,
+  nv.HocVi,
+  nv.ChucVu,
+  nv.HSL,
+  nv.NoiCapCCCD,
+  nv.DiaChiHienNay ,
+  nv.NganHang,
+  nv.NoiCongTac,
   ed.Dot, -- Thêm cột Dot từ bảng exportdoantotnghiep
   ed.KhoaDaoTao, -- Thêm cột KhoaDaoTao từ bảng exportdoantotnghiep
   MIN(ed.NgayBatDau) AS NgayBatDau,
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
   ed.NamHoc,
-  gv.MaPhongBan
+  nv.MaPhongBan
 FROM 
-  gvmoi gv
+  nhanvien nv
 JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+  exportdoantotnghiep ed ON nv.CCCD = ed.CCCD -- Merge qua cột CCCD
 WHERE 
   ed.Dot = ?  AND ed.NamHoc = ?
 GROUP BY 
-  gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-  gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+  nv.CCCD, nv.DienThoai, nv.Email, nv.MaSoThue, nv.TenNhanVien, nv.NgaySinh, nv.HocVi, nv.ChucVu, 
+  nv.HSL, nv.NoiCapCCCD, nv.DiaChiHienNay, nv.NganHang, nv.NoiCongTac, nv.STK,nv.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
 `;
 
 let params = [dot, namHoc];
@@ -272,39 +272,39 @@ let params = [dot, namHoc];
 if (khoa && khoa !== "ALL") {
   query = `
   SELECT 
-    gv.CCCD,
-    gv.DienThoai,
-    gv.Email,
-    gv.MaSoThue,
-    gv.HoTen,
-    gv.NgaySinh,
-    gv.GioiTinh,
-    gv.HocVi,
-    gv.NgayCapCCCD,
-    gv.ChucVu,
-    gv.STK,
-    gv.HSL,
-    gv.NoiCapCCCD,
-    gv.DiaChi ,
-    gv.NganHang,
-    gv.NoiCongTac,
+    nv.CCCD,
+    nv.DienThoai,
+    nv.Email,
+    nv.MaSoThue,
+    nv.TenNhanVien,
+    nv.NgaySinh,
+    nv.GioiTinh,
+    nv.HocVi,
+    nv.NgayCapCCCD,
+    nv.ChucVu,
+    nv.STK,
+    nv.HSL,
+    nv.NoiCapCCCD,
+    nv.DiaChiHienNay ,
+    nv.NganHang,
+    nv.NoiCongTac,
     ed.Dot,
     ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
     ed.NamHoc,
-    gv.MaPhongBan
+    nv.MaPhongBan
   FROM 
-    gvmoi gv
+    nhanvien nv
   JOIN 
-    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+    exportdoantotnghiep ed ON nv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+    ed.Dot = ?  AND ed.NamHoc = ? AND nv.MaPhongBan LIKE ?
   GROUP BY 
-    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+    nv.CCCD, nv.DienThoai, nv.Email, nv.MaSoThue, nv.TenNhanVien, nv.NgaySinh, nv.HocVi, nv.ChucVu, 
+    nv.HSL, nv.NoiCapCCCD, nv.DiaChiHienNay, nv.NganHang, nv.NoiCongTac, nv.STK,nv.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
   `;
   params = [dot, namHoc, `%${khoa}%`];
 }
@@ -313,39 +313,39 @@ if (khoa && khoa !== "ALL") {
 if (teacherName) {
   query = `
   SELECT 
-    gv.CCCD,
-    gv.DienThoai,
-    gv.Email,
-    gv.MaSoThue,
-    gv.HoTen,
-    gv.NgaySinh,
-        gv.NgayCapCCCD,
-gv.GioiTinh,
-    gv.HocVi,
-    gv.ChucVu,
-    gv.HSL,
-    gv.NoiCapCCCD,
-    gv.DiaChi ,
-    gv.STK,
-    gv.NganHang,
-    gv.NoiCongTac,
+    nv.CCCD,
+    nv.DienThoai,
+    nv.Email,
+    nv.MaSoThue,
+    nv.TenNhanVien,
+    nv.NgaySinh,
+        nv.NgayCapCCCD,
+nv.GioiTinh,
+    nv.HocVi,
+    nv.ChucVu,
+    nv.HSL,
+    nv.NoiCapCCCD,
+    nv.DiaChiHienNay ,
+    nv.STK,
+    nv.NganHang,
+    nv.NoiCongTac,
     ed.Dot,
     ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
     ed.NamHoc,
-  gv.MaPhongBan
+  nv.MaPhongBan
   FROM 
-    gvmoi gv
+    nhanvien nv
   JOIN 
-    exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+    exportdoantotnghiep ed ON nv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+    ed.Dot = ? AND ed.NamHoc = ? AND nv.TenNhanVien LIKE ?
   GROUP BY 
-    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac,gv.STK, gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+    nv.CCCD, nv.DienThoai, nv.Email, nv.MaSoThue, nv.TenNhanVien, nv.NgaySinh, nv.HocVi, nv.ChucVu, 
+    nv.HSL, nv.NoiCapCCCD, nv.DiaChiHienNay, nv.NganHang, nv.NoiCongTac,nv.STK, nv.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, nv.MaPhongBan
   `;
   params = [dot, namHoc, `%${teacherName}%`];
 }
@@ -422,14 +422,14 @@ if (maPhongBan === "ATTT") {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: danhXung,
-        Họ_và_tên: teacher.HoTen,
+        Họ_và_tên: teacher.TenNhanVien,
         CCCD: teacher.CCCD,
         Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
         Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace('.', ','),
-        Địa_chỉ_theo_CCCD: teacher.DiaChi,
+        Địa_chỉ_theo_CCCD: teacher.DiaChiHienNay,
         Điện_thoại: teacher.DienThoai,
         Mã_số_thuế: teacher.MaSoThue,
         Số_tài_khoản: teacher.STK,
@@ -489,7 +489,7 @@ const templatePath = path.resolve(__dirname, "../templates", templateFileName);
         compression: "DEFLATE",
       });
 
-      const fileName = `HopDong_${teacher.HoTen}.docx`;
+      const fileName = `HopDong_${teacher.TenNhanVien}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
@@ -547,8 +547,14 @@ const gethopDongDASite = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy danh sách phòng ban để lọc
-    const query = `select HoTen, MaPhongBan from gvmoi`;
-    const [gvmoiList] = await connection.query(query);
+    const query1 = `SELECT TenNhanVien, MaPhongBan FROM nhanvien`;
+    const query2 = `SELECT HoTen, MaPhongBan FROM gvmoi`;
+
+    const [nhanvienList] = await connection.query(query1);
+    const [gvmoiList] = await connection.query(query2);
+
+    const gvmList = nhanvienList.concat(gvmoiList);
+    
 
     res.render("hopDongDA", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
