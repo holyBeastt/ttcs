@@ -61,7 +61,7 @@ const exportVuotGio = async (req, res) => {
     }
 
     const sanitizedNamHoc = sanitizeFileName(namHoc);
-    const sanitizedKhoa = sanitizeFileName(khoa);
+    const sanitizedKhoa = khoa === "ALL" ? null : sanitizeFileName(khoa);
 
     // Các truy vấn SQL
     let queryGiangDay = `
@@ -138,11 +138,11 @@ const exportVuotGio = async (req, res) => {
     `;
 
     // Thực thi các truy vấn với tham số teacherName (giảng viên)
-    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsNhanVien] = await connection.query(queryNhanVien, [sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
 
     // Kiểm tra kết quả truy vấn
     if (
@@ -187,6 +187,8 @@ const exportVuotGio = async (req, res) => {
       const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
+
+   
   // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {
