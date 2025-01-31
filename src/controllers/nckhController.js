@@ -828,7 +828,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
 
     // Lấy kết quả sau khi quy đổi
     const thanhVienFormatted = quyDoiResult.thanhVien || "";
-
+     
+    console.log(thanhVienFormatted)
+    
     const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
     try {
@@ -921,7 +923,7 @@ const quyDoiSoTietNckhVaHuanLuyen = (body) => {
 // Lấy bảng nckh và huấn luyện đội tuyển
 const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng nckhvahuanluyendoituyen Năm:", NamHoc);
 
@@ -933,8 +935,8 @@ const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
         const queryParams = [];
 
         // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
-        query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
-        queryParams.push(NamHoc);
+        query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
+        queryParams.push(NamHoc, Khoa);
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
