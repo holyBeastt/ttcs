@@ -964,6 +964,7 @@ const saveXayDungCTDT = async (req, res) => {
         ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
         soTC,
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
 
     // Gọi hàm quy đổi
@@ -983,9 +984,9 @@ const saveXayDungCTDT = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO xaydungctdt (
-HinhThucXayDung, NamHoc, TenChuongTrinh, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien
+HinhThucXayDung, NamHoc, TenChuongTrinh, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 phanLoai, // Phân loại
@@ -995,6 +996,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
                 soQDGiaoNhiemVu, // Số quyết định giao nhiệm vụ
                 ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
                 thanhVienFormatted, // Danh sách thành viên đã được format
+                khoa,
             ]
         );
 
@@ -1070,7 +1072,7 @@ const quyDoiXayDungChuongTrinhDaoTao = (body) => {
 // Lấy bảng xaydungctdt
 const getTableXayDungCTDT = async (req, res) => {
 
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng xaydungctdt Năm:", NamHoc);
 
@@ -1078,8 +1080,8 @@ const getTableXayDungCTDT = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM xaydungctdt WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
-        const queryParams = [NamHoc];
+        const query = `SELECT * FROM xaydungctdt WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+        const queryParams = [NamHoc, Khoa];
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);

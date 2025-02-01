@@ -48,7 +48,7 @@ router.get("/xaydungctdt", nckh.getXayDungCTDT);
 // lưu xây dựng ctdt
 router.post("/xaydungctdt", nckh.saveXayDungCTDT);
 // render table xây dựng ctdt
-router.get("/xaydungctdt/:NamHoc", nckh.getTableXayDungCTDT);
+router.get("/xaydungctdt/:NamHoc/:Khoa", nckh.getTableXayDungCTDT);
 
 // render site biên soạn giáo trình bài giảng
 router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
