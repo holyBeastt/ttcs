@@ -1109,6 +1109,7 @@ const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
         soTC,
         tacGia,
         thanhVien, // Đây là một mảng từ client
+        khoa,
     } = req.body;
 
     // Gọi hàm quy đổi
@@ -1131,9 +1132,9 @@ const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
         await connection.execute(
             `
 INSERT INTO biensoangiaotrinhbaigiang (
-PhanLoai, NamHoc, TenGiaoTrinhBaiGiang, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, TacGia, DanhSachThanhVien
+PhanLoai, NamHoc, TenGiaoTrinhBaiGiang, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, TacGia, DanhSachThanhVien, Khoa
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
             [
                 phanLoai, // Phân loại
@@ -1144,6 +1145,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
                 tacGiaFormatted, // Tác giả
                 thanhVienFormatted, // Danh sách thành viên đã được format
+                khoa,
             ]
         );
 
@@ -1232,7 +1234,7 @@ const quyDoiBienSoanGiaoTrinhBaiGiang = (body) => {
 
 // Lấy bảng biensoangiaotrinhbaigiang
 const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
-    const { NamHoc } = req.params; // Lấy năm học từ URL parameter
+    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
     console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
 
@@ -1240,8 +1242,8 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
-        const queryParams = [NamHoc];
+        const query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+        const queryParams = [NamHoc, Khoa];
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);

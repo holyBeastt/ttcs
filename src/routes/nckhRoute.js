@@ -55,6 +55,6 @@ router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
 // lưu biên soạn giáo trình bài giảng
 router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
 // render table biên soạn giáo trình bài giảng
-router.get("/biensoangiaotrinhbaigiang/:NamHoc", nckh.getTableBienSoanGiaoTrinhBaiGiang);
+router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
 module.exports = router;
