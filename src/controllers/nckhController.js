@@ -4,32 +4,22 @@ const createPoolConnection = require("../config/databasePool");
 const getQuyDinhSoGioNCKH = async (req, res) => {
     let connection;
     try {
-        // Lấy kết nối từ pool
         connection = await createPoolConnection();
+        const [rows] = await connection.execute('SELECT * FROM quydinhsogionckh');
 
-        // Truy vấn dữ liệu từ bảng quydoisogionckh
-        const [rows, fields] = await connection.execute('SELECT * FROM quydoisogionckh');
-
-        // Kiểm tra nếu không có dữ liệu
         if (rows.length === 0) {
             return res.status(404).send('Không có dữ liệu');
         }
 
-        // Dữ liệu đầu tiên trong mảng rows (vì LIMIT 1)
-        const data = rows[0];
-
-        // Render view và truyền dữ liệu vào EJS
-        res.render('nckhQuyDinhSoGioNCKH.ejs', { data });
+        res.render('nckhQuyDinhSoGioNCKH.ejs', { data: rows });
     } catch (err) {
-        console.error(err);
+        console.error('Lỗi truy vấn:', err);
         res.status(500).send('Lỗi trong quá trình truy vấn dữ liệu');
     } finally {
-        // Giải phóng kết nối
-        if (connection) {
-            connection.release();
-        }
+        if (connection) connection.release();
     }
 };
+
 
 const getDeTaiDuAn = (req, res) => {
     res.render("nckhDeTaiDuAn.ejs");
@@ -296,7 +286,7 @@ const quyDoiSoTietBaiBaoKhoaHoc = (body) => {
         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q2)": 600,
         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q3)": 500,
         "Tạp chí khoa học thuộc hệ thống ISI/Scopus (Q4)": 400,
-        "Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác": 0,
+        "Tạp chí quốc tế thuộc danh mục Web of Science, Scopus và các tạp chí quốc tế khác": 300,
         "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 1 điểm)": 200,
         "Tạp chí khoa học chuyên ngành trong nước được Hội đồng Chức danh Giáo sư Nhà nước công nhận (>= 0.5 điểm)": 100,
         "Nội san học viện": 75,
@@ -828,9 +818,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
 
     // Lấy kết quả sau khi quy đổi
     const thanhVienFormatted = quyDoiResult.thanhVien || "";
-     
+
     console.log(thanhVienFormatted)
-    
+
     const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
     try {
@@ -1261,8 +1251,6 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
 };
 
 
-
-
 module.exports = {
     getQuyDinhSoGioNCKH,
     getDeTaiDuAn,
@@ -1286,5 +1274,5 @@ module.exports = {
     getTableXayDungCTDT,
     getBienSoanGiaoTrinhBaiGiang,
     saveBienSoanGiaoTrinhBaiGiang,
-    getTableBienSoanGiaoTrinhBaiGiang
+    getTableBienSoanGiaoTrinhBaiGiang,
 };
