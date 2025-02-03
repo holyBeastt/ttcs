@@ -25,11 +25,11 @@
         <ul class="tabs-nav">
           <li class="tab-item">
             <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Nhập
-              sách và giáo trình</a>
+            </a>
           </li>
           <li class="tab-item">
             <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">Xem số
-              giờ quy đổi tương ứng</a>
+              giờ quy đổi</a>
           </li>
         </ul>
       </div>
@@ -90,6 +90,7 @@
               <label for="tacGia">
                 Chủ biên
                 <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox" />
+                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
               </label>
               <div id="tacGia-suggestions" class="suggestions-container"></div>
               <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required />
@@ -414,7 +415,7 @@
                 suggestionItem.addEventListener("click", () => {
                   // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
                   const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                  inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
+                  inputElement.value = `${item.HoTen.trim()} - KMA`; // Điền giá trị vào ô input
                   suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
                   isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
                   if (inputId == "thanhVien") {
@@ -621,12 +622,43 @@
       }
       // =================================================================
     </script>
-    <!-- nckh chung -->
-    <script src="/js/nckh.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await fetch("/data/sachvagiaotrinh"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Không thể lấy dữ liệu từ API.");
+          }
+
+          // Chuyển đổi dữ liệu sang JSON
+          const data = await response.json();
+          console.log(data);
+
+          // Lấy thẻ select
+          const selectElement = document.getElementById("phanLoai");
+
+          // Xóa các option cũ (nếu có)
+          selectElement.innerHTML = "";
+
+          // Thêm option mới từ dữ liệu API
+          data.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.SachGiaoTrinh; // Giá trị option
+            option.textContent = item.SachGiaoTrinh; // Nội dung hiển thị
+            selectElement.appendChild(option);
+          });
+
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+    </script>
+    <!-- nckh tab chuyển tab -->
+    <script src="/js/nckh/nckh.js"></script>
     <!-- link href -->
-    <script src="/js/href.js"></script>
+    <script src="/js/nckh/href.js"></script>
     <!-- srcipt năm học, khoa -->
-    <script src="/js/getdata.js"></script>
+    <script src="/js/nckh/getdata.js"></script>
 </body>
 
 </html>

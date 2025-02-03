@@ -18,19 +18,17 @@
   <%- include('header') %>
 
     <div class="my-3 box formNckh">
-      <h2 class="titleNckh">Đề tài và dự án</h2>
+      <h2 class="titleNckh">Đề tài, dự án</h2>
 
       <div class="tabs">
         <ul class="tabs-nav">
           <li class="tab-item">
-            <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Nhập đề
-              tài, dự
-              án</a>
+            <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Nhập
+            </a>
           </li>
           <li class="tab-item">
             <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">Xem số
-              giờ quy đổi
-              tương ứng</a>
+              giờ quy đổi</a>
           </li>
         </ul>
       </div>
@@ -42,17 +40,17 @@
           <div class="form-group flex-container">
             <div class="flex-item">
               <label for="capDeTai">Cấp đề tài, dự án</label>
-              <select id="capDeTai" name="capDeTai" required>
-                <option value="">-- Chọn cấp đề tài, dự án --</option>
-                <option value="Quốc gia, Nghị định thư">Quốc gia, Nghị định thư</option>
-                <option value="Ban, Bộ và tương đương">Ban, Bộ và tương đương</option>
-                <option value="Cơ sở, Học viện">Cơ sở, Học viện</option>
-              </select>
+              <select id="capDeTai" name="capDeTai" required></select>
             </div>
             <div class="flex-item">
               <label for="namHocForm">Năm học</label>
               <select class="namHoc" id="namHocForm" name="namHoc" required>
                 <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
+              </select>
+            </div>
+            <div class="flex-item">
+              <label for="MaPhongBanForm">Khoa</label>
+              <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
               </select>
             </div>
           </div>
@@ -64,10 +62,14 @@
           </div>
 
           <!-- Mã đề tài -->
-          <div class="form-group">
+          <div class="form-group flex-container">
             <div class="flex-item">
               <label for="maDeTai">Mã số đề tài, dự án</label>
               <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required />
+            </div>
+            <div class="flex-item">
+              <label for="ngayNghiemThu">Ngày nghiệm thu</label>
+              <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
             </div>
           </div>
 
@@ -77,7 +79,7 @@
               <label for="chuNhiem">
                 Chủ nhiệm
                 <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox" />
-                <span class="faded-text">(tích vào ô nếu là giảng viên ngoài học viện)</span>
+                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
               </label>
               <div id="chuNhiem-suggestions" class="suggestions-container"></div>
               <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required />
@@ -125,19 +127,6 @@
           </div>
 
           <div id="memberListDisplay" class="member-list-display form-group"></div>
-
-          <!-- Ngày nghiệm thu và Xếp loại kết quả -->
-          <div class="form-group flex-container">
-            <div class="flex-item">
-              <label for="ngayNghiemThu">Ngày nghiệm thu</label>
-              <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
-            </div>
-            <div class="flex-item">
-              <label for="MaPhongBanForm">Khoa</label>
-              <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
-              </select>
-            </div>
-          </div>
 
           <button type="button" class="btn" id="submitBtn">Gửi</button>
         </form>
@@ -402,7 +391,7 @@
                 suggestionItem.addEventListener("click", () => {
                   // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
                   const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                  inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
+                  inputElement.value = `${item.HoTen.trim()} - KMA`; // Điền giá trị vào ô input
                   suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
                   isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
                   if (inputId == "thanhVien") {
@@ -633,13 +622,45 @@
       }
       // =================================================================
     </script>
+    <!-- lấy dữ liệu vào thẻ cấp đề tài dự án -->
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await fetch("/data/detaiduan"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Không thể lấy dữ liệu từ API.");
+          }
 
-    <!-- nckh chung -->
-    <script src="/js/nckh.js"></script>
+          // Chuyển đổi dữ liệu sang JSON
+          const data = await response.json();
+          console.log(data);
+
+          // Lấy thẻ select
+          const selectElement = document.getElementById("capDeTai");
+
+          // Xóa các option cũ (nếu có)
+          selectElement.innerHTML = "";
+
+          // Thêm option mới từ dữ liệu API
+          data.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.CapDeTaiDuAn; // Giá trị option
+            option.textContent = item.CapDeTaiDuAn; // Nội dung hiển thị
+            selectElement.appendChild(option);
+          });
+
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+    </script>
+
+    <!-- nckh tab chuyển tab -->
+    <script src="/js/nckh/nckh.js"></script>
     <!-- link href -->
-    <script src="/js/href.js"></script>
+    <script src="/js/nckh/href.js"></script>
     <!-- srcipt năm học, khoa -->
-    <script src="/js/getdata.js"></script>
+    <script src="/js/nckh/getdata.js"></script>
 
 </body>
 

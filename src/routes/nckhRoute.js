@@ -17,50 +17,36 @@ router.get("/tabledetaiduan/:NamHoc/:Khoa", nckh.getTableDeTaiDuAn);
 // lấy dữ liệu giảng viên cơ hữu
 router.get("/giangviencohuu", nckh.getTeacher);
 
-// render site bài báo khoa học
+// bài báo khoa học
 router.get("/baibaokhoahoc", nckh.getBaiBaoKhoaHoc);
-// lưu bài báo khoa học
 router.post("/baibaokhoahoc", nckh.saveBaiBaoKhoaHoc);
-// render table bài báo khoa học
 router.get("/baibaokhoahoc/:NamHoc/:Khoa", nckh.getTableBaiBaoKhoaHoc);
 
-// render site bằng sáng chế và giải thưởng
 router.get("/bangsangchevagiaithuong", nckh.getBangSangCheVaGiaiThuong);
-// lưu bằng sáng chế và giải thưởng
 router.post("/bangsangchevagiaithuong", nckh.saveBangSangCheVaGiaiThuong);
-// render table bằng sáng chế và giải thưởng
 router.get("/bangsangchevagiaithuong/:NamHoc/:Khoa", nckh.getTableBangSangCheVaGiaiThuong);
 
-// render site sách và giáo trình
 router.get("/sachvagiaotrinh", nckh.getSachVaGiaoTrinh);
-// lưu sách và giáo trình
 router.post("/sachvagiaotrinh", nckh.saveSachVaGiaoTrinh);
-// render table sách và giáo trình 
 router.get("/sachvagiaotrinh/:NamHoc/:Khoa", nckh.getTableSachVaGiaoTrinh);
 
-// render site nckh và huấn luyện đội tuyển
 router.get("/nckhvahuanluyendoituyen", nckh.getNckhVaHuanLuyenDoiTuyen);
-// lưu nckh và huấn luyện đội tuyển
 router.post("/nckhvahuanluyendoituyen", nckh.saveNckhVaHuanLuyenDoiTuyen);
-// render table nckh và huấn luyện đội tuyển
 router.get("/nckhvahuanluyendoituyen/:NamHoc/:Khoa", nckh.getTableNckhVaHuanLuyenDoiTuyen);
 
-// render site xây dựng ctdt
 router.get("/xaydungctdt", nckh.getXayDungCTDT);
-// lưu xây dựng ctdt
 router.post("/xaydungctdt", nckh.saveXayDungCTDT);
-// render table xây dựng ctdt
 router.get("/xaydungctdt/:NamHoc/:Khoa", nckh.getTableXayDungCTDT);
 
-// render site biên soạn giáo trình bài giảng
 router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
-// lưu biên soạn giáo trình bài giảng
 router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
-// render table biên soạn giáo trình bài giảng
 router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
 // =================================================================
+// lấy data đổ vào các thẻ select
+router.get("/data/:MaBang", nckh.getData);
 
+// =================================================================
 // thêm, sửa số giờ quy đổi nckh cho admin
 router.post("/add-detaiduan", nckhAdmin.addDeTaiDuAn);
 router.post("/edit-detaiduan", nckhAdmin.editDeTaiDuAn);

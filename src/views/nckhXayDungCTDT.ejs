@@ -26,12 +26,12 @@
         <ul class="tabs-nav">
           <li class="tab-item">
             <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">
-              Nhập chương trình đào tạo
+              Nhập
             </a>
           </li>
           <li class="tab-item">
             <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">
-              Xem số giờ quy đổi tương ứng
+              Xem số giờ quy đổi
             </a>
           </li>
         </ul>
@@ -99,6 +99,7 @@
               <label for="thanhVien">
                 Thành viên
                 <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox">
+                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
               </label>
               <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div>
               <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field">
@@ -267,8 +268,8 @@
       // giảng viên cơ hữu của trường, để gợi ý tên
       var giangVienCoHuu = []
 
-       // check thì mới cho nhập đơn vị
-       document.addEventListener("DOMContentLoaded", function () {
+      // check thì mới cho nhập đơn vị
+      document.addEventListener("DOMContentLoaded", function () {
         // Lấy các checkbox và ô nhập đơn vị
         const thanhVienCheckbox = document.getElementById("thanhVienCheckbox");
 
@@ -306,7 +307,7 @@
         const thanhVienInput = document.getElementById('thanhVien');  // Thành viên input text
         const thanhVienSuggestions = document.getElementById('themThanhVien-suggestions');  // Thành viên gợi ý
 
-       
+
         // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
         thanhVienCheckbox.addEventListener('change', function () {
           if (this.checked) {
@@ -351,7 +352,7 @@
                 suggestionItem.addEventListener("click", () => {
                   // Điền tên và đơn vị vào input theo định dạng "Tên - Đơn vị"
                   const unit = comboBoxElement.value; // Lấy giá trị từ combo box
-                  inputElement.value = `${item.HoTen} - KMA`; // Điền giá trị vào ô input
+                  inputElement.value = `${item.HoTen.trim()} - KMA`; // Điền giá trị vào ô input
                   suggestionContainer.innerHTML = ""; // Xóa gợi ý sau khi chọn
                   isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
                   if (inputId == "thanhVien") {
@@ -539,16 +540,44 @@
         updateFormMemberList();   // Cập nhật lại danh sách hiển thị
       }
       // =================================================================
-
-
     </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await fetch("/data/xaydungctdt"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Không thể lấy dữ liệu từ API.");
+          }
 
-    <!-- nckh chung -->
-    <script src="/js/nckh.js"></script>
+          // Chuyển đổi dữ liệu sang JSON
+          const data = await response.json();
+          console.log(data);
+
+          // Lấy thẻ select
+          const selectElement = document.getElementById("phanLoai");
+
+          // Xóa các option cũ (nếu có)
+          selectElement.innerHTML = "";
+
+          // Thêm option mới từ dữ liệu API
+          data.forEach(item => {
+            const option = document.createElement("option");
+            option.value = item.XayDungCTDT; // Giá trị option
+            option.textContent = item.XayDungCTDT; // Nội dung hiển thị
+            selectElement.appendChild(option);
+          });
+
+        } catch (error) {
+          console.error("Lỗi khi gọi API:", error);
+        }
+      });
+    </script>
+    <!-- nckh tab chuyển tab -->
+    <script src="/js/nckh/nckh.js"></script>
     <!-- link href -->
-    <script src="/js/href.js"></script>
+    <script src="/js/nckh/href.js"></script>
     <!-- srcipt năm học, khoa -->
-    <script src="/js/getdata.js"></script>
+    <script src="/js/nckh/getdata.js"></script>
 
 
 </body>
