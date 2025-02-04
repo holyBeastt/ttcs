@@ -52,6 +52,38 @@
       background-color: #007bff !important;
       color: white !important;
     }
+
+    /* Container của form */
+    form {
+      width: 100% !important;
+      background-color: #f9f9f9;
+      margin-top: 17px !important;
+    }
+
+    /* Định dạng cho nhóm phần tử (mỗi trường nhập liệu) */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    /* Định dạng cho label với màu #007bff */
+    form label {
+      width: 100%;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 5px;
+    }
+
+    /* Định dạng cho input và textarea */
+    form input.form-control,
+    form textarea.form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      box-sizing: border-box;
+      border-radius: 0% !important;
+    }
   </style>
 </head>
 
@@ -78,55 +110,6 @@
       <div class="tab-content mt-4">
         <!-- Tab Đề tài / Dự Án -->
         <div class="tab-pane" id="detaiduan">
-          <!-- Bảng dữ liệu -->
-          <table class="table table-bordered table-striped mt-3">
-            <thead>
-              <tr>
-                <th>Cấp đề tài / dự án</th>
-                <th>Chủ nhiệm</th>
-                <th>Thư ký</th>
-                <th>Thành viên</th>
-                <th>Sửa</th>
-                <th>Xóa</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% data.filter(row=> row.MaBang === 'detaiduan').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.CapDeTaiDuAn %>
-                  </td>
-                  <td>
-                    <%= row.ChuNhiem %>
-                  </td>
-                  <td>
-                    <%= row.ThuKy %>
-                  </td>
-                  <td>
-                    <%= row.ThanhVien %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
-                        maBang: '<%= row.MaBang %>',
-                        id: '<%= row.ID %>', 
-                        capDeTaiDuAn: '<%= row.CapDeTaiDuAn %>', 
-                        chuNhiem: '<%= row.ChuNhiem %>',
-                        thuKy:  '<%= row.ThuKy %>', 
-                        thanhVien: '<%= row.ThanhVien %>'})">Sửa</button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
-                      maBang: '<%= row.MaBang %>',
-                      id: '<%= row.ID %>',
-                    })">Xóa</button>
-                  </td>
-                </tr>
-                <% }); %>
-            </tbody>
-          </table>
-
-          <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('detaiduan')">Thêm</button>
 
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormDeTaiDuAn" action="/add-detaiduan" method="POST" style="display: none;" class="mt-3">
@@ -186,39 +169,42 @@
             <button type="submit" class="btn btn-warning">Xóa</button>
             <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('detaiduan')">Hủy</button>
           </form>
-        </div>
 
-        <!-- Tab Bài Báo Khoa Học -->
-        <div class="tab-pane" id="baibaokhoahoc">
+          <!-- Bảng dữ liệu -->
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
-                <th>Loại tạp chí</th>
-                <th>Chỉ số tạp chí</th>
-                <th>Số giờ</th>
+                <th>Cấp đề tài / dự án</th>
+                <th>Chủ nhiệm</th>
+                <th>Thư ký</th>
+                <th>Thành viên</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'detaiduan').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.LoaiTapChi %>
+                    <%= row.CapDeTaiDuAn %>
                   </td>
                   <td>
-                    <%= row.ChiSoTapChi %>
+                    <%= row.ChuNhiem %>
                   </td>
                   <td>
-                    <%= row.SoGio %>
+                    <%= row.ThuKy %>
+                  </td>
+                  <td>
+                    <%= row.ThanhVien %>
                   </td>
                   <td>
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
-                    maBang: '<%= row.MaBang %>',
-                    id: '<%= row.ID %>', 
-                    loaiTapChi: '<%= row.LoaiTapChi %>', 
-                    chiSoTapChi: '<%= row.ChiSoTapChi %>',
-                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                      maBang: '<%= row.MaBang %>',
+                      id: '<%= row.ID %>', 
+                      capDeTaiDuAn: '<%= row.CapDeTaiDuAn %>', 
+                      chuNhiem: '<%= row.ChuNhiem %>',
+                      thuKy:  '<%= row.ThuKy %>', 
+                      thanhVien: '<%= row.ThanhVien %>'})">Sửa</button>
                   </td>
                   <td>
                     <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
@@ -230,9 +216,14 @@
                 <% }); %>
             </tbody>
           </table>
-          <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('baibaokhoahoc')">Thêm</button>
 
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('detaiduan')">Thêm</button>
+
+        </div>
+
+        <!-- Tab Bài Báo Khoa Học -->
+        <div class="tab-pane" id="baibaokhoahoc">
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormBaiBaoKhoaHoc" action="/add-baibaokhoahoc" method="POST" style="display: none;" class="mt-3">
             <div class="form-group" style="display: none;">
@@ -287,24 +278,25 @@
             <button type="submit" class="btn btn-warning">Xóa</button>
             <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('baibaokhoahoc')">Hủy</button>
           </form>
-        </div>
 
-        <!-- Tab Bằng Sáng Chế / Giải Thưởng -->
-        <div class="tab-pane" id="bangsangchevagiaithuong">
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
-                <th>Phân loại</th>
+                <th>Loại tạp chí</th>
+                <th>Chỉ số tạp chí</th>
                 <th>Số giờ</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'bangsangchevagiaithuong').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.BangSangCheGiaiThuong %>
+                    <%= row.LoaiTapChi %>
+                  </td>
+                  <td>
+                    <%= row.ChiSoTapChi %>
                   </td>
                   <td>
                     <%= row.SoGio %>
@@ -313,7 +305,8 @@
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
                     maBang: '<%= row.MaBang %>',
                     id: '<%= row.ID %>', 
-                    bangSangCheGiaiThuong: '<%= row.BangSangCheGiaiThuong %>', 
+                    loaiTapChi: '<%= row.LoaiTapChi %>', 
+                    chiSoTapChi: '<%= row.ChiSoTapChi %>',
                     soGio:  '<%= row.SoGio %>'})">Sửa</button>
                   </td>
                   <td>
@@ -327,8 +320,11 @@
             </tbody>
           </table>
           <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('bangsangchevagiaithuong')">Thêm</button>
+          <button class="btn btn-primary" onclick="showAddForm('baibaokhoahoc')">Thêm</button>
+        </div>
 
+        <!-- Tab Bằng Sáng Chế / Giải Thưởng -->
+        <div class="tab-pane" id="bangsangchevagiaithuong">
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormBangSangCheVaGiaiThuong" action="/add-bangsangchevagiaithuong" method="POST"
             style="display: none;" class="mt-3">
@@ -380,10 +376,7 @@
             <button type="button" class="btn btn-secondary"
               onclick="hideDeleteForm('bangsangchevagiaithuong')">Hủy</button>
           </form>
-        </div>
 
-        <!-- Tab Sách / Giáo Trình -->
-        <div class="tab-pane" id="sachvagiaotrinh">
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
@@ -394,10 +387,10 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'bangsangchevagiaithuong').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.SachGiaoTrinh %>
+                    <%= row.BangSangCheGiaiThuong %>
                   </td>
                   <td>
                     <%= row.SoGio %>
@@ -406,7 +399,7 @@
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
                     maBang: '<%= row.MaBang %>',
                     id: '<%= row.ID %>', 
-                    sachGiaoTrinh: '<%= row.SachGiaoTrinh %>', 
+                    bangSangCheGiaiThuong: '<%= row.BangSangCheGiaiThuong %>', 
                     soGio:  '<%= row.SoGio %>'})">Sửa</button>
                   </td>
                   <td>
@@ -420,7 +413,11 @@
             </tbody>
           </table>
           <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('sachvagiaotrinh')">Thêm</button>
+          <button class="btn btn-primary" onclick="showAddForm('bangsangchevagiaithuong')">Thêm</button>
+        </div>
+
+        <!-- Tab Sách / Giáo Trình -->
+        <div class="tab-pane" id="sachvagiaotrinh">
 
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormSachVaGiaoTrinh" action="/add-sachvagiaotrinh" method="POST" style="display: none;"
@@ -469,10 +466,7 @@
             <button type="submit" class="btn btn-warning">Xóa</button>
             <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('sachvagiaotrinh')">Hủy</button>
           </form>
-        </div>
 
-        <!-- NCKH / Huấn luyện đội tuyển -->
-        <div class="tab-pane" id="nckhvahuanluyendoituyen">
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
@@ -483,10 +477,10 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'nckhvahuanluyendoituyen').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.NCKHHuanLuyenDoiTuyen %>
+                    <%= row.SachGiaoTrinh %>
                   </td>
                   <td>
                     <%= row.SoGio %>
@@ -495,7 +489,7 @@
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
                     maBang: '<%= row.MaBang %>',
                     id: '<%= row.ID %>', 
-                    nckhHuanLuyenDoiTuyen: '<%= row.NCKHHuanLuyenDoiTuyen %>', 
+                    sachGiaoTrinh: '<%= row.SachGiaoTrinh %>', 
                     soGio:  '<%= row.SoGio %>'})">Sửa</button>
                   </td>
                   <td>
@@ -509,8 +503,11 @@
             </tbody>
           </table>
           <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('nckhvahuanluyendoituyen')">Thêm</button>
+          <button class="btn btn-primary" onclick="showAddForm('sachvagiaotrinh')">Thêm</button>
+        </div>
 
+        <!-- NCKH / Huấn luyện đội tuyển -->
+        <div class="tab-pane" id="nckhvahuanluyendoituyen">
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormNCKHVaHuanLuyenDoiTuyen" action="/add-nckhvahuanluyendoituyen" method="POST"
             style="display: none;" class="mt-3">
@@ -563,10 +560,7 @@
             <button type="button" class="btn btn-secondary"
               onclick="hideDeleteForm('nckhvahuanluyendoituyen')">Hủy</button>
           </form>
-        </div>
 
-        <!-- Xây dựng CTDT -->
-        <div class="tab-pane" id="xaydungctdt">
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
@@ -577,33 +571,38 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'nckhvahuanluyendoituyen').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.XayDungCTDT %>
+                    <%= row.NCKHHuanLuyenDoiTuyen %>
                   </td>
                   <td>
                     <%= row.SoGio %>
                   </td>
                   <td>
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
-                  maBang: '<%= row.MaBang %>',
-                  id: '<%= row.ID %>', 
-                  xayDungCTDT: '<%= row.XayDungCTDT %>', 
-                  soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>', 
+                    nckhHuanLuyenDoiTuyen: '<%= row.NCKHHuanLuyenDoiTuyen %>', 
+                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
                   </td>
                   <td>
                     <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
-                  maBang: '<%= row.MaBang %>',
-                  id: '<%= row.ID %>',
-                })">Xóa</button>
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
                   </td>
                 </tr>
                 <% }); %>
             </tbody>
           </table>
           <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('xaydungctdt')">Thêm</button>
+          <button class="btn btn-primary" onclick="showAddForm('nckhvahuanluyendoituyen')">Thêm</button>
+
+        </div>
+
+        <!-- Xây dựng CTDT -->
+        <div class="tab-pane" id="xaydungctdt">
 
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormXayDungCTDT" action="/add-xaydungctdt" method="POST" style="display: none;" class="mt-3">
@@ -650,10 +649,7 @@
             <button type="submit" class="btn btn-warning">Xóa</button>
             <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('xaydungctdt')">Hủy</button>
           </form>
-        </div>
 
-        <!-- Biên soạn giáo trình bài giảng -->
-        <div class="tab-pane" id="biensoangiaotrinhbaigiang">
           <table class="table table-bordered table-striped mt-3">
             <thead>
               <tr>
@@ -664,10 +660,10 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'biensoangiaotrinhbaigiang').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row => { %>
                 <tr>
                   <td>
-                    <%= row.BienSoanGiaoTrinhBaiGiang %>
+                    <%= row.XayDungCTDT %>
                   </td>
                   <td>
                     <%= row.SoGio %>
@@ -676,7 +672,7 @@
                     <button class="btn btn-warning btn-sm" onclick="showEditForm({
                   maBang: '<%= row.MaBang %>',
                   id: '<%= row.ID %>', 
-                  bienSoanGiaoTrinhBaiGiang: '<%= row.BienSoanGiaoTrinhBaiGiang %>', 
+                  xayDungCTDT: '<%= row.XayDungCTDT %>', 
                   soGio:  '<%= row.SoGio %>'})">Sửa</button>
                   </td>
                   <td>
@@ -690,7 +686,12 @@
             </tbody>
           </table>
           <!-- Nút Thêm Dữ Liệu -->
-          <button class="btn btn-primary" onclick="showAddForm('biensoangiaotrinhbaigiang')">Thêm</button>
+          <button class="btn btn-primary" onclick="showAddForm('xaydungctdt')">Thêm</button>
+        </div>
+
+        <!-- Biên soạn giáo trình bài giảng -->
+        <div class="tab-pane" id="biensoangiaotrinhbaigiang">
+
           <!-- Form Thêm Dữ Liệu -->
           <form id="addFormBienSoanGiaoTrinhBaiGiang" action="/add-biensoangiaotrinhbaigiang" method="POST"
             style="display: none;" class="mt-3">
@@ -743,9 +744,46 @@
             <button type="button" class="btn btn-secondary"
               onclick="hideDeleteForm('biensoangiaotrinhbaigiang')">Hủy</button>
           </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'biensoangiaotrinhbaigiang').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.BienSoanGiaoTrinhBaiGiang %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>', 
+                  bienSoanGiaoTrinhBaiGiang: '<%= row.BienSoanGiaoTrinhBaiGiang %>', 
+                  soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>',
+                })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('biensoangiaotrinhbaigiang')">Thêm</button>
         </div>
       </div>
-    </div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -883,13 +921,8 @@
           })
             .then(response => response.json())  // Chuyển dữ liệu trả về thành JSON
             .then(responseData => {
-              if (responseData.includes('thành công')) {
-                alert(responseData.message);  // Hiển thị thông báo thành công
-                location.reload();
-              } else {
-                alert(responseData.message);  // Hiển thị thông báo thất bại
-                form.style.display = 'none';  // Ẩn form đi
-              }
+              alert(responseData.message);  // Hiển thị thông báo 
+              location.reload();
             })
             .catch(error => {
               console.error('Error:', error);
