@@ -173,8 +173,6 @@ const exportVuotGio = async (req, res) => {
     const uniqueGiangVienList = [...new Set(giangVienList)];
 
     const workbook = new ExcelJS.Workbook();
-
-    // Xử lý từng giảng viên
     uniqueGiangVienList.forEach((giangVien) => {
       const worksheet = workbook.addWorksheet(giangVien);
 
@@ -184,11 +182,12 @@ const exportVuotGio = async (req, res) => {
         (row) => row.GiangVien === giangVien
       );
 
+      const filteredGiuaKy= resultsGiuaky.filter(
+        row => row.GiangVien.trim() === giangVien.trim()
+      );
       const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
-
-   
   // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {
@@ -212,18 +211,18 @@ const exportVuotGio = async (req, res) => {
 
   const filteredGroupedResultsGiuaKy = {
     "Kỳ 1": {
-      "Đào tạo hệ đóng học phí": resultsGiuaky.filter(
+      "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
         (row) => row.HocKy == "1" &&  row.LopGK.startsWith("A")
       ),
-      "Đào tạo chuyên ngành Kỹ thuật mật mã": resultsGiuaky.filter(
+      "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
         (row) => row.HocKy == "1" && !row.LopGK.startsWith("A")
       ),
     },
     "Kỳ 2": {
-      "Đào tạo hệ đóng học phí": resultsGiuaky.filter(
+      "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
         (row) => row.HocKy == "2" &&  row.LopGK.startsWith("A")
       ),
-      "Đào tạo chuyên ngành Kỹ thuật mật mã": resultsGiuaky.filter(
+      "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
         (row) => row.HocKy == "2" && !row.LopGK.startsWith("A")
       ),
     },
