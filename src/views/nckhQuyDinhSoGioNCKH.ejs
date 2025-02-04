@@ -796,6 +796,7 @@
 
         const forms = {
           "editFormDeTaiDuAn": () => {
+            data.MaBang = 'detaiduan';
             data.id = document.getElementById("editIdDeTaiDuAn").value;
             data.CapDeTaiDuAn = document.getElementById("editCapDeTaiDuAn").value;
             data.ChuNhiem = document.getElementById("editChuNhiem").value;
@@ -803,7 +804,7 @@
             data.ThanhVien = document.getElementById("editThanhVien").value;
           },
           "addFormDeTaiDuAn": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'detaiduan';
             data.CapDeTaiDuAn = document.getElementById("CapDeTaiDuAn").value;
             data.ChuNhiem = document.getElementById("ChuNhiem").value;
             data.ThuKy = document.getElementById("ThuKy").value;
@@ -813,12 +814,13 @@
             data.id = document.getElementById("deleteIdDeTaiDuAn").value;
           },
           "addFormBaiBaoKhoaHoc": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'baibaokhoahoc';
             data.LoaiTapChi = document.getElementById("LoaiTapChi").value;
             data.ChiSoTapChi = document.getElementById("ChiSoTapChi").value;
             data.SoGio = document.getElementById("SoGio").value;
           },
           "editFormBaiBaoKhoaHoc": () => {
+            data.MaBang = 'baibaokhoahoc';
             data.id = document.getElementById("editIdBaiBaoKhoaHoc").value;
             data.LoaiTapChi = document.getElementById("editLoaiTapChi").value;
             data.ChiSoTapChi = document.getElementById("editChiSoTapChi").value;
@@ -828,7 +830,7 @@
             data.id = document.getElementById("deleteIdBaiBaoKhoaHoc").value;
           },
           "addFormBangSangCheVaGiaiThuong": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'bangsangchevagiaithuong';
             data.BangSangCheGiaiThuong = document.getElementById("BangSangCheGiaiThuong").value;
             data.SoGio = document.getElementById("SoGio").value;
           },
@@ -841,6 +843,7 @@
             data.id = document.getElementById("deleteIdBangSangCheVaGiaiThuong").value;
           },
           "addFormSachVaGiaoTrinh": () => {
+            data.MaBang = 'sachvagiaotrinh';
             data.MaBang = document.getElementById("MaBang").value;
             data.SachGiaoTrinh = document.getElementById("SachGiaoTrinh").value;
             data.SoGio = document.getElementById("SoGio").value;
@@ -854,7 +857,7 @@
             data.id = document.getElementById("deleteIdSachVaGiaoTrinh").value;
           },
           "addFormNCKHVaHuanLuyenDoiTuyen": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'nckhvahuanluendoituyen';
             data.NCKHHuanLuyenDoiTuyen = document.getElementById("NCKHVaHuanLuyenDoiTuyen").value;
             data.SoGio = document.getElementById("SoGio").value;
           },
@@ -867,7 +870,7 @@
             data.id = document.getElementById("deleteIdNCKHVaHuanLuyenDoiTuyen").value;
           },
           "addFormXayDungCTDT": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'xaydungctdt';
             data.XayDungCTDT = document.getElementById("XayDungCTDT").value;
             data.SoGio = document.getElementById("SoGio").value;
           },
@@ -880,7 +883,7 @@
             data.id = document.getElementById("deleteIdXayDungCTDT").value;
           },
           "addFormBienSoanGiaoTrinhBaiGiang": () => {
-            data.MaBang = document.getElementById("MaBang").value;
+            data.MaBang = 'biensoangiaotrinhbaigiang';
             data.BienSoanGiaoTrinhBaiGiang = document.getElementById("BienSoanGiaoTrinhBaiGiang").value;
             data.SoGio = document.getElementById("SoGio").value;
           },
