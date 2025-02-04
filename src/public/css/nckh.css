@@ -647,11 +647,11 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
 
 /* active nav */
 .tab-link.active {
-    background-color: #007bff;
+    background-color: #007bff !important;
     /* Màu nền của tab được chọn */
-    color: white;
+    color: white !important;
     /* Màu chữ của tab được chọn */
-    border-color: #007bff;
+    border-color: #007bff !important;
     /* Đổi màu viền khi tab active */
 }
 

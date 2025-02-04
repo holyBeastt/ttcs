@@ -10,185 +10,79 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    .table>:not(caption)>*>* {
-      border-bottom-width: 2px;
+    /* Thiết lập kiểu cho các tab */
+    .tabs {
+      list-style: none;
+      display: flex;
+      padding: 0;
+      margin: 0;
+      justify-content: space-around;
     }
 
-    /* CSS để căn chỉnh label tổng số tiết */
-    .table {
-      border-color: #ffffff;
-      z-index: 1;
-    }
-
-    /* CSS để căn chỉnh label tổng số tiết */
-    .total-label {
-      position: relative;
-      /* Change this if necessary */
-      z-index: 1;
-      /* Ensure this is lower than .suggestions */
-      margin-top: 10px;
-      /* Adjust spacing if needed */
-      text-align: right;
-    }
-
-    .suggestions {
-      position: absolute;
-      /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
-      top: calc(100% + 5px);
-      /* Đặt gợi ý phía trên input với một khoảng cách */
-      left: 0;
-      font-size: 12px;
+    .tab {
+      padding: 10px 20px;
       background-color: #f0f0f0;
-      color: #000;
-      border: 1px solid #ccc;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      /* Đảm bảo gợi ý nằm trên các thành phần khác */
-      border-radius: 4px;
-      max-height: 300px;
-      overflow-y: auto;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 0 5px;
+      font-weight: bold;
     }
 
-    /* Hiệu ứng lung linh khi hover */
-    .suggestions:hover {
+    .tab:hover {
       background-color: #e0e0e0;
-      /* Thay đổi màu nền khi hover */
-      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-      /* Tăng độ bóng khi hover */
     }
 
-
-    /* CSS cho từng mục gợi ý */
-    .suggestion-item {
-      padding: 8px 12px;
-      /* Khoảng cách bên trong từng mục */
-      cursor: pointer;
-      /* Con trỏ chuột thay đổi khi hover */
-      transition: background-color 0.2s ease;
-      /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
+    .tab.active {
+      background-color: #007bff !important;
     }
 
-    /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
-    .suggestion-item:hover {
-      background-color: #f0f0f0;
-      /* Màu nền khi hover */
+    /* Ẩn tất cả các tab pane mặc định */
+    .tab-content .tab-pane {
+      display: none;
     }
 
-    /* Đặt lại một số thuộc tính khi input mất focus */
-    input:focus+.suggestions {
+    /* Hiển thị tab được chọn */
+    .tab-content .tab-pane.active {
       display: block;
-      /* Đảm bảo khung hiển thị khi input được focus */
+      background-color: #f0f0f0 !important;
+      color: black !important;
     }
 
-    /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
-    .suggestions {
-      overflow: hidden;
+    th {
+      background-color: #007bff !important;
+      color: white !important;
     }
 
-    /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
-    input[type="date"],
-    input[type="text"] {
-      width: 120px;
-      /* Điều chỉnh giá trị này theo mong muốn */
-      box-sizing: border-box;
-      padding: 5px;
-      /* Giữ padding như cũ */
+    /* Container của form */
+    form {
+      width: 100% !important;
+      background-color: #f9f9f9;
+      margin-top: 17px !important;
     }
 
-    /* phần css cho label tổng số tiết  ki*/
-    .total-label {
-      margin-left: auto;
-      /* Căn phải cho thẻ total-label */
-      margin-right: 0;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      background-color: #f4f4f4;
-      padding: 10px;
-      border-radius: 8px;
-      width: fit-content;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      display: block;
-      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+    /* Định dạng cho nhóm phần tử (mỗi trường nhập liệu) */
+    .form-group {
+      margin-bottom: 15px;
     }
 
-    .total-label label {
-      font-weight: bold;
-      /* Giữ chữ in đậm */
-      color: #000;
-      /* Màu chữ đen */
-      margin-right: 8px;
-      /* Thêm khoảng cách bên phải */
-      cursor: pointer;
-      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
-      padding: 5px 10px;
-      /* Thêm padding cho label để tạo không gian */
-      border: 1px solid #ccc;
-      /* Khung cho label */
-      border-radius: 4px;
-      /* Bo góc cho khung */
-    }
-
-    .total-label label,
-    .total-label label span {
-      background-color: #007BFF;
-      /* Màu nền khi hover */
+    /* Định dạng cho label với màu #007bff */
+    form label {
+      width: 100%;
+      background-color: #007bff;
       color: #fff;
-      /* Màu chữ trắng khi hover */
-    }
-
-    .total-label span {
+      font-size: 12px;
       font-weight: bold;
-      /* Giữ chữ trong span cũng in đậm */
-      color: #333;
-      /* Màu chữ đậm cho giá trị */
+      padding: 5px;
     }
 
-    .btn {
-      margin-bottom: 0px;
-      height: 45px;
-    }
-
-    /* Thêm CSS để làm đẹp input trong bảng */
-    .table input[type="number"] {
-      width: 100px;
-      text-align: center;
-      border: 1px solid #ddd;
-      padding: 4px;
-    }
-
-    .table input[type="number"]:focus {
-      border-color: #80bdff;
-      outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
-    }
-
-    .table td {
-      vertical-align: middle;
-    }
-
-    /* CSS để làm đẹp form */
-    .form-control-sm {
-      width: 120px;
-      /* Điều chỉnh chiều rộng của input */
-    }
-
-    .form-label {
-      font-size: 0.875rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .btn-sm {
-      margin-bottom: 0px;
-      height: 31px;
-    }
-
-    .form-control-sm {
-      width: 120px;
-    }
-
-    .form-label {
-      font-size: 0.875rem;
-      margin-bottom: 0.25rem;
+    /* Định dạng cho input và textarea */
+    form input.form-control,
+    form textarea.form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced4da;
+      box-sizing: border-box;
+      border-radius: 0% !important;
     }
   </style>
 </head>
@@ -197,217 +91,1076 @@
   <!-- Phần header -->
   <%- include('adminHeader') %>
 
-    <!-- Phần nội dung -->
+    <!-- Thanh điều hướng (Navbar) -->
+    <div class="container-lg mt-4">
+      <ul class="tabs">
+        <li class="tab" id="tab-detaiduan" onclick="changeTab('detaiduan')">Đề tài / Dự Án</li>
+        <li class="tab" id="tab-baibaokhoahoc" onclick="changeTab('baibaokhoahoc')">Bài Báo Khoa Học</li>
+        <li class="tab" id="tab-bangsangchevagiaithuong" onclick="changeTab('bangsangchevagiaithuong')">Bằng Sáng Chế /
+          Giải Thưởng</li>
+        <li class="tab" id="tab-sachvagiaotrinh" onclick="changeTab('sachvagiaotrinh')">Sách / Giáo Trình</li>
+        <li class="tab" id="tab-nckhvahuanluyendoituyen" onclick="changeTab('nckhvahuanluyendoituyen')">NCKH / Hướng dẫn
+          đội tuyển</li>
+        <li class="tab" id="tab-xaydungctdt" onclick="changeTab('xaydungctdt')">Xây Dựng CTĐT</li>
+        <li class="tab" id="tab-biensoangiaotrinhbaigiang" onclick="changeTab('biensoangiaotrinhbaigiang')">Biên Soạn
+          Giáo Trình / Bài Giảng</li>
+      </ul>
 
+      <!-- Nội dung các Tab -->
+      <div class="tab-content mt-4">
+        <!-- Tab Đề tài / Dự Án -->
+        <div class="tab-pane" id="detaiduan">
 
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormDeTaiDuAn" action="/add-detaiduan" method="POST" style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="detaiduan" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="CapDeTaiDuAn">Cấp đề tài / dự án</label>
+              <input type="text" class="form-control" id="CapDeTaiDuAn" name="CapDeTaiDuAn" required>
+            </div>
+            <div class="form-group">
+              <label for="ChuNhiem">Chủ nhiệm</label>
+              <input type="text" class="form-control" id="ChuNhiem" name="ChuNhiem" required>
+            </div>
+            <div class="form-group">
+              <label for="ThuKy">Thư ký</label>
+              <input type="text" class="form-control" id="ThuKy" name="ThuKy" required>
+            </div>
+            <div class="form-group">
+              <label for="ThanhVien">Thành viên</label>
+              <input type="text" class="form-control" id="ThanhVien" name="ThanhVien" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary" onclick="hideAddForm('detaiduan')">Hủy</button>
+          </form>
 
-</body>
+          <!-- Form Sửa Dữ Liệu -->
+          <form id="editFormDeTaiDuAn" action="/edit-detaiduan" method="POST" style="display: none;" class="mt-3">
+            <input type="hidden" id="editIdDeTaiDuAn" name="id">
+            <div class="form-group">
+              <label for="editCapDeTaiDuAn">Cấp đề tài / dự án</label>
+              <input type="text" class="form-control" id="editCapDeTaiDuAn" name="CapDeTaiDuAn" required>
+            </div>
+            <div class="form-group">
+              <label for="editChuNhiem">Chủ nhiệm</label>
+              <input type="text" class="form-control" id="editChuNhiem" name="ChuNhiem" required>
+            </div>
+            <div class="form-group">
+              <label for="editThuKy">Thư ký</label>
+              <input type="text" class="form-control" id="editThuKy" name="ThuKy" required>
+            </div>
+            <div class="form-group">
+              <label for="editThanhVien">Thành viên</label>
+              <input type="text" class="form-control" id="editThanhVien" name="ThanhVien" required>
+            </div>
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary" onclick="hideEditForm('detaiduan')">Hủy</button>
+          </form>
 
-</html>
+          <!-- Form Xóa -->
+          <form id="deleteFormDeTaiDuAn" action="/delete-detaiduan" method="POST" style="display: none;" class="mt-3">
+            <input type="hidden" id="deleteIdDeTaiDuAn" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('detaiduan')">Hủy</button>
+          </form>
 
+          <!-- Bảng dữ liệu -->
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Cấp đề tài / dự án</th>
+                <th>Chủ nhiệm</th>
+                <th>Thư ký</th>
+                <th>Thành viên</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'detaiduan').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.CapDeTaiDuAn %>
+                  </td>
+                  <td>
+                    <%= row.ChuNhiem %>
+                  </td>
+                  <td>
+                    <%= row.ThuKy %>
+                  </td>
+                  <td>
+                    <%= row.ThanhVien %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                      maBang: '<%= row.MaBang %>',
+                      id: '<%= row.ID %>', 
+                      capDeTaiDuAn: '<%= row.CapDeTaiDuAn %>', 
+                      chuNhiem: '<%= row.ChuNhiem %>',
+                      thuKy:  '<%= row.ThuKy %>', 
+                      thanhVien: '<%= row.ThanhVien %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('detaiduan')">Thêm</button>
 
+        </div>
 
+        <!-- Tab Bài Báo Khoa Học -->
+        <div class="tab-pane" id="baibaokhoahoc">
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormBaiBaoKhoaHoc" action="/add-baibaokhoahoc" method="POST" style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="baibaokhoahoc" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="LoaiTapChi">Loại tạp chí</label>
+              <input type="text" class="form-control" id="LoaiTapChi" name="LoaiTapChi" required>
+            </div>
+            <div class="form-group">
+              <label for="ChiSoTapChi">Chỉ số tạp chí</label>
+              <input type="text" class="form-control" id="ChiSoTapChi" name="ChiSoTapChi" required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
 
-<!-- Phần phân quyền -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary" onclick="hideAddForm('baibaokhoahoc')">Hủy</button>
+          </form>
 
-    // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-    const ThongTinGD = document.getElementById("ThongTinGD");
+          <!-- Form Sửa -->
+          <form id="editFormBaiBaoKhoaHoc" action="/edit-baibaokhoahoc" method="POST" style="display: none;"
+            class="mt-3">
+            <input type="hidden" id="editIdBaiBaoKhoaHoc" name="id">
+            <div class="form-group">
+              <label for="editLoaiTapChi">Loai tạp chí</label>
+              <input type="text" class="form-control" id="editLoaiTapChi" name="LoaiTapChi" required>
+            </div>
+            <div class="form-group">
+              <label for="editChiSoTapChi">Chỉ số tạp chí</label>
+              <input type="text" class="form-control" id="editChiSoTapChi" name="ChiSoTapChi" required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioBaiBaoKhoaHoc">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioBaiBaoKhoaHoc" name="SoGio" required>
+            </div>
 
-    ThongTinGD.addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+            <button type="submit" class="btn btn-warning" onclick="showForm(this.form)">Cập nhật</button>
+            <button type="button" class="btn btn-secondary" onclick="hideEditForm('baibaokhoahoc')">Hủy</button>
+          </form>
 
-      const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+          <!-- Form Xóa -->
+          <form id="deleteFormBaiBaoKhoaHoc" action="/delete-baibaokhoahoc" method="POST" style="display: none;"
+            class="mt-3">
+            <input type="hidden" id="deleteIdBaiBaoKhoaHoc" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('baibaokhoahoc')">Hủy</button>
+          </form>
 
-      if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
-        window.location.href = "/info2";
-      } else {
-        window.location.href = "/info";
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Loại tạp chí</th>
+                <th>Chỉ số tạp chí</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.LoaiTapChi %>
+                  </td>
+                  <td>
+                    <%= row.ChiSoTapChi %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>', 
+                    loaiTapChi: '<%= row.LoaiTapChi %>', 
+                    chiSoTapChi: '<%= row.ChiSoTapChi %>',
+                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('baibaokhoahoc')">Thêm</button>
+        </div>
+
+        <!-- Tab Bằng Sáng Chế / Giải Thưởng -->
+        <div class="tab-pane" id="bangsangchevagiaithuong">
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormBangSangCheVaGiaiThuong" action="/add-bangsangchevagiaithuong" method="POST"
+            style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="bangsangchevagiaithuong" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="BangSangCheGiaiThuong">Phân loại</label>
+              <input type="text" class="form-control" id="BangSangCheGiaiThuong" name="BangSangCheGiaiThuong" required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideAddForm('bangsangchevagiaithuong')">Hủy</button>
+          </form>
+
+          <!-- Form Sửa -->
+          <form id="editFormBangSangCheVaGiaiThuong" action="/edit-bangsangchevagiaithuong" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="editIdBangSangCheVaGiaiThuong" name="id">
+            <div class="form-group">
+              <label for="editBangSangCheVaGiaiThuong">Bằng sáng chế và giải thưởng</label>
+              <input type="text" class="form-control" id="editBangSangCheVaGiaiThuong" name="BangSangCheGiaiThuong"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioBangSangCheGiaiThuong">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioBangSangCheGiaiThuong" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideEditForm('bangsangchevagiaithuong')">Hủy</button>
+          </form>
+
+          <!-- Form Xóa -->
+          <form id="deleteFormBangSangCheVaGiaiThuong" action="/delete-bangsangchevagiaithuong" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="deleteIdBangSangCheVaGiaiThuong" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideDeleteForm('bangsangchevagiaithuong')">Hủy</button>
+          </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'bangsangchevagiaithuong').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.BangSangCheGiaiThuong %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>', 
+                    bangSangCheGiaiThuong: '<%= row.BangSangCheGiaiThuong %>', 
+                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('bangsangchevagiaithuong')">Thêm</button>
+        </div>
+
+        <!-- Tab Sách / Giáo Trình -->
+        <div class="tab-pane" id="sachvagiaotrinh">
+
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormSachVaGiaoTrinh" action="/add-sachvagiaotrinh" method="POST" style="display: none;"
+            class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="sachvagiaotrinh" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="SachGiaoTrinh">Phân loại</label>
+              <input type="text" class="form-control" id="SachGiaoTrinh" name="SachGiaoTrinh" required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary" onclick="hideAddForm('sachvagiaotrinh')">Hủy</button>
+          </form>
+
+          <!-- Form Sửa -->
+          <form id="editFormSachVaGiaoTrinh" action="/edit-sachvagiaotrinh" method="POST" style="display: none;"
+            class="mt-3">
+            <input type="hidden" id="editIdSachVaGiaoTrinh" name="id">
+            <div class="form-group">
+              <label for="editSachVaGiaoTrinh">Sách và giáo trình</label>
+              <input type="text" class="form-control" id="editSachVaGiaoTrinh" name="SachGiaoTrinh" required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioSachVaGiaoTrinh">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioSachVaGiaoTrinh" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary" onclick="hideEditForm('sachvagiaotrinh')">Hủy</button>
+          </form>
+
+          <!-- Form Xóa -->
+          <form id="deleteFormSachVaGiaoTrinh" action="/delete-sachvagiaotrinh" method="POST" style="display: none;"
+            class="mt-3">
+            <input type="hidden" id="deleteIdSachVaGiaoTrinh" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('sachvagiaotrinh')">Hủy</button>
+          </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.SachGiaoTrinh %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>', 
+                    sachGiaoTrinh: '<%= row.SachGiaoTrinh %>', 
+                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('sachvagiaotrinh')">Thêm</button>
+        </div>
+
+        <!-- NCKH / Huấn luyện đội tuyển -->
+        <div class="tab-pane" id="nckhvahuanluyendoituyen">
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormNCKHVaHuanLuyenDoiTuyen" action="/add-nckhvahuanluyendoituyen" method="POST"
+            style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="nckhvahuanluyendoituyen" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="NCKHVaHuanLuyenDoiTuyen">Phân loại</label>
+              <input type="text" class="form-control" id="NCKHVaHuanLuyenDoiTuyen" name="NCKHHuanLuyenDoiTuyen"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideAddForm('nckhvahuanluyendoituyen')">Hủy</button>
+          </form>
+
+          <!-- Form Sửa -->
+          <form id="editFormNCKHVaHuanLuyenDoiTuyen" action="/edit-nckhvahuanluyendoituyen" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="editIdNCKHVaHuanLuyenDoiTuyen" name="id">
+            <div class="form-group">
+              <label for="editNCKHVaHuanLuyenDoiTuyen">Sách và giáo trình</label>
+              <input type="text" class="form-control" id="editNCKHVaHuanLuyenDoiTuyen" name="NCKHHuanLuyenDoiTuyen"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioNCKHVaHuanLuyenDoiTuyen">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioNCKHVaHuanLuyenDoiTuyen" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideEditForm('nckhvahuanluyendoituyen')">Hủy</button>
+          </form>
+
+          <!-- Form Xóa -->
+          <form id="deleteFormNCKHVaHuanLuyenDoiTuyen" action="/delete-nckhvahuanluyendoituyen" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="deleteIdNCKHVaHuanLuyenDoiTuyen" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideDeleteForm('nckhvahuanluyendoituyen')">Hủy</button>
+          </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'nckhvahuanluyendoituyen').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.NCKHHuanLuyenDoiTuyen %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>', 
+                    nckhHuanLuyenDoiTuyen: '<%= row.NCKHHuanLuyenDoiTuyen %>', 
+                    soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                    maBang: '<%= row.MaBang %>',
+                    id: '<%= row.ID %>',
+                  })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('nckhvahuanluyendoituyen')">Thêm</button>
+
+        </div>
+
+        <!-- Xây dựng CTDT -->
+        <div class="tab-pane" id="xaydungctdt">
+
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormXayDungCTDT" action="/add-xaydungctdt" method="POST" style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="xaydungctdt" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="XayDungCTDT">Phân loại</label>
+              <input type="text" class="form-control" id="XayDungCTDT" name="XayDungCTDT" required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary" onclick="hideAddForm('xaydungctdt')">Hủy</button>
+          </form>
+
+          <!-- Form Sửa -->
+          <form id="editFormXayDungCTDT" action="/edit-xaydungctdt" method="POST" style="display: none;" class="mt-3">
+            <input type="hidden" id="editIdXayDungCTDT" name="id">
+            <div class="form-group">
+              <label for="editXayDungCTDT">Sách và giáo trình</label>
+              <input type="text" class="form-control" id="editXayDungCTDT" name="XayDungCTDT" required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioXayDungCTDT">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioXayDungCTDT" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary" onclick="hideEditForm('xaydungctdt')">Hủy</button>
+          </form>
+
+          <!-- Form Xóa -->
+          <form id="deleteFormXayDungCTDT" action="/delete-xaydungctdt" method="POST" style="display: none;"
+            class="mt-3">
+            <input type="hidden" id="deleteIdXayDungCTDT" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary" onclick="hideDeleteForm('xaydungctdt')">Hủy</button>
+          </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.XayDungCTDT %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>', 
+                  xayDungCTDT: '<%= row.XayDungCTDT %>', 
+                  soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>',
+                })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('xaydungctdt')">Thêm</button>
+        </div>
+
+        <!-- Biên soạn giáo trình bài giảng -->
+        <div class="tab-pane" id="biensoangiaotrinhbaigiang">
+
+          <!-- Form Thêm Dữ Liệu -->
+          <form id="addFormBienSoanGiaoTrinhBaiGiang" action="/add-biensoangiaotrinhbaigiang" method="POST"
+            style="display: none;" class="mt-3">
+            <div class="form-group" style="display: none;">
+              <label for="MaBang">Mã bảng</label>
+              <input type="text" id="MaBang" value="biensoangiaotrinhbaigiang" name="MaBang">
+            </div>
+            <div class="form-group">
+              <label for="BienSoanGiaoTrinhBaiGiang">Phân loại</label>
+              <input type="text" class="form-control" id="BienSoanGiaoTrinhBaiGiang" name="BienSoanGiaoTrinhBaiGiang"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="SoGio">Số giờ</label>
+              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Thêm</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideAddForm('biensoangiaotrinhbaigiang')">Hủy</button>
+          </form>
+
+          <!-- Form Sửa -->
+          <form id="editFormBienSoanGiaoTrinhBaiGiang" action="/edit-biensoangiaotrinhbaigiang" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="editIdBienSoanGiaoTrinhBaiGiang" name="id">
+            <div class="form-group">
+              <label for="editBienSoanGiaoTrinhBaiGiang">Sách và giáo trình</label>
+              <input type="text" class="form-control" id="editBienSoanGiaoTrinhBaiGiang"
+                name="BienSoanGiaoTrinhBaiGiang" required>
+            </div>
+            <div class="form-group">
+              <label for="editSoGioBienSoanGiaoTrinhBaiGiang">Số giờ</label>
+              <input type="text" class="form-control" id="editSoGioBienSoanGiaoTrinhBaiGiang" name="SoGio" required>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideEditForm('biensoangiaotrinhbaigiang')">Hủy</button>
+          </form>
+
+          <!-- Form Xóa -->
+          <form id="deleteFormBienSoanGiaoTrinhBaiGiang" action="/delete-biensoangiaotrinhbaigiang" method="POST"
+            style="display: none;" class="mt-3">
+            <input type="hidden" id="deleteIdBienSoanGiaoTrinhBaiGiang" name="id">
+            <div class="form-group">
+              <label>Bạn có muốn xóa?</label>
+            </div>
+            <button type="submit" class="btn btn-warning">Xóa</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="hideDeleteForm('biensoangiaotrinhbaigiang')">Hủy</button>
+          </form>
+
+          <table class="table table-bordered table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Phân loại</th>
+                <th>Số giờ</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% data.filter(row=> row.MaBang === 'biensoangiaotrinhbaigiang').forEach(row => { %>
+                <tr>
+                  <td>
+                    <%= row.BienSoanGiaoTrinhBaiGiang %>
+                  </td>
+                  <td>
+                    <%= row.SoGio %>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showEditForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>', 
+                  bienSoanGiaoTrinhBaiGiang: '<%= row.BienSoanGiaoTrinhBaiGiang %>', 
+                  soGio:  '<%= row.SoGio %>'})">Sửa</button>
+                  </td>
+                  <td>
+                    <button class="btn btn-warning btn-sm" onclick="showDeleteForm({
+                  maBang: '<%= row.MaBang %>',
+                  id: '<%= row.ID %>',
+                })">Xóa</button>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <!-- Nút Thêm Dữ Liệu -->
+          <button class="btn btn-primary" onclick="showAddForm('biensoangiaotrinhbaigiang')">Thêm</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Hàm truy vấn value từ 21 form dựa vào form id
+      function getFormData(formId) {
+        const data = {}; // Đối tượng để lưu trữ dữ liệu từ các form
+
+        const forms = {
+          "editFormDeTaiDuAn": () => {
+            data.id = document.getElementById("editIdDeTaiDuAn").value;
+            data.CapDeTaiDuAn = document.getElementById("editCapDeTaiDuAn").value;
+            data.ChuNhiem = document.getElementById("editChuNhiem").value;
+            data.ThuKy = document.getElementById("editThuKy").value;
+            data.ThanhVien = document.getElementById("editThanhVien").value;
+          },
+          "addFormDeTaiDuAn": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.CapDeTaiDuAn = document.getElementById("CapDeTaiDuAn").value;
+            data.ChuNhiem = document.getElementById("ChuNhiem").value;
+            data.ThuKy = document.getElementById("ThuKy").value;
+            data.ThanhVien = document.getElementById("ThanhVien").value;
+          },
+          "deleteFormDeTaiDuAn": () => {
+            data.id = document.getElementById("deleteIdDeTaiDuAn").value;
+          },
+          "addFormBaiBaoKhoaHoc": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.LoaiTapChi = document.getElementById("LoaiTapChi").value;
+            data.ChiSoTapChi = document.getElementById("ChiSoTapChi").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormBaiBaoKhoaHoc": () => {
+            data.id = document.getElementById("editIdBaiBaoKhoaHoc").value;
+            data.LoaiTapChi = document.getElementById("editLoaiTapChi").value;
+            data.ChiSoTapChi = document.getElementById("editChiSoTapChi").value;
+            data.SoGio = document.getElementById("editSoGioBaiBaoKhoaHoc").value;
+          },
+          "deleteFormBaiBaoKhoaHoc": () => {
+            data.id = document.getElementById("deleteIdBaiBaoKhoaHoc").value;
+          },
+          "addFormBangSangCheVaGiaiThuong": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.BangSangCheGiaiThuong = document.getElementById("BangSangCheGiaiThuong").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormBangSangCheVaGiaiThuong": () => {
+            data.id = document.getElementById("editIdBangSangCheVaGiaiThuong").value;
+            data.BangSangCheGiaiThuong = document.getElementById("editBangSangCheVaGiaiThuong").value;
+            data.SoGio = document.getElementById("editSoGioBangSangCheGiaiThuong").value;
+          },
+          "deleteFormBangSangCheVaGiaiThuong": () => {
+            data.id = document.getElementById("deleteIdBangSangCheVaGiaiThuong").value;
+          },
+          "addFormSachVaGiaoTrinh": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.SachGiaoTrinh = document.getElementById("SachGiaoTrinh").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormSachVaGiaoTrinh": () => {
+            data.id = document.getElementById("editIdSachVaGiaoTrinh").value;
+            data.SachGiaoTrinh = document.getElementById("editSachVaGiaoTrinh").value;
+            data.SoGio = document.getElementById("editSoGioSachVaGiaoTrinh").value;
+          },
+          "deleteFormSachVaGiaoTrinh": () => {
+            data.id = document.getElementById("deleteIdSachVaGiaoTrinh").value;
+          },
+          "addFormNCKHVaHuanLuyenDoiTuyen": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.NCKHHuanLuyenDoiTuyen = document.getElementById("NCKHVaHuanLuyenDoiTuyen").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormNCKHVaHuanLuyenDoiTuyen": () => {
+            data.id = document.getElementById("editIdNCKHVaHuanLuyenDoiTuyen").value;
+            data.NCKHHuanLuyenDoiTuyen = document.getElementById("editNCKHVaHuanLuyenDoiTuyen").value;
+            data.SoGio = document.getElementById("editSoGioNCKHVaHuanLuyenDoiTuyen").value;
+          },
+          "deleteFormNCKHVaHuanLuyenDoiTuyen": () => {
+            data.id = document.getElementById("deleteIdNCKHVaHuanLuyenDoiTuyen").value;
+          },
+          "addFormXayDungCTDT": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.XayDungCTDT = document.getElementById("XayDungCTDT").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormXayDungCTDT": () => {
+            data.id = document.getElementById("editIdXayDungCTDT").value;
+            data.XayDungCTDT = document.getElementById("editXayDungCTDT").value;
+            data.SoGio = document.getElementById("editSoGioXayDungCTDT").value;
+          },
+          "deleteFormXayDungCTDT": () => {
+            data.id = document.getElementById("deleteIdXayDungCTDT").value;
+          },
+          "addFormBienSoanGiaoTrinhBaiGiang": () => {
+            data.MaBang = document.getElementById("MaBang").value;
+            data.BienSoanGiaoTrinhBaiGiang = document.getElementById("BienSoanGiaoTrinhBaiGiang").value;
+            data.SoGio = document.getElementById("SoGio").value;
+          },
+          "editFormBienSoanGiaoTrinhBaiGiang": () => {
+            data.id = document.getElementById("editIdBienSoanGiaoTrinhBaiGiang").value;
+            data.BienSoanGiaoTrinhBaiGiang = document.getElementById("editBienSoanGiaoTrinhBaiGiang").value;
+            data.SoGio = document.getElementById("editSoGioBienSoanGiaoTrinhBaiGiang").value;
+          },
+          "deleteFormBienSoanGiaoTrinhBaiGiang": () => {
+            data.id = document.getElementById("deleteIdBienSoanGiaoTrinhBaiGiang").value;
+          }
+        };
+
+        // Nếu formId có trong đối tượng forms, thực thi phương thức tương ứng
+        if (forms[formId]) {
+          forms[formId](); // Gọi hàm xử lý tương ứng với formId
+        }
+
+        return data; // Trả về dữ liệu
       }
-    });
 
-    // Thêm sự kiện click cho phần tử có id="Home"
+      // Hàm xử lý submit form chung cho các thao tác Thêm, Sửa, Xóa
+      function handleFormSubmit(formId, actionUrl) {
+        const form = document.getElementById(formId);
 
-    const Home = document.getElementById("Home");
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();  // Ngừng hành động mặc định (submit form)
 
-    Home.addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+          const data = getFormData(formId);
 
-      const isKhoa = localStorage.getItem("isKhoa")
-
-      if (isKhoa == 0) { // Nếu là đào tạo hoặc tài chính
-        window.location.href = "/maindt";
-      } else {
-        window.location.href = "/mainkhoa";
+          // Gửi AJAX request với dữ liệu JSON
+          fetch(actionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)  // Gửi dữ liệu dưới dạng JSON
+          })
+            .then(response => response.json())  // Chuyển dữ liệu trả về thành JSON
+            .then(responseData => {
+              alert(responseData.message);  // Hiển thị thông báo 
+              location.reload();
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+            });
+        });
       }
-    });
-  });
 
-</script>
+      // Hiển thị form thêm dữ liệu
+      function showAddForm(id) {
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['addFormDeTaiDuAn', 'editFormDeTaiDuAn', 'deleteFormDeTaiDuAn'],
+          baibaokhoahoc: ['addFormBaiBaoKhoaHoc', 'editFormBaiBaoKhoaHoc', 'deleteFormBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['addFormBangSangCheVaGiaiThuong', 'editFormBangSangCheVaGiaiThuong', 'deleteFormBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['addFormSachVaGiaoTrinh', 'editFormSachVaGiaoTrinh', 'deleteFormSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['addFormNCKHVaHuanLuyenDoiTuyen', 'editFormNCKHVaHuanLuyenDoiTuyen', 'deleteFormNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['addFormXayDungCTDT', 'editFormXayDungCTDT', 'deleteFormXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['addFormBienSoanGiaoTrinhBaiGiang', 'editFormBienSoanGiaoTrinhBaiGiang', 'deleteFormBienSoanGiaoTrinhBaiGiang']
+        };
 
-<script>
-  document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-    const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+        // Kiểm tra nếu id có trong đối tượng forms
+        if (forms[id]) {
+          // Lấy phần tử cần chỉnh sửa
+          const [addForm, editForm, deleteForm] = forms[id];
 
-    if (tenDangNhap) {
-      // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-      window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-    } else {
-      alert("Không tìm thấy TenDangNhap trong localStorage.");
-    }
-  });
-</script>
+          // Ẩn tất cả các form
+          document.getElementById(editForm).style.display = 'none';
+          document.getElementById(deleteForm).style.display = 'none';
 
-<script>
-  document.getElementById('infoGvm').addEventListener('click', loadLopMoiData);
+          // Hiển thị form thêm
+          document.getElementById(addForm).style.display = 'block';
+        }
+      }
 
-  async function loadLopMoiData() {
-    const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-    const Ki = document.getElementById('comboboxki').value;
-    const Nam = document.getElementById('NamHoc').value;
-    const typeclass = document.getElementById('typeclass').value;
-    console.log(typeclass);
-    if (!MaPhongBan) {
-      alert("Mã phòng ban không tồn tại!");
-      return;
-    }
+      // Ẩn form thêm dữ liệu
+      function hideAddForm(id) {
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['addFormDeTaiDuAn', 'editFormDeTaiDuAn', 'deleteFormDeTaiDuAn'],
+          baibaokhoahoc: ['addFormBaiBaoKhoaHoc', 'editFormBaiBaoKhoaHoc', 'deleteFormBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['addFormBangSangCheVaGiaiThuong', 'editFormBangSangCheVaGiaiThuong', 'deleteFormBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['addFormSachVaGiaoTrinh', 'editFormSachVaGiaoTrinh', 'deleteFormSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['addFormNCKHVaHuanLuyenDoiTuyen', 'editFormNCKHVaHuanLuyenDoiTuyen', 'deleteFormNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['addFormXayDungCTDT', 'editFormXayDungCTDT', 'deleteFormXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['addFormBienSoanGiaoTrinhBaiGiang', 'editFormBienSoanGiaoTrinhBaiGiang', 'deleteFormBienSoanGiaoTrinhBaiGiang']
+        };
 
-    try {
-      if (typeclass === "Lớp mời coi giữa kỳ") {
-        const response = await fetch(`/getLopGK/${MaPhongBan}/${Ki}/${Nam}`, {
-          method: 'GET', // Gửi yêu cầu GET
+        // Kiểm tra nếu id có trong đối tượng forms
+        if (forms[id]) {
+          // Lấy phần tử cần ẩn
+          const [addForm, editForm, deleteForm] = forms[id];
+
+          // Ẩn tất cả các form
+          document.getElementById(addForm).style.display = 'none';
+          document.getElementById(editForm).style.display = 'none';
+          document.getElementById(deleteForm).style.display = 'none';
+        }
+      }
+
+      // Hiển thị form sửa dữ liệu và điền thông tin
+      function showEditForm({ maBang, id, capDeTaiDuAn, chuNhiem, thuKy, thanhVien, loaiTapChi, chiSoTapChi,
+        bangSangCheGiaiThuong, sachGiaoTrinh, nckhHuanLuyenDoiTuyen, xayDungCTDT, bienSoanGiaoTrinhBaiGiang, soGio }) {
+
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['editIdDeTaiDuAn', 'editCapDeTaiDuAn', 'editChuNhiem', 'editThuKy', 'editThanhVien', 'editFormDeTaiDuAn'],
+          baibaokhoahoc: ['editIdBaiBaoKhoaHoc', 'editLoaiTapChi', 'editChiSoTapChi', 'editSoGioBaiBaoKhoaHoc', 'editFormBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['editIdBangSangCheVaGiaiThuong', 'editBangSangCheVaGiaiThuong', 'editSoGioBangSangCheGiaiThuong', 'editFormBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['editIdSachVaGiaoTrinh', 'editSachVaGiaoTrinh', 'editSoGioSachVaGiaoTrinh', 'editFormSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['editIdNCKHVaHuanLuyenDoiTuyen', 'editNCKHVaHuanLuyenDoiTuyen', 'editSoGioNCKHVaHuanLuyenDoiTuyen', 'editFormNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['editIdXayDungCTDT', 'editXayDungCTDT', 'editSoGioXayDungCTDT', 'editFormXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['editIdBienSoanGiaoTrinhBaiGiang', 'editBienSoanGiaoTrinhBaiGiang', 'editSoGioBienSoanGiaoTrinhBaiGiang', 'editFormBienSoanGiaoTrinhBaiGiang']
+        };
+
+        // Kiểm tra nếu maBang có trong đối tượng forms
+        if (forms[maBang]) {
+          const [idField, ...formFields] = forms[maBang];
+
+          // Gán giá trị cho các trường trong form
+          document.getElementById(idField).value = id;
+
+          // Gán giá trị cho các trường khác (tùy theo từng bảng)
+          if (maBang === 'detaiduan') {
+            document.getElementById(formFields[0]).value = capDeTaiDuAn;
+            document.getElementById(formFields[1]).value = chuNhiem;
+            document.getElementById(formFields[2]).value = thuKy;
+            document.getElementById(formFields[3]).value = thanhVien;
+          } else if (maBang === 'baibaokhoahoc') {
+            document.getElementById(formFields[0]).value = loaiTapChi;
+            document.getElementById(formFields[1]).value = chiSoTapChi;
+            document.getElementById(formFields[2]).value = soGio;
+          } else if (maBang === 'bangsangchevagiaithuong') {
+            document.getElementById(formFields[0]).value = bangSangCheGiaiThuong;
+            document.getElementById(formFields[1]).value = soGio;
+          } else if (maBang === 'sachvagiaotrinh') {
+            document.getElementById(formFields[0]).value = sachGiaoTrinh;
+            document.getElementById(formFields[1]).value = soGio;
+          } else if (maBang === 'nckhvahuanluyendoituyen') {
+            document.getElementById(formFields[0]).value = nckhHuanLuyenDoiTuyen;
+            document.getElementById(formFields[1]).value = soGio;
+          } else if (maBang === 'xaydungctdt') {
+            document.getElementById(formFields[0]).value = xayDungCTDT;
+            document.getElementById(formFields[1]).value = soGio;
+          } else if (maBang === 'biensoangiaotrinhbaigiang') {
+            document.getElementById(formFields[0]).value = bienSoanGiaoTrinhBaiGiang;
+            document.getElementById(formFields[1]).value = soGio;
+          }
+
+          // Hiển thị form tương ứng và ẩn các form khác
+          document.getElementById(formFields[formFields.length - 1]).style.display = 'block';
+          const allForms = ['addForm', 'deleteForm'];  // Các form cần ẩn
+          allForms.forEach(form => {
+            const formId = form + maBang.charAt(0).toUpperCase() + maBang.slice(1);
+            document.getElementById(formId).style.display = 'none';
+          });
+        }
+      }
+
+      // Ẩn form sửa dữ liệu
+      function hideEditForm(id) {
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['editFormDeTaiDuAn', 'addFormDeTaiDuAn', 'deleteFormDeTaiDuAn'],
+          baibaokhoahoc: ['editFormBaiBaoKhoaHoc', 'addFormBaiBaoKhoaHoc', 'deleteFormBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['editFormBangSangCheVaGiaiThuong', 'addFormBangSangCheVaGiaiThuong', 'deleteFormBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['editFormSachVaGiaoTrinh', 'addFormSachVaGiaoTrinh', 'deleteFormSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['editFormNCKHVaHuanLuyenDoiTuyen', 'addFormNCKHVaHuanLuyenDoiTuyen', 'deleteFormNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['editFormXayDungCTDT', 'addFormXayDungCTDT', 'deleteFormXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['editFormBienSoanGiaoTrinhBaiGiang', 'addFormBienSoanGiaoTrinhBaiGiang', 'deleteFormBienSoanGiaoTrinhBaiGiang']
+        };
+
+        // Kiểm tra nếu id có trong đối tượng forms
+        if (forms[id]) {
+          // Ẩn tất cả các form trong danh sách tương ứng với id
+          forms[id].forEach(formId => {
+            document.getElementById(formId).style.display = 'none';
+          });
+        }
+      }
+
+      // Hàm xóa
+      function showDeleteForm({ maBang, id }) {
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['deleteFormDeTaiDuAn', 'editFormDeTaiDuAn', 'addFormDeTaiDuAn', 'deleteIdDeTaiDuAn'],
+          baibaokhoahoc: ['deleteFormBaiBaoKhoaHoc', 'editFormBaiBaoKhoaHoc', 'addFormBaiBaoKhoaHoc', 'deleteIdBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['deleteFormBangSangCheVaGiaiThuong', 'editFormBangSangCheVaGiaiThuong', 'addFormBangSangCheVaGiaiThuong', 'deleteIdBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['deleteFormSachVaGiaoTrinh', 'editFormSachVaGiaoTrinh', 'addFormSachVaGiaoTrinh', 'deleteIdSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['deleteFormNCKHVaHuanLuyenDoiTuyen', 'editFormNCKHVaHuanLuyenDoiTuyen', 'addFormNCKHVaHuanLuyenDoiTuyen', 'deleteIdNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['deleteFormXayDungCTDT', 'editFormXayDungCTDT', 'addFormXayDungCTDT', 'deleteIdXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['deleteFormBienSoanGiaoTrinhBaiGiang', 'editFormBienSoanGiaoTrinhBaiGiang', 'addFormBienSoanGiaoTrinhBaiGiang', 'deleteIdBienSoanGiaoTrinhBaiGiang']
+        };
+
+        // Kiểm tra nếu maBang có trong đối tượng forms
+        if (forms[maBang]) {
+          // Lấy danh sách các form tương ứng với maBang
+          const [deleteFormId, editFormId, addFormId, deleteId] = forms[maBang];
+
+          // Gán giá trị ID vào form delete
+          document.getElementById(deleteId).value = id;
+
+          // Hiển thị form delete và ẩn các form khác
+          document.getElementById(deleteFormId).style.display = 'block';
+          document.getElementById(editFormId).style.display = 'none';
+          document.getElementById(addFormId).style.display = 'none';
+        }
+      }
+
+      // Hàm hủy xóa
+      function hideDeleteForm(id) {
+        // Định nghĩa đối tượng ánh xạ với các ID
+        const forms = {
+          detaiduan: ['deleteFormDeTaiDuAn', 'editFormDeTaiDuAn', 'addFormDeTaiDuAn'],
+          baibaokhoahoc: ['deleteFormBaiBaoKhoaHoc', 'editFormBaiBaoKhoaHoc', 'addFormBaiBaoKhoaHoc'],
+          bangsangchevagiaithuong: ['deleteFormBangSangCheVaGiaiThuong', 'editFormBangSangCheVaGiaiThuong', 'addFormBangSangCheVaGiaiThuong'],
+          sachvagiaotrinh: ['deleteFormSachVaGiaoTrinh', 'editFormSachVaGiaoTrinh', 'addFormSachVaGiaoTrinh'],
+          nckhvahuanluyendoituyen: ['deleteFormNCKHVaHuanLuyenDoiTuyen', 'editFormNCKHVaHuanLuyenDoiTuyen', 'addFormNCKHVaHuanLuyenDoiTuyen'],
+          xaydungctdt: ['deleteFormXayDungCTDT', 'editFormXayDungCTDT', 'addFormXayDungCTDT'],
+          biensoangiaotrinhbaigiang: ['deleteFormBienSoanGiaoTrinhBaiGiang', 'editFormBienSoanGiaoTrinhBaiGiang', 'addFormBienSoanGiaoTrinhBaiGiang']
+        };
+
+        // Kiểm tra nếu id có trong đối tượng forms
+        if (forms[id]) {
+          // Lấy danh sách các form tương ứng với id
+          const [deleteFormId, editFormId, addFormId] = forms[id];
+
+          // Ẩn tất cả các form
+          document.getElementById(deleteFormId).style.display = 'none';
+          document.getElementById(editFormId).style.display = 'none';
+          document.getElementById(addFormId).style.display = 'none';
+        }
+      }
+
+      // Chuyển đổi tab
+      function changeTab(tabName) {
+        // Ẩn tất cả các tab-pane
+        document.querySelectorAll('.tab-pane').forEach(tab => {
+          tab.style.display = 'none';
         });
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
+        // Hiển thị tab-pane được chọn
+        document.getElementById(tabName).style.display = 'block';
 
-        const data = await response.json(); // Lấy dữ liệu từ server
-        if (data.success) {
-          if (data.maBoMon && data.maBoMon.length > 0) {
-            console.log('Dữ liệu bộ môn:', data);
-            renderTable(data);
-          } else {
-            alert("Dữ liệu trống!");
-          }
-        } else {
-          alert("Không tìm thấy dữ liệu!");
-        }
-      } else {
-
-        const response = await fetch(`/getLopNgoaiQuyChuan/${MaPhongBan}/${Ki}/${Nam}`, {
-          method: 'GET', // Gửi yêu cầu GET
+        // Loại bỏ class 'active' khỏi tất cả các tab
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.classList.remove('active');
         });
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json(); // Lấy dữ liệu từ server
-        console.log(data);
-        if (data.success) {
-          if (data.maBoMon && data.maBoMon.length > 0) {
-            console.log('Dữ liệu bộ môn:', data);
-            renderTable(data);
-          } else {
-            alert("Dữ liệu trống!");
-          }
-        } else {
-          alert("Không tìm thấy dữ liệu!");
-        }
+        // Thêm class 'active' vào tab đang chọn
+        document.getElementById('tab-' + tabName).classList.add('active');
       }
 
-
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
-    }
-  }
-
-</script>
-
-<script>
-  document.getElementById("infome").addEventListener("click", function (event) {
-    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-    const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-    if (id_User) {
-      // Chuyển hướng đến trang infome và truyền id_User trong URL
-      window.location.href = `/infome/${id_User}`;
-    } else {
-      alert("Không tìm thấy id_User trong localStorage.");
-    }
-  });
-</script>
-
-<script>
-  document.getElementById('soTietForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const submitButton = this.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-
-    const formData = {
-      soTietDaoTao: document.getElementById('gioGiangDay').value,
-      soTietVuotGio: document.getElementById('gioVuotGio').value,
-      soTietNCKH: document.getElementById('gioNCKH').value
-    };
-
-    try {
-      const response = await fetch('/api/update-dinh-muc', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert('Cập nhật số tiết định mức thành công!');
-      } else {
-        alert(data.message || 'Có lỗi xảy ra khi cập nhật');
-      }
-    } catch (error) {
-      console.error('Lỗi:', error);
-      alert('Có lỗi xảy ra khi cập nhật số tiết định mức');
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
-</script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const Quyen = localStorage.getItem("userRole");
-
-    // Ẩn button ngay khi trang được tải
-    const actionButton = document.getElementById('changeMessage');
-    //Ẩn site thêm thông báo
-    if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
-      actionButton.style.display = '';
-    } else {
-      actionButton.style.display = 'none';
-    }
-  });
-</script>
-<script>
-  document.getElementById("changeMessage").addEventListener("click", function (event) {
-    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-    const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-    if (MaPhongBan) {
-      // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-      window.location.href = `/changeMessage/${MaPhongBan}`;
-    } else {
-      alert("Không tìm thấy MaPhongBan trong localStorage.");
-    }
-  });
-</script>
+      // Mặc định hiển thị tab đầu tiên
+      changeTab('detaiduan');
+      // Gọi hàm cho các form khác nhau
+      handleFormSubmit('addFormDeTaiDuAn', '/add-detaiduan');  // Form Thêm
+      handleFormSubmit('editFormDeTaiDuAn', '/edit-detaiduan'); // Form Sửa
+      handleFormSubmit('deleteFormDeTaiDuAn', '/delete-detaiduan'); // Form Xóa
+      handleFormSubmit('addFormBaiBaoKhoaHoc', '/add-baibaokhoahoc');  // Form Thêm
+      handleFormSubmit('editFormBaiBaoKhoaHoc', '/edit-baibaokhoahoc'); // Form Sửa
+      handleFormSubmit('deleteFormBaiBaoKhoaHoc', '/delete-baibaokhoahoc'); // Form Xóa
+      handleFormSubmit('addFormBangSangCheVaGiaiThuong', '/add-bangsangchevagiaithuong');  // Form Thêm
+      handleFormSubmit('editFormBangSangCheVaGiaiThuong', '/edit-bangsangchevagiaithuong'); // Form Sửa
+      handleFormSubmit('deleteFormBangSangCheVaGiaiThuong', '/delete-bangsangchevagiaithuong'); // Form Xóa
+      handleFormSubmit('addFormSachVaGiaoTrinh', '/add-sachvagiaotrinh');  // Form Thêm
+      handleFormSubmit('editFormSachVaGiaoTrinh', '/edit-sachvagiaotrinh'); // Form Sửa
+      handleFormSubmit('deleteFormSachVaGiaoTrinh', '/delete-sachvagiaotrinh'); // Form Xóa
+      handleFormSubmit('addFormNCKHVaHuanLuyenDoiTuyen', '/add-nckhvahuanluyendoituyen');  // Form Thêm
+      handleFormSubmit('editFormNCKHVaHuanLuyenDoiTuyen', '/edit-nckhvahuanluyendoituyen'); // Form Sửa
+      handleFormSubmit('deleteFormNCKHVaHuanLuyenDoiTuyen', '/delete-nckhvahuanluyendoituyen'); // Form Xóa
+      handleFormSubmit('addFormXayDungCTDT', '/add-xaydungctdt');  // Form Thêm
+      handleFormSubmit('editFormXayDungCTDT', '/edit-xaydungctdt'); // Form Sửa
+      handleFormSubmit('deleteFormXayDungCTDT', '/delete-xaydungctdt'); // Form 
+      handleFormSubmit('addFormBienSoanGiaoTrinhBaiGiang', '/add-biensoangiaotrinhbaigiang');  // Form Thêm
+      handleFormSubmit('editFormBienSoanGiaoTrinhBaiGiang', '/edit-biensoangiaotrinhbaigiang'); // Form Sửa
+      handleFormSubmit('deleteFormBienSoanGiaoTrinhBaiGiang', '/delete-biensoangiaotrinhbaigiang'); // Form Xóa
+    </script>
 </body>
 
 </html>
