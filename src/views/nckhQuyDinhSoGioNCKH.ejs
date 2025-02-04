@@ -239,8 +239,8 @@
               <input type="text" class="form-control" id="ChiSoTapChi" name="ChiSoTapChi" required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioBaiBaoKhoaHoc">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioBaiBaoKhoaHoc" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -337,8 +337,8 @@
               <input type="text" class="form-control" id="BangSangCheGiaiThuong" name="BangSangCheGiaiThuong" required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioBangSangCheGiaiThuong">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioBangSangCheGiaiThuong" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -431,8 +431,8 @@
               <input type="text" class="form-control" id="SachGiaoTrinh" name="SachGiaoTrinh" required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioSachGiaoTrinh">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioSachGiaoTrinh" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -521,8 +521,8 @@
                 required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioNCKHVaHuanLuyenDoiTuyen">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioNCKHVaHuanLuyenDoiTuyen" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -615,8 +615,8 @@
               <input type="text" class="form-control" id="XayDungCTDT" name="XayDungCTDT" required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioXayDungCTDT">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioXayDungCTDT" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -705,8 +705,8 @@
                 required>
             </div>
             <div class="form-group">
-              <label for="SoGio">Số giờ</label>
-              <input type="text" class="form-control" id="SoGio" name="SoGio" required>
+              <label for="SoGioBienSoanGiaoTrinhBaiGiang">Số giờ</label>
+              <input type="text" class="form-control" id="SoGioBienSoanGiaoTrinhBaiGiang" name="SoGio" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Thêm</button>
@@ -817,7 +817,7 @@
             data.MaBang = 'baibaokhoahoc';
             data.LoaiTapChi = document.getElementById("LoaiTapChi").value;
             data.ChiSoTapChi = document.getElementById("ChiSoTapChi").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioBaiBaoKhoaHoc").value;
           },
           "editFormBaiBaoKhoaHoc": () => {
             data.MaBang = 'baibaokhoahoc';
@@ -832,7 +832,7 @@
           "addFormBangSangCheVaGiaiThuong": () => {
             data.MaBang = 'bangsangchevagiaithuong';
             data.BangSangCheGiaiThuong = document.getElementById("BangSangCheGiaiThuong").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioBangSangCheGiaiThuong").value;
           },
           "editFormBangSangCheVaGiaiThuong": () => {
             data.id = document.getElementById("editIdBangSangCheVaGiaiThuong").value;
@@ -846,7 +846,7 @@
             data.MaBang = 'sachvagiaotrinh';
             data.MaBang = document.getElementById("MaBang").value;
             data.SachGiaoTrinh = document.getElementById("SachGiaoTrinh").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioSachGiaoTrinh").value;
           },
           "editFormSachVaGiaoTrinh": () => {
             data.id = document.getElementById("editIdSachVaGiaoTrinh").value;
@@ -859,7 +859,7 @@
           "addFormNCKHVaHuanLuyenDoiTuyen": () => {
             data.MaBang = 'nckhvahuanluendoituyen';
             data.NCKHHuanLuyenDoiTuyen = document.getElementById("NCKHVaHuanLuyenDoiTuyen").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioNCKHVaHuanLuyenDoiTuyen").value;
           },
           "editFormNCKHVaHuanLuyenDoiTuyen": () => {
             data.id = document.getElementById("editIdNCKHVaHuanLuyenDoiTuyen").value;
@@ -872,7 +872,7 @@
           "addFormXayDungCTDT": () => {
             data.MaBang = 'xaydungctdt';
             data.XayDungCTDT = document.getElementById("XayDungCTDT").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioXayDungCTDT").value;
           },
           "editFormXayDungCTDT": () => {
             data.id = document.getElementById("editIdXayDungCTDT").value;
@@ -885,7 +885,7 @@
           "addFormBienSoanGiaoTrinhBaiGiang": () => {
             data.MaBang = 'biensoangiaotrinhbaigiang';
             data.BienSoanGiaoTrinhBaiGiang = document.getElementById("BienSoanGiaoTrinhBaiGiang").value;
-            data.SoGio = document.getElementById("SoGio").value;
+            data.SoGio = document.getElementById("SoGioBienSoanGiaoTrinhBaiGiang").value;
           },
           "editFormBienSoanGiaoTrinhBaiGiang": () => {
             data.id = document.getElementById("editIdBienSoanGiaoTrinhBaiGiang").value;
