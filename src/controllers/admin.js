@@ -143,12 +143,11 @@ const getchangePassword = async (req, res) => {
     const [results] = await connection.query(query, [tenDangNhap]); // Thực hiện truy vấn
 
     if (results.length === 0) {
-      return res
-        .status(404)
-        .send("Không tìm thấy tài khoản với TenDangNhap đã cho");
+      return res.status(404).send("Không tìm thấy tài khoản với TenDangNhap đã cho");
     }
 
-    const account = results[0]; // Lấy thông tin tài khoản đầu tiên (giả sử TenDangNhap là duy nhất)
+    const account = results[0];
+    account.isAdmin = account.TenDangNhap === 'ADMIN'; // Kiểm tra xem tài khoản có phải là admin không
 
     // Render trang changePassword.ejs và truyền thông tin tài khoản vào
     res.render("changePassword.ejs", { account: account });
