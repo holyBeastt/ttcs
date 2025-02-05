@@ -61,7 +61,7 @@ const exportVuotGio = async (req, res) => {
     }
 
     const sanitizedNamHoc = sanitizeFileName(namHoc);
-    const sanitizedKhoa = sanitizeFileName(khoa);
+    const sanitizedKhoa = khoa === "ALL" ? null : sanitizeFileName(khoa);
 
     // Các truy vấn SQL
     let queryGiangDay = `
@@ -138,11 +138,11 @@ const exportVuotGio = async (req, res) => {
     `;
 
     // Thực thi các truy vấn với tham số teacherName (giảng viên)
-    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, khoa, khoa, teacherName || null, teacherName || null]);
-    const [resultsNhanVien] = await connection.query(queryNhanVien, [khoa, khoa, teacherName || null, teacherName || null]);
+    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsNhanVien] = await connection.query(queryNhanVien, [sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
 
     // Kiểm tra kết quả truy vấn
     if (
@@ -173,8 +173,6 @@ const exportVuotGio = async (req, res) => {
     const uniqueGiangVienList = [...new Set(giangVienList)];
 
     const workbook = new ExcelJS.Workbook();
-
-    // Xử lý từng giảng viên
     uniqueGiangVienList.forEach((giangVien) => {
       const worksheet = workbook.addWorksheet(giangVien);
 
@@ -184,6 +182,9 @@ const exportVuotGio = async (req, res) => {
         (row) => row.GiangVien === giangVien
       );
 
+      const filteredGiuaKy= resultsGiuaky.filter(
+        row => row.GiangVien.trim() === giangVien.trim()
+      );
       const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
@@ -210,18 +211,18 @@ const exportVuotGio = async (req, res) => {
 
   const filteredGroupedResultsGiuaKy = {
     "Kỳ 1": {
-      "Đào tạo hệ đóng học phí": resultsGiuaky.filter(
+      "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
         (row) => row.HocKy == "1" &&  row.LopGK.startsWith("A")
       ),
-      "Đào tạo chuyên ngành Kỹ thuật mật mã": resultsGiuaky.filter(
+      "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
         (row) => row.HocKy == "1" && !row.LopGK.startsWith("A")
       ),
     },
     "Kỳ 2": {
-      "Đào tạo hệ đóng học phí": resultsGiuaky.filter(
+      "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
         (row) => row.HocKy == "2" &&  row.LopGK.startsWith("A")
       ),
-      "Đào tạo chuyên ngành Kỹ thuật mật mã": resultsGiuaky.filter(
+      "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
         (row) => row.HocKy == "2" && !row.LopGK.startsWith("A")
       ),
     },

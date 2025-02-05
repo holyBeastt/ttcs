@@ -282,7 +282,6 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       },
     };
 
-    // Thêm tiêu đề
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
     titleRow0.font = { name: "Times New Roman", size: 17 };

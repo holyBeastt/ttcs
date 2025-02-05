@@ -141,7 +141,7 @@ app.use(express.static(path.join(__dirname, "public/images")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-app.use(express.static(path.join(__dirname, "public/js"))); // cấu hình tệp js
+app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
 
 //app.use(express.json()); // Thêm dòng này để xử lý JSON
 

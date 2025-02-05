@@ -98,7 +98,7 @@
     <!-- Main content -->
     <div class="gvmList">
       <div class="m-3">
-        <h1>HỢP ĐỒNG GIẢNG VIÊN MỜI</h1>
+        <h1>HỢP ĐỒNG ĐỒ ÁN</h1>
 
         <div class="controls-container d-flex align-items-center">
           <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
@@ -427,7 +427,13 @@
       const boMon = JSON.parse(localStorage.getItem("gvmList")) || []; // Giảng viên mời
       console.log(gvmList)
 
-      suggestions = gvmList.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
+      suggestions = gvmList.map(item => {
+      if (item.TenNhanVien) {
+        return `${item.TenNhanVien} - ${item.MaPhongBan}`;
+      } else {
+        return `${item.HoTen} - ${item.MaPhongBan}`;
+      }
+    });
 
 
       // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
