@@ -631,12 +631,11 @@ const getInfoDoAn = async (req, res) => {
 
     let query, values;
     if (MaPhongBan == "ALL") {
-      query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND DaBanHanh = 1";
+      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
       values = [Dot, NamHoc];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ? AND DaBanHanh = 1";
+        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
       values = [Dot, NamHoc, MaPhongBan];
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
@@ -1156,8 +1155,6 @@ const getDataDoAnChinhThuc = async (req, res) => {
   const NamHoc = req.body.Nam;
   const MaPhongBan = req.body.Khoa;
 
-  console.log(req.body);
-
   let connection;
   try {
     connection = await createPoolConnection();
@@ -1173,7 +1170,6 @@ const getDataDoAnChinhThuc = async (req, res) => {
     }
     const [result] = await connection.query(query, values);
 
-    console.log("đb = ", result);
     // Trả dữ liệu về client dưới dạng JSON
     res.status(200).json(result);
   } catch (error) {

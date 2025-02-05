@@ -75,7 +75,7 @@ const getMaPhongBanList = async (req, res) => {
     departmentLists = results; // Gán kết quả vào departmentLists
 
     // Render trang phongBan.ejs và truyền danh sách tài khoản vào
-    res.render("themnhanVien.ejs", { departmentLists: departmentLists });
+    res.render("themNhanVien.ejs", { departmentLists: departmentLists });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ cơ sở dữ liệu: ", error);
     res.status(500).send("Lỗi server, không thể lấy dữ liệu");
@@ -165,7 +165,6 @@ const updatePassword = async (req, res) => {
   try {
     const { TenDangNhap, currentPassword, newPassword } = req.body;
 
-
     // Kiểm tra xem TenDangNhap có tồn tại không
     if (!TenDangNhap) {
       return res.status(400).send("Thiếu tham số TenDangNhap");
@@ -188,7 +187,7 @@ const updatePassword = async (req, res) => {
         `/changePassword?tenDangNhap=${encodeURIComponent(
           TenDangNhap
         )}&message=updateSuccess&passwordChanged=false1`
-      )
+      );
     }
 
     // Cập nhật mật khẩu mới
@@ -200,14 +199,14 @@ const updatePassword = async (req, res) => {
       `/changePassword?tenDangNhap=${encodeURIComponent(
         TenDangNhap
       )}&message=updateSuccess&passwordChanged=true`
-    )
+    );
   } catch (error) {
     console.error("Lỗi khi cập nhật mật khẩu:", error);
     return res.redirect(
       `/changePassword?tenDangNhap=${encodeURIComponent(
         TenDangNhap
       )}&message=updateSuccess&passwordChanged=false2`
-    )
+    );
   } finally {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
@@ -289,14 +288,12 @@ const addMessage = async (req, res) => {
 
     // Câu truy vấn SQL
     const query = `INSERT INTO thongbao (MaPhongBan, Title, LoiNhan, Deadline) VALUES (?, ?, ?, ?)`;
-    
+
     // Thực hiện câu truy vấn
     await connection.query(query, [MaPhongBan, Title, LoiNhan, Deadline]);
 
     // Redirect về trang thay đổi thông báo
-    return res.redirect(
-      `/changeMessage/${MaPhongBan}?MessageChanged=true`
-    );
+    return res.redirect(`/changeMessage/${MaPhongBan}?MessageChanged=true`);
   } catch (error) {
     console.error("Lỗi khi thêm thông báo:", error);
     return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");
@@ -305,22 +302,21 @@ const addMessage = async (req, res) => {
   }
 };
 
-
 const updateMessage = async (req, res) => {
   const globalData = req.body; // Lấy dữ liệu từ client gửi đến
   if (!globalData || globalData.length === 0) {
-    return res.status(400).json({ message: 'Không có dữ liệu để cập nhật.' });
+    return res.status(400).json({ message: "Không có dữ liệu để cập nhật." });
   }
-  
+
   let connection;
 
   try {
     connection = await createPoolConnection();
     for (let data of globalData) {
-      const { tieuDe, loiNhan, deadline, isChecked ,id } = data; // Lấy LoiNhan và Deadline từ body
+      const { tieuDe, loiNhan, deadline, isChecked, id } = data; // Lấy LoiNhan và Deadline từ body
       // Câu truy vấn SQL
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
-      
+
       // Thực hiện câu truy vấn
       await connection.query(query, [tieuDe, loiNhan, deadline, isChecked, id]);
     }
@@ -336,11 +332,11 @@ const updateMessage = async (req, res) => {
 };
 const getshowMessage = async (req, res) => {
   const { MaPhongBan } = req.params;
-  let connection
+  let connection;
   try {
     connection = await createPoolConnection();
     const query = `SELECT * FROM thongbao WHERE MaPhongBan = ?`;
-    const [rows] = await connection.query(query,[MaPhongBan]);
+    const [rows] = await connection.query(query, [MaPhongBan]);
     res.json({
       success: true,
       Message: rows,
@@ -353,8 +349,8 @@ const getshowMessage = async (req, res) => {
   }
 };
 const deleteMessage = async (req, res) => {
-  const {id} = req.body;
-  let connection
+  const { id } = req.body;
+  let connection;
   try {
     connection = await createPoolConnection();
     const query = `DELETE FROM thongbao WHERE id = ?`;
@@ -371,15 +367,15 @@ const deleteMessage = async (req, res) => {
 };
 
 const getMessage = async (req, res) => {
-  let connection
+  let connection;
   try {
-    connection = await createPoolConnection()
+    connection = await createPoolConnection();
     const query = `SELECT * FROM thongbao`;
     const [results] = await connection.query(query);
     res.json({
       success: true,
       Message: results,
-  });
+    });
   } catch (error) {
     console.error("Lỗi khi lấy thông báo:", error);
     return res.status(500).send("Lỗi hệ thống. Không thể lấy thông báo.");
