@@ -17,4 +17,9 @@ router.put("/updateRowTKB/:id", TKBController.updateRowTKB);
 // xóa 1 dòng
 router.delete("/TKB-delete-row/:id", TKBController.deleteRow);
 
+// Cập nhật số lượng sinh viên
+router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
+
+router.post("/save-data-tkb-to-qcdk", TKBController.themTKBVaoQCDK);
+
 module.exports = router;

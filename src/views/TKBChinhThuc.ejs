@@ -175,7 +175,60 @@
         }
       }
     </style>
+    <style>
+      .input-full {
+        width: 100%;
+        margin-top: 5px;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
 
+      .row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .column-80 {
+        flex: 4; /* 80% */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .column-20 {
+        flex: 1; /* 20% */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .column-2 {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .save {
+        background-color: #28a745;
+        color: white;
+      }
+
+      .cancel {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      .btn:hover {
+        opacity: 0.8;
+      }
+    </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const MaPhongBan = localStorage.getItem("MaPhongBan");
@@ -214,12 +267,21 @@
           <div class="left">
             <button
               class="btn"
-              id="ban-hanh"
-              style="margin-bottom: 0px; visibility: hidden"
+              id="them-vao-qc-du-kien"
+              style="margin-bottom: 0px"
             >
               Thêm vào quy chuẩn dự kiến
             </button>
           </div>
+
+          <button
+            class="btn"
+            style="top: 8px"
+            id="edit-student-quantity-btn"
+            onclick="toggleEditStudentQuantity()"
+          >
+            Sửa số lượng SV
+          </button>
 
           <div class="right" style="margin-top: 0px">
             <div class="loc d-flex align-items-center">
@@ -259,23 +321,27 @@
         </div>
 
         <div>
-          <!-- <table id="table-container" class="table table-bordered">
-            <thead>
-              <tr id="table-header"></tr>
-            </thead>
-            <tbody id="data-table-body"></tbody>
-          </table> -->
-          <div
-            id="table-container"
-            style="height: 500px; overflow-y: auto; position: relative"
-          >
+          <div id="table-container">
             <table style="width: 100%; border-collapse: collapse">
               <thead>
                 <tr id="table-header"></tr>
               </thead>
               <tbody id="data-table-body"></tbody>
             </table>
+            <div style="margin-top: 50px">
+              <button
+                class="btn text-nowrap"
+                id="add-row-btn"
+                onclick="addRow()"
+              >
+                Thêm
+              </button>
+              <button class="btn text-nowrap" id="export-file-btn">
+                Xuất file
+              </button>
+            </div>
           </div>
+
           <div
             id="addRowModal"
             style="
@@ -284,7 +350,7 @@
               top: 50%;
               left: 50%;
               transform: translate(-50%, -50%);
-              width: 400px;
+              width: 450px;
               background: white;
               border: 1px solid #ccc;
               box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -293,48 +359,63 @@
               border-radius: 8px;
             "
           >
-            <h3>Thêm Dòng Mới</h3>
-            <div>
-              <label for="inputKhoa">Khoa:</label>
-              <input
-                id="inputKhoa"
-                type="text"
-                placeholder="Nhập khoa"
-                style="width: 100%; margin-bottom: 10px"
-              />
+            <h3 style="text-align: center; margin-bottom: 15px">
+              Thêm Dòng Mới
+            </h3>
+
+            <div style="margin-bottom: 10px">
+              <label for="input-lop-hoc-phan">Lớp học phần:</label>
+              <input type="text" class="input-full" />
             </div>
-            <div>
-              <label for="inputDot">Đợt:</label>
-              <input
-                id="inputDot"
-                type="text"
-                placeholder="Nhập đợt"
-                style="width: 100%; margin-bottom: 10px"
-              />
+
+            <!-- Mã môn học (80%) + Số lượng SV (20%) -->
+            <div class="row">
+              <div class="column-80">
+                <label for="input-ma-mon-hoc">Mã môn học:</label>
+                <input style="width: 100%" type="text" />
+              </div>
+              <div class="column-20">
+                <label for="">Số SV:</label>
+                <input style="width: 100%" type="text" />
+              </div>
             </div>
-            <div>
-              <label for="inputKi">Kỳ:</label>
-              <input
-                id="inputKi"
-                type="text"
-                placeholder="Nhập kỳ"
-                style="width: 100%; margin-bottom: 10px"
-              />
+
+            <div style="margin-bottom: 10px">
+              <label for="">Giảng viên:</label>
+              <input type="text" class="input-full" />
             </div>
-            <div>
-              <label for="inputNam">Năm:</label>
-              <input
-                id="inputNam"
-                type="text"
-                placeholder="Nhập năm"
-                style="width: 100%; margin-bottom: 10px"
-              />
+
+            <!-- Hệ số T7/CN + Số tiết lên lớp -->
+            <div class="row">
+              <div class="column-2">
+                <label for="">Hệ số T7/CN:</label>
+                <input style="width: 100%" type="text" />
+              </div>
+              <div class="column-2">
+                <label for="">Số tiết lên lớp:</label>
+                <input style="width: 100%" type="text" />
+              </div>
             </div>
-            <div style="text-align: right">
-              <button id="saveRowButton" style="margin-right: 10px">Lưu</button>
-              <button id="cancelRowButton">Hủy</button>
+
+            <!-- Ngày bắt đầu + Ngày kết thúc -->
+            <div class="row">
+              <div class="column-2">
+                <label for="">Ngày bắt đầu:</label>
+                <input type="date" />
+              </div>
+              <div class="column-2">
+                <label for="">Ngày kết thúc:</label>
+                <input type="date" />
+              </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div style="text-align: right; margin-top: 15px">
+              <button id="saveRowButton" class="btn save">Lưu</button>
+              <button id="cancelRowButton" class="btn cancel">Hủy</button>
             </div>
           </div>
+
           <div
             id="overlay"
             style="
@@ -348,15 +429,6 @@
               z-index: 999;
             "
           ></div>
-
-          <button class="btn text-nowrap" id="add-row-btn" onclick="addRow()">
-            Thêm
-          </button>
-          <!-- <button class="btn text-nowrap" id="save-btn" onclick="submitData()">Lưu</button> -->
-          <!-- Nút xuất file -->
-          <button class="btn text-nowrap" id="export-file-btn">
-            Xuất file
-          </button>
 
           <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
           <div
@@ -396,6 +468,120 @@
     <!-- link thư viện excel  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
+    <script>
+      let isEditingStudentQuantity = false;
+
+      function toggleEditStudentQuantity() {
+        isEditingStudentQuantity = !isEditingStudentQuantity;
+
+        if (isEditingStudentQuantity) {
+          renderData.forEach((item) => {
+            item.isEditing = true; // Đánh dấu đang chỉnh sửa
+          });
+        } else {
+          // Lấy giá trị từ các input và cập nhật lại `student_quantity`
+          document
+            .querySelectorAll("input[name='input-sv']")
+            .forEach((input) => {
+              const id = input.id; // Lấy id của phần tử input
+              const value = input.value; // Lấy giá trị của phần tử input
+
+              const rowData = renderData.find((item) => item.id == id);
+              if (rowData) {
+                rowData.student_quantity = Number(input.value); // Đảm bảo là số
+              }
+            });
+
+          // Gọi API để lưu số lượng sinh viên
+          const updatedData = renderData.map((item) => ({
+            id: item.id,
+            student_quantity: item.student_quantity,
+          }));
+
+          // Kiểm tra xem updatedData có dữ liệu không
+          if (updatedData.length === 0) {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Không có dữ liệu để cập nhật",
+              icon: "info",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+
+            return;
+          }
+
+          // Sử dụng fetch để gửi dữ liệu lên server
+          fetch("/api/save-student-quantity", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Lưu thành công",
+                  icon: "success",
+                  confirmButtonText: "OK",
+                  width: "auto", // Tự động điều chỉnh chiều rộng
+                  padding: "20px", // Giữ khoảng cách cho nội dung
+                });
+              } else {
+                alert("Có lỗi xảy ra khi lưu dữ liệu.");
+              }
+            })
+            .catch((error) => {
+              console.error("Lỗi gọi API:", error);
+              alert("Có lỗi xảy ra khi gọi API.");
+            });
+
+          // Xóa trạng thái chỉnh sửa
+          renderData.forEach((item) => delete item.isEditing);
+        }
+
+        document.getElementById("edit-student-quantity-btn").innerText =
+          isEditingStudentQuantity ? "Lưu số lượng SV" : "Sửa số lượng SV";
+
+        renderTable(); // Cập nhật lại bảng
+      }
+
+      function handleKeyDown(event, rowIndex) {
+        // Kiểm tra nếu là phím mũi tên lên hoặc xuống
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault(); // Ngừng hành động mặc định (không thay đổi giá trị)
+
+          const tableRows = document.querySelectorAll("#data-table-body tr");
+          let nextIndex = rowIndex;
+
+          // Tính chỉ số dòng tiếp theo
+          if (event.key === "ArrowDown") {
+            nextIndex = rowIndex + 1;
+          } else if (event.key === "ArrowUp") {
+            nextIndex = rowIndex - 1;
+          }
+
+          // Đảm bảo chỉ số dòng tiếp theo hợp lệ
+          if (nextIndex >= 0 && nextIndex < tableRows.length) {
+            // Lấy ô input trong dòng tiếp theo
+            const nextInput = tableRows[nextIndex].querySelector(
+              `td:nth-child(${
+                Object.keys(renderData[0]).indexOf("student_quantity") + 1
+              }) input`
+            );
+
+            // Nếu ô input tồn tại, di chuyển con trỏ vào ô input của dòng tiếp theo
+            if (nextInput) {
+              nextInput.focus();
+            }
+          }
+        }
+      }
+    </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -546,105 +732,6 @@
           alert("Có lỗi xảy ra khi gọi API: " + error.message);
         }
       }
-      /*
-      function renderTable() {
-        const tableBody = document.getElementById("data-table-body");
-        tableBody.innerHTML = "";
-
-        if (renderData.length === 0) {
-          document.getElementById("no-data-message").style.display = "block";
-        } else {
-          document.getElementById("no-data-message").style.display = "none";
-          let tableHtml = "";
-          const headersMap = {
-            id: "ID",
-            major: "Khoa",
-            Dot: "Đợt",
-            Ki: "Kì",
-            Nam: "Năm",
-            lecturer: "Giảng viên theo TKB",
-            credit_hours: "Số TC",
-            classroom: "Lớp học",
-            course_name: "Lớp học phần",
-            course_code: "Mã học phần",
-            study_format: "Hình thức",
-            periods_per_week: "Số tiết/tuần",
-            period_start: "Tiết bắt đầu",
-            period_end: "Tiết kết thúc",
-            start_date: "Ngày bắt đầu",
-            end_date: "Ngày kết thúc",
-            qc: "Quy chuẩn",
-          };
-
-          const headers = Object.keys(renderData[0]).filter(
-            (header) => header !== "GhiChu" && header !== "description"
-          );
-
-          headers.forEach((header) => {
-            const newHeaderName = headersMap[header] || header;
-            const baseStyle =
-              'style="text-align: center; vertical-align: middle;"';
-            const headerStyle =
-              newHeaderName === "Số TC" || newHeaderName === "Số SV"
-                ? 'style="white-space: break-spaces"'
-                : baseStyle;
-
-            tableHtml += `<th ${headerStyle}>${newHeaderName}</th>`;
-          });
-
-          const role = localStorage.getItem("userRole");
-          if (role === "Duyệt") {
-            tableHtml += `<th id="action-column" style="text-align: center; vertical-align: middle;">Hành động</th>`;
-          }
-
-          document.getElementById("table-header").innerHTML = tableHtml;
-
-          const keyNotEdit = ["ID", "GhiChu"];
-          const fragment = document.createDocumentFragment();
-
-          renderData.forEach((item) => {
-            const id = item.id;
-
-            const row = headers
-              .map((key) => {
-                if (keyNotEdit.includes(key)) {
-                  return `<td>${item[key] !== null ? item[key] : ""}</td>`;
-                }
-                return `<td id="cell-${id}-${key}" style="display:${
-                  key === "ID" ? "none" : ""
-                }">${item[key] !== null ? item[key] : ""}</td>`;
-              })
-              .join("");
-
-            let actionColumn = "";
-            if (role === "Duyệt") {
-              actionColumn = `
-      <td>
-        <button onclick="editRow(${id})">Sửa</button>
-        <button onclick="deleteRow(${id})">Xóa</button>
-      </td>
-      `;
-            }
-
-            const hasZeroValue = Object.values(item).some(
-              (value) => !isNaN(value) && Number(value) === 0
-            );
-            const warningClass = hasZeroValue ? "warning-row" : "";
-
-            const tr = document.createElement("tr");
-            tr.id = `row-${id}`;
-            tr.className = warningClass;
-            tr.innerHTML = `
-        ${row}
-        ${actionColumn}
-      `;
-            fragment.appendChild(tr);
-          });
-
-          tableBody.appendChild(fragment);
-        }
-      }
-*/
 
       function renderTable() {
         const tableContainer = document.getElementById("table-container");
@@ -652,10 +739,6 @@
         const tableHeader = document.getElementById("table-header");
 
         const rowHeight = 50; // Chiều cao mỗi dòng (px)
-        const bufferRows = 5; // Số dòng buffer hiển thị thêm ngoài viewport
-        const containerHeight = tableContainer.clientHeight; // Chiều cao khung nhìn
-        const visibleRows =
-          Math.ceil(containerHeight / rowHeight) + bufferRows * 2; // Số dòng cần render trong viewport + buffer
         const totalRows = renderData.length; // Tổng số dòng dữ liệu
 
         // Xóa các dòng cũ
@@ -668,27 +751,27 @@
 
           const headersMap = {
             id: { name: "ID", width: "50px" },
-            major: { name: "Khoa", width: "120px" },
-            ll_code: { name: "Số tiết theo TKB", width: "100px" },
+            major: { name: "Khoa", width: "50px" },
+            ll_code: { name: "Số tiết thực tế", width: "100px" },
             ll_total: { name: "Lên lớp", width: "80px" },
-            student_quantity: { name: "Số lượng sinh viên", width: "150px" },
-            student_bonus: { name: "Hệ số lớp đông", width: "120px" },
-            bonus_time: { name: "Hệ số T7/CN", width: "120px" },
-            bonus_teacher: { name: "Hệ số giảng viên", width: "120px" },
+            student_quantity: { name: "SL sinh viên", width: "80px" },
+            student_bonus: { name: "HS lớp đông", width: "70px" },
+            bonus_time: { name: "HS T7/CN", width: "50px" },
             course_id: { name: "Mã bộ môn", width: "100px" },
-            lecturer: { name: "Giảng viên theo TKB", width: "200px" },
+            lecturer: { name: "Giảng viên theo TKB", width: "150px" },
             credit_hours: { name: "Số TC", width: "80px" },
             course_name: { name: "Lớp học phần", width: "200px" },
-            course_code: { name: "Mã học phần", width: "150px" },
-            start_date: { name: "Ngày bắt đầu", width: "150px" },
+            course_code: { name: "Mã học phần", width: "100px" },
+            start_date: { name: "Ngày bắt đầu", width: "100px" },
             end_date: { name: "Ngày kết thúc", width: "150px" },
             bonus_total: { name: "Quy chuẩn", width: "50px" },
-            semester: { name: "Năm học", width: "50px" },
+            semester: { name: "Năm học", width: "100px" },
           };
 
           const headers = Object.keys(renderData[0]).filter(
             (header) => header !== "GhiChu" && header !== "description"
           );
+
           const headerHtml = headers
             .map((header) => {
               const headerInfo = headersMap[header] || {
@@ -709,68 +792,12 @@
 
           const keyNotEdit = ["id", "GhiChu"];
 
-          // Đặt chiều cao bảng ảo để mô phỏng toàn bộ dữ liệu
-          tableBody.style.position = "relative";
-          tableBody.style.height = `${totalRows * rowHeight}px`;
-          /*
-          // Hàm render các hàng trong viewport
-          function renderRows(startIndex, endIndex) {
+          // Render các dòng
+          // Render các dòng
+          function renderRows() {
             const fragment = document.createDocumentFragment();
 
-            for (let i = startIndex; i < endIndex; i++) {
-              if (i >= totalRows) break;
-
-              const item = renderData[i];
-              const id = item.id;
-
-              const row = headers
-                .map((key) => {
-                  if (keyNotEdit.includes(key)) {
-                    return `<td>${item[key] !== null ? item[key] : ""}</td>`;
-                  }
-                  return `<td id="cell-${id}-${key}">${
-                    item[key] !== null ? item[key] : ""
-                  }</td>`;
-                })
-                .join("");
-
-              let actionColumn = "";
-              if (role === "Duyệt") {
-                actionColumn = `
-                  <td>
-                    <button onclick="editRow(${id})">Sửa</button>
-                    <button onclick="deleteRow(${id})">Xóa</button>
-                  </td>`;
-              }
-
-              const hasZeroValue = Object.values(item).some(
-                (value) => !isNaN(value) && Number(value) === 0
-              );
-              const warningClass = hasZeroValue ? "warning-row" : "";
-
-              const tr = document.createElement("tr");
-              tr.style.position = "absolute";
-              tr.style.top = `${i * rowHeight}px`;
-              tr.style.height = `${rowHeight}px`;
-              tr.id = `row-${id}`;
-              tr.className = warningClass;
-              tr.innerHTML = `${row}${actionColumn}`;
-
-              fragment.appendChild(tr);
-            }
-
-            // Xóa các dòng cũ trong viewport trước khi thêm dòng mới
-            tableBody.innerHTML = "";
-            tableBody.appendChild(fragment);
-          }
-*/
-          function renderRows(startIndex, endIndex) {
-            const fragment = document.createDocumentFragment();
-
-            for (let i = startIndex; i < endIndex; i++) {
-              if (i >= totalRows) break;
-
-              const item = renderData[i];
+            renderData.forEach((item, i) => {
               const id = item.id;
 
               const row = headers
@@ -781,14 +808,30 @@
                   };
                   const cellStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
 
+                  // Kiểm tra chế độ chỉnh sửa và cột "student_quantity"
+                  if (key === "student_quantity" && isEditingStudentQuantity) {
+                    return `
+            <td ${cellStyle}>
+              <input 
+                type="number" 
+                id="${id}" 
+                name = "input-sv"
+                value="${item[key] !== null ? item[key] : ""}" 
+                style="width: 100%; text-align: center;" 
+                onkeydown="handleKeyDown(event, ${i})" 
+              />
+            </td>`;
+                  }
+
                   if (keyNotEdit.includes(key)) {
                     return `<td ${cellStyle}>${
                       item[key] !== null ? item[key] : ""
                     }</td>`;
                   }
-                  return `<td id="cell-${id}-${key}" ${cellStyle}>${
-                    item[key] !== null ? item[key] : ""
-                  }</td>`;
+
+                  return `<td id="cell-${id}-${key}" ${cellStyle}>
+          ${item[key] !== null ? item[key] : ""}
+        </td>`;
                 })
                 .join("");
 
@@ -807,7 +850,7 @@
               const warningClass = hasZeroValue ? "warning-row" : "";
 
               const tr = document.createElement("tr");
-              tr.style.position = "absolute";
+
               tr.style.top = `${i * rowHeight}px`;
               tr.style.height = `${rowHeight}px`;
               tr.id = `row-${id}`;
@@ -815,32 +858,13 @@
               tr.innerHTML = `${row}${actionColumn}`;
 
               fragment.appendChild(tr);
-            }
+            });
 
-            // Xóa các dòng cũ trong viewport trước khi thêm dòng mới
-            tableBody.innerHTML = "";
             tableBody.appendChild(fragment);
           }
 
-          // Hàm xử lý sự kiện cuộn
-          function onScroll() {
-            const scrollTop = tableContainer.scrollTop;
-            const startIndex = Math.max(
-              0,
-              Math.floor(scrollTop / rowHeight) - bufferRows
-            );
-            const endIndex = Math.min(
-              totalRows,
-              startIndex + visibleRows + bufferRows
-            );
-            renderRows(startIndex, endIndex);
-          }
-
-          // Gắn sự kiện scroll vào container
-          tableContainer.addEventListener("scroll", onScroll);
-
           // Render lần đầu
-          renderRows(0, visibleRows);
+          renderRows();
         }
       }
 
@@ -849,22 +873,21 @@
         const role = localStorage.getItem("userRole");
         const headersMap = {
           id: { name: "ID", width: "50px" },
-          major: { name: "Khoa", width: "120px" },
-          ll_code: { name: "Số tiết theo TKB", width: "100px" },
+          major: { name: "Khoa", width: "50px" },
+          ll_code: { name: "Số tiết thực tế", width: "100px" },
           ll_total: { name: "Lên lớp", width: "80px" },
-          student_quantity: { name: "Số lượng sinh viên", width: "150px" },
-          student_bonus: { name: "Hệ số lớp đông", width: "120px" },
-          bonus_time: { name: "Hệ số T7/CN", width: "120px" },
-          bonus_teacher: { name: "Hệ số giảng viên", width: "120px" },
+          student_quantity: { name: "SL sinh viên", width: "80px" },
+          student_bonus: { name: "HS lớp đông", width: "70px" },
+          bonus_time: { name: "HS T7/CN", width: "50px" },
           course_id: { name: "Mã bộ môn", width: "100px" },
-          lecturer: { name: "Giảng viên theo TKB", width: "200px" },
+          lecturer: { name: "Giảng viên theo TKB", width: "150px" },
           credit_hours: { name: "Số TC", width: "80px" },
           course_name: { name: "Lớp học phần", width: "200px" },
-          course_code: { name: "Mã học phần", width: "150px" },
-          start_date: { name: "Ngày bắt đầu", width: "150px" },
+          course_code: { name: "Mã học phần", width: "100px" },
+          start_date: { name: "Ngày bắt đầu", width: "100px" },
           end_date: { name: "Ngày kết thúc", width: "150px" },
           bonus_total: { name: "Quy chuẩn", width: "50px" },
-          semester: { name: "Năm học", width: "50px" },
+          semester: { name: "Năm học", width: "100px" },
         };
 
         const keyNotEdit = ["id", "GhiChu"];
@@ -895,42 +918,15 @@
             }</td>`;
           })
           .join("");
-        /*
-        // Xây dựng các ô trong dòng
-        const rowHtml = headers
-          .map((key) => {
-            const cellStyle =
-              key === "SoSinhVien" || key === "SoTinChi"
-                ? "background-color: #ffffff; font-weight: bold;" // Style tùy chỉnh
-                : "";
 
-            if (keyNotEdit.includes(key)) {
-              return `<td style="${cellStyle}">${
-                updatedRow[key] !== null ? updatedRow[key] : ""
-              }</td>`;
-            }
-
-            return `<td id="cell-${id}-${key}" style="display:${
-              key === "ID" ? "none" : ""
-            }; ${cellStyle}">${
-              updatedRow[key] !== null ? updatedRow[key] : ""
-            }</td>`;
-            // if (keyNotEdit.includes(key)) {
-            //   return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
-            // }
-            // return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
-            //   }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
-          })
-          .join("");
-*/
         // Tạo cột hành động nếu role là "Duyệt"
         let actionColumn = "";
         if (role === "Duyệt") {
           actionColumn = `
-      <td>
-        <button onclick="editRow(${id})">Sửa</button>
-        <button onclick="deleteRow(${id})">Xóa</button>
-      </td>`;
+        <td style="text-align: center; vertical-align: middle;">
+          <button onclick="editRow(${id})">Sửa</button>
+          <button onclick="deleteRow(${id})">Xóa</button>
+        </td>`;
         }
 
         // Kiểm tra nếu bất kỳ giá trị nào là 0
@@ -970,8 +966,6 @@
         headers.forEach((key) => {
           // Lấy giá trị của trường tương ứng từ item
           const currentValue = item[key];
-
-          console.log("key = ", key);
 
           // Tìm phần tử cell tương ứng với ID và keyss
           const cell = document.getElementById(`cell-${index}-${key}`);
@@ -1215,7 +1209,7 @@
         document.getElementById("inputKi").value = "";
         document.getElementById("inputNam").value = "";
       }
-
+      /*
       function saveRow() {
         // Lấy dữ liệu từ các input
         const Khoa = document.getElementById("inputKhoa").value;
@@ -1248,7 +1242,7 @@
         // Đóng modal
         closeModal();
       }
-
+*/
       // Gắn sự kiện cho các nút
       document
         .getElementById("saveRowButton")
@@ -1462,46 +1456,132 @@
       }
 
       // Hàm xử lý sự kiện khi người dùng nhấn nút "ban-hanh"
-      document
-        .getElementById("ban-hanh")
-        .addEventListener("click", async function () {
-          // Xác nhận lại hành động ban hành
-          const confirmed = confirm("Bạn có chắc chắn muốn ban hành không?");
-          if (!confirmed) {
-            return; // Thoát nếu người dùng không đồng ý
-          }
+      // Hàm kiểm tra dữ liệu tồn tại trên server
+      function checkDataExistence(khoaValue, dotValue, kiValue, namValue) {
+        const body = {
+          Khoa: khoaValue,
+          Dot: dotValue,
+          Ki: kiValue,
+          Nam: namValue,
+        };
+        fetch("/kiem-tra-file", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Kiểm tra dữ liệu thất bại");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.exists) {
+              showModal(khoaValue, dotValue, kiValue, namValue);
+            } else {
+              saveData(khoaValue, dotValue, kiValue, namValue);
+            }
+          })
+          .catch((error) => {
+            alert("Kiểm tra dữ liệu file quy chuẩn thất bại!");
+            console.error("Error:", error);
+          });
+      }
 
-          // Gọi hàm fetchData để lấy dữ liệu từ server
-          await fetchData();
+      // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
+      function showModal(khoaValue, dotValue, kiValue, namValue) {
+        const modal = document.getElementById("action-modal");
+        const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
+      Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
+        document.getElementById("modal-message").innerText = message;
+        modal.style.display = "block";
 
-          // Kiểm tra nếu dữ liệu không có gì để gửi
-          if (!dataQC || dataQC.length === 0) {
+        // Xử lý sự kiện "Xóa"
+        const deleteButton = document.getElementById("btn-delete");
+        deleteButton.onclick = function handleDeleteClick() {
+          modal.style.display = "none";
+          deleteFile(khoaValue, dotValue, kiValue, namValue);
+        };
+
+        // Xử lý sự kiện "Chèn"
+        const appendButton = document.getElementById("btn-append");
+        appendButton.onclick = function handleAppendClick() {
+          modal.style.display = "none";
+          saveData(khoaValue, dotValue, kiValue, namValue);
+        };
+
+        // Xử lý sự kiện "Hủy"
+        document.getElementById("btn-cancel").onclick = function () {
+          modal.style.display = "none";
+        };
+      }
+
+      // Hàm gửi yêu cầu xóa dữ liệu
+      function deleteFile(khoaValue, dotValue, kiValue, namValue) {
+        const body = {
+          Khoa: khoaValue,
+          Dot: dotValue,
+          Ki: kiValue,
+          Nam: namValue,
+        };
+
+        fetch("/xoa-file", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Xóa dữ liệu thất bại");
+            }
+            saveData(khoaValue, dotValue, kiValue, namValue);
+            // alert("Xóa thành công!");
+            location.reload();
+          })
+          .catch((error) => {
             Swal.fire({
               title: "Thông báo",
-              html: "Không có dữ liệu để ban hành",
-              icon: "info",
+              html: "Xóa dữ liệu thất bại",
+              icon: "error",
               confirmButtonText: "OK",
               width: "auto", // Tự động điều chỉnh chiều rộng
               padding: "20px", // Giữ khoảng cách cho nội dung
             });
-            return;
-          }
+            console.error("Error:", error);
+          });
+      }
 
-          try {
-            const response = await fetch("/ban-hanh", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(dataQC),
-            });
+      // Hàm gửi dữ liệu khi dữ liệu không tồn tại
+      function saveData(dataTam, khoaValue, dotValue, kiValue, namValue) {
+        const updatedData = {
+          Khoa: khoaValue,
+          Dot: dotValue,
+          Ki: kiValue,
+          Nam: namValue,
+        };
 
-            const result = await response.json();
-
-            if (result.success) {
+        fetch("/save-data-tkb-to-qcdk", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Gửi dữ liệu thất bại");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thành công!",
+                html: "Thêm file thành công",
                 icon: "success",
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
@@ -1510,23 +1590,95 @@
             } else {
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thất bại!",
+                html: "Thêm file thất bại",
                 icon: "success",
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
               });
             }
-          } catch (error) {
-            console.error("Error:", error);
+          })
+          .catch((error) => {
             Swal.fire({
               title: "Thông báo",
-              html: "Gửi dữ liệu thất bại! Vui lòng thử lại.",
+              html: "Gửi dữ liệu thất bại",
               icon: "success",
               confirmButtonText: "OK",
               width: "auto", // Tự động điều chỉnh chiều rộng
               padding: "20px", // Giữ khoảng cách cho nội dung
             });
+          });
+      }
+
+      function saveDataAll(dataTam, dotValue, kiValue, namValue) {
+        const updatedData = dataTam.map((item) => ({
+          ...item,
+          // Khoa: khoaValue,
+          Dot: dotValue,
+          Ki: kiValue,
+          Nam: namValue,
+        }));
+
+        fetch("/save-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Gửi dữ liệu thất bại");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                title: "Thông báo",
+                html: "Thêm file thành công",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            } else {
+              Swal.fire({
+                title: "Thông báo",
+                html: "Thêm file thất bại",
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            Swal.fire({
+              title: "Thông báo",
+              html: "Gửi dữ liệu thất bại",
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+          });
+      }
+
+      // Gắn sự kiện cho nút "import"
+      document
+        .getElementById("them-vao-qc-du-kien")
+        .addEventListener("click", function () {
+          const khoaValue = document.getElementById("departmentFilter").value;
+          const dotValue = document.getElementById("combobox-dot").value;
+          const kiValue = document.getElementById("comboboxki").value;
+          const namValue = document.getElementById("NamHoc").value;
+
+          if (khoaValue !== "ALL") {
+            checkDataExistence(khoaValue, dotValue, kiValue, namValue);
+          } else {
+            saveDataAll(dotValue, kiValue, namValue);
           }
         });
     </script>
