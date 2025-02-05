@@ -94,11 +94,11 @@ const getInfoGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM GVMOI`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
-    query = `SELECT TenNhanVien, CCCD FROM NHANVIEN`;
+    query = `SELECT TenNhanVien, CCCD FROM nhanvien`;
     const [nvs] = await connection.query(query);
 
     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
