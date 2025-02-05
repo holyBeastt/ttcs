@@ -136,7 +136,7 @@ const AdminController = {
         DienThoai,
         HocVi,
         CCCD,
-        NgayCapCCCD,
+        NgayCapCCCD || "",
         NoiCapCCCD,
         DiaChiHienNay,
         DiaChiCCCD,
