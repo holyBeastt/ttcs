@@ -427,13 +427,8 @@
       const boMon = JSON.parse(localStorage.getItem("gvmList")) || []; // Giảng viên mời
       console.log(gvmList)
 
-      suggestions = gvmList.map(item => {
-      if (item.TenNhanVien) {
-        return `${item.TenNhanVien} - ${item.MaPhongBan}`;
-      } else {
-        return `${item.HoTen} - ${item.MaPhongBan}`;
-      }
-    });
+      suggestions = gvmList.map(item => `${item.HoTen} - ${item.MaPhongBan}`);
+
 
 
       // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
