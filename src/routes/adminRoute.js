@@ -68,13 +68,14 @@ router.get("/thongTinTK", getaccountList);
 
 router.get("/nhanVien", getnhanvienList);
 router.get("/phongBan", getdepartmentList);
-router.get("/themNhanVien", getMaPhongBanList);
+router.get("/themNhanVienSite", getMaPhongBanList);
 
 // thao tác thêm
 router.get("/themPhongBan", showThemPhongBan);
 router.post("/themPhongBan", themPhongBan);
+
 // router.post('/themTK', );
-router.get("/themNhanVien", showThemNhanVien);
+router.get("/themNhanVienSite", showThemNhanVien);
 router.post("/themNhanVien", themNhanVien);
 
 // hiển thị danh sách
