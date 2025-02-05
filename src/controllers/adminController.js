@@ -147,11 +147,13 @@ const AdminController = {
         SoTaiKhoan,
         NganHang,
         ChiNhanh,
-        MonGiangDayChinh,
+        MonGiangDayChinh || "",
         CacMonLienQuan,
         HSL,
         Luong,
       ];
+
+      console.log("value = ", valuesInsert);
 
       const [result] = await connection.execute(queryInsert, valuesInsert);
       const id_User = result.insertId;
