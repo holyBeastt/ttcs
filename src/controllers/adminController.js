@@ -136,7 +136,7 @@ const AdminController = {
         DienThoai,
         HocVi,
         CCCD,
-        NgayCapCCCD || "",
+        NgayCapCCCD || "1899-11-29",
         NoiCapCCCD,
         DiaChiHienNay,
         DiaChiCCCD,
