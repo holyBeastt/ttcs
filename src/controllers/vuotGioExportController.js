@@ -60,7 +60,12 @@ const exportVuotGio = async (req, res) => {
       });
     }
 
-    const sanitizedNamHoc = sanitizeFileName(namHoc);
+    const sanitizeFileName = (namHoc) => {
+      return namHoc.replace(/__/g, "_"); // Thay thế hai dấu gạch dưới thành một dấu gạch dưới
+  };
+  
+  const sanitizedNamHoc = sanitizeFileName(namHoc);
+  
     const sanitizedKhoa = khoa === "ALL" ? null : sanitizeFileName(khoa);
 
     // Các truy vấn SQL
@@ -136,7 +141,13 @@ const exportVuotGio = async (req, res) => {
       FROM nhanvien
       WHERE (MaPhongBan = ? OR ? IS NULL) AND (TenNhanVien = ? OR ? IS NULL) 
     `;
-
+    let queryBoMon = `
+    SELECT MaBoMon, TenBoMon 
+    FROM bomon
+  `;
+  
+  const [resultsBoMon] = await connection.query(queryBoMon);
+  
     // Thực thi các truy vấn với tham số teacherName (giảng viên)
     const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
@@ -148,7 +159,8 @@ const exportVuotGio = async (req, res) => {
     if (
       resultsGiangDay.length === 0 &&
       resultsLopNgoaiQuyChuan.length === 0 &&
-      resultsGiuaky.length === 0
+      resultsGiuaky.length === 0 &&
+      resultsExportDoAnTotNghiep.length === 0
     ) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
@@ -174,20 +186,32 @@ const exportVuotGio = async (req, res) => {
 
     const workbook = new ExcelJS.Workbook();
     uniqueGiangVienList.forEach((giangVien) => {
-      const worksheet = workbook.addWorksheet(giangVien);
-
       // Lọc dữ liệu cho giảng viên này
       const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() === giangVien.trim());
       const filteredCombinedResults = combinedResults.filter(
         (row) => row.GiangVien === giangVien
       );
 
-      const filteredGiuaKy= resultsGiuaky.filter(
+      const filteredGiuaKy = resultsGiuaky.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
+
       const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
+
+      // Kiểm tra xem có bất kỳ dữ liệu nào liên quan đến giảng viên này không
+      if (
+        filteredCombinedResults.length === 0 &&
+        filteredGiuaKy.length === 0 &&
+        filteredExportDoAnTotNghiep.length === 0
+      ) {
+        // Nếu không có dữ liệu, bỏ qua giảng viên này
+        return;
+      }
+      const worksheet = workbook.addWorksheet(giangVien);
+
+
   // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {
@@ -266,8 +290,13 @@ const exportVuotGio = async (req, res) => {
       worksheet.mergeCells(`D${titleRow2.number}:G${titleRow2.number}`);
       titleRow2.height = 25; // Tăng chiều cao hàng
 
+
+      const giangVienBoMon = resultsBoMon.find(
+        (bm) => bm.MaBoMon === giangVienInfo?.MonGiangDayChinh
+      );
+      
       const titleRow3 = worksheet.addRow([
-        `Bộ môn: ${giangVienInfo?.MonGiangDayChinh}`,
+        `Bộ môn: ${giangVienBoMon ? giangVienBoMon.TenBoMon : "Không xác định"}`,
         "",
         "",
         "Hà Nội, ngày tháng năm " + formatDateDMY(new Date()),
