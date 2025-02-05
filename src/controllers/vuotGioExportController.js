@@ -148,7 +148,8 @@ const exportVuotGio = async (req, res) => {
     if (
       resultsGiangDay.length === 0 &&
       resultsLopNgoaiQuyChuan.length === 0 &&
-      resultsGiuaky.length === 0
+      resultsGiuaky.length === 0 &&
+      resultsExportDoAnTotNghiep.length === 0
     ) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
@@ -174,20 +175,32 @@ const exportVuotGio = async (req, res) => {
 
     const workbook = new ExcelJS.Workbook();
     uniqueGiangVienList.forEach((giangVien) => {
-      const worksheet = workbook.addWorksheet(giangVien);
-
       // Lọc dữ liệu cho giảng viên này
       const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() === giangVien.trim());
       const filteredCombinedResults = combinedResults.filter(
         (row) => row.GiangVien === giangVien
       );
 
-      const filteredGiuaKy= resultsGiuaky.filter(
+      const filteredGiuaKy = resultsGiuaky.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
+
       const filteredExportDoAnTotNghiep = resultsExportDoAnTotNghiep.filter(
         row => row.GiangVien.trim() === giangVien.trim()
       );
+
+      // Kiểm tra xem có bất kỳ dữ liệu nào liên quan đến giảng viên này không
+      if (
+        filteredCombinedResults.length === 0 &&
+        filteredGiuaKy.length === 0 &&
+        filteredExportDoAnTotNghiep.length === 0
+      ) {
+        // Nếu không có dữ liệu, bỏ qua giảng viên này
+        return;
+      }
+      const worksheet = workbook.addWorksheet(giangVien);
+
+
   // Tiến hành xử lý và ghi dữ liệu vào worksheet cho giảng viên này
 
   const filteredGroupedResults = {

@@ -262,7 +262,7 @@ WHERE
 GROUP BY 
   gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
   gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
 `;
 
     let params = [dot, namHoc];
@@ -303,7 +303,7 @@ GROUP BY
   GROUP BY 
     gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
     gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
   `;
       params = [dot, namHoc, `%${khoa}%`];
     }
@@ -344,7 +344,7 @@ gv.GioiTinh,
   GROUP BY 
     gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
     gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac,gv.STK, gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
   `;
       params = [dot, namHoc, `%${teacherName}%`];
     }
