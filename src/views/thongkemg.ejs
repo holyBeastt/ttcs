@@ -285,6 +285,17 @@
                                 `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                             );
                         });
+
+                        // Kiểm tra nếu người dùng có MaPhongBan cụ thể
+                        const MaPhongBan = localStorage.getItem("MaPhongBan");
+                        const NonPhongBan = ['DAOTAO', 'HV', 'KHCN&HTPT', 'TAICHINH'];
+
+                        if (MaPhongBan && NonPhongBan.includes(MaPhongBan)) {
+                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL"
+                        } else if (MaPhongBan) {
+                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan
+                        }
+
                         checkAndFetchData();
                     }
                 },
@@ -645,55 +656,39 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const role = localStorage.getItem("userRole");
+            const isKhoa = localStorage.getItem("isKhoa");
+            const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+            // Ẩn button import đồ án
+            const importDoAn = document.getElementById('importDoAn');
+            const suaHD = document.getElementById('suaHD');
+
+            if (isKhoa == 0 && role == 'Duyệt'){
+                importDoAn.style.display = 'block';
+                suaHD.style.display = 'block';
+            }
+
+            // Kiểm tra giá trị isKhoa
+            if (isKhoa == 1) {
+                // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
+                document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
+            } else {
+                // Nếu isKhoa = 0, hiển thị combobox Khoa
+                document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
+            }
 
             // Ẩn button ngay khi trang được tải
             const actionButton = document.getElementById('changeMessage');
             //Ẩn site thêm thông báo
-            if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+            if (role === "Duyệt") {
                 actionButton.style.display = '';
             } else {
                 actionButton.style.display = 'none';
             }
         });
+
+        
     </script>
-    <script>
-        document.getElementById("changeMessage").addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-            const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-            if (MaPhongBan) {
-                // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-                window.location.href = `/changeMessage/${MaPhongBan}`;
-            } else {
-                alert("Không tìm thấy MaPhongBan trong localStorage.");
-            }
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          const role = localStorage.getItem("userRole");
-          const isKhoa = localStorage.getItem("isKhoa");
-    
-        // Ẩn button import đồ án
-        const importDoAn = document.getElementById('importDoAn');
-        const suaHD = document.getElementById('suaHD');
-
-        if (isKhoa == 0 && role == 'Duyệt'){
-            importDoAn.style.display = 'block';
-            suaHD.style.display = 'block';
-        }
-    
-          // Ẩn button ngay khi trang được tải
-          const actionButton = document.getElementById('changeMessage');
-          //Ẩn site thêm thông báo
-          if (role === "Duyệt") {
-            actionButton.style.display = '';
-          } else {
-            actionButton.style.display = 'none';
-          }
-        });
-      </script>
 
     <script>
         document.getElementById("changeMessage").addEventListener("click", function (event) {
