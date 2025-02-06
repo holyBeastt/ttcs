@@ -433,6 +433,243 @@ const exportToWord = async (req, res) => {
     }
 };
 
+// const editStudentQuanity = async (req, res) => {
+//     const data = req.body;  // Nhận dữ liệu từ body
+//     console.log("Dữ liệu nhận để cập nhật:", data); // In ra để kiểm tra
+
+//     const tableTam = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
+//     let connection;
+
+//     try {
+//         connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+//         // Kiểm tra dữ liệu đầu vào
+//         if (!Array.isArray(data) || data.length === 0) {
+//             return res.status(400).json({ success: false, message: "Dữ liệu không hợp lệ hoặc rỗng." });
+//         }
+
+//         // Xây dựng phần CASE trong câu lệnh UPDATE
+//         let updateCaseStatements = [];
+//         let updateValues = [];
+//         let idsToUpdate = [];
+
+//         data.forEach((item) => {
+//             const { ID, StudentQuantityUpdate, StudentQuantity } = item;
+
+//             // Kiểm tra nếu ID, StudentQuantityUpdate và StudentQuantity tồn tại
+//             if (!ID || StudentQuantityUpdate === undefined || StudentQuantity === undefined) {
+//                 throw new Error(`Thiếu ID, StudentQuantityUpdate hoặc StudentQuantity cho bản ghi: ${JSON.stringify(item)}`);
+//             }
+
+//             // Sử dụng Regular Expression để trích xuất số từ ID
+//             const regex = /-(\d+)-/; // Biểu thức chính quy để tìm số giữa 2 dấu gạch nối
+//             const match = ID.match(regex);
+
+//             if (!match) {
+//                 throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
+//             }
+
+//             const numericID = match[1]; // Lấy phần số từ kết quả regex
+
+//             if (!numericID) {
+//                 throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
+//             }
+
+//             // Đồng bộ tất cả về định dạng số, nếu rỗng thì trở thành 0
+//             const studentQuantityUpdate = StudentQuantityUpdate === '' ? 0 : parseInt(StudentQuantityUpdate, 10);
+//             const studentQuantity = StudentQuantity === '' ? 0 : parseInt(StudentQuantity, 10);
+
+//             // Kiểm tra xem StudentQuantityUpdate có khác StudentQuantity không
+//             if (studentQuantity !== studentQuantityUpdate) {
+//                 console.log('Update ID: ' + ID + ' số sinh viên cũ : ' + studentQuantity + ' số sinh viên mới : ' + studentQuantityUpdate);
+
+//                 // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
+//                 if (isNaN(studentQuantityUpdate)) {
+//                     throw new Error(`Số lượng sinh viên không hợp lệ: ${StudentQuantityUpdate}`);
+//                 }
+
+//                 // Xây dựng phần CASE để cập nhật số lượng sinh viên
+//                 updateCaseStatements.push(`
+//                     WHEN ID = ? THEN ?
+//                 `);
+//                 updateValues.push(numericID, studentQuantityUpdate); // Thêm giá trị ID và StudentQuantityUpdate
+//                 idsToUpdate.push(numericID);  // Thêm ID vào mảng idsToUpdate
+//             }
+//         });
+
+//         // Nếu không có bản ghi nào cần cập nhật, trả về thông báo
+//         if (updateCaseStatements.length === 0) {
+//             return res.json({ success: false, message: "Không có lớp nào cập nhật số sinh viên" });
+//         }
+
+//         // Nếu chỉ có một ID trong mảng idsToUpdate, biến nó thành mảng để truyền vào IN
+//         const idsToUpdateParam = idsToUpdate.length === 1 ? [idsToUpdate[0]] : idsToUpdate;
+
+//         // Xây dựng câu lệnh UPDATE
+//         const updateQuery = `
+//             UPDATE ?? 
+//             SET SoSinhVien = CASE ${updateCaseStatements.join(' ')}
+//             ELSE SoSinhVien END
+//             WHERE ID IN (?);
+//         `;
+
+//         // Thực thi câu lệnh UPDATE
+//         await connection.query(updateQuery, [tableTam, ...updateValues, idsToUpdateParam]);
+
+//         res.json({ success: true, message: "Cập nhật số lượng sinh viên thành công." });
+
+//     } catch (error) {
+//         console.error("Lỗi khi cập nhật số lượng sinh viên:", error);
+//         res.status(500).json({ success: false, message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}` });
+//     } finally {
+//         if (connection) connection.release(); // Giải phóng kết nối về pool
+//     }
+// };
+
+
+const editStudentQuanity = async (req, res) => {
+    const data = req.body;  // Nhận dữ liệu từ body
+    // console.log("Dữ liệu nhận để cập nhật:", data); // In ra để kiểm tra
+
+    const tableTam = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
+    let connection;
+
+    try {
+        connection = await createPoolConnection(); // Tạo kết nối từ pool
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({ success: false, message: "Dữ liệu không hợp lệ hoặc rỗng." });
+        }
+
+        // Xây dựng phần CASE trong câu lệnh UPDATE
+        let updateCaseStatements = {
+            SoSinhVien: [],
+            HeSoLopDong: [],
+            QuyChuan: []
+        };
+        let updateValues = [];
+        let idsToUpdate = [];
+
+        data.forEach((item) => {
+            const { ID, StudentQuantityUpdate, StudentQuantity, HeSoT7CN, LL } = item;  // Lấy HeSoNgoaiGio từ item
+
+            // Kiểm tra nếu ID, StudentQuantityUpdate và StudentQuantity tồn tại
+            if (!ID || StudentQuantityUpdate === undefined || StudentQuantity === undefined) {
+                throw new Error(`Thiếu ID, StudentQuantityUpdate hoặc StudentQuantity cho bản ghi: ${JSON.stringify(item)}`);
+            }
+
+            // Sử dụng Regular Expression để trích xuất số từ ID
+            const regex = /-(\d+)-/; // Biểu thức chính quy để tìm số giữa 2 dấu gạch nối
+            const match = ID.match(regex);
+
+            if (!match) {
+                throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
+            }
+
+            const numericID = match[1]; // Lấy phần số từ kết quả regex
+
+            if (!numericID) {
+                throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
+            }
+
+            // Đồng bộ tất cả về định dạng số, nếu rỗng thì trở thành 0
+            const studentQuantityUpdate = StudentQuantityUpdate === '' ? 0 : parseInt(StudentQuantityUpdate, 10);
+            const studentQuantity = StudentQuantity === '' ? 0 : parseInt(StudentQuantity, 10);
+
+            // Kiểm tra xem StudentQuantityUpdate có khác StudentQuantity không
+            if (studentQuantity !== studentQuantityUpdate) {
+                console.log('Update ID: ' + ID + ' số sinh viên cũ : ' + studentQuantity + ' số sinh viên mới : ' + studentQuantityUpdate);
+
+                // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
+                if (isNaN(studentQuantityUpdate)) {
+                    throw new Error(`Số lượng sinh viên không hợp lệ: ${StudentQuantityUpdate}`);
+                }
+
+                // Gọi hàm quy đổi hệ số
+                const { HeSoLopDong } = quyDoiHeSo(item); // Giả sử hàm quyDoiHeSo đã được định nghĩa trước đó
+
+                // Tính QuyChuan
+                const QuyChuan = Number(LL) * Number(HeSoLopDong) * Number(HeSoT7CN); // Nếu HeSoNgoaiGio là null, mặc định lấy giá trị 1
+
+                console.log(QuyChuan);
+
+                // Cập nhật các giá trị cần thay đổi
+                updateCaseStatements.SoSinhVien.push(`WHEN ID = ? THEN ?`);
+                updateValues.push(numericID, studentQuantityUpdate);
+
+                updateCaseStatements.HeSoLopDong.push(`WHEN ID = ? THEN ?`);
+                updateValues.push(numericID, HeSoLopDong);
+
+                updateCaseStatements.QuyChuan.push(`WHEN ID = ? THEN ?`);
+                updateValues.push(numericID, QuyChuan);
+
+                idsToUpdate.push(numericID);  // Thêm ID vào mảng idsToUpdate
+            }
+        });
+
+        // Nếu không có bản ghi nào cần cập nhật, trả về thông báo
+        if (updateCaseStatements.SoSinhVien.length === 0) {
+            return res.json({ success: false, message: "Không có lớp nào cập nhật số sinh viên" });
+        }
+
+        // Nếu chỉ có một ID trong mảng idsToUpdate, biến nó thành mảng để truyền vào IN
+        const idsToUpdateParam = idsToUpdate.length === 1 ? [idsToUpdate[0]] : idsToUpdate;
+
+        // Xây dựng câu lệnh UPDATE
+        const updateQuery = `
+            UPDATE ?? 
+            SET 
+                SoSinhVien = CASE ${updateCaseStatements.SoSinhVien.join(' ')} ELSE SoSinhVien END,
+                HeSoLopDong = CASE ${updateCaseStatements.HeSoLopDong.join(' ')} ELSE HeSoLopDong END,
+                QuyChuan = CASE ${updateCaseStatements.QuyChuan.join(' ')} ELSE QuyChuan END
+            WHERE ID IN (?);
+        `;
+
+        // Thực thi câu lệnh UPDATE
+        await connection.query(updateQuery, [tableTam, ...updateValues, idsToUpdateParam]);
+
+        res.json({ success: true, message: "Cập nhật số lượng sinh viên, hệ số và QuyChuan thành công." });
+
+    } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng sinh viên:", error);
+        res.status(500).json({ success: false, message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}` });
+    } finally {
+        if (connection) connection.release(); // Giải phóng kết nối về pool
+    }
+};
+
+
+const quyDoiHeSo = (item) => {
+    // Biến để lưu giá trị HeSoLopDong
+    let HeSoLopDong = null;
+
+    // Trường hợp tính HeSoLopDong theo số lượng sinh viên
+    const StudentQuantityUpdate = item.StudentQuantityUpdate;
+
+    // Quy đổi HeSoLopDong theo số lượng sinh viên
+    if (StudentQuantityUpdate <= 40) {
+        HeSoLopDong = 1;
+    } else if (StudentQuantityUpdate > 40 && StudentQuantityUpdate <= 50) {
+        HeSoLopDong = 1.1;
+    } else if (StudentQuantityUpdate > 50 && StudentQuantityUpdate <= 65) {
+        HeSoLopDong = 1.2;
+    } else if (StudentQuantityUpdate > 65 && StudentQuantityUpdate <= 80) {
+        HeSoLopDong = 1.3;
+    } else if (StudentQuantityUpdate > 80 && StudentQuantityUpdate <= 100) {
+        HeSoLopDong = 1.4;
+    } else if (StudentQuantityUpdate > 100) {
+        HeSoLopDong = 1.5;
+    }
+
+    // Trả về kết quả quy đổi
+    return {
+        HeSoLopDong
+    };
+};
+
+
+
 // Xuất các hàm để sử dụng
 module.exports = {
     getTableTam,
@@ -441,5 +678,6 @@ module.exports = {
     updateRow,
     deleteRow,
     addNewRow,
-    exportToWord
+    exportToWord,
+    editStudentQuanity,
 };
