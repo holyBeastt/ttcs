@@ -50,6 +50,7 @@ const AdminController = {
       Quyen,
       HSL,
       Luong,
+      PhanTramMienGiam,
     } = req.body;
     let TenDangNhap = req.body.TenDangNhap;
 
@@ -84,7 +85,14 @@ const AdminController = {
             "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
         });
       }
-      if (!/^\d+$/.test(Luong)) {
+      if (!/^\d*$/.test(Luong)) {
+        // Kiểm tra nếu Luong không phải là chuỗi số
+        connection.release(); // Giải phóng kết nối trước khi trả về
+        return res.status(400).json({
+          message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+        });
+      }
+      if (!/^\d*$/.test(PhanTramMienGiam)) {
         // Kiểm tra nếu Luong không phải là chuỗi số
         connection.release(); // Giải phóng kết nối trước khi trả về
         return res.status(400).json({
@@ -125,8 +133,8 @@ const AdminController = {
             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
-            MonGiangDayChinh, CacMonLienQuan, HSL, Luong
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const valuesInsert = [
@@ -151,6 +159,7 @@ const AdminController = {
         CacMonLienQuan,
         HSL,
         Luong,
+        PhanTramMienGiam,
       ];
 
       console.log("value = ", valuesInsert);
@@ -220,7 +229,7 @@ const AdminController = {
     } finally {
       if (connection) {
         try {
-          await connection.release(); // Trả lại kết nối vào pool
+          connection.release(); // Trả lại kết nối vào pool
         } catch (error) {
           console.error("Lỗi khi trả lại kết nối:", error);
         }
@@ -842,6 +851,7 @@ const AdminController = {
       TenDangNhap,
       Quyen,
       HSL,
+      PhanTramMienGiam,
     } = req.body;
 
     try {
@@ -854,7 +864,8 @@ const AdminController = {
         HocVi = ?,
         ChucVu = ?,
         HSL = ?,
-        Luong = ?
+        Luong = ?,
+        PhanTramMienGiam = ?
         WHERE id_User = ?`;
 
       const [updateResult] = await connection.query(query, [
@@ -864,6 +875,7 @@ const AdminController = {
         ChucVu,
         HSL,
         Luong,
+        PhanTramMienGiam,
         Id_User,
       ]);
 

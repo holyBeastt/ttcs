@@ -99,6 +99,10 @@
             </select>
           </div> -->
           <div class="">
+            <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
+            <input type="text" class="form-control text-center" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= user.PhanTramMienGiam %>" required>
+          </div>
+          <div class="">
             <label for="HSL" class="form-label">Hệ số lương*</label>
             <input type="text" class="form-control text-center" id="HSL" name="HSL" value="<%= user.HSL %>" required>
           </div>
@@ -151,59 +155,7 @@
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const khoa = <%= role.isKhoa %>;
-      const quyenSelect = document.getElementById('Quyen');
 
-      // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
-      if (khoa === 1) {
-        quyenSelect.innerHTML = `
-            <option value="GV">Giảng Viên</option>
-            <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-            <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
-      } else {
-        quyenSelect.innerHTML = `
-            <option value="Duyệt">Duyệt</option>
-            <option value="Thường">Thường</option>`;
-      }
-      const quyenValue = "<%= role.Quyen %>";
-
-      // Đặt option có value khớp với role.Quyen là selected
-      const optionToSelect = quyenSelect.querySelector(`option[value="${quyenValue}"]`);
-      if (optionToSelect) {
-        optionToSelect.selected = true;
-      }
-    })
-  </script>
-
-  <script>
-    function fetchQuyen() {
-      const maPhongBan = document.getElementById('MaPhongBan').value;
-      // Gọi API để lấy thông tin isKhoa
-      fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          const quyenSelect = document.getElementById('Quyen');
-          quyenSelect.innerHTML = ''; // Xóa các option cũ
-
-          // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
-          if (data.isKhoa === 1) {
-            quyenSelect.innerHTML = `
-              <option value="GV">Giảng Viên</option>
-              <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-              <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
-          } else {
-            quyenSelect.innerHTML = `
-              <option value="Thường">Thường</option>
-              <option value="Duyệt">Duyệt</option>`;
-          }
-
-        }
-        )
-        .catch(error => console.error('Error:', error));
-    }
-  </script>
   <script>
     document.getElementById("changePasswordLink").addEventListener("click", function (event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
@@ -216,87 +168,6 @@
         alert("Không tìm thấy TenDangNhap trong localStorage.");
       }
     });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const maPhongBan = document.getElementById("MaPhongBan").value;
-      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
-
-      fetch(`/getMaBoMon/${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log(data); // In ra phản hồi để kiểm tra
-          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-
-          if (!maBoMonSelect) {
-            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-            return;
-          }
-
-          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-          let foundMatch = false;
-
-          // Kiểm tra success và dữ liệu maBoMon
-          if (data.success && data.maBoMon) {
-            data.maBoMon.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-              // Kiểm tra nếu giá trị trùng với monGiangDayChinh
-              if (item.MaBoMon === monGiangDayChinh) {
-                option.selected = true; // Đặt option thành selected nếu trùng
-                foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
-              }
-
-              maBoMonSelect.appendChild(option); // Thêm option vào select
-
-
-            });
-          } else {
-            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
-          }
-
-          // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
-          if (!foundMatch) {
-            alert("Không tồn tại mã bộ môn vui lòng sửa lại");
-          }
-
-        })
-        .catch(error => console.error('Error:', error));
-    });
-  </script>
-  <script>
-    function fetchBoMon() {
-      const maPhongBan = document.getElementById("MaPhongBan").value;
-      fetch(`/getMaBoMon/${maPhongBan}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log(data); // In ra phản hồi để kiểm tra
-          const maBoMonSelect = document.getElementById('MonGiangDayChinh');
-
-          if (!maBoMonSelect) {
-            console.error("Không tìm thấy phần tử với ID 'MonGiangDayChinh'");
-            return;
-          }
-
-          maBoMonSelect.innerHTML = ''; // Xóa các option cũ
-
-          // Kiểm tra success và dữ liệu maBoMon
-          if (data.success && data.maBoMon) {
-            data.maBoMon.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-              option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-              maBoMonSelect.appendChild(option); // Thêm option vào select
-            });
-          } else {
-            console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
-          }
-        })
-        .catch(error => console.error('Error:', error));
-    };
   </script>
 
   <!-- Phần phân quyền -->
@@ -388,10 +259,15 @@
           if (id_User) {
             // Kiểm tra giá trị Luong trong formObject
             const luong = formObject.Luong;
+            const phantram = formObject.PhanTramMienGiam;
 
             // Kiểm tra xem Luong có phải là chuỗi số không
-            if (!/^\d+$/.test(luong)) {
-                alert("Giá trị Lương phải là một dãy số hợp lệ.");
+            if (!/^\d*$/.test(luong)) {
+                alert("Giá trị Lương phải là một dãy số hợp lệ hoặc để trống.");
+                return; // Dừng việc gửi dữ liệu nếu không hợp lệ
+            }
+            if (!/^\d*$/.test(luong)) {
+                alert("Giá trị Phần trăm miễn giảm phải là một dãy số hợp lệ hoặc để trống.");
                 return; // Dừng việc gửi dữ liệu nếu không hợp lệ
             }
 

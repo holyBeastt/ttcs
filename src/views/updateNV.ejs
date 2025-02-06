@@ -135,9 +135,15 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper">
+                                <div class="col-md-4 input-wrapper d-flex justify-content-between">
+                                  <div>
                                     <label for="ChucVu" class="form-label">Chức Vụ*</label>
                                     <input type="text" class="form-control" id="ChucVu" name="ChucVu" value="<%= value.ChucVu %>" required>
+                                  </div>
+                                  <div>
+                                    <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
+                                    <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>"/>
+                                  </div>
                                 </div>
                                 <div class="col-md-4 input-wrapper">
                                     <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
