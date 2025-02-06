@@ -42,4 +42,9 @@ router.post("/qcdk-export-word", async (req, res) => {
   qcdk.exportToWord(req, res);
 });
 
+// sửa số sinh viênviên
+router.post("/qcdk/edit-student-quanity", async (req, res) => {
+  qcdk.editStudentQuanity(req, res);
+});
+
 module.exports = router;
