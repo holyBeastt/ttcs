@@ -22,14 +22,17 @@
       padding: 10px;
       text-align: left;
       border: 1px solid #dee2e6;
-      white-space: nowrap;
-      /* Ngăn chặn xuống dòng */
+      white-space: normal;
+      word-wrap: break-word;
     }
 
     .table th {
       background-color: #007bff;
       color: white;
       font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .table tbody tr:nth-child(even) {
@@ -42,6 +45,7 @@
 
     .table td {
       vertical-align: middle;
+      
     }
 
     .bg-custom {
