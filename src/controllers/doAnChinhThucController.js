@@ -94,11 +94,11 @@ const getInfoGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM GVMOI`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
-    query = `SELECT TenNhanVien, CCCD FROM NHANVIEN`;
+    query = `SELECT TenNhanVien, CCCD FROM nhanvien`;
     const [nvs] = await connection.query(query);
 
     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
@@ -616,8 +616,8 @@ const saveToDB = async (req, res) => {
   }
 };
 
-const getDoAnChinhThuc = (req, res) => {
-  res.render("doAnChinhThuc.ejs");
+const getthongTinDoAnTotNghiep = (req, res) => {
+  res.render("thongTinDoAnTotNghiep.ejs");
 };
 
 const getInfoDoAn = async (req, res) => {
@@ -631,12 +631,11 @@ const getInfoDoAn = async (req, res) => {
 
     let query, values;
     if (MaPhongBan == "ALL") {
-      query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND DaBanHanh = 1";
+      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
       values = [Dot, NamHoc];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ? AND DaBanHanh = 1";
+        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
       values = [Dot, NamHoc, MaPhongBan];
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
@@ -1146,9 +1145,48 @@ const DoneNote = async (req, res) => {
   }
 };
 
+const getDoAnChinhThuc = async (req, res) => {
+  res.render("doAnChinhThuc.ejs");
+};
+
+// Lấy dữ liệu để hiển thị site đồ án chính thức
+const getDataDoAnChinhThuc = async (req, res) => {
+  const Dot = req.body.Dot;
+  const NamHoc = req.body.Nam;
+  const MaPhongBan = req.body.Khoa;
+
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    let query, values;
+    if (MaPhongBan == "ALL") {
+      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
+      values = [Dot, NamHoc];
+    } else {
+      query =
+        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
+      values = [Dot, NamHoc, MaPhongBan];
+    }
+    const [result] = await connection.query(query, values);
+
+    // Trả dữ liệu về client dưới dạng JSON
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu từ database:", error);
+
+    // Trả lỗi về client
+    res.status(500).json({ message: "Đã xảy ra lỗi khi lấy dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getDoAnChinhThuc,
+  getDataDoAnChinhThuc,
+  getthongTinDoAnTotNghiep,
   getInfoDoAn,
   updateDoAn,
   saveToDB,

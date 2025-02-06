@@ -23,7 +23,8 @@
     <style>
       /* nmsvbmbvsmnvds */
       .teacher-group {
-        border: 2px solid black;
+        border-top: 2px solid black;
+
         /* Viền đen xung quanh nhóm giảng viên */
         border-collapse: separate;
         margin-bottom: 10px;
@@ -178,7 +179,6 @@
     <!-- Phần header -->
     <%- include('header') %>
 
-    <!-- Phần nội dung -->
     <div class="container-fluid m-4 box">
       <div class="d-flex justify-content-center">
         <!-- Main content -->
@@ -202,7 +202,7 @@
                   </select>
 
                   <!-- Combo box kì -->
-                  <select class="selectop mx-1" id="comboboxki">
+                  <select class="selectop mx-1" id="combobox-ki">
                     <option value="">Kỳ</option>
                   </select>
 
@@ -212,6 +212,21 @@
                   </select>
                   <select class="selectop mx-1" id="departmentFilter">
                     <option value="">Chọn khoa</option>
+                  </select>
+
+                  <select
+                    id="he_dao_tao"
+                    name="he_dao_tao"
+                    class="w-200px mx-2 selectop"
+                  >
+                    <option value="Đại học (Đóng học phí)">
+                      Đại học (Đóng học phí)
+                    </option>
+                    <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
+                    <option value="Cao học (Đóng học phí)">Cao học</option>
+                    <option value="Nghiên cứu sinh (Đóng học phí)">
+                      Nghiên cứu sinh
+                    </option>
                   </select>
 
                   <button
@@ -265,26 +280,22 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Link script Sweet alert 2 -->
-    <!-- SweetAlert2 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- SweetAlert2 JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-    <!-- <tbody style="display: none;" class="teacher-group" id="data-table-body"></tbody> -->
+    <tbody
+      style="display: none"
+      class="teacher-group"
+      id="data-table-body"
+    ></tbody>
 
     <script>
       function filterTable() {
         // Lấy giá trị lọc từ các dropdown
         let dot = document.getElementById("combobox-dot").value;
-        let ki = document.getElementById("comboboxki").value;
+        let ki = document.getElementById("combobox-ki").value;
         let nam = document.getElementById("NamHoc").value;
         let department = document
           .getElementById("departmentFilter")
           .value.trim();
+        const he_dao_tao = document.getElementById("he_dao_tao").value;
 
         // Tạo dữ liệu gửi đến server
         const filterData = {
@@ -292,6 +303,7 @@
           ki: ki,
           nam: nam,
           department: department,
+          he_dao_tao: he_dao_tao,
         };
 
         // Gửi request tới server để lấy dữ liệu lọc
@@ -322,47 +334,46 @@
         Object.keys(data).forEach((teacher) => {
           const courses = data[teacher];
           const totalSoTiet = courses.reduce(
-            (total, course) => total + (parseFloat(course.QuyChuan) || 0),
+            (total, course) => total + (parseFloat(course.SoTiet) || 0),
             0
           );
 
           // Duyệt qua từng khóa học của giảng viên
           courses.forEach((course, courseIndex) => {
             const tr = document.createElement("tr");
-            tr.setAttribute("data-department", course.MaPhongBan);
+            tr.setAttribute("data-department", course.Khoa);
             tr.setAttribute("data-dot", course.Dot);
             tr.setAttribute("data-ki", course.KiHoc);
             tr.setAttribute("data-nam", course.NamHoc);
 
             // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
             if (courseIndex === 0) {
+              tr.classList.add("teacher-group"); // Gán class "teacher-group"
               tr.innerHTML = `
               <td rowspan="${courses.length}">${index}</td>
-              <td rowspan="${courses.length}">${
-                course.GiaoVienGiangDay.split(" - ")[0]
-              }</td>
+              <td rowspan="${courses.length}">${course.GiangVien}</td>
             `;
               index++; // Tăng index cho giảng viên tiếp theo
             }
 
             // Thêm các ô dữ liệu cho từng môn học
             tr.innerHTML += `
-            <td>${course.LopHocPhan}</td>
-            <td>${course.TenLop}</td>
+            <td>${course.TenHocPhan}</td>
+            <td>${course.Lop}</td>
             <td>${course.SoTinChi}</td>
             <td>${course.Dot}</td>
             <td>${course.KiHoc}</td>
             <td>${course.NamHoc}</td>
             <td>${formatDate(course.NgayBatDau)}</td>
             <td>${formatDate(course.NgayKetThuc)}</td>
-            <td>${course.QuyChuan}</td>
+            <td>${course.SoTiet}</td>
           `;
 
             // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
             if (courseIndex === 0) {
               tr.innerHTML += `
               <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
-              <td rowspan="${courses.length}">${course.MaPhongBan}</td>
+              <td rowspan="${courses.length}">${course.Khoa}</td>
               <td rowspan="${courses.length}">
                 <button class="action-button view" onclick="viewClass(this, '${
                   parseInt(course.id_Gvm) - 1
@@ -434,6 +445,7 @@
         const rows = document.querySelectorAll(
           "tbody.teacher-group tr[data-department]"
         );
+
         rows.forEach((row) => {
           // Kiểm tra xem hàng có hiển thị hay không
           const isVisible = row.style.display != "none";
@@ -444,7 +456,6 @@
             if (qcCell) {
               const qcValue = parseFloat(qcCell.textContent.trim());
               if (!isNaN(qcValue)) {
-                console.log(totalQC);
                 totalQC += qcValue;
               }
             }
@@ -457,60 +468,43 @@
 
       // Tìm kiếm giảng viên mời theo tên
       function searchClass() {
-        document
-          .getElementById("searchInput")
-          .addEventListener("input", function () {
-            const input = this.value.toLowerCase(); // Lấy giá trị từ ô tìm kiếm
-            const rows = document.querySelectorAll("#data-table-body tr"); // Chọn tất cả các hàng trong bảng
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let table = document.getElementById("classTable");
+        let rows = table.getElementsByTagName("tr");
 
-            rows.forEach((row) => {
-              const secondColumn = row.querySelectorAll("td")[1]; // Lấy cột thứ 2 (nếu tồn tại)
+        let currentGroup = [];
+        let groupVisible = false;
 
-              if (secondColumn) {
-                const secondColumnText = secondColumn.textContent.toLowerCase(); // Lấy nội dung của cột thứ 2
-                if (secondColumnText.includes(input)) {
-                  row.style.display = ""; // Hiển thị hàng nếu phù hợp
-                } else {
-                  row.style.display = "none"; // Ẩn hàng nếu không phù hợp
-                }
-              }
-            });
-          });
-        // debugger
+        for (let i = 1; i < rows.length; i++) {
+          // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+          let row = rows[i];
 
-        // let currentGroup = null;
-        // let groupVisible = false;
+          if (row.classList.contains("teacher-group")) {
+            // Đây là hàng đầu tiên của một nhóm giảng viên mới
+            if (currentGroup) {
+              // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+              setGroupVisibility(currentGroup, groupVisible);
+            }
 
-        // for (let i = 1; i < rows.length; i++) {
-        //   // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-        //   let row = rows[i];
+            currentGroup = [];
+            groupVisible = false;
+          }
 
-        //   if (row.classList.contains("teacher-group")) {
-        //     // Đây là hàng đầu tiên của một nhóm giảng viên mới
-        //     if (currentGroup) {
-        //       // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
-        //       setGroupVisibility(currentGroup, groupVisible);
-        //     }
+          currentGroup.push(row);
 
-        //     currentGroup = [];
-        //     groupVisible = false;
-        //   }
+          let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
+          if (teacherNameCell) {
+            let teacherName = teacherNameCell.textContent.toLowerCase();
+            if (teacherName.includes(input)) {
+              groupVisible = true;
+            }
+          }
+        }
 
-        //   currentGroup.push(row);
-
-        //   let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
-        //   if (teacherNameCell) {
-        //     let teacherName = teacherNameCell.textContent.toLowerCase();
-        //     if (teacherName.includes(input)) {
-        //       groupVisible = true;
-        //     }
-        //   }
-        // }
-
-        // // Xử lý nhóm cuối cùng
-        // if (currentGroup) {
-        //   setGroupVisibility(currentGroup, groupVisible);
-        // }
+        // Xử lý nhóm cuối cùng
+        if (currentGroup) {
+          setGroupVisibility(currentGroup, groupVisible);
+        }
         calculateTotals();
       }
 
@@ -563,23 +557,9 @@
       // console.log(message)
       // Hiển thị thông báo dựa trên giá trị của message
       if (message === "insertSuccess") {
-        Swal.fire({
-          title: "Thông báo",
-          html: "Cập nhật thành công",
-          icon: "success",
-          confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
-        });
+        alert("Update Success");
       } else if (message === "insertFalse") {
-        Swal.fire({
-          title: "Thông báo",
-          html: "Cập nhật thất bại",
-          icon: "error",
-          confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
-        });
+        alert("Update False");
       }
 
       // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
@@ -628,6 +608,24 @@
     </script>
 
     <script>
+      window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        let Role = localStorage.getItem("userRole");
+        if (Role.toUpperCase() == "LÃNH ĐẠO KHOA") {
+          Role = "LĐK";
+        }
+        if (TenNhanVien) {
+          // Hiển thị tên người dùng trên phần tử HTML
+          document.querySelector(
+            ".fullname"
+          ).innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+          document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+        }
+        //document.querySelector(".role").innerText = `${Role}`;
+      };
+    </script>
+    <script>
       document
         .getElementById("changePasswordLink")
         .addEventListener("click", function (event) {
@@ -646,9 +644,45 @@
     </script>
 
     <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+        const Quyen = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById("actionButton");
+        const actionButton1 = document.getElementById("actionButton1");
+        const actionButton2 = document.getElementById("actionButton2");
+        const actionButton3 = document.getElementById("actionButton3");
+
+        if (isKhoa == 0) {
+          actionButton1.style.display = "none"; // Ẩn actionButton1 nếu isKhoa = 0
+          actionButton2.style.display = "inline-block"; // Hiện actionButton2
+          if (role.trim().toLocaleLowerCase() == "thường") {
+            actionButton2.style.display = "none"; // Hiện actionButton2
+          }
+        } else {
+          actionButton1.style.display = "inline-block"; // Hiện actionButton1 nếu isKhoa khác 0
+          actionButton2.style.display = "none"; // Ẩn actionButton2
+
+          if (Quyen.toLowerCase() == "gv") {
+            actionButton1.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
+          }
+        }
+
+        //Ẩn site duyệt lớp gk
+        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+          actionButton3.style.display = "";
+        } else {
+          actionButton3.style.display = "none";
+        }
+      });
+    </script>
+
+    <script>
       $(document).ready(function () {
         $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
+        $('#combobox-ki option[value=""]').remove();
         $('#combobox-dot option[value=""]').remove();
 
         $.ajax({
@@ -665,7 +699,7 @@
 
               response.Ki.forEach(function (item) {
                 console.log(item.Ki);
-                $("#comboboxki").append(
+                $("#combobox-ki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
@@ -688,6 +722,73 @@
         });
       });
     </script>
+
+    <!-- <script>
+    function filterTable() {
+      // Lấy giá trị lọc
+      let dot = document.getElementById("combobox-dot").value;
+      let ki = document.getElementById("combobox-ki").value;
+      let nam = document.getElementById("NamHoc").value;
+      let department = document.getElementById("departmentFilter").value.trim();
+  
+      let tbody = document.getElementById("data-table-body");
+      let teacherGroups = tbody.querySelectorAll("tr.teacher-group"); // Chỉ lấy các dòng nhóm giảng viên
+  
+      // Duyệt qua từng nhóm giảng viên
+      teacherGroups.forEach((teacherGroupRow) => {
+        let courses = teacherGroupRow.nextElementSibling; // Lấy dòng môn học kế tiếp
+        let showGroup = false; // Đặt mặc định là ẩn
+  
+        // Duyệt qua từng dòng môn học thuộc nhóm giảng viên
+        while (courses && !courses.classList.contains("teacher-group")) {
+          let rowDepartment = courses.getAttribute("data-department");
+          let rowDot = courses.getAttribute("data-dot");
+          let rowKi = courses.getAttribute("data-ki");
+          let rowNam = courses.getAttribute("data-nam");
+  
+          // Kiểm tra các điều kiện lọc
+          let matchesDepartment = department === "ALL" || rowDepartment === department;
+          let matchesDot = rowDot === dot;
+          let matchesKi = rowKi === ki;
+          let matchesNam = rowNam === nam;
+
+          console.log("stt");
+          console.log("nam = ", nam);
+          console.log("row nam = ", rowNam);
+          console.log("matchesNam = ", matchesNam);
+  
+          // Nếu có môn học nào khớp với điều kiện lọc, hiển thị cả nhóm
+          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
+            showGroup = true;
+            break; // Thoát vòng lặp vì chỉ cần một môn học khớp
+          }
+  
+          courses = courses.nextElementSibling; // Tiếp tục sang dòng môn học tiếp theo
+        }
+  
+        // Hiển thị hoặc ẩn dòng nhóm giảng viên và các dòng môn học của nhóm
+        if (showGroup) {
+          teacherGroupRow.style.display = ""; // Hiển thị dòng nhóm giảng viên
+          let courseRow = teacherGroupRow.nextElementSibling;
+          while (courseRow && !courseRow.classList.contains("teacher-group")) {
+            courseRow.style.display = ""; // Hiển thị các dòng môn học
+            courseRow = courseRow.nextElementSibling;
+          }
+        } else {
+          teacherGroupRow.style.display = "none"; // Ẩn dòng nhóm giảng viên
+          let courseRow = teacherGroupRow.nextElementSibling;
+          while (courseRow && !courseRow.classList.contains("teacher-group")) {
+            courseRow.style.display = "none"; // Ẩn các dòng môn học
+            courseRow = courseRow.nextElementSibling;
+          }
+        }
+      });
+      // Hiển thị lại tbody sau khi lọc
+      tbody.style.display = "table-row-group";  // Hiển thị lại tbody
+  
+      calculateTotals(); // Cập nhật lại tổng số sau khi lọc
+    }
+  </script> -->
 
     <script>
       $(document).ready(function () {
@@ -742,36 +843,6 @@
             window.location.href = `/infome/${id_User}`;
           } else {
             alert("Không tìm thấy id_User trong localStorage.");
-          }
-        });
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const role = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById("changeMessage");
-        //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
-          actionButton.style.display = "";
-        } else {
-          actionButton.style.display = "none";
-        }
-      });
-    </script>
-    <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-          if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-          } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
         });
     </script>

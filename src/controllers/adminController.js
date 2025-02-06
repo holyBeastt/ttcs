@@ -144,7 +144,7 @@ const AdminController = {
         DienThoai,
         HocVi,
         CCCD,
-        NgayCapCCCD,
+        NgayCapCCCD || "1899-11-29",
         NoiCapCCCD,
         DiaChiHienNay,
         DiaChiCCCD,
@@ -155,12 +155,14 @@ const AdminController = {
         SoTaiKhoan,
         NganHang,
         ChiNhanh,
-        MonGiangDayChinh,
+        MonGiangDayChinh || "",
         CacMonLienQuan,
         HSL,
         Luong,
         PhanTramMienGiam,
       ];
+
+      console.log("value = ", valuesInsert);
 
       const [result] = await connection.execute(queryInsert, valuesInsert);
       const id_User = result.insertId;

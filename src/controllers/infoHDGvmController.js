@@ -480,8 +480,20 @@ const getHopDongDuKienData = async (req, res) => {
       [rows] = await connection.execute(
         `WITH DoAnHopDongDuKien AS (
     SELECT
-        gv.*,
         gv.HoTen AS GiangVien,
+        gv.GioiTinh,
+        gv.Email,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
         'Đồ án' AS he_dao_tao,
         MIN(Combined.NgayBatDau) AS NgayBatDau,
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
@@ -524,7 +536,8 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
-        gv.HoTen
+        gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc
     ), 
     
    DaiHocHopDongDuKien AS (
@@ -637,7 +650,6 @@ tableALL AS (SELECT
     NgayKetThuc,
     TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -664,7 +676,6 @@ SELECT
     NgayKetThuc,
     SoTiet AS TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -691,7 +702,6 @@ SELECT
     NgayKetThuc,
     SoTiet AS TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -724,7 +734,7 @@ LEFT JOIN
     TongSoTietGV tsgv 
 ON 
     ta.GiangVien = tsgv.GiangVien
-Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
+Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ? 
 ORDER BY 
     tsgv.TongSoTiet DESC;
 `,
@@ -734,8 +744,20 @@ ORDER BY
       [rows] = await connection.execute(
         `WITH DoAnHopDongDuKien AS (
     SELECT
-        gv.*,
         gv.HoTen AS GiangVien,
+        gv.GioiTinh,
+        gv.Email,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
         'Đồ án' AS he_dao_tao,
         MIN(Combined.NgayBatDau) AS NgayBatDau,
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
@@ -780,7 +802,8 @@ ORDER BY
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
-        gv.HoTen
+        gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc
     ), 
     
    DaiHocHopDongDuKien AS (
@@ -814,6 +837,7 @@ ORDER BY
         qc.MoiGiang = 1 AND Khoa = ?
     GROUP BY
         gv.HoTen,
+        qc.KiHoc,
         gv.GioiTinh,
         gv.NgaySinh,
         gv.CCCD,
@@ -882,10 +906,10 @@ ORDER BY
         qc.KiHoc,
         qc.Dot
     ),
-tableALL AS (SELECT 
-	 Dot,
-	 KiHoc,
-	 NamHoc,
+tableALL AS (SELECT
+    Dot,
+    KiHoc,
+    NamHoc,
     'DoAn' AS LoaiHopDong,
     GiangVien,
     he_dao_tao,
@@ -893,7 +917,6 @@ tableALL AS (SELECT
     NgayKetThuc,
     TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -910,9 +933,9 @@ FROM
     DoAnHopDongDuKien
 UNION ALL
 SELECT 
-	 dot,
-	 KiHoc,
-	 namhoc,
+    Dot,
+    KiHoc,
+    NamHoc,
     'DaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
     he_dao_tao,
@@ -920,7 +943,6 @@ SELECT
     NgayKetThuc,
     SoTiet AS TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -937,9 +959,9 @@ FROM
     DaiHocHopDongDuKien
 UNION ALL
 SELECT 
-	 dot,
-	 KiHoc,
-	 namhoc,
+    Dot,
+    KiHoc,
+    NamHoc,
     'SauDaiHoc' AS LoaiHopDong,
     HoTen AS GiangVien,
     he_dao_tao,
@@ -947,7 +969,6 @@ SELECT
     NgayKetThuc,
     SoTiet AS TongTiet,
     GioiTinh,
-    HoTen,
     NgaySinh,
     CCCD,
     NoiCapCCCD,
@@ -962,27 +983,27 @@ SELECT
     MaPhongBan
 FROM 
     SauDaiHocHopDongDuKien),
-  TongSoTietGV AS (
-      SELECT 
-          GiangVien, 
-          SUM(TongTiet) AS TongSoTiet
-      FROM 
-          tableALL
-      GROUP BY 
-          GiangVien
-  )
-  SELECT 
-      ta.*,
-      tsgv.TongSoTiet
-  FROM 
-      tableALL ta
-  LEFT JOIN 
-      TongSoTietGV tsgv 
-  ON 
-      ta.GiangVien = tsgv.GiangVien
-  Where Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ? 
-  ORDER BY 
-      tsgv.TongSoTiet DESC;
+TongSoTietGV AS (
+    SELECT 
+        GiangVien, 
+        SUM(TongTiet) AS TongSoTiet
+    FROM 
+        tableALL
+    GROUP BY 
+        GiangVien
+)
+SELECT 
+    ta.*,
+    tsgv.TongSoTiet
+FROM 
+    tableALL ta
+LEFT JOIN 
+    TongSoTietGV tsgv 
+ON 
+    ta.GiangVien = tsgv.GiangVien
+Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ?
+ORDER BY 
+    tsgv.TongSoTiet DESC;
 `,
         [khoa, khoa, khoa, khoa, dot, ki, namHoc, he_dao_tao]
       );

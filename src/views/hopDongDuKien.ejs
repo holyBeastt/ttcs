@@ -211,7 +211,7 @@
                 row.insertCell(0).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
                 row.insertCell(1).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
                 row.insertCell(2).textContent = item.GioiTinh.toLowerCase() == 'nam' ? 'Ông' : 'Bà';
-                row.insertCell(3).textContent = item.HoTen;
+                row.insertCell(3).textContent = item.GiangVien;
                 row.insertCell(4).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
                 row.insertCell(5).textContent = item.CCCD;
                 row.insertCell(6).textContent = item.HocVi;

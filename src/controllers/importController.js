@@ -201,8 +201,8 @@ const validateFileExcelQC = (data) => {
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
   const result = []; // Khởi tạo mảng kết quả để chứa các đối tượng
-  let currentKhoa = '';
-  let nextKhoa = '';
+  let currentKhoa = "";
+  let nextKhoa = "";
   lines.forEach((line, index) => {
     let currentItem = {}; // Khởi tạo đối tượng mới cho mỗi dòng
 
@@ -211,18 +211,18 @@ const parseDataToObjects = (lines) => {
     if (line.toLowerCase().includes("khác")) {
       nextKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
       if (index == 0) {
-        currentKhoa = nextKhoa
+        currentKhoa = nextKhoa;
       }
     } else if (line.includes("Trung tâm thực hành")) {
       nextKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
       if (index == 0) {
-        currentKhoa = nextKhoa
+        currentKhoa = nextKhoa;
       }
     } else if (line.includes("học phần thuộc Khoa")) {
       const khoaMatch = line.match(/học phần thuộc Khoa\s+(.+)$/);
       nextKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
       if (index == 0) {
-        currentKhoa = nextKhoa
+        currentKhoa = nextKhoa;
       }
     }
 
@@ -1045,16 +1045,16 @@ const importTableTam = async (jsonData) => {
   // phần filter sẽ lọc các lớp có quy chuẩn = 0 thì bỏ qua không thêm vào bảng tạm
   const normalizedData = normalizeKeys(jsonData);
   const values = normalizedData
-    // .filter((item) => {
-    //   // Log giá trị của QC để kiểm tra
-    //   // console.log("QC value:", item["QC"]);
+    .filter((item) => {
+      // Log giá trị của QC để kiểm tra
+      // console.log("QC value:", item["QC"]);
 
-    //   // Chuyển QC về kiểu số và kiểm tra xem nó có phải là NaN hoặc bằng 0 không
-    //   const qcValue = parseFloat(item["QC"]);
+      // Chuyển QC về kiểu số và kiểm tra xem nó có phải là NaN hoặc bằng 0 không
+      const qcValue = parseFloat(item["QC"]);
 
-    //   // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
-    //   return !isNaN(qcValue) && qcValue !== 0;
-    // })
+      // Nếu bằng 0 hoặc rỗng thì bỏ qua không thêm
+      return !isNaN(qcValue) && qcValue !== 0;
+    })
     .map((item) => [
       validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
       item["Dot"] || null,
@@ -1527,7 +1527,10 @@ const updateDateAll = async (req, res) => {
   }
 };
 
-// const updateDateAll = async (req, res) => {
+// BACKUP KO ĐC XÓA
+// const updateQC = async (req, res) => {
+//   const role = req.session.role;
+//   const duyet = process.env.DUYET;
 //   const tableName = process.env.DB_TABLE_QC;
 //   const jsonData = req.body;
 
@@ -1537,27 +1540,95 @@ const updateDateAll = async (req, res) => {
 //     // Lấy kết nối từ createPoolConnection
 //     connection = await createPoolConnection();
 
+//     let error_gv_rows = [];
 //     // Duyệt qua từng phần tử trong jsonData
 //     for (let item of jsonData) {
-//       const { ID, NgayBatDau, NgayKetThuc } = item;
+//       console.log(item);
+//       const {
+//         ID,
+//         Khoa,
+//         Dot,
+//         KiHoc,
+//         NamHoc,
+//         GiaoVien,
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         SoTinChi,
+//         MaHocPhan,
+//         LopHocPhan,
+//         TenLop,
+//         BoMon,
+//         LL,
+//         SoTietCTDT,
+//         HeSoT7CN,
+//         SoSinhVien,
+//         HeSoLopDong,
+//         QuyChuan,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
+//         NgayBatDau,
+//         NgayKetThuc,
+//         he_dao_tao,
+//       } = item;
+
+//       // Check tránh quên chưa điền giảng viên
+//       if (KhoaDuyet == 1) {
+//         if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
+//           // return res.status(200).json({
+//           //   message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên`,
+//           // });
+//           error_gv_rows.push(`${LopHocPhan} (${TenLop})`);
+//           continue;
+//         }
+
+//         // Check không có dữ liệu giảng viên
+//       }
 
 //       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
 //       const updateQuery = `
 //         UPDATE ${tableName}
 //         SET
+//           GiaoVienGiangDay = ?,
+//           MoiGiang = ?,
+//           BoMon = ?,
+//           GhiChu = ?,
+//           KhoaDuyet = ?,
+//           DaoTaoDuyet = ?,
+//           TaiChinhDuyet = ?,
 //           NgayBatDau = ?,
-//           NgayKetThuc = ?
+//           NgayKetThuc = ?,
+//           he_dao_tao = ?
 //         WHERE ID = ?
 //       `;
 
 //       const updateValues = [
+//         GiaoVienGiangDay,
+//         MoiGiang,
+//         BoMon,
+//         GhiChu,
+//         KhoaDuyet,
+//         DaoTaoDuyet,
+//         TaiChinhDuyet,
 //         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
 //         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//         he_dao_tao,
 //         ID,
 //       ];
-//       //const updateValues = [NgayBatDau, NgayKetThuc, ID];
 
 //       await connection.query(updateQuery, updateValues);
+//     }
+//     let mess = "";
+
+//     if (error_gv_rows.length > 0) {
+//       mess = `<b>Dữ liệu không được lưu cho lớp sau do lỗi dữ liệu ở ô Giảng viên:</b> \n${error_gv_rows.join(
+//         "\n "
+//       )}`;
+//     }
+
+//     if (mess !== "") {
+//       return res.status(200).json({ message: mess });
 //     }
 
 //     res.status(200).json({ message: "Cập nhật thành công" });
@@ -1569,11 +1640,176 @@ const updateDateAll = async (req, res) => {
 //   }
 // };
 
-// BACKUP KO ĐC XÓA
+// backup kiểu nhanh hơn
+// const updateQC = async (req, res) => {
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ createPoolConnection
+//     connection = await createPoolConnection();
+
+//     const [gvmList] = await connection.query("select HoTen as name from gvmoi");
+//     const [coHuuList] = await connection.query(
+//       "select TenNhanVien as name from nhanvien"
+//     );
+
+//     let error_gv_rows = [];
+//     const batchSize = 50; // Kích thước mỗi batch
+//     const totalBatches = Math.ceil(jsonData.length / batchSize); // Tổng số batch cần xử lý
+
+//     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+//       const batch = jsonData.slice(
+//         batchIndex * batchSize,
+//         (batchIndex + 1) * batchSize
+//       );
+
+//       const batchPromises = batch.map(async (item) => {
+//         const {
+//           ID,
+//           GiaoVienGiangDay,
+//           MoiGiang,
+//           BoMon,
+//           GhiChu,
+//           KhoaDuyet,
+//           DaoTaoDuyet,
+//           TaiChinhDuyet,
+//           NgayBatDau,
+//           NgayKetThuc,
+//           he_dao_tao,
+//           LopHocPhan,
+//           TenLop,
+//         } = item;
+
+//         // Kiểm tra nếu thiếu dữ liệu giảng viên
+//         if (KhoaDuyet == 1) {
+//           // Nếu chưa điền giảng viên giảng dạy
+//           if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
+//             error_gv_rows.push(
+//               `${LopHocPhan} (${TenLop}) - chưa được điền giảng viên`
+//             );
+//             return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//           }
+
+//           // Kiểm tra có bị thừa dấu , không
+//           if (GiaoVienGiangDay.includes(",")) {
+//             if (
+//               he_dao_tao.includes("Đại học") ||
+//               GiaoVienGiangDay.trim().endsWith(",")
+//             ) {
+//               error_gv_rows.push(
+//                 `${LopHocPhan} (${TenLop}) - bị thừa dấu ',' `
+//               );
+//               return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//             }
+//           }
+
+//           // Nếu giảng viên giảng dạy không trùng khớp với dữ liệu db
+//           let isValidName1 = false,
+//             isValidName2 = true;
+
+//           if (he_dao_tao.includes("Đại học")) {
+//             if (MoiGiang == 1) {
+//               isValidName1 = gvmList.some(
+//                 (item) => item.name.trim() == GiaoVienGiangDay.trim()
+//               );
+//             } else {
+//               isValidName1 = coHuuList.some(
+//                 (item) => item.name.trim() == GiaoVienGiangDay.trim()
+//               );
+//             }
+//           } else {
+//             let GiangVien1 = GiaoVienGiangDay.trim();
+//             let GiangVien2;
+//             if (GiaoVienGiangDay.includes(",")) {
+//               [GiangVien1 = "", GiangVien2 = ""] = GiaoVienGiangDay.split(
+//                 ","
+//               ).map((item) => item.trim());
+
+//               if (MoiGiang == 1) {
+//                 isValidName2 = gvmList.some(
+//                   (item) => item.name.trim() == GiangVien2.trim()
+//                 );
+//               } else {
+//                 isValidName2 = coHuuList.some(
+//                   (item) => item.name.trim() == GiangVien2.trim()
+//                 );
+//               }
+//             }
+
+//             isValidName1 = coHuuList.some(
+//               (item) => item.name.trim() == GiangVien1.trim()
+//             );
+//           }
+
+//           if (isValidName1 == false || isValidName2 == false) {
+//             error_gv_rows.push(
+//               `${LopHocPhan} (${TenLop}) - vui lòng điền lại giảng viên`
+//             );
+//             return Promise.resolve(); // Bỏ qua bản ghi lỗi
+//           }
+//         }
+
+//         const updateQuery = `
+//           UPDATE quychuan
+//           SET
+//             GiaoVienGiangDay = ?,
+//             MoiGiang = ?,
+//             BoMon = ?,
+//             GhiChu = ?,
+//             KhoaDuyet = ?,
+//             DaoTaoDuyet = ?,
+//             TaiChinhDuyet = ?,
+//             NgayBatDau = ?,
+//             NgayKetThuc = ?,
+//             he_dao_tao = ?
+//           WHERE ID = ?
+//         `;
+
+//         const updateValues = [
+//           GiaoVienGiangDay,
+//           MoiGiang,
+//           BoMon,
+//           GhiChu,
+//           KhoaDuyet,
+//           DaoTaoDuyet,
+//           TaiChinhDuyet,
+//           isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//           isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//           he_dao_tao,
+//           ID,
+//         ];
+
+//         return connection.query(updateQuery, updateValues);
+//       });
+
+//       // Chờ xử lý tất cả các promise trong batch
+//       await Promise.all(batchPromises);
+//     }
+
+//     let mess = "";
+
+//     if (error_gv_rows.length > 0) {
+//       mess = `<b>Dữ liệu không được lưu cho lớp sau do lỗi dữ liệu ở ô Giảng viên:</b> \n${error_gv_rows.join(
+//         "\n "
+//       )}`;
+//     }
+
+//     if (mess !== "") {
+//       return res.status(200).json({ message: mess });
+//     }
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
 const updateQC = async (req, res) => {
-  const role = req.session.role;
-  const duyet = process.env.DUYET;
-  const tableName = process.env.DB_TABLE_QC;
   const jsonData = req.body;
 
   let connection;
@@ -1582,29 +1818,27 @@ const updateQC = async (req, res) => {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    // Duyệt qua từng phần tử trong jsonData
-    for (let item of jsonData) {
-      console.log(item);
+    const [gvmList] = await connection.query("SELECT HoTen AS name FROM gvmoi");
+    const [coHuuList] = await connection.query(
+      "SELECT TenNhanVien AS name FROM nhanvien"
+    );
+
+    const validNames = new Set([
+      ...gvmList.map((gvm) => gvm.name.trim()),
+      ...coHuuList.map((nv) => nv.name.trim()),
+    ]);
+
+    const error_gv_rows = [];
+    const updates = [];
+    const updateIDs = [];
+
+    // Chuẩn bị dữ liệu cập nhật
+    for (const item of jsonData) {
       const {
         ID,
-        Khoa,
-        Dot,
-        KiHoc,
-        NamHoc,
-        GiaoVien,
         GiaoVienGiangDay,
         MoiGiang,
-        SoTinChi,
-        MaHocPhan,
-        LopHocPhan,
-        TenLop,
         BoMon,
-        LL,
-        SoTietCTDT,
-        HeSoT7CN,
-        SoSinhVien,
-        HeSoLopDong,
-        QuyChuan,
         GhiChu,
         KhoaDuyet,
         DaoTaoDuyet,
@@ -1612,78 +1846,121 @@ const updateQC = async (req, res) => {
         NgayBatDau,
         NgayKetThuc,
         he_dao_tao,
+        LopHocPhan,
+        TenLop,
       } = item;
 
       if (KhoaDuyet == 1) {
-        if (!GiaoVienGiangDay || GiaoVienGiangDay.length === 0) {
-          return res.status(200).json({
-            message: `Lớp học phần ${LopHocPhan} (${TenLop}) chưa được điền giảng viên`,
-          });
+        const names = GiaoVienGiangDay.split(",").map((name) => name.trim());
+        const invalidNames = names.filter((name) => !validNames.has(name));
+
+        if (invalidNames.length > 0) {
+          error_gv_rows.push(
+            `${LopHocPhan} (${TenLop}) - giảng viên không hợp lệ: ${invalidNames.join(
+              ", "
+            )}`
+          );
+          continue;
         }
       }
 
-      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-      const updateQuery = `
-        UPDATE ${tableName}
-        SET
-          Khoa = ?,
-          Dot = ?,
-          KiHoc = ?,
-          NamHoc = ?,
-          GiaoVien = ?,
-          GiaoVienGiangDay = ?,
-          MoiGiang = ?,
-          SoTinChi = ?,
-          MaHocPhan = ?,
-          LopHocPhan = ?,
-          TenLop = ?,
-          BoMon = ?,
-          LL = ?,
-          SoTietCTDT = ?,
-          HeSoT7CN = ?,
-          SoSinhVien = ?,
-          HeSoLopDong = ?,
-          QuyChuan = ?,
-          GhiChu = ?,
-          KhoaDuyet = ?,
-          DaoTaoDuyet = ?,
-          TaiChinhDuyet = ?,
-          NgayBatDau = ?,
-          NgayKetThuc = ?,
-          he_dao_tao = ?
-        WHERE ID = ?
-      `;
-
-      const updateValues = [
-        Khoa,
-        Dot,
-        KiHoc,
-        NamHoc,
-        GiaoVien,
+      updateIDs.push(ID);
+      updates.push({
+        ID,
         GiaoVienGiangDay,
         MoiGiang,
-        SoTinChi,
-        MaHocPhan,
-        LopHocPhan,
-        TenLop,
         BoMon,
-        LL,
-        SoTietCTDT,
-        HeSoT7CN,
-        SoSinhVien,
-        HeSoLopDong,
-        QuyChuan,
         GhiChu,
         KhoaDuyet,
         DaoTaoDuyet,
         TaiChinhDuyet,
-        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+        NgayBatDau: isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+        NgayKetThuc: isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc,
         he_dao_tao,
-        ID,
-      ];
+      });
+    }
 
-      await connection.query(updateQuery, updateValues);
+    if (updates.length > 0) {
+      const updateQuery = `
+        UPDATE quychuan
+        SET
+          GiaoVienGiangDay = CASE ID
+            ${updates
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
+          END,
+          MoiGiang = CASE ID
+            ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
+          END,
+          BoMon = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
+          END,
+          GhiChu = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
+          END,
+          KhoaDuyet = CASE ID
+            ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
+          END,
+          DaoTaoDuyet = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
+          END,
+          TaiChinhDuyet = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
+          END,
+          NgayBatDau = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END,
+          NgayKetThuc = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END,
+          he_dao_tao = CASE ID
+            ${updates
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
+          END
+        WHERE ID IN (${updateIDs.join(", ")});
+      `;
+
+      await connection.query(updateQuery);
+    }
+
+    let mess = "";
+
+    if (error_gv_rows.length > 0) {
+      mess = `<b>Dữ liệu không được lưu cho lớp sau do lỗi dữ liệu ở ô Giảng viên:</b> \n${error_gv_rows.join(
+        "\n "
+      )}`;
+    }
+
+    if (mess !== "") {
+      return res.status(200).json({ message: mess });
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });
@@ -1957,7 +2234,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
         AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
     GROUP BY
-        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
@@ -2509,7 +2786,6 @@ const insertGiangDay = async (
 const joinData = (dataArray, nhanvienList, gvmList) => {
   // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
   const result = [];
-
   // Duyệt qua mảng đối tượng dữ liệu
   dataArray.forEach((item) => {
     // Tách tên giảng viên từ trường GiaoVienGiangDay, có thể có nhiều giảng viên
@@ -2540,6 +2816,7 @@ const joinData = (dataArray, nhanvienList, gvmList) => {
             }
           });
 
+          newItem.id_Gvm = 1;
           newItem.GiaoVienGiangDay = `${tenGiangVien}`;
 
           // Thêm vào mảng kết quả
@@ -2548,29 +2825,58 @@ const joinData = (dataArray, nhanvienList, gvmList) => {
       } else {
         const tenGiangVien = gv.trim().split("(")[0].trim();
 
-        // Tìm giảng viên trong danh sách nhanvienList
-        const gvmoi = gvmList.find(
-          (gvm) =>
-            gvm.HoTen.toLowerCase().trim() === tenGiangVien.toLowerCase().trim()
-        );
+        // Tìm giảng viên trong danh sách
+        if (item.MoiGiang == 1) {
+          const gvmoi = gvmList.find(
+            (gvm) =>
+              gvm.HoTen.toLowerCase().trim() ===
+              tenGiangVien.toLowerCase().trim()
+          );
 
-        if (gvmoi) {
-          // Tạo bản sao đối tượng gốc
-          const newItem = { ...item };
+          if (gvmoi) {
+            // Tạo bản sao đối tượng gốc
+            const newItem = { ...item };
 
-          // Gộp tất cả thông tin từ gvmoi vào newItem
-          Object.keys(gvmoi).forEach((key) => {
-            if (!newItem.hasOwnProperty(key)) {
-              // Kiểm tra xem key đã có trong newItem chưa
-              newItem[key] = gvmoi[key]; // Gán giá trị từ gvmoi vào newItem
-            }
-          });
+            // Gộp tất cả thông tin từ gvmoi vào newItem
+            Object.keys(gvmoi).forEach((key) => {
+              if (!newItem.hasOwnProperty(key)) {
+                // Kiểm tra xem key đã có trong newItem chưa
+                newItem[key] = gvmoi[key]; // Gán giá trị từ gvmoi vào newItem
+              }
+            });
 
-          newItem.GiaoVienGiangDay = `${tenGiangVien}`;
-          newItem.isHdChinh = 0; // Thêm cột isHdChinh = 1
+            newItem.id_Gvm = gvmoi.id_Gvm;
+            newItem.id_User = 1;
+            newItem.GiaoVienGiangDay = `${tenGiangVien}`;
+            newItem.isHdChinh = 0; // Thêm cột isHdChinh = 1
 
-          // Thêm vào mảng kết quả
-          result.push(newItem);
+            // Thêm vào mảng kết quả
+            result.push(newItem);
+          }
+        } else {
+          const nhanVien = nhanvienList.find(
+            (nv) =>
+              nv.TenNhanVien.toLowerCase().trim() ===
+              tenGiangVien.toLowerCase().trim()
+          );
+
+          if (nhanVien) {
+            // Tạo bản sao đối tượng gốc
+            const newItem = { ...item };
+
+            // Gộp tất cả thông tin từ nhanvien vào newItem
+            Object.keys(nhanVien).forEach((key) => {
+              if (!newItem.hasOwnProperty(key)) {
+                // Kiểm tra xem key đã có trong newItem chưa
+                newItem[key] = nhanVien[key]; // Gán giá trị từ nhanvien vào newItem
+              }
+            });
+
+            newItem.id_Gvm = 1;
+            newItem.GiaoVienGiangDay = `${tenGiangVien}`;
+            // Thêm vào mảng kết quả
+            result.push(newItem);
+          }
         }
       }
     });
@@ -2613,7 +2919,6 @@ const splitTeachers = (data) => {
       result.push(newItem); // thêm vào mảng kết quả
     });
   });
-
   return result;
 };
 
@@ -2667,7 +2972,6 @@ const insertGiangDay2 = async (
   // gộp 2 mảng dữ liệu
   const mergedArray = dataJoin.concat(gopLopSauDaiHocVoiBangNhanVien);
 
-  console.log(mergedArray);
   try {
     // Chuẩn bị dữ liệu để chèn từng loạt
     const insertValues = await Promise.all(
@@ -2680,7 +2984,9 @@ const insertGiangDay2 = async (
         ) // Bỏ qua các mục có TaiChinhDuyet = 0
         .map(async (item) => {
           //dataJoin.map(async (item) => {
-          const {
+          let {
+            id_Gvm,
+            id_User,
             ID,
             Khoa,
             MoiGiang,
@@ -2710,21 +3016,25 @@ const insertGiangDay2 = async (
 
           const gv1 = GiaoVienGiangDay ? GiaoVienGiangDay.split(" - ") : [];
           let gv = gv1[0];
-          let id_Gvm = 1;
-          let id_User = 1;
+          // let id_Gvm = 1;
+          // let id_User = 1;
+
+          if (id_Gvm == 0 || id_Gvm == null || id_Gvm == undefined) {
+            id_Gvm = 1;
+          }
 
           // Tạo giá trị cho Mã Học Phần
           const maHocPhan = item.MaHocPhan || 0; // Nếu MaHocPhan là null hoặc undefined thì thay bằng 0
 
           // Dùng forEach để duyệt qua mảng và Lấy id_User
-          nvList.forEach((giangVien) => {
-            if (
-              giangVien.TenNhanVien.toLowerCase().trim() ==
-              gv1[0].toLowerCase().trim()
-            ) {
-              id_User = giangVien.id_User; // Gán id
-            }
-          });
+          // nvList.forEach((giangVien) => {
+          //   if (
+          //     giangVien.TenNhanVien.toLowerCase().trim() ==
+          //     gv1[0].toLowerCase().trim()
+          //   ) {
+          //     id_User = giangVien.id_User; // Gán id
+          //   }
+          // });
 
           const exists = hocPhanList.some(
             (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
@@ -2809,7 +3119,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
     JOIN
         gvmoi ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gvmoi.HoTen
     WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
+        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.MoiGiang = 1
         AND (gvmoi.isQuanDoi != 1 or gvmoi.isQuanDoi is null) 
         AND he_dao_tao not like '%Đại học%'   
         AND qc.GiaoVienGiangDay LIKE '%,%'

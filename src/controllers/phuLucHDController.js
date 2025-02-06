@@ -143,7 +143,7 @@ function formatDateDMY(date) {
   return `${day}/${month}/${year}`;
 }
 const getTienLuongList = async (connection) => {
-  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienLuong`;
+  const query = `SELECT he_dao_tao, HocVi, SoTien FROM tienluong`;
   const [tienLuongList] = await connection.execute(query);
   return tienLuongList;
 };
@@ -164,7 +164,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc, khoa, teacherName } = req.query;
+    const { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -174,64 +174,61 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     }
 
     let query = `
-    WITH 
-    phuLucSauDH AS (
-        SELECT DISTINCT
-            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
-            qc.TenLop AS Lop, 
-            ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
-            qc.LopHocPhan AS TenHocPhan, 
-            qc.KiHoc AS HocKy,
-            gv.HocVi, 
-            gv.HSL,
-            qc.NgayBatDau, 
-            qc.NgayKetThuc,
-            gv.DiaChi,
-            qc.Dot,
-            qc.KiHoc,
-            qc.NamHoc,
-            qc.Khoa,
-            qc.he_dao_tao
-            qc.he_dao_tao
-        FROM quychuan qc
-        JOIN gvmoi gv 
-            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
-        WHERE qc.GiaoVienGiangDay LIKE '%,%'
-    ),
-    phuLucDH AS (
-        SELECT DISTINCT
-            TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
-            qc.TenLop AS Lop, 
-            qc.QuyChuan AS SoTiet, 
-            qc.LopHocPhan AS TenHocPhan, 
-            qc.KiHoc AS HocKy,
-            gv.HocVi, 
-            gv.HSL,
-            qc.NgayBatDau, 
-            qc.NgayKetThuc,
-            gv.DiaChi,
-            qc.Dot,
-            qc.KiHoc,
-            qc.NamHoc,
-            qc.Khoa,   
-           qc.he_dao_tao
-           qc.he_dao_tao
+   WITH 
+phuLucSauDH AS (
+    SELECT DISTINCT
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
+        qc.TenLop AS Lop, 
+        ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
+    WHERE qc.GiaoVienGiangDay LIKE '%,%'
+),
+phuLucDH AS (
+    SELECT DISTINCT
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
+        qc.TenLop AS Lop, 
+        qc.QuyChuan AS SoTiet, 
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+    WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
+),
+table_ALL AS (
+    SELECT * FROM phuLucSauDH
+    UNION
+    SELECT * FROM phuLucDH
+)
 
-        FROM quychuan qc
-        JOIN gvmoi gv 
-            ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
-        WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
-    ),
-    table_ALL AS (
-        SELECT * FROM phuLucSauDH
-        UNION
-        SELECT * FROM phuLucDH
-    )
-
-    SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? 
+SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao=?
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, loaiHopDong];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND Khoa = ?`;
@@ -244,7 +241,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     }
 
     const [data] = await connection.execute(query, params);
-
+    console.log("loaiHopDong:", loaiHopDong);
+    console.log("dot:", dot);
+    console.log("ki:", ki);
+    console.log("namHoc:", namHoc);
+    console.log("khoa:", khoa);
+    console.log("teacherName:", teacherName);
+    console.log("query:", query);
+    console.log("data:", data);
     if (data.length === 0) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/phuLucHD';</script>"
@@ -278,7 +282,6 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       },
     };
 
-    // Thêm tiêu đề
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
     titleRow0.font = { name: "Times New Roman", size: 17 };
@@ -363,14 +366,14 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
-     const soTiet = item.SoTiet;
-  const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-  const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-  const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
-  const tienLuong = tienLuongList.find(
-    (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
-  );
-  const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
+        const soTiet = item.SoTiet;
+        const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
+        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+        const tienLuong = tienLuongList.find(
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+        );
+        const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
             ? "TS"
