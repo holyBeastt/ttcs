@@ -595,23 +595,29 @@
           });
         } else {
           // Lấy giá trị từ các input và cập nhật lại `student_quantity`
+          /*
           document
-            .querySelectorAll("input[name='input-sv']")
+            .querySelectorAll("input[name='input-sv-tkb']")
             .forEach((input) => {
-              const id = input.id; // Lấy id của phần tử input
-              const value = input.value; // Lấy giá trị của phần tử input
+              const id = input.id; 
+              const value = input.value; 
 
               const rowData = renderData.find((item) => item.id == id);
               if (rowData) {
-                rowData.student_quantity = Number(input.value); // Đảm bảo là số
+                rowData.student_quantity = Number(input.value); 
               }
             });
-
-          // Gọi API để lưu số lượng sinh viên
-          const updatedData = renderData.map((item) => ({
-            id: item.id,
-            student_quantity: item.student_quantity,
-          }));
+*/
+          const rows = document.querySelectorAll("#data-table-body tr"); // Lấy tất cả các hàng (tr)
+          const updatedData = Array.from(rows).map((row) => {
+            const cells = row.getElementsByTagName("td"); // Lấy tất cả các ô (td) trong hàng
+            return {
+              id: cells[0]?.textContent.trim() || "", // Cột thứ 3
+              ll_total: cells[7]?.textContent.trim() || "", // Cột thứ 4
+              student_quantity: cells[9]?.querySelector("input")?.value || "", // Giá trị input ở cột thứ 10
+              bonus_time: cells[11]?.textContent.trim() || "",
+            };
+          });
 
           // Kiểm tra xem updatedData có dữ liệu không
           if (updatedData.length === 0) {
@@ -647,7 +653,19 @@
                   padding: "20px", // Giữ khoảng cách cho nội dung
                 });
               } else {
-                alert("Có lỗi xảy ra khi lưu dữ liệu.");
+                // Hiển thị chi tiết lỗi
+                const errorMessages = data.errors
+                  ? data.errors.join("<br>") // Gộp các lỗi thành chuỗi HTML
+                  : data.message || "Có lỗi xảy ra.";
+
+                Swal.fire({
+                  title: "Lỗi!",
+                  html: `<p>${errorMessages}</p>`,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
+                });
               }
             })
             .catch((error) => {
@@ -872,14 +890,14 @@
             student_quantity: { name: "SL sinh viên", width: "80px" },
             student_bonus: { name: "HS lớp đông", width: "70px" },
             bonus_time: { name: "HS T7/CN", width: "50px" },
-            course_id: { name: "Mã bộ môn", width: "100px" },
+            course_id: { name: "Mã học phần", width: "100px" },
             lecturer: { name: "Giảng viên theo TKB", width: "150px" },
             credit_hours: { name: "Số TC", width: "80px" },
             course_name: { name: "Lớp học phần", width: "200px" },
             course_code: { name: "Mã học phần", width: "100px" },
             start_date: { name: "Ngày bắt đầu", width: "100px" },
             end_date: { name: "Ngày kết thúc", width: "150px" },
-            bonus_total: { name: "Quy chuẩn", width: "50px" },
+            qc: { name: "Quy chuẩn", width: "50px" },
             semester: { name: "Năm học", width: "100px" },
           };
 
@@ -930,7 +948,7 @@
               <input 
                 type="number" 
                 id="${id}" 
-                name = "input-sv"
+                name = "input-sv-tkb"
                 value="${item[key] !== null ? item[key] : ""}" 
                 style="width: 100%; text-align: center;" 
                 onkeydown="handleKeyDown(event, ${i})" 
