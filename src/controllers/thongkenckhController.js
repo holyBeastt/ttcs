@@ -16,7 +16,7 @@ const thongkenckhController = {
                 'SELECT COUNT(*) AS total FROM baibaokhoahoc',
                 'SELECT COUNT(*) AS total FROM bangsangchevagiaithuong',
                 'SELECT COUNT(*) AS total FROM biensoangiaotrinhbaigiang',
-                'SELECT COUNT(*) AS total FROM nhiemvukhoahocvacongnghe',
+                // 'SELECT COUNT(*) AS total FROM nhiemvukhoahocvacongnghe',
                 'SELECT COUNT(*) AS total FROM xaydungctdt',
                 'SELECT COUNT(*) AS total FROM nckhvahuanluyendoituyen',
                 'SELECT COUNT(*) AS total FROM sachvagiaotrinh'
@@ -55,8 +55,7 @@ const thongkenckhController = {
                 ChuNhiem,
                 ThuKy,
                 DanhSachThanhVien,
-                NgayNghiemThu,
-                XepLoai
+                NgayNghiemThu
                 FROM detaiduan
                 ORDER BY NamHoc DESC;
             `;
@@ -152,29 +151,29 @@ const thongkenckhController = {
         }
     },
 ///Nhiệm vụ kh&cn
-    getDetailDatanhiemvu: async (req, res) => {
-        let connection;
-        try {
-            connection = await createConnection();
-            const query = `
-                SELECT 
-                MaNhiemVu,
-                NamHoc,
-                TenNhiemVu,
-                SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu
-                FROM nhiemvukhoahocvacongnghe
-                ORDER BY NamHoc DESC;
-            `;
-            const [rows] = await connection.query(query);
-            res.json({ success: true, data: rows });
-        } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Nhiệm vụ khoa học và công nghệ:", err);
-            res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-        } finally {
-            if (connection) connection.release();
-        }
-    },
+    // getDetailDatanhiemvu: async (req, res) => {
+    //     let connection;
+    //     try {
+    //         connection = await createConnection();
+    //         const query = `
+    //             SELECT 
+    //             MaNhiemVu,
+    //             NamHoc,
+    //             TenNhiemVu,
+    //             SoQDGiaoNhiemVu,
+    //             NgayQDGiaoNhiemVu
+    //             FROM nhiemvukhoahocvacongnghe
+    //             ORDER BY NamHoc DESC;
+    //         `;
+    //         const [rows] = await connection.query(query);
+    //         res.json({ success: true, data: rows });
+    //     } catch (err) {
+    //         console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Nhiệm vụ khoa học và công nghệ:", err);
+    //         res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    //     } finally {
+    //         if (connection) connection.release();
+    //     }
+    // },
     // Xây dựng CTĐT
     getDetailDataxaydung: async (req, res) => {
         let connection;
