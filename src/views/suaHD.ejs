@@ -167,31 +167,33 @@
 
     // Xử lý sự kiện khi nhấn nút upload file
     document.getElementById('uploadButton').addEventListener('click', function () {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0]; // Lấy file đã chọn
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0]; // Lấy file đã chọn
 
-        if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
+    if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
 
-            // Gửi file lên server để upload và ghi đè file cũ
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Tệp đã được tải lên thành công:', data);
-                alert('Tải lên thành công!');
-            })
-            .catch(error => {
-                console.error('Lỗi tải lên:', error);
-                alert('Có lỗi xảy ra khi tải lên.');
-            });
-        } else {
-            alert('Vui lòng chọn tệp để tải lên!');
-        }
-    });
+        // Gửi file lên server để upload và ghi đè file cũ
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Tệp đã được tải lên thành công:', data);
+            alert('Tải lên thành công!');
+        })
+        .catch(error => {
+            console.error('Lỗi tải lên:', error);
+            alert('Có lỗi xảy ra khi tải lên.');
+            fileInput.value = ''; // Xóa tệp đã chọn khi lỗi
+        });
+    } else {
+        alert('Vui lòng chọn tệp để tải lên!');
+    }
+});
+
 });
 
 

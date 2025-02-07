@@ -130,10 +130,22 @@ const postUpdateNV = async (req, res) => {
     TenDangNhap,
     Quyen,
     HSL,
+    PhanTramMienGiam,
   } = req.body;
 
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
   try {
+    // Kiểm tra giá trị của HSL và PhanTramMienGiam
+    const validHSL = HSL === "" ? 0 : Number(HSL);
+    const validPhanTramMienGiam =
+      PhanTramMienGiam === "" ? 0 : Number(PhanTramMienGiam);
+
+    // Kiểm tra xem PhanTramMienGiam có nằm trong khoảng từ 0 đến 100 hay không
+    if (validPhanTramMienGiam < 0 || validPhanTramMienGiam > 100) {
+      return res.status(400).json({
+        message: "Phần trăm miễn giảm phải nằm trong khoảng từ 0 đến 100.",
+      });
+    }
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
@@ -158,7 +170,8 @@ const postUpdateNV = async (req, res) => {
       MonGiangDayChinh = ?,
       CacMonLienQuan = ?,
       MaNhanVien = ?,
-      HSL = ?
+      HSL = ?,
+      PhanTramMienGiam = ?
       WHERE id_User = ?`;
 
     const [updateResult] = await connection.query(query, [
@@ -182,7 +195,8 @@ const postUpdateNV = async (req, res) => {
       req.body.MonGiangDayChinh, // Lấy từ req.body
       req.body.CacMonLienQuan, // Lấy từ req.body
       MaNhanVien,
-      HSL,
+      validHSL,
+      validPhanTramMienGiam,
       Id_User,
     ]);
 

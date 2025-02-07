@@ -104,6 +104,7 @@
               <label for="tacGiaCtn">
                 Tác giả chịu trách nhiệm
                 <input type="checkbox" id="tacGiaCtnCheckbox" name="tacGiaCtnCheckbox" />
+                <span class="faded-text">(Nhập nếu khác tác giả chính)</span>
               </label>
               <div id="tacGiaCtn-suggestions" class="suggestions-container"></div>
               <input type="text" id="tacGiaCtn" name="tacGiaCtn" placeholder="Nhập tên tác giả" />
@@ -216,13 +217,13 @@
 
         if (match) {
           const hours = parseFloat(match[1].replace(",", "."));
-          const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
-          return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+          const formattedHours = hours.toFixed(2); // Giữ 2 số thập phân
+          return text.replace(match[1], formattedHours.replace(".", ",")); // Định dạng lại theo dấu phẩy
         }
 
         return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
       }
-
+      
       // render table
       function renderTable(data) {
         const tbody = document.getElementById("table-body");
@@ -663,7 +664,7 @@
           data.forEach(item => {
             const option = document.createElement("option");
             option.value = item.LoaiTapChi; // Giá trị option
-            option.textContent = item.LoaiTapChi  ; // Nội dung hiển thị
+            option.textContent = item.LoaiTapChi; // Nội dung hiển thị
             selectElement2.appendChild(option);
           });
 

@@ -192,8 +192,8 @@
 
         if (match) {
           const hours = parseFloat(match[1].replace(",", "."));
-          const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
-          return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
+          const formattedHours = hours.toFixed(2); // Giữ 2 số thập phân
+          return text.replace(match[1], formattedHours.replace(".", ",")); // Định dạng lại theo dấu phẩy
         }
 
         return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ

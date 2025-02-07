@@ -137,7 +137,8 @@ const exportVuotGio = async (req, res) => {
         NgaySinh, 
         HocVi, 
         ChucVu, 
-        MonGiangDayChinh
+        MonGiangDayChinh,
+        ChucVu
       FROM nhanvien
       WHERE (MaPhongBan = ? OR ? IS NULL) AND (TenNhanVien = ? OR ? IS NULL) 
     `;
