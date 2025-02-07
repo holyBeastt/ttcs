@@ -22,14 +22,17 @@
       padding: 10px;
       text-align: left;
       border: 1px solid #dee2e6;
-      white-space: nowrap;
-      /* Ngăn chặn xuống dòng */
+      white-space: normal;
+      word-wrap: break-word;
     }
 
     .table th {
       background-color: #007bff;
       color: white;
       font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .table tbody tr:nth-child(even) {
@@ -42,6 +45,7 @@
 
     .table td {
       vertical-align: middle;
+
     }
 
     .bg-custom {
@@ -155,6 +159,9 @@
             <button class="btn text-nowrap" id="export-file-btn" style="width: max-content; margin-bottom: 0px;">
               Xuất file
             </button>
+            <button class="btn" style="top: 8px" id="edit-student-quantity-btn">
+              Lưu số SV
+            </button>
             <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
             <div id="file-format-menu" class="dropdown-menu" aria-labelledby="export-file-btn"
               style="display: none; position: absolute">
@@ -168,12 +175,12 @@
 
           <div class="right" style="margin-top: 0px">
             <div class="loc d-flex align-items-center">
-              <select class="selectop" id="combobox-dot">
+              <select class="selectop" id="combobox-dot" style="width: 70px">
                 <option value="">Đợt</option>
               </select>
 
               <!-- Combo box kì -->
-              <select class="selectop" id="comboboxki">
+              <select class="selectop" id="comboboxki" style="width: 70px">
                 <option value="">Kì</option>
               </select>
 
@@ -221,6 +228,125 @@
 
     <!-- link thư viện excel  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
+    <!-- Số sinh viên -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Mảng chứa các giá trị cần cập nhật
+        const updatedValues = [];
+
+        // Lắng nghe sự kiện nhấn nút Lưu với id="edit-student-quantity-btn"
+        document.getElementById("edit-student-quantity-btn").addEventListener("click", function () {
+          // Lấy tất cả các input có id chứa 'SoSinhVien'
+          const inputElements = document.querySelectorAll('input[id*="SoSinhVien"]');
+
+          inputElements.forEach(input => {
+            const inputId = input.id;
+            const newValue = input.value;
+
+            // Sử dụng biểu thức chính quy để lấy số từ id
+            const regex = /-(\d+)-/;
+            const match = inputId.match(regex);
+            if (!match) return; // Nếu không khớp định dạng, bỏ qua
+
+            const inputNumber = match[1];
+
+            // Tìm đối tượng trong renderData có ID trùng khớp với inputNumber
+            const renderItem = renderData.find(item => item.ID == inputNumber);
+
+            if (renderItem) {
+              const initialValue = sanitizeValue(renderItem.SoSinhVien); // Giá trị cũ
+              const heSoLopDong = renderItem.HeSoLopDong; // Lấy HeSoLopDong
+              const heSoT7CN = renderItem.HeSoT7CN; // Lấy HeSoLopDong
+              const LL = renderItem.LL; // Lấy HeSoLopDong
+
+              // Chỉ cập nhật nếu có sự thay đổi
+              if (Number(newValue) != Number(initialValue)) {
+                updatedValues.push({
+                  ID: inputId,
+                  StudentQuantityUpdate: newValue,
+                  StudentQuantity: initialValue,
+                  HeSoLopDong: heSoLopDong, 
+                  HeSoT7CN: heSoT7CN,
+                  LL: LL,
+                });
+              }
+            }
+          });
+
+          // Nếu không có thay đổi nào, hiển thị cảnh báo
+          if (updatedValues.length === 0) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Chưa có thay đổi nào!',
+              text: 'Bạn chưa thay đổi số lượng sinh viên nào.',
+              timer: 3000,
+              timerProgressBar: true,
+              showConfirmButton: true
+            });
+            return;
+          }
+
+          console.log(updatedValues);
+
+          // Gửi dữ liệu lên server bằng fetch
+          fetch('/qcdk/edit-student-quanity', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedValues) // Gửi dữ liệu có cả HeSoLopDong
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Cập nhật giá trị mới vào các ô input
+                updatedValues.forEach(item => {
+                  const inputElement = document.getElementById(item.ID);
+                  if (inputElement) {
+                    inputElement.value = item.StudentQuantityUpdate;
+                  }
+                });
+
+                // Xóa HeSoLopDong khỏi updatedValues sau khi lưu thành công
+                updatedValues.forEach(item => delete item.HeSoLopDong);
+
+                // Xóa danh sách cập nhật để tránh lỗi khi lưu tiếp
+                updatedValues.length = 0;
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Lưu thành công',
+                  text: 'Dữ liệu đã được lưu thành công.',
+                  timer: 3000,
+                  timerProgressBar: true,
+                  showConfirmButton: true
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Lỗi',
+                  text: data.message || 'Đã có lỗi xảy ra, vui lòng thử lại.',
+                  showConfirmButton: true
+                });
+              }
+            })
+            .catch(error => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Lỗi khi lưu dữ liệu',
+                text: 'Đã có lỗi xảy ra, vui lòng thử lại.',
+              });
+            });
+        });
+      });
+
+      // Hàm lọc dữ liệu, quy đổi NaN, undefined, rỗng về 0
+      function sanitizeValue(value) {
+        return Number(value) || 0; // Chuyển đổi về số hoặc trả về 0
+      }
+
+    </script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -582,9 +708,15 @@
             const rowHtml = headers
               .map((key) => {
                 const value = item[key] !== null ? item[key] : "";
-                return keyNotEdit.includes(key)
-                  ? `<td>${value}</td>`
-                  : `<td id="cell-${id}-${key}">${value}</td>`;
+
+                if (key === "SoSinhVien") {
+                  // Nếu là cột "Số SV", render dưới dạng input
+                  return `<td><input type="number" id="cell-${id}-${key}" value="${value}" style="width: 50px !important;"/></td>`;
+                } else {
+                  return keyNotEdit.includes(key)
+                    ? `<td>${value}</td>`
+                    : `<td id="cell-${id}-${key}">${value}</td>`;
+                }
               })
               .join("");
 
@@ -592,10 +724,10 @@
             const actionColumn =
               role === "Duyệt"
                 ? `
-          <td>
-            <button onclick="editRow(${id})">Sửa</button>
-            <button onclick="deleteRow(${id})">Xóa</button>
-          </td>`
+        <td>
+          <button onclick="editRow(${id})">Sửa</button>
+          <button onclick="deleteRow(${id})">Xóa</button>
+        </td>`
                 : "";
 
             // Determine warning class
@@ -613,7 +745,6 @@
 
         tableBody.innerHTML = rowsHtml;
       }
-
 
       function renderRow(id, updatedRow) {
         let rowElement = document.getElementById(`row-${id}`);

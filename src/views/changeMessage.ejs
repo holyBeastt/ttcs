@@ -11,11 +11,16 @@
   <link rel="stylesheet" href="/css/forminput.css" />
   <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+   <!-- Phần header -->
+   <%- include('header') %>
+
+   <!-- Phần nội dung -->
+
   
-  <%- include('header') %>
 
   <!-- Phần trên của navbar chứa logo và tiêu đề -->
   <div class="container-fluid m-4 box">
@@ -31,7 +36,8 @@
       <div class="row">
         <div class="col-md-4 input-wrapper">
           <label for="LoiNhan">Thông báo:</label>
-          <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required />
+          <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
+          <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;" required></textarea>
         </div>
       </div>
       <div class="row">
@@ -131,11 +137,32 @@
       }
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('MessageChanged') === 'true') {
-        alert("Thêm thông báo mới thành công!")
+        Swal.fire({
+          title: "Thông báo",
+          html: "Thêm thông báo thành công",
+          icon: "success",
+          confirmButtonText: "OK",
+          width: "auto", // Tự động điều chỉnh chiều rộng
+          padding: "20px", // Giữ khoảng cách cho nội dung
+        });
       } else if (urlParams.get('MessageChanged') === 'false') {
-        alert("Thêm thông báo mới không đúng!")
+        Swal.fire({
+          title: "Thông báo",
+          html: "Thêm thông báo mới không đúng!",
+          icon: "error",
+          confirmButtonText: "OK",
+          width: "auto", // Tự động điều chỉnh chiều rộng
+          padding: "20px", // Giữ khoảng cách cho nội dung
+        });
       } else if (urlParams.get('MessageChanged') === 'false2') {
-        alert("Cập nhật thông báo thất bại")
+        Swal.fire({
+          title: "Thông báo",
+          html: "Cập nhật thông báo thất bại!",
+          icon: "error",
+          confirmButtonText: "OK",
+          width: "auto", // Tự động điều chỉnh chiều rộng
+          padding: "20px", // Giữ khoảng cách cho nội dung
+        });
       }
       getMessage();
     });
@@ -163,7 +190,6 @@
             console.log('Dữ liệu thông báo:', data);
             renderTable(data);
           } else {
-            alert("Dữ liệu trống!");
           }
         } else {
           alert("Không tìm thấy dữ liệu!");
