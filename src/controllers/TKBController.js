@@ -40,7 +40,7 @@ const getDataTKBChinhThuc = async (req, res) => {
               student_quantity, 
               student_bonus, 
               bonus_time, 
-              bonus_total, 
+              qc, 
               semester 
           FROM course_schedule_details 
           WHERE major = ? AND semester = ?;
@@ -60,7 +60,7 @@ const getDataTKBChinhThuc = async (req, res) => {
               student_quantity, 
               student_bonus, 
               bonus_time, 
-              bonus_total, 
+              qc, 
               semester 
           FROM course_schedule_details 
           WHERE semester = ?;
@@ -100,6 +100,28 @@ const updateRowTKB = async (req, res) => {
         .json({ message: "Dữ liệu không hợp lệ hoặc thiếu ID." });
     }
 
+    let student_bonus = 1;
+
+    switch (true) {
+      case data.student_quantity >= 101:
+        student_bonus = 1.5;
+        break;
+      case data.student_quantity >= 81:
+        student_bonus = 1.4;
+        break;
+      case data.student_quantity >= 66:
+        student_bonus = 1.3;
+        break;
+      case data.student_quantity >= 51:
+        student_bonus = 1.2;
+        break;
+      case data.student_quantity >= 41:
+        student_bonus = 1.1;
+        break;
+    }
+
+    const qc = student_bonus * data.bonus_time * data.ll_total;
+
     // Chuẩn bị giá trị cho truy vấn UPDATE
     const updateValues = [
       data.course_name,
@@ -122,7 +144,7 @@ const updateRowTKB = async (req, res) => {
       data.bonus_time || null,
       data.bonus_teacher || null,
       data.bonus_total || null,
-      data.qc || null,
+      qc || null,
       data.class_section || null,
       data.course_id || null,
       data.semester || null,
@@ -211,59 +233,302 @@ const deleteRow = async (req, res) => {
   }
 };
 
+// const updateStudentQuantity = async (req, res) => {
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     if (!jsonData || jsonData.length === 0) {
+//       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
+//     }
+
+//     connection = await createPoolConnection();
+
+//     const batchSize = 50; // Tùy chỉnh batch size
+//     const errors = [];
+
+//     for (let i = 0; i < jsonData.length; i += batchSize) {
+//       const batch = jsonData.slice(i, i + batchSize);
+
+//       let updateQuery = `UPDATE course_schedule_details SET `;
+//       const updateValues = [];
+//       const ids = [];
+
+//       // Cập nhật student_quantity
+//       let studentQuantityCase = ` student_quantity = CASE`;
+//       batch.forEach(({ id, student_quantity }) => {
+//         id = Number(id);
+//         student_quantity = Number(student_quantity);
+//         if (isNaN(id) || isNaN(student_quantity)) {
+//           errors.push(`Dữ liệu không hợp lệ cho id ${id}`);
+//           return;
+//         }
+
+//         studentQuantityCase += ` WHEN id = ? THEN ?`;
+//         updateValues.push(id, student_quantity);
+
+//         if (!ids.includes(id)) ids.push(id);
+//       });
+//       studentQuantityCase += ` END,`;
+
+//       // Cập nhật student_bonus
+//       let studentBonusCase = ` student_bonus = CASE`;
+//       batch.forEach(({ id, student_quantity }) => {
+//         id = Number(id);
+//         student_quantity = Number(student_quantity);
+//         if (isNaN(id) || isNaN(student_quantity)) return;
+
+//         let student_bonus = 1;
+//         if (student_quantity >= 101) student_bonus = 1.5;
+//         else if (student_quantity >= 81) student_bonus = 1.4;
+//         else if (student_quantity >= 66) student_bonus = 1.3;
+//         else if (student_quantity >= 51) student_bonus = 1.2;
+//         else if (student_quantity >= 41) student_bonus = 1.1;
+
+//         studentBonusCase += ` WHEN id = ? THEN ?`;
+//         updateValues.push(id, student_bonus);
+//       });
+//       studentBonusCase += ` END,`;
+
+//       // Cập nhật qc
+//       let qcCase = ` qc = CASE`;
+//       batch.forEach(({ id, student_quantity, ll_total, bonus_time }) => {
+//         id = Number(id);
+//         student_quantity = Number(student_quantity);
+//         if (isNaN(id) || isNaN(student_quantity)) return;
+
+//         let student_bonus = 1;
+//         if (student_quantity >= 101) student_bonus = 1.5;
+//         else if (student_quantity >= 81) student_bonus = 1.4;
+//         else if (student_quantity >= 66) student_bonus = 1.3;
+//         else if (student_quantity >= 51) student_bonus = 1.2;
+//         else if (student_quantity >= 41) student_bonus = 1.1;
+
+//         const qc =
+//           student_bonus * (Number(bonus_time) || 0) * (Number(ll_total) || 0);
+
+//         qcCase += ` WHEN id = ? THEN ?`;
+//         updateValues.push(id, qc);
+//       });
+//       qcCase += ` END`;
+
+//       // Hoàn thiện query
+//       const whereClause = ` WHERE id IN (${ids.map(() => "?").join(", ")})`;
+//       updateValues.push(...ids);
+
+//       const finalQuery = `${updateQuery} ${studentQuantityCase} ${studentBonusCase} ${qcCase} ${whereClause}`;
+
+//       console.log("📌 Query:", finalQuery);
+//       console.log("📌 Values:", updateValues);
+
+//       await connection.query(finalQuery, updateValues);
+//     }
+
+//     if (errors.length > 0) {
+//       return res.status(400).json({ success: false, errors });
+//     }
+
+//     res.status(200).json({ success: true, message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("❌ Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release();
+//   }
+// };
+
 const updateStudentQuantity = async (req, res) => {
   const jsonData = req.body;
 
   let connection;
 
   try {
-    // Kiểm tra dữ liệu đầu vào
     if (!jsonData || jsonData.length === 0) {
       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
 
-    // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    // Giới hạn số lượng bản ghi mỗi batch (tránh quá tải)
-    const batchSize = 50;
-    const batches = [];
-    for (let i = 0; i < jsonData.length; i += batchSize) {
-      batches.push(jsonData.slice(i, i + batchSize));
-    }
+    const batchSize = 50; // Tùy chỉnh batch size
+    const errors = [];
 
-    // Xử lý từng batch
-    for (const batch of batches) {
-      let updateQuery = `
-        UPDATE course_schedule_details
-        SET student_quantity = CASE
-      `;
+    for (let i = 0; i < jsonData.length; i += batchSize) {
+      const batch = jsonData.slice(i, i + batchSize);
+
+      let updateQuery = `UPDATE course_schedule_details SET `;
       const updateValues = [];
       const ids = [];
 
+      // Map để lưu student_bonus của từng ID
+      const studentBonusMap = new Map();
+
+      // Cập nhật student_quantity
+      let studentQuantityCase = ` student_quantity = CASE`;
       batch.forEach(({ id, student_quantity }) => {
-        // Kiểm tra và chuẩn hóa dữ liệu
-        if (typeof student_quantity !== "number" || isNaN(student_quantity)) {
-          return res
-            .status(400)
-            .json({ message: `Số lượng sinh viên không hợp lệ cho id ${id}` });
+        id = Number(id);
+        student_quantity = Number(student_quantity);
+        if (isNaN(id) || isNaN(student_quantity)) {
+          errors.push(`Dữ liệu không hợp lệ cho id ${id}`);
+          return;
         }
 
-        // Thêm logic cập nhật cho student_quantity
-        updateQuery += ` WHEN id = ? THEN ? `;
+        studentQuantityCase += ` WHEN id = ? THEN ?`;
         updateValues.push(id, student_quantity);
 
-        // Lưu các id để đưa vào WHERE
         if (!ids.includes(id)) ids.push(id);
       });
+      studentQuantityCase += ` END,`;
 
-      // Hoàn thiện truy vấn
-      updateQuery += ` END WHERE id IN (${ids.map(() => "?").join(", ")})`;
+      // Cập nhật student_bonus
+      let studentBonusCase = ` student_bonus = CASE`;
+      batch.forEach(({ id, student_quantity }) => {
+        id = Number(id);
+        student_quantity = Number(student_quantity);
+        if (isNaN(id) || isNaN(student_quantity)) return;
+
+        let student_bonus = 1;
+        if (student_quantity >= 101) student_bonus = 1.5;
+        else if (student_quantity >= 81) student_bonus = 1.4;
+        else if (student_quantity >= 66) student_bonus = 1.3;
+        else if (student_quantity >= 51) student_bonus = 1.2;
+        else if (student_quantity >= 41) student_bonus = 1.1;
+
+        studentBonusCase += ` WHEN id = ? THEN ?`;
+        updateValues.push(id, student_bonus);
+
+        // Lưu vào Map
+        studentBonusMap.set(id, student_bonus);
+      });
+      studentBonusCase += ` END,`;
+
+      // Cập nhật qc (Lấy student_bonus từ Map)
+      let qcCase = ` qc = CASE`;
+      batch.forEach(({ id, student_quantity, ll_total, bonus_time }) => {
+        id = Number(id);
+        student_quantity = Number(student_quantity);
+        if (isNaN(id) || isNaN(student_quantity)) return;
+
+        const student_bonus = studentBonusMap.get(id) || 1;
+        const qc =
+          student_bonus * (Number(bonus_time) || 0) * (Number(ll_total) || 0);
+
+        qcCase += ` WHEN id = ? THEN ?`;
+        console.log(qc);
+        updateValues.push(id, qc);
+      });
+      qcCase += ` END`;
+
+      // Hoàn thiện query
+      const whereClause = ` WHERE id IN (${ids.map(() => "?").join(", ")})`;
       updateValues.push(...ids);
 
-      // Thực hiện truy vấn cập nhật
-      await connection.query(updateQuery, updateValues);
+      const finalQuery = `${updateQuery} ${studentQuantityCase} ${studentBonusCase} ${qcCase} ${whereClause}`;
+
+      await connection.query(finalQuery, updateValues);
     }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    res.status(200).json({ success: true, message: "Cập nhật thành công" });
+  } catch (error) {
+    console.error("❌ Lỗi cập nhật:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const themTKBVaoQCDK = async (req, res) => {
+  const { Khoa, Dot, Ki, Nam } = req.body;
+  const semester = `${Dot}, ${Ki}, ${Nam}`;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ createPoolConnection
+    connection = await createPoolConnection();
+
+    // Lấy dữ liệu bên bảng course_schedule_details
+    let getDataTKBQuery = `
+    SELECT 
+      major AS Khoa,
+      ll_code AS SoTietCTDT,
+      ll_total AS LL,
+      student_quantity AS SoSinhVien,
+      student_bonus AS HeSoLopDong,
+      bonus_time AS HeSoT7CN,
+      course_id AS MaBoMon,
+      lecturer AS GiaoVien,
+      credit_hours AS SoTinChi,
+      course_name AS LopHocPhan,
+      course_code AS MaHocPhan,
+      start_date AS NgayBatDau,
+      end_date AS NgayKetThuc,
+      bonus_total AS QuyChuan
+    FROM course_schedule_details
+    WHERE semester = ?
+  `;
+
+    const getDataTKBParams = [semester];
+
+    if (Khoa !== "ALL") {
+      getDataTKBQuery += " AND major = ?";
+      getDataTKBParams.push(Khoa);
+    }
+
+    const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
+
+    // Nếu không có dữ liệu thì không cần insert
+    if (tkbData.length === 0) {
+      console.log("Không có dữ liệu để insert.");
+      return;
+    }
+
+    // Thêm dữ liệu vào bảng tạm
+    // Câu lệnh INSERT
+    const insertQuery = `
+      INSERT INTO tam (Khoa, dot, ki, nam, SoTietCTDT, LL, SoSinhVien, HeSoLopDong, HeSoT7CN, MaBoMon, 
+      GiaoVien, SoTinChi, LopHocPhan, MaHocPhan, NgayBatDau, NgayKetThuc, quychuan) 
+      VALUES ?
+    `;
+
+    // Chuyển dữ liệu về dạng mảng 2D cho MySQL
+    const insertValues = tkbData.map((row) => [
+      row.Khoa, // major
+      Dot, // dot
+      Ki, // ki
+      Nam, // nam
+      row.SoTietCTDT, // ll_code
+      row.LL, // ll_total
+      row.SoSinhVien, // student_quantity
+      row.HeSoLopDong, // student_bonus
+      row.HeSoT7CN, // bonus_time
+      row.MaBoMon, // course_id
+      row.GiaoVien, // lecturer
+      row.SoTinChi, // credit_hours
+      row.LopHocPhan, // course_name
+      row.MaHocPhan, // course_code
+      row.NgayBatDau || " ", // start_date
+      row.NgayKetThuc || " ", // end_date
+      row.QuyChuan, // bonus_total
+    ]);
+
+    // Thực hiện INSERT
+    await connection.query(insertQuery, [insertValues]);
+
+    // Xóa dữ liệu bảng course_schedule_details
+    let deleteQuery = `DELETE FROM course_schedule_details WHERE semester = ?`;
+    const deleteParams = [semester];
+
+    if (Khoa !== "ALL") {
+      deleteQuery += " AND major = ?";
+      deleteParams.push(Khoa);
+    }
+
+    await connection.query(deleteQuery, deleteParams);
 
     res.status(200).json({ success: true, message: "Cập nhật thành công" });
   } catch (error) {
@@ -274,64 +539,71 @@ const updateStudentQuantity = async (req, res) => {
   }
 };
 
-const themTKBVaoQCDK = async (req, res) => {
-  const jsonData = req.body;
+const addNewRowTKB = async (req, res) => {
+  const data = req.body;
+
+  // Ghép các thông tin kỳ học từ frontend
+  const semester = `${data.Dot}, ${data.Ki}, ${data.Nam}`;
 
   let connection;
 
   try {
-    // Kiểm tra dữ liệu đầu vào
-    if (!jsonData || jsonData.length === 0) {
-      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
-    }
-
-    // Lấy kết nối từ createPoolConnection
+    // Kết nối database từ pool
     connection = await createPoolConnection();
 
-    // Giới hạn số lượng bản ghi mỗi batch (tránh quá tải)
-    const batchSize = 50;
-    const batches = [];
-    for (let i = 0; i < jsonData.length; i += batchSize) {
-      batches.push(jsonData.slice(i, i + batchSize));
+    // Tạo câu truy vấn INSERT
+    const insertQuery = `
+      INSERT INTO course_schedule_details 
+      (course_name, course_code, student_quantity, lecturer, major, ll_total, 
+       bonus_time, ll_code, start_date, end_date, semester, qc) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    let student_bonus = 1;
+
+    switch (true) {
+      case data.student_quantity >= 101:
+        student_bonus = 1.5;
+        break;
+      case data.student_quantity >= 81:
+        student_bonus = 1.4;
+        break;
+      case data.student_quantity >= 66:
+        student_bonus = 1.3;
+        break;
+      case data.student_quantity >= 51:
+        student_bonus = 1.2;
+        break;
+      case data.student_quantity >= 41:
+        student_bonus = 1.1;
+        break;
     }
 
-    // Xử lý từng batch
-    for (const batch of batches) {
-      let updateQuery = `
-        UPDATE course_schedule_details
-        SET student_quantity = CASE
-      `;
-      const updateValues = [];
-      const ids = [];
+    const qc = student_bonus * data.bonus_time * data.ll_total;
 
-      batch.forEach(({ id, student_quantity }) => {
-        // Kiểm tra và chuẩn hóa dữ liệu
-        if (typeof student_quantity !== "number" || isNaN(student_quantity)) {
-          return res
-            .status(400)
-            .json({ message: `Số lượng sinh viên không hợp lệ cho id ${id}` });
-        }
+    // Giá trị cần chèn vào database
+    const insertValues = [
+      data.course_name,
+      data.course_code,
+      data.student_quantity,
+      data.lecturer,
+      data.major,
+      data.ll_total,
+      data.bonus_time,
+      data.ll_code,
+      data.start_date,
+      data.end_date,
+      semester,
+      qc,
+    ];
 
-        // Thêm logic cập nhật cho student_quantity
-        updateQuery += ` WHEN id = ? THEN ? `;
-        updateValues.push(id, student_quantity);
+    // Thực hiện chèn dữ liệu vào database
+    await connection.query(insertQuery, insertValues);
 
-        // Lưu các id để đưa vào WHERE
-        if (!ids.includes(id)) ids.push(id);
-      });
-
-      // Hoàn thiện truy vấn
-      updateQuery += ` END WHERE id IN (${ids.map(() => "?").join(", ")})`;
-      updateValues.push(...ids);
-
-      // Thực hiện truy vấn cập nhật
-      await connection.query(updateQuery, updateValues);
-    }
-
-    res.status(200).json({ success: true, message: "Cập nhật thành công" });
+    res.status(200).json({ success: true, message: "Thêm dữ liệu thành công" });
   } catch (error) {
-    console.error("Lỗi cập nhật:", error);
-    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+    console.error("Lỗi thêm dữ liệu:", error);
+    res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });
   } finally {
     if (connection) connection.release(); // Trả kết nối về pool
   }
@@ -346,4 +618,5 @@ module.exports = {
   deleteRow,
   updateStudentQuantity,
   themTKBVaoQCDK,
+  addNewRowTKB,
 };

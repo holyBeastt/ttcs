@@ -22,4 +22,6 @@ router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
 
 router.post("/save-data-tkb-to-qcdk", TKBController.themTKBVaoQCDK);
 
+router.post("/api/addRowTKB", TKBController.addNewRowTKB);
+
 module.exports = router;
