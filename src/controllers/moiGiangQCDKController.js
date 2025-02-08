@@ -82,11 +82,15 @@ const deleteTableTam = async (req, res) => {
 
             // Kiểm tra xem có bản ghi nào bị xóa không
             if (results.affectedRows > 0) {
-                return res.json({ message: "Xóa thành công dữ liệu." });
+                return res.json({ 
+                    success: "true",
+                    message: "Xóa thành công dữ liệu." });
             } else {
                 return res
                     .status(404)
-                    .json({ message: "Không tìm thấy dữ liệu để xóa." });
+                    .json({ 
+                        success: "false",
+                        message: "Không tìm thấy dữ liệu để xóa." });
             }
         }
     } catch (error) {
