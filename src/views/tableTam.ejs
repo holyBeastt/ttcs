@@ -266,7 +266,7 @@
                   ID: inputId,
                   StudentQuantityUpdate: newValue,
                   StudentQuantity: initialValue,
-                  HeSoLopDong: heSoLopDong, 
+                  HeSoLopDong: heSoLopDong,
                   HeSoT7CN: heSoT7CN,
                   LL: LL,
                 });
@@ -404,31 +404,6 @@
         QuyChuan: "Quy chuẩn",
       };
 
-      function exportToPDF() {
-        // Lọc qua các key trong renderData và chỉ giữ lại những key có ánh xạ trong titleMap
-        const headers = Object.keys(renderData[0])
-          .filter((key) => titleMap[key])
-          .map((key) => titleMap[key]);
-        const rows = renderData.map((item) =>
-          headers.map(
-            (header) =>
-              item[
-              Object.keys(titleMap).find((key) => titleMap[key] === header)
-              ] || ""
-          )
-        );
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        doc.autoTable({
-          head: [headers], // Tiêu đề bảng
-          body: rows, // Dữ liệu bảng
-        });
-
-        doc.save("table.pdf");
-      }
-
       function exportToExcel() {
         // Mảng tiêu đề theo thứ tự mong muốn
         const orderedKeys = [
@@ -520,7 +495,7 @@
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
         XLSX.writeFile(
           wb,
-          `file quy chuẩn học kì ${renderData[0].Ki} năm học ${renderData[0].Nam}.xlsx`
+          `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`
         );
       }
 
@@ -587,7 +562,7 @@
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `file_quy_chuan_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.docx`;
+            link.download = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.docx`;
             link.click();
           })
           .catch((error) => {
@@ -1342,22 +1317,48 @@
             const result = await response.json();
 
             if (result.success) {
+              // Lấy dữ liệu từ các ô chọn
+              let Dot = document.getElementById("combobox-dot").value;
+              let Ki = document.getElementById("comboboxki").value;
+              let Nam = document.getElementById("NamHoc").value;
+              let Khoa = document.getElementById("departmentFilter").value;
+
+              const body = { Khoa, Dot, Ki, Nam };
+
+              // Gọi API xóa dữ liệu
+              fetch("/xoa-qcdk", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              })
+                .then((response) => response.json())
+                .then((deleteResult) => {
+                  if (deleteResult.success) {
+                    console.log("Dữ liệu đã được xóa thành công!");
+                  } else {
+                    console.error("Lỗi xóa dữ liệu:", deleteResult.message);
+                  }
+                })
+                .catch((error) => console.error("Lỗi khi gọi API xóa:", error));
+
+              // Hiển thị thông báo ban hành thành công
               Swal.fire({
                 title: "Thông báo",
                 html: result.message || "Ban hành thành công!",
                 icon: "success",
                 confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
+                width: "auto",
+                padding: "20px",
               });
             } else {
+              // Hiển thị thông báo ban hành thất bại
               Swal.fire({
                 title: "Thông báo",
                 html: result.message || "Ban hành thất bại!",
-                icon: "success",
+                icon: "error",
                 confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
+                width: "auto",
+                padding: "20px",
               });
             }
           } catch (error) {
