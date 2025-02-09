@@ -1521,7 +1521,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
     // Kiểm tra và xử lý `soTC`, mặc định là 0 nếu không hợp lệ
     const validSoTC = Number.isInteger(parseInt(soTC)) && parseInt(soTC) > 0 ? parseInt(soTC) : 0;
 
-    let totalHours = 0;  
+    let totalHours = 0;
     let thanhVienResult = "";
 
     try {
@@ -1574,7 +1574,6 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
         throw error;
     }
 };
-
 
 // Lấy bảng xaydungctdt
 const getTableXayDungCTDT = async (req, res) => {
@@ -1834,7 +1833,6 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
     }
 };
 
-
 // Lấy bảng biensoangiaotrinhbaigiang
 const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
@@ -1907,6 +1905,234 @@ const getData = async (req, res) => {
     }
 };
 
+const editNckh = async (req, res) => {
+    const { ID, MaBang } = req.params;
+
+    if (!ID) {
+        return res.status(400).json({ message: "Thiếu ID cần cập nhật." });
+    }
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ message: "Dữ liệu gửi lên bị thiếu hoặc rỗng." });
+    }
+
+    let data = {};
+    let updateQuery = "";
+    let queryParams = [];
+
+    switch (MaBang) {
+        case "detaiduan":
+            data = {
+                CapDeTai: req.body.CapDeTai,
+                TenDeTai: req.body.TenDeTai,
+                MaSoDeTai: req.body.MaSoDeTai,
+                ChuNhiem: req.body.ChuNhiem,
+                ThuKy: req.body.ThuKy,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+                NgayNghiemThu: req.body.NgayNghiemThu,
+            };
+
+            updateQuery = `
+                UPDATE detaiduan 
+                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?
+                WHERE ID = ?`;
+
+            queryParams = [
+                data.CapDeTai,
+                data.TenDeTai,
+                data.MaSoDeTai,
+                data.ChuNhiem,
+                data.ThuKy,
+                data.DanhSachThanhVien,
+                data.NgayNghiemThu,
+                ID,
+            ];
+            break;
+
+        case "baibaokhoahoc":
+            data = {
+                LoaiTapChi: req.body.LoaiTapChi,
+                TenBaiBao: req.body.TenBaiBao,
+                TacGia: req.body.TacGia,
+                TacGiaChiuTrachNhiem: req.body.TacGiaChiuTrachNhiem,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+                UPDATE baibaokhoahoc 
+                SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?
+                WHERE ID = ?`;
+
+            queryParams = [
+                data.LoaiTapChi,
+                data.TenBaiBao,
+                data.TacGia,
+                data.TacGiaChiuTrachNhiem,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+
+        case "bangsangchevagiaithuong":
+            data = {
+                PhanLoai: req.body.PhanLoai,
+                TenBangSangCheVaGiaiThuong: req.body.TenBangSangCheVaGiaiThuong,
+                NgayQDCongNhan: req.body.NgayQDCongNhan,
+                SoQDCongNhan: req.body.SoQDCongNhan,
+                TacGia: req.body.TacGia,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+                UPDATE bangsangchevagiaithuong 
+                SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?
+                WHERE ID = ?`;
+
+            queryParams = [
+                data.PhanLoai,
+                data.TenBangSangCheVaGiaiThuong,
+                data.NgayQDCongNhan,
+                data.SoQDCongNhan,
+                data.TacGia,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+
+        case "biensoangiaotrinhbaigiang":
+            data = {
+                PhanLoai: req.body.PhanLoai,
+                TenGiaoTrinhBaiGiang: req.body.TenGiaoTrinhBaiGiang,
+                SoTC: req.body.SoTC,
+                SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                TacGia: req.body.TacGia,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+                UPDATE biensoangiaotrinhbaigiang 
+                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?
+                WHERE ID = ?`;
+
+            queryParams = [
+                data.PhanLoai,
+                data.TenGiaoTrinhBaiGiang,
+                data.SoTC,
+                data.SoQDGiaoNhiemVu,
+                data.NgayQDGiaoNhiemVu,
+                data.TacGia,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+        case "nckhvahuanluyendoituyen":
+            data = {
+                PhanLoai: req.body.PhanLoai,
+                TenDeTai: req.body.TenDeTai,
+                SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+        UPDATE nckhvahuanluyendoituyen 
+        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?
+        WHERE ID = ?`;
+
+            queryParams = [
+                data.PhanLoai,
+                data.TenDeTai,
+                data.SoQDGiaoNhiemVu,
+                data.NgayQDGiaoNhiemVu,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+        case "sachvagiaotrinh":
+            // Giả sử đây là code cập nhật cho sachvagiaotrinh (đã có sẵn)
+            data = {
+                // Các trường dữ liệu của sachvagiaotrinh, ví dụ:
+                PhanLoai: req.body.PhanLoai,
+                TenSachVaGiaoTrinh: req.body.TenSachVaGiaoTrinh,
+                SoXuatBan: req.body.SoXuatBan,
+                SoTrang: req.body.SoTrang,
+                TacGia: req.body.TacGia,
+                DongChuBien: req.body.DongChuBien,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+                  UPDATE sachvagiaotrinh
+                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?
+                  WHERE ID = ?`;
+
+            queryParams = [
+                data.PhanLoai,
+                data.TenSachVaGiaoTrinh,
+                data.SoXuatBan,
+                data.SoTrang,
+                data.TacGia,
+                data.DongChuBien,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+        case "xaydungctdt":
+            // Code cập nhật cho bảng xaydungctdt
+            data = {
+                HinhThucXayDung: req.body.HinhThucXayDung,
+                TenChuongTrinh: req.body.TenChuongTrinh,
+                SoTC: req.body.SoTC,
+                SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                DanhSachThanhVien: req.body.DanhSachThanhVien,
+            };
+
+            updateQuery = `
+                  UPDATE xaydungctdt
+                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?
+                  WHERE ID = ?`;
+
+            queryParams = [
+                data.HinhThucXayDung,
+                data.TenChuongTrinh,
+                data.SoTC,
+                data.SoQDGiaoNhiemVu,
+                data.NgayQDGiaoNhiemVu,
+                data.DanhSachThanhVien,
+                ID,
+            ];
+            break;
+        default:
+            return res.status(400).json({ message: "Loại bảng không hợp lệ." });
+    }
+
+
+    const connection = await createPoolConnection();
+
+    try {
+        const [result] = await connection.execute(updateQuery, queryParams);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Không tìm thấy bản ghi để cập nhật." });
+        }
+
+        console.log(`Cập nhật thành công ID: ${ID} trong bảng ${MaBang}`);
+        res.status(200).json({ message: "Cập nhật thành công!" });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi cập nhật.",
+            error: error.message,
+        });
+    } finally {
+        connection.release();
+    }
+};
+
+
+
 
 module.exports = {
     getQuyDinhSoGioNCKH,
@@ -1933,4 +2159,5 @@ module.exports = {
     saveBienSoanGiaoTrinhBaiGiang,
     getTableBienSoanGiaoTrinhBaiGiang,
     getData,
+    editNckh
 };
