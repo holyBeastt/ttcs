@@ -9,52 +9,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <!-- link thư viện excel  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+  <!-- Link thư viện tabulator -->
+  <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
   <style>
-    /* CSS cho bảng */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    .table th,
-    .table td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #dee2e6;
-      white-space: normal;
-      word-wrap: break-word;
-    }
-
-    .table th {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .table tbody tr:nth-child(even) {
-      background-color: #f8f9fa;
-    }
-
-    .table tbody tr:hover {
-      background-color: #e2e6ea;
-    }
-
-    .table td {
-      vertical-align: middle;
-
-    }
-
-    .bg-custom {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
     .spinner-border {
       position: fixed;
       left: 50%;
@@ -79,6 +47,14 @@
       margin-top: 20px;
     }
 
+    .left {
+      display: flex;
+      align-items: center;
+      /* Căn giữa theo chiều dọc */
+      /* gap: 10px; */
+      /* Khoảng cách giữa các phần tử */
+    }
+
     .btn {
       height: 45px;
       margin-left: 5px;
@@ -100,7 +76,7 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       z-index: 1000;
       padding: 10px;
-      transform: translateX(218%);
+      transform: translateX(130%) translateY(80%);
     }
 
     .dropdown-item {
@@ -112,70 +88,81 @@
       background-color: #f8f9fa;
     }
   </style>
+  <style>
+    /* fixed header nhưng chưa được */
+    .tabulator>.tabulator-header>.tabulator-col {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 10000 !important;
+    }
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const MaPhongBan = localStorage.getItem("MaPhongBan");
-      const role = localStorage.getItem("userRole");
+    /* màu header */
+    .tabulator .tabulator-header .tabulator-col {
+      background-color: #007bff !important;
+      /* Màu nền */
+      color: white !important;
+    }
 
-      if (role == "Duyệt") {
-        document.getElementById("ban-hanh").style.visibility = "visible";
-        document.getElementById("quychuandukien").style.visibility =
-          "visible";
-        document.getElementById("xoa-qc-du-kien").style.visibility =
-          "visible";
-      }
-      /*
-          if (MaPhongBan != "DAOTAO" || role == "Thường") {
-            document.getElementById("ban-hanh").style.visibility = "hidden";
-            document.getElementById("quychuandukien").style.visibility = "hidden";
-            document.getElementById("xoa-qc-du-kien").style.visibility = "hidden";
-          }
-            */
-    });
-  </script>
+    /* phần header */
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+      /* Ghi đè với thư viện cho đẹp */
+      padding: 10px 5px 0px 5px !important;
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      text-align: center !important;
+      /* Canh giữa văn bản */
+      white-space: normal !important;
+      /* Cho phép nội dung xuống dòng */
+      word-wrap: break-word !important;
+      /* Ngắt từ nếu cần */
+      overflow: visible !important;
+      /* Hiển thị hết nội dung, không cắt */
+      word-break: break-word !important;
+      /* Ngắt từ dài thành dòng mới */
+    }
+
+    /* Đảm bảo bảng có chiều rộng 100% */
+    #table-container {
+      width: 100% !important;
+      font-size: 12px !important;
+      /* Thêm style cho bảng nếu cần */
+    }
+
+    /* Thay đổi chiều rộng của tiêu đề cột nếu cần */
+    .tabulator-col .tabulator-sortable .tabulator-col-sorter-element {
+      display: flex !important;
+      flex-wrap: wrap !important;
+    }
+
+    /* ô tìm kiếm */
+    input {
+      background-color: #d3d3d3;
+      /* Màu xám sáng */
+    }
+  </style>
 </head>
-<style>
-  .left {
-    display: flex;
-    align-items: center;
-    /* Căn giữa theo chiều dọc */
-    gap: 10px;
-    /* Khoảng cách giữa các phần tử */
-  }
-</style>
 
 <body>
   <!-- Phần header -->
   <%- include('header') %>
 
     <!-- Phần nội dung -->
-
     <div class="container-fluid my-4" style="padding-left: 0px">
       <div class="flex-grow-1">
         <div class="header-actions">
           <div class="left">
-            <button class="btn" id="ban-hanh" style="margin-bottom: 0px; display: none;">
-              Ban Hành
-            </button>
             <button class="btn text-nowrap" id="quychuandukien"
               style="width: max-content; margin-bottom: 0px; display: none;">
-              Thêm bảng quy chuẩn
+              Thêm file quy chuẩn
             </button>
             <button class="btn text-nowrap" id="export-file-btn"
               style="width: max-content; margin-bottom: 0px; display: none;">
               Xuất file
             </button>
-            <button class="btn" style="top: 8px; display: none;" id="edit-student-quantity-btn">
-              Lưu số SV
+            <button class="btn" id="ban-hanh" style="margin-bottom: 0px; display: none;">
+              Ban Hành
             </button>
-            <!-- Menu dropdown ẩn và hiện ra khi click vào nút -->
             <div id="file-format-menu" class="dropdown-menu" aria-labelledby="export-file-btn"
               style="display: none; position: absolute">
-              <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
               <button class="dropdown-item" onclick="exportToExcel()">
                 Excel
               </button>
@@ -188,13 +175,9 @@
               <select class="selectop" id="combobox-dot" style="width: 70px">
                 <option value="">Đợt</option>
               </select>
-
-              <!-- Combo box kì -->
               <select class="selectop" id="comboboxki" style="width: 70px">
                 <option value="">Kì</option>
               </select>
-
-              <!-- Combo box Năm -->
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
               </select>
@@ -211,154 +194,19 @@
           </div>
         </div>
 
-        <div>
-          <table class="table table-bordered">
-            <thead>
-              <tr id="table-header"></tr>
-            </thead>
-            <tbody id="data-table-body"></tbody>
-          </table>
-          <button class="btn text-nowrap" style="display: none;" id="add-row-btn" onclick="addRow()">
-            Thêm
+        <div class="left">
+          <button class="btn" style="display: none;" id="add-row-btn" onclick="addRow()">
+            Thêm dòng mới
           </button>
+          <button class="btn" id="save-btn" style="display: none;" onclick="updateDataInServer()">Cập nhật</button>
         </div>
+        <table class="table table-bordered">
+          <div id="table-container"></div>
+        </table>
 
-        <div id="no-data-message" class="text-center my-3" style="display: none">
-          Không có dữ liệu để hiển thị.
-        </div>
       </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Link script Sweet alert 2 -->
-    <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
-    <!-- SweetAlert2 JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-
-    <!-- link thư viện excel  -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
-
-    <!-- Số sinh viên -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Mảng chứa các giá trị cần cập nhật
-        const updatedValues = [];
-
-        // Lắng nghe sự kiện nhấn nút Lưu với id="edit-student-quantity-btn"
-        document.getElementById("edit-student-quantity-btn").addEventListener("click", function () {
-          // Lấy tất cả các input có id chứa 'SoSinhVien'
-          const inputElements = document.querySelectorAll('input[id*="SoSinhVien"]');
-
-          inputElements.forEach(input => {
-            const inputId = input.id;
-            const newValue = input.value;
-
-            // Sử dụng biểu thức chính quy để lấy số từ id
-            const regex = /-(\d+)-/;
-            const match = inputId.match(regex);
-            if (!match) return; // Nếu không khớp định dạng, bỏ qua
-
-            const inputNumber = match[1];
-
-            // Tìm đối tượng trong renderData có ID trùng khớp với inputNumber
-            const renderItem = renderData.find(item => item.ID == inputNumber);
-
-            if (renderItem) {
-              const initialValue = sanitizeValue(renderItem.SoSinhVien); // Giá trị cũ
-              const heSoLopDong = renderItem.HeSoLopDong; // Lấy HeSoLopDong
-              const heSoT7CN = renderItem.HeSoT7CN; // Lấy HeSoLopDong
-              const LL = renderItem.LL; // Lấy HeSoLopDong
-
-              // Chỉ cập nhật nếu có sự thay đổi
-              if (Number(newValue) != Number(initialValue)) {
-                updatedValues.push({
-                  ID: inputId,
-                  StudentQuantityUpdate: newValue,
-                  StudentQuantity: initialValue,
-                  HeSoLopDong: heSoLopDong,
-                  HeSoT7CN: heSoT7CN,
-                  LL: LL,
-                });
-              }
-            }
-          });
-
-          // Nếu không có thay đổi nào, hiển thị cảnh báo
-          if (updatedValues.length === 0) {
-            Swal.fire({
-              icon: 'warning',
-              title: 'Chưa có thay đổi nào!',
-              text: 'Bạn chưa thay đổi số lượng sinh viên nào.',
-              timer: 3000,
-              timerProgressBar: true,
-              showConfirmButton: true
-            });
-            return;
-          }
-
-          console.log(updatedValues);
-
-          // Gửi dữ liệu lên server bằng fetch
-          fetch('/qcdk/edit-student-quanity', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(updatedValues) // Gửi dữ liệu có cả HeSoLopDong
-          })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                // Cập nhật giá trị mới vào các ô input
-                updatedValues.forEach(item => {
-                  const inputElement = document.getElementById(item.ID);
-                  if (inputElement) {
-                    inputElement.value = item.StudentQuantityUpdate;
-                  }
-                });
-
-                // Xóa HeSoLopDong khỏi updatedValues sau khi lưu thành công
-                updatedValues.forEach(item => delete item.HeSoLopDong);
-
-                // Xóa danh sách cập nhật để tránh lỗi khi lưu tiếp
-                updatedValues.length = 0;
-
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Lưu thành công',
-                  text: 'Dữ liệu đã được lưu thành công.',
-                  timer: 3000,
-                  timerProgressBar: true,
-                  showConfirmButton: true
-                });
-              } else {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Lỗi',
-                  text: data.message || 'Đã có lỗi xảy ra, vui lòng thử lại.',
-                  showConfirmButton: true
-                });
-              }
-            })
-            .catch(error => {
-              Swal.fire({
-                icon: 'error',
-                title: 'Lỗi khi lưu dữ liệu',
-                text: 'Đã có lỗi xảy ra, vui lòng thử lại.',
-              });
-            });
-        });
-      });
-
-      // Hàm lọc dữ liệu, quy đổi NaN, undefined, rỗng về 0
-      function sanitizeValue(value) {
-        return Number(value) || 0; // Chuyển đổi về số hoặc trả về 0
-      }
-
-    </script>
-
-    <!-- hiện các chức năng theo role -->
+    <!-- hiện các chức năng theo role của site qc dự kiến -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -372,15 +220,15 @@
         if (role == "Duyệt") {
           const addBtn = document.getElementById("add-row-btn");
           const exportBtn = document.getElementById("export-file-btn");
-          const editStudenQuanityBtn = document.getElementById("edit-student-quantity-btn");
+          const saveBtn = document.getElementById("save-btn");
           const banHanhBtn = document.getElementById("ban-hanh");
           const toggleSiteBtn = document.getElementById("quychuandukien");
 
 
 
-          addBtn.style.display = "block"; // Hiện actionButton1 nếu isKhoa khác 0
-          exportBtn.style.display = "block"; // Hiện actionButton1 nếu isKhoa khác 0
-          editStudenQuanityBtn.style.display = "block";
+          addBtn.style.display = "block"; // 
+          exportBtn.style.display = "block"; //
+          saveBtn.style.display = "block";
           banHanhBtn.style.display = "block";
           toggleSiteBtn.style.display = "block";
         }
@@ -586,14 +434,17 @@
       }
 
     </script>
-
     <!-- render bảng -->
     <script>
-      // Biến chung để lưu dữ liệu render
       var renderData = [];
+      // Biến chung để chỉnh sửa bảng 
+      var localData = [];
       // Mảng khoa ( để validate bảng)
       var khoaArray = [];
+      // Khởi tạo table
+      var table;
 
+      // Hàm getData từ sv
       async function getDataTable() {
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
@@ -616,14 +467,31 @@
             body: JSON.stringify(body),
           });
 
-          if (!response.ok) {
-            throw new Error(
-              "Network response was not ok: " + response.statusText
-            );
+          const rs = await response.json();
+
+          if (!rs.success) {
+            Swal.fire({
+              title: 'Thông báo',
+              html: `${rs.message}`,
+              icon: 'info',
+              confirmButtonText: 'OK',
+              width: 'auto',
+              padding: '20px',
+              timer: 3000, // Tự động đóng sau 3 giây
+              timerProgressBar: true, // Hiển thị thanh đếm thời gian
+              didClose: () => {
+                location.reload(); // Reload trang khi đóng
+              }
+            }).then((result) => {
+              if (result.isDismissed || result.isConfirmed) {
+                location.reload(); // Reload trang nếu bấm "OK" hoặc "X"
+              }
+            });
+
+            return; // Dừng lại nếu có lỗi
           }
 
-          const data = await response.json();
-          renderData = data; // Lưu dữ liệu vào biến renderData
+          renderData = rs.data; // Lưu dữ liệu vào biến renderData
           console.log(renderData);
 
           // Gọi hàm renderTable để hiển thị dữ liệu
@@ -634,21 +502,11 @@
         }
       }
 
+      // Hàm render bảng
       function renderTable() {
         const tableBody = document.getElementById("data-table-body");
         const tableHeader = document.getElementById("table-header");
-        const noDataMessage = document.getElementById("no-data-message");
 
-        if (renderData.length === 0) {
-          noDataMessage.style.display = "block";
-          tableBody.innerHTML = ""; // Xóa nội dung cũ
-          tableHeader.innerHTML = ""; // Xóa header
-          return;
-        }
-
-        noDataMessage.style.display = "none";
-
-        // Map headers
         const headersMap = {
           Khoa: "Khoa",
           Dot: "Đợt",
@@ -667,284 +525,140 @@
           QuyChuan: "Số tiết QC",
         };
 
-        const headers = Object.keys(renderData[0]).filter(
-          (header) => header !== "GhiChu" && header !== "ID"
-        );
 
-        // Generate headers
-        const role = localStorage.getItem("userRole");
-        const headerHtml = headers
-          .map((header) => {
-            const newHeaderName = headersMap[header] || header;
-            const baseStyle = 'style="text-align: center; vertical-align: middle;"';
-            const headerStyle =
-              newHeaderName === "Số TC" || newHeaderName === "Số SV"
-                ? 'style="white-space: break-spaces"'
-                : baseStyle;
+        // Cột cho phép sort
+        const sortableColumns = [
+          "SoSinhVien",
+        ];
 
-            return `<th ${headerStyle}>${newHeaderName}</th>`;
-          })
-          .join("") + (role === "Duyệt" ? '<th style="text-align: center;">Hành động</th>' : "");
+        // Cột cho phép lọc
+        const filterTableColumns = [
+          "LopHocPhan",
+          "GiaoVien"
+        ];
 
-        tableHeader.innerHTML = headerHtml;
 
-        // Generate rows
-        const keyNotEdit = ["ID", "GhiChu"];
-        const rowsHtml = renderData
-          .map((item) => {
-            const id = item.ID;
-
-            // Generate row cells
-            const rowHtml = headers
-              .map((key) => {
-                const value = item[key] !== null ? item[key] : "";
-
-                if (key === "SoSinhVien") {
-                  // Nếu là cột "Số SV", render dưới dạng input
-                  return `<td><input type="number" id="cell-${id}-${key}" value="${value}" style="width: 50px !important;"/></td>`;
-                } else {
-                  return keyNotEdit.includes(key)
-                    ? `<td>${value}</td>`
-                    : `<td id="cell-${id}-${key}">${value}</td>`;
-                }
-              })
-              .join("");
-
-            // Generate action column if needed
-            const actionColumn =
-              role === "Duyệt"
-                ? `
-        <td>
-          <button onclick="editRow(${id})">Sửa</button>
-          <button onclick="deleteRow(${id})">Xóa</button>
-        </td>`
-                : "";
-
-            // Determine warning class
-            const hasZeroValue = Object.values(item).some(
-              (value) => !isNaN(value) && Number(value) === 0
-            );
-            const warningClass = hasZeroValue ? "warning-row" : "";
-
-            return `<tr id="row-${id}" class="${warningClass}">
-                ${rowHtml}
-                ${actionColumn}
-              </tr>`;
-          })
-          .join("");
-
-        tableBody.innerHTML = rowsHtml;
-      }
-
-      function renderRow(id, updatedRow) {
-        let rowElement = document.getElementById(`row-${id}`);
-        const role = localStorage.getItem("userRole");
-        const headersMap = {
-          Khoa: "Khoa",
-          Dot: "Đợt",
-          Ki: "Kì",
-          Nam: "Năm",
-          GiaoVien: "Giảng viên theo TKB",
-          GiaoVienGiangDay: "Giảng viên giảng dạy",
-          MoiGiang: "Mời giảng?",
-          SoTinChi: "Số TC",
-          LopHocPhan: "Lớp học phần",
-          LL: "Số tiết LL",
-          SoTietCTDT: "Số tiết TKB",
-          HeSoT7CN: "Hệ số ngoài giờ",
-          SoSinhVien: "Số SV",
-          HeSoLopDong: "Hệ số lớp đông",
-          QuyChuan: "Số tiết QC",
-        };
-
-        const keyNotEdit = ["ID", "GhiChu"];
-        const headers = Object.keys(updatedRow).filter(
-          (header) => header !== "GhiChu" && header !== "ID"
-        );
-
-        // Nếu dòng chưa tồn tại, tạo mới
-        if (!rowElement) {
-          rowElement = document.createElement("tr");
-          rowElement.id = `row-${id}`;
-          document.getElementById("data-table-body").appendChild(rowElement);
-        }
-
-        // Xây dựng các ô trong dòng
-        const rowHtml = headers
+        const columns = Object.keys(renderData[0])
+          .filter((key) => key !== "GhiChu" && key !== "ID")
           .map((key) => {
-            const cellStyle =
-              key === "SoSinhVien" || key === "SoTinChi"
-                ? "background-color: #ffffff; font-weight: bold;" // Style tùy chỉnh
-                : "";
+            const column = {
+              headerFilterPlaceholder: "Tìm kiếm...",  // Văn bản hiển thị trong ô 
+              headerFilter: filterTableColumns.includes(key) ? true : false,  // Bật chức năng lọc cho tiêu đề cột
+              title: headersMap[key] || key,
+              field: key,
+              hozAlign: "center",
+              editor: false,
+              headerSort: sortableColumns.includes(key) ? true : false,
+            };
 
-            if (keyNotEdit.includes(key)) {
-              return `<td style="${cellStyle}">${updatedRow[key] !== null ? updatedRow[key] : ""
-                }</td>`;
+            // Đặt độ rộng cho các cột cụ thể 
+            if (key === "LopHocPhan" || key === "GiaoVien") {
+              column.width = "18%";
+            } else if (key === "Dot" || key === "Ki" || key === "SoTinChi") {
+              column.width = "3%";
+            } else if (key === "SoSinhVien") {
+              column.width = "3%";
             }
+            return column;
+          });
 
-            return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
-              }; ${cellStyle}">${updatedRow[key] !== null ? updatedRow[key] : ""
-              }</td>`;
-            // if (keyNotEdit.includes(key)) {
-            //   return `<td>${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
-            // }
-            // return `<td id="cell-${id}-${key}" style="display:${key === "ID" ? "none" : ""
-            //   }">${updatedRow[key] !== null ? updatedRow[key] : ""}</td>`;
-          })
-          .join("");
+        const role = localStorage.getItem("userRole");
 
-        // Tạo cột hành động nếu role là "Duyệt"
-        let actionColumn = "";
         if (role === "Duyệt") {
-          actionColumn = `
-      <td>
-        <button onclick="editRow(${id})">Sửa</button>
-        <button onclick="deleteRow(${id})">Xóa</button>
-      </td>`;
+          columns.push({
+            title: "Xóa",
+            field: "actions",
+            hozAlign: "center",
+            headerSort: false,
+            sortable: false,
+            formatter: function (cell, formatterParams, onRendered) {
+              const id = cell.getRow().getData().ID;
+              return `<button onclick="deleteRow(${id})">Xóa</button>`;
+            },
+          });
+
+          columns.forEach((col) => {
+            col.editor = true; // Cho phép chỉnh sửa
+          });
+        } else {
+          columns.forEach((col) => {
+            col.editor = false; // Không cho phép chỉnh sửa
+          });
         }
 
-        // Kiểm tra nếu bất kỳ giá trị nào là 0
-        const hasZeroValue = Object.values(updatedRow).some(
-          (value) => !isNaN(value) && Number(value) === 0
-        );
-        const warningClass = hasZeroValue ? "warning-row" : "";
+        if (table) {
+          table.destroy();
+        }
 
-        // Cập nhật HTML của dòng
-        rowElement.className = warningClass;
-        rowElement.innerHTML = `
-        ${rowHtml}
-        ${actionColumn}`;
+        // Lưu dữ liệu renderData vào localData khi bảng được render
+        localData = JSON.parse(JSON.stringify(renderData));
+
+        table = new Tabulator("#table-container", {
+          data: localData,
+          layout: "fitColumns",
+          pagination: "local",
+          paginationSize: 100,
+          movableColumns: true,
+          resizableColumns: true,
+          columns: columns,
+          index: "ID",
+
+          cellEdited: function (cell) {
+            const editedData = cell.getData();
+            // Cập nhật dữ liệu vào localData
+            const rowIndex = localData.findIndex(row => row.ID === editedData.ID);
+            if (rowIndex !== -1) {
+              localData[rowIndex] = editedData; // Cập nhật dòng dữ liệu trong localData
+            }
+          },
+
+          rowFormatter: function (row) {
+            const data = row.getData();
+            if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
+              row.getElement().classList.add("warning-row");
+            }
+          },
+        });
       }
 
-      // Hàm sửa gắn vào tt onclick
-      function editRow(index) {
-        // Lọc ra đối tượng trong renderData có ID tương ứng với index
-        const item = renderData.find((item) => item.ID === index);
+      // Hàm cập nhật
+      function updateDataInServer() {
 
-        if (!item) {
-          console.error(`Không tìm thấy đối tượng với ID: ${index}`);
-          return; // Nếu không tìm thấy đối tượng, thoát khỏi hàm
-        }
-
-        const row = document.getElementById(`row-${index}`);
-        if (!row) {
-          console.error(`Không tìm thấy row-${index}`);
-          return; // Nếu không tìm thấy row, thoát khỏi hàm
-        }
-
-        // Lọc các cột cần sửa (Loại bỏ cột không sửa được như: "GhiChu" "ID")
-        const headers = Object.keys(renderData[0]).filter(
-          (header) => !["GhiChu", "ID"].includes(header)
-        );
-
-        headers.forEach((key) => {
-          // Lấy giá trị của trường tương ứng từ item
-          const currentValue = item[key];
-
-          // Tìm phần tử cell tương ứng với ID và keyss
-          const cell = document.getElementById(`cell-${index}-${key}`);
-          if (cell) {
-            let inputWidth = "100%"; // Mặc định độ rộng là 100%
-            if (key === "LopHocPhan" || key === "GiaoVien") {
-              inputWidth = "100%"; // Nếu là "LopHocPhan" hoặc "GiaoVien", đặt độ rộng là 100%
-            }
-
-            // Tạo ô nhập liệu với giá trị hiện tại và độ rộng tùy chỉnh
-            cell.innerHTML = `<input type="text" id="input-${index}-${key}" value="${currentValue}" placeholder="${currentValue}" style="width: ${inputWidth};">`;
-          } else {
-            console.error(`Không tìm thấy cell-${index}-${key}`);
-          }
+        // So sánh localData với renderData để tìm các thay đổi
+        const changes = localData.filter((localRow) => {
+          const renderRow = renderData.find((renderRow) => renderRow.ID === localRow.ID);
+          return JSON.stringify(localRow) !== JSON.stringify(renderRow);  // So sánh dữ liệu giữa local và render
         });
 
-        // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
-        const actionCell = row.querySelector("td:last-child");
-        actionCell.innerHTML = `
-    <button onclick="saveRow(${index})">Lưu</button>
-    <button onclick="cancelEdit(${index})">Hủy</button>
-  `;
-      }
 
-      // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
-      async function saveRow(id) {
-        try {
-          // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
-          const headers = Object.keys(renderData[0]);
+        if (changes.length > 0) {
+          console.log("Gửi dữ liệu đã thay đổi lên server:", changes);
 
-          // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
-          const updatedRow = {};
+          const apiUrl = '/update-qcdk';
 
-          // Duyệt qua từng cột và cập nhật giá trị của nó
-          headers.forEach((key) => {
-            // Lấy phần tử input tương ứng với từng cột và dòng
-            const input = document.getElementById(`input-${id}-${key}`);
-
-            if (input) {
-              // Kiểm tra xem ô nhập liệu có tồn tại không
-              const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
-
-              // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
-              if (newValue === "") {
-                throw new Error(`Giá trị của cột ${key} không thể để trống!`);
-              }
-
-              // Thêm giá trị mới vào đối tượng updatedRow
-              updatedRow[key] = newValue;
-            } else {
-              console.warn(
-                `Không tìm thấy ô nhập liệu cho cột ${key} tại dòng ${id}`
-              );
-              // Nếu không có input, giữ nguyên giá trị cũ
-              updatedRow[key] = renderData.find((row) => row.ID === id)[key];
-            }
-          });
-
-          // Gửi dữ liệu dòng đã sửa tới API
-          const response = await fetch(`/update-row/${id}`, {
-            method: "PUT",
+          fetch(apiUrl, {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
-            body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to update row: ${response.statusText}`);
-          }
-
-          // Nếu API trả về trạng thái 200, tiếp tục cập nhật và hiển thị lại dòng
-          const rowIndex = renderData.findIndex((row) => row.ID === id);
-          if (rowIndex !== -1) {
-            renderData[rowIndex] = updatedRow; // Thay thế dòng cũ bằng dòng đã chỉnh sửa
-          }
-
-          // Hiển thị lại dòng đã chỉnh sửa
-          renderRow(id, updatedRow);
-        } catch (error) {
-          console.error("Error updating row:", error);
-          alert(`Có lỗi xảy ra khi cập nhật: ${error.message}`);
+            body: JSON.stringify(changes),
+          })
+            .then(response => response.json())
+            .then(data => {
+              alert(data.message);
+              renderData = JSON.parse(JSON.stringify(localData));  // Đồng bộ lại renderData với localData sau khi update thành công
+            })
+            .catch(error => {
+              console.error("Có lỗi khi gửi dữ liệu lên server:", error);
+            });
+        } else {
+          alert("Không có thay đổi nào để gửi.");
         }
       }
 
-      function cancelEdit(id) {
-        // Tìm dữ liệu gốc của dòng dựa trên ID
-        const originalRow = renderData.find((row) => row.ID === id);
-
-        if (!originalRow) {
-          console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
-          return;
-        }
-
-        // Render lại dòng theo dữ liệu gốc
-        renderRow(id, originalRow);
-
-        // Thông báo (tùy chọn)
-        console.log(`Đã hủy chỉnh sửa dòng với ID: ${id}`);
-      }
-
-      // Hàm xóa dòng khi sửa ( gọi api xóa 1 dòng )
+      // Hàm xóa dòng
       async function deleteRow(id) {
         if (confirm("Bạn có chắc chắn muốn xóa dòng này?")) {
-          // Xác nhận xóa
           try {
             // Gửi yêu cầu DELETE tới API để xóa dòng
             const response = await fetch(`/delete-row/${id}`, {
@@ -960,13 +674,10 @@
             }
 
             // Xóa dòng trong dữ liệu cục bộ renderData
-            renderData = renderData.filter((row) => row.ID !== id);
+            localData = localData.filter((row) => row.ID !== id);
 
-            // Xóa trực tiếp dòng khỏi bảng trong giao diện
-            const rowElement = document.getElementById(`row-${id}`);
-            if (rowElement) {
-              rowElement.remove();
-            }
+            // Cập nhật lại bảng Tabulator với dữ liệu mới
+            table.replaceData(localData);
 
             // Thông báo thành công (tuỳ chọn)
             console.log(`Xóa dòng thành công: ID ${id}`);
@@ -977,193 +688,63 @@
         }
       }
 
-      // Hàm thêm khi ấn nút THÊM
-      let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
-
+      // Hàm thêm dòng
       async function addRow() {
-        const Khoa = document.getElementById("departmentFilter").value;
-        const Dot = document.getElementById("combobox-dot").value;
-        const Ki = document.getElementById("comboboxki").value;
-        const Nam = document.getElementById("NamHoc").value;
+        let Dot = document.getElementById("combobox-dot").value;
+        let Ki = document.getElementById("comboboxki").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let Khoa = document.getElementById("departmentFilter").value;
 
-        // Tạo một đối tượng dữ liệu cho dòng mới
-        const newRowData = {
-          Khoa: Khoa,
-          Dot: Dot,
-          Ki: Ki,
-          Nam: Nam,
-          // Các cột khác có thể để trống hoặc mặc định
+        // Tạo đối tượng mới với dữ liệu mặc định
+        const newRow = {
+          Khoa: Khoa, // Chỉ cần gán trực tiếp giá trị của Khoa
+          Dot: Dot, // Cập nhật giá trị của Dot
+          Ki: Ki, // Cập nhật giá trị của Ki
+          Nam: Nam, // Cập nhật giá trị của Nam
+          GiaoVien: "",
+          GiaoVienGiangDay: "",
+          MoiGiang: "",
+          SoTinChi: 0,
+          LopHocPhan: "",
+          LL: 0,
+          SoTietCTDT: 0,
+          HeSoT7CN: 0,
+          SoSinhVien: 0,
+          HeSoLopDong: 0,
+          QuyChuan: 0,
         };
 
-        try {
-          // Gửi yêu cầu lên server để thêm dòng mới
-          const response = await fetch("/add-row", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newRowData),
-          });
+        // Gửi dữ liệu lên server
+        const response = await fetch("/add-row", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newRow),
+        });
 
-          // Kiểm tra phản hồi từ server
-          if (!response.ok) {
-            throw new Error(`Không thể thêm dòng: ${response.statusText}`);
-          }
-
-          // Lấy ID từ phản hồi
-          const result = await response.json();
-          const newRowId = result.ID; // ID được trả về từ server
-
-          // Cập nhật dữ liệu với ID thực
-          newRowData.ID = newRowId;
-
-          // Thêm dòng mới vào mảng renderData
-          renderData.push(newRowData);
-
-          // Cập nhật lại bảng sau khi thêm
-          renderTable();
-
-          console.log("Dòng mới đã được thêm với ID:", newRowId);
-        } catch (error) {
-          console.error("Lỗi khi thêm dòng mới:", error);
-          alert("Có lỗi xảy ra khi thêm dòng mới: " + error.message);
+        // Kiểm tra phản hồi từ server
+        if (!response.ok) {
+          console.error("Lỗi khi gửi dữ liệu lên server");
+          return;
         }
+
+        const result = await response.json();
+
+        // Giả sử server trả về ID thực, gán ID cho newRow
+        const realId = result.ID;
+
+        // Gán ID cho dòng mới
+        newRow.ID = realId;
+
+        // Thêm đối tượng mới vào localData
+        localData.unshift(newRow);  // Dùng unshift thay vì push
+
+        // Cập nhật lại bảng Tabulator với dữ liệu mới
+        table.replaceData(localData);
       }
 
-      // Hàm lưu dòng mới (gọi api lưu 1 dòng mới)
-      async function saveNewRow(rowId) {
-        try {
-          // Tìm dòng mới với ID tạm thời
-          const row = document.querySelector(`#${rowId}`);
-          if (!row) {
-            throw new Error("Dòng không tồn tại");
-          }
-
-          // Tạo đối tượng chứa dữ liệu dòng mới
-          const newRowData = {};
-
-          // Lấy danh sách các cột từ renderData[0] (loại bỏ "ID" và "GhiChu")
-          const headers = Object.keys(renderData[0]).filter(
-            (header) => !["ID", "GhiChu"].includes(header)
-          );
-
-          // Duyệt qua các ô nhập liệu trong dòng và lấy giá trị
-          headers.forEach((key) => {
-            const input = row.querySelector(`#input-new-${key}-${row.id.split("-")[2]}`);
-            if (input) {
-              newRowData[key] = input.value.trim();  // Lấy giá trị nhập vào
-            }
-          });
-
-          // Gửi dữ liệu lên server
-          const response = await fetch("/add-row", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newRowData),
-          });
-
-          // Kiểm tra phản hồi từ server
-          if (!response.ok) {
-            throw new Error(`Không thể lưu dòng mới: ${response.statusText}`);
-          }
-
-          // Nếu lưu thành công, nhận ID thật từ server
-          const result = await response.json();
-          const realId = result.ID;  // Giả sử server trả về ID thực
-
-          // Cập nhật ID dòng mới từ ID thực
-          newRowData.ID = realId;
-
-          // Cập nhật lại dữ liệu trong renderData
-          const index = renderData.findIndex(row => row.ID === rowId);
-          if (index !== -1) {
-            renderData[index] = newRowData;
-          }
-
-          // Cập nhật lại bảng
-          renderTable();
-
-          // Xóa bỏ dòng "new-row" cũ nếu không cần hiển thị nữa
-          row.remove();
-        } catch (error) {
-          // Xử lý lỗi và thông báo cho người dùng
-          console.error("Lỗi khi lưu dòng mới:", error);
-          alert("Có lỗi xảy ra khi lưu dòng mới: " + error.message);
-        }
-      }
-
-      // Hàm hủy thao tác thêm dòng mới
-      // Tạm thời không dùng, không nên xóa, ai xóa là chó
-      // function cancelAddRow() {
-      //   // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
-      //   const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
-
-      //   if (newRow) {
-      //     newRow.remove(); // Xóa dòng mới khỏi DOM
-      //     console.log("Đã hủy thao tác thêm dòng mới.");
-      //   } else {
-      //     console.log("Không tìm thấy dòng mới để hủy.");
-      //   }
-      // }
-
-      // async function submitData() {
-      //   // Lấy dữ liệu từ các phần tử HTML
-      //   let Dot = document.getElementById("combobox-dot").value;
-      //   let Ki = document.getElementById("comboboxki").value;
-      //   let Nam = document.getElementById("NamHoc").value;
-      //   let Khoa = document.getElementById("departmentFilter").value;
-
-      //   try {
-      //     // Gửi yêu cầu xóa dữ liệu trước
-      //     const responseDelete = await fetch('/xoa-qcdk', { // Đường dẫn tới API của bạn
-      //       method: 'POST', // Phương thức HTTP
-      //       headers: {
-      //         'Content-Type': 'application/json', // Định dạng dữ liệu
-      //       },
-      //       body: JSON.stringify({ Khoa, Dot, Ki, Nam }) // Gửi thông tin xóa trong body
-      //     });
-
-      //     // Kiểm tra xem yêu cầu xóa có thành công không
-      //     if (responseDelete.ok) {
-      //       const resultDelete = await responseDelete.json(); // Chuyển đổi phản hồi thành JSON
-      //       // alert(resultDelete.message); // Hiển thị thông báo thành công
-      //     } else {
-      //       const errorData = await responseDelete.json(); // Lấy thông tin lỗi
-      //       // alert(`Lỗi: ${errorData.message}`); // Hiển thị thông báo lỗi
-      //       return; // Dừng lại nếu có lỗi
-      //     }
-
-      //     // Cập nhật bảng sau khi xóa
-      //     const data = renderData; // Dữ liệu cần gửi đi
-      //     console.log(data);
-
-      //     // Gửi dữ liệu cập nhật lên server
-      //     const responseUpdate = await fetch('/update-qcdk', {
-      //       method: 'POST', // Sử dụng POST để gửi dữ liệu
-      //       headers: {
-      //         'Content-Type': 'application/json', // Định dạng dữ liệu là JSON
-      //       },
-      //       body: JSON.stringify(data) // Chuyển đổi dữ liệu sang chuỗi JSON
-      //     });
-
-      //     // Kiểm tra phản hồi từ API cập nhật
-      //     if (responseUpdate.ok) {
-      //       const resultUpdate = await responseUpdate.json(); // Chuyển đổi phản hồi thành JSON
-      //       alert(resultUpdate.message); // Hiển thị thông báo thành công
-      //     } else {
-      //       const errorUpdate = await responseUpdate.json(); // Lấy thông tin lỗi
-      //       alert(`Lỗi: ${errorUpdate.message}`); // Hiển thị thông báo lỗi
-      //     }
-
-      //   } catch (error) {
-      //     console.error('Đã xảy ra lỗi:', error);
-      //     alert('Đã xảy ra lỗi khi gọi API.'); // Hiển thị thông báo lỗi cho người dùng
-      //   }
-      // }
     </script>
-
     <!-- phần xóa bảng quy chuẩn dự kiến -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -1243,7 +824,6 @@
           });
       });
     </script>
-
     <!-- phần ban hành -->
     <script>
       let dataQC = [];
@@ -1389,315 +969,13 @@
           }
         });
     </script>
+    <!-- link các site -->
+    <script src="/js/moigiang/href.js"></script>
+    <!-- năm học, khoa -->
+    <script src="/js/moigiang/getdata.js"></script>
+    <!-- ẩn các nút theo role -->
+    <script src="/js/moigiang/hideBtn.js"></script>
 
-    <!-- phần lấy role phân trang -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const isKhoa = localStorage.getItem("isKhoa");
-        const role = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById("actionButton");
-        const actionButton1 = document.getElementById("actionButton1");
-        const actionButton2 = document.getElementById("actionButton2");
-        const actionButton3 = document.getElementById("actionButton3");
-
-        if (isKhoa == 0) {
-          actionButton1.style.display = "none"; // Ẩn actionButton1 nếu isKhoa = 0
-          actionButton2.style.display = "inline-block"; // Hiện actionButton2
-        } else {
-          actionButton1.style.display = "inline-block"; // Hiện actionButton1 nếu isKhoa khác 0
-          actionButton2.style.display = "none"; // Ẩn actionButton2
-          if (role.toLowerCase() == "gv") {
-            actionButton1.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
-          }
-        }
-        //Ẩn site duyệt lớp gk
-        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
-          actionButton3.style.display = "";
-        } else {
-          actionButton3.style.display = "none";
-        }
-      });
-    </script>
-
-    <!-- Phần phân quyền -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const importQuyChuan = document.getElementById("quychuandukien");
-        const MaPhongBan = localStorage.getItem("MaPhongBan");
-        const role = localStorage.getItem("userRole");
-
-        importQuyChuan.addEventListener("click", function (event) {
-          window.location.href = "/import";
-        });
-
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
-    </script>
-
-    <script>
-      function filterTable() {
-        // Lấy giá trị đã chọn từ các combobox
-        let dot = document.getElementById("combobox-dot").value;
-        let ki = document.getElementById("comboboxki").value;
-        let nam = document.getElementById("NamHoc").value;
-        let department = document
-          .getElementById("departmentFilter")
-          .value.trim();
-
-        let tbody = document.getElementById("data-table-body");
-        let rows = tbody.getElementsByTagName("tr");
-
-        for (let i = 0; i < rows.length; i++) {
-          let row = rows[i];
-          let cells = row.getElementsByTagName("td");
-
-          // Giả sử thứ tự cột là: Khoa, Đợt, Kì, Năm
-          let rowDepartment = cells[0].textContent.trim(); // Khoa
-          let rowDot = cells[1].textContent.trim(); // Đợt
-          let rowKi = cells[2].textContent.trim(); // Kì
-          let rowNam = cells[3].textContent.trim(); // Năm
-
-          // Logic lọc
-          let matchesDepartment =
-            department === "" || rowDepartment === department;
-          let matchesDot = dot === "" || rowDot === dot;
-          let matchesKi = ki === "" || rowKi === ki;
-          let matchesNam = nam === "" || rowNam === nam; // Kiểm tra năm
-
-          // Hiển thị hoặc ẩn hàng dựa trên kết quả lọc
-          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-            row.style.display = ""; // Hiển thị hàng
-          } else {
-            row.style.display = "none"; // Ẩn hàng
-          }
-        }
-      }
-    </script>
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
-
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
-              tenDangNhap
-            )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
-
-    <script>
-      $(document).ready(function () {
-        $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
-        $('#combobox-dot option[value=""]').remove();
-
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                $("#NamHoc").append(
-                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                );
-              });
-
-              response.Ki.forEach(function (item) {
-                console.log(item.Ki);
-                $("#comboboxki").append(
-                  `<option value="${item.value}">${item.Ki}</option>`
-                );
-              });
-              response.Dot.forEach(function (item) {
-                console.log(item.Dot);
-                $("#combobox-dot").append(
-                  `<option value="${item.value}">${item.Dot}</option>`
-                );
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
-      });
-    </script>
-    <script>
-      $(document).ready(function () {
-        $('#departmentFilter option[value=""]').remove();
-        // Gọi AJAX để lấy dữ liệu JSON từ API
-        $.ajax({
-          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
-          method: "GET",
-          success: function (response) {
-            // Kiểm tra nếu response thành công
-            const MaPhongBan = response.MaPhongBan;
-            if (response.success) {
-              $("#departmentFilter").prepend(
-                '<option value="ALL">Tất cả khoa</option>'
-              );
-              // Lặp qua từng mục trong mảng MaPhongBan
-              response.MaPhongBan.forEach(function (item) {
-                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
-                // Push vào mảng Khoa để validate bảng
-                khoaArray.push(item.MaPhongBan);
-                $("#departmentFilter").append(
-                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                );
-              });
-
-              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-              if (!$("#departmentFilter option:selected").length) {
-                $("#departmentFilter").prepend(
-                  '<option value="">Chọn Phòng Ban</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu phongBan:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-          },
-        });
-      });
-    </script>
-    <script>
-      document
-        .getElementById("ban-hanh")
-        .addEventListener("click", async function () {
-          // Xác nhận lại hành động ban hành
-          // const confirmed = confirm("Bạn có chắc chắn muốn đặt năm đợt kì mặc định không?");
-          // if (!confirmed) {
-          //     return; // Thoát nếu người dùng không đồng ý
-          // }
-
-          // Lấy giá trị của option đang được chọn
-          let Dot = document.getElementById("combobox-dot")?.value;
-          let Ki = document.getElementById("comboboxki")?.value;
-          let NamHoc = document.getElementById("NamHoc")?.value;
-
-          try {
-            const updateResult = await updateDatabase(NamHoc, Ki, Dot); // Gọi hàm updateDatabase với NamHoc
-
-            if (updateResult.success) {
-              // alert(updateResult.message || "Cập nhật thành công!");
-            } else {
-              // alert(updateResult.message || "Cập nhật thất bại!");
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Cập nhật dữ liệu thất bại! Vui lòng thử lại.");
-          }
-
-          // Gọi hàm updateDatabase để update dữ liệu
-          async function updateDatabase(NamHoc) {
-            const response = await fetch(`/update/${NamHoc}/${Ki}/${Dot}`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              // body: JSON.stringify(dataQC), // Nếu cần gửi dữ liệu khác, hãy mở comment và thêm dataQC
-            });
-
-            const result = await response.json();
-            return result;
-          }
-        });
-    </script>
-    <script>
-      document
-        .getElementById("infome")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-          if (id_User) {
-            // Chuyển hướng đến trang infome và truyền id_User trong URL
-            window.location.href = `/infome/${id_User}`;
-          } else {
-            alert("Không tìm thấy id_User trong localStorage.");
-          }
-        });
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const role = localStorage.getItem("userRole");
-
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById("changeMessage");
-        //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
-          actionButton.style.display = "";
-        } else {
-          actionButton.style.display = "none";
-        }
-      });
-    </script>
-    <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-          if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-          } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-          }
-        });
-    </script>
 </body>
 
 </html>
