@@ -166,6 +166,7 @@
                 <th>Tác giả</th>
                 <th>Tác giả CTN</th>
                 <th>Thành viên</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -181,89 +182,160 @@
 
     <!-- nckh view -->
     <script>
-      // format giờ cho thành viên
-      function formatDanhSachThanhVien(DanhSachThanhVien) {
-        // Kiểm tra nếu đầu vào không phải chuỗi hoặc chuỗi rỗng
-        if (
-          typeof DanhSachThanhVien !== "string" ||
-          !DanhSachThanhVien.trim()
-        ) {
-          return ""; // Nếu không hợp lệ, trả về chuỗi rỗng
-        }
-
-        // Tách chuỗi thành viên dựa trên dấu phẩy và xử lý từng thành viên
-        const thanhVienFormatted = DanhSachThanhVien.split(",") // Tách chuỗi thành viên bằng dấu phẩy
-          .map((member) => {
-            const trimmedMember = member.trim(); // Loại bỏ khoảng trắng thừa
-            if (trimmedMember) {
-              return formatHours(trimmedMember); // Định dạng giờ cho từng thành viên
-            }
-            return ""; // Nếu phần tử rỗng hoặc không hợp lệ, trả về chuỗi rỗng
-          })
-          .filter(Boolean) // Loại bỏ các phần tử rỗng trong mảng
-          .join(", "); // Nối lại thành chuỗi các thành viên đã được định dạng
-
-        return thanhVienFormatted;
+      // Hàm định dạng ngày từ ISO 8601 (nếu cần)
+      function formatDate(dateString) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
       }
 
-      // format giờ
+      // Hàm định dạng số giờ
       function formatHours(text) {
-        // Kiểm tra nếu text không phải là chuỗi
-        if (typeof text !== "string") {
-          return text;
-        }
-
+        if (typeof text !== "string") return text;
         const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-
         if (match) {
           const hours = parseFloat(match[1].replace(",", "."));
-          const formattedHours = hours.toFixed(2); // Giữ 2 số thập phân
-          return text.replace(match[1], formattedHours.replace(".", ",")); // Định dạng lại theo dấu phẩy
+          return text.replace(match[1], hours.toFixed(2).replace(".", ","));
         }
-
-        return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
+        return text;
       }
-      
-      // render table
+
+      function fixNumberFormat(text) {
+        if (typeof text !== "string") return text;
+        return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
+      }
+
+      // Hiển thị bảng dữ liệu
       function renderTable(data) {
+        console.log("Dữ liệu trước khi render:", data);
         const tbody = document.getElementById("table-body");
+        window.currentData = data; // Lưu dữ liệu để dùng khi hủy
 
-        // Xóa dữ liệu cũ
-        tbody.innerHTML = "";
+        tbody.innerHTML = ""; // Xóa dữ liệu cũ
 
-        // Duyệt qua dữ liệu và thêm từng hàng vào tbody
         data.forEach((item) => {
-          const row = document.createElement("tr");
+          const newItem = { ...item };
+          newItem.TacGia = fixNumberFormat(newItem.TacGia);
+          newItem.TacGiaChiuTrachNhiem = fixNumberFormat(newItem.TacGiaChiuTrachNhiem);
+          newItem.DanhSachThanhVien = fixNumberFormat(newItem.DanhSachThanhVien);
 
-          // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
-          const tacGiaFormated = formatHours(item.TacGia);
-          const tacGiaCtnFormated = formatHours(item.TacGiaChiuTrachNhiem);
-          const thanhVienFormatted = formatDanhSachThanhVien(
-            item.DanhSachThanhVien
-          );
-
-          row.innerHTML = `
-      <td>${item.LoaiTapChi}</td>
-      <td>${item.TenBaiBao}</td>
-      <td>${tacGiaFormated}</td>
-      <td>${tacGiaCtnFormated}</td>
-      <td>${thanhVienFormatted}</td>
-    `;
+          const row = createTableRow(newItem);
           tbody.appendChild(row);
         });
+
+        console.log("Dữ liệu sau khi sửa:", window.currentData);
       }
 
-      // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
+      function createTableRow(item) {
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", item.ID);
+
+        function createCell(value) {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          return cell;
+        }
+
+        row.appendChild(createCell(item.LoaiTapChi));
+        row.appendChild(createCell(item.TenBaiBao));
+        row.appendChild(createCell(formatHours(item.TacGia)));
+        row.appendChild(createCell(formatHours(item.TacGiaChiuTrachNhiem)));
+        row.appendChild(createCell(item.DanhSachThanhVien.split(",").map(member => formatHours(member.trim())).join(", ")));
+
+        // Nút sửa
+        const editButton = document.createElement("button");
+        editButton.classList.add("btn", "btn-edit");
+        editButton.textContent = "Sửa";
+        editButton.addEventListener("click", () => enableEditMode(row, item));
+
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(editButton);
+        row.appendChild(actionCell);
+
+        return row;
+      }
+
+      function enableEditMode(row, item) {
+        const id = row.getAttribute("data-id");
+        row.innerHTML = "";
+
+        function createEditableCell(value, className) {
+          const cell = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = value;
+          input.className = className;
+          cell.appendChild(input);
+          return cell;
+        }
+
+        row.appendChild(createEditableCell(item.LoaiTapChi, `loai-tap-chi-${id}`));
+        row.appendChild(createEditableCell(item.TenBaiBao, `ten-bai-bao-${id}`));
+        row.appendChild(createEditableCell(formatHours(item.TacGia), `tac-gia-${id}`));
+        row.appendChild(createEditableCell(formatHours(item.TacGiaChiuTrachNhiem), `tac-gia-ctn-${id}`));
+        row.appendChild(createEditableCell(item.DanhSachThanhVien.split(",").map(member => formatHours(member.trim())).join(", "), `danh-sach-thanh-vien-${id}`));
+
+        // Nút lưu
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Lưu";
+        saveButton.classList.add("btn", "btn-save");
+        saveButton.addEventListener("click", () => saveData(id));
+
+        // Nút hủy
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Hủy";
+        cancelButton.classList.add("btn", "btn-cancel");
+        cancelButton.addEventListener("click", () => {
+          row.replaceWith(createTableRow(item));
+        });
+
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(saveButton);
+        actionCell.appendChild(cancelButton);
+        row.appendChild(actionCell);
+      }
+
+      function saveData(id) {
+        const MaBang = "baibaokhoahoc";
+
+        const updatedData = {
+          LoaiTapChi: document.querySelector(`.loai-tap-chi-${id}`).value,
+          TenBaiBao: document.querySelector(`.ten-bai-bao-${id}`).value,
+          TacGia: document.querySelector(`.tac-gia-${id}`).value,
+          TacGiaChiuTrachNhiem: document.querySelector(`.tac-gia-ctn-${id}`).value,
+          DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value,
+        };
+
+        console.log(updatedData);
+
+        fetch(`/nckh/edit/${id}/${MaBang}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert("Dữ liệu đã được cập nhật thành công!");
+            // renderTable(window.currentData); // Có thể gọi lại nếu cần làm mới
+          })
+          .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
+      }
+
       async function getData() {
-        const year = document.getElementById("namHocXem").value; // Lấy năm học từ select
-        const department = document.getElementById("MaPhongBanView").value; // Lấy năm học từ select
-        const url = `/baibaokhoahoc/${year}/${department}`; // Tạo URL với URL parameter 'NamHoc'
+        const year = document.getElementById("namHocXem").value;
+        const department = document.getElementById("MaPhongBanView").value;
+        const url = `/baibaokhoahoc/${year}/${department}`;
 
         try {
-          fetch(url) // Thay URL bằng endpoint của bạn
+          fetch(url)
             .then((response) => response.json())
             .then((data) => {
-              renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
+              renderTable(data);
             })
             .catch((error) => {
               console.error("Lỗi khi lấy dữ liệu:", error);
@@ -273,6 +345,8 @@
         }
       }
     </script>
+
+
     <!-- nckh form -->
     <script>
       // giảng viên cơ hữu của trường, để gợi ý tên

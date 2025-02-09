@@ -670,3 +670,42 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
     /* Ví dụ: làm đậm tab đang được chọn */
 }
 
+
+.btn {
+    padding: 5px 10px;
+    /* Kích thước nhỏ hơn */
+    font-size: 12px;
+    /* Giảm kích thước chữ */
+    border-radius: 5px;
+    /* Bo góc nhẹ */
+    border: none;
+    /* Xóa viền mặc định */
+    cursor: pointer;
+    /* Hiển thị bàn tay khi hover */
+}
+
+.btn-edit {
+    background-color: #007bff;
+    /* Xanh lá */
+    color: white;
+}
+
+/* Màu cho nút lưu */
+.btn-save {
+    background-color: #28a745;
+    /* Xanh lá */
+    color: white;
+}
+
+/* Màu cho nút hủy */
+.btn-cancel {
+    background-color: #dc3545;
+    /* Đỏ */
+    color: white;
+}
+
+/* Hiệu ứng hover */
+.btn:hover {
+    opacity: 0.8;
+    /* Nhạt màu khi di chuột */
+}
