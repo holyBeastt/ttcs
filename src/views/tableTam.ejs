@@ -513,8 +513,6 @@
           Ki: "Kì",
           Nam: "Năm",
           GiaoVien: "Giảng viên theo TKB",
-          GiaoVienGiangDay: "Giảng viên giảng dạy",
-          MoiGiang: "Mời giảng?",
           SoTinChi: "Số TC",
           LopHocPhan: "Lớp học phần",
           LL: "Số tiết LL",
@@ -702,8 +700,6 @@
           Ki: Ki, // Cập nhật giá trị của Ki
           Nam: Nam, // Cập nhật giá trị của Nam
           GiaoVien: "",
-          GiaoVienGiangDay: "",
-          MoiGiang: "",
           SoTinChi: 0,
           LopHocPhan: "",
           LL: 0,
@@ -730,18 +726,20 @@
         }
 
         const result = await response.json();
+        newRow.ID = result.ID; // Gán ID từ server
 
-        // Giả sử server trả về ID thực, gán ID cho newRow
-        const realId = result.ID;
+        // Lấy trang hiện tại
+        let currentPage = table.getPage();
 
-        // Gán ID cho dòng mới
-        newRow.ID = realId;
+        // Thêm dòng mới vào đầu dữ liệu cục bộ (localData)
+        localData.unshift(newRow);
 
-        // Thêm đối tượng mới vào localData
-        localData.unshift(newRow);  // Dùng unshift thay vì push
+        // Cập nhật lại dữ liệu trong Tabulator
+        table.addRow(newRow, true); // `true` để thêm vào đầu trang hiện tại
 
-        // Cập nhật lại bảng Tabulator với dữ liệu mới
-        table.replaceData(localData);
+        // Giữ nguyên trạng thái phân trang
+        table.setPage(currentPage);
+
       }
 
     </script>
