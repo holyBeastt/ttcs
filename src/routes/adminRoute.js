@@ -53,6 +53,9 @@ const {
   getMessage,
   getshowMessage,
   deleteMessage,
+  getDotDoAnList,
+  postDotDoAn,
+  deleteDotDoAn,
 } = require("../controllers/admin");
 const {
   postUpdateNV,
@@ -154,5 +157,10 @@ router.post("/changeMessage/:MaPhongBan", addMessage);
 router.post("/updateMessage", updateMessage);
 router.get("/getMessage/:MaPhongBan", getshowMessage);
 router.post("/deleteMessage", deleteMessage);
+
+// Đợt đồ án
+router.get("/dotDoAn", getDotDoAnList);
+router.post("/dotDoAn", postDotDoAn);
+router.delete("/dotDoAn/:dotdoan", deleteDotDoAn);
 
 module.exports = router;

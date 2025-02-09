@@ -539,11 +539,81 @@ const themTKBVaoQCDK = async (req, res) => {
   }
 };
 
+// const addNewRowTKB = async (req, res) => {
+//   const data = req.body;
+
+//   // Ghép các thông tin kỳ học từ frontend
+//   const semester = `${data.Dot}, ${data.Ki}, ${data.Nam}`;
+
+//   let connection;
+
+//   try {
+//     // Kết nối database từ pool
+//     connection = await createPoolConnection();
+
+//     // Tạo câu truy vấn INSERT
+//     const insertQuery = `
+//       INSERT INTO course_schedule_details
+//       (course_name, course_code, student_quantity, lecturer, major, ll_total,
+//        bonus_time, ll_code, start_date, end_date, semester, qc)
+//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//     let student_bonus = 1;
+
+//     switch (true) {
+//       case data.student_quantity >= 101:
+//         student_bonus = 1.5;
+//         break;
+//       case data.student_quantity >= 81:
+//         student_bonus = 1.4;
+//         break;
+//       case data.student_quantity >= 66:
+//         student_bonus = 1.3;
+//         break;
+//       case data.student_quantity >= 51:
+//         student_bonus = 1.2;
+//         break;
+//       case data.student_quantity >= 41:
+//         student_bonus = 1.1;
+//         break;
+//     }
+
+//     const qc = student_bonus * data.bonus_time * data.ll_total;
+
+//     // Giá trị cần chèn vào database
+//     const insertValues = [
+//       data.course_name,
+//       data.course_code,
+//       data.student_quantity,
+//       data.lecturer,
+//       data.major,
+//       data.ll_total,
+//       data.bonus_time,
+//       data.ll_code,
+//       data.start_date,
+//       data.end_date,
+//       semester,
+//       qc,
+//     ];
+
+//     // Thực hiện chèn dữ liệu vào database
+//     await connection.query(insertQuery, insertValues);
+
+//     res.status(200).json({ success: true, message: "Thêm dữ liệu thành công" });
+//   } catch (error) {
+//     console.error("Lỗi thêm dữ liệu:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
 const addNewRowTKB = async (req, res) => {
   const data = req.body;
 
   // Ghép các thông tin kỳ học từ frontend
-  const semester = `${data.Dot}, ${data.Ki}, ${data.Nam}`;
+  const semester = data.semester;
 
   let connection;
 
@@ -556,51 +626,32 @@ const addNewRowTKB = async (req, res) => {
       INSERT INTO course_schedule_details 
       (course_name, course_code, student_quantity, lecturer, major, ll_total, 
        bonus_time, ll_code, start_date, end_date, semester, qc) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-
-    let student_bonus = 1;
-
-    switch (true) {
-      case data.student_quantity >= 101:
-        student_bonus = 1.5;
-        break;
-      case data.student_quantity >= 81:
-        student_bonus = 1.4;
-        break;
-      case data.student_quantity >= 66:
-        student_bonus = 1.3;
-        break;
-      case data.student_quantity >= 51:
-        student_bonus = 1.2;
-        break;
-      case data.student_quantity >= 41:
-        student_bonus = 1.1;
-        break;
-    }
-
-    const qc = student_bonus * data.bonus_time * data.ll_total;
 
     // Giá trị cần chèn vào database
     const insertValues = [
-      data.course_name,
-      data.course_code,
-      data.student_quantity,
-      data.lecturer,
+      data.course_name || "",
+      data.course_code || "",
+      data.student_quantity || "",
+      data.lecturer || "",
       data.major,
-      data.ll_total,
-      data.bonus_time,
-      data.ll_code,
-      data.start_date,
-      data.end_date,
+      data.ll_total || "",
+      data.bonus_time || "",
+      data.ll_code || "",
+      data.start_date || "",
+      data.end_date || "",
       semester,
-      qc,
+      0,
     ];
 
     // Thực hiện chèn dữ liệu vào database
-    await connection.query(insertQuery, insertValues);
+    const [result] = await connection.query(insertQuery, insertValues);
 
-    res.status(200).json({ success: true, message: "Thêm dữ liệu thành công" });
+    // Trả về phản hồi thành công, bao gồm ID của dòng mới
+    res
+      .status(200)
+      .json({ message: "Dòng đã được thêm thành công", ID: result.insertId });
   } catch (error) {
     console.error("Lỗi thêm dữ liệu:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });

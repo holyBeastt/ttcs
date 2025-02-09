@@ -383,6 +383,58 @@ const getMessage = async (req, res) => {
   }
 };
 
+//Đợt đồ án
+const getDotDoAnList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `SELECT * FROM dotdoan ORDER BY dotdoan ASC`;
+    const [results] = await connection.query(query);
+    res.render("dotDoAn.ejs", { dotdoan: results });
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu:", error);
+    res.status(500).send("Lỗi hệ thống");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const postDotDoAn = async (req, res) => {
+  const DotDoAn = req.body.DotDoAn;
+  const connection = await createPoolConnection();
+  try {
+    const query = `INSERT INTO dotdoan (dotdoan) VALUES (?)`;
+    await connection.query(query, [DotDoAn]);
+    res.redirect("/dotDoAn?Success");
+  } catch (error) {
+    console.error("Lỗi khi cập nhật dữ liệu: ", error);
+    res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const deleteDotDoAn = async (req, res) => {
+  const dotdoan = req.params.dotdoan;
+  const connection = await createPoolConnection();
+  try {
+    console.log("Attempting to delete:", dotdoan);
+    const query = `DELETE FROM dotdoan WHERE dotdoan = ?`;
+    const [results] = await connection.query(query, [dotdoan]);
+
+    if (results.affectedRows > 0) {
+      res.status(200).json({ message: "Xóa thành công!" });
+    } else {
+      res.status(404).json({ message: "Không tìm thấy đợt đồ án để xóa." });
+    }
+  } catch (error) {
+    console.error("Lỗi khi xóa dữ liệu: ", error);
+    res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -401,4 +453,7 @@ module.exports = {
   deleteMessage,
   getMessage,
   getshowMessage,
+  getDotDoAnList,
+  postDotDoAn,
+  deleteDotDoAn,
 };

@@ -2642,17 +2642,15 @@ const insertGiangDay = async (
             }
           });
 
-          // console.log("id = ", id_Gvm);
+          // const exists = hocPhanList.some(
+          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          // )
+          //   ? 1
+          //   : 0;
 
-          const exists = hocPhanList.some(
-            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          )
-            ? 1
-            : 0;
-
-          if (exists == 0) {
-            await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          }
+          // if (exists == 0) {
+          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
+          // }
 
           // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
           return [
@@ -3036,18 +3034,15 @@ const insertGiangDay2 = async (
           //   }
           // });
 
-          const exists = hocPhanList.some(
-            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          )
-            ? 1
-            : 0;
+          // const exists = hocPhanList.some(
+          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          // )
+          //   ? 1
+          //   : 0;
 
-          //const exists = await hocPhanDaTonTai(TenHocPhan);
-          // console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
-
-          if (exists == 0) {
-            await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          }
+          // if (exists == 0) {
+          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
+          // }
 
           // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
           return [

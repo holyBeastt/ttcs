@@ -17,7 +17,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <style>
+    <!-- <style>
       /* CSS cho bảng */
       .table {
         width: 100%;
@@ -33,11 +33,20 @@
         white-space: nowrap;
         /* Ngăn chặn xuống dòng */
       }
-
+      /*
       .table th {
         background-color: #007bff;
         color: white;
         font-weight: bold;
+      }
+*/
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       .table tbody tr:nth-child(even) {
@@ -174,6 +183,108 @@
           background-color: rgba(255, 0, 0, 0.8);
         }
       }
+    </style> -->
+    <style>
+      /* CSS cho bảng */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      .table td {
+        vertical-align: middle;
+      }
+
+      .bg-custom {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .spinner-border {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+      }
+
+      .header-actions {
+        display: flex;
+        /* Flexbox container */
+        flex-wrap: wrap;
+        /* Wrap items if they don't fit in one line */
+        align-items: center;
+        /* Vertically center items */
+        gap: 10px;
+        /* Space between the elements */
+        justify-content: space-between;
+      }
+
+      .right {
+        margin-top: 20px;
+      }
+
+      .btn {
+        height: 45px;
+        margin-left: 5px;
+      }
+
+      /* cảnh báo khi thiếu dữ liệu */
+      .warning-row {
+        background-color: #ffe6e6;
+        /* Màu nền cảnh báo nhạt */
+        color: #ff0000;
+        /* Màu chữ cảnh báo */
+      }
+
+      /* nút xuất file */
+      /* Định dạng cho dropdown */
+      #file-format-menu {
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        transform: translateX(218%);
+      }
+
+      .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f8f9fa;
+      }
     </style>
     <style>
       .input-full {
@@ -235,8 +346,6 @@
         const role = localStorage.getItem("userRole");
 
         if (role == "Duyệt") {
-          document.getElementById("quychuandukien").style.visibility =
-            "visible";
           document.getElementById("xoa-qc-du-kien").style.visibility =
             "visible";
         }
@@ -314,7 +423,10 @@
 
         <div>
           <div id="table-container">
-            <table style="width: 100%; border-collapse: collapse">
+            <table
+              style="width: 100%; border-collapse: collapse"
+              class="table table-bordered"
+            >
               <thead>
                 <tr id="table-header"></tr>
               </thead>
@@ -334,7 +446,7 @@
             </div>
           </div>
 
-          <div
+          <!-- <div
             id="addRowModal"
             style="
               display: none;
@@ -378,10 +490,7 @@
             </div>
 
             <div class="row">
-              <!-- <div class="column-2">
-                <label for="">Khoa:</label>
-                <input style="width: 100%" type="text" id="Khoa" required />
-              </div> -->
+
               <select
                 class="selectop column-2"
                 style="width: 100%"
@@ -419,7 +528,7 @@
               <button id="saveRowButton" class="btn save">Lưu</button>
               <button id="cancelRowButton" class="btn cancel">Hủy</button>
             </div>
-          </div>
+          </div> -->
 
           <div
             id="overlay"
@@ -923,7 +1032,7 @@
             tableHeader.innerHTML = headerHtml;
           }
 
-          const keyNotEdit = ["id", "GhiChu"];
+          const keyNotEdit = ["id", "semester"];
 
           // Render các dòng
           // Render các dòng
@@ -1023,7 +1132,7 @@
           semester: { name: "Năm học", width: "100px" },
         };
 
-        const keyNotEdit = ["id", "GhiChu"];
+        const keyNotEdit = ["id", "semester"];
         const headers = Object.keys(updatedRow).filter(
           (header) => header !== "description"
         );
@@ -1131,7 +1240,6 @@
           const headers = Object.keys(renderData[0]).filter(
             (key) => key !== "description"
           );
-
           // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
           const updatedRow = {};
 
@@ -1145,11 +1253,15 @@
               const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
 
               // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
-              if (newValue === "") {
+              if (
+                newValue === "" &&
+                (key == "course_name" || key == "lecturer")
+              ) {
                 throw new Error(`Giá trị của cột ${key} không thể để trống!`);
               }
 
               // Thêm giá trị mới vào đối tượng updatedRow
+
               updatedRow[key] = newValue;
             } else {
               console.warn(
@@ -1190,6 +1302,7 @@
       function cancelEdit(id) {
         // Tìm dữ liệu gốc của dòng dựa trên ID
         const originalRow = renderData.find((row) => row.id === id);
+        console.log(originalRow);
 
         if (!originalRow) {
           console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
@@ -1321,10 +1434,58 @@
         console.log("Dòng mới được khởi tạo:", newRowData);
       }
 */
-      function addRow() {
-        // Hiển thị modal và overlay
+      /*
+       function addRow() {
         document.getElementById("addRowModal").style.display = "block";
         document.getElementById("overlay").style.display = "block";
+      } */
+
+      async function addRow() {
+        const Khoa = document.getElementById("departmentFilter").value;
+        const Dot = document.getElementById("combobox-dot").value;
+        const Ki = document.getElementById("comboboxki").value;
+        const Nam = document.getElementById("NamHoc").value;
+
+        // Tạo một đối tượng dữ liệu cho dòng mới
+        const semester = `${Dot}, ${Ki}, ${Nam}`;
+        const newRowData = {
+          Khoa: Khoa,
+          semester: semester,
+        };
+
+        try {
+          // Gửi yêu cầu lên server để thêm dòng mới
+          const response = await fetch("/api/addRowTKB", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newRowData),
+          });
+
+          // Kiểm tra phản hồi từ server
+          if (!response.ok) {
+            throw new Error(`Không thể thêm dòng: ${response.statusText}`);
+          }
+
+          // Lấy ID từ phản hồi
+          const result = await response.json();
+          const newRowId = result.ID; // ID được trả về từ server
+
+          // Cập nhật dữ liệu với ID thực
+          newRowData.id = newRowId;
+
+          // Thêm dòng mới vào mảng renderData
+          renderData.push(newRowData);
+
+          // Cập nhật lại bảng sau khi thêm
+          renderTable();
+
+          console.log("Dòng mới đã được thêm với ID:", newRowId);
+        } catch (error) {
+          console.error("Lỗi khi thêm dòng mới:", error);
+          alert("Có lỗi xảy ra khi thêm dòng mới: " + error.message);
+        }
       }
 
       function closeModal() {
@@ -1371,72 +1532,6 @@
       }
 */
       // Gắn sự kiện cho các nút
-      document
-        .getElementById("saveRowButton")
-        .addEventListener("click", function () {
-          const fields = ["LopHocPhan", "GiangVien", "Khoa"];
-          let valid = true;
-
-          fields.forEach((field) => {
-            const input = document.getElementById(field);
-            if (!input.value) {
-              valid = false;
-              input.style.borderColor = "red"; // Đánh dấu các trường thiếu
-            } else {
-              input.style.borderColor = ""; // Gỡ bỏ đánh dấu nếu có dữ liệu
-            }
-          });
-
-          if (!valid) {
-            alert("Vui lòng điền tất cả các trường bắt buộc!");
-            return;
-          }
-
-          // Lấy dữ liệu từ các input
-          const data = {
-            course_name: document.getElementById("LopHocPhan").value,
-            course_code: document.getElementById("MaMonHoc").value,
-            student_quantity: document.getElementById("SoSV").value,
-            lecturer: document.getElementById("GiangVien").value,
-            major: document.getElementById("Khoa").value,
-            ll_total: document.getElementById("SoTietThucTe").value,
-            bonus_time: document.getElementById("HeSoT7CN").value,
-            ll_code: document.getElementById("SoTietLenLop").value,
-            start_date: document.getElementById("NgayBatDau").value,
-            end_date: document.getElementById("NgayKetThuc").value,
-            Dot: document.getElementById("combobox-dot")?.value,
-            Ki: document.getElementById("comboboxki")?.value,
-            Nam: document.getElementById("NamHoc")?.value,
-          };
-
-          // Gửi dữ liệu đến server
-          fetch("/api/addRowTKB", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          })
-            .then((response) => {
-              if (response.ok) {
-                alert("Dữ liệu đã được lưu thành công!");
-                // Đóng modal
-                document.getElementById("addRowModal").style.display = "none";
-                document.getElementById("overlay").style.display = "none";
-              } else {
-                alert("Có lỗi xảy ra, vui lòng thử lại.");
-              }
-            })
-            .catch((error) => {
-              console.error("Lỗi:", error);
-              alert("Có lỗi xảy ra khi kết nối đến server.");
-            });
-        });
-
-      document
-        .getElementById("cancelRowButton")
-        .addEventListener("click", closeModal);
-      document.getElementById("overlay").addEventListener("click", closeModal);
 
       // Hàm hủy tạo dòng mới
       function cancelAddRow() {
