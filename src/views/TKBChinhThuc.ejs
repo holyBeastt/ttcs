@@ -339,6 +339,24 @@
       .btn:hover {
         opacity: 0.8;
       }
+
+      #backToTop {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: none; /* Ẩn ban đầu */
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      #backToTop:hover {
+        background-color: darkgreen;
+      }
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -656,6 +674,11 @@
         >
           Không có dữ liệu để hiển thị.
         </div>
+
+        <button id="backToTop">
+          <span>&#x25B2;</span>
+          <!-- Mã Unicode cho mũi tên lên -->
+        </button>
       </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -672,6 +695,25 @@
     <!-- link thư viện excel  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const backToTopBtn = document.getElementById("backToTop");
+
+        // Hiện nút khi cuộn xuống 300px
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 300) {
+            backToTopBtn.style.display = "block";
+          } else {
+            backToTopBtn.style.display = "none";
+          }
+        });
+
+        // Sự kiện click để cuộn lên đầu trang
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    </script>
     <script>
       // Lấy danh sách từ localStorage
       const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
