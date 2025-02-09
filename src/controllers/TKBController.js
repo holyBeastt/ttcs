@@ -738,7 +738,7 @@ const addNewRowTKB = async (req, res) => {
     const insertValues = [
       data.course_name || "",
       data.course_code || "",
-      data.student_quantity || "",
+      data.student_quantity || "1",
       data.lecturer || "",
       data.major,
       data.ll_total || "",
