@@ -141,8 +141,8 @@ const quyDoiHeSo = (item) => {
 
     // Tính QuyChuan sau khi gắn giá trị HeSoLopDong
     let QuyChuan = null;
-    if (item.SoTietCTDT && item.HeSoT7CN) {
-        QuyChuan = Number(item.SoTietCTDT) * Number(HeSoLopDong) * Number(item.HeSoT7CN);
+    if (item.LL && item.HeSoT7CN) {
+        QuyChuan = Number(item.LL) * Number(HeSoLopDong) * Number(item.HeSoT7CN);
     }
 
     // Trả về kết quả quy đổi bao gồm cả HeSoLopDong và QuyChuan
@@ -173,7 +173,8 @@ const updateTableTam = async (req, res) => {
             const row = element;
             const result = quyDoiHeSo(row); // Gọi hàm quyDoiHeSo để tính toán lại hệ số lớp đông và QuyChuan
             row.HeSoLopDong = result.HeSoLopDong; // Cập nhật lại hệ số lớp đông trong đối tượng
-            row.QuyChuan = result.QuyChuan; // Cập nhật QuyChuan trong đối tượng
+            // row.QuyChuan = result.QuyChuan; // Cập nhật QuyChuan trong đối tượng
+            row.QuyChuan = parseFloat(result.QuyChuan).toFixed(2);
         }
 
         // Khởi tạo mảng chứa các giá trị để thực thi truy vấn INSERT ... ON DUPLICATE KEY UPDATE
@@ -225,7 +226,8 @@ const updateTableTam = async (req, res) => {
         // Trả về phản hồi thành công
         return res.json({
             message: "Cập nhật dữ liệu thành công.",
-            succes: true,
+            success: true,
+            data: data,
         });
     } catch (error) {
         console.error("Lỗi khi xử lý dữ liệu:", error);
