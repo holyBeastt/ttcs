@@ -36,4 +36,7 @@ router.post(
   TKBController.exportSingleWorksheets
 );
 
+// Làm lại dữ liệu TKB
+router.post("/api/insert-data-TKB-again", TKBController.insertDataAgain);
+
 module.exports = router;
