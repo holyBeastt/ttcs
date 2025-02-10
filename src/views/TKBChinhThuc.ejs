@@ -857,6 +857,7 @@
             editable: key !== "student_bonus",
             hide: key === "semester",
             headerClass: "custom-header",
+            filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
             valueFormatter: (params) => {
               if (
                 params.colDef.field === "start_date" ||
