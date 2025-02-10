@@ -115,7 +115,6 @@
                               'Bài báo KH',
                               'Bằng sáng chế/Giải thưởng',
                               'Biên soạn giáo trình/bài giảng',
-                              'Nhiệm vụ KH&CN',
                               'Xây dựng CTĐT',
                               'NCKH và Huấn luyện đội tuyển',
                               'Sách và Giáo trình'
@@ -128,7 +127,6 @@
                                   'rgba(54, 162, 235, 0.2)',
                                   'rgba(255, 206, 86, 0.2)',
                                   'rgba(75, 192, 192, 0.2)',
-                                  'rgba(153, 102, 255, 0.2)',
                                   'rgba(255, 159, 64, 0.2)',
                                   'rgba(199, 199, 199, 0.2)',
                                   'rgba(255, 99, 71, 0.2)'
@@ -138,7 +136,6 @@
                                   'rgba(54, 162, 235, 1)',
                                   'rgba(255, 206, 86, 1)',
                                   'rgba(75, 192, 192, 1)',
-                                  'rgba(153, 102, 255, 1)',
                                   'rgba(255, 159, 64, 1)',
                                   'rgba(199, 199, 199, 1)',
                                   'rgba(255, 99, 71, 1)'
@@ -147,29 +144,42 @@
                           }]
                       },
                       options: {
-                          responsive: true,
-                          plugins: {
-                              legend: {
-                                  position: 'top',
-                              },
-                              title: {
-                                  display: true,
-                                  text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
-                                  font: { size: 30 }
-                              }
-                          },
-                          scales:  {
-                                y: {
-                                    beginAtZero: true
-                                },
-                                x: {
-                                    ticks: {
-                                        // Căn giữa nhãn dưới các cột
-                                        align: 'right',
-                                    }
-                                }
-                            }
-                      }
+    responsive: true,
+    plugins: {
+        legend: {
+            position: 'top',
+        },
+        title: {
+            display: true,
+            text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
+            font: { size: 30 }
+        },
+        tooltip: {   // Phần này hiển thị thông tin khi di chuột vào cột
+            enabled: true,
+            callbacks: {
+                label: function (context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    label += context.raw;
+                    return label;
+                }
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true
+        },
+        x: {
+            ticks: {
+                align: 'right',
+            }
+        }
+    }
+}
+
                   });
               } else {
                   alert('Không thể tải dữ liệu từ server.');
@@ -186,11 +196,12 @@
                         <th>Năm học</th>
                         <th>Tên đề tài</th>
                         <th>Mã đề tài</th>
+                        <th>Khoa</th>
                         <th>Chủ nhiệm</th>
                         <th>Thư kí</th>
                         <th>Danh sách thành viên</th>
                         <th>Ngày nghiệm thu</th>
-                        <th>Xếp loại</th>
+                        
                     </tr>
                 </thead>
                 <tbody id="detailTable">
@@ -210,7 +221,9 @@
                <th>Loại tạp chí</th>
                <th>Chỉ số tạp chí</th>
                <th>Tác giả</th>
+               <th>Tác giả chịu trắc nghiệm</th>
                <th>Danh sách thành viên</th>
+               <th>Khoa</th>
            </tr>
        </thead>
        <tbody id="detailTable2">
@@ -221,14 +234,15 @@
    <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>Mã bằng/giải thưởng</th>
+            <th>ID</th>
             <th>Năm học</th>
             <th>Tên bằng sáng chế/giải thưởng</th>
             <th>Phân loại</th>
             <th>Tác giả</th>
             <th>Số quyết định công nhận</th>
-            <th>Ngày quyết định công nhận</th>
             <th>Danh sách thành viên</th>
+            <th>Khoa</th>
+            <th>Ngày quyết định công nhận</th>
         </tr>
     </thead>
     <tbody id="detailTable3">
@@ -239,7 +253,8 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>Mã giáo trình</th>
+            <th>ID</th>
+            <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên giáo trình bài giảng</th>
             <th>Số QĐ giao nhiệm vụ</th>
@@ -247,6 +262,7 @@
             <th>Số TC</th>
             <th>Danh sách thành viên</th>
             <th>Tác giả</th>
+            <th>Khoa</th>
         </tr>
     </thead>
     <tbody id="detailTable4">
@@ -254,7 +270,7 @@
     </tbody>
 </table>
 <!--Nhiệm vụ kh&cn  -->
-<h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
+<!-- <h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
@@ -268,13 +284,13 @@
     <tbody id="detailTable5">
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
-</table>
+</table> -->
 <!-- Xây dựng CTĐT -->
 <h2 style="margin-top: 30px; text-align: center;">Chi tiết Xây dựng chương trình đào tạo</h2>
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>Mã chương trình</th>
+            <th>ID</th>
             <th>Năm học</th>
             <th>Tên chương trình</th>
             <th>Số tín chỉ</th>
@@ -283,6 +299,7 @@
             <th>Hình thức xây dựng</th>
             <th>Kết quả</th>
             <th>Danh sách thành viên</th>
+            <th>Khoa</th>
         </tr>
     </thead>
     <tbody id="detailTable6">
@@ -294,7 +311,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>Mã đề tài</th>
+            <th>ID</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên đề tài</th>
@@ -303,6 +320,7 @@
             <th>Kết quả cấp khoa</th>
             <th>Kết quả cấp học viện</th>
             <th>Danh sách thành viên</th>
+            <th>Khoa</th>
         </tr>
     </thead>
     <tbody id="detailTable7">
@@ -314,7 +332,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>Mã sách và giáo trình</th>
+            <th>ID</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên sách và giáo trình</th>
@@ -323,6 +341,7 @@
             <th>Tác giả</th>
             <th>Đồng chủ biên</th>
             <th>Danh sách thành viên</th>
+            <th>Khoa</th>
         </tr>
     </thead>
     <tbody id="detailTable8">
@@ -330,6 +349,14 @@
     </tbody>
 </table>
 <script>
+    function formatDate(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", { day: 'numeric', month: 'numeric', year: '2-digit' });
+}
+</script>
+<script>
+    
   fetch('/detail-data')
     .then(response => response.json())
     .then(data => {
@@ -343,11 +370,12 @@
                     <td>${item.NamHoc}</td>
                     <td>${item.TenDeTai}</td>
                     <td>${item.MaSoDeTai}</td>
+                     <td>${item.Khoa}</td>
                     <td>${item.ChuNhiem}</td>
                     <td>${item.ThuKy}</td>
                     <td>${item.DanhSachThanhVien}</td>
-                    <td>${item.NgayNghiemThu}</td>
-                    <td>${item.XepLoai}</td>
+                    <td>${formatDate(item.NgayNghiemThu)}</td>
+                   
                 `;
                 detailTable.appendChild(row);
             });
@@ -367,12 +395,14 @@
                const row = document.createElement('tr');
                row.innerHTML = `
                    <td>${item.NamHoc}</td>
-                   <td>${item.MaBaiBao}</td>
+                   <td>${item.ID}</td>
                    <td>${item.TenBaiBao}</td>
                    <td>${item.LoaiTapChi}</td>
                    <td>${item.ChiSoTapChi}</td>
                    <td>${item.TacGia}</td>
+                   <td>${item.TacGiaChiuTrachNhiem}</td>
                    <td>${item.DanhSachThanhVien}</td>
+                   <td>${item.Khoa}</td>
                `;
                detailTable.appendChild(row);
            });
@@ -391,14 +421,16 @@
                     data.data.forEach(item => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${item.MaBangVaGiaiThuong}</td>
+                            <td>${item.ID}</td>
                             <td>${item.NamHoc}</td>
                             <td>${item.TenBangSangCheVaGiaiThuong}</td>
                             <td>${item.PhanLoai}</td>
                             <td>${item.TacGia}</td>
                             <td>${item.SoQDCongNhan}</td>
-                            <td>${item.NgayQDCongNhan}</td>
                             <td>${item.DanhSachThanhVien}</td>
+                            <td>${item.Khoa}</td>
+                            <td>${formatDate(item.NgayQDCongNhan)}</td>
+                            
                         `;
                         detailTable.appendChild(row);
                     });
@@ -419,14 +451,17 @@
             data.data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.MaGiaoTrinhBaiGiang}</td>
+                    <td>${item.ID}</td>
+                    <td>${item.Phanloai}</td>
                     <td>${item.NamHoc}</td>
                     <td>${item.TenGiaoTrinhBaiGiang}</td>
                     <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${item.NgayQDGiaoNhiemVu}</td>
-                     <td>${item.SoTC}</td>
-                    <td>${item.TacGia}</td>
+                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                    <td>${item.SoTC}</td>
                     <td>${item.DanhSachThanhVien}</td>
+                    <td>${item.TacGia}</td>
+                    <td>${item.Khoa}</td>
+                   
                 `;
                 detailTable.appendChild(row);
             });
@@ -470,15 +505,16 @@
             data.data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.MaDeTai}</td>
+                    <td>${item.ID}</td>
                     <td>${item.PhanLoai}</td>
                     <td>${item.NamHoc}</td>
                     <td>${item.TenDeTai}</td>
                     <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${item.NgayQDGiaoNhiemVu}</td>
+                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
                     <td>${item.KetQuaCapKhoa}</td>
                     <td>${item.KetQuaCapHocVien}</td>
                     <td>${item.DanhSachThanhVien}</td>
+                    <td>${item.Khoa}</td>
                 `;
                 detailTable.appendChild(row);
             });
@@ -499,15 +535,16 @@
             data.data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.MaChuongTrinh}</td>
+                    <td>${item.ID}</td>
                     <td>${item.NamHoc}</td>
                     <td>${item.TenChuongTrinh}</td>
                     <td>${item.SoTC}</td>
                     <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${item.NgayQDGiaoNhiemVu}</td>
+                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
                     <td>${item.HinhThucXayDung}</td>\
                     <td>${item.KetQua}</td>
                     <td>${item.DanhSachThanhVien}</td>
+                    <td>${item.Khoa}</td>  
                 `;
                 detailTable.appendChild(row);
             });
@@ -528,7 +565,7 @@
             data.data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.MaSachVaGiaoTrinh}</td>
+                    <td>${item.ID}</td>
                     <td>${item.PhanLoai}</td>
                     <td>${item.NamHoc}</td>
                     <td>${item.TenSachVaGiaoTrinh}</td>
@@ -537,6 +574,7 @@
                     <td>${item.TacGia}</td>\
                     <td>${item.DongChuBien}</td>
                     <td>${item.DanhSachThanhVien}</td>
+                    <td>${item.Khoa}</td>
                 `;
                 detailTable.appendChild(row);
             });
