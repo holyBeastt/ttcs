@@ -1139,6 +1139,24 @@ const AdminController = {
       if (connection) connection.release();
     }
   },
+
+  themHocPhan: async (req, res) => {
+    const { MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon } = req.body;
+
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const query = `INSERT INTO hocphan (MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon) VALUES (?, ?, ?, ?, ?, ?)`;
+      await connection.query(query, [MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon]);
+
+      res.redirect("/hocphan"); // Chuyển hướng về trang danh sách học phần
+    } catch (error) {
+      console.error("Lỗi khi thêm học phần:", error);
+      res.status(500).send("Đã xảy ra lỗi khi thêm học phần");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
 };
 
 module.exports = AdminController; // Export the entire controller

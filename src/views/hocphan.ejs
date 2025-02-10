@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Học Viện Kỹ Thuật Mật Mã</title>
+        <link rel="stylesheet" href="/css/table.css">
+        <link rel="stylesheet" href="/css/admin.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="/css/styles.css"> 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      </head>
+<body>
+    <%- include('adminHeader') %>
+    <div class="container my-5 box">
+        <div class="d-flex justify-content-start mb-3">
+            <button id="createHP" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>  Thêm Học Phần</button>
+                <input
+                type="text"
+                placeholder="Tìm kiếm theo tên học phần..."
+                class="search mx-3"
+                id="searchHocPhan" style="height: 40px; width: 300px;"
+                onkeyup="filterHocPhan()"
+              />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo mã học phần..."
+                class="search mx-3"
+                id="searchMaHocPhan" style="height: 40px; width: 300px;"
+                onkeyup="filterHocPhan()"
+              />
+              <input
+                  type="text"
+                  placeholder="Tìm kiếm theo mã phòng ban..."
+                  class="search mx-3"
+                  id="searchPB" style="height: 40px; width: 300px;"
+                  onkeyup="filterHocPhan()"
+              />
+              
+              <script>
+                document.getElementById('createHP').addEventListener('click', function() {
+                    window.location.href = '/themHocPhan';
+                });
+            </script>  
+        </div>
+        
+        <table id="hocPhanTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Mã Học Phần</th>
+                    <th>Tên Học Phần</th>
+                    <th>Số Tín Chỉ</th>
+                    <th>Kỳ Học</th>
+                    <th>Khoa</th>
+                    <th>Mã Bộ Môn</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody id="data-table-body">
+                <% if (hocPhan && hocPhan.length > 0) { %>
+                    <% for (var i = 0; i < hocPhan.length; i++) { %>
+                        <tr data-id="<%= hocPhan[i].MaHocPhan %>">
+                            <td class="editable MaHocPhan-cell"><%= hocPhan[i].MaHocPhan %></td>
+                            <td class="editable TenHocPhan-cell"><%= hocPhan[i].TenHocPhan %></td>
+                            <td class="editable DVHT-cell"><%= hocPhan[i].DVHT %></td>
+                            <td class="editable KiHoc-cell"><%= hocPhan[i].KiHoc %></td>
+                            <td class="editable Khoa-cell"><%= hocPhan[i].Khoa %></td>
+                            <td class="editable MaBoMon-cell"><%= hocPhan[i].MaBoMon %></td>
+                            <td>
+                                <button class="edit-btn" style="border: none; background: none;">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="delete-btn" style="border: none; background: none;" onclick="deleteHocPhan(this, '<%= hocPhan[i].MaHocPhan %>')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% } %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Sự kiện cho nút Sửa
+            $(document).on('click', '.edit-btn', function() {
+                const row = $(this).closest('tr');
+                const MaHocPhan = row.data('id');
+                const TenHocPhan = row.find('.TenHocPhan-cell').text().trim();
+                const DVHT = row.find('.DVHT-cell').text().trim();
+                const KiHoc = row.find('.KiHoc-cell').text().trim();
+                const Khoa = row.find('.Khoa-cell').text().trim();
+                const MaBoMon = row.find('.MaBoMon-cell').text().trim();
+
+                // Chuyển đổi ô thành input
+                row.find('.MaHocPhan-cell').html(`<input type="text" class="form-control" value="${MaHocPhan}" readonly>`);
+                row.find('.TenHocPhan-cell').html(`<input type="text" class="form-control" value="${TenHocPhan}">`);
+                row.find('.DVHT-cell').html(`<input type="number" class="form-control" value="${DVHT}">`);
+                row.find('.KiHoc-cell').html(`<input type="text" class="form-control" value="${KiHoc}">`);
+                row.find('.Khoa-cell').html(`<input type="text" class="form-control" value="${Khoa}">`);
+                row.find('.MaBoMon-cell').html(`<input type="text" class="form-control" value="${MaBoMon}">`);
+
+                // Thay đổi nút Sửa thành Lưu và Hủy
+                const actionCell = row.find('td:last-child');
+                actionCell.html(`
+                    <button class="save-btn" style="border: none; background: none;"><i class="bi bi-pencil"></i></button>
+                    <button class="cancel-btn" style="border: none; background: none;"><i class="bi bi-trash"></i></button>
+                `);
+            });
+
+            // Sự kiện cho nút Lưu
+            $(document).on('click', '.save-btn', function() {
+                const row = $(this).closest('tr');
+                const MaHocPhan = row.find('.MaHocPhan-cell input').val();
+                const TenHocPhan = row.find('.TenHocPhan-cell input').val();
+                const DVHT = row.find('.DVHT-cell input').val();
+                const KiHoc = row.find('.KiHoc-cell input').val();
+                const Khoa = row.find('.Khoa-cell input').val();
+                const MaBoMon = row.find('.MaBoMon-cell input').val();
+
+                // Gửi yêu cầu cập nhật
+                $.ajax({
+                    url: `/hocphan/${MaHocPhan}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon }),
+                    success: function(response) {
+                        row.find('.MaHocPhan-cell').text(MaHocPhan);
+                        row.find('.TenHocPhan-cell').text(TenHocPhan);
+                        row.find('.DVHT-cell').text(DVHT);
+                        row.find('.KiHoc-cell').text(KiHoc);
+                        row.find('.Khoa-cell').text(Khoa);
+                        row.find('.MaBoMon-cell').text(MaBoMon);
+                        alert('Cập nhật thành công!');
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật.');
+                    }
+                });
+            });
+
+            // Sự kiện cho nút Hủy
+            $(document).on('click', '.cancel-btn', function() {
+                const row = $(this).closest('tr');
+                const MaHocPhan = row.data('id');
+                const TenHocPhan = row.find('.TenHocPhan-cell').text().trim();
+                const DVHT = row.find('.DVHT-cell').text().trim();
+                const KiHoc = row.find('.KiHoc-cell').text().trim();
+                const Khoa = row.find('.Khoa-cell').text().trim();
+                const MaBoMon = row.find('.MaBoMon-cell').text().trim();
+
+                // Khôi phục lại giá trị ban đầu
+                row.find('.MaHocPhan-cell').text(MaHocPhan);
+                row.find('.TenHocPhan-cell').text(TenHocPhan);
+                row.find('.DVHT-cell').text(DVHT);
+                row.find('.KiHoc-cell').text(KiHoc);
+                row.find('.Khoa-cell').text(Khoa);
+                row.find('.MaBoMon-cell').text(MaBoMon);
+
+                // Khôi phục nút Sửa
+                const actionCell = row.find('td:last-child');
+                actionCell.html(`
+                    <button class="edit-btn" style="border: none; background: none;">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="delete-btn" style="border: none; background: none;" onclick="deleteHocPhan(this, '${MaHocPhan}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `);
+            });
+        });
+
+        function deleteHocPhan(button, MaHocPhan) {
+            if (confirm('Bạn có chắc chắn muốn xóa không?')) {
+                $.ajax({
+                    url: `/hocphan/${MaHocPhan}`,
+                    method: 'DELETE',
+                    success: function() {
+                        $(button).closest('tr').remove();
+                        alert('Xóa thành công!');
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi xóa.');
+                    }
+                });
+            }
+        }
+
+        function setGroupVisibility(group, visible) {
+            group.forEach(row => {
+                row.style.display = visible ? "" : "none";
+            });
+        }
+
+        function filterHocPhan() {
+            let inputTenHocPhan = document.getElementById("searchHocPhan").value.toLowerCase();
+            let inputMaHocPhan = document.getElementById("searchMaHocPhan").value.toLowerCase();
+            let inputPB = document.getElementById("searchPB").value.toLowerCase();
+            let table = document.getElementById("hocPhanTable");
+            let rows = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < rows.length; i++) {
+                let row = rows[i];
+                let tenHocPhanCell = row.cells[1]; // Tên học phần
+                let maHocPhanCell = row.cells[0]; // Mã học phần
+                let khoaCell = row.cells[4]; // Khoa
+
+                let tenHocPhanMatch = true;
+                let maHocPhanMatch = true;
+                let pbMatch = true;
+
+                if (tenHocPhanCell) {
+                    let tenHocPhan = tenHocPhanCell.textContent.toLowerCase();
+                    tenHocPhanMatch = tenHocPhan.includes(inputTenHocPhan);
+                }
+
+                if (maHocPhanCell) {
+                    let maHocPhan = maHocPhanCell.textContent.toLowerCase();
+                    maHocPhanMatch = maHocPhan.includes(inputMaHocPhan);
+                }
+
+                if (khoaCell) {
+                    let khoa = khoaCell.textContent.toLowerCase();
+                    pbMatch = khoa.includes(inputPB);
+                }
+
+                // Hiển thị hàng nếu tất cả các điều kiện đều khớp
+                if (tenHocPhanMatch && maHocPhanMatch && pbMatch) {
+                    row.style.display = ""; // Hiển thị hàng
+                } else {
+                    row.style.display = "none"; // Ẩn hàng
+                }
+            }
+        }
+
+        // Gọi hàm filterHocPhan khi có sự thay đổi trong các ô tìm kiếm
+        document.getElementById("searchHocPhan").addEventListener("keyup", filterHocPhan);
+        document.getElementById("searchMaHocPhan").addEventListener("keyup", filterHocPhan);
+        document.getElementById("searchPB").addEventListener("keyup", filterHocPhan);
+    </script>
+</body>
+</html>
