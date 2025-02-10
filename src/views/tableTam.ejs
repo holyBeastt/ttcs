@@ -187,14 +187,14 @@
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
                 Hiển thị
               </button>
-              <button class="btn text-nowrap" id="xoa-qc-du-kien" style="margin-top: 17px; visibility: hidden">
-                Xóa
-              </button>
             </div>
           </div>
         </div>
 
         <div class="left">
+          <button class="btn" id="xoa-qc-du-kien" style="display: none;">
+            Xóa bảng
+          </button>
           <button class="btn" style="display: none;" id="add-row-btn" onclick="addRow()">
             Thêm dòng mới
           </button>
@@ -223,14 +223,14 @@
           const saveBtn = document.getElementById("save-btn");
           const banHanhBtn = document.getElementById("ban-hanh");
           const toggleSiteBtn = document.getElementById("quychuandukien");
-
-
+          const deleteQcdkBtn = document.getElementById("xoa-qc-du-kien");
 
           addBtn.style.display = "block"; // 
           exportBtn.style.display = "block"; //
           saveBtn.style.display = "block";
           banHanhBtn.style.display = "block";
           toggleSiteBtn.style.display = "block";
+          deleteQcdkBtn.style.display = "block";
         }
       }
     </script>
