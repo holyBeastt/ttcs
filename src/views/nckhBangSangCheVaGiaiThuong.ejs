@@ -163,6 +163,10 @@
         </div>
       </div>
     </div>
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -176,24 +180,9 @@
         return `${day}/${month}/${year}`;
       }
 
-      function formatHours(text) {
+      function fixNumberFormat(text) {
         if (typeof text !== "string") return text;
-        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-        if (match) {
-          const hours = parseFloat(match[1].replace(",", "."));
-          return text.replace(match[1], hours.toFixed(2).replace(".", ","));
-        }
-        return text;
-      }
-
-      function formatDanhSachThanhVien(DanhSachThanhVien) {
-        if (typeof DanhSachThanhVien !== "string" || !DanhSachThanhVien.trim()) {
-          return "";
-        }
-        return DanhSachThanhVien.split(",")
-          .map((member) => formatHours(member.trim()))
-          .filter(Boolean)
-          .join(", ");
+        return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
       }
 
       function renderTable(data) {
@@ -215,8 +204,8 @@
     <td>${item.TenBangSangCheVaGiaiThuong}</td>
     <td>${formatDate(item.NgayQDCongNhan)}</td>
     <td>${item.SoQDCongNhan}</td>
-    <td>${formatHours(item.TacGia)}</td>
-    <td>${formatDanhSachThanhVien(item.DanhSachThanhVien)}</td>
+    <td>${fixNumberFormat(item.TacGia)}</td>
+    <td>${fixNumberFormat(item.DanhSachThanhVien)}</td>
   `;
 
         const editButton = document.createElement("button");
@@ -237,8 +226,8 @@
     <td><input type="text" value="${item.TenBangSangCheVaGiaiThuong}" class="ten-${id}"></td>
     <td><input type="text" value="${formatDate(item.NgayQDCongNhan)}" class="ngay-${id}"></td>
     <td><input type="text" value="${item.SoQDCongNhan}" class="soqd-${id}"></td>
-    <td><input type="text" value="${formatHours(item.TacGia)}" class="tacgia-${id}"></td>
-    <td><input type="text" value="${formatDanhSachThanhVien(item.DanhSachThanhVien)}" class="thanhvien-${id}"></td>
+    <td><input type="text" value="${fixNumberFormat(item.TacGia)}" class="tacgia-${id}"></td>
+    <td><input type="text" value="${fixNumberFormat(item.DanhSachThanhVien)}" class="thanhvien-${id}"></td>
   `;
 
         const saveButton = document.createElement("button");
@@ -255,6 +244,10 @@
         actionCell.appendChild(saveButton);
         actionCell.appendChild(cancelButton);
         row.appendChild(actionCell);
+      }
+
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
       }
 
       function convertDMYtoISO(dateString) {
@@ -281,8 +274,22 @@
           body: JSON.stringify(updatedData)
         })
           .then(response => response.json())
-          .then(() => {
-            alert("Dữ liệu đã được cập nhật thành công!");
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
+                }
+              })
+            }
           })
           .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
       }
@@ -536,6 +543,21 @@
             khoa: document.getElementById("MaPhongBanForm").value,
           };
 
+
+
+          let missing = 0;
+
+          for (let key of Object.keys(formData)) {
+            if (!formData[key]) {
+              missing++;
+            }
+          }
+
+          if (missing > 0) {
+            alert("Vui lòng nhập đủ thông tin");
+            return;
+          }
+
           // Gửi dữ liệu lên server
           fetch("/bangsangchevagiaithuong", {
             method: "POST",
@@ -551,10 +573,24 @@
               return response.json();
             })
             .then((data) => {
-              alert(data.message);
-              // Reset form nếu cần
-              document.getElementById("formData").reset();
-              document.getElementById("memberListDisplay").innerHTML = "";
+              if (data.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${data.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    document.getElementById("formData").reset();
+                    document.getElementById("memberListDisplay").innerHTML = "";
+                    members = [];
+                    location.reload();
+                  }
+                })
+              }
             })
             .catch((error) => {
               console.error("Lỗi:", error);

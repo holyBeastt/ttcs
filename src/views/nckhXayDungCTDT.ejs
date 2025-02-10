@@ -154,7 +154,10 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <!-- nckh view -->
     <script>
@@ -171,20 +174,6 @@
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-      }
-
-      // Hàm format giờ
-      function formatHours(text) {
-        if (typeof text !== "string") {
-          return text;
-        }
-        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-        if (match) {
-          const hours = parseFloat(match[1].replace(",", "."));
-          const formattedHours = hours.toFixed(2);
-          return text.replace(match[1], formattedHours.replace(".", ","));
-        }
-        return text;
       }
 
       // Hàm chuyển đổi định dạng ngày từ DMY sang ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
@@ -236,7 +225,7 @@
         row.appendChild(createCell(
           item.DanhSachThanhVien
             .split(',')
-            .map(member => formatHours(member.trim()))
+            .map(member => fixNumberFormat(member.trim()))
             .join(', ')
         ));
 
@@ -277,7 +266,7 @@
         row.appendChild(createEditableCell(
           item.DanhSachThanhVien
             .split(',')
-            .map(member => formatHours(member.trim()))
+            .map(member => fixNumberFormat(member.trim()))
             .join(', '),
           `danh-sach-thanh-vien-${id}`
         ));
@@ -300,6 +289,10 @@
         actionCell.appendChild(saveButton);
         actionCell.appendChild(cancelButton);
         row.appendChild(actionCell);
+      }
+
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
       }
 
       // Hàm lưu dữ liệu sau khi chỉnh sửa
@@ -328,8 +321,21 @@
         })
           .then(response => response.json())
           .then(data => {
-            alert('Dữ liệu đã được cập nhật thành công!');
-            // Có thể gọi lại renderTable(window.currentData) để cập nhật bảng sau chỉnh sửa
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
+                }
+              })
+            }
           })
           .catch(error => console.error('Lỗi khi cập nhật dữ liệu:', error));
       }
@@ -560,6 +566,21 @@
           khoa: document.getElementById("MaPhongBanForm").value,
         };
 
+
+
+        let missing = 0;
+
+        for (let key of Object.keys(formData)) {
+          if (!formData[key]) {
+            missing++;
+          }
+        }
+
+        if (missing > 0) {
+          alert("Vui lòng nhập đủ thông tin");
+          return;
+        }
+
         console.log(formData)
 
         // Gửi dữ liệu lên server
@@ -577,10 +598,24 @@
             return response.json();
           })
           .then((data) => {
-            alert(data.message);
-            // Reset form nếu cần
-            document.getElementById("formData").reset();
-            document.getElementById("memberListDisplay").innerHTML = "";
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  document.getElementById("formData").reset();
+                  document.getElementById("memberListDisplay").innerHTML = "";
+                  members = [];
+                  location.reload();
+                }
+              })
+            }
           })
           .catch((error) => {
             console.error("Lỗi:", error);

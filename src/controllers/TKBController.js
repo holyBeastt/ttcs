@@ -834,16 +834,16 @@ const exportMultipleWorksheets = async (req, res) => {
 
       // Định nghĩa tiêu đề cột
       const headers = [
-        "STT",
+        "TT",
         "Số TC",
         "Lớp học phần",
-        "Giáo viên",
-        "Số tiết CTĐT",
+        "Giáo Viên",
+        "Số tiết theo CTĐT",
         "Số SV",
-        "Lên lớp",
+        "Số tiết lên lớp theo TKB",
         "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         "Hệ số lớp đông",
-        "Quy chuẩn",
+        "QC",
       ];
 
       // **📌 Dữ liệu Excel**
