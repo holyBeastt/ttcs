@@ -642,15 +642,37 @@
             body: JSON.stringify(changes),
           })
             .then(response => response.json())
-            .then(data => {
-              alert(data.message);
-              renderData = JSON.parse(JSON.stringify(localData));  // Đồng bộ lại renderData với localData sau khi update thành công
+            .then(rs => {
+              if (rs.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${rs.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    table.updateData(rs.data);
+                  }
+                })
+              }
             })
             .catch(error => {
               console.error("Có lỗi khi gửi dữ liệu lên server:", error);
             });
         } else {
-          alert("Không có thay đổi nào để gửi.");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Chưa có dữ liệu thay đổi",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto',
+            padding: '20px',
+            timer: 3000, // Tự động đóng sau 3 giây
+            timerProgressBar: true, // Hiển thị thanh đếm thời gian
+          })
         }
       }
 
