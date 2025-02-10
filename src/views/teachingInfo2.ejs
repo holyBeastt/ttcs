@@ -380,14 +380,14 @@
 
         if (MaPhongBan == "DAOTAO" && role == "Duyệt") {
           // Ẩn cột 'taiChinhColumn'
-          document.getElementById("taiChinhColumn").style.display = "none";
+          // document.getElementById("taiChinhColumn").style.display = "none";
 
           document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
 
 
         } else if (MaPhongBan == "TAICHINH" && role == "Duyệt") {
           // Ẩn cột 'khoaColumn'
-          document.getElementById("khoaColumn").style.display = "none";
+          // document.getElementById("khoaColumn").style.display = "none";
 
           // Hiển thị nút 'Cập nhật'
           document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
@@ -658,17 +658,14 @@
 
           // Hiển thị `td` khi điều kiện thỏa mãn
           if (MaPhongBan == "DAOTAO") {
-            // Thu nhỏ ô <td> chứa checkbox Tài Chính
-            taiChinhCheckboxTd.style.width = '1px';
-            taiChinhCheckboxTd.style.height = '1px';
-            taiChinhCheckbox.style.width = '1px';
-            taiChinhCheckbox.style.height = '1px';
-            taiChinhCheckbox.style.opacity = '0';
-            taiChinhCheckboxTd.style.display = 'none';
+            // taiChinhCheckboxTd.style.display = 'none';
+            taiChinhCheckbox.disabled = true;
 
           } else if (MaPhongBan == "TAICHINH") {
             // Thu nhỏ ô <td> chứa checkbox Khoa
-            khoaCheckboxTd.style.display = 'none';
+            // khoaCheckboxTd.style.display = 'none';
+            khoaCheckbox.disabled = true;
+
           }
           /*
           if (MaPhongBan == "DAOTAO" && role == "Duyệt") {
