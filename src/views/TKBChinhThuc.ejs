@@ -857,6 +857,7 @@
             editable: key !== "student_bonus",
             hide: key === "semester",
             headerClass: "custom-header",
+            filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
             valueFormatter: (params) => {
               if (
                 params.colDef.field === "start_date" ||
@@ -980,7 +981,14 @@
                 backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
               }).showToast();
             } else {
-              console.error("❌ Lỗi cập nhật:", updatedRow.message);
+              Swal.fire({
+                title: "❌ Lỗi",
+                html: updatedRow.message,
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              });
             }
           } catch (error) {
             console.error("❌ Lỗi kết nối server:", error);

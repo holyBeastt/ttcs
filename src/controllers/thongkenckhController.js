@@ -5,6 +5,7 @@ const thongkenckhController = {
     showThongkePage: (req, res) => {
         res.render("thongkenckh");
     },
+    
 
     // Lấy dữ liệu thống kê
     getStatisticsData: async (req, res) => {
@@ -55,7 +56,8 @@ const thongkenckhController = {
                 ChuNhiem,
                 ThuKy,
                 DanhSachThanhVien,
-                NgayNghiemThu
+                NgayNghiemThu,
+                Khoa
                 FROM detaiduan
                 ORDER BY NamHoc DESC;
             `;
@@ -76,13 +78,16 @@ const thongkenckhController = {
 
             const query = `
                 SELECT 
-                    NamHoc, 
-                    MaBaiBao, 
-                    TenBaiBao, 
-                    LoaiTapChi, 
-                    ChiSoTapChi, 
-                    TacGia, 
-                    DanhSachThanhVien 
+                    NamHoc,
+                    Khoa,
+                    ID,
+                    TenBaiBao,
+                    LoaiTapChi,
+                    ChiSoTapChi,
+                    TacGia,
+                    TacGiaChiuTrachNhiem,
+                    DanhSachThanhVien,
+                    Khoa
                 FROM baibaokhoahoc
                 ORDER BY NamHoc DESC;
             `;
@@ -103,14 +108,16 @@ const thongkenckhController = {
             connection = await createConnection();
             const query = `
                 SELECT 
-                    MaBangVaGiaiThuong,
+                    ID,
                     NamHoc,
                     TenBangSangCheVaGiaiThuong,
                     PhanLoai,
                     TacGia,
                     SoQDCongNhan,
-                    NgayQDCongNhan,
-                    DanhSachThanhVien
+                    DanhSachThanhVien,
+                    Khoa,
+                    NgayQDCongNhan
+                    
                 FROM bangsangchevagiaithuong
                 ORDER BY NamHoc DESC;
             `;
@@ -130,14 +137,16 @@ const thongkenckhController = {
             connection = await createConnection();
             const query = `
                 SELECT 
-                   MaGiaoTrinhBaiGiang,
+                   ID,
+                   Phanloai,
                    NamHoc,
                    TenGiaoTrinhBaiGiang,
                    SoQDGiaoNhiemVu,
-                   NgayQDGiaoNhiemVu,
                    SoTC,
+                   NgayQDGiaoNhiemVu,
                    DanhSachThanhVien,
-                   TacGia
+                   TacGia,
+                   Khoa
                 FROM biensoangiaotrinhbaigiang
                 ORDER BY NamHoc DESC;
             `;
@@ -181,7 +190,7 @@ const thongkenckhController = {
             connection = await createConnection();
             const query = `
                 SELECT 
-                MaChuongTrinh,
+                ID,
                  NamHoc,
                 TenChuongTrinh,
                 SoTC,
@@ -189,7 +198,8 @@ const thongkenckhController = {
                 NgayQDGiaoNhiemVu,
                 HinhThucXayDung,
                 KetQua,
-                DanhSachThanhVien
+                DanhSachThanhVien,
+                Khoa
                 FROM xaydungctdt
                 ORDER BY NamHoc DESC;
             `;
@@ -209,7 +219,7 @@ const thongkenckhController = {
             connection = await createConnection();
             const query = `
                 SELECT 
-            MaDeTai,
+            ID,
             PhanLoai,
             NamHoc,
             TenDeTai,
@@ -217,7 +227,8 @@ const thongkenckhController = {
             NgayQDGiaoNhiemVu,
             KetQuaCapKhoa,
             KetQuaCapHocVien,
-            DanhSachThanhVien
+            DanhSachThanhVien,
+            Khoa
                 FROM nckhvahuanluyendoituyen
                 ORDER BY NamHoc DESC;
             `;
@@ -237,7 +248,7 @@ const thongkenckhController = {
             connection = await createConnection();
             const query = `
                 SELECT 
-            MaSachVaGiaoTrinh,
+            ID,
             PhanLoai,
             NamHoc,
             TenSachVaGiaoTrinh,
@@ -245,7 +256,8 @@ const thongkenckhController = {
             SoXuatBan,
             TacGia,
             DongChuBien,
-            DanhSachThanhVien
+            DanhSachThanhVien,
+            Khoa
                 FROM sachvagiaotrinh
                 ORDER BY NamHoc DESC;
             `;

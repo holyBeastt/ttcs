@@ -96,12 +96,7 @@
       z-index: 10000 !important;
     }
 
-    /* màu header */
-    .tabulator .tabulator-header .tabulator-col {
-      background-color: #007bff !important;
-      /* Màu nền */
-      color: white !important;
-    }
+
 
     /* phần header */
     .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
@@ -131,12 +126,6 @@
     .tabulator-col .tabulator-sortable .tabulator-col-sorter-element {
       display: flex !important;
       flex-wrap: wrap !important;
-    }
-
-    /* ô tìm kiếm */
-    input {
-      background-color: #d3d3d3;
-      /* Màu xám sáng */
     }
   </style>
 </head>
@@ -181,20 +170,20 @@
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
               </select>
-              <select class="selectop" id="departmentFilter">
+              <select class="selectop" id="MaPhongBan">
                 <option value="">Chọn khoa</option>
               </select>
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
                 Hiển thị
-              </button>
-              <button class="btn text-nowrap" id="xoa-qc-du-kien" style="margin-top: 17px; visibility: hidden">
-                Xóa
               </button>
             </div>
           </div>
         </div>
 
         <div class="left">
+          <button class="btn" id="xoa-qc-du-kien" style="display: none;">
+            Xóa bảng
+          </button>
           <button class="btn" style="display: none;" id="add-row-btn" onclick="addRow()">
             Thêm dòng mới
           </button>
@@ -223,14 +212,14 @@
           const saveBtn = document.getElementById("save-btn");
           const banHanhBtn = document.getElementById("ban-hanh");
           const toggleSiteBtn = document.getElementById("quychuandukien");
-
-
+          const deleteQcdkBtn = document.getElementById("xoa-qc-du-kien");
 
           addBtn.style.display = "block"; // 
           exportBtn.style.display = "block"; //
           saveBtn.style.display = "block";
           banHanhBtn.style.display = "block";
           toggleSiteBtn.style.display = "block";
+          deleteQcdkBtn.style.display = "block";
         }
       }
     </script>
@@ -449,7 +438,7 @@
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
-        let Khoa = document.getElementById("departmentFilter").value;
+        let Khoa = document.getElementById("MaPhongBan").value;
 
         const body = {
           Khoa: Khoa,
@@ -642,15 +631,37 @@
             body: JSON.stringify(changes),
           })
             .then(response => response.json())
-            .then(data => {
-              alert(data.message);
-              renderData = JSON.parse(JSON.stringify(localData));  // Đồng bộ lại renderData với localData sau khi update thành công
+            .then(rs => {
+              if (rs.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${rs.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    table.updateData(rs.data);
+                  }
+                })
+              }
             })
             .catch(error => {
               console.error("Có lỗi khi gửi dữ liệu lên server:", error);
             });
         } else {
-          alert("Không có thay đổi nào để gửi.");
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Chưa có dữ liệu thay đổi",
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: 'auto',
+            padding: '20px',
+            timer: 3000, // Tự động đóng sau 3 giây
+            timerProgressBar: true, // Hiển thị thanh đếm thời gian
+          })
         }
       }
 
@@ -691,7 +702,7 @@
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
-        let Khoa = document.getElementById("departmentFilter").value;
+        let Khoa = document.getElementById("MaPhongBan").value;
 
         // Tạo đối tượng mới với dữ liệu mặc định
         const newRow = {
@@ -752,7 +763,7 @@
             let Dot = document.getElementById("combobox-dot").value;
             let Ki = document.getElementById("comboboxki").value;
             let Nam = document.getElementById("NamHoc").value;
-            let Khoa = document.getElementById("departmentFilter").value;
+            let Khoa = document.getElementById("MaPhongBan").value;
 
             const body = {
               Khoa: Khoa,
@@ -832,7 +843,7 @@
         let Dot = document.getElementById("combobox-dot")?.value;
         let Ki = document.getElementById("comboboxki")?.value;
         let Nam = document.getElementById("NamHoc")?.value;
-        let Khoa = document.getElementById("departmentFilter")?.value;
+        let Khoa = document.getElementById("MaPhongBan")?.value;
 
         // Kiểm tra nếu có phần tử nào chưa được chọn
         if (!Dot || !Ki || !Nam || !Khoa) {
@@ -861,8 +872,8 @@
             throw new Error("Lấy dữ liệu thất bại");
           }
 
-          const data = await response.json();
-          dataQC = data; // Lưu dữ liệu vào dataQC
+          const rs = await response.json();
+          dataQC = rs.data; // Lưu dữ liệu vào dataQC
           console.log("Dữ liệu lấy được:", dataQC);
         } catch (error) {
           console.error("Error:", error);
@@ -914,7 +925,7 @@
               let Dot = document.getElementById("combobox-dot").value;
               let Ki = document.getElementById("comboboxki").value;
               let Nam = document.getElementById("NamHoc").value;
-              let Khoa = document.getElementById("departmentFilter").value;
+              let Khoa = document.getElementById("MaPhongBan").value;
 
               const body = { Khoa, Dot, Ki, Nam };
 
@@ -937,17 +948,23 @@
               // Hiển thị thông báo ban hành thành công
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thành công!",
+                html: result.message,
                 icon: "success",
                 confirmButtonText: "OK",
                 width: "auto",
                 padding: "20px",
+                timer: 3000, // Thời gian hiển thị (ms), ở đây là 3 giây
+                timerProgressBar: true, // Hiển thị thanh tiến trình
+                didClose: () => {
+                  location.reload(); // Reload trang khi alert đóng
+                }
               });
+
             } else {
               // Hiển thị thông báo ban hành thất bại
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thất bại!",
+                html: result.message,
                 icon: "error",
                 confirmButtonText: "OK",
                 width: "auto",

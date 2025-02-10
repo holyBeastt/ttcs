@@ -353,7 +353,7 @@ input[type="text"] {
     padding: 10px 15px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 12x;
     color: #333;
     transition: border-color 0.3s ease;
     /* Hiệu ứng chuyển màu biên */
@@ -709,3 +709,5 @@ label[for="tacGiaCtn"] input[type="checkbox"] {
     opacity: 0.8;
     /* Nhạt màu khi di chuột */
 }
+
+

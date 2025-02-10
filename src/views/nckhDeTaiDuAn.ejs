@@ -168,7 +168,10 @@
         </div>
       </div>
     </div>
-
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -187,25 +190,8 @@
         return `${day}/${month}/${year}`; // Trả về định dạng ngày/tháng/năm
       }
 
-      // format giờ
-      function formatHours(text) {
-        // Kiểm tra nếu text không phải là chuỗi
-        if (typeof text !== "string") {
-          return text;
-        }
-
-        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-
-        if (match) {
-          const hours = parseFloat(match[1].replace(",", "."));
-          const formattedHours = hours.toFixed(2); // Giữ 2 số thập phân
-          return text.replace(match[1], formattedHours.replace(".", ",")); // Định dạng lại theo dấu phẩy
-        }
-
-        return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
-      }
-
       function fixNumberFormat(text) {
+        console.log(text)
         if (typeof text !== "string") return text; // Nếu không phải chuỗi, giữ nguyên
         return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
       }
@@ -235,6 +221,10 @@
         console.log("Dữ liệu sau khi sửa:", window.currentData);
       }
 
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
+      }
+
       function createTableRow(item) {
         const row = document.createElement("tr");
         row.setAttribute("data-id", item.ID);
@@ -248,9 +238,9 @@
         row.appendChild(createCell(item.CapDeTai));
         row.appendChild(createCell(item.TenDeTai));
         row.appendChild(createCell(item.MaSoDeTai));
-        row.appendChild(createCell(formatHours(item.ChuNhiem)));
-        row.appendChild(createCell(formatHours(item.ThuKy)));
-        row.appendChild(createCell(item.DanhSachThanhVien.split(",").map(member => formatHours(member.trim())).join(", ")));
+        row.appendChild(createCell(fixNumberFormat(item.ChuNhiem)));
+        row.appendChild(createCell(fixNumberFormat(item.ThuKy)));
+        row.appendChild(createCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", ")));
         row.appendChild(createCell(formatDate(item.NgayNghiemThu)));
 
         // Tạo nút sửa
@@ -285,9 +275,9 @@
         row.appendChild(createEditableCell(item.CapDeTai, `cap-detai-${id}`));
         row.appendChild(createEditableCell(item.TenDeTai, `ten-detai-${id}`));
         row.appendChild(createEditableCell(item.MaSoDeTai, `ma-so-detai-${id}`));
-        row.appendChild(createEditableCell(formatHours(item.ChuNhiem), `chu-nhiem-${id}`));
-        row.appendChild(createEditableCell(formatHours(item.ThuKy), `thu-ky-${id}`));
-        row.appendChild(createEditableCell(item.DanhSachThanhVien.split(",").map(member => formatHours(member.trim())).join(", "), `danh-sach-thanh-vien-${id}`));
+        row.appendChild(createEditableCell(fixNumberFormat(item.ChuNhiem), `chu-nhiem-${id}`));
+        row.appendChild(createEditableCell(fixNumberFormat(item.ThuKy), `thu-ky-${id}`));
+        row.appendChild(createEditableCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", "), `danh-sach-thanh-vien-${id}`));
         row.appendChild(createEditableCell(formatDate(item.NgayNghiemThu), `ngay-nghiem-thu-${id}`));
 
         // Tạo nút lưu
@@ -325,6 +315,9 @@
         return date.toISOString(); // Output: YYYY-MM-DDTHH:mm:ss.sssZ
       }
 
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
+      }
 
       function saveData(id) {
         const MaBang = 'detaiduan'
@@ -353,9 +346,21 @@
         })
           .then(response => response.json())
           .then(data => {
-            alert("Dữ liệu đã được cập nhật thành công!");
-            // Cập nhật lại bảng sau khi chỉnh sửa
-            // renderTable(window.currentData);
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
+                }
+              })
+            }
           })
           .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
       }
@@ -647,11 +652,19 @@
             ).map((member) => member.textContent),
           };
 
-          // Kiểm tra form hợp lệ
-          // if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
-          //   alert("Vui lòng điền đầy đủ thông tin.");
-          //   return;
-          // }
+          let missing = 0;
+
+          for (let key of Object.keys(formData)) {
+            if (!formData[key]) {
+              missing++;
+            }
+          }
+
+          if (missing > 0) {
+            alert("Vui lòng nhập đủ thông tin");
+            return;
+          }
+
 
           // Gửi dữ liệu lên server
           fetch("/detaiduan", {
@@ -668,12 +681,24 @@
               return response.json();
             })
             .then((data) => {
-              alert(data.message);
-              // Reset form nếu cần
-              document.getElementById("formData").reset();
-              document.getElementById("memberListDisplay").innerHTML = "";
-              members = [];
-              location.reload();
+              if (data.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${data.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    document.getElementById("formData").reset();
+                    document.getElementById("memberListDisplay").innerHTML = "";
+                    members = [];
+                    location.reload();
+                  }
+                })
+              }
             })
             .catch((error) => {
               console.error("Lỗi:", error);

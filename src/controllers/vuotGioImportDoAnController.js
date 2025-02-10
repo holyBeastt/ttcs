@@ -83,7 +83,7 @@ function processWordData(content) {
   let isGV = false;
 
   const headerKeywords = [
-    "TT",
+    "STT",
     "Sinh viên",
     "Mã SV",
     "Tên đề tài",
@@ -273,11 +273,11 @@ const duplicateGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM GVMOI`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
-    query = `SELECT TenNhanVien, CCCD FROM NHANVIEN`;
+    query = `SELECT TenNhanVien, CCCD FROM nhanvien`;
     const [nvs] = await connection.query(query);
 
     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
@@ -347,6 +347,12 @@ const duplicateGiangVien = async (req, res) => {
   }
 };
 
+
+function cutUntilTT(data) {
+  let index = data.indexOf("STT"); // Tìm vị trí của "TT"
+  return index !== -1 ? data.slice(index) : data; // Nếu có "TT", cắt từ đó trở đi; nếu không, giữ nguyên
+}
+
 // Xử lý file Word bằng Mammoth
 async function processWordFile(filePath) {
   try {
@@ -354,7 +360,9 @@ async function processWordFile(filePath) {
 
     // Chuyển file Word sang text
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
-    return result.value; // Nội dung văn bản
+    const data = cutUntilTT(result.value);
+    // console.log(data)
+    return data;
   } catch (error) {
     console.error("Lỗi khi đọc file Word:", error);
     throw new Error("Không thể xử lý file Word.");

@@ -237,6 +237,7 @@ const updateRowTKB = async (req, res) => {
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "bonus_time") {
+      value = parseFloat(value.replace(",", "."));
       const qc = data.student_bonus * value * data.ll_total;
 
       const updateQuery = `
@@ -247,6 +248,7 @@ const updateRowTKB = async (req, res) => {
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "ll_total") {
+      value = parseFloat(value.replace(",", "."));
       const qc = data.student_bonus * data.bonus_time * value;
 
       const updateQuery = `
@@ -834,16 +836,16 @@ const exportMultipleWorksheets = async (req, res) => {
 
       // Định nghĩa tiêu đề cột
       const headers = [
-        "STT",
+        "TT",
         "Số TC",
         "Lớp học phần",
-        "Giáo viên",
-        "Số tiết CTĐT",
+        "Giáo Viên",
+        "Số tiết theo CTĐT",
         "Số SV",
-        "Lên lớp",
+        "Số tiết lên lớp theo TKB",
         "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         "Hệ số lớp đông",
-        "Quy chuẩn",
+        "QC",
       ];
 
       // **📌 Dữ liệu Excel**
@@ -1003,6 +1005,92 @@ const exportSingleWorksheets = async (req, res) => {
   }
 };
 
+const insertDataAgain = async (req, res) => {
+  const { semester } = req.body;
+
+  let connection;
+
+  try {
+    // Kết nối database từ pool
+    connection = await createPoolConnection();
+
+    // Lấy dữ liệu đã nhóm lại
+    let sqlSelect = `SELECT 
+            course_name, credit_hours, ll_code, ll_total, 
+            course_code, major, study_format, 
+            MAX(lecturer) AS lecturer, 
+            MIN(start_date) AS start_date, 
+            MAX(end_date) AS end_date, 
+            student_quantity, student_bonus, bonus_time, 
+            bonus_teacher, bonus_total, qc, class_section, course_id, ?
+        FROM course_schedule_details
+        WHERE semester = ?
+        GROUP BY 
+            course_name, credit_hours, ll_code, ll_total, 
+            course_code, major, study_format, 
+            student_quantity, student_bonus, bonus_time, 
+            bonus_teacher, bonus_total, qc, class_section, course_id;`;
+
+    let params = [semester, semester];
+
+    // Lấy dữ liệu đã nhóm
+    const [result] = await connection.query(sqlSelect, params);
+
+    // Xóa dữ liệu cũ
+    await connection.query(
+      `DELETE FROM course_schedule_details WHERE semester = ?`,
+      [semester]
+    );
+
+    // Chèn lại dữ liệu
+    let sqlInsert = `INSERT INTO course_schedule_details (
+            course_name, credit_hours, ll_code, ll_total, 
+            course_code, major, study_format, lecturer, 
+            start_date, end_date, student_quantity, student_bonus, 
+            bonus_time, bonus_teacher, bonus_total, qc, 
+            class_section, course_id, semester
+        ) 
+        VALUES ?`;
+
+    const values = result.map((row) => [
+      row.course_name,
+      row.credit_hours,
+      row.ll_code,
+      row.ll_total,
+      row.course_code,
+      row.major,
+      row.study_format,
+      row.lecturer,
+      row.start_date,
+      row.end_date,
+      row.student_quantity,
+      row.student_bonus,
+      row.bonus_time,
+      row.bonus_teacher,
+      row.bonus_total,
+      row.qc,
+      row.class_section,
+      row.course_id,
+      semester,
+    ]);
+
+    if (values.length > 0) {
+      await connection.query(sqlInsert, [values]);
+    }
+
+    res
+      .status(200)
+      .json({ message: "Dữ liệu đã được nhóm và chèn lại thành công" });
+  } catch (error) {
+    console.error("Lỗi khi xử lý dữ liệu:", error);
+    res
+      .status(500)
+      .json({ error: "Có lỗi xảy ra trong quá trình xử lý dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getImportTKBSite,
@@ -1016,4 +1104,5 @@ module.exports = {
   deleteTKB,
   exportMultipleWorksheets,
   exportSingleWorksheets,
+  insertDataAgain,
 };
