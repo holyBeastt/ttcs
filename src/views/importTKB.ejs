@@ -198,6 +198,8 @@
             const ki = document.getElementById("comboboxki").value;
             const nam = document.getElementById("NamHoc").value;
 
+            const semester = `${dot}, ${ki}, ${nam}`;
+
             // Tạo FormData
             const formData = new FormData();
             formData.append("file", selectedFile); // Tên param "file"
@@ -221,6 +223,7 @@
               .then((data) => {
                 if (typeof data === "string") {
                   alert(data); // Hiển thị thông báo nếu là text
+                  insertDataAgain(semester);
                   return;
                 }
 
@@ -229,10 +232,6 @@
                   throw new Error("Dữ liệu trả về trống");
                 }
                 console.log("Dữ liệu thô từ server:", data);
-
-                // Tạo bảng HTML
-                //createTable(data);
-                dataTam = data; // Lưu vào biến tạm để sử dụng sau
               })
               .catch((error) => {
                 console.error(
@@ -245,6 +244,44 @@
           // Tự động mở hộp thoại chọn file
           fileInput.click();
         });
+
+      async function insertDataAgain(semester) {
+        fetch("/api/insert-data-TKB-again", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ semester }), // Đảm bảo truyền đúng định dạng
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Xóa dữ liệu thất bại");
+            }
+            return response.json(); // Chuyển đổi response thành JSON
+          })
+          .then((data) => {
+            Swal.fire({
+              title: "Thành công",
+              html: "Dữ liệu đã được cập nhật lại!",
+              icon: "success",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+            });
+            console.log("Success:", data);
+          })
+          .catch((error) => {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Xóa dữ liệu thất bại",
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+            });
+            console.error("Error:", error);
+          });
+      }
 
       // Hàm tạo bảng từ dữ liệu JSON
       function createTable(data) {
