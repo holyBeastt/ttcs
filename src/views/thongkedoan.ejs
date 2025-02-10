@@ -158,8 +158,7 @@
                   <th>Tên Giảng Viên</th>
                   <th>Khoa</th>
                   <th>Số đồ án</th>
-                  <th>Số tiết miễn giảm</th>
-                  <th>Tỉ lệ</th>
+                  <th>Số tiết quy đổi</th>
               </tr>
           </thead>
           <tbody>
@@ -320,7 +319,6 @@
                                       <td>${item.MaPhongBan || "Không rõ"}</td>
                                       <td>${item.soDoAn}</td>
                                       <td>${item.soTiet}</td>
-                                      <td>${(item.soTiet / item.soDoAn).toFixed(2)}</td>
                                   </tr>
                               `);
                           });
@@ -336,7 +334,6 @@
                                       <td>${item.MaPhongBan || "Không rõ"}</td>
                                       <td>${item.soDoAn}</td>
                                       <td>${item.soTiet}</td>
-                                      <td>${(item.soTiet / item.soDoAn).toFixed(2)}</td>
                                   </tr>
                               `);
                           });
