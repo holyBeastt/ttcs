@@ -204,7 +204,9 @@
             formData.append("semester", `${dot}, ${ki}, ${nam}`); // Thêm param "semester"
 
             // Gửi yêu cầu POST đến server
-            fetch("http://localhost:8080/api/v1/excel/upload", {
+            // http://42.112.213.93:8080/api/v1/excel/upload
+            // http://localhost:8080/api/v1/excel/upload
+            fetch("http://42.112.213.93:8080/api/v1/excel/upload", {
               method: "POST",
               body: formData,
             })
