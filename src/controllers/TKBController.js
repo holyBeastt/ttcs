@@ -618,8 +618,8 @@ const themTKBVaoQCDK = async (req, res) => {
       row.SoTinChi, // credit_hours
       row.LopHocPhan, // course_name
       row.MaHocPhan, // course_code
-      row.NgayBatDau || " ", // start_date
-      row.NgayKetThuc || " ", // end_date
+      row.NgayBatDau || null, // start_date
+      row.NgayKetThuc || null, // end_date
       row.QuyChuan, // bonus_total
     ]);
 

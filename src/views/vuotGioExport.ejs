@@ -243,42 +243,58 @@
             });
           });
         </script>
-        <script>
-          $(document).ready(function () {
-            $('#MaPhongBan option[value=""]').remove();
-            // Gọi AJAX để lấy dữ liệu JSON từ API
-            $.ajax({
-              url: '/getPhongBan', // Đường dẫn tới API getPhongBan
-              method: 'GET',
-              success: function (response) {
-                // Kiểm tra nếu response thành công
-                const MaPhongBan = response.MaPhongBan;
-                if (response.success) {
-                  $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
-                  // Lặp qua từng mục trong mảng MaPhongBan
-                  response.MaPhongBan.forEach(function (item) {
-                    // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                    console.log(item);
-                    $('#MaPhongBan').append(
-                      `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                    );
-                  }
-                  );
+        
+<script>
+  $(document).ready(function () {
+    $('#MaPhongBan option[value=""]').remove();
 
-                  // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-                  if (!$('#MaPhongBan option:selected').length) {
-                    $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
-                  }
-                } else {
-                  console.error("Không lấy được dữ liệu phongBan:", response.message);
-                }
-              },
-              error: function (error) {
-                console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+    // Lấy thông tin role và MaPhongBan từ localStorage
+    const userRole = localStorage.getItem("userRole");
+    const userMaPhongBan = localStorage.getItem("MaPhongBan");
+
+    // Gọi AJAX để lấy dữ liệu JSON từ API
+    $.ajax({
+      url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+      method: 'GET',
+      success: function (response) {
+        // Kiểm tra nếu response thành công
+        if (response.success) {
+          // Nếu role không phải là GV, GV_CNBM, hoặc Lãnh đạo khoa, thêm tùy chọn "Tất cả khoa"
+          if (!["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+            $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
+          }
+
+          // Lặp qua từng mục trong mảng MaPhongBan
+          response.MaPhongBan.forEach(function (item) {
+            // Nếu role là GV, GV_CNBM, hoặc Lãnh đạo khoa, chỉ hiển thị khoa của giảng viên
+            if (["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+              if (item.MaPhongBan === userMaPhongBan) {
+                $('#MaPhongBan').append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
               }
-            });
+            } else {
+              // Nếu không, hiển thị tất cả các khoa
+              $('#MaPhongBan').append(
+                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+              );
+            }
           });
-        </script>
+
+          // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+          if (!$('#MaPhongBan option:selected').length) {
+            $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
+          }
+        } else {
+          console.error("Không lấy được dữ liệu phongBan:", response.message);
+        }
+      },
+      error: function (error) {
+        console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+      }
+    });
+  });
+</script>
         <script>
           // Hàm để lấy danh sách giảng viên từ API
           async function fetchGiangVienList() {
@@ -295,89 +311,84 @@
               }
           }
       
-          // Hàm gợi ý bộ môn ở ô nhập 
           async function showSuggestionsGvm(input) {
-              const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-              hideSuggestionsGvm(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý
-      
-              // Lấy danh sách giảng viên từ API
-              const gvmList = await fetchGiangVienList();
-      
-              // Tạo thẻ div chứa gợi ý
-              const suggestionsContainer = document.createElement('div');
-              suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
-      
-       // Đặt vị trí cho suggestionsContainer
-       const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-            suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-            suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-            suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-            suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-            suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-            suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-            suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
-      
-              // Thêm suggestionsContainer vào DOM
-              document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
-      
-              let suggestions = []; // Khởi tạo mảng gợi ý
-      
-              // Tạo danh sách gợi ý với GiangVien và Khoa
-              console.log("danh sách = ",gvmList)
-              suggestions = gvmList.map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`);
-      
-              // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-              if (value) {
-                  suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-              }
-      
-              // Nếu không có gợi ý, ẩn container
-              if (suggestions.length === 0) {
-                  suggestionsContainer.remove();
-                  return; // Kết thúc hàm nếu không có gợi ý
-              }
-      
-              // Tạo gợi ý dưới dạng danh sách (list)
-              suggestions.forEach(name => {
-                  const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-            suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-            suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
+    const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
+    hideSuggestionsGvm(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
 
-            // Thêm sự kiện click để điền tên vào ô input
-            suggestionItem.onclick = function () {
-                const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
+    // Tạo thẻ div chứa gợi ý
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
 
-                // Tìm vị trí của dấu "-" trong chuỗi
-                const dashIndex = name.indexOf("-");
+    // Đặt vị trí cho suggestionsContainer
+    const { bottom, left, width } = input.getBoundingClientRect();
+    suggestionsContainer.style.position = 'absolute';
+    suggestionsContainer.style.top = `${bottom + window.scrollY}px`;
+    suggestionsContainer.style.left = `${left + window.scrollX}px`;
+    suggestionsContainer.style.width = `${width}px`;
+    suggestionsContainer.style.zIndex = '1000';
+    suggestionsContainer.style.maxHeight = '200px';
+    suggestionsContainer.style.overflowY = 'auto';
 
-                // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-                let processedName = name;
+    // Thêm suggestionsContainer vào DOM
+    document.body.appendChild(suggestionsContainer);
 
-                if (dashIndex !== -1) {
-                    // Lấy phần trước dấu "-" (tên giảng viên)
-                    processedName = name.slice(0, dashIndex).trim();
-                }
+    let suggestions = []; // Khởi tạo mảng gợi ý
 
-                input.value = processedName; // Đặt giá trị vào ô input
+    // Lấy danh sách giảng viên từ API
+    const gvmList = await fetchGiangVienList();
+    console.log("Danh sách =", gvmList);
+    suggestions = gvmList.map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`);
 
-                hideSuggestionsGvm(); // Ẩn gợi ý sau khi chọn
-            };
+    console.log("value=", value);
 
-            suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-        });
+    // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
+    if (value) {
+        suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+    }
 
-        // Ẩn gợi ý khi input không còn focus
-        input.onblur = function () {
-            setTimeout(() => {
-                hideSuggestionsGvm();
-            }, 100); // Thời gian chờ để nhận diện click
+    // Nếu không có gợi ý, ẩn container
+    if (suggestions.length === 0) {
+        suggestionsContainer.remove();
+        return;
+    }
+
+    // Tạo gợi ý dưới dạng danh sách
+    suggestions.forEach(name => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+        suggestionItem.textContent = name;
+
+        // Thêm sự kiện click để điền tên vào ô input
+        suggestionItem.onclick = function () {
+            const name = suggestionItem.innerText;
+            const dashIndex = name.indexOf("-");
+            let processedName = name;
+
+            if (dashIndex !== -1) {
+                processedName = name.slice(0, dashIndex).trim();
+            }
+
+            input.value = processedName;
+            hideSuggestionsGvm(); // Ẩn gợi ý sau khi chọn
         };
-    }
 
-    function hideSuggestionsGvm() {
-        const existingSuggestions = document.querySelectorAll('.suggestions');
-        existingSuggestions.forEach(suggestion => suggestion.remove());
-    }
+        suggestionsContainer.appendChild(suggestionItem);
+    });
+
+    // Ẩn gợi ý khi input không còn focus
+    input.onblur = function () {
+        setTimeout(() => {
+            hideSuggestionsGvm();
+        }, 100);
+    };
+}
+
+// Hàm ẩn gợi ý
+function hideSuggestionsGvm() {
+    const existingSuggestions = document.querySelectorAll('.suggestions');
+    existingSuggestions.forEach(suggestion => suggestion.remove());
+}
+
 </script>
 
 <script>

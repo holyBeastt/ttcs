@@ -360,8 +360,6 @@
       }
 
       .custom-header {
-        padding-left: 10px;
-        padding-right: 0 !important;
         display: flex;
         justify-content: center; /* Căn giữa nội dung */
         align-items: center; /* Căn giữa theo chiều dọc */
@@ -832,7 +830,10 @@
         const headersMap = {
           id: { name: "ID", width: 70 },
           major: { name: "Khoa", width: 100 },
-          ll_code: { name: "CTĐT", width: 60 },
+          ll_code: {
+            name: "CTĐT",
+            width: 0,
+          },
           ll_total: { name: "LL", width: 50 },
           student_quantity: { name: "Số SV", width: 70 },
           student_bonus: { name: "HS lớp đông", width: 100 },
@@ -844,89 +845,98 @@
           course_code: { name: "Mã học phần", width: 100 },
           start_date: { name: "Ngày bắt đầu", width: 110 },
           end_date: { name: "Ngày kết thúc", width: 110 },
-          qc: { name: "QC", width: 50 },
+          qc: { name: "QC", width: 70 },
           semester: { name: "Năm học", width: 100 },
         };
 
-        const columnDefs = Object.keys(renderData[0])
-          .filter((key) => key !== "GhiChu" && key !== "description")
-          .map((key) => ({
-            field: key,
-            headerName: headersMap[key]?.name || key,
-            width: headersMap[key]?.width || 100,
-            editable: key !== "student_bonus",
-            hide: key === "semester",
-            headerClass: "custom-header",
-            filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
-            valueFormatter: (params) => {
-              if (
-                params.colDef.field === "start_date" ||
-                params.colDef.field === "end_date"
-              ) {
-                if (params.value) {
-                  const date = new Date(params.value);
-                  if (!isNaN(date)) {
-                    return date.toLocaleDateString("vi-VN"); // Hiển thị đúng định dạng dd/mm/yyyy
+        const columnDefs = [
+          {
+            headerName: "STT",
+            field: "stt",
+            valueGetter: (params) => params.node.rowIndex + 1, // Đánh số thứ tự
+            width: 70,
+            editable: false,
+            cellStyle: { fontWeight: "bold", textAlign: "center" },
+          },
+          ...Object.keys(renderData[0])
+            .filter((key) => key !== "GhiChu" && key !== "description")
+            .map((key) => ({
+              field: key,
+              headerName: headersMap[key]?.name || key,
+              width: headersMap[key]?.width || 100,
+              editable: key !== "student_bonus" && key !== "id",
+              hide: key === "semester" || key === "id",
+              headerClass: "custom-header",
+              filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
+              valueFormatter: (params) => {
+                if (
+                  params.colDef.field === "start_date" ||
+                  params.colDef.field === "end_date"
+                ) {
+                  if (params.value) {
+                    const date = new Date(params.value);
+                    if (!isNaN(date)) {
+                      return date.toLocaleDateString("vi-VN"); // Hiển thị đúng định dạng dd/mm/yyyy
+                    }
                   }
                 }
-              }
-              return params.value;
-            },
+                return params.value;
+              },
 
-            valueGetter: (params) => {
-              if (
-                params.colDef.field === "start_date" ||
-                params.colDef.field === "end_date"
-              ) {
-                const value = params.data[params.colDef.field];
-                if (value) {
-                  const date = new Date(value);
-                  if (!isNaN(date)) {
-                    return date.toLocaleDateString("vi-VN"); // Giữ nguyên định dạng khi click vào
+              valueGetter: (params) => {
+                if (
+                  params.colDef.field === "start_date" ||
+                  params.colDef.field === "end_date"
+                ) {
+                  const value = params.data[params.colDef.field];
+                  if (value) {
+                    const date = new Date(value);
+                    if (!isNaN(date)) {
+                      return date.toLocaleDateString("vi-VN"); // Giữ nguyên định dạng khi click vào
+                    }
                   }
                 }
-              }
-              return params.data[params.colDef.field];
-            },
-            valueSetter: (params) => {
-              const field = params.colDef.field;
-              const oldValue = params.data[field];
-              const value = params.newValue ? params.newValue.trim() : "";
+                return params.data[params.colDef.field];
+              },
+              valueSetter: (params) => {
+                const field = params.colDef.field;
+                const oldValue = params.data[field];
+                const value = params.newValue ? params.newValue.trim() : "";
 
-              // ✅ Xử lý riêng cho cột "start_date" và "end_date"
-              if (field === "start_date" || field === "end_date") {
-                if (!value) return false; // Không cập nhật nếu giá trị rỗng
+                // ✅ Xử lý riêng cho cột "start_date" và "end_date"
+                if (field === "start_date" || field === "end_date") {
+                  if (!value) return false; // Không cập nhật nếu giá trị rỗng
 
-                const parts = value.split("/");
-                if (parts.length === 3) {
-                  const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                  const date = new Date(formattedDate);
+                  const parts = value.split("/");
+                  if (parts.length === 3) {
+                    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    const date = new Date(formattedDate);
 
-                  if (!isNaN(date)) {
-                    params.data[field] = value; // Lưu giá trị mới
-                    return true;
+                    if (!isNaN(date)) {
+                      params.data[field] = value; // Lưu giá trị mới
+                      return true;
+                    }
                   }
+
+                  params.data[field] = oldValue; // Giữ nguyên giá trị cũ nếu sai định dạng
+                  return false;
                 }
 
-                params.data[field] = oldValue; // Giữ nguyên giá trị cũ nếu sai định dạng
-                return false;
-              }
+                // ✅ Xử lý các cột khác (nếu có)
+                if (value !== oldValue) {
+                  params.data[field] = value; // Lưu giá trị mới
+                  return true;
+                }
 
-              // ✅ Xử lý các cột khác (nếu có)
-              if (value !== oldValue) {
-                params.data[field] = value; // Lưu giá trị mới
-                return true;
-              }
+                return false; // Không cập nhật nếu không thay đổi
+              },
 
-              return false; // Không cập nhật nếu không thay đổi
-            },
-
-            cellEditor: "agTextCellEditor",
-            cellEditorParams: {
-              useFormatter: true, // Giữ nguyên định dạng khi chỉnh sửa
-            },
-          }));
-
+              cellEditor: "agTextCellEditor",
+              cellEditorParams: {
+                useFormatter: true, // Giữ nguyên định dạng khi chỉnh sửa
+              },
+            })),
+        ];
         // Thêm cột "Hành động" nếu role là "Duyệt"
         if (role === "Duyệt") {
           columnDefs.push({
@@ -936,7 +946,8 @@
             width: 60,
             cellRenderer: (params) => {
               const id = params.data.id; // Vẫn sử dụng giá trị `id`
-              return `<button onclick="deleteRow(${id})">Xóa</button>`;
+              const stt = params.node.rowIndex + 1; // Lấy STT của dòng
+              return `<button onclick="deleteRow(${id}, ${stt})">Xóa</button>`;
             },
           });
         }
@@ -1000,13 +1011,14 @@
           getRowId: (params) => params.data.id, // Xác định dòng theo `id`
           columnDefs: columnDefs,
           rowData: renderData,
+
           defaultColDef: {
             resizable: true,
             sortable: true,
             filter: false,
             editable: true, // Cho phép sửa tất cả các cột
             cellStyle: {
-              fontSize: "11px", // Giảm cỡ chữ
+              fontSize: "14px", // Giảm cỡ chữ
               whiteSpace: "normal", // Cho phép xuống dòng
               wordWrap: "break-word", // Tự động ngắt dòng nếu quá dài
               textAlign: "center", // Căn giữa nội dung ô
@@ -1022,6 +1034,11 @@
         const tableContainer = document.getElementById("table-container");
         tableContainer.innerHTML = ""; // Xóa nội dung cũ trước khi tạo bảng mới
         new agGrid.Grid(tableContainer, gridOptions);
+
+        // ✅ Tự động căn chỉnh cột
+        setTimeout(() => {
+          gridOptions.api.sizeColumnsToFit();
+        }, 100);
       }
 
       function renderRow(id, updatedRow) {
@@ -1079,10 +1096,10 @@
         let actionColumn = "";
         if (role === "Duyệt") {
           actionColumn = `
-                    <td style="text-align: center; vertical-align: middle;">
-                      <button onclick="editRow(${id})">Sửa</button>
-                      <button onclick="deleteRow(${id})">Xóa</button>
-                    </td>`;
+                          <td style="text-align: center; vertical-align: middle;">
+                            <button onclick="editRow(${id})">Sửa</button>
+                            <button onclick="deleteRow(${id})">Xóa</button>
+                          </td>`;
         }
 
         // Kiểm tra nếu bất kỳ giá trị nào là 0
@@ -1094,8 +1111,8 @@
         // Cập nhật HTML của dòng
         rowElement.className = warningClass;
         rowElement.innerHTML = `
-                    ${rowHtml}
-                    ${actionColumn}`;
+                          ${rowHtml}
+                          ${actionColumn}`;
       }
 
       async function addNewRow() {
@@ -1184,9 +1201,9 @@
         // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
         const actionCell = row.querySelector("td:last-child");
         actionCell.innerHTML = `
-                  <button onclick="saveRow(${index})">Lưu</button>
-                  <button onclick="cancelEdit(${index})">Hủy</button>
-              `;
+                        <button onclick="saveRow(${index})">Lưu</button>
+                        <button onclick="cancelEdit(${index})">Hủy</button>
+                    `;
       }
 
       // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
@@ -1269,8 +1286,8 @@
         renderRow(id, originalRow);
       }
 
-      async function deleteRow(id) {
-        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${id} ?`)) {
+      async function deleteRow(id, stt) {
+        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
           try {
             const response = await fetch(`/TKB-delete-row/${id}`, {
               method: "DELETE",

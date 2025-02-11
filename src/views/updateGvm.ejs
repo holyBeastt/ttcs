@@ -220,7 +220,7 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <label for="hsl">Hệ số lương:</label>
-            <input required class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
+            <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
           </div>
           <div class="col-md-4">
             <label for="stk">Số tài khoản:</label>
@@ -260,7 +260,7 @@
           </div> -->
           <div class="col-md-4">
             <label for="msthue">Mã số thuế:</label>
-            <input required class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
+            <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
           </div>
           <div class="col-md-4">
             <label>File bổ sung:</label>
@@ -325,7 +325,7 @@
               if (maPhongBan === item.MaPhongBan) {
                 const option = document.createElement('option');
                 option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+                option.textContent = `${item.TenBoMon} - ${item.MaBoMon}`; // Giả sử TenBoMon là tên bộ môn cần hiển thị
 
                 // Kiểm tra nếu giá trị trùng với monGiangDayChinh
                 if (item.MaBoMon === monGiangDayChinh) {
