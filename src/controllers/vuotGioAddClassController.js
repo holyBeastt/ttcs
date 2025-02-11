@@ -140,7 +140,7 @@ const getLopGiuaKi = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const query = `SELECT * From giangday WHERE Khoa = ? AND Dot = ? AND HocKy = ? AND NamHoc = ? `;
+    const query = `SELECT * From giangday WHERE Khoa = ? AND Dot = ? AND HocKy = ? AND NamHoc = ? ORDER BY TenHocPhan`;
     const [result] = await connection.query(query, [MaPhongBan, Dot, Ki, Nam]);
     res.json({
       success: true,
