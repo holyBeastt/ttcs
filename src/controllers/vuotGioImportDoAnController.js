@@ -112,8 +112,8 @@ function processWordData(content) {
     // Nếu đã qua 5 dòng tiêu đề, bắt đầu xử lý bảng
     if (headerCount >= 5) {
       // Nếu dòng bắt đầu bằng số TT, đây là dòng mới
-      // const matchTT = line.match(/^\d+$/); // Kiểm tra dòng chỉ có số
-      const matchTT = line.match(/^\d+\.$/);
+      const matchTT = line.match(/^\d+$/); // Kiểm tra dòng chỉ có số
+      // const matchTT = line.match(/^\d+\.$/);
 
       if (matchTT) {
         // Lưu dòng trước đó (nếu có)
