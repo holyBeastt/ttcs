@@ -325,7 +325,7 @@
               if (maPhongBan === item.MaPhongBan) {
                 const option = document.createElement('option');
                 option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-                option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
+                option.textContent = `${item.TenBoMon} - ${item.MaBoMon}`; // Giả sử TenBoMon là tên bộ môn cần hiển thị
 
                 // Kiểm tra nếu giá trị trùng với monGiangDayChinh
                 if (item.MaBoMon === monGiangDayChinh) {
