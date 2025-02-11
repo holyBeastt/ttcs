@@ -190,45 +190,60 @@ const thongkevuotgioController = {
     }
   },
 
-  getThongkeGiangDayData: async (req, res) => {
-    let connection;
-    const { namhoc, khoa } = req.query;
 
+  getNamHocData: async (req, res) => {
+    let connection;
     try {
       connection = await createConnection();
-      let query = `
-                SELECT 
-                    gd.giangvien AS GiangVien,
-                    COALESCE(SUM(gd.QuyChuan), 0) AS SoTietGiangDay
-                FROM 
-                    giangday gd
-                WHERE 
-                    gd.id_User != 1
-                    gd.NamHoc = ? AND gd.Khoa = ? 
-                GROUP BY 
-                    gd.giangvien
-                ORDER BY 
-                    SoTietGiangDay DESC
-            `;
+            const [namHoc] = await connection.query(
+                "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
+            );
+            const [ki] = await connection.query(
+                "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
+            );
 
-      // Xây dựng mảng tham số
-      const params = [];
-      if (namhoc) params.push(namhoc);
-      if (khoa && khoa !== "ALL") params.push(khoa);
-
-      // In ra câu truy vấn và tham số để kiểm tra
-
-      const [result] = await connection.query(query, params);
-
-      res.json(result);
-    } catch (err) {
-      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-      res
-        .status(500)
-        .json({ success: false, message: "Lỗi máy chủ", error: err.message });
-    } finally {
-      if (connection) connection.release();
+            res.json({
+                success: true,
+                NamHoc: namHoc,
+                Ki: ki
+            });
+  } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      res.status(500).json({
+          success: false,
+          message: "Lỗi server"
+      });
+  } finally {
+        if (connection) connection.release();
     }
+  },
+
+  getPhongBanVG: async (req, res)=>{
+    try {
+      const connection = await createConnection();
+      // Lấy khoa từ các bảng giangday, giuaky
+      const [phongBan] = await connection.query(`
+          SELECT DISTINCT khoa as MaPhongBan 
+          FROM (
+              SELECT DISTINCT khoa FROM giangday
+              UNION
+              SELECT DISTINCT khoa FROM giuaky
+          ) AS combined_tables 
+          ORDER BY khoa
+      `);
+      
+      connection.release();
+      res.json({
+          success: true,
+          MaPhongBan: phongBan
+      });
+  } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+      res.status(500).json({
+          success: false,
+          message: "Lỗi server"
+      });
+  }
   },
 };
 

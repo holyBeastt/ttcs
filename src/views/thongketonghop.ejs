@@ -474,7 +474,7 @@
             function initializeComboboxes() {
                 // Lấy dữ liệu cho combobox Năm
                 $.ajax({
-                    url: '/getNamHoc',
+                    url: '/getNamHocTH',
                     method: 'GET',
                     success: function (response) {
                         if (response.success) {
@@ -489,7 +489,7 @@
 
                 // Lấy dữ liệu cho combobox Kỳ
                 $.ajax({
-                    url: '/getNamHoc', // Sử dụng cùng một API để lấy kỳ
+                    url: '/getNamHocTH', // Sử dụng cùng một API để lấy kỳ
                     method: 'GET',
                     success: function (response) {
                         if (response.success) {

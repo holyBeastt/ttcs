@@ -66,17 +66,9 @@ const thongkedoanController = {
         FROM exportdoantotnghiep 
         ORDER BY namhoc DESC
       `);
-
-      const [khoa] = await connection.query(`
-        SELECT DISTINCT MaPhongBan AS value, MaPhongBan AS Khoa 
-        FROM exportdoantotnghiep 
-        ORDER BY MaPhongBan
-      `);
-
       res.json({
         success: true,
         NamHoc: [{ NamHoc: "ALL" }, ...namHoc],
-        Khoa: [{ value: "ALL", Khoa: "Tất cả khoa" }, ...khoa],
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu filter:", error);

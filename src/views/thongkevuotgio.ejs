@@ -240,7 +240,7 @@ $(document).ready(function () {
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
             $.ajax({
-                url: '/getPhongBan',
+                url: '/getPhongBanVG',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -276,7 +276,7 @@ $(document).ready(function () {
 
             // Khởi tạo các combobox khác
             $.ajax({
-                url: '/getNamHoc',
+                url: '/getNamHocVG',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {

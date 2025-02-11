@@ -11,7 +11,7 @@ router.get("/thongketonghop", (req, res) => {
 router.get("/api/thongketonghop-data", thongketonghopController.getChartData);
 
 // Thêm route mới để lấy dữ liệu năm học
-router.get("/getNamHoc", thongketonghopController.getNamHocData);
+router.get("/getNamHocTH", thongketonghopController.getNamHocData);
 
 
 module.exports = router;

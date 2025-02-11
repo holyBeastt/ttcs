@@ -189,7 +189,7 @@
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
             $.ajax({
-                url: '/getPhongBan',
+                url: '/getPhongBanDoAn',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -223,7 +223,7 @@
 
             // Khởi tạo các combobox khác
             $.ajax({
-                url: '/getNamHoc',
+                url: '/getNamHocDoAn',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -233,8 +233,6 @@
                                 `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
-                        // Thêm option "Tất cả năm" vào đầu
-                        $('#NamHoc').prepend('<option value="ALL" selected>Tất cả năm</option>');
                         checkAndFetchData();
 
                     }
