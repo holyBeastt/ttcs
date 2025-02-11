@@ -597,12 +597,12 @@
             }
           },
 
-          rowFormatter: function (row) {
-            const data = row.getData();
-            if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
-              row.getElement().classList.add("warning-row");
-            }
-          },
+          // rowFormatter: function (row) {
+          //   const data = row.getData();
+          //   if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
+          //     row.getElement().classList.add("warning-row");
+          //   }
+          // },
         });
       }
 
