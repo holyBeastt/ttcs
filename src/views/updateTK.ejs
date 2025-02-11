@@ -15,6 +15,20 @@
     />
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
+  <style>
+    #suggestionBox {
+      position: absolute;
+      z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần khác */
+      background-color: white; /* Để nội dung rõ ràng */
+      border: 1px solid #ccc;
+      width: 200px; /*Căn theo độ rộng của input */
+      max-height: 200px; /* Giới hạn chiều cao */
+      overflow-y: auto; /* Thêm thanh cuộn nếu danh sách quá dài */
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Đổ bóng cho đẹp */
+    }
+
+  </style>
+  </style>
 
   <body>
     <%- include('adminHeader') %>
@@ -53,7 +67,7 @@
             />
           </div>
         </div>
-        <div class="row mb-3">
+        <div class="row mb-3" hidden>
           <div class="col-md-4 input-wrapper">
             <label for="id_User" class="form-label">id_User</label>
             <input
@@ -107,7 +121,7 @@
           </div>
         </div>
         <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
+          <div class="col-md-4 input-wrapper" hidden>
             <label class="form-check-label" for="isKhoa"> isKhoa </label>
             <input
               class="form-control"
