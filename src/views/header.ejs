@@ -349,12 +349,10 @@
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     if (maPhongBan === "NCKH") {
       document.querySelectorAll(".navbar-nav").forEach(element => {
-        element.style.display = "none";
+        if (!["nav-nckh", "nav-thongke", "nav-hethong"].includes(element.id)) {
+          element.style.display = "none";
+        }
       });
-
-      document.getElementById("nav-nckh").style.display = "block";
-      document.getElementById("nav-thongke").style.display = "block";
-      document.getElementById("nav-hethong").style.display = "block";
     }
 
     // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
