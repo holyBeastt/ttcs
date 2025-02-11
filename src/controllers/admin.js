@@ -435,6 +435,62 @@ const deleteDotDoAn = async (req, res) => {
   }
 };
 
+const getHocPhanList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT * FROM hocphan"; // Truy vấn lấy tất cả học phần
+    const [results] = await connection.query(query);
+    res.render("hocphan.ejs", { hocPhan: results }); // Render trang hocphan.ejs và truyền danh sách học phần vào
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách học phần:", error);
+    res.status(500).send("Lỗi hệ thống. Không thể lấy danh sách học phần.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+const updateHocPhan = async (req, res) => {
+  const { TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon } = req.body; // Lấy các trường từ body
+  const { MaHocPhan } = req.params; // Lấy mã học phần từ params
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `
+      UPDATE hocphan 
+      SET TenHocPhan = ?, DVHT = ?, KiHoc = ?, Khoa = ?, MaBoMon = ? 
+      WHERE MaHocPhan = ?`; // Truy vấn cập nhật học phần
+    await connection.execute(query, [TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon, MaHocPhan]);
+    res.status(200).json({ message: "Cập nhật học phần thành công." }); // Phản hồi thành công
+  } catch (error) {
+    console.error("Lỗi khi cập nhật học phần:", error);
+    res.status(500).json({ message: "Lỗi hệ thống. Không thể cập nhật học phần." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+const deleteHocPhan = async (req, res) => {
+  const { MaHocPhan } = req.params; // Lấy mã học phần từ params
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "DELETE FROM hocphan WHERE MaHocPhan = ?"; // Truy vấn xóa học phần
+    const [results] = await connection.query(query, [MaHocPhan]);
+
+    if (results.affectedRows > 0) {
+      res.status(200).json({ message: "Xóa học phần thành công!" }); // Thông báo thành công
+    } else {
+      res.status(404).json({ message: "Không tìm thấy học phần để xóa." }); // Nếu không tìm thấy học phần
+    }
+  } catch (error) {
+    console.error("Lỗi khi xóa học phần:", error);
+    res.status(500).json({ message: "Lỗi hệ thống. Không thể xóa học phần." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -456,4 +512,7 @@ module.exports = {
   getDotDoAnList,
   postDotDoAn,
   deleteDotDoAn,
+  getHocPhanList,
+  updateHocPhan,
+  deleteHocPhan,
 };
