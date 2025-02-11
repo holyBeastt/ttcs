@@ -450,11 +450,14 @@
 
         let suggestions = []; // Khởi tạo mảng gợi ý
 
+        const khoaValue = document.getElementById("filterByDepartment").value;
+
         // Lấy dữ liệu từ localStorage
         const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
-        console.log(boMon)
 
-        suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
+        suggestions =  boMon
+        .filter(item => khoaValue === 'all' || item.MaPhongBan === khoaValue) // Chỉ lấy những mục có MaPhongBan = khoaValue
+        .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
 
         // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
         if (value) {
@@ -485,7 +488,9 @@
 
             if (dashIndex !== -1) {
               // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
+              //processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
+              const parts = name.split("-");
+              processedName = parts.slice(2).join("-").trim().replace(/\s+/g, '');
             }
 
             // Điền tên gợi ý đã xử lý vào ô input
