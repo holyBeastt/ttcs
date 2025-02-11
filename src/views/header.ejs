@@ -352,9 +352,9 @@
         element.style.display = "none";
       });
 
-      document.getElementById("nav-nckh").style.display = "block";
-      document.getElementById("nav-thongke").style.display = "block";
-      document.getElementById("nav-hethong").style.display = "block";
+      ["nav-nckh", "nav-thongke", "nav-hethong"].forEach(id => {
+        document.getElementById(id).style.display = "block";
+      });
     }
 
     // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
