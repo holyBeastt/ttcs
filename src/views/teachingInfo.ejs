@@ -317,6 +317,16 @@
                     <input class="form-check-input" type="checkbox" id="checkAllKhoa" onclick="checkAll('khoa')">
                   </div>
                 </th>
+                <th style="width: 50px; display: none" id="daoTaoColumn">
+                  <div class="form-check">
+                    Đào tạo
+                  </div>
+                </th>
+                <th style="width: 50px; display: none" id="taiChinhColumn">
+                  <div class="form-check">
+                    Tài chính
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody id="tableBody">
@@ -443,6 +453,8 @@
         if (role === 'Lãnh đạo khoa') {
           // Hiển thị cột 'khoaColumn'
           document.getElementById('khoaColumn').style.display = 'table-cell';
+          document.getElementById('daoTaoColumn').style.display = 'table-cell';
+          document.getElementById('taiChinhColumn').style.display = 'table-cell';
         } else {
           // Ẩn cột 'khoaColumn'
           document.getElementById('khoaColumn').style.display = 'none';
@@ -990,25 +1002,46 @@
             }
             tableRow.appendChild(ghiChuTd); // Thêm ô ghi chú vào hàng
 
-
-
             let khoaCheckboxTd, khoaCheckbox;
             khoaCheckboxTd = document.createElement('td');
             khoaCheckbox = document.createElement('input');
             khoaCheckbox.type = 'checkbox';
             khoaCheckbox.name = 'khoa';
-            khoaCheckbox.checked = row.KhoaDuyet || false;
+            khoaCheckbox.checked = row.KhoaDuyet;
             khoaCheckbox.onchange = () => updateCheckAll('khoa');
             khoaCheckboxTd.appendChild(khoaCheckbox);
             tableRow.appendChild(khoaCheckboxTd);
+
+            let daoTaoCheckboxTd, daoTaoCheckbox;
+            daoTaoCheckboxTd = document.createElement('td');
+            daoTaoCheckbox = document.createElement('input');
+            daoTaoCheckbox.disabled = true;
+            daoTaoCheckbox.type = 'checkbox';
+            daoTaoCheckbox.name = 'daotao';
+            daoTaoCheckbox.checked = row.DaoTaoDuyet;
+            daoTaoCheckboxTd.appendChild(daoTaoCheckbox);
+            tableRow.appendChild(daoTaoCheckboxTd);
+
+            let taiChinhCheckboxTd, taiChinhCheckbox;
+            taiChinhCheckboxTd = document.createElement('td');
+            taiChinhCheckbox = document.createElement('input');
+            taiChinhCheckbox.disabled = true;
+            taiChinhCheckbox.type = 'checkbox';
+            taiChinhCheckbox.name = 'taichinh';
+            taiChinhCheckbox.checked = row.TaiChinhDuyet;
+            taiChinhCheckboxTd.appendChild(taiChinhCheckbox);
+            tableRow.appendChild(taiChinhCheckboxTd);
+
+
             // Điều kiện ẩn checkbox Khoa nếu role không phải "CNTT_ALL"
             if (role != "Lãnh đạo khoa") {
               // Thiết lập thuộc tính CSS để thu nhỏ checkbox và ô <td> chứa nó
               khoaCheckbox.style.width = '10px'; // Đặt chiều rộng nhỏ nhất có thể
               khoaCheckbox.style.height = '10px'; // Đặt chiều cao nhỏ nhất có thể
               khoaCheckbox.style.display = 'none';
+              daoTaoCheckbox.style.display = 'none';
+              taiChinhCheckbox.style.display = 'none';
 
-              // Thu nhỏ <td>
               khoaCheckboxTd.style.width = '1px';
               khoaCheckboxTd.style.padding = '0';
             }

@@ -96,7 +96,7 @@
       z-index: 10000 !important;
     }
 
-   
+
 
     /* phần header */
     .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
@@ -170,7 +170,7 @@
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
               </select>
-              <select class="selectop" id="departmentFilter">
+              <select class="selectop" id="MaPhongBan">
                 <option value="">Chọn khoa</option>
               </select>
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
@@ -438,7 +438,7 @@
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
-        let Khoa = document.getElementById("departmentFilter").value;
+        let Khoa = document.getElementById("MaPhongBan").value;
 
         const body = {
           Khoa: Khoa,
@@ -702,7 +702,7 @@
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
-        let Khoa = document.getElementById("departmentFilter").value;
+        let Khoa = document.getElementById("MaPhongBan").value;
 
         // Tạo đối tượng mới với dữ liệu mặc định
         const newRow = {
@@ -763,7 +763,7 @@
             let Dot = document.getElementById("combobox-dot").value;
             let Ki = document.getElementById("comboboxki").value;
             let Nam = document.getElementById("NamHoc").value;
-            let Khoa = document.getElementById("departmentFilter").value;
+            let Khoa = document.getElementById("MaPhongBan").value;
 
             const body = {
               Khoa: Khoa,
@@ -843,7 +843,7 @@
         let Dot = document.getElementById("combobox-dot")?.value;
         let Ki = document.getElementById("comboboxki")?.value;
         let Nam = document.getElementById("NamHoc")?.value;
-        let Khoa = document.getElementById("departmentFilter")?.value;
+        let Khoa = document.getElementById("MaPhongBan")?.value;
 
         // Kiểm tra nếu có phần tử nào chưa được chọn
         if (!Dot || !Ki || !Nam || !Khoa) {
@@ -872,8 +872,8 @@
             throw new Error("Lấy dữ liệu thất bại");
           }
 
-          const data = await response.json();
-          dataQC = data; // Lưu dữ liệu vào dataQC
+          const rs = await response.json();
+          dataQC = rs.data; // Lưu dữ liệu vào dataQC
           console.log("Dữ liệu lấy được:", dataQC);
         } catch (error) {
           console.error("Error:", error);
@@ -925,7 +925,7 @@
               let Dot = document.getElementById("combobox-dot").value;
               let Ki = document.getElementById("comboboxki").value;
               let Nam = document.getElementById("NamHoc").value;
-              let Khoa = document.getElementById("departmentFilter").value;
+              let Khoa = document.getElementById("MaPhongBan").value;
 
               const body = { Khoa, Dot, Ki, Nam };
 
@@ -948,17 +948,23 @@
               // Hiển thị thông báo ban hành thành công
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thành công!",
+                html: result.message,
                 icon: "success",
                 confirmButtonText: "OK",
                 width: "auto",
                 padding: "20px",
+                timer: 3000, // Thời gian hiển thị (ms), ở đây là 3 giây
+                timerProgressBar: true, // Hiển thị thanh tiến trình
+                didClose: () => {
+                  location.reload(); // Reload trang khi alert đóng
+                }
               });
+
             } else {
               // Hiển thị thông báo ban hành thất bại
               Swal.fire({
                 title: "Thông báo",
-                html: result.message || "Ban hành thất bại!",
+                html: result.message,
                 icon: "error",
                 confirmButtonText: "OK",
                 width: "auto",

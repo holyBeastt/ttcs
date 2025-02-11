@@ -42,7 +42,7 @@ $(document).ready(function () {
 
 
 $(document).ready(function () {
-    $('#departmentFilter option[value=""]').remove();
+    $('#MaPhongBan option[value=""]').remove();
     // Gọi AJAX để lấy dữ liệu JSON từ API
     $.ajax({
         url: "/getPhongBan", // Đường dẫn tới API getPhongBan
@@ -51,26 +51,16 @@ $(document).ready(function () {
             // Kiểm tra nếu response thành công
             const MaPhongBan = response.MaPhongBan;
             if (response.success) {
-                $("#departmentFilter").prepend(
-                    '<option value="ALL">Tất cả khoa</option>'
+                $("#MaPhongBan").prepend(
                 );
                 // Lặp qua từng mục trong mảng MaPhongBan
-                response.MaPhongBan.forEach(function (item) {
-                    // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+                MaPhongBan.forEach(function (item) {
                     console.log(item);
-                    // Push vào mảng Khoa để validate bảng
-                    khoaArray.push(item.MaPhongBan);
-                    $("#departmentFilter").append(
+                    $("#MaPhongBan").append(
                         `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                     );
                 });
 
-                // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-                if (!$("#departmentFilter option:selected").length) {
-                    $("#departmentFilter").prepend(
-                        '<option value="">Chọn Phòng Ban</option>'
-                    );
-                }
             } else {
                 console.error(
                     "Không lấy được dữ liệu phongBan:",

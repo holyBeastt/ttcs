@@ -34,6 +34,7 @@ const {
   deleteTienLuong,
   suggestPb,
   checkExistence,
+  themHocPhan,
 } = require("../controllers/adminController");
 const {
   getaccountList,
@@ -56,6 +57,9 @@ const {
   getDotDoAnList,
   postDotDoAn,
   deleteDotDoAn,
+  getHocPhanList,
+  updateHocPhan,
+  deleteHocPhan,
 } = require("../controllers/admin");
 const {
   postUpdateNV,
@@ -162,5 +166,15 @@ router.post("/deleteMessage", deleteMessage);
 router.get("/dotDoAn", getDotDoAnList);
 router.post("/dotDoAn", postDotDoAn);
 router.delete("/dotDoAn/:dotdoan", deleteDotDoAn);
+
+// Route cho thêm học phần
+router.get("/hocphan", getHocPhanList);
+router.put("/hocphan/:MaHocPhan", updateHocPhan);
+router.delete("/hocphan/:MaHocPhan", deleteHocPhan);
+
+router.get("/themHocPhan", (req, res) => {
+  res.render("themHocPhan");
+});
+router.post("/themHocPhan", themHocPhan);
 
 module.exports = router;
