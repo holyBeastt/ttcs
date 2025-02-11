@@ -1016,20 +1016,22 @@ const insertDataAgain = async (req, res) => {
 
     // Lấy dữ liệu đã nhóm lại
     let sqlSelect = `SELECT 
-            course_name, credit_hours, ll_code, ll_total, 
-            course_code, major, study_format, 
-            MAX(lecturer) AS lecturer, 
-            MIN(start_date) AS start_date, 
-            MAX(end_date) AS end_date, 
-            student_quantity, student_bonus, bonus_time, 
-            bonus_teacher, bonus_total, qc, class_section, course_id, ?
-        FROM course_schedule_details
-        WHERE semester = ?
-        GROUP BY 
-            course_name, credit_hours, ll_code, ll_total, 
-            course_code, major, study_format, 
-            student_quantity, student_bonus, bonus_time, 
-            bonus_teacher, bonus_total, qc, class_section, course_id;`;
+    course_name, credit_hours, ll_code, ll_total, 
+    course_code, major, study_format, 
+    MAX(lecturer) AS lecturer, 
+    MIN(start_date) AS start_date, 
+    MAX(end_date) AS end_date,
+    MAX(bonus_time) AS bonus_time,
+    MAX(qc) AS qc,
+    student_quantity, student_bonus, 
+    bonus_teacher, bonus_total, class_section, course_id
+FROM course_schedule_details
+WHERE semester = ?
+GROUP BY 
+    course_name, credit_hours, ll_code, ll_total, 
+    course_code, major, study_format, 
+    student_quantity, student_bonus,
+    bonus_teacher, bonus_total, class_section, course_id`;
 
     let params = [semester, semester];
 
