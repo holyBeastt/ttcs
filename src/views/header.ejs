@@ -36,7 +36,7 @@
             </div>
           </div>
           <!--  -->
-          <div class="navbar-nav">
+          <div class="navbar-nav" id="nav-gvm">
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -49,7 +49,7 @@
               </div>
             </div>
           </div>
-          <div class="navbar-nav">
+          <div class="navbar-nav" id="nav-quychuan">
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -94,7 +94,7 @@
               </div>
             </div>
           </div>
-          <div class="navbar-nav">
+          <div class="navbar-nav" id="nav-moigiang">
             <div class="nav-item dropdown" style="width: max-content">
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -112,7 +112,7 @@
               </div>
             </div>
           </div>
-          <div class="navbar-nav">
+          <div class="navbar-nav" id="nav-vuotgio">
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -145,7 +145,7 @@
               </div>
             </div>
           </div>
-          <div class="navbar-nav">
+          <div class="navbar-nav" id="nav-doan">
             <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
                 aria-expanded="false">
@@ -348,11 +348,16 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     if (maPhongBan === "NCKH") {
-      document.querySelectorAll(".navbar-nav").forEach(element => {
-        if (!["nav-nckh", "nav-thongke", "nav-hethong"].includes(element.id)) {
-          element.style.display = "none";
-        }
-      });
+      let gvmNav = document.getElementById("nav-gvm");
+      let quychuanNav = document.getElementById("nav-quychuan");
+      let moigiangNav = document.getElementById("nav-moigiang");
+      let vuotgioNav = document.getElementById("nav-vuotgio");
+      let doanNav = document.getElementById("nav-doan");
+      gvmNav.style.display = "none";
+      quychuanNav.style.display = "none";
+      moigiangNav.style.display = "none";
+      vuotgioNav.style.display = "none";
+      doanNav.style.display = "none";
     }
 
     // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
