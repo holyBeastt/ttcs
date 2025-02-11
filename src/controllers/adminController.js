@@ -292,10 +292,10 @@ const AdminController = {
       `;
       await connection.query(query1, [TenDangNhap, MaPhongBan, Quyen, Khoa]);
 
-      res.redirect("/thongTinTK?Success");
+      res.redirect("/thongTinTK?ThemTK=Success");
     } catch (error) {
       console.error("Lỗi khi cập nhật dữ liệu: ", error);
-      res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+      res.redirect("/thongTinTK?ThemTK=False");
     } finally {
       if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
@@ -511,7 +511,7 @@ const AdminController = {
     try {
       // Lấy dữ liệu bộ môn
       connection = await createPoolConnection();
-      const query = "SELECT * FROM `bomon`";
+      const query = "SELECT * FROM `bomon` ORDER BY MaPhongBan, MaBoMon";
       const [results] = await connection.query(query);
       // Render trang với 2 biến: boMon
       res.render("boMon.ejs", {
@@ -529,7 +529,7 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const query = "SELECT MaPhongBan FROM `phongban` WHERE isKhoa = 1";
+      const query = "SELECT MaPhongBan FROM `phongban`";
       const [result] = await connection.query(query);
       res.json({
         success: true,

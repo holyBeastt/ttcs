@@ -232,10 +232,10 @@ const postUpdatePhongBan = async (req, res) => {
     const query = `UPDATE phongban SET TenPhongBan = ?, GhiChu = ?, isKhoa = ? WHERE MaPhongBan = ?`;
     await connection.query(query, [tenPhongBan, ghiChu, isKhoa, MaPhongBan]);
 
-    res.redirect("/phongBan"); // Điều hướng về danh sách phòng ban sau khi cập nhật
+    res.redirect("/phongBan?message=True"); // Điều hướng về danh sách phòng ban sau khi cập nhật
   } catch (error) {
     console.error("Lỗi khi cập nhật dữ liệu: ", error);
-    res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+    res.redirect("/phongBan?message=False"); // Điều hướng về danh sách phòng ban sau khi cập nhật
   } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
@@ -264,14 +264,10 @@ const postUpdateTK = async (req, res) => {
       "UPDATE taikhoannguoidung SET id_User = ?, MatKhau = ? WHERE TenDangNhap = ?";
     await connection.query(query2, [id_User, MatKhau, TenDangNhap]);
 
-    res.redirect("/thongTinTK?Success");
+    res.redirect("/thongTinTK?UpdateTK=Success");
   } catch (error) {
     console.error("Lỗi khi cập nhật dữ liệu: ", error.message);
-    res
-      .status(500)
-      .send(
-        `Lỗi server, không thể cập nhật dữ liệu. Chi tiết: ${error.message}`
-      );
+    res.redirect("/thongTinTK?UpdateTK=False");
   } finally {
     if (connection) {
       connection.release(); // Đảm bảo luôn giải phóng kết nối
