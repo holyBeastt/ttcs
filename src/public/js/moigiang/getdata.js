@@ -51,8 +51,7 @@ $(document).ready(function () {
             // Kiểm tra nếu response thành công
             const MaPhongBan = response.MaPhongBan;
             if (response.success) {
-                $("#MaPhongBan").prepend(
-                );
+                $("#MaPhongBan").prepend();
                 // Lặp qua từng mục trong mảng MaPhongBan
                 MaPhongBan.forEach(function (item) {
                     console.log(item);
