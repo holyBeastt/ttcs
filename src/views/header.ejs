@@ -349,11 +349,9 @@
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     if (maPhongBan === "NCKH") {
       document.querySelectorAll(".navbar-nav").forEach(element => {
-        element.style.display = "none";
-      });
-
-      ["nav-nckh", "nav-thongke", "nav-hethong"].forEach(id => {
-        document.getElementById(id).style.display = "block";
+        if (!["nav-nckh", "nav-thongke", "nav-hethong"].includes(element.id)) {
+          element.style.display = "none";
+        }
       });
     }
 
