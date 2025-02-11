@@ -222,7 +222,7 @@
               })
               .then((data) => {
                 if (typeof data === "string") {
-                  alert(data); // Hiển thị thông báo nếu là text
+                  if (data != "File processed successfully") return;
                   insertDataAgain(semester);
                   return;
                 }
@@ -262,13 +262,12 @@
           .then((data) => {
             Swal.fire({
               title: "Thành công",
-              html: "Dữ liệu đã được cập nhật lại!",
+              html: "Dữ liệu đã được thêm!",
               icon: "success",
               confirmButtonText: "OK",
               width: "auto",
               padding: "20px",
             });
-            console.log("Success:", data);
           })
           .catch((error) => {
             Swal.fire({
