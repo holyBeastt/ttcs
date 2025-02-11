@@ -83,11 +83,12 @@ function processWordData(content) {
   let isGV = false;
 
   const headerKeywords = [
-    "TT",
+    "STT",
     "Sinh viên",
     "Mã SV",
     "Tên đề tài",
-    "Cán bộ Giảng viên hướng dẫn",
+    "Họ tên Cán bộ Giảng viên hướng dẫn",
+    "Đơn vị công tác"
   ];
   lines.forEach((line) => {
     line = line.trim(); // Xóa khoảng trắng thừa
@@ -102,10 +103,18 @@ function processWordData(content) {
       return; // Bỏ qua dòng tiêu đề
     }
 
+    // Bỏ qua nếu dòng chứa bất kỳ từ khóa tiêu đề nào
+    if (headerKeywords.some((keyword) => line.includes(keyword))) {
+      return;
+    }
+
+    // console.log(line);
     // Nếu đã qua 5 dòng tiêu đề, bắt đầu xử lý bảng
     if (headerCount >= 5) {
       // Nếu dòng bắt đầu bằng số TT, đây là dòng mới
       const matchTT = line.match(/^\d+$/); // Kiểm tra dòng chỉ có số
+      // const matchTT = line.match(/^\d+\.$/);
+
       if (matchTT) {
         // Lưu dòng trước đó (nếu có)
         if (Object.keys(currentRow).length > 0) {
@@ -138,12 +147,13 @@ function processWordData(content) {
         line.startsWith("1.") ||
         line.startsWith("2.") ||
         line.startsWith("TS.") ||
-        line.startsWith("ThS")
+        line.startsWith("ThS") ||
+        line.toLowerCase().startsWith("pgs.ts.")
       ) {
         currentRow.GiangVienDefault += line + "\n";
 
         line = line.replace(
-          /^\d+\.\s*(KS|ThS|TS|PGS\.\s*TS)\.\s*|^(KS|ThS|TS|PGS\.\s*TS)\.\s*/i,
+          /^\d+\.\s*(PGS\.?\s*TS|KS|ThS|TS)\.\s*|^(PGS\.?\s*TS|KS|ThS|TS)\.\s*/i,
           ""
         );
 
@@ -175,44 +185,11 @@ function processWordData(content) {
     tableData.push(currentRow);
   }
 
-  // Lưu dữ liệu theo từng đối tượng riêng biệt (key)
-  // const result = tableData.map((row) => {
-  //   let [GiangVien1, GiangVien2] = row.GiangVien.join(", ")
-  //     .split(",")
-  //     .map((gv) => gv.trim());
+  const invalidIndexes = tableData
+    .map((row, index) => (!Array.isArray(row.GiangVien) || row.GiangVien.length === 0 ? index : -1))
+    .filter(index => index !== -1);
 
-  //   // So sánh tên giảng viên trong đồ án với tên trong csdl xem đã có chưa
-  //   // Kiểm tra GiangVien1 có trong uniqueGV không
-  //   const isGiangVien1InUniqueGV = uniqueGV.some(
-  //     (giangVien) => giangVien.HoTen === GiangVien1
-  //   );
-
-  //   // Kiểm tra GiangVien2 có trong uniqueGV không
-  //   let isGiangVien2InUniqueGV;
-  //   if (GiangVien2 != undefined) {
-  //     isGiangVien2InUniqueGV = uniqueGV.some(
-  //       (giangVien) => giangVien.HoTen === GiangVien2
-  //     );
-  //   }
-
-  //   if (!isGiangVien1InUniqueGV) {
-  //     GiangVien1 = null;
-  //   }
-
-  //   if (!isGiangVien2InUniqueGV) {
-  //     GiangVien2 = null;
-  //   }
-
-  //   return {
-  //     TT: row.TT,
-  //     SinhVien: row.SinhVien,
-  //     MaSV: row.MaSV,
-  //     TenDeTai: row.TenDeTai,
-  //     GiangVien1: GiangVien1 || null, // Gán giá trị null nếu không có
-  //     GiangVien2: GiangVien2 || null, // Gán giá trị null nếu không có
-  //     GiangVien: row.GiangVien.join(", "), // Giảng viên là một chuỗi
-  //   };
-  // });
+  // console.log(invalidIndexes);
 
   const result = tableData.map((row) => {
     let [GiangVien1, GiangVien2] = row.GiangVien.join(", ")
@@ -273,11 +250,11 @@ const duplicateGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM GVMOI`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
-    query = `SELECT TenNhanVien, CCCD FROM NHANVIEN`;
+    query = `SELECT TenNhanVien, CCCD FROM nhanvien`;
     const [nvs] = await connection.query(query);
 
     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
@@ -347,6 +324,12 @@ const duplicateGiangVien = async (req, res) => {
   }
 };
 
+
+function cutUntilTT(data) {
+  let index = data.indexOf("STT"); // Tìm vị trí của "TT"
+  return index !== -1 ? data.slice(index) : data; // Nếu có "TT", cắt từ đó trở đi; nếu không, giữ nguyên
+}
+
 // Xử lý file Word bằng Mammoth
 async function processWordFile(filePath) {
   try {
@@ -354,7 +337,9 @@ async function processWordFile(filePath) {
 
     // Chuyển file Word sang text
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
-    return result.value; // Nội dung văn bản
+    const data = cutUntilTT(result.value);
+    // console.log(data)
+    return data;
   } catch (error) {
     console.error("Lỗi khi đọc file Word:", error);
     throw new Error("Không thể xử lý file Word.");
@@ -446,16 +431,19 @@ function processPdfFile(content) {
         line.toLowerCase().startsWith("ks.") ||
         line.toLowerCase().startsWith("ths.") ||
         line.toLowerCase().startsWith("ts.") ||
-        line.toLowerCase().startsWith("pgs.")
+        line.toLowerCase().startsWith("pgs.") ||
+        line.toLowerCase().startsWith("pgs.ts.")
+
       ) {
         // Nếu dòng bắt đầu bằng "1.", "2.", hoặc "TS.", đây là thông tin Giảng viên
         // Bỏ phần "1. TS", "2. TS", "TS"
         currentRow.GiangVienDefault += line + "\n";
 
         line = line.replace(
-          /^\d+\.\s*(KS|ThS|TS|PGS\.\s*TS)\.\s*|^(KS|ThS|TS|PGS\.\s*TS)\.\s*/i,
+          /^\d+\.\s*(PGS\.?\s*TS|KS|ThS|TS)\.\s*|^(PGS\.?\s*TS|KS|ThS|TS)\.\s*/i,
           ""
         );
+
         if (!currentRow.GiangVien) {
           currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
         }

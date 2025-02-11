@@ -12,44 +12,100 @@ const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
 const pdf = require("pdf-parse");
-// const { parseStringPromise, Builder } = require("xml2js");
 
 // convert file quy chuẩn excel
+// const convertExcelToJSON = async (filePath) => {
+//   try {
+//     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
+//     // Đọc tệp Excel
+//     const workbook = XLSX.readFile(filePath);
+//     const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
+//     const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
+
+//     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
+
+//     const data = worksheet;
+
+//     // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
+//     const header = data[0];
+//     const keys = Object.keys(header);
+
+//     const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
+
+//     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
+//     const jsonObjects = dataObjects.map((values) => {
+//       return keys.reduce((acc, key) => {
+//         // Nếu không có giá trị cho key, gán giá trị là 0
+//         acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+//         return acc;
+//       }, {});
+//     });
+
+//     validateFileExcelQC(jsonObjects);
+//     console.log("Convert file quy chuẩn thành công");
+//     return jsonObjects;
+//   } catch (err) {
+//     // Xử lý lỗi nếu có
+//     throw new Error("Cannot read file!: " + err.message);
+//   }
+// };
+
 const convertExcelToJSON = async (filePath) => {
   try {
-    // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
-    // Đọc tệp Excel
     const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
-    const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
+    const sheetNames = workbook.SheetNames; // Lấy danh sách tất cả các sheet
+    let jsonObjects = [];
+
+    if (sheetNames.length === 1) {
+      // === Trường hợp 1: Chỉ có 1 sheet, giữ nguyên logic cũ ===
+      const sheetName = sheetNames[0];
+      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+      const data = worksheet;
+      const header = data[0]; // Lấy tiêu đề
+      const keys = Object.keys(header);
+      const dataObjects = data.slice(1);
+
+      jsonObjects = dataObjects.map((values) => {
+        return keys.reduce((acc, key) => {
+          acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+          return acc;
+        }, {});
+      });
+    } else {
+      // === Trường hợp 2: Có nhiều sheet, mỗi sheet thêm key "Khoa" ===
+      sheetNames.forEach((sheetName) => {
+        const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        if (worksheet.length === 0) return; // Bỏ qua sheet rỗng
+
+        const header = worksheet[0];
+        const keys = Object.keys(header);
+        const dataObjects = worksheet.slice(1);
+
+        const sheetData = dataObjects.map((values) => {
+          const obj = keys.reduce((acc, key) => {
+            acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+            return acc;
+          }, {});
+          obj.Khoa = sheetName; // Gán thêm key "Khoa"
+          return obj;
+        });
+
+        jsonObjects = jsonObjects.concat(sheetData);
+      });
+    }
 
     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
-
-    const data = worksheet;
-
-    // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
-    const header = data[0];
-    const keys = Object.keys(header);
-
-    const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
-
-    // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
-    const jsonObjects = dataObjects.map((values) => {
-      return keys.reduce((acc, key) => {
-        // Nếu không có giá trị cho key, gán giá trị là 0
-        acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-        return acc;
-      }, {});
-    });
 
     validateFileExcelQC(jsonObjects);
     console.log("Convert file quy chuẩn thành công");
     return jsonObjects;
   } catch (err) {
-    // Xử lý lỗi nếu có
     throw new Error("Cannot read file!: " + err.message);
   }
 };
+
 
 // Hàm chuyển dữ liệu thiếu thành 0 khi import bằng file excel
 const validateFileExcelQC = (data) => {
@@ -81,122 +137,6 @@ const validateFileExcelQC = (data) => {
   // console.log("Dữ liệu đã được validate và chỉnh sửa");
   return data;
 };
-
-// convert file word quy chuẩn bằng thư viện xml2js
-// const convertWordToJSON = async (filePath) => {
-//   try {
-//     // Đọc file Word (.docx)
-//     const fileBuffer = await fs.promises.readFile(filePath); // Sử dụng fs.promises để xử lý bất đồng bộ
-
-//     await fs.promises.unlink(filePath); // Xóa tệp sau khi xử lý
-
-//     // Giải nén file .docx
-//     const zip = await JSZip.loadAsync(fileBuffer);
-
-//     // Lấy file XML chứa nội dung tài liệu
-//     const documentXml = await zip.file("word/document.xml").async("string");
-
-//     // Parse XML để lấy nội dung
-//     const parsedXml = await parseStringPromise(documentXml);
-
-//     // Truy cập nội dung bảng trong file Word
-//     const tables = parsedXml["w:document"]["w:body"][0]["w:tbl"] || [];
-
-//     // Mảng chứa tất cả các dữ liệu từ các bảng
-//     const allTablesData = [];
-
-//     // Biến để lưu tên Khoa hiện tại
-//     let currentKhoa = "";
-
-//     // Xử lý từng bảng
-//     for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
-//       const table = tables[tableIndex];
-//       if (tableIndex === 0) {
-//         continue; // Bỏ qua bảng đầu tiên
-//       }
-
-//       const rows = table["w:tr"] || [];
-
-//       // Lấy dữ liệu từ hàng đầu tiên làm key cho đối tượng
-//       const headers =
-//         rows[0]["w:tc"]?.map((cell) => {
-//           const cellText = (cell["w:p"] || [])
-//             .map((p) =>
-//               (p["w:r"] || [])
-//                 .map((r) => r["w:t"])
-//                 .flat()
-//                 .join("")
-//             )
-//             .join(" ");
-//           return cellText.trim();
-//         }) || [];
-
-//       // Mảng để chứa đối tượng của bảng này
-//       const tableData = [];
-
-//       // Xử lý các hàng tiếp theo để chuyển thành các đối tượng
-//       for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
-//         const row = rows[rowIndex];
-//         const cells = row["w:tc"] || [];
-
-//         // Lấy dữ liệu văn bản của từng ô trong hàng này
-//         const rowData = cells.map((cell) => {
-//           const cellText = (cell["w:p"] || [])
-//             .map((p) =>
-//               (p["w:r"] || [])
-//                 .map((r) => r["w:t"])
-//                 .flat()
-//                 .join("")
-//             )
-//             .join(" ");
-//           return cellText.trim();
-//         });
-
-//         // Nếu chỉ có 1 ô, đây là dòng kiểm tra
-//         if (rowData.length === 1) {
-//           const rowText = rowData[0]; // Lấy văn bản của ô duy nhất
-
-//           // Kiểm tra từ khóa trong dòng kiểm tra (ví dụ từ "Khoa")
-//           if (rowText.includes("học phần khác")) {
-//             currentKhoa = "Khác"; // Nếu chứa "học phần khác", gán Khoa là "Khác"
-//           } else if (rowText.includes("Trung tâm thực hành")) {
-//             currentKhoa = "Trung tâm thực hành"; // Nếu chứa "Trung tâm thực hành", gán Khoa là "Trung tâm thực hành"
-//           } else if (rowText.includes("Khoa")) {
-//             const khoaMatch = rowText.match(/Khoa\s+(.+)$/);
-//             if (khoaMatch) {
-//               currentKhoa = khoaMatch[1].trim(); // Lấy tên Khoa từ dòng kiểm tra
-//             }
-//           }
-//           continue; // Bỏ qua dòng này, không tạo đối tượng
-//         }
-
-//         // Chuyển hàng thành đối tượng với key là header và value là dữ liệu của hàng đó
-//         const rowObject = headers.reduce((acc, header, idx) => {
-//           acc[header] = rowData[idx] || "";
-//           return acc;
-//         }, {});
-
-//         // Thêm key "Khoa" vào đối tượng
-//         rowObject["Khoa"] = currentKhoa; // Chỉ áp dụng Khoa hiện tại
-
-//         tableData.push(rowObject);
-//       }
-
-//       // Gộp bảng vào mảng chính (phẳng hóa ngay khi thêm)
-//       allTablesData.push(...tableData);
-//     }
-
-//
-//     // In ra mảng dữ liệu của tất cả các bảng
-//     validateDataFileQC(data);
-//     // fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
-
-//     return allTablesData;
-//   } catch (error) {
-//     console.error("Lỗi khi đọc file:", error.message);
-//     throw error; // Ném lỗi để có thể xử lý bên ngoài
-//   }
-// };
 
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
@@ -438,14 +378,9 @@ const handleUploadAndRender = async (req, res) => {
       return res.status(400).send({ error: "Không đúng định dạng" });
     }
 
-    // console.log('Convert file quy chuẩn thành công!');
     // Gửi kết quả cho client
     res.send(result);
 
-    // // Xóa file sau khi xử lý nếu cần thiết
-    // fs.unlink(filePath, (err) => {
-    //   if (err) console.error("Error deleting file:", err);
-    // });
   } catch (error) {
     console.error("Error processing file:", error);
     res.status(500).send({ error: "Internal server error" });
@@ -1021,7 +956,6 @@ const normalizeKeys = (data) => {
 const importTableTam = async (jsonData) => {
   const tableName = process.env.DB_TABLE_TAM; // Giả sử biến này là "quychuan"
 
-  console.log(jsonData);
   // Tạo câu lệnh INSERT động
   const query = `
     INSERT INTO ${tableName} (
@@ -1029,13 +963,13 @@ const importTableTam = async (jsonData) => {
       Dot,
       Ki,
       Nam,
-      GiaoVien, 
       SoTinChi, 
       LopHocPhan, 
-      LL, 
+      GiaoVien, 
       SoTietCTDT, 
-      HeSoT7CN, 
       SoSinhVien, 
+      LL, 
+      HeSoT7CN, 
       HeSoLopDong, 
       QuyChuan
     ) VALUES ?
@@ -1057,22 +991,18 @@ const importTableTam = async (jsonData) => {
     })
     .map((item) => [
       validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
-      item["Dot"] || null,
-      item["Ki"] || null,
-      item["Nam"] || null,
-      item["Giáo Viên"] || null,
-      item["Số TC"] || null,
-      item["Lớp học phần"] || null,
-      item["Số tiết lên lớp theo TKB"] ||
-        item["Số tiết lên lớp giờ HC"] ||
-        null,
-      item["Số tiết theo CTĐT"] || null,
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        null,
-      item["Số SV"] || null,
-      item["Hệ số lớp đông"] || null,
-      item["QC"] || null, // QuyChuan có thể là null nếu không có giá trị
+      item["Dot"],
+      item["Ki"],
+      item["Nam"],
+      item["Số TC"],
+      item["Lớp học phần"],
+      item["Giáo Viên"],
+      item["Số tiết theo CTĐT"],
+      item["Số SV"],
+      item["Số tiết lên lớp theo TKB"],
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+      item["Hệ số lớp đông"],
+      item["QC"],
     ]);
 
   // Kiểm tra nếu không có đối tượng hợp lệ
@@ -1888,62 +1818,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2642,17 +2572,15 @@ const insertGiangDay = async (
             }
           });
 
-          // console.log("id = ", id_Gvm);
+          // const exists = hocPhanList.some(
+          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          // )
+          //   ? 1
+          //   : 0;
 
-          const exists = hocPhanList.some(
-            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          )
-            ? 1
-            : 0;
-
-          if (exists == 0) {
-            await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          }
+          // if (exists == 0) {
+          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
+          // }
 
           // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
           return [
@@ -3036,18 +2964,15 @@ const insertGiangDay2 = async (
           //   }
           // });
 
-          const exists = hocPhanList.some(
-            (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
-          )
-            ? 1
-            : 0;
+          // const exists = hocPhanList.some(
+          //   (hocPhan) => hocPhan.TenHocPhan === TenHocPhan
+          // )
+          //   ? 1
+          //   : 0;
 
-          //const exists = await hocPhanDaTonTai(TenHocPhan);
-          // console.log("Học phần đã tồn tại:", exists); // In ra giá trị tồn tại
-
-          if (exists == 0) {
-            await themHocPhan(TenHocPhan, SoTinChi, Khoa);
-          }
+          // if (exists == 0) {
+          //   await themHocPhan(TenHocPhan, SoTinChi, Khoa);
+          // }
 
           // Trả về mảng các giá trị đã chờ để đưa vào câu INSERT
           return [

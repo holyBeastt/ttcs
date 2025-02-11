@@ -32,8 +32,21 @@ const getTableTam = async (req, res) => {
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
 
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
+        if (results.length == 0) {
+            res.status(200).json({
+                success: false,
+                message: "Không tìm thấy dữ liệu"
+            }
+            );
+        } else {
+            // Trả về kết quả dưới dạng JSON
+            res.json({
+                success: true,
+                data: results,
+            }); // results chứa dữ liệu trả về
+        }
+
+
     } catch (error) {
         console.error("Lỗi trong hàm getTableTam:", error);
         res
@@ -82,11 +95,17 @@ const deleteTableTam = async (req, res) => {
 
             // Kiểm tra xem có bản ghi nào bị xóa không
             if (results.affectedRows > 0) {
-                return res.json({ message: "Xóa thành công dữ liệu." });
+                return res.json({
+                    success: "true",
+                    message: "Xóa thành công dữ liệu."
+                });
             } else {
                 return res
                     .status(404)
-                    .json({ message: "Không tìm thấy dữ liệu để xóa." });
+                    .json({
+                        success: "false",
+                        message: "Không tìm thấy dữ liệu để xóa."
+                    });
             }
         }
     } catch (error) {
@@ -96,6 +115,43 @@ const deleteTableTam = async (req, res) => {
         if (connection) connection.release(); // Giải phóng kết nối
     }
 };
+
+
+const quyDoiHeSo = (item) => {
+    // Biến để lưu giá trị HeSoLopDong
+    let HeSoLopDong = item.HeSoLopDong;
+
+    // Trường hợp tính HeSoLopDong theo số lượng sinh viên
+    const SoSinhVien = item.SoSinhVien;
+
+    // Quy đổi HeSoLopDong theo số lượng sinh viên
+    if (SoSinhVien <= 40) {
+        HeSoLopDong = 1;
+    } else if (SoSinhVien > 40 && SoSinhVien <= 50) {
+        HeSoLopDong = 1.1;
+    } else if (SoSinhVien > 50 && SoSinhVien <= 65) {
+        HeSoLopDong = 1.2;
+    } else if (SoSinhVien > 65 && SoSinhVien <= 80) {
+        HeSoLopDong = 1.3;
+    } else if (SoSinhVien > 80 && SoSinhVien <= 100) {
+        HeSoLopDong = 1.4;
+    } else if (SoSinhVien > 100) {
+        HeSoLopDong = 1.5;
+    }
+
+    // Tính QuyChuan sau khi gắn giá trị HeSoLopDong
+    let QuyChuan = null;
+    if (item.LL && item.HeSoT7CN) {
+        QuyChuan = Number(item.LL) * Number(HeSoLopDong) * Number(item.HeSoT7CN);
+    }
+
+    // Trả về kết quả quy đổi bao gồm cả HeSoLopDong và QuyChuan
+    return {
+        HeSoLopDong,
+        QuyChuan
+    };
+};
+
 
 const updateTableTam = async (req, res) => {
     const data = req.body; // Lấy dữ liệu từ body (mảng các đối tượng dữ liệu cần lưu)
@@ -112,13 +168,22 @@ const updateTableTam = async (req, res) => {
             return res.status(400).json({ message: "Dữ liệu không hợp lệ hoặc rỗng." });
         }
 
-        // Chuẩn bị các giá trị cho truy vấn INSERT ... ON DUPLICATE KEY UPDATE
+        // Vòng lặp qua từng đối tượng dữ liệu trong mảng và gọi hàm quyDoiHeSo để gắn lại hệ số lớp đông
+        for (const element of data) {
+            const row = element;
+            const result = quyDoiHeSo(row); // Gọi hàm quyDoiHeSo để tính toán lại hệ số lớp đông và QuyChuan
+            row.HeSoLopDong = result.HeSoLopDong; // Cập nhật lại hệ số lớp đông trong đối tượng
+            // row.QuyChuan = result.QuyChuan; // Cập nhật QuyChuan trong đối tượng
+            row.QuyChuan = parseFloat(result.QuyChuan).toFixed(2);
+        }
+
+        // Khởi tạo mảng chứa các giá trị để thực thi truy vấn INSERT ... ON DUPLICATE KEY UPDATE
         const insertUpdateValues = data.map(row => [
-            row.ID || null, // ID (có thể là null nếu là thêm mới)
-            row.Khoa,
-            row.Dot,
-            row.Ki,
-            row.Nam,
+            row.ID || null,
+            row.Khoa || null,
+            row.Dot || null,
+            row.Ki || null,
+            row.Nam || null,
             row.GiaoVien || null,
             row.HeSoLopDong || null,
             row.HeSoT7CN || null,
@@ -130,6 +195,12 @@ const updateTableTam = async (req, res) => {
             row.SoTinChi || null
         ]);
 
+        // Nếu không có dữ liệu hợp lệ, trả về lỗi
+        if (insertUpdateValues.length === 0) {
+            return res.status(400).json({ message: "Dữ liệu không hợp lệ hoặc thiếu dữ liệu hợp lệ để cập nhật." });
+        }
+
+        // Truy vấn SQL
         const insertUpdateQuery = `
             INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi) 
             VALUES ?
@@ -146,12 +217,18 @@ const updateTableTam = async (req, res) => {
                 QuyChuan = VALUES(QuyChuan),
                 SoSinhVien = VALUES(SoSinhVien),
                 SoTietCTDT = VALUES(SoTietCTDT),
-                SoTinChi = VALUES(SoTinChi)
+                SoTinChi = VALUES(SoTinChi);
         `;
 
+        // Thực thi truy vấn
         await connection.query(insertUpdateQuery, [tableTam, insertUpdateValues]);
 
-        return res.json({ message: "Cập nhật dữ liệu thành công." });
+        // Trả về phản hồi thành công
+        return res.json({
+            message: "Cập nhật dữ liệu thành công.",
+            success: true,
+            data: data,
+        });
     } catch (error) {
         console.error("Lỗi khi xử lý dữ liệu:", error);
         return res.status(500).json({ message: "Đã xảy ra lỗi khi xử lý dữ liệu." });
@@ -159,7 +236,6 @@ const updateTableTam = async (req, res) => {
         if (connection) connection.release(); // Giải phóng kết nối
     }
 };
-
 
 // hàm sửa 1 dòng 
 const updateRow = async (req, res) => {
@@ -260,7 +336,6 @@ const deleteRow = async (req, res) => {
         if (connection) connection.release(); // Giải phóng kết nối
     }
 };
-
 
 // hàm thêm 1 dòng 
 const addNewRow = async (req, res) => {
@@ -433,99 +508,6 @@ const exportToWord = async (req, res) => {
     }
 };
 
-// const editStudentQuanity = async (req, res) => {
-//     const data = req.body;  // Nhận dữ liệu từ body
-//     console.log("Dữ liệu nhận để cập nhật:", data); // In ra để kiểm tra
-
-//     const tableTam = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
-//     let connection;
-
-//     try {
-//         connection = await createPoolConnection(); // Tạo kết nối từ pool
-
-//         // Kiểm tra dữ liệu đầu vào
-//         if (!Array.isArray(data) || data.length === 0) {
-//             return res.status(400).json({ success: false, message: "Dữ liệu không hợp lệ hoặc rỗng." });
-//         }
-
-//         // Xây dựng phần CASE trong câu lệnh UPDATE
-//         let updateCaseStatements = [];
-//         let updateValues = [];
-//         let idsToUpdate = [];
-
-//         data.forEach((item) => {
-//             const { ID, StudentQuantityUpdate, StudentQuantity } = item;
-
-//             // Kiểm tra nếu ID, StudentQuantityUpdate và StudentQuantity tồn tại
-//             if (!ID || StudentQuantityUpdate === undefined || StudentQuantity === undefined) {
-//                 throw new Error(`Thiếu ID, StudentQuantityUpdate hoặc StudentQuantity cho bản ghi: ${JSON.stringify(item)}`);
-//             }
-
-//             // Sử dụng Regular Expression để trích xuất số từ ID
-//             const regex = /-(\d+)-/; // Biểu thức chính quy để tìm số giữa 2 dấu gạch nối
-//             const match = ID.match(regex);
-
-//             if (!match) {
-//                 throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
-//             }
-
-//             const numericID = match[1]; // Lấy phần số từ kết quả regex
-
-//             if (!numericID) {
-//                 throw new Error(`Không thể trích xuất số ID từ: ${ID}`);
-//             }
-
-//             // Đồng bộ tất cả về định dạng số, nếu rỗng thì trở thành 0
-//             const studentQuantityUpdate = StudentQuantityUpdate === '' ? 0 : parseInt(StudentQuantityUpdate, 10);
-//             const studentQuantity = StudentQuantity === '' ? 0 : parseInt(StudentQuantity, 10);
-
-//             // Kiểm tra xem StudentQuantityUpdate có khác StudentQuantity không
-//             if (studentQuantity !== studentQuantityUpdate) {
-//                 console.log('Update ID: ' + ID + ' số sinh viên cũ : ' + studentQuantity + ' số sinh viên mới : ' + studentQuantityUpdate);
-
-//                 // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
-//                 if (isNaN(studentQuantityUpdate)) {
-//                     throw new Error(`Số lượng sinh viên không hợp lệ: ${StudentQuantityUpdate}`);
-//                 }
-
-//                 // Xây dựng phần CASE để cập nhật số lượng sinh viên
-//                 updateCaseStatements.push(`
-//                     WHEN ID = ? THEN ?
-//                 `);
-//                 updateValues.push(numericID, studentQuantityUpdate); // Thêm giá trị ID và StudentQuantityUpdate
-//                 idsToUpdate.push(numericID);  // Thêm ID vào mảng idsToUpdate
-//             }
-//         });
-
-//         // Nếu không có bản ghi nào cần cập nhật, trả về thông báo
-//         if (updateCaseStatements.length === 0) {
-//             return res.json({ success: false, message: "Không có lớp nào cập nhật số sinh viên" });
-//         }
-
-//         // Nếu chỉ có một ID trong mảng idsToUpdate, biến nó thành mảng để truyền vào IN
-//         const idsToUpdateParam = idsToUpdate.length === 1 ? [idsToUpdate[0]] : idsToUpdate;
-
-//         // Xây dựng câu lệnh UPDATE
-//         const updateQuery = `
-//             UPDATE ?? 
-//             SET SoSinhVien = CASE ${updateCaseStatements.join(' ')}
-//             ELSE SoSinhVien END
-//             WHERE ID IN (?);
-//         `;
-
-//         // Thực thi câu lệnh UPDATE
-//         await connection.query(updateQuery, [tableTam, ...updateValues, idsToUpdateParam]);
-
-//         res.json({ success: true, message: "Cập nhật số lượng sinh viên thành công." });
-
-//     } catch (error) {
-//         console.error("Lỗi khi cập nhật số lượng sinh viên:", error);
-//         res.status(500).json({ success: false, message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}` });
-//     } finally {
-//         if (connection) connection.release(); // Giải phóng kết nối về pool
-//     }
-// };
-
 
 const editStudentQuanity = async (req, res) => {
     const data = req.body;  // Nhận dữ liệu từ body
@@ -637,35 +619,6 @@ const editStudentQuanity = async (req, res) => {
     } finally {
         if (connection) connection.release(); // Giải phóng kết nối về pool
     }
-};
-
-
-const quyDoiHeSo = (item) => {
-    // Biến để lưu giá trị HeSoLopDong
-    let HeSoLopDong = null;
-
-    // Trường hợp tính HeSoLopDong theo số lượng sinh viên
-    const StudentQuantityUpdate = item.StudentQuantityUpdate;
-
-    // Quy đổi HeSoLopDong theo số lượng sinh viên
-    if (StudentQuantityUpdate <= 40) {
-        HeSoLopDong = 1;
-    } else if (StudentQuantityUpdate > 40 && StudentQuantityUpdate <= 50) {
-        HeSoLopDong = 1.1;
-    } else if (StudentQuantityUpdate > 50 && StudentQuantityUpdate <= 65) {
-        HeSoLopDong = 1.2;
-    } else if (StudentQuantityUpdate > 65 && StudentQuantityUpdate <= 80) {
-        HeSoLopDong = 1.3;
-    } else if (StudentQuantityUpdate > 80 && StudentQuantityUpdate <= 100) {
-        HeSoLopDong = 1.4;
-    } else if (StudentQuantityUpdate > 100) {
-        HeSoLopDong = 1.5;
-    }
-
-    // Trả về kết quả quy đổi
-    return {
-        HeSoLopDong
-    };
 };
 
 

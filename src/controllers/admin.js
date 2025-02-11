@@ -34,7 +34,7 @@ const getnhanvienList = async (req, res) => {
   let connection;
   try {
     query =
-      "SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau  From nhanvien LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan  ORDER BY nhanvien.id_User ASC"; // Truy vấn lấy tất cả người dùng
+      "SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau, nhanvien.PhanTramMienGiam  From nhanvien LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan  ORDER BY nhanvien.id_User ASC"; // Truy vấn lấy tất cả người dùng
     connection = await createPoolConnection(); // Kết nối tới cơ sở dữ liệu
     const [results, fields] = await connection.query(query); // Thực hiện truy vấn
     nhanvienLists = results; // Gán kết quả vào nhanvienLists
@@ -383,6 +383,114 @@ const getMessage = async (req, res) => {
   }
 };
 
+//Đợt đồ án
+const getDotDoAnList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `SELECT * FROM dotdoan ORDER BY dotdoan ASC`;
+    const [results] = await connection.query(query);
+    res.render("dotDoAn.ejs", { dotdoan: results });
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu:", error);
+    res.status(500).send("Lỗi hệ thống");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const postDotDoAn = async (req, res) => {
+  const DotDoAn = req.body.DotDoAn;
+  const connection = await createPoolConnection();
+  try {
+    const query = `INSERT INTO dotdoan (dotdoan) VALUES (?)`;
+    await connection.query(query, [DotDoAn]);
+    res.redirect("/dotDoAn?Success");
+  } catch (error) {
+    console.error("Lỗi khi cập nhật dữ liệu: ", error);
+    res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const deleteDotDoAn = async (req, res) => {
+  const dotdoan = req.params.dotdoan;
+  const connection = await createPoolConnection();
+  try {
+    console.log("Attempting to delete:", dotdoan);
+    const query = `DELETE FROM dotdoan WHERE dotdoan = ?`;
+    const [results] = await connection.query(query, [dotdoan]);
+
+    if (results.affectedRows > 0) {
+      res.status(200).json({ message: "Xóa thành công!" });
+    } else {
+      res.status(404).json({ message: "Không tìm thấy đợt đồ án để xóa." });
+    }
+  } catch (error) {
+    console.error("Lỗi khi xóa dữ liệu: ", error);
+    res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const getHocPhanList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT * FROM hocphan"; // Truy vấn lấy tất cả học phần
+    const [results] = await connection.query(query);
+    res.render("hocphan.ejs", { hocPhan: results }); // Render trang hocphan.ejs và truyền danh sách học phần vào
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách học phần:", error);
+    res.status(500).send("Lỗi hệ thống. Không thể lấy danh sách học phần.");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+const updateHocPhan = async (req, res) => {
+  const { TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon } = req.body; // Lấy các trường từ body
+  const { MaHocPhan } = req.params; // Lấy mã học phần từ params
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `
+      UPDATE hocphan 
+      SET TenHocPhan = ?, DVHT = ?, KiHoc = ?, Khoa = ?, MaBoMon = ? 
+      WHERE MaHocPhan = ?`; // Truy vấn cập nhật học phần
+    await connection.execute(query, [TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon, MaHocPhan]);
+    res.status(200).json({ message: "Cập nhật học phần thành công." }); // Phản hồi thành công
+  } catch (error) {
+    console.error("Lỗi khi cập nhật học phần:", error);
+    res.status(500).json({ message: "Lỗi hệ thống. Không thể cập nhật học phần." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+const deleteHocPhan = async (req, res) => {
+  const { MaHocPhan } = req.params; // Lấy mã học phần từ params
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "DELETE FROM hocphan WHERE MaHocPhan = ?"; // Truy vấn xóa học phần
+    const [results] = await connection.query(query, [MaHocPhan]);
+
+    if (results.affectedRows > 0) {
+      res.status(200).json({ message: "Xóa học phần thành công!" }); // Thông báo thành công
+    } else {
+      res.status(404).json({ message: "Không tìm thấy học phần để xóa." }); // Nếu không tìm thấy học phần
+    }
+  } catch (error) {
+    console.error("Lỗi khi xóa học phần:", error);
+    res.status(500).json({ message: "Lỗi hệ thống. Không thể xóa học phần." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -401,4 +509,10 @@ module.exports = {
   deleteMessage,
   getMessage,
   getshowMessage,
+  getDotDoAnList,
+  postDotDoAn,
+  deleteDotDoAn,
+  getHocPhanList,
+  updateHocPhan,
+  deleteHocPhan,
 };

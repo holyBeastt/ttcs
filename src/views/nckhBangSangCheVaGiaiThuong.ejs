@@ -154,6 +154,8 @@
                 <th>Số QĐ công nhận</th>
                 <th>Tác Giả</th>
                 <th>Thành viên</th>
+                <th>Thao tác</th>
+
               </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -161,116 +163,148 @@
         </div>
       </div>
     </div>
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- nckh view -->
     <script>
-      // Hàm format để định dạng ngày từ ISO 8601
       function formatDate(dateString) {
-        const date = new Date(dateString); // Tạo đối tượng Date từ chuỗi ISO 8601
-
-        // Lấy ngày, tháng, năm từ đối tượng Date
-        const day = String(date.getDate()).padStart(2, "0"); // Đảm bảo ngày có 2 chữ số
-        const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng (0-indexed)
-        const year = date.getFullYear(); // Lấy năm
-
-        return `${day}/${month}/${year}`; // Trả về định dạng ngày/tháng/năm
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
       }
 
-      // format giờ cho thành viên
-      function formatDanhSachThanhVien(DanhSachThanhVien) {
-        // Kiểm tra nếu đầu vào không phải chuỗi hoặc chuỗi rỗng
-        if (
-          typeof DanhSachThanhVien !== "string" ||
-          !DanhSachThanhVien.trim()
-        ) {
-          return ""; // Nếu không hợp lệ, trả về chuỗi rỗng
-        }
-
-        // Tách chuỗi thành viên dựa trên dấu phẩy và xử lý từng thành viên
-        const thanhVienFormatted = DanhSachThanhVien.split(",") // Tách chuỗi thành viên bằng dấu phẩy
-          .map((member) => {
-            const trimmedMember = member.trim(); // Loại bỏ khoảng trắng thừa
-            if (trimmedMember) {
-              return formatHours(trimmedMember); // Định dạng giờ cho từng thành viên
-            }
-            return ""; // Nếu phần tử rỗng hoặc không hợp lệ, trả về chuỗi rỗng
-          })
-          .filter(Boolean) // Loại bỏ các phần tử rỗng trong mảng
-          .join(", "); // Nối lại thành chuỗi các thành viên đã được định dạng
-
-        return thanhVienFormatted;
+      function fixNumberFormat(text) {
+        if (typeof text !== "string") return text;
+        return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
       }
 
-      // format giờ
-      function formatHours(text) {
-        // Kiểm tra nếu text không phải là chuỗi
-        if (typeof text !== "string") {
-          return text;
-        }
-
-        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-
-        if (match) {
-          const hours = parseFloat(match[1].replace(",", "."));
-          const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
-          return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
-        }
-
-        return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
-      }
-
-      // render table
       function renderTable(data) {
         const tbody = document.getElementById("table-body");
-
-        // Xóa dữ liệu cũ
+        window.currentData = data;
         tbody.innerHTML = "";
 
-        // Duyệt qua dữ liệu và thêm từng hàng vào tbody
         data.forEach((item) => {
-          const row = document.createElement("tr");
-
-          // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
-          const tacGiaFormated = formatHours(item.TacGia);
-          const thanhVienFormatted = formatDanhSachThanhVien(
-            item.DanhSachThanhVien
-          );
-          const ngayQDCongNhanFormated = formatDate(item.NgayQDCongNhan);
-
-          row.innerHTML = `
-      <td>${item.PhanLoai}</td>
-      <td>${item.TenBangSangCheVaGiaiThuong}</td>
-      <td>${ngayQDCongNhanFormated}</td>
-      <td>${item.SoQDCongNhan}</td>
-      <td>${tacGiaFormated}</td>
-      <td>${thanhVienFormatted}</td>
-    `;
+          const row = createTableRow(item);
           tbody.appendChild(row);
         });
       }
 
-      // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
-      async function getData() {
-        const year = document.getElementById("namHocXem").value; // Lấy năm học từ select
-        const department = document.getElementById("MaPhongBanView").value; // Lấy năm học từ select
-        const url = `/bangsangchevagiaithuong/${year}/${department}`; // Tạo URL với URL parameter 'NamHoc'
+      function createTableRow(item) {
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", item.ID);
+        row.innerHTML = `
+    <td>${item.PhanLoai}</td>
+    <td>${item.TenBangSangCheVaGiaiThuong}</td>
+    <td>${formatDate(item.NgayQDCongNhan)}</td>
+    <td>${item.SoQDCongNhan}</td>
+    <td>${fixNumberFormat(item.TacGia)}</td>
+    <td>${fixNumberFormat(item.DanhSachThanhVien)}</td>
+  `;
 
-        try {
-          fetch(url) // Thay URL bằng endpoint của bạn
-            .then((response) => response.json())
-            .then((data) => {
-              console.log(data);
-              renderTable(data); // Gọi hàm renderTable với dữ liệu từ server
-            })
-            .catch((error) => {
-              console.error("Lỗi khi lấy dữ liệu:", error);
-            });
-        } catch (error) {
-          console.error("Lỗi trong quá trình gửi yêu cầu:", error);
-        }
+        const editButton = document.createElement("button");
+        editButton.textContent = "Sửa";
+        editButton.classList.add("btn", "btn-edit");
+        editButton.addEventListener("click", () => enableEditMode(row, item));
+
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(editButton);
+        row.appendChild(actionCell);
+        return row;
       }
+
+      function enableEditMode(row, item) {
+        const id = row.getAttribute("data-id");
+        row.innerHTML = `
+    <td><input type="text" value="${item.PhanLoai}" class="phanloai-${id}"></td>
+    <td><input type="text" value="${item.TenBangSangCheVaGiaiThuong}" class="ten-${id}"></td>
+    <td><input type="text" value="${formatDate(item.NgayQDCongNhan)}" class="ngay-${id}"></td>
+    <td><input type="text" value="${item.SoQDCongNhan}" class="soqd-${id}"></td>
+    <td><input type="text" value="${fixNumberFormat(item.TacGia)}" class="tacgia-${id}"></td>
+    <td><input type="text" value="${fixNumberFormat(item.DanhSachThanhVien)}" class="thanhvien-${id}"></td>
+  `;
+
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Lưu";
+        saveButton.classList.add("btn", "btn-save");
+        saveButton.addEventListener("click", () => saveData(id));
+
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Hủy";
+        cancelButton.classList.add("btn", "btn-cancel");
+        cancelButton.addEventListener("click", () => row.replaceWith(createTableRow(item)));
+
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(saveButton);
+        actionCell.appendChild(cancelButton);
+        row.appendChild(actionCell);
+      }
+
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
+      }
+
+      function convertDMYtoISO(dateString) {
+        const parts = dateString.split("/");
+        if (parts.length !== 3) return null;
+        const [day, month, year] = parts.map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        return date.toISOString();
+      }
+
+      function saveData(id) {
+        const updatedData = {
+          PhanLoai: document.querySelector(`.phanloai-${id}`).value,
+          TenBangSangCheVaGiaiThuong: document.querySelector(`.ten-${id}`).value,
+          NgayQDCongNhan: convertDMYtoISO(document.querySelector(`.ngay-${id}`).value),
+          SoQDCongNhan: document.querySelector(`.soqd-${id}`).value,
+          TacGia: document.querySelector(`.tacgia-${id}`).value,
+          DanhSachThanhVien: document.querySelector(`.thanhvien-${id}`).value
+        };
+
+        fetch(`/nckh/edit/${id}/bangsangchevagiaithuong`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData)
+        })
+          .then(response => response.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
+                }
+              })
+            }
+          })
+          .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
+      }
+
+      async function getData() {
+        const year = document.getElementById("namHocXem").value;
+        const department = document.getElementById("MaPhongBanView").value;
+        const url = `/bangsangchevagiaithuong/${year}/${department}`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => renderTable(data))
+          .catch(error => console.error("Lỗi khi lấy dữ liệu:", error));
+      }
+
     </script>
 
     <!-- nckh form -->
@@ -509,6 +543,21 @@
             khoa: document.getElementById("MaPhongBanForm").value,
           };
 
+
+
+          let missing = 0;
+
+          for (let key of Object.keys(formData)) {
+            if (!formData[key]) {
+              missing++;
+            }
+          }
+
+          if (missing > 0) {
+            alert("Vui lòng nhập đủ thông tin");
+            return;
+          }
+
           // Gửi dữ liệu lên server
           fetch("/bangsangchevagiaithuong", {
             method: "POST",
@@ -524,10 +573,24 @@
               return response.json();
             })
             .then((data) => {
-              alert(data.message);
-              // Reset form nếu cần
-              document.getElementById("formData").reset();
-              document.getElementById("memberListDisplay").innerHTML = "";
+              if (data.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${data.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    document.getElementById("formData").reset();
+                    document.getElementById("memberListDisplay").innerHTML = "";
+                    members = [];
+                    location.reload();
+                  }
+                })
+              }
             })
             .catch((error) => {
               console.error("Lỗi:", error);

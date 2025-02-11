@@ -132,8 +132,8 @@
                 <th>Tên Giảng Viên</th>
                 <th>Khoa</th>
                 <th>Số đồ án</th>
-                <th>Số tiết miễn giảm</th>
-                <th>Tỉ lệ</th>
+                <th>Số tiết quy đổi</th>
+                
             </tr>
         </thead>
         <tbody>
@@ -158,8 +158,7 @@
                   <th>Tên Giảng Viên</th>
                   <th>Khoa</th>
                   <th>Số đồ án</th>
-                  <th>Số tiết miễn giảm</th>
-                  <th>Tỉ lệ</th>
+                  <th>Số tiết quy đổi</th>
               </tr>
           </thead>
           <tbody>
@@ -201,6 +200,16 @@
                                 `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                             );
                         });
+                        // Kiểm tra nếu người dùng có MaPhongBan cụ thể
+                        const MaPhongBan = localStorage.getItem("MaPhongBan");
+                        const NonPhongBan = ['DAOTAO', 'HV', 'KHCN&HTPT', 'TAICHINH'];
+
+                        if (MaPhongBan && NonPhongBan.includes(MaPhongBan)) {
+                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL"
+                        } else if (MaPhongBan) {
+                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan
+                            $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
+                        }
                         checkAndFetchData();
                     }
                 },
@@ -320,7 +329,6 @@
                                       <td>${item.MaPhongBan || "Không rõ"}</td>
                                       <td>${item.soDoAn}</td>
                                       <td>${item.soTiet}</td>
-                                      <td>${(item.soTiet / item.soDoAn).toFixed(2)}</td>
                                   </tr>
                               `);
                           });
@@ -336,7 +344,6 @@
                                       <td>${item.MaPhongBan || "Không rõ"}</td>
                                       <td>${item.soDoAn}</td>
                                       <td>${item.soTiet}</td>
-                                      <td>${(item.soTiet / item.soDoAn).toFixed(2)}</td>
                                   </tr>
                               `);
                           });
@@ -389,7 +396,29 @@
           }
         });
     </script>
-
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+      const role = localStorage.getItem("userRole");
+      const isKhoa = localStorage.getItem("isKhoa");
+      
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById('changeMessage');
+      //Ẩn site thêm thông báo
+      if (role === "Duyệt") {
+          actionButton.style.display = '';
+      } else {
+          actionButton.style.display = 'none';
+      }
+      // Kiểm tra giá trị isKhoa
+      if (isKhoa == 1) {
+           // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
+              document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
+      } else {
+          // Nếu isKhoa = 0, hiển thị combobox Khoa
+          document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
+      }
+  });
+  </script>
     <script>
       document
         .getElementById("infome")

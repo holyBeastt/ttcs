@@ -17,7 +17,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <style>
+    <!-- <style>
       /* CSS cho bảng */
       .table {
         width: 100%;
@@ -33,11 +33,20 @@
         white-space: nowrap;
         /* Ngăn chặn xuống dòng */
       }
-
+      /*
       .table th {
         background-color: #007bff;
         color: white;
         font-weight: bold;
+      }
+*/
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       .table tbody tr:nth-child(even) {
@@ -174,6 +183,109 @@
           background-color: rgba(255, 0, 0, 0.8);
         }
       }
+    </style> -->
+    <style>
+      /* CSS cho bảng */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      .table td {
+        vertical-align: middle;
+      }
+
+      .bg-custom {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .spinner-border {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+      }
+
+      .header-actions {
+        display: flex;
+        /* Flexbox container */
+        flex-wrap: wrap;
+        /* Wrap items if they don't fit in one line */
+        align-items: center;
+        /* Vertically center items */
+        gap: 10px;
+        /* Space between the elements */
+        justify-content: space-between;
+      }
+
+      .right {
+        margin-top: 20px;
+      }
+
+      .btn {
+        height: 45px;
+        margin-left: 5px;
+      }
+
+      /* cảnh báo khi thiếu dữ liệu */
+      .warning-row {
+        background-color: #ffe6e6;
+        /* Màu nền cảnh báo nhạt */
+        color: #ff0000;
+        /* Màu chữ cảnh báo */
+      }
+
+      /* nút xuất file */
+      /* Định dạng cho dropdown */
+      #file-format-menu {
+        top: 800px;
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        transform: translateX(255%);
+      }
+
+      .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .dropdown-item:hover {
+        background-color: #f8f9fa;
+      }
     </style>
     <style>
       .input-full {
@@ -228,28 +340,32 @@
       .btn:hover {
         opacity: 0.8;
       }
-    </style>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const MaPhongBan = localStorage.getItem("MaPhongBan");
-        const role = localStorage.getItem("userRole");
 
-        if (role == "Duyệt") {
-          document.getElementById("ban-hanh").style.visibility = "visible";
-          document.getElementById("quychuandukien").style.visibility =
-            "visible";
-          document.getElementById("xoa-qc-du-kien").style.visibility =
-            "visible";
-        }
-        /*
-            if (MaPhongBan != "DAOTAO" || role == "Thường") {
-              document.getElementById("ban-hanh").style.visibility = "hidden";
-              document.getElementById("quychuandukien").style.visibility = "hidden";
-              document.getElementById("xoa-qc-du-kien").style.visibility = "hidden";
-            }
-              */
-      });
-    </script>
+      #backToTop {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: none; /* Ẩn ban đầu */
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      #backToTop:hover {
+        background-color: darkgreen;
+      }
+
+      .custom-header {
+        display: flex;
+        justify-content: center; /* Căn giữa nội dung */
+        align-items: center; /* Căn giữa theo chiều dọc */
+        text-align: center !important;
+      }
+    </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -273,15 +389,6 @@
               Thêm vào quy chuẩn dự kiến
             </button>
           </div>
-
-          <button
-            class="btn"
-            style="top: 8px"
-            id="edit-student-quantity-btn"
-            onclick="toggleEditStudentQuantity()"
-          >
-            Sửa số lượng SV
-          </button>
 
           <div class="right" style="margin-top: 0px">
             <div class="loc d-flex align-items-center">
@@ -311,8 +418,8 @@
               </button>
               <button
                 class="btn text-nowrap"
-                id="xoa-qc-du-kien"
-                style="margin-top: 17px; visibility: hidden"
+                id="xoa-TKB"
+                style="margin-top: 17px"
               >
                 Xóa
               </button>
@@ -321,101 +428,33 @@
         </div>
 
         <div>
-          <div id="table-container">
-            <table style="width: 100%; border-collapse: collapse">
+          <div
+            id="table-container"
+            class="ag-theme-alpine"
+            style="height: 500px; width: 100%"
+          >
+            <table
+              style="width: 100%; border-collapse: collapse"
+              class="table table-bordered"
+            >
               <thead>
                 <tr id="table-header"></tr>
               </thead>
               <tbody id="data-table-body"></tbody>
             </table>
-            <div style="margin-top: 50px">
-              <button
-                class="btn text-nowrap"
-                id="add-row-btn"
-                onclick="addRow()"
-              >
-                Thêm
-              </button>
-              <button class="btn text-nowrap" id="export-file-btn">
-                Xuất file
-              </button>
-            </div>
           </div>
-
-          <div
-            id="addRowModal"
-            style="
-              display: none;
-              position: fixed;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 450px;
-              background: white;
-              border: 1px solid #ccc;
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-              z-index: 1000;
-              padding: 20px;
-              border-radius: 8px;
-            "
-          >
-            <h3 style="text-align: center; margin-bottom: 15px">
-              Thêm Dòng Mới
-            </h3>
-
-            <div style="margin-bottom: 10px">
-              <label for="input-lop-hoc-phan">Lớp học phần:</label>
-              <input type="text" class="input-full" />
-            </div>
-
-            <!-- Mã môn học (80%) + Số lượng SV (20%) -->
-            <div class="row">
-              <div class="column-80">
-                <label for="input-ma-mon-hoc">Mã môn học:</label>
-                <input style="width: 100%" type="text" />
-              </div>
-              <div class="column-20">
-                <label for="">Số SV:</label>
-                <input style="width: 100%" type="text" />
-              </div>
-            </div>
-
-            <div style="margin-bottom: 10px">
-              <label for="">Giảng viên:</label>
-              <input type="text" class="input-full" />
-            </div>
-
-            <!-- Hệ số T7/CN + Số tiết lên lớp -->
-            <div class="row">
-              <div class="column-2">
-                <label for="">Hệ số T7/CN:</label>
-                <input style="width: 100%" type="text" />
-              </div>
-              <div class="column-2">
-                <label for="">Số tiết lên lớp:</label>
-                <input style="width: 100%" type="text" />
-              </div>
-            </div>
-
-            <!-- Ngày bắt đầu + Ngày kết thúc -->
-            <div class="row">
-              <div class="column-2">
-                <label for="">Ngày bắt đầu:</label>
-                <input type="date" />
-              </div>
-              <div class="column-2">
-                <label for="">Ngày kết thúc:</label>
-                <input type="date" />
-              </div>
-            </div>
-
-            <!-- Nút hành động -->
-            <div style="text-align: right; margin-top: 15px">
-              <button id="saveRowButton" class="btn save">Lưu</button>
-              <button id="cancelRowButton" class="btn cancel">Hủy</button>
-            </div>
+          <div style="margin-top: 20px">
+            <button
+              class="btn text-nowrap"
+              id="add-row-btn"
+              onclick="addNewRow()"
+            >
+              Thêm dòng mới
+            </button>
+            <button class="btn text-nowrap" id="export-file-btn">
+              Xuất file excel quy chuẩn
+            </button>
           </div>
-
           <div
             id="overlay"
             style="
@@ -438,10 +477,102 @@
             style="display: none; position: absolute"
           >
             <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
-            <button class="dropdown-item" onclick="exportToExcel()">
-              Excel
+            <button class="dropdown-item" onclick="exportSingleWorksheet()">
+              1 worksheet
             </button>
-            <button class="dropdown-item" onclick="exportToWord()">Word</button>
+            <button class="dropdown-item" onclick="exportMultipleWorksheet()">
+              Nhiều worksheet
+            </button>
+          </div>
+        </div>
+
+        <div id="action-modal" style="display: none">
+          <div
+            style="
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.6);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              z-index: 10000000000;
+            "
+          >
+            <div
+              style="
+                background: #ffffff;
+                padding: 25px;
+                border-radius: 12px;
+                max-width: 450px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+              "
+            >
+              <p
+                id="modal-message"
+                style="font-size: 16px; color: #333; margin-bottom: 20px"
+              >
+                Đây là nội dung của modal.
+              </p>
+              <button
+                id="btn-delete"
+                style="
+                  background-color: #e74c3c;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                "
+                onmouseover="this.style.backgroundColor='#c0392b'"
+                onmouseout="this.style.backgroundColor='#e74c3c'"
+              >
+                Xóa
+              </button>
+              <button
+                id="btn-append"
+                style="
+                  background-color: #3498db;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                "
+                onmouseover="this.style.backgroundColor='#2980b9'"
+                onmouseout="this.style.backgroundColor='#3498db'"
+              >
+                Chèn
+              </button>
+              <button
+                id="btn-cancel"
+                style="
+                  background-color: #95a5a6;
+                  color: white;
+                  border: none;
+                  padding: 10px 20px;
+                  margin: 5px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 14px;
+                  transition: background-color 0.3s;
+                "
+                onmouseover="this.style.backgroundColor='#7f8c8d'"
+                onmouseout="this.style.backgroundColor='#95a5a6'"
+              >
+                Hủy
+              </button>
+            </div>
           </div>
         </div>
 
@@ -452,6 +583,11 @@
         >
           Không có dữ liệu để hiển thị.
         </div>
+
+        <button id="backToTop">
+          <span>&#x25B2;</span>
+          <!-- Mã Unicode cho mũi tên lên -->
+        </button>
       </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -468,118 +604,63 @@
     <!-- link thư viện excel  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
+    <!-- AG Grid Styles -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/ag-grid-community/styles/ag-grid.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css"
+    />
+
+    <!-- AG Grid Script -->
+    <script src="https://unpkg.com/ag-grid-community@29.3.2/dist/ag-grid-community.min.js"></script>
+
+    <!-- Toastify  -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+
     <script>
-      let isEditingStudentQuantity = false;
+      document.addEventListener("DOMContentLoaded", () => {
+        const backToTopBtn = document.getElementById("backToTop");
 
-      function toggleEditStudentQuantity() {
-        isEditingStudentQuantity = !isEditingStudentQuantity;
-
-        if (isEditingStudentQuantity) {
-          renderData.forEach((item) => {
-            item.isEditing = true; // Đánh dấu đang chỉnh sửa
-          });
-        } else {
-          // Lấy giá trị từ các input và cập nhật lại `student_quantity`
-          document
-            .querySelectorAll("input[name='input-sv']")
-            .forEach((input) => {
-              const id = input.id; // Lấy id của phần tử input
-              const value = input.value; // Lấy giá trị của phần tử input
-
-              const rowData = renderData.find((item) => item.id == id);
-              if (rowData) {
-                rowData.student_quantity = Number(input.value); // Đảm bảo là số
-              }
-            });
-
-          // Gọi API để lưu số lượng sinh viên
-          const updatedData = renderData.map((item) => ({
-            id: item.id,
-            student_quantity: item.student_quantity,
-          }));
-
-          // Kiểm tra xem updatedData có dữ liệu không
-          if (updatedData.length === 0) {
-            Swal.fire({
-              title: "Thông báo",
-              html: "Không có dữ liệu để cập nhật",
-              icon: "info",
-              confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
-            });
-
-            return;
+        // Hiện nút khi cuộn xuống 300px
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 300) {
+            backToTopBtn.style.display = "block";
+          } else {
+            backToTopBtn.style.display = "none";
           }
+        });
 
-          // Sử dụng fetch để gửi dữ liệu lên server
-          fetch("/api/save-student-quantity", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedData),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.success) {
-                Swal.fire({
-                  title: "Thông báo",
-                  html: "Lưu thành công",
-                  icon: "success",
-                  confirmButtonText: "OK",
-                  width: "auto", // Tự động điều chỉnh chiều rộng
-                  padding: "20px", // Giữ khoảng cách cho nội dung
-                });
-              } else {
-                alert("Có lỗi xảy ra khi lưu dữ liệu.");
-              }
-            })
-            .catch((error) => {
-              console.error("Lỗi gọi API:", error);
-              alert("Có lỗi xảy ra khi gọi API.");
-            });
+        // Sự kiện click để cuộn lên đầu trang
+        backToTopBtn.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    </script>
+    <script>
+      // Lấy danh sách từ localStorage
+      const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
 
-          // Xóa trạng thái chỉnh sửa
-          renderData.forEach((item) => delete item.isEditing);
-        }
+      // Kiểm tra nếu danh sách tồn tại
+      if (khoaList && Array.isArray(khoaList)) {
+        // Lấy phần tử select
+        const selectElement = document.getElementById("Khoa");
 
-        document.getElementById("edit-student-quantity-btn").innerText =
-          isEditingStudentQuantity ? "Lưu số lượng SV" : "Sửa số lượng SV";
+        // Duyệt qua danh sách và tạo các option
+        khoaList.forEach((khoa) => {
+          const option = document.createElement("option");
+          option.value = khoa.MaPhongBan; // Giá trị của option (có thể là ID hoặc mã khoa)
+          option.textContent = khoa.MaPhongBan; // Nội dung hiển thị cho option
 
-        renderTable(); // Cập nhật lại bảng
-      }
-
-      function handleKeyDown(event, rowIndex) {
-        // Kiểm tra nếu là phím mũi tên lên hoặc xuống
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault(); // Ngừng hành động mặc định (không thay đổi giá trị)
-
-          const tableRows = document.querySelectorAll("#data-table-body tr");
-          let nextIndex = rowIndex;
-
-          // Tính chỉ số dòng tiếp theo
-          if (event.key === "ArrowDown") {
-            nextIndex = rowIndex + 1;
-          } else if (event.key === "ArrowUp") {
-            nextIndex = rowIndex - 1;
-          }
-
-          // Đảm bảo chỉ số dòng tiếp theo hợp lệ
-          if (nextIndex >= 0 && nextIndex < tableRows.length) {
-            // Lấy ô input trong dòng tiếp theo
-            const nextInput = tableRows[nextIndex].querySelector(
-              `td:nth-child(${
-                Object.keys(renderData[0]).indexOf("student_quantity") + 1
-              }) input`
-            );
-
-            // Nếu ô input tồn tại, di chuyển con trỏ vào ô input của dòng tiếp theo
-            if (nextInput) {
-              nextInput.focus();
-            }
-          }
-        }
+          // Thêm option vào select
+          selectElement.appendChild(option);
+        });
       }
     </script>
     <script>
@@ -606,7 +687,7 @@
       }
     </script>
     <!-- phần xuất file -->
-    <script>
+    <!-- <script>
       // renderData là biến var
 
       document
@@ -673,7 +754,7 @@
             alert("Có lỗi xảy ra khi xuất file!");
           }
         });
-
+      /*
       const titleMap = {
         SoTinChi: "Số TC",
         LopHocPhan: "Lớp học phần",
@@ -685,7 +766,8 @@
         HeSoLopDong: "Hệ số lớp đông",
         QuyChuan: "Quy chuẩn",
       };
-    </script>
+      */
+    </script> -->
 
     <!-- render bảng -->
     <script>
@@ -733,139 +815,230 @@
         }
       }
 
+      let gridOptions; // Khai báo biến toàn cục
+
       function renderTable() {
-        const tableContainer = document.getElementById("table-container");
-        const tableBody = document.getElementById("data-table-body");
-        const tableHeader = document.getElementById("table-header");
+        const role = localStorage.getItem("userRole");
+        const rowHeight = 50; // Chiều cao mỗi dòng
 
-        const rowHeight = 50; // Chiều cao mỗi dòng (px)
-        const totalRows = renderData.length; // Tổng số dòng dữ liệu
+        if (renderData.length === 0) {
+          document.getElementById("table-container").innerHTML =
+            "<p>Không có dữ liệu</p>";
+          return;
+        }
 
-        // Xóa các dòng cũ
-        tableBody.innerHTML = "";
+        const headersMap = {
+          id: { name: "ID", width: 70 },
+          major: { name: "Khoa", width: 100 },
+          ll_code: {
+            name: "CTĐT",
+            width: 0,
+          },
+          ll_total: { name: "LL", width: 50 },
+          student_quantity: { name: "Số SV", width: 70 },
+          student_bonus: { name: "HS lớp đông", width: 100 },
+          bonus_time: { name: "HS T7/CN", width: 90 },
+          course_id: { name: "Mã học phần", width: 100 },
+          lecturer: { name: "Giảng viên theo TKB", width: 150 },
+          credit_hours: { name: "Số TC", width: 80 },
+          course_name: { name: "Lớp học phần", width: 250 },
+          course_code: { name: "Mã học phần", width: 100 },
+          start_date: { name: "Ngày bắt đầu", width: 110 },
+          end_date: { name: "Ngày kết thúc", width: 110 },
+          qc: { name: "QC", width: 70 },
+          semester: { name: "Năm học", width: 100 },
+        };
 
-        if (totalRows === 0) {
-          document.getElementById("no-data-message").style.display = "block";
-        } else {
-          document.getElementById("no-data-message").style.display = "none";
+        const columnDefs = [
+          {
+            headerName: "STT",
+            field: "stt",
+            valueGetter: (params) => params.node.rowIndex + 1, // Đánh số thứ tự
+            width: 70,
+            editable: false,
+            cellStyle: { fontWeight: "bold", textAlign: "center" },
+          },
+          ...Object.keys(renderData[0])
+            .filter((key) => key !== "GhiChu" && key !== "description")
+            .map((key) => ({
+              field: key,
+              headerName: headersMap[key]?.name || key,
+              width: headersMap[key]?.width || 100,
+              editable: key !== "student_bonus" && key !== "id",
+              hide: key === "semester" || key === "id",
+              headerClass: "custom-header",
+              filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
+              valueFormatter: (params) => {
+                if (
+                  params.colDef.field === "start_date" ||
+                  params.colDef.field === "end_date"
+                ) {
+                  if (params.value) {
+                    const date = new Date(params.value);
+                    if (!isNaN(date)) {
+                      return date.toLocaleDateString("vi-VN"); // Hiển thị đúng định dạng dd/mm/yyyy
+                    }
+                  }
+                }
+                return params.value;
+              },
 
-          const headersMap = {
-            id: { name: "ID", width: "50px" },
-            major: { name: "Khoa", width: "50px" },
-            ll_code: { name: "Số tiết thực tế", width: "100px" },
-            ll_total: { name: "Lên lớp", width: "80px" },
-            student_quantity: { name: "SL sinh viên", width: "80px" },
-            student_bonus: { name: "HS lớp đông", width: "70px" },
-            bonus_time: { name: "HS T7/CN", width: "50px" },
-            course_id: { name: "Mã bộ môn", width: "100px" },
-            lecturer: { name: "Giảng viên theo TKB", width: "150px" },
-            credit_hours: { name: "Số TC", width: "80px" },
-            course_name: { name: "Lớp học phần", width: "200px" },
-            course_code: { name: "Mã học phần", width: "100px" },
-            start_date: { name: "Ngày bắt đầu", width: "100px" },
-            end_date: { name: "Ngày kết thúc", width: "150px" },
-            bonus_total: { name: "Quy chuẩn", width: "50px" },
-            semester: { name: "Năm học", width: "100px" },
-          };
+              valueGetter: (params) => {
+                if (
+                  params.colDef.field === "start_date" ||
+                  params.colDef.field === "end_date"
+                ) {
+                  const value = params.data[params.colDef.field];
+                  if (value) {
+                    const date = new Date(value);
+                    if (!isNaN(date)) {
+                      return date.toLocaleDateString("vi-VN"); // Giữ nguyên định dạng khi click vào
+                    }
+                  }
+                }
+                return params.data[params.colDef.field];
+              },
+              valueSetter: (params) => {
+                const field = params.colDef.field;
+                const oldValue = params.data[field];
+                const value = params.newValue ? params.newValue.trim() : "";
 
-          const headers = Object.keys(renderData[0]).filter(
-            (header) => header !== "GhiChu" && header !== "description"
-          );
+                // ✅ Xử lý riêng cho cột "start_date" và "end_date"
+                if (field === "start_date" || field === "end_date") {
+                  if (!value) return false; // Không cập nhật nếu giá trị rỗng
 
-          const headerHtml = headers
-            .map((header) => {
-              const headerInfo = headersMap[header] || {
-                name: header,
-                width: "auto",
-              };
-              const baseStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
-              return `<th ${baseStyle}>${headerInfo.name}</th>`;
-            })
-            .join("");
+                  const parts = value.split("/");
+                  if (parts.length === 3) {
+                    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    const date = new Date(formattedDate);
 
-          const role = localStorage.getItem("userRole");
-          if (role === "Duyệt") {
-            tableHeader.innerHTML = `${headerHtml}<th style="text-align: center; vertical-align: middle;">Hành động</th>`;
-          } else {
-            tableHeader.innerHTML = headerHtml;
-          }
-
-          const keyNotEdit = ["id", "GhiChu"];
-
-          // Render các dòng
-          // Render các dòng
-          function renderRows() {
-            const fragment = document.createDocumentFragment();
-
-            renderData.forEach((item, i) => {
-              const id = item.id;
-
-              const row = headers
-                .map((key) => {
-                  const headerInfo = headersMap[key] || {
-                    name: key,
-                    width: "auto",
-                  };
-                  const cellStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
-
-                  // Kiểm tra chế độ chỉnh sửa và cột "student_quantity"
-                  if (key === "student_quantity" && isEditingStudentQuantity) {
-                    return `
-            <td ${cellStyle}>
-              <input 
-                type="number" 
-                id="${id}" 
-                name = "input-sv"
-                value="${item[key] !== null ? item[key] : ""}" 
-                style="width: 100%; text-align: center;" 
-                onkeydown="handleKeyDown(event, ${i})" 
-              />
-            </td>`;
+                    if (!isNaN(date)) {
+                      params.data[field] = value; // Lưu giá trị mới
+                      return true;
+                    }
                   }
 
-                  if (keyNotEdit.includes(key)) {
-                    return `<td ${cellStyle}>${
-                      item[key] !== null ? item[key] : ""
-                    }</td>`;
-                  }
+                  params.data[field] = oldValue; // Giữ nguyên giá trị cũ nếu sai định dạng
+                  return false;
+                }
 
-                  return `<td id="cell-${id}-${key}" ${cellStyle}>
-          ${item[key] !== null ? item[key] : ""}
-        </td>`;
-                })
-                .join("");
+                // ✅ Xử lý các cột khác (nếu có)
+                if (value !== oldValue) {
+                  params.data[field] = value; // Lưu giá trị mới
+                  return true;
+                }
 
-              let actionColumn = "";
-              if (role === "Duyệt") {
-                actionColumn = `
-        <td style="text-align: center; vertical-align: middle;">
-          <button onclick="editRow(${id})">Sửa</button>
-          <button onclick="deleteRow(${id})">Xóa</button>
-        </td>`;
-              }
+                return false; // Không cập nhật nếu không thay đổi
+              },
 
-              const hasZeroValue = Object.values(item).some(
-                (value) => !isNaN(value) && Number(value) === 0
-              );
-              const warningClass = hasZeroValue ? "warning-row" : "";
+              cellEditor: "agTextCellEditor",
+              cellEditorParams: {
+                useFormatter: true, // Giữ nguyên định dạng khi chỉnh sửa
+              },
+            })),
+        ];
+        // Thêm cột "Hành động" nếu role là "Duyệt"
+        if (role === "Duyệt") {
+          columnDefs.push({
+            headerName: "Xóa",
+            field: "actions",
+            editable: false,
+            width: 60,
+            cellRenderer: (params) => {
+              const id = params.data.id; // Vẫn sử dụng giá trị `id`
+              const stt = params.node.rowIndex + 1; // Lấy STT của dòng
+              return `<button onclick="deleteRow(${id}, ${stt})">Xóa</button>`;
+            },
+          });
+        }
 
-              const tr = document.createElement("tr");
+        // Xử lý khi ô được chỉnh sửa
+        async function onCellValueChanged(event) {
+          const { data, colDef, newValue } = event;
+          const id = data.id;
+          const field = colDef.field;
 
-              tr.style.top = `${i * rowHeight}px`;
-              tr.style.height = `${rowHeight}px`;
-              tr.id = `row-${id}`;
-              tr.className = warningClass;
-              tr.innerHTML = `${row}${actionColumn}`;
+          console.log(`📝 Cập nhật ${field}: ${newValue}`);
 
-              fragment.appendChild(tr);
+          try {
+            const response = await fetch("/api/update-row-TKB", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id, field, value: newValue, data }),
             });
 
-            tableBody.appendChild(fragment);
-          }
+            const updatedRow = await response.json();
 
-          // Render lần đầu
-          renderRows();
+            if (response.ok) {
+              console.log("✅ Cập nhật thành công:", updatedRow);
+
+              // ✅ Cập nhật dữ liệu trực tiếp trên AG Grid
+              const rowNode = gridOptions.api.getRowNode(id);
+              if (rowNode) {
+                rowNode.setData(updatedRow);
+              } else {
+                console.error(
+                  "⚠️ Không tìm thấy dòng để cập nhật:",
+                  updatedRow
+                );
+              }
+
+              // ✅ Hiển thị thông báo thành công
+              Toastify({
+                text: "✅ Cập nhật thành công!",
+                duration: 1000, // Hiển thị trong 3 giây
+                gravity: "top", // Đưa thông báo lên trên
+                position: "right", // Căn lề bên phải
+                backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
+              }).showToast();
+            } else {
+              Swal.fire({
+                title: "❌ Lỗi",
+                html: updatedRow.message,
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              });
+            }
+          } catch (error) {
+            console.error("❌ Lỗi kết nối server:", error);
+          }
         }
+
+        // Tạo bảng AG Grid
+        gridOptions = {
+          getRowId: (params) => params.data.id, // Xác định dòng theo `id`
+          columnDefs: columnDefs,
+          rowData: renderData,
+
+          defaultColDef: {
+            resizable: true,
+            sortable: true,
+            filter: false,
+            editable: true, // Cho phép sửa tất cả các cột
+            cellStyle: {
+              fontSize: "14px", // Giảm cỡ chữ
+              whiteSpace: "normal", // Cho phép xuống dòng
+              wordWrap: "break-word", // Tự động ngắt dòng nếu quá dài
+              textAlign: "center", // Căn giữa nội dung ô
+            },
+          },
+          rowHeight: rowHeight,
+          onCellValueChanged: onCellValueChanged, // Gọi khi ô thay đổi
+          singleClickEdit: true, // Nhấn vào ô là có thể sửa ngay
+          enterMovesDownAfterEdit: true, // Nhấn Enter hoặc mũi tên xuống sẽ xuống ô tiếp theo
+          suppressClickEdit: false, // Cho phép click vào ô để sửa ngay
+        };
+
+        const tableContainer = document.getElementById("table-container");
+        tableContainer.innerHTML = ""; // Xóa nội dung cũ trước khi tạo bảng mới
+        new agGrid.Grid(tableContainer, gridOptions);
+
+        // ✅ Tự động căn chỉnh cột
+        setTimeout(() => {
+          gridOptions.api.sizeColumnsToFit();
+        }, 100);
       }
 
       function renderRow(id, updatedRow) {
@@ -890,7 +1063,7 @@
           semester: { name: "Năm học", width: "100px" },
         };
 
-        const keyNotEdit = ["id", "GhiChu"];
+        const keyNotEdit = ["id", "semester"];
         const headers = Object.keys(updatedRow).filter(
           (header) => header !== "description"
         );
@@ -923,10 +1096,10 @@
         let actionColumn = "";
         if (role === "Duyệt") {
           actionColumn = `
-        <td style="text-align: center; vertical-align: middle;">
-          <button onclick="editRow(${id})">Sửa</button>
-          <button onclick="deleteRow(${id})">Xóa</button>
-        </td>`;
+                          <td style="text-align: center; vertical-align: middle;">
+                            <button onclick="editRow(${id})">Sửa</button>
+                            <button onclick="deleteRow(${id})">Xóa</button>
+                          </td>`;
         }
 
         // Kiểm tra nếu bất kỳ giá trị nào là 0
@@ -938,8 +1111,50 @@
         // Cập nhật HTML của dòng
         rowElement.className = warningClass;
         rowElement.innerHTML = `
-        ${rowHtml}
-        ${actionColumn}`;
+                          ${rowHtml}
+                          ${actionColumn}`;
+      }
+
+      async function addNewRow() {
+        let Dot = document.getElementById("combobox-dot").value;
+        let Ki = document.getElementById("comboboxki").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let Khoa = document.getElementById("departmentFilter").value;
+
+        const semester = `${Dot}, ${Ki}, ${Nam}`;
+        try {
+          const response = await fetch("/api/addRowTKB", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              semester: semester,
+              major: Khoa,
+              course_name: "Môn học mới",
+              lecturer: "Giảng viên",
+              ll_code: "00",
+              ll_total: 0,
+            }),
+          });
+
+          const newRow = await response.json();
+
+          if (response.ok) {
+            console.log("✅ Đã thêm dòng mới:", newRow);
+
+            // ✅ Thêm dòng mới vào bảng AG Grid
+            gridOptions.api.applyTransaction({ add: [newRow.data] });
+
+            // ✅ Lấy số lượng hàng hiện tại và cuộn xuống dòng cuối cùng
+            setTimeout(() => {
+              const lastRowIndex = gridOptions.api.getDisplayedRowCount() - 1;
+              gridOptions.api.ensureIndexVisible(lastRowIndex);
+            }, 100);
+          } else {
+            console.error("❌ Lỗi khi thêm dòng:", newRow.message);
+          }
+        } catch (error) {
+          console.error("❌ Lỗi kết nối server:", error);
+        }
       }
 
       // Hàm sửa gắn vào tt onclick
@@ -986,9 +1201,9 @@
         // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
         const actionCell = row.querySelector("td:last-child");
         actionCell.innerHTML = `
-      <button onclick="saveRow(${index})">Lưu</button>
-      <button onclick="cancelEdit(${index})">Hủy</button>
-  `;
+                        <button onclick="saveRow(${index})">Lưu</button>
+                        <button onclick="cancelEdit(${index})">Hủy</button>
+                    `;
       }
 
       // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
@@ -998,7 +1213,6 @@
           const headers = Object.keys(renderData[0]).filter(
             (key) => key !== "description"
           );
-
           // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
           const updatedRow = {};
 
@@ -1012,11 +1226,15 @@
               const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
 
               // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
-              if (newValue === "") {
+              if (
+                newValue === "" &&
+                (key == "course_name" || key == "lecturer")
+              ) {
                 throw new Error(`Giá trị của cột ${key} không thể để trống!`);
               }
 
               // Thêm giá trị mới vào đối tượng updatedRow
+
               updatedRow[key] = newValue;
             } else {
               console.warn(
@@ -1057,6 +1275,7 @@
       function cancelEdit(id) {
         // Tìm dữ liệu gốc của dòng dựa trên ID
         const originalRow = renderData.find((row) => row.id === id);
+        console.log(originalRow);
 
         if (!originalRow) {
           console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
@@ -1065,40 +1284,36 @@
 
         // Render lại dòng theo dữ liệu gốc
         renderRow(id, originalRow);
-
-        // Thông báo (tùy chọn)
-        console.log(`Đã hủy chỉnh sửa dòng với ID: ${id}`);
       }
 
-      // Hàm xóa dòng khi sửa ( gọi api xóa 1 dòng )
-      async function deleteRow(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa dòng này?")) {
-          // Xác nhận xóa
+      async function deleteRow(id, stt) {
+        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
           try {
-            // Gửi yêu cầu DELETE tới API để xóa dòng
             const response = await fetch(`/TKB-delete-row/${id}`, {
-              method: "DELETE", // Phương thức DELETE
+              method: "DELETE",
               headers: {
-                "Content-Type": "application/json", // Định dạng dữ liệu
+                "Content-Type": "application/json",
               },
             });
 
-            // Kiểm tra phản hồi từ server
             if (!response.ok) {
               throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
             }
 
-            // Xóa dòng trong dữ liệu cục bộ renderData
+            // Cập nhật lại dữ liệu cục bộ
             renderData = renderData.filter((row) => row.id !== id);
 
-            // Xóa trực tiếp dòng khỏi bảng trong giao diện
-            const rowElement = document.getElementById(`row-${id}`);
-            if (rowElement) {
-              rowElement.remove();
-            }
+            // Cập nhật lại bảng AG Grid
+            gridOptions.api.setRowData(renderData);
 
-            // Thông báo thành công (tuỳ chọn)
-            console.log(`Xóa dòng thành công: ID ${id}`);
+            // Hiển thị thông báo thành công
+            Toastify({
+              text: "✅ Xóa thành công!",
+              duration: 1000,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#4CAF50",
+            }).showToast();
           } catch (error) {
             console.error("Lỗi khi xóa dòng:", error);
             alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
@@ -1109,214 +1324,7 @@
       // Hàm thêm khi ấn nút THÊM
       let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
 
-      // Hàm thêm khi ấn nút THÊM
-      /*
-      function addRow() {
-        // Lấy các giá trị mặc định từ các combo box
-        const Khoa = document.getElementById("departmentFilter").value;
-        const Dot = document.getElementById("combobox-dot").value;
-        const Ki = document.getElementById("comboboxki").value;
-        const Nam = document.getElementById("NamHoc").value;
-
-        // Tạo một đối tượng rỗng cho dòng mới
-        const newRowData = {};
-
-        // Lấy danh sách các cột từ renderData[0] để đảm bảo khởi tạo đủ key, ngoại trừ "ID" và "GhiChu"
-        const headers = Object.keys(renderData[0]).filter(
-          (header) => !["ID", "GhiChu"].includes(header)
-        );
-
-        // Khởi tạo dữ liệu cho các cột
-        headers.forEach((key) => {
-          if (key === "Khoa") {
-            newRowData[key] = Khoa; // Lấy giá trị từ combo box
-          } else if (key === "Dot") {
-            newRowData[key] = Dot; // Lấy giá trị từ combo box
-          } else if (key === "Ki") {
-            newRowData[key] = Ki; // Lấy giá trị từ combo box
-          } else if (key === "Nam") {
-            newRowData[key] = Nam; // Lấy giá trị từ combo box
-          } else {
-            newRowData[key] = ""; // Các trường khác để trống mặc định
-          }
-        });
-
-        // Tăng biến đếm
-        newRowCounter++;
-
-        // Tạo phần tử dòng mới
-        const row = document.createElement("tr");
-        row.id = `new-row-${newRowCounter}`; // Đảm bảo id của dòng mới là duy nhất
-
-        // Tạo HTML cho các ô nhập liệu của dòng mới
-        headers.forEach((key) => {
-          // Tạo thẻ <td> cho mỗi cột
-          const cell = document.createElement("td");
-
-          // Tạo thẻ <input> cho ô nhập liệu
-          const input = document.createElement("input");
-          input.type = "text";
-          input.id = `input-new-${key}-${newRowCounter}`; // Đảm bảo id của input là duy nhất
-          input.value = newRowData[key];
-          input.placeholder = `Nhập ${key}`;
-          input.style.width = "100%";
-
-          // Thêm ô nhập liệu vào thẻ <td>
-          cell.appendChild(input);
-
-          // Thêm thẻ <td> vào thẻ <tr>
-          row.appendChild(cell);
-        });
-
-        // Tạo thẻ <td> cho các nút hành động (Lưu và Hủy)
-        const actionCell = document.createElement("td");
-
-        // Tạo nút Lưu
-        const saveButton = document.createElement("button");
-        saveButton.textContent = "Lưu";
-        saveButton.onclick = saveNewRow;
-
-        // Tạo nút Hủy
-        const cancelButton = document.createElement("button");
-        cancelButton.textContent = "Hủy";
-        cancelButton.onclick = cancelAddRow;
-
-        // Thêm các nút vào thẻ <td>
-        actionCell.appendChild(saveButton);
-        actionCell.appendChild(cancelButton);
-
-        // Thêm thẻ <td> (chứa các nút hành động) vào thẻ <tr>
-        row.appendChild(actionCell);
-
-        // Thêm dòng mới vào bảng
-        document.getElementById("data-table-body").appendChild(row);
-
-        console.log("Dòng mới được khởi tạo:", newRowData);
-      }
-*/
-      function addRow() {
-        // Hiển thị modal và overlay
-        document.getElementById("addRowModal").style.display = "block";
-        document.getElementById("overlay").style.display = "block";
-      }
-
-      function closeModal() {
-        // Đóng modal và xóa dữ liệu nhập
-        document.getElementById("addRowModal").style.display = "none";
-        document.getElementById("overlay").style.display = "none";
-        document.getElementById("inputKhoa").value = "";
-        document.getElementById("inputDot").value = "";
-        document.getElementById("inputKi").value = "";
-        document.getElementById("inputNam").value = "";
-      }
-      /*
-      function saveRow() {
-        // Lấy dữ liệu từ các input
-        const Khoa = document.getElementById("inputKhoa").value;
-        const Dot = document.getElementById("inputDot").value;
-        const Ki = document.getElementById("inputKi").value;
-        const Nam = document.getElementById("inputNam").value;
-
-        // Kiểm tra dữ liệu (nếu cần)
-        if (!Khoa || !Dot || !Ki || !Nam) {
-          alert("Vui lòng điền đầy đủ thông tin!");
-          return;
-        }
-
-        // Tạo dòng mới
-        const newRowData = {
-          id: renderData.length + 1, // ID tự tăng
-          Khoa,
-          Dot,
-          Ki,
-          Nam,
-          // Các cột khác có thể để trống hoặc gán giá trị mặc định
-        };
-
-        // Thêm dòng mới vào renderData
-        renderData.push(newRowData);
-
-        // Render lại bảng
-        renderTable();
-
-        // Đóng modal
-        closeModal();
-      }
-*/
-      // Gắn sự kiện cho các nút
-      document
-        .getElementById("saveRowButton")
-        .addEventListener("click", saveRow);
-      document
-        .getElementById("cancelRowButton")
-        .addEventListener("click", closeModal);
-      document.getElementById("overlay").addEventListener("click", closeModal);
-
-      // Hàm lưu dòng mới (gọi api lưu 1 dòng mới)
-      async function saveNewRow() {
-        try {
-          // Lấy dòng mới từ bảng có id bắt đầu bằng "new-row-"
-          const row = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
-
-          // Kiểm tra xem dòng mới có tồn tại không
-          if (!row) {
-            throw new Error("Không tìm thấy dòng mới!");
-          }
-
-          // Tạo đối tượng chứa dữ liệu của dòng mới
-          const newRowData = {};
-
-          // Lấy danh sách các cột từ renderData[0] (loại bỏ "ID" và "GhiChu")
-          const headers = Object.keys(renderData[0]).filter(
-            (header) => !["ID", "GhiChu"].includes(header)
-          );
-
-          // Duyệt qua các ô nhập liệu trong dòng và lấy giá trị
-          headers.forEach((key) => {
-            // Lấy ô nhập liệu tương ứng với từng cột
-            const input = row.querySelector(
-              `#input-new-${key}-${row.id.split("-")[2]}`
-            ); // Tìm ô nhập liệu với id duy nhất
-
-            if (input) {
-              newRowData[key] = input.value.trim(); // Lấy giá trị nhập vào
-            }
-          });
-
-          // Gửi dữ liệu dòng mới lên server
-          const response = await fetch("/add-row", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newRowData),
-          });
-
-          // Kiểm tra nếu phản hồi không thành công
-          if (!response.ok) {
-            throw new Error(`Không thể lưu dòng mới: ${response.statusText}`);
-          }
-
-          // Nếu phản hồi là 200 OK, cập nhật dữ liệu dòng mới
-          console.log("Dòng mới đã được lưu thành công");
-
-          // Lấy ID dòng mới từ row (sử dụng ID dòng nếu cần thiết)
-          const rowId = row.id;
-
-          // Gọi hàm renderRow để cập nhật giao diện với dòng đã lưu
-          renderRow(rowId, newRowData); // Gọi hàm renderRow để hiển thị dòng mới với dữ liệu đã lưu
-
-          // Xóa bỏ dòng "new-row" cũ sau khi lưu thành công
-          row.remove(); // Xóa dòng này khỏi DOM nếu không cần hiển thị nữa
-        } catch (error) {
-          // Xử lý lỗi và thông báo cho người dùng
-          console.error("Lỗi khi lưu dòng mới:", error);
-          alert("Có lỗi xảy ra khi lưu dòng mới: " + error.message);
-        }
-      }
-
       // Hàm hủy tạo dòng mới
-      // Hàm hủy thao tác thêm dòng mới
       function cancelAddRow() {
         // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
         const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
@@ -1328,83 +1336,68 @@
           console.log("Không tìm thấy dòng mới để hủy.");
         }
       }
-    </script>
 
-    <!-- phần xóa bảng quy chuẩn dự kiến -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("xoa-qc-du-kien")
-          .addEventListener("click", async function () {
-            let Dot = document.getElementById("combobox-dot").value;
-            let Ki = document.getElementById("comboboxki").value;
-            let Nam = document.getElementById("NamHoc").value;
-            let Khoa = document.getElementById("departmentFilter").value;
+      // Xóa
+      document.getElementById("xoa-TKB").addEventListener("click", async () => {
+        const major = document.getElementById("departmentFilter").value;
+        const dotValue = document.getElementById("combobox-dot").value;
+        const kiValue = document.getElementById("comboboxki").value;
+        const namValue = document.getElementById("NamHoc").value;
 
-            const body = {
-              Khoa: Khoa,
-              Dot: Dot,
-              Ki: Ki,
-              Nam: Nam,
-            };
+        const semester = `${kiValue}, ${dotValue}, ${namValue}`;
+        const body = {
+          major: major,
+          semester: semester,
+        };
 
-            // Hiển thị hộp thoại xác nhận
-            const confirmation = confirm(
-              `Xóa dữ liệu của Khoa ${Khoa} Đợt ${Dot} Kì ${Ki} Năm ${Nam}`
-            );
+        // 🔥 Hiển thị hộp thoại xác nhận trước khi xóa
+        const result = await Swal.fire({
+          title: "Xác nhận xóa",
+          html: `Bạn có chắc chắn muốn xóa dữ liệu cho khoa <b>${major}</b> - <b>${semester}</b>?`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Xóa ngay",
+          cancelButtonText: "Hủy",
+        });
 
-            if (confirmation) {
-              // Nếu người dùng chọn OK
-              try {
-                // Gọi tới API để xóa dữ liệu
-                const response = await fetch("/xoa-qcdk", {
-                  // Đường dẫn tới API của bạn
-                  method: "POST", // Phương thức HTTP
-                  headers: {
-                    "Content-Type": "application/json", // Định dạng dữ liệu
-                  },
-                  body: JSON.stringify(body), // Gửi Khoa trong body
-                });
+        // Nếu người dùng chọn "Hủy", thoát khỏi hàm
+        if (!result.isConfirmed) return;
 
-                // Kiểm tra xem yêu cầu có thành công không
-                if (response.ok) {
-                  const result = await response.json(); // Chuyển đổi phản hồi sang JSON
-                  Swal.fire({
-                    title: "Thông báo",
-                    html: result.message,
-                    icon: "success",
-                    confirmButtonText: "OK",
-                    width: "auto", // Tự động điều chỉnh chiều rộng
-                    padding: "20px", // Giữ khoảng cách cho nội dung
-                  });
-                  // location.reload();
-                } else {
-                  const errorData = await response.json(); // Lấy thông tin lỗi
-                  Swal.fire({
-                    title: "Thông báo",
-                    html: `Lỗi: ${errorData.message}`,
-                    icon: "error",
-                    confirmButtonText: "OK",
-                    width: "auto", // Tự động điều chỉnh chiều rộng
-                    padding: "20px", // Giữ khoảng cách cho nội dung
-                  });
-                }
-              } catch (error) {
-                console.error("Đã xảy ra lỗi:", error);
-                Swal.fire({
-                  title: "Thông báo",
-                  html: "Đã xảy ra lỗi khi gọi API",
-                  icon: "error",
-                  confirmButtonText: "OK",
-                  width: "auto", // Tự động điều chỉnh chiều rộng
-                  padding: "20px", // Giữ khoảng cách cho nội dung
-                });
-              }
-            } else {
-              // Nếu người dùng chọn Cancel
-              // alert('Đã hủy yêu cầu xóa dữ liệu.'); // Thông báo đã hủy
-            }
+        try {
+          const response = await fetch("/api/xoa-TKB", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
           });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Xóa thất bại!");
+          }
+
+          // ✅ Hiển thị thông báo thành công
+          Swal.fire({
+            title: "Thông báo",
+            html: "Xóa dữ liệu thành công",
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto",
+            padding: "20px",
+          });
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            html: "Xóa thất bại: " + error.message,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          console.error("Lỗi:", error);
+        }
       });
     </script>
 
@@ -1556,7 +1549,7 @@
       }
 
       // Hàm gửi dữ liệu khi dữ liệu không tồn tại
-      function saveData(dataTam, khoaValue, dotValue, kiValue, namValue) {
+      function saveData(khoaValue, dotValue, kiValue, namValue) {
         const updatedData = {
           Khoa: khoaValue,
           Dot: dotValue,
@@ -1591,7 +1584,7 @@
               Swal.fire({
                 title: "Thông báo",
                 html: "Thêm file thất bại",
-                icon: "success",
+                icon: "error",
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
@@ -1610,16 +1603,15 @@
           });
       }
 
-      function saveDataAll(dataTam, dotValue, kiValue, namValue) {
-        const updatedData = dataTam.map((item) => ({
-          ...item,
-          // Khoa: khoaValue,
+      function saveDataAll(khoaValue, dotValue, kiValue, namValue) {
+        const updatedData = {
+          Khoa: khoaValue,
           Dot: dotValue,
           Ki: kiValue,
           Nam: namValue,
-        }));
+        };
 
-        fetch("/save-data", {
+        fetch("/save-data-tkb-to-qcdk", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1678,7 +1670,7 @@
           if (khoaValue !== "ALL") {
             checkDataExistence(khoaValue, dotValue, kiValue, namValue);
           } else {
-            saveDataAll(dotValue, kiValue, namValue);
+            saveDataAll(khoaValue, dotValue, kiValue, namValue);
           }
         });
     </script>
@@ -1790,6 +1782,7 @@
           success: function (response) {
             // Kiểm tra nếu response thành công
             const MaPhongBan = response.MaPhongBan;
+            localStorage.setItem("MaPhongBanList", JSON.stringify(MaPhongBan));
             if (response.success) {
               $("#departmentFilter").prepend(
                 '<option value="ALL">Tất cả khoa</option>'
@@ -1822,49 +1815,6 @@
           },
         });
       });
-    </script>
-    <script>
-      document
-        .getElementById("ban-hanh")
-        .addEventListener("click", async function () {
-          // Xác nhận lại hành động ban hành
-          // const confirmed = confirm("Bạn có chắc chắn muốn đặt năm đợt kì mặc định không?");
-          // if (!confirmed) {
-          //     return; // Thoát nếu người dùng không đồng ý
-          // }
-
-          // Lấy giá trị của option đang được chọn
-          let Dot = document.getElementById("combobox-dot")?.value;
-          let Ki = document.getElementById("comboboxki")?.value;
-          let NamHoc = document.getElementById("NamHoc")?.value;
-
-          try {
-            const updateResult = await updateDatabase(NamHoc, Ki, Dot); // Gọi hàm updateDatabase với NamHoc
-
-            if (updateResult.success) {
-              // alert(updateResult.message || "Cập nhật thành công!");
-            } else {
-              // alert(updateResult.message || "Cập nhật thất bại!");
-            }
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Cập nhật dữ liệu thất bại! Vui lòng thử lại.");
-          }
-
-          // Gọi hàm updateDatabase để update dữ liệu
-          async function updateDatabase(NamHoc) {
-            const response = await fetch(`/update/${NamHoc}/${Ki}/${Dot}`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              // body: JSON.stringify(dataQC), // Nếu cần gửi dữ liệu khác, hãy mở comment và thêm dataQC
-            });
-
-            const result = await response.json();
-            return result;
-          }
-        });
     </script>
     <script>
       document
@@ -1909,6 +1859,100 @@
             alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
         });
+    </script>
+    <script>
+      document
+        .getElementById("export-file-btn")
+        .addEventListener("click", function (event) {
+          // Toggle menu hiển thị
+          const menu = document.getElementById("file-format-menu");
+          menu.style.display = menu.style.display === "none" ? "block" : "none";
+
+          // Đảm bảo menu không bị ẩn khi click ra ngoài
+          window.addEventListener("click", function (event) {
+            if (
+              !event.target.closest("#file-format-menu") &&
+              !event.target.closest("#export-file-btn")
+            ) {
+              menu.style.display = "none";
+            }
+          });
+        });
+
+      async function exportMultipleWorksheet() {
+        let Dot = document.getElementById("combobox-dot").value;
+        let Ki = document.getElementById("comboboxki").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let major = document.getElementById("departmentFilter").value;
+
+        const semester = `${Dot}, ${Ki}, ${Nam}`;
+
+        const dataSend = {
+          major: major,
+          semester: semester,
+        };
+
+        const response = await fetch("/api/export-multiple-worksheet-TKB", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataSend),
+        });
+
+        if (!response.ok) {
+          alert("Xuất file thất bại!");
+          return;
+        }
+
+        // Tạo link tải file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "file_quy_chuan.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      // renderData là biến var
+      async function exportSingleWorksheet() {
+        let Dot = document.getElementById("combobox-dot").value;
+        let Ki = document.getElementById("comboboxki").value;
+        let Nam = document.getElementById("NamHoc").value;
+        let major = document.getElementById("departmentFilter").value;
+
+        const semester = `${Dot}, ${Ki}, ${Nam}`;
+
+        const dataSend = {
+          major: major,
+          semester: semester,
+        };
+
+        const response = await fetch("/api/export-single-worksheet-TKB", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataSend),
+        });
+
+        if (!response.ok) {
+          alert("Xuất file thất bại!");
+          return;
+        }
+
+        // Tạo link tải file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "file_quy_chuan.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     </script>
   </body>
 </html>

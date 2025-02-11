@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <%-include('adminHeader') %>;
+    <%- include('adminHeader') %>
     <div class="container my-5 box">
       <h2>Thêm Nhân Viên Mới</h2>
 
@@ -73,11 +73,25 @@
           <div class="col-md-4 input-wrapper d-flex justify-content-between">
             <div>
               <label for="ChucVu" class="form-label">Chức Vụ*</label>
-            <input type="text" class="form-control" id="ChucVu" name="ChucVu" required />
+              <input
+                type="text"
+                class="form-control"
+                id="ChucVu"
+                name="ChucVu"
+                required
+              />
             </div>
             <div>
-              <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-              <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="0"/>
+              <label for="PhanTramMienGiam" class="form-label"
+                >Phần trăm miễn giảm</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="PhanTramMienGiam"
+                name="PhanTramMienGiam"
+                value="0"
+              />
             </div>
           </div>
           <div class="col-md-4 input-wrapper d-flex justify-content-between">
@@ -155,7 +169,7 @@
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
-            <label for="CCCD" class="form-label">CCCD</label>
+            <label for="CCCD" class="form-label">CCCD*</label>
             <input
               type="text"
               class="form-control"

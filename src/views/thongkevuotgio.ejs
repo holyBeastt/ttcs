@@ -645,12 +645,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // Kiểm tra giá trị isKhoa
     if (isKhoa == 1) {
-                // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
-                document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-            } else {
-                // Nếu isKhoa = 0, hiển thị combobox Khoa
-                document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
-            }
+         // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
+            document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
+    } else {
+        // Nếu isKhoa = 0, hiển thị combobox Khoa
+        document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
+    }
 });
 </script>
 

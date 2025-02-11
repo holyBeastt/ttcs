@@ -136,7 +136,9 @@ const postUpdateNV = async (req, res) => {
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
   try {
     // Kiểm tra giá trị của HSL và PhanTramMienGiam
-    const validHSL = HSL === "" ? 0 : Number(HSL);
+    // Chuẩn hóa giá trị của HSL
+    const validHSL = HSL === "" ? 0 : Number(HSL.toString().replace(",", "."));
+
     const validPhanTramMienGiam =
       PhanTramMienGiam === "" ? 0 : Number(PhanTramMienGiam);
 

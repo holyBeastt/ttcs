@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/table.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+  <%- include('adminHeader') %>
+
+  <div class="container my-5 box">
+        <form class="d-flex align-items-end mb-3" action="/DotDoAn" method="post">
+            <div>
+                <label for="DotDoAn">Đợt Đồ Án</label>
+                <input class="form-control" type="text" id="DotDoAn" name="DotDoAn"> 
+            </div>
+            <button id="createDA" class="btn mx-5" style="margin: 0;height: 36px;">
+                <i class="bi bi-plus-circle"></i> Thêm Đợt Đồ Án
+            </button>
+        </form>
+
+      <div class="pb-3">
+        <table id="DotDoAnTable" class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Đợt đồ án</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="data-table-body">
+            <% if (dotdoan && dotdoan.length > 0) { %>
+              <% for (var i = 0; i < dotdoan.length; i++) { %>
+                <tr>
+                  <td><%= dotdoan[i].dotdoan %></td>
+                  <td class="d-flex" style="border: none;">
+                    <button class="bi bi-trash3 action-button edit"
+                        onclick="deleteDotDoAn(this, '<%= dotdoan[i].dotdoan %>')">
+                      </button>
+                  </td>
+                </tr>
+              <% } %>
+            <% } else { %>
+              <tr>
+                <td colspan="2">Không có dữ liệu</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+  </div>
+  <script>
+       function deleteDotDoAn(button, dotdoan) {
+    console.log("Deleting:", dotdoan);
+    if (confirm(`Bạn có chắc chắn muốn xóa đợt đồ án ${dotdoan} không?`)) {
+      fetch(`/dotDoAn/${dotdoan}`, {
+    method: 'DELETE',
+    headers: {
+        'Content-Type': 'application/json',
+    }
+})
+.then(response => {
+    if (response.ok) {
+        alert("Xóa thành công!");
+        button.closest("tr").remove();
+    } else {
+        return response.text().then(text => {
+            alert("Xóa thất bại: " + text);
+        });
+    }
+})
+.catch(error => {
+    alert("Có lỗi xảy ra: " + error.message);
+});
+
+}}
+
+    </script>
+<script>
+  document.getElementById("changePasswordLink").addEventListener("click", function(event) {
+event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+if (tenDangNhap) {
+    // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+    window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+} else {
+    alert("Không tìm thấy TenDangNhap trong localStorage.");
+}
+});
+</script>
+</body>
+
+</html>

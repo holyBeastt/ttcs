@@ -160,7 +160,7 @@
                 <th>Thư ký</th>
                 <th>Thành viên</th>
                 <th>Ngày nghiệm thu</th>
-                <!-- <th>Xếp loại</th> -->
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -168,7 +168,10 @@
         </div>
       </div>
     </div>
-
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -187,50 +190,179 @@
         return `${day}/${month}/${year}`; // Trả về định dạng ngày/tháng/năm
       }
 
-      // format giờ
-      function formatHours(text) {
-        const match = text.match(/(\d+[\.,]?\d*)\s*giờ/);
-
-        if (match) {
-          const hours = parseFloat(match[1].replace(",", "."));
-          const roundedHours = Math.floor(hours); // Làm tròn xuống thành số nguyên
-          return text.replace(match[1], roundedHours); // Thay thế số giờ cũ bằng số giờ đã làm tròn
-        }
-
-        return text; // Trả về chuỗi gốc nếu không tìm thấy số giờ
+      function fixNumberFormat(text) {
+        console.log(text)
+        if (typeof text !== "string") return text; // Nếu không phải chuỗi, giữ nguyên
+        return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
       }
-
       // render table
       function renderTable(data) {
+        console.log("Dữ liệu trước khi render:", data);
+
         const tbody = document.getElementById("table-body");
+        window.currentData = data; // Lưu dữ liệu hiện tại để sử dụng khi hủy
 
         // Xóa dữ liệu cũ
         tbody.innerHTML = "";
 
         // Duyệt qua dữ liệu và thêm từng hàng vào tbody
         data.forEach((item) => {
-          const row = document.createElement("tr");
+          const newItem = { ...item }; // Tạo bản sao để không sửa trực tiếp dữ liệu gốc
 
-          // Sử dụng hàm formatHours để định dạng chuỗi giờ cho Chủ nhiệm, Thư ký, Thành viên
-          const chuNhiemFormatted = formatHours(item.ChuNhiem);
-          const thuKyFormatted = formatHours(item.ThuKy);
-          const thanhVienFormatted = item.DanhSachThanhVien.split(",") // Tách chuỗi thành viên bằng dấu phẩy
-            .map((member) => formatHours(member.trim())) // Định dạng giờ cho từng thành viên
-            .join(", "); // Nối lại thành chuỗi các thành viên đã được định dạng
-          const ngayNghiemThuFormatted = formatDate(item.NgayNghiemThu);
+          // Sửa lỗi dấu phẩy trong các chuỗi chứa số giờ
+          newItem.DanhSachThanhVien = fixNumberFormat(newItem.DanhSachThanhVien);
+          newItem.ChuNhiem = fixNumberFormat(newItem.ChuNhiem);
+          newItem.ThuKy = fixNumberFormat(newItem.ThuKy);
 
-          // Tạo các dòng dữ liệu cho bảng
-          row.innerHTML = `
-      <td>${item.CapDeTai}</td>
-      <td>${item.TenDeTai}</td>
-      <td>${item.MaSoDeTai}</td>
-      <td>${chuNhiemFormatted}</td>
-      <td>${thuKyFormatted}</td>
-      <td>${thanhVienFormatted}</td>
-      <td>${ngayNghiemThuFormatted}</td>
-    `;
+          const row = createTableRow(newItem);
           tbody.appendChild(row);
         });
+
+        console.log("Dữ liệu sau khi sửa:", window.currentData);
+      }
+
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
+      }
+
+      function createTableRow(item) {
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", item.ID);
+
+        function createCell(value) {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          return cell;
+        }
+
+        row.appendChild(createCell(item.CapDeTai));
+        row.appendChild(createCell(item.TenDeTai));
+        row.appendChild(createCell(item.MaSoDeTai));
+        row.appendChild(createCell(fixNumberFormat(item.ChuNhiem)));
+        row.appendChild(createCell(fixNumberFormat(item.ThuKy)));
+        row.appendChild(createCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", ")));
+        row.appendChild(createCell(formatDate(item.NgayNghiemThu)));
+
+        // Tạo nút sửa
+        const editButton = document.createElement("button");
+        editButton.classList.add("btn", "btn-edit"); // Thêm class
+        editButton.textContent = "Sửa";
+        editButton.addEventListener("click", () => enableEditMode(row, item));
+
+        // Thêm nút sửa vào cuối hàng
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(editButton);
+        row.appendChild(actionCell);
+
+        return row;
+      }
+
+      function enableEditMode(row, item) {
+        const id = row.getAttribute("data-id");
+        const originalRow = row.cloneNode(true); // Lưu lại dòng gốc để khôi phục khi hủy
+        row.innerHTML = "";
+
+        function createEditableCell(value, className) {
+          const cell = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = value;
+          input.className = className;
+          cell.appendChild(input);
+          return cell;
+        }
+
+        row.appendChild(createEditableCell(item.CapDeTai, `cap-detai-${id}`));
+        row.appendChild(createEditableCell(item.TenDeTai, `ten-detai-${id}`));
+        row.appendChild(createEditableCell(item.MaSoDeTai, `ma-so-detai-${id}`));
+        row.appendChild(createEditableCell(fixNumberFormat(item.ChuNhiem), `chu-nhiem-${id}`));
+        row.appendChild(createEditableCell(fixNumberFormat(item.ThuKy), `thu-ky-${id}`));
+        row.appendChild(createEditableCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", "), `danh-sach-thanh-vien-${id}`));
+        row.appendChild(createEditableCell(formatDate(item.NgayNghiemThu), `ngay-nghiem-thu-${id}`));
+
+        // Tạo nút lưu
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Lưu";
+        saveButton.classList.add("btn", "btn-save"); // Thêm class
+        saveButton.addEventListener("click", () => saveData(id));
+
+        // Tạo nút hủy
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Hủy";
+        cancelButton.classList.add("btn", "btn-cancel"); // Thêm class
+        cancelButton.addEventListener("click", () => {
+          row.replaceWith(createTableRow(item)); // Khôi phục lại dòng gốc với sự kiện đầy đủ
+        });
+
+
+        // Thêm nút lưu và hủy vào cuối hàng
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(saveButton);
+        actionCell.appendChild(cancelButton);
+        row.appendChild(actionCell);
+      }
+
+      function convertDMYtoISO(dateString) {
+        const parts = dateString.split("/");
+        if (parts.length !== 3) return null;
+
+        const [day, month, year] = parts.map(Number);
+        if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+        // Chuyển sang đối tượng Date (UTC để tránh lệch múi giờ)
+        const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+
+        return date.toISOString(); // Output: YYYY-MM-DDTHH:mm:ss.sssZ
+      }
+
+      function cancelEditMode(row, item) {
+        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
+      }
+
+      function saveData(id) {
+        const MaBang = 'detaiduan'
+
+        const NgayNghiemThu = document.querySelector(`.ngay-nghiem-thu-${id}`).value;
+        const NgayNghiemThuValid = convertDMYtoISO(NgayNghiemThu);
+
+        const updatedData = {
+          CapDeTai: document.querySelector(`.cap-detai-${id}`).value,
+          TenDeTai: document.querySelector(`.ten-detai-${id}`).value,
+          MaSoDeTai: document.querySelector(`.ma-so-detai-${id}`).value,
+          ChuNhiem: document.querySelector(`.chu-nhiem-${id}`).value,
+          ThuKy: document.querySelector(`.thu-ky-${id}`).value,
+          DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value,
+          NgayNghiemThu: NgayNghiemThuValid
+        };
+        console.log(updatedData)
+
+        // Gọi API cập nhật dữ liệu
+        fetch(`/nckh/edit/${id}/${MaBang}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
+                }
+              })
+            }
+          })
+          .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
       }
 
       // Hàm để gửi yêu cầu đến server và hiển thị dữ liệu
@@ -520,11 +652,19 @@
             ).map((member) => member.textContent),
           };
 
-          // Kiểm tra form hợp lệ
-          // if (!formData.capDeTai || !formData.namHoc || !formData.tenDeTai || !formData.maDeTai || !formData.chuNhiem || !formData.ngayNghiemThu) {
-          //   alert("Vui lòng điền đầy đủ thông tin.");
-          //   return;
-          // }
+          let missing = 0;
+
+          for (let key of Object.keys(formData)) {
+            if (!formData[key]) {
+              missing++;
+            }
+          }
+
+          if (missing > 0) {
+            alert("Vui lòng nhập đủ thông tin");
+            return;
+          }
+
 
           // Gửi dữ liệu lên server
           fetch("/detaiduan", {
@@ -541,12 +681,24 @@
               return response.json();
             })
             .then((data) => {
-              alert(data.message);
-              // Reset form nếu cần
-              document.getElementById("formData").reset();
-              document.getElementById("memberListDisplay").innerHTML = "";
-              members = [];
-              location.reload();
+              if (data.success) {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: `${data.message}`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  width: 'auto',
+                  padding: '20px',
+                  timer: 3000, // Tự động đóng sau 3 giây
+                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  didClose: () => {
+                    document.getElementById("formData").reset();
+                    document.getElementById("memberListDisplay").innerHTML = "";
+                    members = [];
+                    location.reload();
+                  }
+                })
+              }
             })
             .catch((error) => {
               console.error("Lỗi:", error);
