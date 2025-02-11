@@ -805,9 +805,9 @@ const getDuplicateUniqueGV = async () => {
     const normalizeName = (name) => name.replace(/\s*\(.*?\)\s*/g, "").trim();
 
     // Lấy dữ liệu giảng viên mời và cơ hữu
-    const [gvms] = await connection.query(`SELECT HoTen, CCCD FROM GVMOI`);
+    const [gvms] = await connection.query(`SELECT HoTen, CCCD FROM gvmoi`);
     const [nvs] = await connection.query(
-      `SELECT TenNhanVien, CCCD FROM NHANVIEN`
+      `SELECT TenNhanVien, CCCD FROM nhanvien`
     );
 
     // Gộp và chuẩn hóa danh sách
