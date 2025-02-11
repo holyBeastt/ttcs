@@ -854,7 +854,7 @@
             field: key,
             headerName: headersMap[key]?.name || key,
             width: headersMap[key]?.width || 100,
-            editable: key !== "student_bonus",
+            editable: key !== "student_bonus" && key !== "id",
             hide: key === "semester",
             headerClass: "custom-header",
             filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
