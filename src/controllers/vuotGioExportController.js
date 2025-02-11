@@ -148,20 +148,151 @@ const exportVuotGio = async (req, res) => {
   `;
   
   const [resultsBoMon] = await connection.query(queryBoMon);
+
   
+  let queryDetaiDuan = `
+  SELECT 
+    NamHoc, 
+    Khoa, 
+    CapDeTai, 
+    TenDeTai, 
+    ChuNhiem, 
+    ThuKy, 
+    DanhSachThanhVien, 
+    NgayNghiemThu
+  FROM detaiduan
+WHERE NamHoc = ? 
+AND (Khoa = ? OR ? IS NULL) 
+AND (
+  ChuNhiem = ? 
+  OR ThuKy = ? 
+  OR DanhSachThanhVien LIKE ?
+  OR ? IS NULL
+)
+`;
+let queryBaiBaoKhoa = `
+  SELECT 
+    TenBaiBao, 
+    LoaiTapChi, 
+    ChiSoTapChi, 
+    TacGia, 
+    TacGiaChiuTrachNhiem, 
+    DanhSachThanhVien 
+  FROM baibaokhoahoc
+  WHERE NamHoc = ? 
+  AND (Khoa = ? OR ? IS NULL) 
+  AND (
+    TacGia = ? 
+    OR TacGiaChiuTrachNhiem = ? 
+    OR DanhSachThanhVien LIKE ?
+    OR ? IS NULL
+  )
+`;
+
+let queryBangSangCheVaGiaiThuong = `
+  SELECT 
+    TenBangSangCheVaGiaiThuong, 
+    TacGia, 
+    SoQDCongNhan, 
+    NgayQDCongNhan, 
+    DanhSachThanhVien 
+  FROM bangsangchevagiaithuong
+  WHERE NamHoc = ? 
+  AND (Khoa = ? OR ? IS NULL) 
+  AND (
+    TacGia = ? 
+    OR DanhSachThanhVien LIKE ?
+    OR ? IS NULL
+  )
+`;
+let querySachVaGiaoTrinh = `
+  SELECT 
+    TenSachVaGiaoTrinh, 
+    TacGia, 
+    SoXuatBan, 
+    SoTrang,  
+    DanhSachThanhVien,
+    DongChuBien 
+  FROM sachvagiaotrinh
+  WHERE NamHoc = ? 
+  AND (Khoa = ? OR ? IS NULL) 
+  AND (
+    TacGia = ? 
+    OR DanhSachThanhVien LIKE ?
+    OR DongChuBien = ?
+    OR ? IS NULL
+  )
+`;
+let queryNCKHVaHuanLuyen = `
+  SELECT 
+    TenDeTai, 
+    SoQDGiaoNhiemVu, 
+    KetQuaCapKhoa, 
+    KetQuaCapHocVien,  
+    DanhSachThanhVien,
+    NgayQDGiaoNhiemVu 
+  FROM nckhvahuanluyendoituyen
+  WHERE NamHoc = ? 
+  AND (Khoa = ? OR ? IS NULL) 
+  AND (
+
+     DanhSachThanhVien LIKE ?   
+     OR ? IS NULL
+  )
+`;
+
     // Thực thi các truy vấn với tham số teacherName (giảng viên)
     const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsNhanVien] = await connection.query(queryNhanVien, [sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+    const [resultsDetaiDuan] = await connection.query(queryDetaiDuan, [
+      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      teacherName || null, 
+      teacherName || null, 
+      `%${teacherName}%`, 
+      teacherName || null
+    ]);
 
-    // Kiểm tra kết quả truy vấn
+    const [resultsBaiBaoKhoa] = await connection.query(queryBaiBaoKhoa, [
+      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      teacherName || null, 
+      teacherName || null, 
+      `%${teacherName}%`, 
+      teacherName || null
+    ]);
+    const [resultsBangSangCheVaGiaiThuong] = await connection.query(queryBangSangCheVaGiaiThuong, [
+      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      teacherName || null, 
+      `%${teacherName}%`, 
+      teacherName || null
+    ]);
+    
+    const [resultsSachVaGiaoTrinh] = await connection.query(querySachVaGiaoTrinh, [
+      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      teacherName || null, 
+      teacherName || null,
+      `%${teacherName}%`, 
+      teacherName || null
+    ]);
+
+    const [resultsNCKHVaHuanLuyen] = await connection.query(queryNCKHVaHuanLuyen, [namHoc, sanitizedKhoa, sanitizedKhoa,
+      teacherName || null, 
+      `%${teacherName}%`, 
+      teacherName || null
+    ]);
+        // Kiểm tra kết quả truy vấn
     if (
       resultsGiangDay.length === 0 &&
       resultsLopNgoaiQuyChuan.length === 0 &&
       resultsGiuaky.length === 0 &&
-      resultsExportDoAnTotNghiep.length === 0
+      resultsExportDoAnTotNghiep.length === 0 &&
+      resultsDetaiDuan.length === 0 &&
+      resultsBaiBaoKhoa.length === 0 &&
+      resultsBangSangCheVaGiaiThuong.length === 0 &&
+      resultsSachVaGiaoTrinh.length === 0 &&
+      resultsNCKHVaHuanLuyen.length === 0
     ) {
       return res.send(
         "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/vuotGioExport';</script>"
@@ -172,15 +303,20 @@ const exportVuotGio = async (req, res) => {
     const combinedResults = [...resultsGiangDay, ...resultsLopNgoaiQuyChuan];
 
     // Nếu không có giảng viên chọn, lấy danh sách tất cả giảng viên trong khoa
-    const giangVienList = teacherName
-      ? [teacherName] 
-      : [
-          ...resultsNhanVien.map(nv => nv.GiangVien.trim()),
-          ...resultsGiangDay.map(gd => gd.GiangVien.trim()),
-          ...resultsLopNgoaiQuyChuan.map(lq => lq.GiangVien.trim()),
-          ...resultsGiuaky.map(gy => gy.GiangVien.trim()),
-          ...resultsExportDoAnTotNghiep.map(ed => ed.GiangVien.trim())
-        ];
+    // Lấy danh sách giảng viên từ Chủ nhiệm, Thư ký và Danh sách thành viên
+const giangVienList = new Set([
+  ...resultsNhanVien.map(nv => nv.GiangVien.trim()), 
+  ...resultsGiangDay.map(gd => gd.GiangVien.trim()), 
+  ...resultsLopNgoaiQuyChuan.map(lq => lq.GiangVien.trim()), 
+  ...resultsGiuaky.map(gy => gy.GiangVien.trim()), 
+  ...resultsExportDoAnTotNghiep.map(ed => ed.GiangVien.trim()), 
+  ...resultsDetaiDuan.flatMap(row => [
+    row.ChuNhiem.trim(),
+    row.ThuKy.trim(),
+    ...row.DanhSachThanhVien.split(',').map(name => name.trim())
+  ])
+]);
+console.log("abc",resultsNCKHVaHuanLuyen)
 
     // Loại bỏ các giảng viên trùng lặp
     const uniqueGiangVienList = [...new Set(giangVienList)];
@@ -201,15 +337,63 @@ const exportVuotGio = async (req, res) => {
         row => row.GiangVien.trim() === giangVien.trim()
       );
 
+    // Hàm tách tên giảng viên khỏi phần thông tin trong ngoặc
+const extractTeacherName = (name) => {
+  const match = name.trim().match(/^(.*?)(?:\s*\(.*\))?$/);
+  return match ? match[1].trim() : name.trim();
+};
+
+// Lọc dữ liệu phù hợp với giảng viên này
+const filteredDetaiDuan = resultsDetaiDuan.filter(row => {
+  const chuNhiem = extractTeacherName(row.ChuNhiem);
+  const thuKy = extractTeacherName(row.ThuKy);
+  const danhSachThanhVien = row.DanhSachThanhVien.split(',').map(name => extractTeacherName(name));
+
+  return chuNhiem === giangVien || thuKy === giangVien || danhSachThanhVien.includes(giangVien);
+});
+const filteredBaiBaoKhoa = resultsBaiBaoKhoa.filter(row => {
+  const tacGia = extractTeacherName(row.TacGia);
+  const tacGiaChiuTrachNhiem = extractTeacherName(row.TacGiaChiuTrachNhiem);
+  const danhSachThanhVien = row.DanhSachThanhVien.split(',').map(name => extractTeacherName(name));
+
+  return tacGia === giangVien || tacGiaChiuTrachNhiem === giangVien || danhSachThanhVien.includes(giangVien);
+});
+
+const filteredBangSangCheVaGiaiThuong = resultsBangSangCheVaGiaiThuong.filter(row => {
+  const tacGia = extractTeacherName(row.TacGia);
+  const danhSachThanhVien = row.DanhSachThanhVien.split(',').map(name => extractTeacherName(name));
+
+  return tacGia === giangVien || danhSachThanhVien.includes(giangVien);
+});
+
+const filteredSachVaGiaoTrinh = resultsSachVaGiaoTrinh.filter(row => {
+  const tacGia = extractTeacherName(row.TacGia);
+  const danhSachThanhVien = row.DanhSachThanhVien.split(',').map(name => extractTeacherName(name));
+  const DongChuBien = extractTeacherName(row.DongChuBien);
+
+  return tacGia === giangVien || danhSachThanhVien.includes(giangVien) || DongChuBien === giangVien;
+});
+
+const filteredNCKHVaHuanLuyen = resultsNCKHVaHuanLuyen.filter(row => {
+  const danhSachThanhVien = row.DanhSachThanhVien.split(',').map(name => extractTeacherName(name));
+
+  return danhSachThanhVien.includes(giangVien);
+});
+console.log("abcs",filteredNCKHVaHuanLuyen)
       // Kiểm tra xem có bất kỳ dữ liệu nào liên quan đến giảng viên này không
       if (
         filteredCombinedResults.length === 0 &&
         filteredGiuaKy.length === 0 &&
-        filteredExportDoAnTotNghiep.length === 0
+        filteredExportDoAnTotNghiep.length === 0 && 
+        filteredDetaiDuan.length === 0 &&
+        filteredBaiBaoKhoa.length === 0 &&
+        filteredBangSangCheVaGiaiThuong.length === 0 &&
+        filteredSachVaGiaoTrinh.length === 0
       ) {
         // Nếu không có dữ liệu, bỏ qua giảng viên này
         return;
       }
+      
       const worksheet = workbook.addWorksheet(giangVien);
 
 
@@ -727,7 +911,7 @@ const exportVuotGio = async (req, res) => {
 
       const titleRow19 = worksheet.addRow(["B. HƯỚNG DẪN LUẬN ÁN, LUẬN VĂN, ĐỒ ÁN TỐT NGHIỆP (Phụ lục I.3 Quyết định số 1409/QĐ-HVM)"]);
       titleRow19.font = { name: "Times New Roman", size: 12, bold: true };
-      titleRow19.alignment = { horizontal: "center", vertical: "left", wrapText: true };
+      titleRow19.alignment = { horizontal: "left", vertical: "center", wrapText: true };
       worksheet.mergeCells(`A${titleRow19.number}:G${titleRow19.number}`);
       titleRow19.height = 40; // Tăng chiều cao hàng
 
@@ -746,7 +930,6 @@ const exportVuotGio = async (req, res) => {
       worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
 
       // Khởi tạo biến đếm cho cột TT
-      let indexExport = 1;
       let totalSoTietQuyDoi = 0;
 
 
@@ -814,6 +997,487 @@ const exportVuotGio = async (req, res) => {
       titleRow20.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
       worksheet.mergeCells(`A${titleRow20.number}:G${titleRow20.number}`);
       titleRow20.height = 40; // Tăng chiều cao hàng
+
+      
+      const titleRow21 = worksheet.addRow(["C.1 Đề tài, dự án (Phụ lục II.1 Quyết định số 1409/QĐ-HVM)"]);
+      titleRow21.font = { name: "Times New Roman", size: 12,  };
+      titleRow21.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow21.number}:G${titleRow21.number}`);
+      titleRow21.height = 40; // Tăng chiều cao hàng
+
+      const headerRowExport1 = worksheet.addRow(["TT", "Tên đề tài, dự án, mã số đề tài", "Chủ trì/ Thư ký/ thành viên", "Cấp đề tài (Cơ sở, Ban, Nhà nước)", "Ngày nghiệm thu", "Kết quả xếp loại", "Số giờ quy đổi"]);
+      headerRowExport1.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport1.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+      // Điều chỉnh chiều rộng cột
+      worksheet.getColumn('A').width = 4.1; // Cột TT
+      worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+      worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+      worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+      worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+      worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+      worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+
+     // Hàm chuẩn hóa tên giảng viên bằng cách loại bỏ phần sau dấu '(' và xóa khoảng trắng thừa
+     const normalizeGiangVienName = (str) => {
+      return str.split('(')[0].trim(); // Lấy phần tên trước dấu '(' và loại bỏ khoảng trắng thừa
+    };
+    
+
+    // ... existing code ...
+
+// ... existing code ...
+
+// Function to normalize and extract the role of the lecturer
+const getRoleForLecturer = (row, lecturerName) => {
+  const roles = [];
+  if (normalizeGiangVienName(row.ChuNhiem) === lecturerName) {
+    roles.push("Chủ nhiệm");
+  }
+  if (normalizeGiangVienName(row.ThuKy) === lecturerName) {
+    roles.push("Thư ký");
+  }
+  if (row.DanhSachThanhVien.split(',').some(name => normalizeGiangVienName(name) === lecturerName)) {
+    roles.push("Thành viên");
+  }
+  return roles.join(", ");
+};
+
+// Function to extract hours for the lecturer
+const getHoursForLecturer = (row, lecturerName) => {
+  const roles = ["ChuNhiem", "ThuKy", "DanhSachThanhVien"];
+  for (const role of roles) {
+    const roleData = row[role];
+    if (roleData && roleData.includes(lecturerName)) {
+      const match = roleData.match(/\(([^)]+)\)/);
+      if (match) {
+        const hoursString = match[1].split('-')[1].trim();
+        return parseFloat(hoursString.split(' ')[0]); // Extract the number before "giờ"
+      }
+    }
+  }
+  return 0; // Default if no hours found
+};
+
+let totalHours = 0; // Initialize total hours
+
+filteredDetaiDuan.forEach((row, index) => {
+  const lecturerRole = getRoleForLecturer(row, giangVien);
+  const hours = getHoursForLecturer(row, giangVien);
+  totalHours += hours; // Accumulate total hours
+
+  const rowData = [
+    index + 1, // Số thứ tự (TT)
+    row.TenDeTai, // Tên đề tài, dự án, mã số đề tài
+    lecturerRole, // Only include roles for the current lecturer
+    row.CapDeTai, // Cấp đề tài (Cơ sở, Ban, Nhà nước)
+    row.NgayNghiemThu, // Ngày nghiệm thu
+    row.KetQuaXepLoai || "Chưa có kết quả", // Kết quả xếp loại (nếu có)
+    hours // Số giờ quy đổi for the specific lecturer
+  ];
+  const dataRow = worksheet.addRow(rowData);
+
+  // Định dạng dòng dữ liệu
+  dataRow.font = { name: "Times New Roman", size: 12 };
+  dataRow.alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true
+  };
+});
+
+// Add a row for the total hours
+const totalRow = worksheet.addRow(["Tổng C.1", "", "", "", "", "", totalHours]);
+
+// Merge cells from A to F for the total row
+worksheet.mergeCells(`A${totalRow.number}:F${totalRow.number}`);
+
+// Format the total row
+totalRow.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow.getCell(1).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+totalRow.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow.getCell(7).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+
+
+const titleRow22 = worksheet.addRow(["C.2 Bài báo khoa học(Phụ lục II.3 Quyết định số 1409/QĐ-HVM)"]);
+ titleRow22.font = { name: "Times New Roman", size: 12,  };
+ titleRow22.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+ worksheet.mergeCells(`A${titleRow22.number}:G${titleRow22.number}`);
+ titleRow22.height = 40; // Tăng chiều cao hàng
+    
+   const headerRowExport2 = worksheet.addRow(["TT", "Tên bài báo", "Loại tạp chí/Hội nghị", "Chỉ số tạp chí/ hội nghị", "Số người", "Tác giả chính/Thành viên", "Số giờ quy đổi"]);
+      headerRowExport2.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport2.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+   // Điều chỉnh chiều rộng cột
+   worksheet.getColumn('A').width = 4.1; // Cột TT
+   worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+   worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+   worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+   worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+   worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+   worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+
+   // ... existing code ...
+
+// Function to normalize and extract the role of the lecturer
+const getRoleForLecturer1 = (row, lecturerName) => {
+  const roles = [];
+  if (normalizeGiangVienName(row.TacGia) === lecturerName) {
+    roles.push("Tác giả");
+  }
+  if (normalizeGiangVienName(row.TacGiaChiuTrachNhiem) === lecturerName) {
+    roles.push("Tác giả chịu trách nhiệm");
+  }
+  if (row.DanhSachThanhVien.split(',').some(name => normalizeGiangVienName(name) === lecturerName)) {
+    roles.push("Thành viên");
+  }
+  return roles.join(", ");
+};
+
+// Function to extract hours for the lecturer
+const getHoursForLecturer1 = (row, lecturerName) => {
+  const roles = ["TacGia", "TacGiaChiuTrachNhiem", "ThanhVien"];
+  for (const role of roles) {
+    const roleData = row[role];
+    if (roleData && roleData.includes(lecturerName)) {
+      const match = roleData.match(/\(([^)]+)\)/);
+      if (match) {
+        const hoursString = match[1].split('-')[1].trim();
+        return parseFloat(hoursString.split(' ')[0]); // Extract the number before "giờ"
+      }
+    }
+  }
+  return 0; // Default if no hours found
+};
+
+let totalHours1 = 0; // Initialize total hours
+
+filteredBaiBaoKhoa.forEach((row, index) => {
+  const lecturerRole1 = getRoleForLecturer1(row, giangVien);
+  const hours1 = getHoursForLecturer1(row, giangVien);
+  totalHours1 += hours1; // Accumulate total hours
+
+  // Calculate the total number of people involved
+  const totalPeople = 1 + 1 + row.DanhSachThanhVien.split(',').length; // 1 for TacGia, 1 for TacGiaChiuTrachNhiem
+
+  const rowData = [
+    index + 1, // Số thứ tự (TT)
+    row.TenBaiBao, // Tên bài báo
+    row.LoaiTapChi, // Loại tạp chí/Hội nghị
+    row.ChiSoTapChi, // Chỉ số tạp chí/ hội nghị
+    totalPeople, // Số người
+    lecturerRole1, // Only include roles for the current lecturer
+    hours1 // Số giờ quy đổi for the specific lecturer
+  ];
+  const dataRow = worksheet.addRow(rowData);
+
+  // Định dạng dòng dữ liệu
+  dataRow.font = { name: "Times New Roman", size: 12 };
+  dataRow.alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true
+  };
+});
+
+// Add a row for the total hours
+const totalRow2 = worksheet.addRow(["Tổng C.2", "", "", "", "", "", totalHours1]);
+
+// Merge cells from A to F for the total row
+worksheet.mergeCells(`A${totalRow2.number}:F${totalRow2.number}`);
+
+// Format the total row
+totalRow2.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow2.getCell(1).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+totalRow2.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow2.getCell(7).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+
+// ... existing code ...
+   // Thêm các dữ liệu khác (giảng dạy, giữa kỳ, đồ án tốt nghiệp) vào worksheet
+      // ... (phần này bạn có thể thêm tương tự như trước)
+      const titleRow23 = worksheet.addRow(["C.3 Bằng sáng chế, giải thưởng khoa học trong năm (Phụ lục II.4 Quyết định số 1409/QĐ-HVM)"]);
+      titleRow23.font = { name: "Times New Roman", size: 12,  };
+      titleRow23.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow23.number}:G${titleRow23.number}`);
+      titleRow23.height = 40; // Tăng chiều cao hàng
+         
+        const headerRowExport3 = worksheet.addRow(["TT", "Tên bằng sáng chế, giải thưởng khoa học trong năm", "Số QĐ công nhận", "Ngày QĐ  công nhận", "Số người", "Tác giả chính/Thành viên", "Số giờ quy đổi"]);
+        headerRowExport3.font = { name: "Times New Roman", size: 12, bold: true };
+           headerRowExport3.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+     
+        // Điều chỉnh chiều rộng cột
+        worksheet.getColumn('A').width = 4.1; // Cột TT
+        worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+        worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+        worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+        worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+        worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+        worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+     // Function to normalize and extract the role of the lecturer
+const getRoleForLecturer2 = (row, lecturerName) => {
+  const roles = [];
+  if (normalizeGiangVienName(row.TacGia) === lecturerName) {
+    roles.push("Tác giả");
+  }
+  
+  if (row.DanhSachThanhVien.split(',').some(name => normalizeGiangVienName(name) === lecturerName)) {
+    roles.push("Thành viên");
+  }
+  return roles.join(", ");
+};
+
+// Function to extract hours for the lecturer
+const getHoursForLecturer2 = (row, lecturerName) => {
+  const roles = ["TacGia", "ThanhVien"];
+  for (const role of roles) {
+    const roleData = row[role];
+    if (roleData && roleData.includes(lecturerName)) {
+      const match = roleData.match(/\(([^)]+)\)/);
+      if (match) {
+        const hoursString = match[1].split('-')[1].trim();
+        return parseFloat(hoursString.split(' ')[0]); // Extract the number before "giờ"
+      }
+    }
+  }
+  return 0; // Default if no hours found
+};
+        let totalHoursBangSangChe = 0;
+
+        filteredBangSangCheVaGiaiThuong.forEach((row, index) => {
+          const lecturerRole = getRoleForLecturer2(row, giangVien);
+          const hours = getHoursForLecturer2(row, giangVien);
+          totalHoursBangSangChe += hours;
+      
+          const rowData = [
+            index + 1,
+            row.TenBangSangCheVaGiaiThuong,
+            row.SoQDCongNhan,
+            row.NgayQDCongNhan,
+            row.DanhSachThanhVien.split(',').length + 1, // Total number of people
+            lecturerRole,
+            hours
+          ];
+          const dataRow = worksheet.addRow(rowData);
+      
+          dataRow.font = { name: "Times New Roman", size: 12 };
+          dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+        });
+      
+        const totalRowBangSangChe = worksheet.addRow(["Tổng C.3", "", "", "", "", "", totalHoursBangSangChe]);
+        worksheet.mergeCells(`A${totalRowBangSangChe.number}:F${totalRowBangSangChe.number}`);
+        totalRowBangSangChe.font = { name: "Times New Roman", size: 12, bold: true };
+        totalRowBangSangChe.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+      
+        // ... existing code ...
+        const titleRow24 = worksheet.addRow(["C.4 Sách, giáo trình xuất bản trong nước được Hội đồng GSNN tính điểm (Phụ lục II.5 Quyết định số 1409/QĐ-HVM)"]);
+        titleRow24.font = { name: "Times New Roman", size: 12,  };
+        titleRow24.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+        worksheet.mergeCells(`A${titleRow24.number}:G${titleRow24.number}`);
+        titleRow24.height = 40; // Tăng chiều cao hàng
+           
+          const headerRowExport4 = worksheet.addRow(["TT", "Tên sáng ,giáo trình", "Số xuất bản", "Số trang", "Số người", "Tác giả chính/Thành viên", "Số giờ quy đổi"]);
+          headerRowExport4.font = { name: "Times New Roman", size: 12, bold: true };
+             headerRowExport4.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+       
+          // Điều chỉnh chiều rộng cột
+          worksheet.getColumn('A').width = 4.1; // Cột TT
+          worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+          worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+          worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+          worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+          worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+          worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+       // Function to normalize and extract the role of the lecturer
+
+// Function to normalize and extract the role of the lecturer
+const getRoleForLecturere3 = (row, lecturerName) => {
+  const roles = [];
+  if (normalizeGiangVienName(row.TacGia) === lecturerName) {
+    roles.push("Tác giả");
+  }
+  if (normalizeGiangVienName(row.DongChuBien) === lecturerName) {
+    roles.push("Đồng chủ biên");
+  }
+  if (row.DanhSachThanhVien.split(',').some(name => normalizeGiangVienName(name) === lecturerName)) {
+    roles.push("Thành viên");
+  }
+  return roles.join(", ");
+};       // Function to extract hours for the lecturer
+const getHoursForLecturer3 = (row, lecturerName) => {
+  const roles = ["TacGia", "DongChuBien", "ThanhVien"];
+  for (const role of roles) {
+    const roleData = row[role];
+    if (roleData && roleData.includes(lecturerName)) {
+      const match = roleData.match(/\(([^)]+)\)/);
+      if (match) {
+        const hoursString = match[1].split('-')[1].trim();
+        return parseFloat(hoursString.split(' ')[0]); // Extract the number before "giờ"
+      }
+    }
+  }
+  return 0; // Default if no hours found
+};
+
+let totalHour2 = 0; // Initialize total hours
+
+filteredSachVaGiaoTrinh.forEach((row, index) => {
+  const lecturerRole1 = getRoleForLecturere3(row, giangVien);
+  const hours1 = getHoursForLecturer3(row, giangVien);
+  totalHour2 += hours1; // Accumulate total hours
+
+  // Calculate the total number of people involved
+  const totalPeople = 1 + 1 + row.DanhSachThanhVien.split(',').length; // 1 for TacGia, 1 for TacGiaChiuTrachNhiem
+
+  const rowData = [
+    index + 1, // Số thứ tự (TT)
+    row.TenSachVaGiaoTrinh, // Tên bài báo
+    row.SoXuatBan, // Loại tạp chí/Hội nghị
+    row.SoTrang, // Chỉ số tạp chí/ hội nghị
+    totalPeople, // Số người
+    lecturerRole1, // Only include roles for the current lecturer
+    hours1 // Số giờ quy đổi for the specific lecturer
+  ];
+  const dataRow = worksheet.addRow(rowData);
+
+  // Định dạng dòng dữ liệu
+  dataRow.font = { name: "Times New Roman", size: 12 };
+  dataRow.alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true
+  };
+});
+
+// Add a row for the total hours
+const totalRow3 = worksheet.addRow(["Tổng C.4", "", "", "", "", "", totalHour2]);
+
+// Merge cells from A to F for the total row
+worksheet.mergeCells(`A${totalRow3.number}:F${totalRow3.number}`);
+
+// Format the total row
+totalRow3.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow3.getCell(1).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+totalRow3.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow3.getCell(7).alignment = {
+  horizontal: "center",
+  vertical: "middle",
+  wrapText: true
+};
+
+
+ // ... existing code ...
+ const titleRow25 = worksheet.addRow(["C.5 Hướng dẫn sinh viên NCKH, huấn luyện đội tuyển (Phụ lục II.6 Quyết định số 1409/QĐ-HVM)"]);
+ titleRow25.font = { name: "Times New Roman", size: 12,  };
+ titleRow25.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+ worksheet.mergeCells(`A${titleRow25.number}:G${titleRow25.number}`);
+ titleRow25.height = 40; // Tăng chiều cao hàng
+    
+   const headerRowExport5 = worksheet.addRow(["TT", "Tên đề tài", "Số QĐ giao nhiệm vụ", "Ngày ký QĐ giao nhiệm vụ", "Kết quả cấp học Khoa", "Kết quả cấp học Học Viện", "Số giờ quy đổi  "]);
+   headerRowExport5.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport5.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+   // Điều chỉnh chiều rộng cột
+   worksheet.getColumn('A').width = 4.1; // Cột TT
+   worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+   worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+   worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+   worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+   worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+   worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+// Function to normalize and extract the role of the lecturer
+
+// Function to normalize and extract the role of the lecturer
+const getRoleForLecturer5 = (row, lecturerName) => {
+const roles = [];
+if (row.DanhSachThanhVien.split(',').some(name => normalizeGiangVienName(name) === lecturerName)) {
+roles.push("Thành viên");
+}
+return roles.join(", ");
+};       // Function to extract hours for the lecturer
+const getHoursForLecturer5 = (row, lecturerName) => {
+const roles = ["ThanhVien"];
+for (const role of roles) {
+const roleData = row[role];
+if (roleData && roleData.includes(lecturerName)) {
+const match = roleData.match(/\(([^)]+)\)/);
+if (match) {
+ const hoursString = match[1].split('-')[1].trim();
+ return parseFloat(hoursString.split(' ')[0]); // Extract the number before "giờ"
+}
+}
+}
+return 0; // Default if no hours found
+};
+
+let totalHour3 = 0; // Initialize total hours
+
+filteredNCKHVaHuanLuyen.forEach((row, index) => {
+
+  const lecturerRole1 = getRoleForLecturer5(row, giangVien);
+const hours1 = getHoursForLecturer5(row, giangVien);
+totalHour3 += hours1; // Accumulate total hours
+
+// Calculate the total number of people involved
+const rowData = [
+index + 1, // Số thứ tự (TT)
+row.TenDeTai, // Tên bài báo
+row.SoQDGiaoNhiemVu, // Loại tạp chí/Hội nghị
+row.NgayQDGiaoNhiemVu, // Chỉ số tạp chí/ hội nghị
+row.KetQuaCapKhoa, // Chỉ số tạp chí/ hội nghị
+row.KetQuaCapHocVien, // Số người
+hours1 // Số giờ quy đổi for the specific lecturer
+];
+const dataRow = worksheet.addRow(rowData);
+
+// Định dạng dòng dữ liệu
+dataRow.font = { name: "Times New Roman", size: 12 };
+dataRow.alignment = {
+horizontal: "center",
+vertical: "middle",
+wrapText: true
+};
+});
+
+// Add a row for the total hours
+const totalRow5 = worksheet.addRow(["Tổng C.5", "", "", "", "", "", totalHour3]);
+
+// Merge cells from A to F for the total row
+worksheet.mergeCells(`A${totalRow5.number}:F${totalRow5.number}`);
+
+// Format the total row
+totalRow5.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow5.getCell(1).alignment = {
+horizontal: "center",
+vertical: "middle",
+wrapText: true
+};
+totalRow5.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+totalRow5.getCell(7).alignment = {
+horizontal: "center",
+vertical: "middle",
+wrapText: true
+};
 
       // Bỏ viền từ dòng 15 trở đi
       for (let rowIndex = 15; rowIndex <= worksheet.lastRow.number; rowIndex++) {
