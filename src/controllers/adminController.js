@@ -269,7 +269,25 @@ const AdminController = {
     const Khoa = req.body.isKhoa;
     const connection = await createPoolConnection();
 
-    // thêm
+    // Check trùng tên đăng nhập
+    const checkDuplicateQuery = `
+    SELECT COUNT(*) as count 
+    FROM taikhoannguoidung 
+    WHERE LOWER(TenDangNhap) = LOWER(?)
+  `;
+
+    const [duplicateRows] = await connection.query(checkDuplicateQuery, [
+      TenDangNhap,
+    ]);
+
+    console.log(duplicateRows);
+
+    if (duplicateRows[0].count > 0) {
+      connection.release(); // Giải phóng kết nối trước khi trả về
+      return res
+        .status(409)
+        .json({ message: "Tên đăng nhập đã tồn tại. Vui lòng kiểm tra lại." });
+    }
 
     // Lấy dữ liệu phòng ban
     const queryP = "SELECT MaPhongBan FROM nhanvien where id_User = ?";
@@ -292,7 +310,8 @@ const AdminController = {
       `;
       await connection.query(query1, [TenDangNhap, MaPhongBan, Quyen, Khoa]);
 
-      res.redirect("/thongTinTK?ThemTK=Success");
+      return res.status(200).json({ message: "Tạo tài khoản mới thành công" });
+      //res.redirect("/thongTinTK?ThemTK=Success");
     } catch (error) {
       console.error("Lỗi khi cập nhật dữ liệu: ", error);
       res.redirect("/thongTinTK?ThemTK=False");
@@ -1147,7 +1166,14 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
       const query = `INSERT INTO hocphan (MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon) VALUES (?, ?, ?, ?, ?, ?)`;
-      await connection.query(query, [MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon]);
+      await connection.query(query, [
+        MaHocPhan,
+        TenHocPhan,
+        DVHT,
+        KiHoc,
+        Khoa,
+        MaBoMon,
+      ]);
 
       res.redirect("/hocphan"); // Chuyển hướng về trang danh sách học phần
     } catch (error) {
