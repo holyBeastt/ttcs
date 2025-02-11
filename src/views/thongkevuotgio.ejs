@@ -162,11 +162,8 @@
     <div class="mx-5 flex-grow-1">
       <div class="d-flex justify-content-start align-items-end mb-3">
 
-        <select class="form-select mx-1 selectop" style="width: 150px;" id="HocKy">
-          <option value="ALL">Tất cả kỳ</option>
-        </select>
-        <!-- Combo box Năm -->
-        <select class="form-select mx-1 selectop" style="width: 150px;" id="NamHoc">
+        <!-- Combo box -->
+        <select class="form-select mx-1 selectop" style="width: 170px;" id="NamHoc">
           <option value="ALL">Tất cả năm</option>
       </select>
       
@@ -228,7 +225,7 @@
 $(document).ready(function () {
             // Biến để theo dõi số lượng combobox đã được khởi tạo
             let initializedComboboxes = 0;
-            const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
+            const totalComboboxes = 2; // Tổng số combobox cần khởi tạo
 
            function checkAndFetchData() {
                 initializedComboboxes++;
@@ -240,7 +237,6 @@ $(document).ready(function () {
             // Xóa các option mặc định
             $('#NamHoc option').remove();
             $('#Khoa option').remove();
-            $('#HocKy option').remove();
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
             $.ajax({
@@ -292,19 +288,11 @@ $(document).ready(function () {
                             );
                         });
                         checkAndFetchData();
-
-                        response.Ki.forEach(function (item) {
-                            $('#HocKy').append(
-                                `<option value="${item.value}">${item.Ki}</option>`
-                            );
-                        });
-                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
                     console.error("Lỗi khi lấy dữ liệu:", error);
                     // Đảm bảo fetchThongkevuotgioData vẫn được gọi ngay cả khi có lỗi
-                    checkAndFetchData();
                     checkAndFetchData();
                     checkAndFetchData();
                 }
@@ -318,11 +306,9 @@ $(document).ready(function () {
     try {
         const nam = document.getElementById('NamHoc').value;
         const khoa = document.getElementById('Khoa').value;
-        const hocky = document.getElementById('HocKy').value; // Lấy giá trị Kỳ
 
         console.log("Nam hoc:", nam);
         console.log("Khoa:", khoa);
-        console.log("Hoc Ky:", hocky); // Kiểm tra giá trị Kỳ
 
         let url = '/api/thongkevuotgio-data';
         const params = new URLSearchParams();
@@ -331,7 +317,6 @@ $(document).ready(function () {
         if (khoa === 'ALL' || (khoa && khoa !== '')) {
             params.append('khoa', khoa);
         }
-        if (hocky && hocky !== 'ALL') params.append('hocky', hocky); // Thêm hocky vào params
 
         if (params.toString()) {
             url += '?' + params.toString();
@@ -600,7 +585,6 @@ function updateCharts(data, khoa) {
       // Thêm event listeners
       document.getElementById('NamHoc').addEventListener('change', fetchThongkevuotgioData);
       document.getElementById('Khoa').addEventListener('change', fetchThongkevuotgioData);
-      document.getElementById('HocKy').addEventListener('change', fetchThongkevuotgioData); // Thêm event listener cho Kỳ
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {

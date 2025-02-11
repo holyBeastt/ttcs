@@ -7,7 +7,7 @@ const thongkevuotgioController = {
 
   getThongkevuotgioData: async (req, res) => {
     let connection;
-    const { namhoc, khoa, hocky } = req.query;
+    const { namhoc, khoa } = req.query;
 
     try {
       connection = await createConnection();
@@ -63,7 +63,7 @@ const thongkevuotgioController = {
                           FROM 
                               giuaky
                           WHERE 
-                              NamHoc = ? AND HocKy = ?
+                              NamHoc = ? 
                           GROUP BY 
                               id_User
                       ) gk 
@@ -76,7 +76,6 @@ const thongkevuotgioController = {
                   WHERE 
                       gd.NamHoc = ? 
                       AND gd.Khoa = ? 
-                      AND gd.HocKy = ? 
                       AND gd.id_User != 1
                   GROUP BY 
                       gd.GiangVien, nv.ChucVu -- Thêm nv.ChucVu vào GROUP BY
@@ -84,7 +83,7 @@ const thongkevuotgioController = {
                       TongSoTiet DESC;
 
                 `;
-        params.push(namhoc, hocky, namhoc, khoa, hocky);
+        params.push(namhoc, namhoc, khoa);
       } else {
         // Query for all departments
         query = `
@@ -115,13 +114,13 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        WHERE NamHoc = ? AND HocKy = ?
+                        WHERE NamHoc = ? 
                         GROUP BY id_User) gk 
                     ON gd.id_User = gk.id_User
                     LEFT JOIN 
                         nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
-                        gd.NamHoc = ? AND gd.HocKy = ? AND gd.id_User != 1
+                        gd.NamHoc = ? AND gd.id_User != 1
                     GROUP BY 
                         gd.Khoa, gd.GiangVien, nv.ChucVu
                 )
@@ -133,7 +132,7 @@ const thongkevuotgioController = {
                 GROUP BY Khoa 
                 ORDER BY SoTietVuotGio DESC;
                 `;
-        params.push(namhoc, hocky, namhoc, hocky);
+        params.push(namhoc, namhoc);
       }
 
       // Add parameters for the query
@@ -177,9 +176,9 @@ const thongkevuotgioController = {
     try {
       connection = await createConnection();
       const query = `
-                SELECT DISTINCT HocKy, NamHoc, Khoa 
+                SELECT DISTINCT NamHoc, Khoa 
                 FROM giangday 
-                ORDER BY NamHoc DESC, HocKy DESC;
+                ORDER BY NamHoc DESC;
             `;
       const [result] = await connection.query(query);
       res.json(result);
@@ -193,7 +192,7 @@ const thongkevuotgioController = {
 
   getThongkeGiangDayData: async (req, res) => {
     let connection;
-    const { hocky, namhoc, khoa } = req.query;
+    const { namhoc, khoa } = req.query;
 
     try {
       connection = await createConnection();
@@ -205,7 +204,7 @@ const thongkevuotgioController = {
                     giangday gd
                 WHERE 
                     gd.id_User != 1
-                    gd.NamHoc = ? AND gd.Khoa = ? AND gc.HocKy=?
+                    gd.NamHoc = ? AND gd.Khoa = ? 
                 GROUP BY 
                     gd.giangvien
                 ORDER BY 
@@ -215,7 +214,6 @@ const thongkevuotgioController = {
       // Xây dựng mảng tham số
       const params = [];
       if (namhoc) params.push(namhoc);
-      if (hocky) params.push(hocky);
       if (khoa && khoa !== "ALL") params.push(khoa);
 
       // In ra câu truy vấn và tham số để kiểm tra
