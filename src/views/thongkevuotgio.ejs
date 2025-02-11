@@ -256,12 +256,12 @@ $(document).ready(function () {
 
                         // Kiểm tra nếu người dùng có MaPhongBan cụ thể
                         const MaPhongBan = localStorage.getItem("MaPhongBan");
-                        const NonPhongBan = ['DAOTAO', 'HV', 'KHCN&HTPT', 'TAICHINH'];
+                        const isKhoa = localStorage.getItem("isKhoa");
 
-                        if (MaPhongBan && NonPhongBan.includes(MaPhongBan)) {
-                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL"
-                        } else if (MaPhongBan) {
-                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan
+                        if (isKhoa == 0) {
+                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
+                        } else if (isKhoa == 1) {
+                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
                             $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
                         }
 
@@ -631,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isKhoa == 1) {
          // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
             document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-    } else {
+    } else if(isKhoa == 0){
         // Nếu isKhoa = 0, hiển thị combobox Khoa
         document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
     }
