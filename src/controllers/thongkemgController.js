@@ -61,24 +61,69 @@ const thongkemgController = {
         }
     },
 
-    getFilterOptions: async (req, res) => {
-        let connection;
+    getNamHocData: async (req, res) => {
         try {
-            connection = await createConnection();
-            const query = `
-                SELECT DISTINCT kihoc, namhoc 
-                FROM hopdonggvmoi 
-                ORDER BY namhoc DESC, kihoc DESC;
-            `;
-            const [result] = await connection.query(query);
-            res.json(result);
-        } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu filter:", err);
-            res.status(500).send("Lỗi máy chủ");
-        } finally {
-            if (connection) connection.release();
+            const connection = await createConnection();
+            
+            // Lấy dữ liệu từ database
+            const [namHoc] = await connection.query(
+                "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
+            );
+            const [ki] = await connection.query(
+                "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
+            );
+            const [khoa] = await connection.query(
+                "SELECT DISTINCT MaPhongBan as value, MaPhongBan as Khoa FROM hopdonggvmoi ORDER BY MaPhongBan"
+            );
+    
+            // Thêm option "Tất cả" vào đầu mỗi mảng
+            const allNamHoc = [{ NamHoc: 'ALL' }, ...namHoc];
+            const allKi = [{ Ki: 'Tất cả kỳ', value: 'ALL' }, ...ki];
+            const allKhoa = [{ value: 'ALL', Khoa: 'Tất cả khoa' }, ...khoa];
+    
+            const data = {
+                success: true,
+                NamHoc: allNamHoc,
+                Ki: allKi,
+                Khoa: allKhoa
+            };
+    
+            connection.release();
+            res.json(data);
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu:", error);
+            res.status(500).json({
+                success: false,
+                message: "Lỗi server"
+            });
         }
-    }
+    },
+    
+    getPhongBanMG: async (req, res)=>{
+        try {
+            const connection = await createConnection();
+            // Thêm DISTINCT để loại bỏ các giá trị trùng lặp
+            const [phongBan] = await connection.query(
+                "SELECT DISTINCT MaPhongBan FROM hopdonggvmoi ORDER BY MaPhongBan"
+            );
+            
+            // Tạo mảng mới không có giá trị trùng lặp
+            const uniquePhongBan = Array.from(new Set(phongBan.map(item => item.MaPhongBan)))
+                .map(maPB => ({ MaPhongBan: maPB }));
+            
+            connection.release();
+            res.json({
+                success: true,
+                MaPhongBan: uniquePhongBan
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+            res.status(500).json({
+                success: false,
+                message: "Lỗi server"
+            });
+        }
+    },
 };
 
 module.exports = thongkemgController;

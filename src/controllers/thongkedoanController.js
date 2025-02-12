@@ -2,7 +2,7 @@ const createConnection = require("../config/databasePool");
 
 const thongkedoanController = {
   getData: async (req, res) => {
-    const { namhoc, khoa } = req.query;
+    const { namhoc, khoa, dot } = req.query;
     let connection;
     let query;
     const params = [];
@@ -30,6 +30,11 @@ const thongkedoanController = {
       if (namhoc && namhoc !== "ALL") {
         query += " AND NamHoc = ?";
         params.push(namhoc);
+      }
+  
+      if (dot && dot !== "ALL") {
+        query += " AND Dot = ?";
+        params.push(dot);
       }
   
       query += `
@@ -61,17 +66,9 @@ const thongkedoanController = {
         FROM exportdoantotnghiep 
         ORDER BY namhoc DESC
       `);
-
-      const [khoa] = await connection.query(`
-        SELECT DISTINCT MaPhongBan AS value, MaPhongBan AS Khoa 
-        FROM exportdoantotnghiep 
-        ORDER BY MaPhongBan
-      `);
-
       res.json({
         success: true,
         NamHoc: [{ NamHoc: "ALL" }, ...namHoc],
-        Khoa: [{ value: "ALL", Khoa: "Tất cả khoa" }, ...khoa],
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu filter:", error);
@@ -97,6 +94,28 @@ const thongkedoanController = {
       res.json({ success: true, MaPhongBan: uniquePhongBan });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+      res.status(500).json({ success: false, message: "Lỗi server" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  getDotOptions: async (req, res) => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const [dot] = await connection.query(`
+        SELECT DISTINCT Dot 
+        FROM exportdoantotnghiep 
+        ORDER BY Dot
+      `);
+
+      res.json({
+        success: true,
+        Dot: dot,
+      });
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu đợt:", error);
       res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
       if (connection) connection.release();
