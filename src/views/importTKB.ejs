@@ -178,72 +178,169 @@
       let dataTam = []; // Biến lưu dữ liệu tạm
 
       // Lắng nghe sự kiện click
+      // Gắn sự kiện cho nút "import"
       document
         .getElementById("chooseFile")
-        .addEventListener("click", function () {
+        .addEventListener("click", async function () {
+          const dotValue = document.getElementById("combobox-dot").value;
+          const kiValue = document.getElementById("comboboxki").value;
+          const namValue = document.getElementById("NamHoc").value;
+
+          const semester = `${dotValue}, ${kiValue}, ${namValue}`;
+
           // Tạo input file
           const fileInput = document.createElement("input");
           fileInput.type = "file";
-          fileInput.accept = ".xlsx,.docx,.pdf, .xls"; // Loại file cho phép
+          fileInput.accept = ".xlsx, .xls"; // Loại file cho phép
 
-          // Khi file được chọn
-          fileInput.addEventListener("change", function () {
-            const selectedFile = fileInput.files[0];
-            if (!selectedFile) {
-              console.error("Chưa chọn file.");
-              return;
-            }
-            // Lấy dữ liệu khoa, đợt, kì, năm
-            const dot = document.getElementById("combobox-dot").value;
-            const ki = document.getElementById("comboboxki").value;
-            const nam = document.getElementById("NamHoc").value;
-
-            const semester = `${dot}, ${ki}, ${nam}`;
-
-            // Tạo FormData
-            const formData = new FormData();
-            formData.append("file", selectedFile); // Tên param "file"
-            formData.append("semester", `${dot}, ${ki}, ${nam}`); // Thêm param "semester"
-
-            // Gửi yêu cầu POST đến server
-            // http://42.112.213.93:8080/api/v1/excel/upload
-            // http://localhost:8080/api/v1/excel/upload
-            fetch("http://42.112.213.93:8080/api/v1/excel/upload", {
-              method: "POST",
-              body: formData,
-            })
-              .then((response) => {
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                  return response.json(); // Phản hồi dạng JSON
-                } else {
-                  return response.text(); // Phản hồi dạng text
-                }
-              })
-              .then((data) => {
-                if (typeof data === "string") {
-                  if (data != "File processed successfully") return;
-                  insertDataAgain(semester);
-                  return;
-                }
-
-                // Kiểm tra dữ liệu JSON
-                if (!data || data.length === 0) {
-                  throw new Error("Dữ liệu trả về trống");
-                }
-                console.log("Dữ liệu thô từ server:", data);
-              })
-              .catch((error) => {
-                console.error(
-                  "Lỗi khi tải file hoặc xử lý dữ liệu:",
-                  error.message
-                );
-              });
+          // Đợi file được chọn
+          const selectedFile = await new Promise((resolve) => {
+            fileInput.addEventListener("change", function () {
+              resolve(fileInput.files[0]);
+            });
+            fileInput.click(); // Mở hộp thoại chọn file
           });
 
-          // Tự động mở hộp thoại chọn file
-          fileInput.click();
+          if (!selectedFile) {
+            console.error("Chưa chọn file.");
+            return;
+          }
+
+          // Tạo FormData
+          const formData = new FormData();
+          formData.append("file", selectedFile); // Tên param "file"
+          formData.append("semester", semester); // Thêm param "semester"
+
+          await checkDataExistence(semester, formData);
         });
+
+      async function checkDataExistence(semester, formData) {
+        const body = {
+          semester: semester,
+        };
+        fetch("/api/check-data-TKB-exist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Kiểm tra dữ liệu thất bại");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.exists) {
+              showModal(semester, formData);
+            } else {
+              importFileTKB(semester, formData);
+            }
+          })
+          .catch((error) => {
+            alert("Kiểm tra dữ liệu file quy chuẩn thất bại!");
+            console.error("Error:", error);
+          });
+      }
+
+      // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
+      function showModal(semester, formData) {
+        const modal = document.getElementById("action-modal");
+        const message = `Đã tồn tại dữ liệu Đợt ${semester}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
+        Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
+        document.getElementById("modal-message").innerText = message;
+        modal.style.display = "block";
+
+        // Xử lý sự kiện "Xóa"
+        const deleteButton = document.getElementById("btn-delete");
+        deleteButton.onclick = function handleDeleteClick() {
+          modal.style.display = "none";
+          deleteFile(semester, formData);
+        };
+
+        // Xử lý sự kiện "Chèn"
+        const appendButton = document.getElementById("btn-append");
+        appendButton.onclick = function handleAppendClick() {
+          modal.style.display = "none";
+          importFileTKB(semester, formData);
+        };
+
+        // Xử lý sự kiện "Hủy"
+        document.getElementById("btn-cancel").onclick = function () {
+          modal.style.display = "none";
+        };
+      }
+
+      // Hàm gửi yêu cầu xóa dữ liệu
+      function deleteFile(semester, formData) {
+        const body = {
+          major: "ALL",
+          semester: semester,
+        };
+
+        fetch("/api/delete-data-TKB", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Xóa dữ liệu thất bại");
+            }
+            importFileTKB(semester, formData);
+          })
+          .catch((error) => {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Xóa dữ liệu thất bại",
+              icon: "error",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+            console.error("Error:", error);
+          });
+      }
+
+      async function importFileTKB(semester, formData) {
+        // Gửi yêu cầu POST đến server
+        // http://42.112.213.93:8080/api/v1/excel/upload
+        // http://localhost:8080/api/v1/excel/upload
+        fetch("/api/v1/excel/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              return response.json(); // Phản hồi dạng JSON
+            } else {
+              return response.text(); // Phản hồi dạng text
+            }
+          })
+          .then((data) => {
+            if (typeof data === "string") {
+              if (data != "File processed successfully") return;
+              insertDataAgain(semester);
+              return;
+            }
+
+            // Kiểm tra dữ liệu JSON
+            if (!data || data.length === 0) {
+              throw new Error("Dữ liệu trả về trống");
+            }
+            console.log("Dữ liệu thô từ server:", data);
+          })
+          .catch((error) => {
+            console.error(
+              "Lỗi khi tải file hoặc xử lý dữ liệu:",
+              error.message
+            );
+          });
+      }
 
       async function insertDataAgain(semester) {
         fetch("/api/insert-data-TKB-again", {
@@ -306,291 +403,6 @@
         // Chèn bảng vào div với id="dataTableContainer"
         document.getElementById("dataTableContainer").innerHTML = tableHtml;
       }
-    </script>
-
-    <!-- phần xử lí thêm vào bảng tam -->
-    <script>
-      // Hàm kiểm tra dữ liệu tồn tại trên server
-      function checkDataExistence(
-        khoaValue,
-        dotValue,
-        kiValue,
-        namValue,
-        dataTam
-      ) {
-        const body = {
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        };
-        fetch("/kiem-tra-file", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Kiểm tra dữ liệu thất bại");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.exists) {
-              showModal(khoaValue, dotValue, kiValue, namValue, dataTam);
-            } else {
-              saveData(dataTam, khoaValue, dotValue, kiValue, namValue);
-            }
-          })
-          .catch((error) => {
-            alert("Kiểm tra dữ liệu file quy chuẩn thất bại!");
-            console.error("Error:", error);
-          });
-      }
-
-      // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
-      function showModal(khoaValue, dotValue, kiValue, namValue, dataTam) {
-        const modal = document.getElementById("action-modal");
-        const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
-      Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
-        document.getElementById("modal-message").innerText = message;
-        modal.style.display = "block";
-
-        // Xử lý sự kiện "Xóa"
-        const deleteButton = document.getElementById("btn-delete");
-        deleteButton.onclick = function handleDeleteClick() {
-          modal.style.display = "none";
-          deleteFile(khoaValue, dotValue, kiValue, namValue);
-        };
-
-        // Xử lý sự kiện "Chèn"
-        const appendButton = document.getElementById("btn-append");
-        appendButton.onclick = function handleAppendClick() {
-          modal.style.display = "none";
-          appendData(khoaValue, dotValue, kiValue, namValue, dataTam);
-        };
-
-        // Xử lý sự kiện "Hủy"
-        document.getElementById("btn-cancel").onclick = function () {
-          modal.style.display = "none";
-        };
-      }
-
-      // Hàm gửi yêu cầu xóa dữ liệu
-      function deleteFile(khoaValue, dotValue, kiValue, namValue) {
-        const body = {
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        };
-
-        fetch("/xoa-file", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Xóa dữ liệu thất bại");
-            }
-            appendData(khoaValue, dotValue, kiValue, namValue, dataTam);
-            // alert("Xóa thành công!");
-            location.reload();
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: "Thông báo",
-              html: "Xóa dữ liệu thất bại",
-              icon: "error",
-              confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
-            });
-            console.error("Error:", error);
-          });
-      }
-
-      // Hàm gửi dữ liệu và chèn thêm
-      function appendData(khoaValue, dotValue, kiValue, namValue, dataTam) {
-        const updatedData = dataTam.map((item) => ({
-          ...item,
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        }));
-
-        fetch("/save-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Chèn thành công",
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-              location.reload();
-            } else {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Chèn thêm thất bại",
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      }
-
-      // Hàm gửi dữ liệu khi dữ liệu không tồn tại
-      function saveData(dataTam, khoaValue, dotValue, kiValue, namValue) {
-        const updatedData = dataTam.map((item) => ({
-          ...item,
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        }));
-
-        fetch("/save-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            } else {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thất bại",
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            }
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: "Thông báo",
-              html: "Gửi dữ liệu thất bại",
-              icon: "success",
-              confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
-            });
-          });
-      }
-
-      function saveDataAll(dataTam, dotValue, kiValue, namValue) {
-        const updatedData = dataTam.map((item) => ({
-          ...item,
-          // Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        }));
-
-        fetch("/save-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            } else {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thất bại",
-                icon: "error",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            Swal.fire({
-              title: "Thông báo",
-              html: "Gửi dữ liệu thất bại",
-              icon: "error",
-              confirmButtonText: "OK",
-              width: "auto", // Tự động điều chỉnh chiều rộng
-              padding: "20px", // Giữ khoảng cách cho nội dung
-            });
-          });
-      }
-
-      // Gắn sự kiện cho nút "import"
-      document.getElementById("import").addEventListener("click", function () {
-        const khoaValue = document.getElementById("MaPhongBan").value;
-        const dotValue = document.getElementById("combobox-dot").value;
-        const kiValue = document.getElementById("comboboxki").value;
-        const namValue = document.getElementById("NamHoc").value;
-
-        if (khoaValue !== "ALL") {
-          checkDataExistence(khoaValue, dotValue, kiValue, namValue, dataTam);
-        } else {
-          console.log("import all");
-          saveDataAll(dataTam, dotValue, kiValue, namValue);
-        }
-      });
     </script>
 
     <script>

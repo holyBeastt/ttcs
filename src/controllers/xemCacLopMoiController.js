@@ -149,9 +149,11 @@ const renderInfo = async (req, res) => {
   const { Dot, Ki, Nam, he_dao_tao } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
 
   // Xác định query SQL dựa trên isKhoa
-  let queryAppend = " AND he_dao_tao not like '%Đại học%'";
+  let queryAppend = "";
   if (he_dao_tao == "Đại học") {
     queryAppend = " AND he_dao_tao like '%Đại học%'";
+  } else if (he_dao_tao == "Sau đại học") {
+    queryAppend = " AND he_dao_tao not like '%Đại học%'";
   }
   let query = "";
   let queryParams = [Dot, Ki, Nam];

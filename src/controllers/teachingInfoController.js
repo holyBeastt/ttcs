@@ -523,13 +523,7 @@ const getTeachingInfo2 = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    // Lấy danh sách phòng ban để lọc
-    const qrPhongBan = `select MaPhongBan from phongban where isKhoa = 1`;
-    const [phongBanList] = await connection.query(qrPhongBan);
-
-    res.render("teachingInfo2.ejs", {
-      phongBanList: phongBanList,
-    });
+    res.render("teachingInfo2.ejs");
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).send("Internal Server Error");
@@ -656,6 +650,32 @@ const getBoMon = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
   }
 };
+
+const getPhongBanList = async (req, res) => {
+  let connection;
+
+  try {
+    // Tạo kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Xác định truy vấn dựa vào MaPhongBan
+    const query = `select MaPhongBan, TenPhongBan from phongban`;
+
+    // Thực hiện truy vấn với kết nối
+    const [results] = await connection.query(query);
+
+    // Trả về kết quả truy vấn
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Lỗi trong hàm getBoMon:", error);
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
+  }
+};
+
 const SaveNote = async (req, res) => {
   let connection = await createPoolConnection();
   try {
@@ -713,4 +733,5 @@ module.exports = {
   getBoMon,
   SaveNote,
   DoneNote,
+  getPhongBanList,
 };

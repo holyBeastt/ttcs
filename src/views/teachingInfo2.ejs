@@ -412,6 +412,7 @@
       let nameGvm = []; // Biến toàn cục để lưu tên giảng viên theo khoa
       let rs = [];
       var boMon = [];
+      let phongBanList = [];
 
       //  Hàm khởi động ứng dụng
       function init() {
@@ -422,6 +423,7 @@
 
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
+        // Lấy dữ liệu bộ môn
         try {
           const response = await fetch('/bo-mon', {
             method: 'POST', // Thay đổi thành POST
@@ -438,6 +440,22 @@
           const data = await response.json(); // Chuyển đổi dữ liệu JSON
           boMon = data;
           console.log('Bộ môn : ', boMon)
+
+        } catch (error) {
+          console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+        }
+
+        try {
+          const response = await fetch('/api/get-phong-ban-list', {
+            method: 'GET', // Thay đổi thành POST
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+
+          const data = await response.json(); // Chuyển đổi dữ liệu JSON
+          phongBanList = data;
 
         } catch (error) {
           console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
@@ -1217,12 +1235,6 @@
     </script>
 
     <script>
-      // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-      const phongBanData = <% - JSON.stringify(phongBanList) %>
-        localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
-
-      console.log("dl = ", )
-
       // Hàm gợi ý bộ môn ở ô nhập 
       function showSuggestionsKhoa(input) {
         const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
@@ -1248,10 +1260,7 @@
         let suggestions = []; // Khởi tạo mảng gợi ý
 
         // Lấy dữ liệu từ localStorage
-        const boMon = JSON.parse(localStorage.getItem("phongBanList")) || []; // Giảng viên mời
-        console.log(boMon)
-
-        suggestions = boMon.map(item => `${item.MaPhongBan}`);
+        suggestions = phongBanList.map(item => `${item.MaPhongBan}`);
 
 
         // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
