@@ -392,6 +392,8 @@
 
   async function loadLopMoiData() {
     const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    const TenNhanVien = localStorage.getItem('TenNhanVien');
+    console.log(TenNhanVien);
     const Dot = document.getElementById('combobox-dot').value;
     const Ki = document.getElementById('comboboxki').value;
     const Nam = document.getElementById('NamHoc').value;
@@ -413,6 +415,16 @@
 
       if (data.success) {
         if (data.maBoMon && data.maBoMon.length > 0) {
+          // Sắp xếp GiangVien giống TenNhanVien lên đầu
+          data.maBoMon.sort((a, b) => {
+            const gvA = a.GiangVien.trim().toLowerCase();
+            const gvB = b.GiangVien.trim().toLowerCase();
+            const target = TenNhanVien.trim().toLowerCase();
+
+            if (gvA === target) return -1;
+            if (gvB === target) return 1;
+            return 0;
+          });
           console.log('Dữ liệu bộ môn:', data);
           renderTable(data);
         } else {

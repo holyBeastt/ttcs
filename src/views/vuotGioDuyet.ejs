@@ -465,10 +465,22 @@
               rows[i].cells[9].style.display = 'none';
             }
           } else {
-            alert("Dữ liệu trống!");
+            Swal.fire({
+              title: "Thông báo",
+              text: "Dữ liệu trống",
+              icon: "error",
+              // showCancelButton: true,
+              confirmButtonText: "Đồng ý",
+            });
           }
         } else {
-          alert("Không tìm thấy dữ liệu!");
+          Swal.fire({
+              title: "Thông báo",
+              text: "Không có dữ liệu phù hợp",
+              icon: "error",
+              // showCancelButton: true,
+              confirmButtonText: "Đồng ý",
+            });
         }
 
 
@@ -898,18 +910,44 @@
           });
           const result = await response.json();
           if (!result.success) {
-            alert("Lỗi khi lưu ghi chú vào CSDL: " + result.message);
+            Swal.fire({
+              title: "Thông báo",
+              text: "Lỗi khi lưu ghi chú vào CSDL: " + result.message,
+              icon: "error",
+              confirmButtonText: "Đồng ý",
+            });
           } else {
-            alert("Cập nhật thành công");
+            Swal.fire({
+              title: "Thông báo",
+              text: "Cập nhật thành công",
+              icon: "success",
+              confirmButtonText: "Đồng ý",
+            });
           }
         } catch (error) {
-          alert("Lỗi khi gửi yêu cầu đến server: " + error);
+          Swal.fire({
+            title: "Thông báo",
+            text: "Lỗi khi gửi yêu cầu đến server: " + error,
+            icon: "error",
+            confirmButtonText: "Đồng ý",
+          });
         }
       } else {
-        alert("ID của hàng hiện tại không tồn tại.");
+        Swal.fire({
+          title: "Thông báo",
+          text: "ID của hàng hiện tại không tồn tại.",
+          icon: "error",
+          confirmButtonText: "Đồng ý",
+        });
       }
     } else {
-      alert("currentRow không được xác định.");
+      alert();
+      Swal.fire({
+        title: "Thông báo",
+        text: "currentRow không được xác định.",
+        icon: "error",
+        confirmButtonText: "Đồng ý",
+      });
     }
 
     closeNoteForm();
@@ -947,7 +985,12 @@
         alert("ID của hàng hiện tại không tồn tại.");
       }
     } else {
-      alert("currentRow không được xác định.");
+      Swal.fire({
+        title: "Thông báo",
+        text: "currentRow không được xác định.",
+        icon: "error",
+        confirmButtonText: "Đồng ý",
+      });
     }
 
     closeNoteForm();

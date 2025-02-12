@@ -20,11 +20,14 @@ router.delete("/TKB-delete-row/:id", TKBController.deleteRow);
 // Cập nhật số lượng sinh viên
 router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
 
+// Lưu từ TKB sang quy chuẩn dự kiến
 router.post("/save-data-tkb-to-qcdk", TKBController.themTKBVaoQCDK);
 
+// Thêm dòng vào TKB
 router.post("/api/addRowTKB", TKBController.addNewRowTKB);
 
-router.post("/api/xoa-TKB", TKBController.deleteTKB);
+// Xóa bảng thời khóa biểu
+router.post("/api/delete-data-TKB", TKBController.deleteTKB);
 
 router.post(
   "/api/export-multiple-worksheet-TKB",
@@ -38,5 +41,8 @@ router.post(
 
 // Làm lại dữ liệu TKB
 router.post("/api/insert-data-TKB-again", TKBController.insertDataAgain);
+
+// Check dữ liệu bảng TKB
+router.post("/api/check-data-TKB-exist", TKBController.checkDataTKBExist);
 
 module.exports = router;

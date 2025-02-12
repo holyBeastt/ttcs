@@ -369,7 +369,6 @@ const updateLopThiGk = async (req, res) => {
     for (let data of globalData) {
       const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } =
         data;
-
       // Truy vấn dữ liệu từ bảng giangday bằng MaGiangDay
       const query1 = `SELECT * FROM giangday WHERE MaGiangDay = ?`;
       let [rows] = await connection.query(query1, [MaGiangDay]);
@@ -430,32 +429,40 @@ const updateLopThiGk = async (req, res) => {
           row.Khoa,
           row.he_dao_tao,
         ];
+        const query = `
+          INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE 
+            id_User = VALUES(id_User),
+            HeSoT7CN = VALUES(HeSoT7CN),
+            GiangVien = VALUES(GiangVien),
+            HinhThucKTGiuaKy = VALUES(HinhThucKTGiuaKy),
+            SoTietKT = VALUES(SoTietKT),
+            SoDe = VALUES(SoDe);
+        `;
 
-        const query1 = `SELECT COUNT(*) AS count 
-                                FROM giuaky 
-                                WHERE MaGiangDayNguon = ? AND Nguon = ?`;
-        const [rows] = await connection.query(query1, [
-          row.MaGiangDay,
-          "giangday",
-        ]);
-        if (rows[0].count === 0) {
-          const query2 = `
-                    INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-          await connection.query(query2, valuesToInsert);
-        } else {
-          const query2 = `
-                    UPDATE giuaky SET id_User = ?, HeSoT7CN = ?, GiangVien = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, SoDe = ? WHERE MaGiangDayNguon = ? AND Nguon = ?;`;
-          await connection.query(query2, [
+        try {
+          await connection.query(query, [
+            row.MaGiangDay,
+            row.TenHocPhan,
             id_User,
             heSoT7CN,
+            row.SoSV,
+            row.HocKy,
+            row.NamHoc,
+            row.MaHocPhan,
             GiangVien,
             hinhThucKTGiuaKy,
             SoTietKT,
+            row.Lop,
             SoDe,
-            row.MaGiangDay,
-            "giangday",
+            row.Khoa,
+            row.he_dao_tao,
+            "giangday", // Thêm giá trị cho cột `Nguon`
           ]);
+        
+        } catch (error) {
+          console.error("Lỗi khi thực hiện truy vấn:", error);
         }
 
         const query3 = `UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy= ?, GiangVienCoiGK= ?  WHERE MaGiangDay = ?`;
@@ -465,7 +472,7 @@ const updateLopThiGk = async (req, res) => {
           MaGiangDay,
         ]);
       } else {
-        const query2 = `DELETE FROM giuaky WHERE MaGiangDay = ?`;
+        const query2 = `DELETE FROM giuaky WHERE MaGiangDayNguon = ?`;
         await connection.query(query2, [MaGiangDay]);
         const query3 = `UPDATE giangday SET DaChon = 0, GiangVienCoiGK= NULL WHERE MaGiangDay = ?`;
         await connection.query(query3, [MaGiangDay]);
