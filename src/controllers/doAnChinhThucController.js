@@ -188,11 +188,14 @@ const updateDoAn = async (req, res) => {
   const NamHoc = req.query.NamHoc;
   const MaPhongBan = req.query.MaPhongBan;
 
-  let connection;
+  let connection, GiangVien;
+  const errors = []; // Tích lũy lỗi
 
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
+
+    const uniqueGV = (await getDuplicateUniqueGV()).uniqueGV;
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
@@ -212,16 +215,45 @@ const updateDoAn = async (req, res) => {
       } = item;
 
       if (KhoaDuyet == 1) {
+        // Xử lý giảng viên 1
+        if (item.GiangVien1.includes("-")) {
+          GiangVien = item.GiangVien1.split(" - ")[0];
+        } else {
+          const matchedItem = uniqueGV.find(
+            (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
+          );
+
+          if (!matchedItem) {
+            errors.push(
+              `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+            );
+            continue;
+          }
+        }
+
         if (!GiangVien1 || GiangVien1.length === 0) {
-          return res.status(200).json({
-            message: `Dòng thứ ${TT} chưa được điền giảng viên hướng dẫn`,
-          });
+          errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
+          continue;
         }
 
         if (GiangVien2 == "" || GiangVien2 == null) {
-          return res.status(200).json({
-            message: `Dòng thứ ${TT} chưa được điền giảng viên hướng dẫn`,
-          });
+          errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
+          continue;
+        } else if (item.GiangVien2.toLowerCase().trim() != "không") {
+          if (item.GiangVien2.includes("-")) {
+            GiangVien = item.GiangVien2.split(" - ")[0];
+          } else {
+            const matchedItem = uniqueGV.find(
+              (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
+            );
+
+            if (!matchedItem) {
+              errors.push(
+                `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+              );
+              continue;
+            }
+          }
         }
       }
 
@@ -256,18 +288,23 @@ const updateDoAn = async (req, res) => {
       } else {
         // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
         updateQuery = `
-      UPDATE doantotnghiep
-      SET 
-        KhoaDuyet = ?,
-        DaoTaoDuyet = ?,
-        TaiChinhDuyet = ?
-      WHERE ID = ?
-    `;
+        UPDATE doantotnghiep
+        SET 
+          KhoaDuyet = ?,
+          DaoTaoDuyet = ?,
+          TaiChinhDuyet = ?
+        WHERE ID = ?
+      `;
 
         updateValues = [KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, ID];
       }
 
       await connection.query(updateQuery, updateValues);
+    }
+
+    // Nếu có lỗi, trả về thông báo lỗi
+    if (errors.length > 0) {
+      return res.status(200).json({ message: `Có lỗi xảy ra ${errors}` });
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });
@@ -805,9 +842,9 @@ const getDuplicateUniqueGV = async () => {
     const normalizeName = (name) => name.replace(/\s*\(.*?\)\s*/g, "").trim();
 
     // Lấy dữ liệu giảng viên mời và cơ hữu
-    const [gvms] = await connection.query(`SELECT HoTen, CCCD FROM GVMOI`);
+    const [gvms] = await connection.query(`SELECT HoTen, CCCD FROM gvmoi`);
     const [nvs] = await connection.query(
-      `SELECT TenNhanVien, CCCD FROM NHANVIEN`
+      `SELECT TenNhanVien, CCCD FROM nhanvien`
     );
 
     // Gộp và chuẩn hóa danh sách
@@ -1025,7 +1062,7 @@ const saveToExportDoAn = async (req, res) => {
 
     // Nếu có lỗi, trả về thông báo lỗi
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Có lỗi xảy ra", errors });
+      return res.status(200).json({ message: `Có lỗi xảy ra ${errors}` });
     }
 
     if (count == 0) {

@@ -790,7 +790,7 @@ const deleteTKB = async (req, res) => {
     const [result] = await connection.query(sql, params);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Không có dữ liệu để xóa" });
+      return res.status(200).json({ message: "Không có dữ liệu để xóa" });
     }
 
     res.status(200).json({ message: "Xóa thành công" });

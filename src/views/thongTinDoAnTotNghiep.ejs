@@ -1057,9 +1057,12 @@
               if (data.message.toLowerCase() == "cập nhật thành công") {
                 thongBao = "success";
               }
+
+              const messageWithLineBreaks = data.message.replace(/\n/g, "<br>");
+
               Swal.fire({
                 title: "Thông báo",
-                html: data.message,
+                html: messageWithLineBreaks,
                 icon: thongBao,
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
