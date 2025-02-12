@@ -19,6 +19,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
     <style>
       input,
@@ -660,7 +661,12 @@
               console.log("Dữ liệu bộ môn:", data);
               renderTable(data);
             } else {
-              alert("Dữ liệu trống!");
+              Swal.fire({
+              title: "Thông báo",
+              text: "Dữ liệu trống",
+              icon: "error",
+              confirmButtonText: "Đồng ý",
+            });
             }
           } else {
             alert("Không tìm thấy dữ liệu!");
@@ -755,8 +761,10 @@
 
           // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
           const option = [
-            { value: "Mật mã", text: "Mật mã" },
-            { value: "Đóng học phí", text: "Đóng học phí" },
+            { value: "Đại học (Mật mã)", text: "Đại học (Mật mã)" },
+            { value: "Đại học (Đóng học phí)", text: "Đại học (Đóng học phí)" },
+            { value: "Cao học (Đóng học phí)", text: "Cao học (Đóng học phí)" },
+            { value: "Nghiên cứu sinh (Đóng học phí)", text: "Nghiên cứu sinh (Đóng học phí)" },
           ];
 
           // Thêm các tùy chọn vào select
@@ -915,15 +923,23 @@
           deleteButton.style.marginLeft = "30px"; // Canh chỉnh nút
           deleteButton.className = "bi bi-trash3 action-button edit"; // Thêm class để định dạng nếu cần
           deleteButton.onclick = () => {
-            const confirmed = confirm(
-              "Bạn có chắc chắn muốn xóa lớp này không?"
-            );
-            if (confirmed) {
-              tableRow.remove(); // Xóa dòng tương ứng
-              // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
-              deleteData(row.MaGiangDay); // Gọi hàm xóa dữ liệu trong database
-            }
+            Swal.fire({
+              title: "Xác nhận xóa",
+              text: "Bạn có chắc chắn muốn xóa lớp này không?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Đồng ý",
+              cancelButtonText: "Hủy",
+              reverseButtons: true, // Đảo vị trí nút Đồng ý & Hủy
+            }).then((result) => {
+              if (result.isConfirmed) {
+                tableRow.remove(); // Xóa dòng tương ứng
+                deleteData(row.MaGiangDay); // Gọi hàm xóa dữ liệu trong database
+                Swal.fire("Đã xóa!", "Lớp đã được xóa thành công.", "success");
+              }
+            });
           };
+
           deleteButtonTd.appendChild(deleteButton);
           tableRow.appendChild(deleteButtonTd);
 
