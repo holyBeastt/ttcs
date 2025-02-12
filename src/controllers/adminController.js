@@ -269,7 +269,25 @@ const AdminController = {
     const Khoa = req.body.isKhoa;
     const connection = await createPoolConnection();
 
-    // thêm
+    // Check trùng tên đăng nhập
+    const checkDuplicateQuery = `
+    SELECT COUNT(*) as count 
+    FROM taikhoannguoidung 
+    WHERE LOWER(TenDangNhap) = LOWER(?)
+  `;
+
+    const [duplicateRows] = await connection.query(checkDuplicateQuery, [
+      TenDangNhap,
+    ]);
+
+    console.log(duplicateRows);
+
+    if (duplicateRows[0].count > 0) {
+      connection.release(); // Giải phóng kết nối trước khi trả về
+      return res
+        .status(409)
+        .json({ message: "Tên đăng nhập đã tồn tại. Vui lòng kiểm tra lại." });
+    }
 
     // Lấy dữ liệu phòng ban
     const queryP = "SELECT MaPhongBan FROM nhanvien where id_User = ?";
@@ -292,10 +310,11 @@ const AdminController = {
       `;
       await connection.query(query1, [TenDangNhap, MaPhongBan, Quyen, Khoa]);
 
-      res.redirect("/thongTinTK?Success");
+      return res.status(200).json({ message: "Tạo tài khoản mới thành công" });
+      //res.redirect("/thongTinTK?ThemTK=Success");
     } catch (error) {
       console.error("Lỗi khi cập nhật dữ liệu: ", error);
-      res.status(500).send("Lỗi server, không thể cập nhật dữ liệu");
+      res.redirect("/thongTinTK?ThemTK=False");
     } finally {
       if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
@@ -511,7 +530,7 @@ const AdminController = {
     try {
       // Lấy dữ liệu bộ môn
       connection = await createPoolConnection();
-      const query = "SELECT * FROM `bomon`";
+      const query = "SELECT * FROM `bomon` ORDER BY MaPhongBan, MaBoMon";
       const [results] = await connection.query(query);
       // Render trang với 2 biến: boMon
       res.render("boMon.ejs", {
@@ -529,7 +548,7 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const query = "SELECT MaPhongBan FROM `phongban` WHERE isKhoa = 1";
+      const query = "SELECT MaPhongBan FROM `phongban`";
       const [result] = await connection.query(query);
       res.json({
         success: true,
@@ -1147,7 +1166,14 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
       const query = `INSERT INTO hocphan (MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon) VALUES (?, ?, ?, ?, ?, ?)`;
-      await connection.query(query, [MaHocPhan, TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon]);
+      await connection.query(query, [
+        MaHocPhan,
+        TenHocPhan,
+        DVHT,
+        KiHoc,
+        Khoa,
+        MaBoMon,
+      ]);
 
       res.redirect("/hocphan"); // Chuyển hướng về trang danh sách học phần
     } catch (error) {

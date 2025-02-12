@@ -199,11 +199,11 @@
                 </select>
 
                 <!-- Combo box Năm -->
-                <select class="form-select w-100px mx-1 selectop" id="NamHoc">
+                <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;">
                 </select>
 
                 <!-- Combo box Khoa -->
-                <select class="form-select w-100px mx-1 selectop" id="Khoa">
+                <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
                 </select>
 
             </div>
@@ -272,7 +272,7 @@
 
             // Chỉ gọi một lần để khởi tạo combobox Khoa
             $.ajax({
-                url: '/getPhongBan',
+                url: '/getPhongBanmg',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -288,12 +288,13 @@
 
                         // Kiểm tra nếu người dùng có MaPhongBan cụ thể
                         const MaPhongBan = localStorage.getItem("MaPhongBan");
-                        const NonPhongBan = ['DAOTAO', 'HV', 'KHCN&HTPT', 'TAICHINH'];
+                        const isKhoa = localStorage.getItem("isKhoa");
 
-                        if (MaPhongBan && NonPhongBan.includes(MaPhongBan)) {
-                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL"
-                        } else if (MaPhongBan) {
-                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan
+                        if (isKhoa == 0) {
+                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
+                        } else if (isKhoa == 1) {
+                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
+                            $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
                         }
 
                         checkAndFetchData();
@@ -307,7 +308,7 @@
 
             // Khởi tạo các combobox khác
             $.ajax({
-                url: '/getNamHoc',
+                url: '/getNamHocmg',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
@@ -317,8 +318,6 @@
                                 `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
                             );
                         });
-                        // Thêm option "Tất cả năm" vào đầu
-                        $('#NamHoc').prepend('<option value="ALL" selected>Tất cả năm</option>');
                         checkAndFetchData();
 
                         // Thêm dữ liệu kỳ học
@@ -327,8 +326,6 @@
                                 `<option value="${item.value}">${item.Ki}</option>`
                             );
                         });
-                        // Thêm option "Tất cả kỳ" vào đầu
-                        $('#comboboxki').prepend('<option value="ALL" selected>Tất cả kỳ</option>');
                         checkAndFetchData();
 
                     }

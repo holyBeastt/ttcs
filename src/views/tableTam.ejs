@@ -171,7 +171,7 @@
                 <option value="">Chọn năm học</option>
               </select>
               <select class="selectop" id="MaPhongBan">
-                <option value="">Chọn khoa</option>
+                <option value="ALL">Tất cả khoa</option>
               </select>
               <button onclick="getDataTable()" class="btn text-nowrap" id="render" style="margin-top: 17px">
                 Hiển thị
@@ -525,29 +525,27 @@
         ];
 
 
-        const columns = Object.keys(renderData[0])
-          .filter((key) => key !== "GhiChu" && key !== "ID")
-          .map((key) => {
-            const column = {
-              headerFilterPlaceholder: "Tìm kiếm...",  // Văn bản hiển thị trong ô 
-              headerFilter: filterTableColumns.includes(key) ? true : false,  // Bật chức năng lọc cho tiêu đề cột
-              title: headersMap[key] || key,
-              field: key,
-              hozAlign: "center",
-              editor: false,
-              headerSort: sortableColumns.includes(key) ? true : false,
-            };
+        const columns = Object.keys(headersMap).map((key) => {
+          const column = {
+            headerFilterPlaceholder: "Tìm kiếm...",  // Văn bản hiển thị trong ô 
+            headerFilter: filterTableColumns.includes(key) ? true : false,  // Bật chức năng lọc cho tiêu đề cột
+            title: headersMap[key] || key,
+            field: key,
+            hozAlign: "center",
+            editor: false,
+            headerSort: sortableColumns.includes(key) ? true : false,
+          };
 
-            // Đặt độ rộng cho các cột cụ thể 
-            if (key === "LopHocPhan" || key === "GiaoVien") {
-              column.width = "18%";
-            } else if (key === "Dot" || key === "Ki" || key === "SoTinChi") {
-              column.width = "3%";
-            } else if (key === "SoSinhVien") {
-              column.width = "3%";
-            }
-            return column;
-          });
+          // Đặt độ rộng cho các cột cụ thể 
+          if (key === "LopHocPhan" || key === "GiaoVien") {
+            column.width = "18%";
+          } else if (key === "Dot" || key === "Ki" || key === "SoTinChi") {
+            column.width = "3%";
+          } else if (key === "SoSinhVien") {
+            column.width = "3%";
+          }
+          return column;
+        });
 
         const role = localStorage.getItem("userRole");
 
@@ -599,12 +597,12 @@
             }
           },
 
-          rowFormatter: function (row) {
-            const data = row.getData();
-            if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
-              row.getElement().classList.add("warning-row");
-            }
-          },
+          // rowFormatter: function (row) {
+          //   const data = row.getData();
+          //   if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
+          //     row.getElement().classList.add("warning-row");
+          //   }
+          // },
         });
       }
 

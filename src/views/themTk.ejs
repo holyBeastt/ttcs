@@ -17,16 +17,15 @@
   </head>
   <style>
     #suggestionBox {
-  position: absolute;
-  z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần khác */
-  background-color: white; /* Để nội dung rõ ràng */
-  border: 1px solid #ccc;
-  width: 200px; /*Căn theo độ rộng của input */
-  max-height: 200px; /* Giới hạn chiều cao */
-  overflow-y: auto; /* Thêm thanh cuộn nếu danh sách quá dài */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Đổ bóng cho đẹp */
-}
-
+      position: absolute;
+      z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần khác */
+      background-color: white; /* Để nội dung rõ ràng */
+      border: 1px solid #ccc;
+      width: 200px; /*Căn theo độ rộng của input */
+      max-height: 200px; /* Giới hạn chiều cao */
+      overflow-y: auto; /* Thêm thanh cuộn nếu danh sách quá dài */
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Đổ bóng cho đẹp */
+    }
   </style>
 
   <body>
@@ -130,9 +129,64 @@
         </button>
       </form>
     </div>
+    <!-- Link script Sweet alert 2 -->
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      document
+        .getElementById("themTK")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // Ngăn form submit mặc định
+
+          const formData = new FormData(this);
+
+          const formObject = {};
+          formData.forEach((value, key) => (formObject[key] = value));
+          console.log(formObject);
+
+          fetch("/themTK", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formObject),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                return response.json().then((data) => {
+                  throw new Error(data.message || "Có lỗi xảy ra");
+                });
+              }
+              return response.json();
+            })
+            .then((data) => {
+              Swal.fire({
+                title: "Thành công!",
+                text: data.message,
+                icon: "success",
+                confirmButtonText: "OK",
+              }).then(() => {
+                window.location.href = "/thongTinTK"; // Chuyển hướng nếu cần
+              });
+            })
+            .catch((error) => {
+              Swal.fire({
+                title: "Lỗi!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            });
+        });
+
       function fetchPhongBan() {
         const TenNhanVien = document.getElementById("TenNhanVien").value;
         console.log("Giá trị TenNhanVien:", TenNhanVien); // Kiểm tra giá trị TenNhanVien
@@ -162,7 +216,7 @@
             if (data.isKhoa === 1) {
               quyenSelect.innerHTML = `
                 <option value="GV">Giảng Viên</option>
-                <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
+                <option value="GV_CNBM">Giáo vụ - Chủ nhiệm bộ môn</option>
                 <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
             } else {
               quyenSelect.innerHTML = `

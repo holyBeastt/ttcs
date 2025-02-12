@@ -13,72 +13,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
   <style>
-    .suggestions {
-      position: absolute;
-      /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
-      top: calc(100% + 5px);
-      /* Đặt gợi ý phía trên input với một khoảng cách */
-      left: 0;
-      font-size: 12px;
-      background-color: #f0f0f0;
-      color: #000;
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
       border: 1px solid #ccc;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      /* Đảm bảo gợi ý nằm trên các thành phần khác */
-      border-radius: 4px;
-      max-height: 300px;
+      max-height: 200px;
       overflow-y: auto;
-    }
-
-    /* Hiệu ứng lung linh khi hover */
-    .suggestions:hover {
-      background-color: #e0e0e0;
-      /* Thay đổi màu nền khi hover */
-      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-      /* Tăng độ bóng khi hover */
-    }
-
-
-    /* CSS cho từng mục gợi ý */
-    .suggestion-item {
-      padding: 8px 12px;
-      /* Khoảng cách bên trong từng mục */
-      cursor: pointer;
-      /* Con trỏ chuột thay đổi khi hover */
-      transition: background-color 0.2s ease;
-      /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
-    }
-
-    /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
-    .suggestion-item:hover {
-      background-color: #f0f0f0;
-      /* Màu nền khi hover */
-    }
-
-    /* Đặt lại một số thuộc tính khi input mất focus */
-    input:focus+.suggestions {
-      display: block;
-      /* Đảm bảo khung hiển thị khi input được focus */
-    }
-
-    /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
-    .suggestions {
-      overflow: hidden;
-    }
-
-    /* css chữ to hơn */
-    #classTable {
-      font-size: 14px; /* Kích thước chữ của toàn bộ bảng */
-    }
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px ; /* Giảm độ rộng */
+      font-size: 12px !important;
+  }
   
-    #classTable th {
-      font-size: 16px; /* Kích thước chữ của tiêu đề */
-      font-weight: bold;
-    }
   
-    #classTable td {
-      font-size: 14px; /* Kích thước chữ của các ô */
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+        padding: 8px;
+        cursor: default;
     }
   </style>
 </head>
@@ -100,9 +52,8 @@
               Thêm giảng viên mời
             </button>
             <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
-            <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon"
-              onkeyup="searchBoMon(); showSuggestionsBoMon(this);" onchange="searchBoMon();"
-              onclick="showSuggestionsBoMon(this)" />
+              <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="searchBoMon" id="searchBoMon" />
+
             <select id="filterByDepartment" class="filter">
               <option value="all">Tất cả</option>
               <% phongBanList.forEach(function(phongBan) { %>
@@ -212,6 +163,13 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+<!-- Thêm jQuery và jQuery UI -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- jQuery UI CSS -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
     <script>
       // // Tìm kiếm giảng viên mời theo tên
@@ -426,87 +384,41 @@
         }
       });
 
-      // Hàm gợi ý bộ môn ở ô nhập 
-      function showSuggestionsBoMon(input) {
-        const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-        hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
-
-        // Tạo thẻ div chứa gợi ý
-        const suggestionsContainer = document.createElement('div');
-        suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
-
-        // Đặt vị trí cho suggestionsContainer
-        const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-        suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-        suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-        suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-        suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-        suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-        suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-        suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
-
-        // Thêm suggestionsContainer vào DOM
-        document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
-
-        let suggestions = []; // Khởi tạo mảng gợi ý
-
-        // Lấy dữ liệu từ localStorage
-        const boMon = JSON.parse(localStorage.getItem("boMon")) || []; // Giảng viên mời
-        console.log(boMon)
-
-        suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
-
-        // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-        if (value) {
-          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-        }
-
-        // Nếu không có gợi ý, ẩn container
-        if (suggestions.length === 0) {
-          suggestionsContainer.remove();
-          return; // Kết thúc hàm nếu không có gợi ý
-        }
-
-        // Tạo gợi ý dưới dạng danh sách (list)
-        suggestions.forEach(name => {
-          const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-          suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-          suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
-
-          // Thêm sự kiện click để điền tên vào ô input
-          suggestionItem.onclick = function () {
-            const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
-
-            // Tìm vị trí của dấu "-" trong chuỗi
-            const dashIndex = name.indexOf("-");
-
-            // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-            let processedName = name;
-
-            if (dashIndex !== -1) {
-              // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
+      $(document).ready(function () {
+        // Cấu hình autocomplete
+        $("#searchBoMon").autocomplete({
+            source: function (request, response) {
+                const value = request.term.toLowerCase();
+                const khoaValue = $("#filterByDepartment").val() || "all";
+                let boMon = JSON.parse(localStorage.getItem("boMon")) || [];
+    
+                let suggestions = boMon
+                    .filter(item => khoaValue === 'all' || item.MaPhongBan === khoaValue)
+                    .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
+    
+                // Nếu có giá trị nhập vào thì lọc
+                if (value) {
+                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+                }
+    
+                response(suggestions);
+            },
+            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+            select: function (event, ui) {
+                let parts = ui.item.value.split("-");
+                let processedName = parts.slice(2).join("-").trim();
+                $("#searchBoMon").val(processedName);
+                filterTable();
+                return false;
             }
-
-            // Điền tên gợi ý đã xử lý vào ô input
-            input.value = processedName;
-
-            // Gọi hàm tìm kiếm ngay sau khi chọn gợi ý
-            filterTable(); // Gọi hàm lọc bảng
-
-            hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
-          };
-
-          suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
         });
-
-        // Ẩn gợi ý khi input không còn focus
-        input.onblur = function () {
-          setTimeout(() => {
-            hideSuggestionsBoMon();
-          }, 100); // Thời gian chờ để nhận diện click
-        };
-      }
+    
+        // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+        $("#searchBoMon").on("focus", function () {
+            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+        });
+    });
+    
       // Hàm ẩn gợi ý
       function hideSuggestionsBoMon() {
         const existingSuggestions = document.querySelectorAll('.suggestions');

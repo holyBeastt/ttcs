@@ -574,7 +574,7 @@ const themTKBVaoQCDK = async (req, res) => {
       course_code AS MaHocPhan,
       start_date AS NgayBatDau,
       end_date AS NgayKetThuc,
-      bonus_total AS QuyChuan
+      qc AS QuyChuan
     FROM course_schedule_details
     WHERE semester = ?
   `;
@@ -598,7 +598,7 @@ const themTKBVaoQCDK = async (req, res) => {
     // Câu lệnh INSERT
     const insertQuery = `
       INSERT INTO tam (Khoa, dot, ki, nam, SoTietCTDT, LL, SoSinhVien, HeSoLopDong, HeSoT7CN, MaBoMon, 
-      GiaoVien, SoTinChi, LopHocPhan, MaHocPhan, NgayBatDau, NgayKetThuc, quychuan) 
+      GiaoVien, SoTinChi, LopHocPhan, MaHocPhan, NgayBatDau, NgayKetThuc, QuyChuan) 
       VALUES ?
     `;
 
