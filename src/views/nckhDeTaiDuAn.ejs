@@ -322,8 +322,6 @@
       function saveData(id) {
         const MaBang = 'detaiduan'
 
-        const NgayNghiemThu = document.querySelector(`.ngay-nghiem-thu-${id}`).value;
-        const NgayNghiemThuValid = convertDMYtoISO(NgayNghiemThu);
 
         const updatedData = {
           CapDeTai: document.querySelector(`.cap-detai-${id}`).value,
@@ -332,7 +330,7 @@
           ChuNhiem: document.querySelector(`.chu-nhiem-${id}`).value,
           ThuKy: document.querySelector(`.thu-ky-${id}`).value,
           DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value,
-          NgayNghiemThu: NgayNghiemThuValid
+          NgayNghiemThu: document.querySelector(`.ngay-nghiem-thu-${id}`).value
         };
         console.log(updatedData)
 
