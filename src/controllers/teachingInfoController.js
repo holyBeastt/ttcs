@@ -651,7 +651,7 @@ const getBoMon = async (req, res) => {
   }
 };
 
-const getPhongBanList = async (req, res) => {
+const getKhoaList = async (req, res) => {
   let connection;
 
   try {
@@ -659,7 +659,7 @@ const getPhongBanList = async (req, res) => {
     connection = await createPoolConnection();
 
     // Xác định truy vấn dựa vào MaPhongBan
-    const query = `select MaPhongBan, TenPhongBan from phongban`;
+    const query = `select MaPhongBan, TenPhongBan from phongban where isKhoa = 1`;
 
     // Thực hiện truy vấn với kết nối
     const [results] = await connection.query(query);
@@ -733,5 +733,5 @@ module.exports = {
   getBoMon,
   SaveNote,
   DoneNote,
-  getPhongBanList,
+  getKhoaList,
 };
