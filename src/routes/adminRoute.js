@@ -67,9 +67,9 @@ const {
   postUpdateTK,
   postUpdateBoMon,
 } = require("../controllers/adminUpdate");
-router.get("/admin", (req, res) => {
-  res.render("admin");
-});
+// router.get("/admin", (req, res) => {
+//   res.render("admin");
+// });
 
 router.get("/thongTinTK", getaccountList);
 

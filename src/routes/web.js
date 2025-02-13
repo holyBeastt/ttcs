@@ -38,7 +38,6 @@ router.get("/homePage", gethomePage);
 router.get("/", getLogin);
 router.get("/index", getIndex);
 //router.get("/dtxemhd", getDtaoxemhd);
-//router.get("/maindt", getHomeMainDaoTao);
 router.get("/daotaoduyet", getDtaoduyet);
 router.get("/daotaoxemhd/daotaonhap", getDtaonhap);
 
@@ -47,12 +46,12 @@ router.get("/daotaoxemhd/daotaonhap", getDtaonhap);
 router.get("/index/import", getImport);
 router.get("/PhongTaiChinh", getPhongTaiChinh);
 //phong dao tao
-router.get("/maindt", getHomeMainDaoTao);
+// router.get("/maindt", getHomeMainDaoTao);
 router.get("/teachingInfo", getTeachingInfo);
 router.get("/maindt/tableQC", getXemBangQC);
 
 // Khoa
-router.get("/mainkhoa", getMainKhoa);
+// router.get("/mainkhoa", getMainKhoa);
 router.get("/log", getlog);
 router.get("/thongkemg", getthongkemg);
 router.get("/thongkenckh", getthongkenckh);

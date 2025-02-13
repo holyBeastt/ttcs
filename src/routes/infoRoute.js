@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const obj = require("../controllers/teachingInfoController"); // 
+const obj = require("../controllers/teachingInfoController"); //
 const obj2 = require("../controllers/getTableDBController"); //
-const obj3 = require("../controllers/importController"); // 
+const obj3 = require("../controllers/importController"); //
 
 // render site info và info2
 router.get("/info", obj.getTeachingInfo1);
@@ -33,7 +33,7 @@ router.post("/updateDateAll", (req, res) => obj3.updateDateAll(req, res));
 // check duyệt của cac phòng ban
 router.post("/phong-ban-duyet", (req, res) => obj3.phongBanDuyet(req, res));
 
-// cập nhật tất cả dữ liệu 
+// cập nhật tất cả dữ liệu
 router.get("/update-all-info", (req, res) =>
   obj3.updateAllTeachingInfo(req, res)
 );
@@ -42,6 +42,9 @@ router.get("/update-all-info", (req, res) =>
 router.post("/bo-mon", (req, res) => {
   obj.getBoMon(req, res);
 });
+
+// Lấy dữ liệu phòng ban
+router.get("/api/get-khoa-list", obj.getKhoaList);
 
 // lấy dữ liệu bộ môn của giảng viên mời
 router.get("/bo-mon-theo-gv", (req, res) => {

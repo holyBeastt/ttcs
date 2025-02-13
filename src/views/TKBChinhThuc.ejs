@@ -1366,7 +1366,7 @@
         if (!result.isConfirmed) return;
 
         try {
-          const response = await fetch("/api/xoa-TKB", {
+          const response = await fetch("/api/delete-data-TKB", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

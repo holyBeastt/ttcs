@@ -191,13 +191,12 @@
       }
 
       function fixNumberFormat(text) {
-        console.log(text)
         if (typeof text !== "string") return text; // Nếu không phải chuỗi, giữ nguyên
         return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
       }
       // render table
       function renderTable(data) {
-        console.log("Dữ liệu trước khi render:", data);
+        console.log("Dữ liệu bảng:", data);
 
         const tbody = document.getElementById("table-body");
         window.currentData = data; // Lưu dữ liệu hiện tại để sử dụng khi hủy
@@ -218,7 +217,7 @@
           tbody.appendChild(row);
         });
 
-        console.log("Dữ liệu sau khi sửa:", window.currentData);
+        console.log("Dữ liệu bảng", window.currentData);
       }
 
       function cancelEditMode(row, item) {
@@ -330,7 +329,7 @@
           ChuNhiem: document.querySelector(`.chu-nhiem-${id}`).value,
           ThuKy: document.querySelector(`.thu-ky-${id}`).value,
           DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value,
-          NgayNghiemThu: document.querySelector(`.ngay-nghiem-thu-${id}`).value
+          NgayNghiemThu: convertDMYtoISO(document.querySelector(`.ngay-nghiem-thu-${id}`).value)
         };
         console.log(updatedData)
 
@@ -766,7 +765,6 @@
       }
       // Hàm xóa thành viên
       function removeMember(index) {
-        console.log("xóa");
         members.splice(index, 1); // Xóa thành viên khỏi mảng
         updateFormMemberList(); // Cập nhật lại danh sách hiển thị
       }

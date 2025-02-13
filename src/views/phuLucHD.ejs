@@ -91,6 +91,27 @@
       /* Hạ thấp nút xuất xuống 2 pixel */
     }
   </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px ; /* Giảm độ rộng */
+      font-size: 12px !important;
+  }
+  
+  
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+        padding: 8px;
+        cursor: default;
+    }
+  </style>
 </head>
 
 <body>
@@ -130,8 +151,7 @@
             <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh(Đóng học phí)</option>
           </select>
 
-          <input type="text" class="form-control w-200px mx-2" id="search-teacher" oninput="showSuggestionsGvm(this)"
-            onclick="showSuggestionsGvm(this)" placeholder="Tìm kiếm giảng viên" style="height: 45px;">
+          <input type="text" class="form-control w-200px mx-2" id="search-teacher" placeholder="Tìm kiếm giảng viên" style="height: 45px;">
 
           <div class="d-flex justify-content-center">
             <!-- Nút xuất dữ liệu với style được cải thiện -->
@@ -184,7 +204,19 @@
           <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
           <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Thêm jQuery và jQuery UI -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
+    <!-- jQuery UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
 
           <script>
             // Lấy query string từ URL
@@ -347,8 +379,41 @@
             const gvmList = JSON.parse(document.getElementById("dataContainer").getAttribute("data-gvm-list"));
 
             localStorage.setItem("gvmList", JSON.stringify(gvmList));
-            console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
 
+            $(document).ready(function () {
+              // Cấu hình autocomplete
+              $("#search-teacher").autocomplete({
+                  source: function (request, response) {
+                      const value = request.term.toLowerCase();
+
+                      const gvmList = JSON.parse(localStorage.getItem("gvmList"));
+      
+                      let suggestions = gvmList
+                          .map(item => `${item.HoTen} - ${item.MaPhongBan}`);
+          
+                      // Nếu có giá trị nhập vào thì lọc
+                      if (value) {
+                          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+                      }
+          
+                      response(suggestions);
+                  },
+                  minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+                  select: function (event, ui) {
+                      let parts = ui.item.value.split("-");
+                      let processedName = parts[0].trim();
+                      $("#search-teacher").val(processedName);
+                      return false;
+                  }
+              });
+          
+              // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+              $("#search-teacher").on("focus", function () {
+                  $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+              });
+          });
+
+            /*
             // Hàm gợi ý bộ môn ở ô nhập 
             function showSuggestionsGvm(input) {
               const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
@@ -420,11 +485,7 @@
                   // Điền tên gợi ý đã xử lý vào ô input
                   input.value = processedName;
                   // filterBoMon();
-                  /*
-                  if (input.id == 'search-teacher') {
-                    filterKhoa();
-                  }
-                    */
+
                   hideSuggestionsGvm(); // Ẩn gợi ý sau khi chọn
                 };
 
@@ -445,10 +506,7 @@
               const existingSuggestions = document.querySelectorAll('.suggestions');
               existingSuggestions.forEach(suggestion => suggestion.remove());
             }
-
-            // calculateTotals();
-
-
+              */
           </script>
           <script>
             document.getElementById("infome").addEventListener("click", function (event) {
