@@ -44,7 +44,7 @@ router.post("/bo-mon", (req, res) => {
 });
 
 // Lấy dữ liệu phòng ban
-router.get("/api/get-phong-ban-list", obj.getPhongBanList);
+router.get("/api/get-khoa-list", obj.getKhoaList);
 
 // lấy dữ liệu bộ môn của giảng viên mời
 router.get("/bo-mon-theo-gv", (req, res) => {

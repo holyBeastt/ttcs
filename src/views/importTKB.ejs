@@ -309,7 +309,7 @@
         // Gửi yêu cầu POST đến server
         // http://42.112.213.93:8080/api/v1/excel/upload
         // http://localhost:8080/api/v1/excel/upload
-        fetch("/api/v1/excel/upload", {
+        fetch(`http://${window.location.hostname}:8080/api/v1/excel/upload`, {
           method: "POST",
           body: formData,
         })
