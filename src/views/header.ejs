@@ -362,28 +362,28 @@
     }
 
     // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
-    if (maPhongBan === "NCKH" && userRole === "Duyệt") {
-      // Chỉ hiển thị 4 mục đầu
-      for (let i = 4; i < links.length; i++) {
-        links[i].style.display = "none";
-      }
-    } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
-      // Chỉ hiển thị 3 mục cuối
-      for (let i = 0; i < links.length - 3; i++) {
-        links[i].style.display = "none";
-      }
-    }
-    else if (userRole == "Lãnh đạo khoa" && isKhoa == "1" || isKhoa == "1" && userRole == "GV_CNBM") {
-      // Chỉ hiển thị 3 mục cuối
-      for (let i = 0; i < links.length; i++) {
-        links[i].style.display = "block";
-      }
-    } else {
-      // Nếu không thuộc quyền nào, ẩn toàn bộ
-      for (let i = 0; i < links.length; i++) {
-        links[i].style.display = "none";
-      }
-    }
+    // if (maPhongBan === "NCKH" && userRole === "Duyệt") {
+    //   // Chỉ hiển thị 4 mục đầu
+    //   for (let i = 4; i < links.length; i++) {
+    //     links[i].style.display = "none";
+    //   }
+    // } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
+    //   // Chỉ hiển thị 3 mục cuối
+    //   for (let i = 0; i < links.length - 3; i++) {
+    //     links[i].style.display = "none";
+    //   }
+    // }
+    // else if (userRole == "Lãnh đạo khoa" && isKhoa == "1" || isKhoa == "1" && userRole == "GV_CNBM") {
+    //   // Chỉ hiển thị 3 mục cuối
+    //   for (let i = 0; i < links.length; i++) {
+    //     links[i].style.display = "block";
+    //   }
+    // } else {
+    //   // Nếu không thuộc quyền nào, ẩn toàn bộ
+    //   for (let i = 0; i < links.length; i++) {
+    //     links[i].style.display = "none";
+    //   }
+    // }
   });
 
 </script>
