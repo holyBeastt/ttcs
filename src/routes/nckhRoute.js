@@ -77,6 +77,8 @@ router.post("/edit-biensoangiaotrinhbaigiang", nckhAdmin.editBienSoanGiaoTrinhBa
 router.post("/delete-biensoangiaotrinhbaigiang", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
 
 router.post("/nckh/edit/:ID/:MaBang", nckh.editNckh);
+router.post("/nckh/delete/:ID/:MaBang", nckh.deleteNckh);
+
 
 
 module.exports = router;

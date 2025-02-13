@@ -1328,6 +1328,15 @@ const getData = async (req, res) => {
     }
 };
 
+function convertDateFormat(dateStr) {
+    const date = new Date(dateStr);
+    const mm = String(date.getMonth() + 1).padStart(2, '0'); // Không dùng UTC
+    const dd = String(date.getDate()).padStart(2, '0');      // Không dùng UTC
+    const yyyy = date.getFullYear();                         // Không dùng UTC
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+
 const editNckh = async (req, res) => {
     const { ID, MaBang } = req.params;
 
@@ -1352,12 +1361,13 @@ const editNckh = async (req, res) => {
                 ChuNhiem: req.body.ChuNhiem,
                 ThuKy: req.body.ThuKy,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
-                NgayNghiemThu: req.body.NgayNghiemThu,
+                NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
+                DaoTaoDuyet: req.body.DaoTaoDuyet
             };
 
             updateQuery = `
                 UPDATE detaiduan 
-                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?
+                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1368,6 +1378,7 @@ const editNckh = async (req, res) => {
                 data.ThuKy,
                 data.DanhSachThanhVien,
                 data.NgayNghiemThu,
+                data.DaoTaoDuyet,
                 ID,
             ];
             break;
@@ -1557,6 +1568,76 @@ const editNckh = async (req, res) => {
     }
 };
 
+const deleteNckh = async (req, res) => {
+    const { ID, MaBang } = req.params;
+
+    if (!ID) {
+        return res.status(400).json({ message: "Thiếu ID cần xóa." });
+    }
+
+    let deleteQuery = "";
+    let queryParams = [];
+
+    // Xác định câu lệnh xóa dựa trên loại bảng (MaBang)
+    switch (MaBang) {
+        case "detaiduan":
+            deleteQuery = `DELETE FROM detaiduan WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "baibaokhoahoc":
+            deleteQuery = `DELETE FROM baibaokhoahoc WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "bangsangchevagiaithuong":
+            deleteQuery = `DELETE FROM bangsangchevagiaithuong WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "biensoangiaotrinhbaigiang":
+            deleteQuery = `DELETE FROM biensoangiaotrinhbaigiang WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "nckhvahuanluyendoituyen":
+            deleteQuery = `DELETE FROM nckhvahuanluyendoituyen WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "sachvagiaotrinh":
+            deleteQuery = `DELETE FROM sachvagiaotrinh WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "xaydungctdt":
+            deleteQuery = `DELETE FROM xaydungctdt WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        default:
+            return res.status(400).json({ message: "Loại bảng không hợp lệ." });
+    }
+
+    // Kết nối đến cơ sở dữ liệu (giả sử bạn đã định nghĩa hàm createPoolConnection)
+    const connection = await createPoolConnection();
+
+    try {
+        const [result] = await connection.execute(deleteQuery, queryParams);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Không tìm thấy bản ghi để xóa." });
+        }
+
+        console.log(`Xóa thành công ID: ${ID} trong bảng ${MaBang}`);
+        res.status(200).json({
+            success: true,
+            message: "Xóa thành công!"
+        });
+    } catch (error) {
+        console.error("Lỗi khi xóa:", error);
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi xóa.",
+            error: error.message,
+        });
+    } finally {
+        connection.release();
+    }
+};
+
 
 
 
@@ -1585,5 +1666,6 @@ module.exports = {
     saveBienSoanGiaoTrinhBaiGiang,
     getTableBienSoanGiaoTrinhBaiGiang,
     getData,
-    editNckh
+    editNckh,
+    deleteNckh
 };
