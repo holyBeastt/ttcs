@@ -47,5 +47,8 @@ router.post("/updatelopngoaiquychuan", updatelopngoaiquychuan);
 router.get("/infoclassvuotgio", (req, res) => {
   res.render("vuotGioTTLop");
 } );
+router.get("/infovuotgio", (req, res) => {
+  res.render("vuotGioTTVuotGio");
+} );
 router.get("/xemlopgiangday/:MaPhongBan/:Nam/:TenNhanVien", getLopGiangDay);
 module.exports = router;
