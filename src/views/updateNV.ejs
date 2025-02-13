@@ -9,171 +9,172 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
   <%- include('adminHeader') %>
-                      <!-- Main content -->
-                      <div class="container my-5 box">
-                        <h2>Sửa Nhân Viên</h2>
-                        <form  id="updateNV" action="/updateNV/:id" method="POST">
-                            <div class="row mb-3">
-                                <!-- <div class="col-md-4 input-wrapper">
-                                    <label for="MaNhanVien" class="form-label">Mã Nhân Viên</label>
-                                    <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" required>
-                                </div> -->
-                                <input type="hidden" name="Id_User" value="<%= value.id_User %> ">
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="TenNhanVien" class="form-label">Tên Nhân Viên*</label>
-                                    <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= value.TenNhanVien %> " required>
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="NgaySinh" class="form-label">Ngày Sinh*</label>
-                                    <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" required >
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="HocVi" class="form-label">Học Hàm/Học Vị*</label>
-                                    <select class="form-control" name="HocVi" id="HocVi">
-                                      <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
-                                      <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
-                                      <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
-                                      <option value="Tiến sĩ" <%= value.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
-                                      <option value="Phó giáo sư. Tiến sĩ" <%= value.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
-                                      <option value="Giáo sư. Tiến sĩ" <%= value.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
-                                    </select> 
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="CCCD" class="form-label">CCCD*</label>
-                                    <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= value.CCCD %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
-                                    <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD" value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
-                                    <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" value="<%= value.NoiCapCCCD %>">
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="gioitinh">Giới tính:</label>
-                                    <select class="form-control" name="GioiTinh" id="gioitinh" >
-                                        <option value="Nam" <%= value.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
-                                        <option value="Nữ" <%= value.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="DienThoai" class="form-label">Điện Thoại</label>
-                                    <input type="tel" class="form-control" id="DienThoai" name="DienThoai" value="<%= value.DienThoai %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD</label>
-                                    <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" value="<%= value.DiaChiCCCD %>" >
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper d-flex justify-content-between">
-                                  <div>
-                                    <label for="ChucVu" class="form-label">Chức Vụ*</label>
-                                    <input type="text" class="form-control" id="ChucVu" name="ChucVu" value="<%= value.ChucVu %>" required>
-                                  </div>
-                                  <div>
-                                    <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-                                    <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>"/>
-                                  </div>
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
-                                    <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" value="<%= value.NoiCongTac %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                  <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay</label>
-                                  <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" value="<%= value.DiaChiHienNay %>" >
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                              <div class="col-md-4 input-wrapper">
-                                <label for="TenDangNhap" class="form-label">Tên đăng nhập</label>
-                                <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap" value="<%= account.TenDangNhap %>" readonly />
-                              </div>
-                              <div class="col-md-4 input-wrapper d-flex justify-content-between">
-                                <div>
-                                  <label for="MaPhongBan" class="form-label">Mã Phòng Ban</label>
-                                <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
-                                  <!-- Option đầu tiên là giá trị hiện tại của role.MaPhongBan -->
-                                  <option value="<%= role.MaPhongBan %>"><%= role.MaPhongBan %></option>
-                                  
-                                  <% departmentLists.forEach(function(department) { %>
-                                    <% if (department.MaPhongBan !== role.MaPhongBan) { %>
-                                      <!-- Chỉ thêm các giá trị khác với role.MaPhongBan -->
-                                      <option value="<%= department.MaPhongBan %>"><%= department.MaPhongBan %></option>
-                                    <% } %>
-                                  <% }); %>
-                                </select>
-                              </div>
-                              <div>
-                                <label for="Quyen" class="form-label">Quyền</label>
-                                <select id="Quyen" class="form-control" name="Quyen" style="width: 250px;">
-                                  <option value="<%= role.Quyen %>"><%= role.Quyen %></option>
-                                </select>
-                              </div>
-                              </div>
-                              <div class="col-md-4 input-wrapper d-flex justify-content-between">
-                                <div>
-                                  <label for="HSL" class="form-label">Hệ số lương*</label>
-                                  <input type="text" class="form-control" id="HSL" name="HSL" value="<%= value.HSL %>" required />
-                                </div>
-                                <div>
-                                  <label for="Luong" class="form-label">Lương*</label>
-                                  <input type="text" class="form-control" id="Luong" name="Luong" value="<%= value.Luong %>"/>
-                                </div>
-                              </div>
-                              <div class="col-md-4 input-wrapper" hidden>
-                                <label for="MatKhau" class="form-label">Mật khẩu</label>
-                                <input type="text" class="form-control" id="MatKhau" name="MatKhau"/>
-                              </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="SoTaiKhoan" class="form-label">Số Tài Khoản</label>
-                                    <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" value="<%= value.SoTaiKhoan %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="NganHang" class="form-label">Ngân Hàng</label>
-                                    <input type="text" class="form-control" id="NganHang" name="NganHang" value="<%= value.NganHang %>">
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="ChiNhanh" class="form-label">Chi Nhánh</label>
-                                    <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" value="<%= value.ChiNhanh %>">
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
-                                    <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" value="<%= value.MaSoThue %>">
-                                </div>
-                                
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
-                                    <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
-                                    <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
-                                </div>
-                                <div class="col-md-4 input-wrapper">
-                                    <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan</label>
-                                    <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" value="<%= value.CacMonLienQuan %>">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn" id="btnUpdateNV">Cập nhật</button>
-                            <button class="btn mx-5" type="button" onclick="window.location.href='/nhanVien'">Trở về</button>
-                            <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin bắt buộc.</h6>
-                        </form>                          
-                   </div>
+  <!-- Main content -->
+  <div class="container my-5 box">
+    <h2>Sửa Nhân Viên</h2>
+    <form  id="updateNV" action="/updateNV/:id" method="POST">
+        <div class="row mb-3">
+            <!-- <div class="col-md-4 input-wrapper">
+                <label for="MaNhanVien" class="form-label">Mã Nhân Viên</label>
+                <input type="text" class="form-control" id="MaNhanVien" name="MaNhanVien" required>
+            </div> -->
+            <input type="hidden" name="Id_User" value="<%= value.id_User %> ">
+            <div class="col-md-4 input-wrapper">
+                <label for="TenNhanVien" class="form-label">Tên Nhân Viên*</label>
+                <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= value.TenNhanVien %> " required>
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="NgaySinh" class="form-label">Ngày Sinh*</label>
+                <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" required >
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="HocVi" class="form-label">Học Hàm/Học Vị*</label>
+                <select class="form-control" name="HocVi" id="HocVi">
+                  <option value="Cử nhân" <%= value.HocVi === "Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+                  <option value="Kỹ sư" <%= value.HocVi === "Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+                  <option value="Thạc sĩ" <%= value.HocVi === "Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+                  <option value="Tiến sĩ" <%= value.HocVi === "Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+                  <option value="Phó giáo sư. Tiến sĩ" <%= value.HocVi === "Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó giáo sư. Tiến sĩ</option>
+                  <option value="Giáo sư. Tiến sĩ" <%= value.HocVi === "Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến sĩ</option>
+                </select> 
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper">
+                <label for="CCCD" class="form-label">CCCD*</label>
+                <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= value.CCCD %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
+                <input type="date" class="form-control" id="NgayCapCCCD" name="NgayCapCCCD" value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="NoiCapCCCD" class="form-label">Nơi Cấp CCCD</label>
+                <input type="text" class="form-control" id="NoiCapCCCD" name="NoiCapCCCD" value="<%= value.NoiCapCCCD %>">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper">
+                <label for="gioitinh">Giới tính:</label>
+                <select class="form-control" name="GioiTinh" id="gioitinh" >
+                    <option value="Nam" <%= value.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
+                    <option value="Nữ" <%= value.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
+                </select>
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="DienThoai" class="form-label">Điện Thoại</label>
+                <input type="tel" class="form-control" id="DienThoai" name="DienThoai" value="<%= value.DienThoai %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="DiaChiCCCD" class="form-label">Địa Chỉ Trong CCCD</label>
+                <input type="text" class="form-control" id="DiaChiCCCD" name="DiaChiCCCD" value="<%= value.DiaChiCCCD %>" >
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper d-flex justify-content-between">
+              <div>
+                <label for="ChucVu" class="form-label">Chức Vụ*</label>
+                <input type="text" class="form-control" id="ChucVu" name="ChucVu" value="<%= value.ChucVu %>" required>
+              </div>
+              <div>
+                <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
+                <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>"/>
+              </div>
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="NoiCongTac" class="form-label">Nơi Công Tác</label>
+                <input type="text" class="form-control" id="NoiCongTac" name="NoiCongTac" value="<%= value.NoiCongTac %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+              <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay</label>
+              <input type="text" class="form-control" id="DiaChiHienNay" name="DiaChiHienNay" value="<%= value.DiaChiHienNay %>" >
+            </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="TenDangNhap" class="form-label">Tên đăng nhập</label>
+            <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap" value="<%= account.TenDangNhap %>" readonly />
+          </div>
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="MaPhongBan" class="form-label">Mã Phòng Ban</label>
+            <select class="form-control" id="MaPhongBan" name="MaPhongBan" onchange="fetchQuyen(), fetchBoMon()">
+              <!-- Option đầu tiên là giá trị hiện tại của role.MaPhongBan -->
+              <option value="<%= role.MaPhongBan %>"><%= role.MaPhongBan %></option>
+              
+              <% departmentLists.forEach(function(department) { %>
+                <% if (department.MaPhongBan !== role.MaPhongBan) { %>
+                  <!-- Chỉ thêm các giá trị khác với role.MaPhongBan -->
+                  <option value="<%= department.MaPhongBan %>"><%= department.MaPhongBan %></option>
+                <% } %>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label for="Quyen" class="form-label">Quyền</label>
+            <select id="Quyen" class="form-control" name="Quyen" style="width: 250px;">
+              <option value="<%= role.Quyen %>"><%= role.Quyen %></option>
+            </select>
+          </div>
+          </div>
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="HSL" class="form-label">Hệ số lương*</label>
+              <input type="text" class="form-control" id="HSL" name="HSL" value="<%= value.HSL %>" required />
+            </div>
+            <div>
+              <label for="Luong" class="form-label">Lương*</label>
+              <input type="text" class="form-control" id="Luong" name="Luong" value="<%= value.Luong %>"/>
+            </div>
+          </div>
+          <div class="col-md-4 input-wrapper" hidden>
+            <label for="MatKhau" class="form-label">Mật khẩu</label>
+            <input type="text" class="form-control" id="MatKhau" name="MatKhau"/>
+          </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper">
+                <label for="SoTaiKhoan" class="form-label">Số Tài Khoản</label>
+                <input type="text" class="form-control" id="SoTaiKhoan" name="SoTaiKhoan" value="<%= value.SoTaiKhoan %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="NganHang" class="form-label">Ngân Hàng</label>
+                <input type="text" class="form-control" id="NganHang" name="NganHang" value="<%= value.NganHang %>">
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="ChiNhanh" class="form-label">Chi Nhánh</label>
+                <input type="text" class="form-control" id="ChiNhanh" name="ChiNhanh" value="<%= value.ChiNhanh %>">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper">
+                <label for="MaSoThue" class="form-label">Mã Số Thuế</label>
+                <input type="text" class="form-control" id="MaSoThue" name="MaSoThue" value="<%= value.MaSoThue %>">
+            </div>
+            
+            <div class="col-md-4 input-wrapper">
+                <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
+                <select class="form-control" name="MonGiangDayChinh" id="MonGiangDayChinh"></select>
+                <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
+            </div>
+            <div class="col-md-4 input-wrapper">
+                <label for="CacMonLienQuan" class="form-label">Các Môn Liên Quan</label>
+                <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" value="<%= value.CacMonLienQuan %>">
+            </div>
+        </div>
+        <button type="submit" class="btn" id="btnUpdateNV">Cập nhật</button>
+        <button class="btn mx-5" type="button" onclick="window.location.href='/nhanVien'">Trở về</button>
+        <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin bắt buộc.</h6>
+    </form>                          
+  </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-                       <!-- Link script Sweet alert 2 -->
+  <!-- Link script Sweet alert 2 -->
   <!-- SweetAlert2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet">
 
@@ -206,37 +207,87 @@
         })
   </script>
   <script>
+    $(document).ready(function () {
+      $("#updateNV").on("submit", function (e) {
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+        var userId = $("#Id_User").val(); 
+        var url = "/updateNV/" + userId;
+
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: formData,
+          success: function (response) {
+            console.log("res = ", response);
+            Swal.fire({
+              title: "Thông báo",
+              text: response.message,
+              icon: "success",
+              confirmButtonText: "Đồng ý",
+            }).then(() => {
+              window.location.href = "/nhanVien"; // Chuyển hướng sau khi người dùng nhấn "Đồng ý"
+            });
+
+          },
+          error: function (xhr, status, error) {
+            try {
+              // Nếu responseText là JSON, parse và lấy thông báo lỗi
+              var response = JSON.parse(xhr.responseText);
+              Swal.fire({
+                title: "Thông báo",
+                text: response.message || "Đã xảy ra lỗi",
+                icon: "error",
+                confirmButtonText: "Đồng ý",
+              });
+            } catch (e) {
+              // Nếu không parse được, hiển thị toàn bộ nội dung
+              Swal.fire({
+                title: "Thông báo",
+                text: "Đã xảy ra lỗi: "+ xhr.responseText,
+                icon: "error",
+                confirmButtonText: "Đồng ý",
+              });
+            }
+          },
+        });
+      });
+    });
+  </script>
+  <script>
     // Lấy query string từ URL
     const urlParams = new URLSearchParams(window.location.search);
     const message = urlParams.get('message');
     // Lấy phần tử div để hiển thị thông báo
     const messageDiv = document.getElementById('message');
+    console.log(message, messageDiv);
 
     // Hiển thị thông báo dựa trên giá trị của message
-    if (message === 'insertSuccess') {
-      Swal.fire({
-        title: 'Thông báo',
-        html: "Thêm thành công",
-        icon: 'success',
-        confirmButtonText: 'OK',
-        width: 'auto', // Tự động điều chỉnh chiều rộng
-        padding: '20px', // Giữ khoảng cách cho nội dung
-      });
-    } else if (message === 'insertFalse') {
-      Swal.fire({
-        title: 'Thông báo',
-        html: "Thêm thất bại",
-        icon: 'error',
-        confirmButtonText: 'OK',
-        width: 'auto', // Tự động điều chỉnh chiều rộng
-        padding: '20px', // Giữ khoảng cách cho nội dung
-      });
-    }
+    // if (message === 'insertSuccess') {
+    //   Swal.fire({
+    //     title: 'Thông báo',
+    //     html: "Thêm thành công",
+    //     icon: 'success',
+    //     confirmButtonText: 'OK',
+    //     width: 'auto', // Tự động điều chỉnh chiều rộng
+    //     padding: '20px', // Giữ khoảng cách cho nội dung
+    //   });
+    // } else if (message === 'insertFalse') {
+    //   Swal.fire({
+    //     title: 'Thông báo',
+    //     html: "Thêm thất bại",
+    //     icon: 'error',
+    //     confirmButtonText: 'OK',
+    //     width: 'auto', // Tự động điều chỉnh chiều rộng
+    //     padding: '20px', // Giữ khoảng cách cho nội dung
+    //   });
+    // }
       // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
     if (message) {
     // Sử dụng window.history để xóa query string mà không refresh lại trang
-        //const newUrl = window.location.origin + window.location.pathname;
-        //window.history.replaceState({}, document.title, newUrl);
+        // const newUrl = window.location.origin + window.location.pathname;
+        // window.history.replaceState({}, document.title, newUrl);
     }
 
   </script>
