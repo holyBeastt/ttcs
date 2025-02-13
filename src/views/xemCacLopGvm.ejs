@@ -266,8 +266,6 @@
             type="text"
             id="filterBoMon"
             placeholder="Tìm theo tên bộ môn"
-            onkeyup=" showSuggestionsBoMon(this)"
-            onclick="showSuggestionsBoMon(this)"
             class="form-control m-2 search"
             style="width: 180px"
           />
@@ -559,7 +557,7 @@
 
           const data = await response.json(); // Chuyển đổi dữ liệu JSON
           boMon = data;
-          // localStorage.setItem('boMon', JSON.stringify(data));
+          localStorage.setItem("boMon", JSON.stringify(data));
           // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
         } catch (error) {
           console.error("Có lỗi xảy ra khi lấy dữ liệu bộ môn:", error);
@@ -1748,16 +1746,6 @@
         calculateTotals();
       }
 
-      // Khởi tạo sự kiện khi nhập vào ô input (hoặc gắn sự kiện vào các input cụ thể)
-      document
-        .getElementById("filterBoMon")
-        .addEventListener("input", function () {
-          showSuggestionsBoMon(this);
-          showSuggestionsKhoa(this);
-        });
-
-      // Khởi tạo sự kiện của khoa
-
       // Hàm khởi động ứng dụng
       init();
     </script>
@@ -1879,11 +1867,6 @@
         }
 
         // Khởi tạo sự kiện khi nhập vào ô input (hoặc gắn sự kiện vào các input cụ thể)
-        document
-          .getElementById("filterBoMon")
-          .addEventListener("input", function () {
-            showSuggestionsBoMon(this);
-          });
       });
     </script>
 
@@ -2174,62 +2157,92 @@
     </script>
 
     <script>
-      // Định nghĩa hàm showSuggestionsKhoa ở phạm vi toàn cục
-      function showSuggestionsKhoa(input) {
-        const value = input.value.toLowerCase();
-        hideSuggestionsKhoa();
+      $(document).ready(async function () {
+        await init();
+      });
 
-        const suggestionsContainer = document.createElement("div");
-        suggestionsContainer.className = "suggestions";
+      async function init() {
+        showSuggestionsBoMonHead(); // Hiển thị gợi ý bộ môn
+        showSuggestionsKhoaHead();
+      }
 
-        const { bottom, left, width } = input.getBoundingClientRect();
-        suggestionsContainer.style.position = "absolute";
-        suggestionsContainer.style.top = `${bottom + window.scrollY}px`;
-        suggestionsContainer.style.left = `${left + window.scrollX}px`;
-        suggestionsContainer.style.width = `${width}px`;
-        suggestionsContainer.style.zIndex = "1000";
-        suggestionsContainer.style.maxHeight = "200px";
-        suggestionsContainer.style.overflowY = "auto";
+      function showSuggestionsBoMonHead() {
+        $("#filterBoMon").autocomplete({
+          source: function (request, response) {
+            const value = request.term.toLowerCase();
+            const khoaValue = $("#filterKhoa").val() || "";
+            let boMon = JSON.parse(localStorage.getItem("boMon") || "[]");
+            if (!Array.isArray(boMon)) boMon = [];
 
-        document.body.appendChild(suggestionsContainer);
+            let suggestions = boMon
+              .filter(
+                (item) => khoaValue === "" || item.MaPhongBan === khoaValue
+              )
+              .map(
+                (item) =>
+                  `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`
+              );
 
-        let suggestions =
-          JSON.parse(localStorage.getItem("phongBanList")) || [];
-        suggestions = suggestions.map((item) => `${item.MaPhongBan}`);
-
-        if (value) {
-          suggestions = suggestions.filter((name) =>
-            name.toLowerCase().includes(value)
-          );
-        }
-
-        if (suggestions.length === 0) {
-          suggestionsContainer.remove();
-          return;
-        }
-
-        suggestions.forEach((name) => {
-          const suggestionItem = document.createElement("div");
-          suggestionItem.className = "suggestion-item";
-          suggestionItem.textContent = name;
-
-          suggestionItem.onclick = function () {
-            const processedName = name.split("-").slice(-1)[0].trim();
-            input.value = processedName;
-            if (input.id == "filterKhoa") {
-              filterKhoa();
+            if (value) {
+              suggestions = suggestions.filter((name) =>
+                name.toLowerCase().includes(value)
+              );
             }
-            hideSuggestionsKhoa();
-          };
 
-          suggestionsContainer.appendChild(suggestionItem);
+            response(suggestions);
+          },
+          minLength: 0,
+          delay: 300, // Thêm độ trễ
+          select: function (event, ui) {
+            let parts = ui.item.value.split("-").map((p) => p.trim());
+            let processedName = parts.slice(2).join(" - ");
+            $("#filterBoMon").val(processedName);
+            filterBoMon();
+            return false;
+          },
         });
 
-        input.onblur = function () {
-          setTimeout(() => {
-            hideSuggestionsKhoa();
-          }, 100);
-        };
+        $("#filterBoMon").on("focus", function () {
+          $(this).autocomplete("search", "");
+        });
+      }
+
+      // Định nghĩa hàm showSuggestionsKhoa ở phạm vi toàn cục
+      function showSuggestionsKhoaHead() {
+        $("#filterKhoa").autocomplete({
+          source: function (request, response) {
+            const value = request.term.toLowerCase();
+            let phongBanList = JSON.parse(
+              localStorage.getItem("phongBanList") || "[]"
+            );
+            if (!Array.isArray(phongBanList)) phongBanList = [];
+
+            let suggestions = phongBanList.map(
+              (item) => `${item.MaPhongBan} - ${item.TenPhongBan}`
+            );
+
+            if (value) {
+              suggestions = suggestions.filter((name) =>
+                name.toLowerCase().includes(value)
+              );
+            }
+
+            response(suggestions);
+          },
+          minLength: 0,
+          delay: 300, // Thêm độ trễ
+          select: function (event, ui) {
+            let parts = ui.item.value.split("-");
+            let processedName = parts[0].trim();
+            $("#filterKhoa").val(processedName);
+            filterKhoa();
+            return false;
+          },
+        });
+
+        $("#filterKhoa").on("focus", function () {
+          $(this).autocomplete("search", "");
+        });
       }
 
       function filterKhoa() {
@@ -2257,12 +2270,6 @@
           }
         });
         calculateTotals();
-      }
-
-      // Định nghĩa hàm hideSuggestionsKhoa
-      function hideSuggestionsKhoa() {
-        const existingSuggestions = document.querySelectorAll(".suggestions");
-        existingSuggestions.forEach((suggestion) => suggestion.remove());
       }
 
       // Bây giờ bọc phần còn lại của mã trong DOMContentLoaded
