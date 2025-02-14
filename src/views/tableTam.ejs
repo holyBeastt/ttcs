@@ -641,7 +641,7 @@
                   timer: 3000, // Tự động đóng sau 3 giây
                   timerProgressBar: true, // Hiển thị thanh đếm thời gian
                   didClose: () => {
-                    table.updateData(rs.data);
+                    location.reload();
                   }
                 })
               }

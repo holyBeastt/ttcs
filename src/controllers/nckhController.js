@@ -49,7 +49,7 @@ const getTableDeTaiDuAn = async (req, res) => {
 
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
-    console.log("Lấy dữ liệu bảng detaiduan Năm:", NamHoc);
+    console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
 
     let connection;
     try {
@@ -58,13 +58,17 @@ const getTableDeTaiDuAn = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
-        console.log(results)
         // Trả về kết quả dưới dạng JSON
         res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
@@ -231,7 +235,7 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
 
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
-    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm:", NamHoc);
+    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm: " + NamHoc + " Khoa: " + Khoa);
 
     let connection;
     try {
@@ -240,8 +244,13 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -504,8 +513,13 @@ const getTableBangSangCheVaGiaiThuong = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -793,11 +807,16 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
         let query;
-        const queryParams = [];
+        let queryParams = [];
 
         // Truy vấn dữ liệu từ bảng sachvagiaotrinh
-        query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -953,11 +972,16 @@ const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
         let query;
-        const queryParams = [];
+        let queryParams = [];
 
         // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
-        query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1111,8 +1135,16 @@ const getTableXayDungCTDT = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM xaydungctdt WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
-        const queryParams = [NamHoc, Khoa];
+        let query;
+        let queryParams;
+
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM xaydungctdt WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+            queryParams = [NamHoc];
+        } else {
+            query = `SELECT * FROM xaydungctdt WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+            queryParams = [NamHoc, Khoa];
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1263,11 +1295,19 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
 
     let connection;
+    let query;
+    let queryParams;
+
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
-        const queryParams = [NamHoc, Khoa];
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+            queryParams = [NamHoc];
+        } else {
+            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+            queryParams = [NamHoc, Khoa];
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1362,12 +1402,13 @@ const editNckh = async (req, res) => {
                 ThuKy: req.body.ThuKy,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
-                DaoTaoDuyet: req.body.DaoTaoDuyet
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE detaiduan 
-                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?
+                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1379,6 +1420,7 @@ const editNckh = async (req, res) => {
                 data.DanhSachThanhVien,
                 data.NgayNghiemThu,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1391,11 +1433,12 @@ const editNckh = async (req, res) => {
                 TacGiaChiuTrachNhiem: req.body.TacGiaChiuTrachNhiem,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE baibaokhoahoc 
-                SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?
+                SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1405,6 +1448,7 @@ const editNckh = async (req, res) => {
                 data.TacGiaChiuTrachNhiem,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1418,11 +1462,12 @@ const editNckh = async (req, res) => {
                 TacGia: req.body.TacGia,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE bangsangchevagiaithuong 
-                SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, DaoTaoDuyet = ?,
+                SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1433,6 +1478,7 @@ const editNckh = async (req, res) => {
                 data.TacGia,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1447,11 +1493,12 @@ const editNckh = async (req, res) => {
                 TacGia: req.body.TacGia,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE biensoangiaotrinhbaigiang 
-                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?
+                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1463,6 +1510,7 @@ const editNckh = async (req, res) => {
                 data.TacGia,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1474,11 +1522,12 @@ const editNckh = async (req, res) => {
                 NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
         UPDATE nckhvahuanluyendoituyen 
-        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?
+        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
         WHERE ID = ?`;
 
             queryParams = [
@@ -1488,6 +1537,7 @@ const editNckh = async (req, res) => {
                 data.NgayQDGiaoNhiemVu,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1503,11 +1553,12 @@ const editNckh = async (req, res) => {
                 DongChuBien: req.body.DongChuBien,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                   UPDATE sachvagiaotrinh
-                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?
+                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                   WHERE ID = ?`;
 
             queryParams = [
@@ -1519,6 +1570,7 @@ const editNckh = async (req, res) => {
                 data.DongChuBien,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1532,11 +1584,12 @@ const editNckh = async (req, res) => {
                 NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
                 DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                   UPDATE xaydungctdt
-                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?
+                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                   WHERE ID = ?`;
 
             queryParams = [
@@ -1547,6 +1600,7 @@ const editNckh = async (req, res) => {
                 data.NgayQDGiaoNhiemVu,
                 data.DanhSachThanhVien,
                 data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
