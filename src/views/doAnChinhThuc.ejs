@@ -250,7 +250,6 @@
       // Hàm renderTable sẽ được sử dụng để render bảng
       function renderTable(data) {
         console.log(data);
-        // Chọn các cột bạn muốn hiển thị
         const columnsToDisplay = ['SinhVien', 'MaSV', 'MaPhongBan', 'TenDeTai', 'GiangVienDefault', 'GiangVien1', 'GiangVien2', 'NgayBatDau', 'NgayKetThuc'];
 
         const headersMap = {
@@ -265,29 +264,28 @@
           'NgayKetThuc': 'Ngày kết thúc',
         };
 
-        // Tạo header một lần
         const tableHeader = document.getElementById('table-header');
         tableHeader.innerHTML = columnsToDisplay.map(header => {
           const newHeaderName = headersMap[header] || header;
           return `<th>${newHeaderName}</th>`;
         }).join('');
 
-        // Tạo body
         const tableBody = document.getElementById('data-table-body');
         tableBody.innerHTML = data.map(item => {
           const rowHtml = columnsToDisplay.map(key => {
             let cellValue = item[key] !== null ? item[key] : '';
-            // Định dạng ngày nếu là cột ngày
+            if (key === 'GiangVienDefault') {
+              cellValue = (cellValue || '').replace(/\n/g, '<br>');
+            }
             if (['NgayBatDau', 'NgayKetThuc'].includes(key) && cellValue) {
               const date = new Date(cellValue);
-              cellValue = date.toLocaleDateString('vi-VN'); // Định dạng ngày theo Việt Nam
+              cellValue = date.toLocaleDateString('vi-VN');
             }
             return `<td>${cellValue}</td>`;
           }).join('');
           return `<tr>${rowHtml}</tr>`;
         }).join('');
 
-        // Xóa spinner sau khi hoàn thành (nếu có spinner)
         const loadingSpinner = document.getElementById('loading-spinner');
         if (loadingSpinner) {
           loadingSpinner.remove();
