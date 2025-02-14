@@ -85,6 +85,13 @@ const AdminController = {
             "Tên đăng nhập đã tồn tại. Vui lòng nhập tên đăng nhập khác.",
         });
       }
+      const ModeHSL = parseFloat(HSL); // Chuyển thành số thực
+      if (isNaN(ModeHSL) || ModeHSL < 0) {
+        connection.release();
+        return res.status(400).json({
+          message: "Hệ số lương phải là số lớn hơn 0. Vui lòng kiểm tra lại.",
+        });
+      }
       if (!/^\d*$/.test(Luong)) {
         // Kiểm tra nếu Luong không phải là chuỗi số
         connection.release(); // Giải phóng kết nối trước khi trả về
@@ -92,13 +99,14 @@ const AdminController = {
           message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
         });
       }
-      if (!/^\d*$/.test(PhanTramMienGiam)) {
-        // Kiểm tra nếu Luong không phải là chuỗi số
-        connection.release(); // Giải phóng kết nối trước khi trả về
+      const phanTram = parseFloat(PhanTramMienGiam); // Chuyển thành số thực
+      if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
+        connection.release();
         return res.status(400).json({
-          message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+          message: "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
         });
       }
+
 
       // Kiểm tra trùng lặp tên
       const nvQuery = "select * from nhanvien";
