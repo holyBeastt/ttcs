@@ -43,6 +43,9 @@ router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
 router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
 router.get("/nhiemvukhoahoccongnghe", nckh.getNhiemVuKhoaHocCongNghe);
+router.post("/nhiemvukhoahoccongnghe", nckh.saveNhiemVuKhoaHocCongNghe);
+router.get("/nhiemvukhoahoccongnghe/:NamHoc/:Khoa", nckh.getTableNhiemVuKhoaHocCongNghe);
+
 
 router.get("/tonghopsotietnckh", nckh.getTongHopSoTietNCKH);
 router.post("/tonghopsotietnckh/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVien);
@@ -82,6 +85,9 @@ router.post("/add-biensoangiaotrinhbaigiang", nckhAdmin.addBienSoanGiaoTrinhBaiG
 router.post("/edit-biensoangiaotrinhbaigiang", nckhAdmin.editBienSoanGiaoTrinhBaiGiang);
 router.post("/delete-biensoangiaotrinhbaigiang", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
 
+// router.post("/add-nhiemvukhoahoccongnghe", nckhAdmin.addBienSoanGiaoTrinhBaiGiang);
+// router.post("/edit-nhiemvukhoahoccongnghe", nckhAdmin.editBienSoanGiaoTrinhBaiGiang);
+// router.post("/delete-nhiemvukhoahoccongnghe", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
 
 // =================================================================
 // sửa xóa 
