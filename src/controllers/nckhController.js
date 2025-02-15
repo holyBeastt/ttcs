@@ -44,12 +44,20 @@ const getBienSoanGiaoTrinhBaiGiang = (req, res) => {
     res.render("nckhBienSoanGiaoTrinhBaiGiang.ejs");
 };
 
+const getNhiemVuKhoaHocCongNghe = (req, res) => {
+    res.render("nckhNhiemVuKhoaHocCongNghe.ejs");
+};
+
+const getTongHopSoTietNCKH = (req, res) => {
+    res.render("nckhTongHopSoTiet.ejs");
+};
+
 // lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
 
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
-    console.log("Lấy dữ liệu bảng detaiduan Năm:", NamHoc);
+    console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
 
     let connection;
     try {
@@ -58,13 +66,17 @@ const getTableDeTaiDuAn = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
-        console.log(results)
         // Trả về kết quả dưới dạng JSON
         res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
@@ -231,7 +243,7 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
 
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
-    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm:", NamHoc);
+    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm: " + NamHoc + " Khoa: " + Khoa);
 
     let connection;
     try {
@@ -240,8 +252,13 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -504,8 +521,13 @@ const getTableBangSangCheVaGiaiThuong = async (req, res) => {
         let query;
         const queryParams = [];
 
-        query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM bangsangchevagiaithuong WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -793,11 +815,16 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
         let query;
-        const queryParams = [];
+        let queryParams = [];
 
         // Truy vấn dữ liệu từ bảng sachvagiaotrinh
-        query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -953,11 +980,16 @@ const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
         let query;
-        const queryParams = [];
+        let queryParams = [];
 
         // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
-        query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
-        queryParams.push(NamHoc, Khoa);
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
+            queryParams.push(NamHoc);
+        } else {
+            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
+            queryParams.push(NamHoc, Khoa);
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1111,8 +1143,16 @@ const getTableXayDungCTDT = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM xaydungctdt WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
-        const queryParams = [NamHoc, Khoa];
+        let query;
+        let queryParams;
+
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM xaydungctdt WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+            queryParams = [NamHoc];
+        } else {
+            query = `SELECT * FROM xaydungctdt WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng xaydungctdt
+            queryParams = [NamHoc, Khoa];
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1263,11 +1303,19 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
 
     let connection;
+    let query;
+    let queryParams;
+
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        const query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
-        const queryParams = [NamHoc, Khoa];
+        if (Khoa == "ALL") {
+            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+            queryParams = [NamHoc];
+        } else {
+            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+            queryParams = [NamHoc, Khoa];
+        }
 
         // Thực hiện truy vấn
         const [results] = await connection.execute(query, queryParams);
@@ -1328,6 +1376,15 @@ const getData = async (req, res) => {
     }
 };
 
+function convertDateFormat(dateStr) {
+    const date = new Date(dateStr);
+    const mm = String(date.getMonth() + 1).padStart(2, '0'); // Không dùng UTC
+    const dd = String(date.getDate()).padStart(2, '0');      // Không dùng UTC
+    const yyyy = date.getFullYear();                         // Không dùng UTC
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+
 const editNckh = async (req, res) => {
     const { ID, MaBang } = req.params;
 
@@ -1352,12 +1409,14 @@ const editNckh = async (req, res) => {
                 ChuNhiem: req.body.ChuNhiem,
                 ThuKy: req.body.ThuKy,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
-                NgayNghiemThu: req.body.NgayNghiemThu,
+                NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE detaiduan 
-                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?
+                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1368,6 +1427,8 @@ const editNckh = async (req, res) => {
                 data.ThuKy,
                 data.DanhSachThanhVien,
                 data.NgayNghiemThu,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1379,11 +1440,13 @@ const editNckh = async (req, res) => {
                 TacGia: req.body.TacGia,
                 TacGiaChiuTrachNhiem: req.body.TacGiaChiuTrachNhiem,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE baibaokhoahoc 
-                SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?
+                SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1392,6 +1455,8 @@ const editNckh = async (req, res) => {
                 data.TacGia,
                 data.TacGiaChiuTrachNhiem,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1400,15 +1465,17 @@ const editNckh = async (req, res) => {
             data = {
                 PhanLoai: req.body.PhanLoai,
                 TenBangSangCheVaGiaiThuong: req.body.TenBangSangCheVaGiaiThuong,
-                NgayQDCongNhan: req.body.NgayQDCongNhan,
+                NgayQDCongNhan: convertDateFormat(req.body.NgayQDCongNhan),
                 SoQDCongNhan: req.body.SoQDCongNhan,
                 TacGia: req.body.TacGia,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE bangsangchevagiaithuong 
-                SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?
+                SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1418,6 +1485,8 @@ const editNckh = async (req, res) => {
                 data.SoQDCongNhan,
                 data.TacGia,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1428,14 +1497,16 @@ const editNckh = async (req, res) => {
                 TenGiaoTrinhBaiGiang: req.body.TenGiaoTrinhBaiGiang,
                 SoTC: req.body.SoTC,
                 SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
                 TacGia: req.body.TacGia,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                 UPDATE biensoangiaotrinhbaigiang 
-                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?
+                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                 WHERE ID = ?`;
 
             queryParams = [
@@ -1446,6 +1517,8 @@ const editNckh = async (req, res) => {
                 data.NgayQDGiaoNhiemVu,
                 data.TacGia,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1454,13 +1527,15 @@ const editNckh = async (req, res) => {
                 PhanLoai: req.body.PhanLoai,
                 TenDeTai: req.body.TenDeTai,
                 SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
         UPDATE nckhvahuanluyendoituyen 
-        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?
+        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
         WHERE ID = ?`;
 
             queryParams = [
@@ -1469,6 +1544,8 @@ const editNckh = async (req, res) => {
                 data.SoQDGiaoNhiemVu,
                 data.NgayQDGiaoNhiemVu,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1483,11 +1560,13 @@ const editNckh = async (req, res) => {
                 TacGia: req.body.TacGia,
                 DongChuBien: req.body.DongChuBien,
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                   UPDATE sachvagiaotrinh
-                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?
+                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                   WHERE ID = ?`;
 
             queryParams = [
@@ -1498,6 +1577,8 @@ const editNckh = async (req, res) => {
                 data.TacGia,
                 data.DongChuBien,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1508,13 +1589,15 @@ const editNckh = async (req, res) => {
                 TenChuongTrinh: req.body.TenChuongTrinh,
                 SoTC: req.body.SoTC,
                 SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu: req.body.NgayQDGiaoNhiemVu,
+                NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
                 DanhSachThanhVien: req.body.DanhSachThanhVien,
+                DaoTaoDuyet: req.body.DaoTaoDuyet,
+                Khoa: req.body.Khoa,
             };
 
             updateQuery = `
                   UPDATE xaydungctdt
-                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?
+                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
                   WHERE ID = ?`;
 
             queryParams = [
@@ -1524,6 +1607,8 @@ const editNckh = async (req, res) => {
                 data.SoQDGiaoNhiemVu,
                 data.NgayQDGiaoNhiemVu,
                 data.DanhSachThanhVien,
+                data.DaoTaoDuyet,
+                data.Khoa,
                 ID,
             ];
             break;
@@ -1541,7 +1626,7 @@ const editNckh = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy bản ghi để cập nhật." });
         }
 
-        console.log(`Cập nhật thành công ID: ${ID} trong bảng ${MaBang}`);
+        console.log(`Cập nhật thành công ID: ${ID} trong bảng ${MaBang} với data : ${queryParams}`);
         res.status(200).json({
             success: true,
             message: "Cập nhật thành công!"
@@ -1557,8 +1642,235 @@ const editNckh = async (req, res) => {
     }
 };
 
+const deleteNckh = async (req, res) => {
+    const { ID, MaBang } = req.params;
+
+    if (!ID) {
+        return res.status(400).json({ message: "Thiếu ID cần xóa." });
+    }
+
+    let deleteQuery = "";
+    let queryParams = [];
+
+    // Xác định câu lệnh xóa dựa trên loại bảng (MaBang)
+    switch (MaBang) {
+        case "detaiduan":
+            deleteQuery = `DELETE FROM detaiduan WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "baibaokhoahoc":
+            deleteQuery = `DELETE FROM baibaokhoahoc WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "bangsangchevagiaithuong":
+            deleteQuery = `DELETE FROM bangsangchevagiaithuong WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "biensoangiaotrinhbaigiang":
+            deleteQuery = `DELETE FROM biensoangiaotrinhbaigiang WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "nckhvahuanluyendoituyen":
+            deleteQuery = `DELETE FROM nckhvahuanluyendoituyen WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "sachvagiaotrinh":
+            deleteQuery = `DELETE FROM sachvagiaotrinh WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        case "xaydungctdt":
+            deleteQuery = `DELETE FROM xaydungctdt WHERE ID = ?`;
+            queryParams = [ID];
+            break;
+        default:
+            return res.status(400).json({ message: "Loại bảng không hợp lệ." });
+    }
+
+    // Kết nối đến cơ sở dữ liệu (giả sử bạn đã định nghĩa hàm createPoolConnection)
+    const connection = await createPoolConnection();
+
+    try {
+        const [result] = await connection.execute(deleteQuery, queryParams);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Không tìm thấy bản ghi để xóa." });
+        }
+
+        console.log(`Xóa thành công ID: ${ID} trong bảng ${MaBang}`);
+        res.status(200).json({
+            success: true,
+            message: "Xóa thành công!"
+        });
+    } catch (error) {
+        console.error("Lỗi khi xóa:", error);
+        res.status(500).json({
+            message: "Có lỗi xảy ra khi xóa.",
+            error: error.message,
+        });
+    } finally {
+        connection.release();
+    }
+};
 
 
+const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
+    // Nhận NamHoc và TenGiangVien từ req.params và req.body
+    const { NamHoc } = req.params;
+    const TenGiangVien = req.body.TenGiangVien;
+
+    let connection;
+
+    try {
+        // Tạo kết nối từ pool
+        connection = await createPoolConnection();
+
+        // Chuẩn bị các truy vấn cho 7 bảng, mỗi truy vấn được gắn kèm tên bảng
+        const tableQueries = [
+            {
+                table: 'Đề tài, dự án',
+                promise: connection.execute(
+                    'SELECT ChuNhiem, ThuKy, DanhSachThanhVien FROM detaiduan WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Bài báo khoa học',
+                promise: connection.execute(
+                    'SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien FROM baibaokhoahoc WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Bằng sáng chế và giải thưởng',
+                promise: connection.execute(
+                    'SELECT TacGia, DanhSachThanhVien FROM bangsangchevagiaithuong WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển',
+                promise: connection.execute(
+                    'SELECT DanhSachThanhVien FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Sách và giáo trình xuất bản trong nước',
+                promise: connection.execute(
+                    'SELECT TacGia, DongChuBien, DanhSachThanhVien FROM sachvagiaotrinh WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Xấy dựng chương trình đào tạo phục vụ học viện',
+                promise: connection.execute(
+                    'SELECT DanhSachThanhVien FROM xaydungctdt WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Biên soạn giáo trình bài giảng',
+                promise: connection.execute(
+                    'SELECT TacGia, DanhSachThanhVien FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            }
+        ];
+
+
+        // Thực hiện các truy vấn đồng thời
+        const queryResults = await Promise.all(
+            tableQueries.map(item => item.promise)
+        );
+
+        // Lọc các bảng chưa tên giảng viên
+        const filteredResults = tableQueries.map((item, index) => {
+            // Lấy các bản ghi của bảng hiện tại
+            const rows = queryResults[index][0];
+
+            // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
+            const filteredRows = rows.filter(row => {
+                return Object.values(row).some(
+                    value =>
+                        value && typeof value === 'string' && value.includes(TenGiangVien)
+                );
+            });
+
+            // Nếu không có bản ghi nào phù hợp thì trả về null
+            if (filteredRows.length === 0) return null;
+
+            // Giả sử chỉ có 1 dòng phù hợp (nếu có nhiều bạn có thể cần xử lý khác)
+            return {
+                Table: item.table, // Tên bảng
+                ...filteredRows[0] // Hợp nhất dữ liệu từ dòng đầu tiên
+            };
+        }).filter(item => item !== null);
+
+        // In ra console kết quả với tên bảng
+        // console.log(JSON.stringify(filteredResults, null, 2));
+
+        const result = congTongSoTiet(filteredResults, TenGiangVien);
+
+        console.log(result);
+
+        // Trả về kết quả cho client
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error("Error in tongHopSoTietNckhCuaMotGiangVien:", error);
+        res.status(500).json({ success: false, message: "Không thể truy xuất dữ liệu" });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+function congTongSoTiet(filteredResults, TenGiangVien) {
+    // Hàm nội bộ: trích xuất số tiết từ chuỗi, hỗ trợ số nguyên và số thập phân
+    function extractHours(text) {
+        const regex = /\((?:.*?)?(\d+(?:\.\d+)?)\s*(?:giờ|tiết)(?:.*?)?\)/;
+        const match = text.match(regex);
+        return match && match[1] ? parseFloat(match[1]) : 0;
+    }
+
+    const result = { tables: {}, total: 0, name: TenGiangVien };
+
+    filteredResults.forEach(record => {
+        // Lấy tên bảng từ key "Table" (nếu không có, dùng "Unknown Table")
+        const tableName = record["Table"] || record["table"] || "Unknown Table";
+        let tableTotal = 0;
+
+        // Duyệt qua từng key của record (bỏ qua key chứa tên bảng)
+        for (const key in record) {
+            if (key.toLowerCase() === "table") continue;
+
+            // Xử lý nếu giá trị là chuỗi không rỗng
+            if (typeof record[key] === "string" && record[key].trim() !== "") {
+                const value = record[key];
+
+                if (key === "DanhSachThanhVien") {
+                    // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
+                    const members = value.split(",").map(item => item.trim());
+                    members.forEach(member => {
+                        if (member.includes(TenGiangVien)) {
+                            tableTotal += extractHours(member);
+                        }
+                    });
+                } else {
+                    // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
+                    if (value.includes(TenGiangVien)) {
+                        tableTotal += extractHours(value);
+                    }
+                }
+            }
+        }
+
+        // Lưu số tiết của bảng hiện tại vào đối tượng kết quả
+        result.tables[tableName] = tableTotal;
+        // Cộng dồn vào tổng số tiết của tất cả các bảng
+        result.total += tableTotal;
+    });
+
+    return result;
+}
 
 module.exports = {
     getQuyDinhSoGioNCKH,
@@ -1584,6 +1896,10 @@ module.exports = {
     getBienSoanGiaoTrinhBaiGiang,
     saveBienSoanGiaoTrinhBaiGiang,
     getTableBienSoanGiaoTrinhBaiGiang,
+    getNhiemVuKhoaHocCongNghe,
+    getTongHopSoTietNCKH,
+    tongHopSoTietNckhCuaMotGiangVien,
     getData,
-    editNckh
+    editNckh,
+    deleteNckh
 };

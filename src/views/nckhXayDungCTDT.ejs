@@ -126,7 +126,10 @@
           </div>
           <div class="flex-item">
             <label for="MaPhongBanView">Khoa</label>
-            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;"></select>
+            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
+              <option value="ALL">Tất cả khoa</option>
+
+            </select>
           </div>
           <div class="flex-item-view">
             <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
@@ -134,20 +137,7 @@
         </div>
 
         <div class="table-container">
-          <table border="1" class="table table-bordered">
-            <thead id="table-header">
-              <tr>
-                <th>Hình thức</th>
-                <th>Tên chương trình</th>
-                <th>Số tín chỉ</th>
-                <th>Số QĐ giao nhiệm vụ</th>
-                <th>Ngày QĐ giao nhiệm vụ</th>
-                <th>Thành viên</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
+          <div id="table-container"></div>
         </div>
       </div>
     </div>
@@ -158,209 +148,244 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-
+    <!-- Link thư viện tabulator -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
     <!-- nckh view -->
     <script>
-      // Hàm fix định dạng số (dùng luôn của mã đề tài dự án)
-      function fixNumberFormat(text) {
-        if (typeof text !== "string") return text;
-        return text.replace(/(\d),(\d{2})/g, "$1.$2");
+      var table;
+
+      document.getElementById("render").addEventListener("click", async function () {
+        const year = document.getElementById("namHocXem").value;
+        const department = document.getElementById("MaPhongBanView").value;
+        const url = `/xaydungctdt/${year}/${department}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          // Lấy thông tin quyền từ localStorage
+          const userRole = localStorage.getItem("userRole");
+          const userPhongBan = localStorage.getItem("MaPhongBan");
+
+          // Định nghĩa các cột theo cấu trúc của mã đề tài/dự án
+          let columns = [
+            {
+              title: "Hình Thức Xây Dựng",
+              field: "HinhThucXayDung",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            },
+            {
+              title: "Tên Chương Trình",
+              field: "TenChuongTrinh",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            },
+            {
+              title: "Số TC",
+              field: "SoTC",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            },
+            {
+              title: "Số QD Giao Nhiệm Vụ",
+              field: "SoQDGiaoNhiemVu",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            },
+            {
+              title: "Ngày QD Giao Nhiệm Vụ",
+              field: "NgayQDGiaoNhiemVu",
+              editor: "date",
+              editorParams: {
+                format: "dd/MM/yyyy",
+                defaultValue: "",
+                elementAttributes: { placeholder: "dd/MM/yyyy" }
+              },
+              formatter: "datetime",
+              formatterParams: {
+                inputFormat: "iso",
+                outputFormat: "dd/MM/yyyy"
+              },
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            },
+            {
+              title: "Danh Sách Thành Viên",
+              field: "DanhSachThanhVien",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            }
+          ];
+
+
+          // Nếu khoa == ALL thì thêm cột khoa
+          if (department == "ALL") {
+            columns.push({
+              title: "Khoa",
+              field: "Khoa",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+            });
+          }
+
+          // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
+          columns.push({
+            title: "Hành Động",
+            field: "actions",
+            formatter: actionFormatter,
+            hozAlign: "center",
+            headerSort: false
+          });
+
+          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+          if (userRole === "Duyệt" && userPhongBan === "DAOTAO") {
+            columns.push({
+              title: "Duyệt",
+              field: "DaoTaoDuyet",
+              formatter: checkboxFormatter,
+              editor: "tickCross",
+              cellClick: function (e, cell) {
+                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                cell.edit();
+              },
+            });
+          }
+
+          // Khởi tạo bảng với Tabulator
+          table = new Tabulator("#table-container", {
+            data: data,
+            index: "ID",
+            layout: "fitColumns",
+            columns: columns
+          });
+
+          // Sự kiện khi một ô được chỉnh sửa
+          table.on("cellEdited", async function (cell) {
+            const field = cell.getField();
+            const row = cell.getRow();
+            let updatedData = row.getData();
+
+            if (field === "NgayQDGiaoNhiemVu" && updatedData.NgayQDGiaoNhiemVu) {
+              const isoDate = convertDMYtoISO(updatedData.NgayQDGiaoNhiemVu);
+              if (isoDate) updatedData.NgayQDGiaoNhiemVu = isoDate;
+            }
+            if (field === "DaoTaoDuyet") {
+              // Nếu checkbox được chọn, chuyển thành 1 để gửi lên server
+              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
+            }
+            await saveData(updatedData.ID, updatedData, row);
+          });
+        } catch (error) {
+          console.error("Lỗi khi lấy dữ liệu:", error);
+        }
+      });
+
+      // Formatter cho cột "Duyệt" hiển thị input checkbox
+      function checkboxFormatter(cell, formatterParams, onRendered) {
+        let value = cell.getValue();
+        let checked = (value == 1 || value == true) ? "checked" : "";
+        return `<input type="checkbox" ${checked}/>`;
       }
 
-      // Hàm format để định dạng ngày từ ISO 8601
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+      // Formatter cho cột Hành Động: không hiển thị nút xóa nếu đã duyệt
+      function actionFormatter(cell) {
+        const rowData = cell.getRow().getData();
+        if (rowData.DaoTaoDuyet == 1) {
+          return "";
+        }
+        const id = rowData.ID;
+        const button = document.createElement("button");
+        button.innerHTML = "<i class='fas fa-trash-alt'></i>";
+        button.classList.add("btn", "btn-delete");
+        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        return button;
       }
 
-      // Hàm chuyển đổi định dạng ngày từ DMY sang ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
+      // Hàm lưu dữ liệu sau khi chỉnh sửa
+      async function saveData(id, updatedData, row) {
+        const MaBang = 'xaydungctdt';
+        try {
+          const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+          });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Thông báo',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            // Render lại bảng sau khi lưu thành công
+            document.getElementById("render").click();
+          } else {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Thất bại',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật dữ liệu:", error);
+        }
+      }
+
+      // Hàm xóa dữ liệu
+      async function deleteRow(id, row) {
+        try {
+          const response = await fetch(`/nckh/delete/${id}/xaydungctdt`, { method: "POST" });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Thông báo',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            row.delete();
+          } else {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Thất bại',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi xóa dữ liệu:", error);
+        }
+      }
+
+      // Hàm chuyển đổi định dạng ngày từ dd/MM/yyyy sang ISO 8601
       function convertDMYtoISO(dateString) {
         const parts = dateString.split("/");
         if (parts.length !== 3) return null;
         const [day, month, year] = parts.map(Number);
-        if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-        const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-        return date.toISOString();
-      }
-
-      // Hàm render table
-      function renderTable(data) {
-        console.log("Dữ liệu trước khi render:", data);
-        const tbody = document.getElementById('table-body');
-        window.currentData = data; // Lưu dữ liệu hiện tại để sử dụng khi hủy
-        tbody.innerHTML = '';
-
-        data.forEach(item => {
-          const newItem = { ...item };
-          // Sửa lỗi định dạng số cho các trường liên quan nếu cần
-          newItem.DanhSachThanhVien = fixNumberFormat(newItem.DanhSachThanhVien);
-          newItem.SoQDGiaoNhiemVu = fixNumberFormat(newItem.SoQDGiaoNhiemVu);
-          newItem.SoTC = fixNumberFormat(newItem.SoTC);
-
-          const row = createTableRow(newItem);
-          tbody.appendChild(row);
-        });
-        console.log("Dữ liệu sau khi sửa:", window.currentData);
-      }
-
-      // Hàm tạo một hàng cho bảng
-      function createTableRow(item) {
-        const row = document.createElement('tr');
-        row.setAttribute('data-id', item.ID || '');
-
-        function createCell(value) {
-          const cell = document.createElement('td');
-          cell.textContent = value;
-          return cell;
-        }
-
-        row.appendChild(createCell(item.HinhThucXayDung));
-        row.appendChild(createCell(item.TenChuongTrinh));
-        row.appendChild(createCell(item.SoTC));
-        row.appendChild(createCell(item.SoQDGiaoNhiemVu));
-        row.appendChild(createCell(formatDate(item.NgayQDGiaoNhiemVu)));
-        row.appendChild(createCell(
-          item.DanhSachThanhVien
-            .split(',')
-            .map(member => fixNumberFormat(member.trim()))
-            .join(', ')
-        ));
-
-        // Tạo nút Sửa
-        const editButton = document.createElement('button');
-        editButton.classList.add('btn', 'btn-edit');
-        editButton.textContent = 'Sửa';
-        editButton.addEventListener('click', () => enableEditMode(row, item));
-
-        const actionCell = document.createElement('td');
-        actionCell.appendChild(editButton);
-        row.appendChild(actionCell);
-
-        return row;
-      }
-
-      // Hàm chuyển sang chế độ chỉnh sửa cho hàng được chọn
-      function enableEditMode(row, item) {
-        const id = row.getAttribute('data-id');
-        const originalRow = row.cloneNode(true); // Lưu lại dòng gốc để khôi phục khi hủy
-        row.innerHTML = '';
-
-        function createEditableCell(value, className) {
-          const cell = document.createElement('td');
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.value = value;
-          input.className = className;
-          cell.appendChild(input);
-          return cell;
-        }
-
-        row.appendChild(createEditableCell(item.HinhThucXayDung, `hinh-thuc-${id}`));
-        row.appendChild(createEditableCell(item.TenChuongTrinh, `ten-chuong-trinh-${id}`));
-        row.appendChild(createEditableCell(item.SoTC, `so-tc-${id}`));
-        row.appendChild(createEditableCell(item.SoQDGiaoNhiemVu, `so-qd-${id}`));
-        row.appendChild(createEditableCell(formatDate(item.NgayQDGiaoNhiemVu), `ngay-qd-${id}`));
-        row.appendChild(createEditableCell(
-          item.DanhSachThanhVien
-            .split(',')
-            .map(member => fixNumberFormat(member.trim()))
-            .join(', '),
-          `danh-sach-thanh-vien-${id}`
-        ));
-
-        // Tạo nút Lưu
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Lưu';
-        saveButton.classList.add('btn', 'btn-save');
-        saveButton.addEventListener('click', () => saveData(id));
-
-        // Tạo nút Hủy
-        const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'Hủy';
-        cancelButton.classList.add('btn', 'btn-cancel');
-        cancelButton.addEventListener('click', () => {
-          row.replaceWith(createTableRow(item));
-        });
-
-        const actionCell = document.createElement('td');
-        actionCell.appendChild(saveButton);
-        actionCell.appendChild(cancelButton);
-        row.appendChild(actionCell);
-      }
-
-      function cancelEditMode(row, item) {
-        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
-      }
-
-      // Hàm lưu dữ liệu sau khi chỉnh sửa
-      function saveData(id) {
-        const MaBang = 'xaydungctdt';
-        const NgayQDGiaoNhiemVu = document.querySelector(`.ngay-qd-${id}`).value;
-        const NgayQDGiaoNhiemVuValid = convertDMYtoISO(NgayQDGiaoNhiemVu);
-
-        const updatedData = {
-          HinhThucXayDung: document.querySelector(`.hinh-thuc-${id}`).value,
-          TenChuongTrinh: document.querySelector(`.ten-chuong-trinh-${id}`).value,
-          SoTC: document.querySelector(`.so-tc-${id}`).value,
-          SoQDGiaoNhiemVu: document.querySelector(`.so-qd-${id}`).value,
-          NgayQDGiaoNhiemVu: NgayQDGiaoNhiemVuValid,
-          DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value
-        };
-
-        console.log(updatedData);
-
-        fetch(`/nckh/edit/${id}/${MaBang}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updatedData)
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                title: 'Thông báo',
-                html: `${data.message}`,
-                icon: 'success',
-                confirmButtonText: 'OK',
-                width: 'auto',
-                padding: '20px',
-                timer: 3000, // Tự động đóng sau 3 giây
-                timerProgressBar: true, // Hiển thị thanh đếm thời gian
-                didClose: () => {
-                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
-                }
-              })
-            }
-          })
-          .catch(error => console.error('Lỗi khi cập nhật dữ liệu:', error));
-      }
-
-      // Hàm lấy dữ liệu từ server và hiển thị bảng
-      async function getData() {
-        const year = document.getElementById('namHocXem').value;
-        const department = document.getElementById('MaPhongBanView').value;
-        const url = `/xaydungctdt/${year}/${department}`;
-
-        try {
-          fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              console.log(data);
-              renderTable(data);
-            })
-            .catch(error => {
-              console.error('Lỗi khi lấy dữ liệu:', error);
-            });
-        } catch (error) {
-          console.error('Lỗi trong quá trình gửi yêu cầu:', error);
-        }
+        return new Date(Date.UTC(year, month - 1, day)).toISOString();
       }
     </script>
+
 
 
     <!-- nckh form -->

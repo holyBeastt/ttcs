@@ -42,6 +42,12 @@ router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
 router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
 router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
+router.get("/nhiemvukhoahoccongnghe", nckh.getNhiemVuKhoaHocCongNghe);
+
+router.get("/tonghopsotietnckh", nckh.getTongHopSoTietNCKH);
+router.post("/tonghopsotietnckh/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVien);
+
+
 // =================================================================
 // lấy data đổ vào các thẻ select
 router.get("/data/:MaBang", nckh.getData);
@@ -76,7 +82,13 @@ router.post("/add-biensoangiaotrinhbaigiang", nckhAdmin.addBienSoanGiaoTrinhBaiG
 router.post("/edit-biensoangiaotrinhbaigiang", nckhAdmin.editBienSoanGiaoTrinhBaiGiang);
 router.post("/delete-biensoangiaotrinhbaigiang", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
 
+
+// =================================================================
+// sửa xóa 
 router.post("/nckh/edit/:ID/:MaBang", nckh.editNckh);
+router.post("/nckh/delete/:ID/:MaBang", nckh.deleteNckh);
+
+
 
 
 module.exports = router;
