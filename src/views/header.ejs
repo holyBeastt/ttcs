@@ -143,6 +143,8 @@
                 <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
                 <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
                 <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a>
+                <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
               </div>
             </div>
           </div>
@@ -344,49 +346,26 @@
     let userRole = localStorage.getItem("userRole");
     let isKhoa = localStorage.getItem("isKhoa");
 
-    let nckhNav = document.getElementById("nckhNav");
-    let links = nckhNav.getElementsByClassName("nav-link");
+    let gvmNav = document.getElementById("nav-gvm");
+    let quychuanNav = document.getElementById("nav-quychuan");
+    let moigiangNav = document.getElementById("nav-moigiang");
+    let vuotgioNav = document.getElementById("nav-vuotgio");
+    let doanNav = document.getElementById("nav-doan");
+    let tkbNav = document.getElementById("tkb-nav");
+    let nckhNav = document.getElementById("nav-nckh");
+
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     if (maPhongBan === "NCKH") {
-      let gvmNav = document.getElementById("nav-gvm");
-      let quychuanNav = document.getElementById("nav-quychuan");
-      let moigiangNav = document.getElementById("nav-moigiang");
-      let vuotgioNav = document.getElementById("nav-vuotgio");
-      let doanNav = document.getElementById("nav-doan");
-      let tkbNav = document.getElementById("tkb-nav");
-
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";
       vuotgioNav.style.display = "none";
       doanNav.style.display = "none";
       tkbNav.style.display = "none";
+    } else if (userRole == "GV") {
+      nckhNav.style.display = "none";
     }
-
-    // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
-    // if (maPhongBan === "NCKH" && userRole === "Duyệt") {
-    //   // Chỉ hiển thị 4 mục đầu
-    //   for (let i = 4; i < links.length; i++) {
-    //     links[i].style.display = "none";
-    //   }
-    // } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
-    //   // Chỉ hiển thị 3 mục cuối
-    //   for (let i = 0; i < links.length - 3; i++) {
-    //     links[i].style.display = "none";
-    //   }
-    // }
-    // else if (userRole == "Lãnh đạo khoa" && isKhoa == "1" || isKhoa == "1" && userRole == "GV_CNBM") {
-    //   // Chỉ hiển thị 3 mục cuối
-    //   for (let i = 0; i < links.length; i++) {
-    //     links[i].style.display = "block";
-    //   }
-    // } else {
-    //   // Nếu không thuộc quyền nào, ẩn toàn bộ
-    //   for (let i = 0; i < links.length; i++) {
-    //     links[i].style.display = "none";
-    //   }
-    // }
   });
 
 </script>

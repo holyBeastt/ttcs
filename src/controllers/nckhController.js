@@ -44,6 +44,14 @@ const getBienSoanGiaoTrinhBaiGiang = (req, res) => {
     res.render("nckhBienSoanGiaoTrinhBaiGiang.ejs");
 };
 
+const getNhiemVuKhoaHocCongNghe = (req, res) => {
+    res.render("nckhNhiemVuKhoaHocCongNghe.ejs");
+};
+
+const getTongHopSoTietNCKH = (req, res) => {
+    res.render("nckhTongHopSoTiet.ejs");
+};
+
 // lấy bảng đề tài dự án
 const getTableDeTaiDuAn = async (req, res) => {
 
@@ -1705,7 +1713,164 @@ const deleteNckh = async (req, res) => {
 };
 
 
+const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
+    // Nhận NamHoc và TenGiangVien từ req.params và req.body
+    const { NamHoc } = req.params;
+    const TenGiangVien = req.body.TenGiangVien;
 
+    let connection;
+
+    try {
+        // Tạo kết nối từ pool
+        connection = await createPoolConnection();
+
+        // Chuẩn bị các truy vấn cho 7 bảng, mỗi truy vấn được gắn kèm tên bảng
+        const tableQueries = [
+            {
+                table: 'Đề tài, dự án',
+                promise: connection.execute(
+                    'SELECT ChuNhiem, ThuKy, DanhSachThanhVien FROM detaiduan WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Bài báo khoa học',
+                promise: connection.execute(
+                    'SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien FROM baibaokhoahoc WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Bằng sáng chế và giải thưởng',
+                promise: connection.execute(
+                    'SELECT TacGia, DanhSachThanhVien FROM bangsangchevagiaithuong WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển',
+                promise: connection.execute(
+                    'SELECT DanhSachThanhVien FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Sách và giáo trình xuất bản trong nước',
+                promise: connection.execute(
+                    'SELECT TacGia, DongChuBien, DanhSachThanhVien FROM sachvagiaotrinh WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Xấy dựng chương trình đào tạo phục vụ học viện',
+                promise: connection.execute(
+                    'SELECT DanhSachThanhVien FROM xaydungctdt WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            },
+            {
+                table: 'Biên soạn giáo trình bài giảng',
+                promise: connection.execute(
+                    'SELECT TacGia, DanhSachThanhVien FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND DaoTaoDuyet = 1',
+                    [NamHoc]
+                )
+            }
+        ];
+
+
+        // Thực hiện các truy vấn đồng thời
+        const queryResults = await Promise.all(
+            tableQueries.map(item => item.promise)
+        );
+
+        // Lọc các bảng chưa tên giảng viên
+        const filteredResults = tableQueries.map((item, index) => {
+            // Lấy các bản ghi của bảng hiện tại
+            const rows = queryResults[index][0];
+
+            // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
+            const filteredRows = rows.filter(row => {
+                return Object.values(row).some(
+                    value =>
+                        value && typeof value === 'string' && value.includes(TenGiangVien)
+                );
+            });
+
+            // Nếu không có bản ghi nào phù hợp thì trả về null
+            if (filteredRows.length === 0) return null;
+
+            // Giả sử chỉ có 1 dòng phù hợp (nếu có nhiều bạn có thể cần xử lý khác)
+            return {
+                Table: item.table, // Tên bảng
+                ...filteredRows[0] // Hợp nhất dữ liệu từ dòng đầu tiên
+            };
+        }).filter(item => item !== null);
+
+        // In ra console kết quả với tên bảng
+        // console.log(JSON.stringify(filteredResults, null, 2));
+
+        const result = congTongSoTiet(filteredResults, TenGiangVien);
+
+        console.log(result);
+
+        // Trả về kết quả cho client
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error("Error in tongHopSoTietNckhCuaMotGiangVien:", error);
+        res.status(500).json({ success: false, message: "Không thể truy xuất dữ liệu" });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+function congTongSoTiet(filteredResults, TenGiangVien) {
+    // Hàm nội bộ: trích xuất số tiết từ chuỗi, hỗ trợ số nguyên và số thập phân
+    function extractHours(text) {
+        const regex = /\((?:.*?)?(\d+(?:\.\d+)?)\s*(?:giờ|tiết)(?:.*?)?\)/;
+        const match = text.match(regex);
+        return match && match[1] ? parseFloat(match[1]) : 0;
+    }
+
+    const result = { tables: {}, total: 0, name: TenGiangVien };
+
+    filteredResults.forEach(record => {
+        // Lấy tên bảng từ key "Table" (nếu không có, dùng "Unknown Table")
+        const tableName = record["Table"] || record["table"] || "Unknown Table";
+        let tableTotal = 0;
+
+        // Duyệt qua từng key của record (bỏ qua key chứa tên bảng)
+        for (const key in record) {
+            if (key.toLowerCase() === "table") continue;
+
+            // Xử lý nếu giá trị là chuỗi không rỗng
+            if (typeof record[key] === "string" && record[key].trim() !== "") {
+                const value = record[key];
+
+                if (key === "DanhSachThanhVien") {
+                    // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
+                    const members = value.split(",").map(item => item.trim());
+                    members.forEach(member => {
+                        if (member.includes(TenGiangVien)) {
+                            tableTotal += extractHours(member);
+                        }
+                    });
+                } else {
+                    // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
+                    if (value.includes(TenGiangVien)) {
+                        tableTotal += extractHours(value);
+                    }
+                }
+            }
+        }
+
+        // Lưu số tiết của bảng hiện tại vào đối tượng kết quả
+        result.tables[tableName] = tableTotal;
+        // Cộng dồn vào tổng số tiết của tất cả các bảng
+        result.total += tableTotal;
+    });
+
+    return result;
+}
 
 module.exports = {
     getQuyDinhSoGioNCKH,
@@ -1731,6 +1896,9 @@ module.exports = {
     getBienSoanGiaoTrinhBaiGiang,
     saveBienSoanGiaoTrinhBaiGiang,
     getTableBienSoanGiaoTrinhBaiGiang,
+    getNhiemVuKhoaHocCongNghe,
+    getTongHopSoTietNCKH,
+    tongHopSoTietNckhCuaMotGiangVien,
     getData,
     editNckh,
     deleteNckh
