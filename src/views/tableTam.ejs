@@ -581,29 +581,22 @@
         table = new Tabulator("#table-container", {
           data: localData,
           layout: "fitColumns",
-          pagination: "local",
-          paginationSize: 100,
           movableColumns: true,
           resizableColumns: true,
           columns: columns,
           index: "ID",
+          renderVertical: "virtual", // Sử dụng render dọc Virtual DOM thay vì phân trang
+          height: "550px", // Giới hạn chiều cao để virtual scroll hoạt động
 
           cellEdited: function (cell) {
             const editedData = cell.getData();
-            // Cập nhật dữ liệu vào localData
             const rowIndex = localData.findIndex(row => row.ID === editedData.ID);
             if (rowIndex !== -1) {
-              localData[rowIndex] = editedData; // Cập nhật dòng dữ liệu trong localData
+              localData[rowIndex] = editedData;
             }
           },
-
-          // rowFormatter: function (row) {
-          //   const data = row.getData();
-          //   if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
-          //     row.getElement().classList.add("warning-row");
-          //   }
-          // },
         });
+
       }
 
       // Hàm cập nhật
@@ -641,7 +634,8 @@
                   timer: 3000, // Tự động đóng sau 3 giây
                   timerProgressBar: true, // Hiển thị thanh đếm thời gian
                   didClose: () => {
-                    location.reload();
+                    getDataTable();
+                    renderTable();
                   }
                 })
               }
