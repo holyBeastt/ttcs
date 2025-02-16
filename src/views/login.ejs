@@ -155,5 +155,20 @@
             });
         });
     </script>
+    <script>
+      // Sử dụng URLSearchParams để lấy query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionExpired = urlParams.get("sessionExpired");
+
+      if (sessionExpired === "true") {
+        alert("Phiên đăng nhập của bạn đã hết hạn, vui lòng đăng nhập lại.");
+        // Nếu muốn, bạn có thể xoá query parameter khỏi URL sau khi hiển thị thông báo:
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+      }
+    </script>
   </body>
 </html>
