@@ -142,7 +142,9 @@
           </div>
           <div class="flex-item">
             <label for="MaPhongBanView">Khoa</label>
-            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;"></select>
+            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
+              <option value="ALL">Tất cả khoa</option>
+            </select>
           </div>
           <div class="flex-item-view">
             <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
@@ -239,19 +241,14 @@
             }
           ];
 
-          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
-          if (userRole === "Duyệt" && userPhongBan === "DAOTAO") {
+
+          // Nếu khoa == ALL thì thêm cột khoa
+          if (department == "ALL") {
             columns.push({
-              title: "Duyệt",
-              field: "DaoTaoDuyet",
-              // Sử dụng formatter tự tạo để hiển thị checkbox
-              formatter: checkboxFormatter,
-              // Khi chỉnh sửa, input sẽ là checkbox (editor tick của Tabulator)
-              editor: "tickCross",
-              cellClick: function (e, cell) {
-                // Chỉ cho phép chỉnh sửa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-                cell.edit();
-              },
+              title: "Khoa",
+              field: "Khoa",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
             });
           }
 
@@ -263,6 +260,20 @@
             hozAlign: "center",
             headerSort: false
           });
+
+          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+          if (userRole === "Duyệt" && userPhongBan === "DAOTAO") {
+            columns.push({
+              title: "Duyệt",
+              field: "DaoTaoDuyet",
+              formatter: checkboxFormatter,
+              editor: "tickCross",
+              cellClick: function (e, cell) {
+                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                cell.edit();
+              },
+            });
+          }
 
           table = new Tabulator("#table-container", {
             data: data,

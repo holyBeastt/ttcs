@@ -852,17 +852,17 @@ const getLopGiangDay = async (req, res) => {
     const query = `
             SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp quy chuẩn' AS source 
             FROM giangday 
-            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
             UNION ALL
             SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp ngoài quy chuẩn' AS source 
             FROM lopngoaiquychuan 
-            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
 
     // Truy vấn giuaky
     const query1 = `
             SELECT * 
             FROM giuaky 
-            WHERE GiangVien = ? AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
 
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
@@ -952,6 +952,150 @@ const getLopGiangDay = async (req, res) => {
   }
 };
 
+const getTTVuotGio = async (req, res) => {
+  const { Nam, MaPhongBan, TenNhanVien } = req.params;
+  console.log(Nam, MaPhongBan, TenNhanVien);
+  let connection;
+
+  try {
+    connection = await createPoolConnection();
+
+    // Truy vấn kết hợp giangday và lopngoaiquychuan
+    const query = `
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp quy chuẩn' AS source 
+            FROM giangday 
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
+            UNION ALL
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp ngoài quy chuẩn' AS source 
+            FROM lopngoaiquychuan 
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+
+    // Truy vấn giuaky
+    const query1 = `
+            SELECT * 
+            FROM giuaky 
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+
+    // Tạo các mảng kết quả giống mã cũ
+    const [rows11] = await connection.query(query, [
+      TenNhanVien,
+      1,
+      "%Mật mã%",
+      Nam,
+      TenNhanVien,
+      1,
+      "%Mật mã%",
+      Nam,
+    ]);
+    const [rows12] = await connection.query(query, [
+      TenNhanVien,
+      1,
+      "%Đóng học phí%",
+      Nam,
+      TenNhanVien,
+      1,
+      "%Đóng học phí%",
+      Nam,
+    ]);
+    const [rows13] = await connection.query(query, [
+      TenNhanVien,
+      2,
+      "%Mật mã%",
+      Nam,
+      TenNhanVien,
+      2,
+      "%Mật mã%",
+      Nam,
+    ]);
+    const [rows14] = await connection.query(query, [
+      TenNhanVien,
+      2,
+      "%Đóng học phí%",
+      Nam,
+      TenNhanVien,
+      2,
+      "%Đóng học phí%",
+      Nam,
+    ]);
+
+    const [rows21] = await connection.query(query1, [
+      TenNhanVien,
+      1,
+      "%Mật mã%",
+      Nam,
+    ]);
+    const [rows22] = await connection.query(query1, [
+      TenNhanVien,
+      1,
+      "%Đóng học phí%",
+      Nam,
+    ]);
+    const [rows23] = await connection.query(query1, [
+      TenNhanVien,
+      2,
+      "%Mật mã%",
+      Nam,
+    ]);
+    const [rows24] = await connection.query(query1, [
+      TenNhanVien,
+      2,
+      "%Đóng học phí%",
+      Nam,
+    ]);
+    const queryB = `
+        SELECT *, 
+            CASE 
+                WHEN TRIM(GiangVien1Real) = TRIM(?) THEN 'HD chính'
+                WHEN TRIM(GiangVien2Real) = TRIM(?) THEN 'HD hai'
+            END AS VaiTro
+        FROM doantotnghiep 
+        WHERE (TRIM(GiangVien1Real) = TRIM(?) OR TRIM(GiangVien2Real) = TRIM(?)) 
+          AND NamHoc = ?
+        `;
+
+    const [rowsB] = await connection.query(queryB, [TenNhanVien, TenNhanVien, TenNhanVien, TenNhanVien, Nam]);
+    const cleanTenNhanVien = TenNhanVien.replace(/\s+/g, ' ').trim();
+    const queryC1 = `SELECT *, 
+            CASE 
+                WHEN TRIM(ChuNhiem) LIKE ? THEN 'Chủ nhiệm'
+                WHEN TRIM(ThuKy) LIKE ? THEN 'Thư ký'
+                WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+            END AS VaiTro
+        FROM detaiduan 
+        WHERE (TRIM(ChuNhiem) LIKE ? OR TRIM(ThuKy) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+          AND NamHoc = ?`;
+
+    const [rowsC1] = await connection.query(queryC1, [
+        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    // Trả về kết quả giống cấu trúc cũ
+    res.json({
+      success: true,
+      rows11: rows11,
+      rows12: rows12,
+      rows13: rows13,
+      rows14: rows14,
+      rows21: rows21,
+      rows22: rows22,
+      rows23: rows23,
+      rows24: rows24,
+      rowsB: rowsB,
+      rowsC1: rowsC1,
+    });
+  } catch (error) {
+    console.error("Lỗi: ", error);
+    res.status(500).send("Đã có lỗi xảy ra");
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
 module.exports = {
   addClass,
   getLopGiuaKi,
@@ -970,4 +1114,5 @@ module.exports = {
   DoneNoteAddClass,
   SaveNoteDuyet,
   DoneNoteDuyet,
+  getTTVuotGio,
 };
