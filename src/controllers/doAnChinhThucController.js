@@ -666,7 +666,10 @@ const getInfoDoAn = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    let query, values;
+    let query, values, SoQDList;
+
+    const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND NamHoc = ? AND MaPhongBan = ?`;
+
     if (MaPhongBan == "ALL") {
       query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
       values = [Dot, NamHoc];
@@ -674,10 +677,13 @@ const getInfoDoAn = async (req, res) => {
       query =
         "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
       values = [Dot, NamHoc, MaPhongBan];
+
+      [SoQDList] = await connection.query(SoQDquery, values);
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
+
     // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json(result);
+    res.status(200).json({ result, SoQDList });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ database:", error);
 
