@@ -680,57 +680,31 @@
                 <td>I</td>
                 <td colspan="3">Tổng số tiết thực hiện (A + B)</td>
                 <td><span id="soTietThucHien">0</span></td>
-                <td rowspan="5" colspan="2">Chủ nhiệm bộ môn, cố vấn học tập</td>
+                <td rowspan="5" colspan="2" id="chucVu"></td>
             </tr>
             <tr>
                 <td>II</td>
                 <td colspan="3">Số tiết phải giảng</td>
-                <td id="soTietPhaiGiang" style="color: blue;">{{ soTietPhaiGiang }}</td>
+                <td id="soTietPhaiGiang">{{ soTietPhaiGiang }}</td>
                 <td></td>
             </tr>
             <tr>
                 <td>III</td>
                 <td colspan="3">Số tiết chưa hoàn thành NCKH</td>
-                <td id="soTietChuaHoanThanhNCKH" style="color: blue;">{{ soTietChuaHoanThanhNCKH }}</td>
+                <td id="soTietChuaHoanThanhNCKH">{{ soTietChuaHoanThanhNCKH }}</td>
                 <td></td>
             </tr>
             <tr>
                 <td>IV</td>
                 <td colspan="3">Số tiết được giảm trừ</td>
-                <td id="soTietGiamTru" style="color: blue;">{{ soTietGiamTru }}</td>
+                <td id="soTietGiamTru">{{ soTietGiamTru }}</td>
             </tr>
             <tr>
                 <td>V</td>
                 <td colspan="3">Tổng số tiết vượt giờ đề nghị thanh toán (I - II - III + IV)</td>
-                <td id="tongSoTietVuotGio" style="color: red;">{{ tongSoTietVuotGio }}</td>
+                <td id="tongSoTietVuotGio">{{ tongSoTietVuotGio }}</td>
                 <td></td>
             </tr>
-            <tr>
-              <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">E. TỔNG SỐ TIẾT ĐỀ NGHỊ THANH TOÁN VƯỢT GIỜ</th>
-          </tr>
-          <tr style="background-color: #007BFF;">
-            <th rowspan="3">TT</th>
-            <th colspan="5">Số tiết theo thời khoá biểu</th>
-            <th rowspan="3">Tổng quy chuẩn t.toán</th>
-          </tr>
-          <tr style="background-color: #007BFF;">
-              <th rowspan="2">Tổng</th>
-              <th colspan="3">Chuyên ngành KTMM</th>
-              <th rowspan="2">Hệ đóng học phí</th>
-          </tr>
-          <tr style="background-color: #007BFF;">
-              <th>Việt Nam</th>
-              <th>Lào, Cuba</th>
-              <th>Campuchia</th>
-          </tr>
-          <tr>
-              <td>1</td>
-              <td id="tongSoTietVuotGio" style="color: red;">{{ tongSoTietVuotGio }}</td>
-              <td id="soTietVietNam" style="color: blue;">{{ soTietVietNam }}</td>
-              <td id="soTietLaoCuba" style="color: blue;">{{ soTietLaoCuba }}</td>
-              <td id="soTietCampuchia" style="color: blue;">{{ soTietCampuchia }}</td>
-              <td id="tongQuyChuanTT" style="color: red;">{{ tongQuyChuanTT }}</td>
-          </tr>
           <tr>
             <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">F. TỔNG SỐ TIẾT NGHIÊN CỨU KHOA HỌC ĐƯỢC BẢO LƯU (không thanh toán)</th>
         </tr>
@@ -740,12 +714,9 @@
             <th colspan="2">Tổng số tiết NCKH vượt định mức</th>
             <th colspan="3">Tổng số tiết NCKH được bảo lưu</th>
         </tr>
-        <tr>
-            <td>1</td>
-            <td>Nghiên cứu khoa học</td>
-            <td id="soTietNCKHVuotDinhMuc" style="color: blue;">{{ soTietNCKHVuotDinhMuc }}</td>
-            <td id="soTietNCKHBaoLuu" style="color: blue;">{{ soTietNCKHBaoLuu }}</td>
-        </tr>
+        <tbody id="tableBodyF">
+
+        </tbody>
               </table>
             </div>
             <!-- Label tổng số tiết tách riêng với bảng -->
@@ -893,6 +864,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
           console.log('Dữ liệu bộ môn:', data);
           renderTable(data); // Gọi hàm render bảng
+          getData(TenNhanVien);
         }
       } else {
         alert("Không tìm thấy dữ liệu!");
@@ -908,8 +880,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const role = localStorage.getItem("userRole");
     const MaPhongBan = localStorage.getItem("MaPhongBan");
     const isKhoa = localStorage.getItem("isKhoa");
-    const TenNhanVien = localStorage.getItem("TenNhanVien");
-    console.log( TenNhanVien);
     let tableRowData = [];
 
     const tableBodyA11 = document.getElementById('tableBodyA11');
@@ -948,8 +918,8 @@ document.addEventListener('DOMContentLoaded', function () {
     tableBodyC8.innerHTML = ''; // Xóa nội dung cũ
     const tableBodyC9 = document.getElementById('tableBodyC9');
     tableBodyC9.innerHTML = ''; // Xóa nội dung cũ
-    // const tableBodyF = document.getElementById('tableBodyF');
-    // tableBodyF.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyF = document.getElementById('tableBodyF');
+    tableBodyF.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
     data.rows21.forEach((row, index) => {
 
@@ -1773,6 +1743,79 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tableBodyC7.appendChild(tableRow);
       });
+      data.rowsC9.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenNhiemVuTd = document.createElement('td');
+        TenNhiemVuTd.textContent = row.TenNhiemVu;
+        tableRow.appendChild(TenNhiemVuTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        SoQDGiaoNhiemVuTd.colSpan = 2;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoQDGiaoNhiemVu1Td = document.createElement('td');
+        SoQDGiaoNhiemVu1Td.textContent = row.SoQDGiaoNhiemVu;
+        SoQDGiaoNhiemVu1Td.colSpan = 2; // Gộp 2 cột
+        tableRow.appendChild(SoQDGiaoNhiemVu1Td);
+        //
+        const SoTietBaoLuuSangNamSauTd = document.createElement('td');
+        SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
+        tableRow.appendChild(SoTietBaoLuuSangNamSauTd);
+
+        tableBodyC9.appendChild(tableRow);
+      });
+      data.rowsF.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenNhiemVuTd = document.createElement('td');
+        TenNhiemVuTd.textContent = row.TenNhiemVu;
+        tableRow.appendChild(TenNhiemVuTd);
+        //
+        const SoTietVuotDinhMucTd = document.createElement('td');
+        SoTietVuotDinhMucTd.textContent = row.SoTietVuotDinhMuc;
+        SoTietVuotDinhMucTd.colSpan = 2; // Gộp 2 cột
+        tableRow.appendChild(SoTietVuotDinhMucTd);
+        //
+        const SoTietBaoLuuSangNamSauTd = document.createElement('td');
+        SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
+        SoTietBaoLuuSangNamSauTd.colSpan = 3; // Gộp 2 cột
+        tableRow.appendChild(SoTietBaoLuuSangNamSauTd);
+
+        tableBodyF.appendChild(tableRow);
+      });
     // Lưu dữ liệu với id vào localStorage
     localStorage.setItem('tableData', JSON.stringify(tableRowData));
     calculatetotalGiangDay();
@@ -2232,6 +2275,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
           console.log('Dữ liệu bộ môn:', data);
           renderTable(data); // Gọi hàm render bảng
+          getData(TenNhanVien);
         }
       } else {
         alert("Không tìm thấy dữ liệu!");
@@ -2320,6 +2364,62 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
     });
+  </script>
+  <script>
+    async function getData(TenNhanVien) {
+      try {
+        console.log("Gửi dữ liệu");
+        const response = await fetch(`/getSoTietDM/${TenNhanVien}`, {
+          method: 'GET', // Gửi yêu cầu GET
+        });
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        const data = await response.json(); // Lấy dữ liệu từ server
+        if (data.success) {
+          fillData(data)
+        } else {
+          alert("Không tìm thấy dữ liệu!");
+        }
+      } catch (error) {
+        console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+      }
+    };
+  </script>
+  <script>
+    function fillData(data) {
+      const soTietPhaiGiangElement = document.getElementById('soTietPhaiGiang');
+      if (soTietPhaiGiangElement) {
+        soTietPhaiGiangElement.textContent = data.soTietDM[0].GiangDay.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const soTietNCKH = document.getElementById('totalSoTietC').textContent.trim();
+      let soTietChuaHoanThanhNCKH;
+      if (soTietNCKH >= data.soTietDM[0].NCKH) {
+        soTietChuaHoanThanhNCKH = 0;
+      } else {
+        soTietChuaHoanThanhNCKH = data.soTietDM[0].NCKH - soTietNCKH;
+      }
+      const soTietChuaHoanThanhNCKHElement = document.getElementById('soTietChuaHoanThanhNCKH');
+      if (soTietChuaHoanThanhNCKHElement) {
+        soTietChuaHoanThanhNCKHElement.textContent = soTietChuaHoanThanhNCKH.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const phanTramMienGiam = data.nhanVien[0].PhanTramMienGiam ?? 0;
+      const soTietGiamTru = data.soTietDM[0].GiangDay * phanTramMienGiam /100;
+      const soTietGiamTruElement = document.getElementById('soTietGiamTru');
+      if (soTietGiamTruElement) {
+        soTietGiamTruElement.textContent = soTietGiamTru.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const soTietThucHien = document.getElementById('soTietThucHien').textContent.trim();
+      const tongSoTietVuotGio = soTietThucHien - data.soTietDM[0].GiangDay - soTietChuaHoanThanhNCKH + soTietGiamTru;
+      const tongSoTietVuotGioElement = document.getElementById('tongSoTietVuotGio');
+      if (tongSoTietVuotGioElement) {
+        tongSoTietVuotGioElement.textContent = tongSoTietVuotGio.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const chucVuElement = document.getElementById('chucVu');
+      if (chucVuElement) {
+        chucVuElement.textContent = data.nhanVien[0].ChucVu;
+      }
+    }
   </script>
   </body>
 </html>
