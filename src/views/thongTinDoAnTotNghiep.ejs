@@ -120,6 +120,18 @@
       padding: 5px;
       /* Giữ padding như cũ */
     }
+
+    #SoQD-list {
+      font-style: italic; /* Chữ nghiêng */
+      font-size: 0.9em; /* Nhỏ hơn bình thường một chút */
+      color: #666; /* Màu xám nhạt hơn */
+      list-style-type: none; /* Bỏ dấu chấm đầu dòng */
+      margin-left: 10px; /* Dịch sang trái một chút */
+    }
+
+    #SoQD-list li::before {
+      content: "* ";
+    }
   </style>
 
   <body>
@@ -217,6 +229,8 @@
             </button>
           </div>
         </div>
+
+        <ul id="SoQD-list"></ul>
 
         <div id="renderInfo">
           <table class="text-center">
@@ -338,13 +352,19 @@
 
     <script>
       var globalData = [];
+      let SoQDList = [];
 
       document.addEventListener("DOMContentLoaded", function () {
         const button = document.getElementById("infoDoAn");
 
         // Gọi hàm hiển thị thông tin
-        button.addEventListener("click", function () {
-          loadData();
+        button.addEventListener("click", async function () {
+          await loadData();
+
+          const listContainer = document.getElementById("SoQD-list");
+          listContainer.innerHTML = SoQDList.map(
+            (item) => `<li>${item.SoQD}</li>`
+          ).join("");
         });
 
         async function loadData() {
@@ -397,11 +417,12 @@
               });
             }
 
-            const infoDoAn = await infoDoAnResponse.json();
+            const dataDoAn = await infoDoAnResponse.json();
+            const infoDoAn = dataDoAn.result;
+            SoQDList = dataDoAn.SoQDList;
             const infoGiangVien = await infoGiangVienResponse.json();
             const checkAll = await checkAllResponse.json();
 
-            //
             localStorage.setItem(
               "KhoaCheck",
               JSON.stringify(checkAll.KhoaCheck)
