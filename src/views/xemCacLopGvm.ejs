@@ -997,7 +997,8 @@
           khoaCheckboxTd.appendChild(khoaCheckbox);
           tableRow.appendChild(khoaCheckboxTd);
           // ẩn đi
-          khoaCheckbox.style.display = "none";
+          //khoaCheckbox.style.display = "none";
+          khoaCheckbox.disabled = true;
 
           let daoTaoCheckboxTd, daoTaoCheckbox;
 
@@ -1012,7 +1013,8 @@
           daoTaoCheckboxTd.appendChild(daoTaoCheckbox);
           tableRow.appendChild(daoTaoCheckboxTd);
           // ẩn đi
-          daoTaoCheckbox.style.display = "none";
+          //daoTaoCheckbox.style.display = "none";
+          daoTaoCheckbox.disabled = true;
 
           // Checkbox tài chính
           let taiChinhCheckboxTd, taiChinhCheckbox;
@@ -1027,9 +1029,11 @@
           taiChinhCheckboxTd.appendChild(taiChinhCheckbox);
           tableRow.appendChild(taiChinhCheckboxTd);
           // Ẩn đi
-          taiChinhCheckbox.style.display = "none";
+          //taiChinhCheckbox.style.display = "none";
+          taiChinhCheckbox.disabled = true;
 
           // Hiện checkbox
+          /*
           if (isKhoa == 1 && role == "Lãnh đạo khoa") {
             khoaCheckbox.style.display = "block";
           } else if (isKhoa == 0 && role == "Duyệt") {
@@ -1045,7 +1049,25 @@
               // Checkbox cho Tài Chính
               taiChinhCheckbox.style.display = "block";
             }
+          }*/
+
+          if (isKhoa == 1 && role == "Lãnh đạo khoa") {
+            khoaCheckbox.disabled = false;
+          } else if (isKhoa == 0 && role == "Duyệt") {
+            if (MaPhongBan == "DAOTAO") {
+              khoaCheckbox.disabled = false;
+
+              daoTaoCheckbox.disabled = false;
+              //taiChinhCheckboxTd.style.display = "none";
+            } else if (MaPhongBan == "TAICHINH") {
+              // Checkbox cho Đào Tạo
+              daoTaoCheckbox.disabled = false;
+              //khoaCheckboxTd.style.display = "none";
+              // Checkbox cho Tài Chính
+              taiChinhCheckbox.disabled = false;
+            }
           }
+
           const check = localStorage.getItem("check");
           // Phân quyền theo phòng ban
           if (isKhoa == 1) {
@@ -2062,30 +2084,29 @@
 
         if (role == "Thường" || role.includes("GV")) {
           // Ẩn tất cả các cột
-          document.getElementById("khoaColumn").style.display = "none";
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("taiChinhColumn").style.display = "none";
+          document.getElementById("checkAllKhoa").disabled = true;
+          document.getElementById("checkAllDaoTao").disabled = true;
+          document.getElementById("checkAllTaiChinh").disabled = true;
+
           if (!role.includes("CNBM")) {
             document.getElementById("update-qc").style.display = "none";
           }
         }
 
         if (isKhoa == 1 && role == "Lãnh đạo khoa") {
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("taiChinhColumn").style.display = "none";
+          document.getElementById("checkAllDaoTao").disabled = true;
+          document.getElementById("checkAllTaiChinh").disabled = true;
 
-          document.getElementById("khoaColumn").style.display = "block";
+          document.getElementById("checkAllKhoa").disabled = false;
         } else if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
             // Ẩn cột 'taiChinhColumn'
-            document.getElementById("taiChinhColumn").style.display = "none";
-            document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
+            document.getElementById("checkAllTaiChinh").disabled = true;
+            document.getElementById("checkAllDaoTao").disabled = false;
           } else if (MaPhongBan == "TAICHINH") {
             // Ẩn cột 'khoaColumn'
-            document.getElementById("khoaColumn").style.display = "none";
-            document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
-            // Hiển thị nút 'Cập nhật'
-            //document.getElementById('save-data-all').style.display = 'inline-block'; // Sử dụng 'inline-block' để hiển thị nút
+            document.getElementById("checkAllKhoa").disabled = true;
+            document.getElementById("update-qc").disabled = false; // Sử dụng 'inline-block' để hiển thị nút
           }
         }
 
