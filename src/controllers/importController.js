@@ -990,7 +990,8 @@ const importTableTam = async (jsonData) => {
       return !isNaN(qcValue) && qcValue !== 0;
     })
     .map((item) => [
-      validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      // validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      item["Khoa"],
       item["Dot"],
       item["Ki"],
       item["Nam"],
