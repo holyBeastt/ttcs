@@ -66,8 +66,31 @@ const updateSoTietDM = async (req, res) => {
     if (pool) pool.release();
   }
 };
+const getSoTietDM = async (req, res) => {
+  const pool = await createPoolConnection();
+  const TenNhanVien = req.params.TenNhanVien;
+  try {
+    // Lấy dữ liệu hiện tại
+    const [rows] = await pool.execute(
+      "SELECT GiangDay, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
+    );
+    const [rows1] = await pool.execute(
+      "SELECT *FROM nhanvien WHERE TenNhanVien = ? ", [TenNhanVien]
+    );
+    res.json({
+      success: true,
+      soTietDM: rows,
+      nhanVien: rows1,
+    });
+  } catch (error) {
+    res.status(500).send("Có lỗi xảy ra khi lấy số tiết định mức. Vui lòng thử lại sau.");
+  } finally {
+    if (pool) pool.release();
+  }
+};
 
 module.exports = {
   renderSoTietDM,
   updateSoTietDM,
+  getSoTietDM,
 };
