@@ -955,6 +955,13 @@ const getLopGiangDay = async (req, res) => {
 const getTTVuotGio = async (req, res) => {
   const { Nam, MaPhongBan, TenNhanVien } = req.params;
   console.log(Nam, MaPhongBan, TenNhanVien);
+  // Tách năm thành hai phần và chuyển thành số
+  const [start, end] = Nam.split(" - ").map(Number);
+
+  // Trừ đi 1 cho mỗi năm
+  const previousNam = `${start - 1} - ${end - 1}`;
+
+  console.log(previousNam); // Ví dụ: "2024 - 2025" -> "2023 - 2024"
   let connection;
 
   try {
@@ -1181,25 +1188,17 @@ const getTTVuotGio = async (req, res) => {
     //     `%${cleanTenNhanVien}%`,
     //     Nam
     // ]);
-    // const queryC9 = `SELECT *, 
-    //         CASE 
-    //             WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
-    //             WHEN TRIM(DongChuBien) LIKE ? THEN 'Đồng chủ biên'
-    //             WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
-    //         END AS VaiTro
-    //     FROM sachvagiaotrinh 
-    //     WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
-    //       AND NamHoc = ?`;
+    const queryC9 = `SELECT *FROM nhiemvukhoahocvacongnghe 
+                      WHERE TRIM(GiangVien) LIKE ? AND NamHoc = ?`;
 
-    // const [rowsC9] = await connection.query(queryC9, [
-    //     `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-    //     `%${cleanTenNhanVien}%`,
-    //     `%${cleanTenNhanVien}%`,
-    //     `%${cleanTenNhanVien}%`,
-    //     `%${cleanTenNhanVien}%`,
-    //     `%${cleanTenNhanVien}%`,
-    //     Nam
-    // ]);
+    const [rowsC9] = await connection.query(queryC9, [
+        `%${cleanTenNhanVien}%`,
+        previousNam
+    ]);
+    const [rowsF] = await connection.query(queryC9, [
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
     // Trả về kết quả giống cấu trúc cũ
     res.json({
       success: true,
@@ -1219,7 +1218,8 @@ const getTTVuotGio = async (req, res) => {
       rowsC5: rowsC5,
       rowsC6: rowsC6,
       rowsC7: rowsC7,
-      // rowsC9: rowsC9,
+      rowsC9: rowsC9,
+      rowsF: rowsF,
     });
   } catch (error) {
     console.error("Lỗi: ", error);
