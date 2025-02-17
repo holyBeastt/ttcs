@@ -948,6 +948,8 @@ document.addEventListener('DOMContentLoaded', function () {
     tableBodyC8.innerHTML = ''; // Xóa nội dung cũ
     const tableBodyC9 = document.getElementById('tableBodyC9');
     tableBodyC9.innerHTML = ''; // Xóa nội dung cũ
+    // const tableBodyF = document.getElementById('tableBodyF');
+    // tableBodyF.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
     data.rows21.forEach((row, index) => {
 
@@ -1388,7 +1390,6 @@ document.addEventListener('DOMContentLoaded', function () {
             gio = match[3];   // 280
             
         }
-        console.log(gio, str, match);
         const ttTd = document.createElement('td');
         ttTd.textContent = index +1;
         tableRow.appendChild(ttTd);
@@ -1424,6 +1425,354 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tableBodyC1.appendChild(tableRow);
         });
+      data.rowsC2.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else if (row.VaiTro === "Tác giả") {
+          str = row.TacGiaChiuTrachNhiem.trim()
+          VaiTro = "Tác giả chính"
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.TacGiaChiuTrachNhiem == "null") {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 1 ;
+        } else {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 2;
+        }
+        
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const tenBaiBaoTd = document.createElement('td');
+        tenBaiBaoTd.textContent = row.TenBaiBao;
+        tableRow.appendChild(tenBaiBaoTd);
+        //
+        const LoaiTapChiTd = document.createElement('td');
+        LoaiTapChiTd.textContent = row.LoaiTapChi;
+        tableRow.appendChild(LoaiTapChiTd);
+        //
+        const ChiSoTapChiTd = document.createElement('td');
+        ChiSoTapChiTd.textContent = row.ChiSoTapChi;
+        tableRow.appendChild(ChiSoTapChiTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC2.appendChild(tableRow);
+      });
+      data.rowsC3.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else {
+          str = row.DanhSachThanhVien.trim()
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        const SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenBangSangCheVaGiaiThuongTd = document.createElement('td');
+        TenBangSangCheVaGiaiThuongTd.textContent = row.TenBangSangCheVaGiaiThuong;
+        tableRow.appendChild(TenBangSangCheVaGiaiThuongTd);
+        //
+        const SoQDCongNhanTd = document.createElement('td');
+        SoQDCongNhanTd.textContent = row.SoQDCongNhan;
+        tableRow.appendChild(SoQDCongNhanTd);
+        //
+        const NgayQDCongNhanTd = document.createElement('td');
+        if (row.NgayQDCongNhan) {
+          const date = new Date(row.NgayQDCongNhan);
+          NgayQDCongNhanTd.textContent = date.toLocaleDateString("vi-VN"); // "24/02/2025"
+        } else {
+            NgayQDCongNhanTd.textContent = "N/A"; // Xử lý nếu dữ liệu null
+        }
+        tableRow.appendChild(NgayQDCongNhanTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = row.VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC3.appendChild(tableRow);
+      });
+      data.rowsC4.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else if (row.VaiTro === "Đồng chủ biên") {
+          str = row.DongChuBien.trim()
+          VaiTro = "Tác giả chính"
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.DongChuBien == "null") {
+          if (row.DanhSachThanhVien == "null") {
+            SoNguoi = 1;
+          } else {
+            SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+          }
+        } else {
+          if (row.DanhSachThanhVien == "null") {
+            SoNguoi = row.DongChuBien.split(",").length + 1;
+          } else {
+            SoNguoi = row.DongChuBien.split(",").length + row.DanhSachThanhVien.split(",").length + 1
+          }
+        }
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenSachVaGiaoTrinhTd = document.createElement('td');
+        TenSachVaGiaoTrinhTd.textContent = row.TenSachVaGiaoTrinh;
+        tableRow.appendChild(TenSachVaGiaoTrinhTd);
+        //
+        const SoXuatBanTd = document.createElement('td');
+        SoXuatBanTd.textContent = row.SoXuatBan;
+        tableRow.appendChild(SoXuatBanTd);
+        //
+        const SoTrangTd = document.createElement('td');
+        SoTrangTd.textContent = row.SoTrang;
+        tableRow.appendChild(SoTrangTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC4.appendChild(tableRow);
+      });
+      data.rowsC5.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        const gio = row.DanhSachThanhVien.split("-")[1].split("giờ")[0].trim();
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenDeTaiTd = document.createElement('td');
+        TenDeTaiTd.textContent = row.TenDeTai;
+        tableRow.appendChild(TenDeTaiTd);
+        //
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = row.SoQDGiaoNhiemVu;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const NgayQDGiaoNhiemVuTd = document.createElement('td');
+        if (row.NgayQDGiaoNhiemVu) {
+          const date = new Date(row.NgayQDGiaoNhiemVu);
+          NgayQDGiaoNhiemVuTd.textContent = date.toLocaleDateString("vi-VN"); // "24/02/2025"
+        } else {
+            NgayQDGiaoNhiemVuTd.textContent = "N/A"; // Xử lý nếu dữ liệu null
+        }
+        tableRow.appendChild(NgayQDGiaoNhiemVuTd);
+        //
+        const KetQuaCapKhoaTd = document.createElement('td');
+        KetQuaCapKhoaTd.textContent = row.KetQuaCapKhoa;
+        tableRow.appendChild(KetQuaCapKhoaTd);
+        //
+        const KetQuaCapHocVienTd = document.createElement('td');
+        KetQuaCapHocVienTd.textContent = row.KetQuaCapHocVien;
+        tableRow.appendChild(KetQuaCapHocVienTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC5.appendChild(tableRow);
+      });
+      data.rowsC6.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const gio = row.DanhSachThanhVien.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = row.DanhSachThanhVien.split(",").length;
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenChuongTrinhTd = document.createElement('td');
+        TenChuongTrinhTd.textContent = row.TenChuongTrinh;
+        tableRow.appendChild(TenChuongTrinhTd);
+        //
+        const SoTCTd = document.createElement('td');
+        SoTCTd.textContent = row.SoTC;
+        tableRow.appendChild(SoTCTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const HinhThucXayDungTd = document.createElement('td');
+        HinhThucXayDungTd.textContent = row.HinhThucXayDung;
+        tableRow.appendChild(HinhThucXayDungTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC6.appendChild(tableRow);
+      });
+      data.rowsC7.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.DanhSachThanhVien == "null") {
+          SoNguoi = 1;
+        } else {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+        }
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenGiaoTrinhBaiGiangTd = document.createElement('td');
+        TenGiaoTrinhBaiGiangTd.textContent = row.TenGiaoTrinhBaiGiang;
+        tableRow.appendChild(TenGiaoTrinhBaiGiangTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoTCTd = document.createElement('td');
+        SoTCTd.textContent = row.SoTC;
+        tableRow.appendChild(SoTCTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC7.appendChild(tableRow);
+      });
     // Lưu dữ liệu với id vào localStorage
     localStorage.setItem('tableData', JSON.stringify(tableRowData));
     calculatetotalGiangDay();
