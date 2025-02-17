@@ -341,11 +341,11 @@
 <!-- phân quyền nckh -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // nckh xem 3 mục đầu, đào tạo 4 mục sau 
     let maPhongBan = localStorage.getItem("MaPhongBan");
     let userRole = localStorage.getItem("userRole");
     let isKhoa = localStorage.getItem("isKhoa");
 
+    // phần này cho các thẻ to
     let gvmNav = document.getElementById("nav-gvm");
     let quychuanNav = document.getElementById("nav-quychuan");
     let moigiangNav = document.getElementById("nav-moigiang");
@@ -354,8 +354,28 @@
     let tkbNav = document.getElementById("tkb-nav");
     let nckhNav = document.getElementById("nav-nckh");
 
+    // phần này cho các thẻ links
+    let nckhNavChild = document.getElementById("nckhNav");
+    let links = nckhNavChild.getElementsByClassName("nav-link");
+
+    // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
+    // link8 là tổng hợp số tiết 
+    if (maPhongBan === "NCKH" && userRole === "Duyệt") {
+      // Chỉ hiển thị 4 mục đầu
+      for (let i = 4; i < links.length; i++) {
+        links[i].style.display = "none";
+      }
+      links[8].style.display = "block";
+    } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
+      // Chỉ hiển thị 5 mục cuối
+      for (let i = 0; i < links.length - 5; i++) {
+        links[i].style.display = "none";
+      }
+      links[8].style.display = "block";
+    }
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
+    // quyền thường, gv nhót
     if (maPhongBan === "NCKH") {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
