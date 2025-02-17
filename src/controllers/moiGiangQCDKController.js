@@ -466,7 +466,7 @@ const exportToWord = async (req, res) => {
                     new TableRow({
                         children: filteredKeys.map((key) => {
                             // Nếu là "TT", tạo số thứ tự
-                            const cellValue = key === "TT" ? `${index + 1}.` : row[key];
+                            const cellValue = key === "STT" ? `${index + 1}.` : row[key];
                             return new TableCell({
                                 children: [new Paragraph({ text: cellValue !== null ? String(cellValue) : "" })],
                             });
