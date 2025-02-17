@@ -395,14 +395,14 @@ const exportToWord = async (req, res) => {
 
     // Định nghĩa ánh xạ Khoa
     const khoaMap = {
-        "CB": "Cơ bản",
-        "ATTT": "An toàn thông tin",
-        "QS&GDTC": "QS&GDTC",
-        "LLCT": "Lý luận chính trị",
-        "TTTH": "Trung tâm thực hành",
-        "CNTT": "Công nghệ thông tin",
-        "ĐTVT": "Điện tử - Viễn thông",
-        "MM": "Mật mã"
+        "CB": "CB",
+        "ATTT": "ATTT",
+        "QS&GDTC": "KQS&GDTC",
+        "LLCT": "LLCT",
+        "TTTH": "TTTH",
+        "CNTT": "CNTT",
+        "ĐTVT": "ĐTVT",
+        "MM": "MM"
     };
 
     try {

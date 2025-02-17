@@ -1167,10 +1167,11 @@
           const checkAllCheckbox = document.getElementById(`checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`);
 
           if (checkAllCheckbox) {
+            checkAllCheckbox.disabled = true;
             // Ngăn không cho người dùng thay đổi checkbox tổng
-            checkAllCheckbox.addEventListener('click', function (e) {
-              e.preventDefault(); // Ngăn thay đổi trạng thái
-            });
+            //checkAllCheckbox.addEventListener('click', function (e) {
+             // e.preventDefault(); // Ngăn thay đổi trạng thái
+            //});
           }
         }
 

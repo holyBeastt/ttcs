@@ -140,6 +140,7 @@ const validateFileExcelQC = (data) => {
 
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
+  console.log("Start funct parseDataToObjects")
   const result = []; // Khởi tạo mảng kết quả để chứa các đối tượng
   let currentKhoa = "";
   let nextKhoa = "";
@@ -158,8 +159,10 @@ const parseDataToObjects = (lines) => {
       if (index == 0) {
         currentKhoa = nextKhoa;
       }
-    } else if (line.includes("học phần thuộc Khoa")) {
-      const khoaMatch = line.match(/học phần thuộc Khoa\s+(.+)$/);
+    } else if (line.includes("học phần thuộc Khoa")) {
+      console.log(line);
+      const khoaMatch = line.match(/Các học phần thuộc Khoa\s+(.+?)(?=\s*STT|$)/);
+      console.log(khoaMatch)
       nextKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
       if (index == 0) {
         currentKhoa = nextKhoa;
@@ -234,21 +237,21 @@ const parseDataToObjects = (lines) => {
 const splitAndCleanLines = (text) => {
   // Danh sách các ký tự hoặc từ cần loại bỏ (dùng "includes" để kiểm tra sự tồn tại của chuỗi)
   const unwantedWords = [
-    "TT",
-    "Số TC",
-    "Lớp học phần",
-    "Giáo viên",
-    "Giáo viên", // 2 Giáo viên này khác nhau đấy, nếu còn bị key nào thừa thì log kq ra console rồi copy vào đây
-    "Số tiết theo CTĐT",
-    "Số SV",
-    "Số tiết lên lớp theo TKB",
-    "Hệ số lên lớp ngoài giờ",
-    "HC",
-    "Thạc sĩ",
-    "Tiến sĩ",
-    "Hệ số lớp đông",
-    "QC",
-    "Ghi chú",
+    // "TT",
+    // "Số TC",
+    // "Lớp học phần",
+    // "Giáo viên",
+    // "Giáo viên", // 2 Giáo viên này khác nhau đấy, nếu còn bị key nào thừa thì log kq ra console rồi copy vào đây
+    // "Số tiết theo CTĐT",
+    // "Số SV",
+    // "Số tiết lên lớp theo TKB",
+    // "Hệ số lên lớp ngoài giờ",
+    // "HC",
+    // "Thạc sĩ",
+    // "Tiến sĩ",
+    // "Hệ số lớp đông",
+    // "QC",
+    // "Ghi chú",
   ];
 
   // Loại bỏ các từ không mong muốn
@@ -990,7 +993,8 @@ const importTableTam = async (jsonData) => {
       return !isNaN(qcValue) && qcValue !== 0;
     })
     .map((item) => [
-      validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      // validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
+      item["Khoa"],
       item["Dot"],
       item["Ki"],
       item["Nam"],
