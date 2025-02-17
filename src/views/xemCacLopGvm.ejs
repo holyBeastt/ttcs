@@ -1574,6 +1574,7 @@
             if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
               return;
 
+            console.log("name =", nameGvmCache);
             // Gợi ý theo điều kiện
             if (values.length == 0 || validhe_dao_tao.includes(he_dao_tao)) {
               suggestions = nameGvmCache.map(

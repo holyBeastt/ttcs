@@ -1074,6 +1074,132 @@ const getTTVuotGio = async (req, res) => {
         `%${cleanTenNhanVien}%`,
         Nam
     ]);
+    const queryC2 = `SELECT *, 
+            CASE 
+                WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+                WHEN TRIM(TacGiaChiuTrachNhiem) LIKE ? THEN 'Tác giả'
+                WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+            END AS VaiTro
+        FROM baibaokhoahoc 
+        WHERE (TRIM(TacGia) LIKE ? OR TRIM(TacGiaChiuTrachNhiem) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+          AND NamHoc = ?`;
+
+    const [rowsC2] = await connection.query(queryC2, [
+        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    const queryC3 = `SELECT *, 
+            CASE 
+                WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+                WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+            END AS VaiTro
+        FROM bangsangchevagiaithuong 
+        WHERE (TRIM(TacGia) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+          AND NamHoc = ?`;
+
+    const [rowsC3] = await connection.query(queryC3, [
+        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    const queryC4 = `SELECT *, 
+            CASE 
+                WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+                WHEN TRIM(DongChuBien) LIKE ? THEN 'Đồng chủ biên'
+                WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+            END AS VaiTro
+        FROM sachvagiaotrinh 
+        WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+          AND NamHoc = ?`;
+
+    const [rowsC4] = await connection.query(queryC4, [
+        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    const queryC5 = `SELECT * 
+                      FROM nckhvahuanluyendoituyen 
+                      WHERE TRIM(DanhSachThanhVien) LIKE ?
+                      AND NamHoc = ?`;
+
+    const [rowsC5] = await connection.query(queryC5, [
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    const queryC6 = `SELECT * 
+                      FROM xaydungctdt 
+                      WHERE TRIM(DanhSachThanhVien) LIKE ?
+                      AND NamHoc = ?;`;
+
+    const [rowsC6] = await connection.query(queryC6, [
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    const queryC7 = `SELECT *, 
+            CASE 
+                WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+                WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+            END AS VaiTro
+        FROM biensoangiaotrinhbaigiang 
+        WHERE (TRIM(TacGia) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+          AND NamHoc = ?`;
+
+    const [rowsC7] = await connection.query(queryC7, [
+        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        `%${cleanTenNhanVien}%`,
+        Nam
+    ]);
+    // const queryC8 = `SELECT *, 
+    //         CASE 
+    //             WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+    //             WHEN TRIM(DongChuBien) LIKE ? THEN 'Đồng chủ biên'
+    //             WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+    //         END AS VaiTro
+    //     FROM sachvagiaotrinh 
+    //     WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+    //       AND NamHoc = ?`;
+
+    // const [rowsC8] = await connection.query(queryC8, [
+    //     `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     Nam
+    // ]);
+    // const queryC9 = `SELECT *, 
+    //         CASE 
+    //             WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
+    //             WHEN TRIM(DongChuBien) LIKE ? THEN 'Đồng chủ biên'
+    //             WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
+    //         END AS VaiTro
+    //     FROM sachvagiaotrinh 
+    //     WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+    //       AND NamHoc = ?`;
+
+    // const [rowsC9] = await connection.query(queryC9, [
+    //     `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     `%${cleanTenNhanVien}%`,
+    //     Nam
+    // ]);
     // Trả về kết quả giống cấu trúc cũ
     res.json({
       success: true,
@@ -1087,6 +1213,13 @@ const getTTVuotGio = async (req, res) => {
       rows24: rows24,
       rowsB: rowsB,
       rowsC1: rowsC1,
+      rowsC2: rowsC2,
+      rowsC3: rowsC3,
+      rowsC4: rowsC4,
+      rowsC5: rowsC5,
+      rowsC6: rowsC6,
+      rowsC7: rowsC7,
+      // rowsC9: rowsC9,
     });
   } catch (error) {
     console.error("Lỗi: ", error);
