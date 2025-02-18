@@ -50,11 +50,11 @@
                                 <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
                             </select>
                         </div>
-                        <div class="flex-item">
+                        <!-- <div class="flex-item">
                             <label for="MaPhongBanForm">Khoa</label>
                             <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
                             </select>
-                        </div>
+                        </div> -->
                     </div>
 
                     <!-- Tên nhiệm vụ -->
@@ -136,12 +136,12 @@
                         <label for="namHocXem">Chọn Năm Học:</label>
                         <select id="namHocXem" class="namHoc"></select>
                     </div>
-                    <div class="flex-item">
+                    <!-- <div class="flex-item">
                         <label for="MaPhongBanView">Khoa</label>
                         <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
                             <option value="ALL">Tất cả khoa</option>
                         </select>
-                    </div>
+                    </div> -->
                     <div class="flex-item-view">
                         <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
                     </div>
@@ -170,7 +170,13 @@
 
             document.getElementById("render").addEventListener("click", async function () {
                 const year = document.getElementById("namHocXem").value;
-                const department = document.getElementById("MaPhongBanView").value;
+                // const department = document.getElementById("MaPhongBanView").value;
+                let department;
+                if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NCKH") {
+                    department = "ALL";
+                } else {
+                    department = localStorage.getItem("MaPhongBan");
+                };
                 const url = `/nhiemvukhoahoccongnghe/${year}/${department}`;
 
                 try {
@@ -242,7 +248,7 @@
                     });
 
                     // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
-                    if (userRole === "Duyệt" && userPhongBan === "DAOTAO") {
+                    if (userRole === "Duyệt") {
                         columns.push({
                             title: "Duyệt",
                             field: "DaoTaoDuyet",
@@ -415,7 +421,8 @@
                         tenNhiemVu: document.getElementById("capDeTai").value,
                         namHoc: document.getElementById("namHocForm").value,
                         giangVien: document.getElementById("giangVien").value.trim(),
-                        khoa: document.getElementById("MaPhongBanForm").value,
+                        // khoa: document.getElementById("MaPhongBanForm").value,
+                        khoa: localStorage.getItem("MaPhongBan"),
                     };
 
                     let missing = 0;

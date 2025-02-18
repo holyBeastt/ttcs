@@ -13,7 +13,6 @@ const p = path.join(parentDir, "..");
 
 const XLSX = require("xlsx");
 
-
 // Tạo biến chung để lưu dữ liệu
 let tableData;
 let uniqueGV; // Danh sách giảng viên không bị trùng tên
@@ -96,7 +95,7 @@ function processWordData(content) {
     "Mã SV",
     "Tên đề tài",
     "Họ tên Cán bộ Giảng viên hướng dẫn",
-    "Đơn vị công tác"
+    "Đơn vị công tác",
   ];
   lines.forEach((line) => {
     line = line.trim(); // Xóa khoảng trắng thừa
@@ -194,8 +193,10 @@ function processWordData(content) {
   }
 
   const invalidIndexes = tableData
-    .map((row, index) => (!Array.isArray(row.GiangVien) || row.GiangVien.length === 0 ? index : -1))
-    .filter(index => index !== -1);
+    .map((row, index) =>
+      !Array.isArray(row.GiangVien) || row.GiangVien.length === 0 ? index : -1
+    )
+    .filter((index) => index !== -1);
 
   // console.log(invalidIndexes);
 
@@ -339,7 +340,6 @@ const processExcelFile = async (filePath) => {
     const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
     const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
 
-
     const data = worksheet;
 
     // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
@@ -372,14 +372,13 @@ function processExcelData(dataInput) {
     return [];
   }
 
-  return dataInput.map(item => {
+  return dataInput.map((item) => {
     // Lấy các thông tin cơ bản
     const TT = item.STT !== undefined ? String(item.STT) : "";
     const SinhVien = item["Sinh viên"] ? item["Sinh viên"].trim() : "";
     const MaSV = item["Mã SV"] ? item["Mã SV"].trim() : "";
     const TenDeTai = item["Tên đề tài"] ? item["Tên đề tài"].trim() : "";
     // const DonViCongTac = item["Đơn vị công tác"] ? item["Đơn vị công tác"].trim() : "";
-
 
     // Xử lý trường giảng viên
     // Lấy chuỗi gốc và lưu lại giá trị này
@@ -390,15 +389,19 @@ function processExcelData(dataInput) {
     let lecturerLines = lecturerRaw.split(/\r?\n/);
 
     // Với mỗi dòng, loại bỏ số thứ tự và các tiền tố như "TS.", "ThS.", "PGS.TS."…
-    let lecturers = lecturerLines.map(line => {
-      return line
-        .trim()
-        // Bước 1: Loại bỏ các số thứ tự như "1.", "2.",...
-        .replace(/^(?:\d+\.\s*)+/g, "")
-        // Bước 2: Loại bỏ các tiền tố giảng viên như "PGS.TS.", "KS.", "ThS.", "TS."
-        .replace(/(?:PGS\.?\s*TS|KS|ThS|TS)\.\s*/gi, "")
-        .trim();
-    }).filter(line => line !== "");
+    let lecturers = lecturerLines
+      .map((line) => {
+        return (
+          line
+            .trim()
+            // Bước 1: Loại bỏ các số thứ tự như "1.", "2.",...
+            .replace(/^(?:\d+\.\s*)+/g, "")
+            // Bước 2: Loại bỏ các tiền tố giảng viên như "PGS.TS.", "KS.", "ThS.", "TS."
+            .replace(/(?:PGS\.?\s*TS|KS|ThS|TS)\.\s*/gi, "")
+            .trim()
+        );
+      })
+      .filter((line) => line !== "");
 
     // Nếu không có dòng nào hợp lệ, thêm một chuỗi rỗng vào mảng
     if (lecturers.length === 0) {
@@ -428,16 +431,17 @@ function processExcelData(dataInput) {
     //   GiangVien2 = "không";
     // }
 
-    let [GiangVien1, GiangVien2] = lecturers.join(", ")
+    let [GiangVien1, GiangVien2] = lecturers
+      .join(", ")
       .split(",")
-      .map(gv => gv.trim());
+      .map((gv) => gv.trim());
 
     // So sánh tên giảng viên với danh sách uniqueGV (được định nghĩa bên ngoài hàm)
     const isGiangVien1InUniqueGV = uniqueGV.some(
-      gv => gv.HoTen.trim() === GiangVien1
+      (gv) => gv.HoTen.trim() === GiangVien1
     );
     const isGiangVien2InUniqueGV = uniqueGV.some(
-      gv => gv.HoTen.trim() === GiangVien2
+      (gv) => gv.HoTen.trim() === GiangVien2
     );
 
     // Lưu lại tên thật của giảng viên để so sánh bên client
@@ -470,7 +474,7 @@ function processExcelData(dataInput) {
       GiangVien1Real: gv1Real,
       GiangVien2Real: gv2Real,
       NgayBatDau: null,
-      NgayKetThuc: null
+      NgayKetThuc: null,
     };
   });
 }
@@ -583,7 +587,6 @@ function processPdfFile(content) {
         line.toLowerCase().startsWith("ts.") ||
         line.toLowerCase().startsWith("pgs.") ||
         line.toLowerCase().startsWith("pgs.ts.")
-
       ) {
         // Nếu dòng bắt đầu bằng "1.", "2.", hoặc "TS.", đây là thông tin Giảng viên
         // Bỏ phần "1. TS", "2. TS", "TS"
@@ -1112,7 +1115,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
         row.NgayBatDau,
         row.NgayKetThuc,
         MaPhongBan,
-        row.SoQD,
+        row.SoQD || null,
         KhoaDuyet,
         DaoTaoDuyet,
         TaiChinhDuyet,
