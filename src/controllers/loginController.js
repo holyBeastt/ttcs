@@ -211,7 +211,7 @@ const login = async (req, res) => {
         req.session.MaPhongBan = MaPhongBan;
         req.session.isKhoa = isKhoa;
 
-        console.log("Check MaPhongBan: " + MaPhongBan)
+        console.log("Tài khoản đăng nhập: " + username + " Phòng ban: " + MaPhongBan + " Quyền: " + role);
 
         // Tạo 1 req.session để dùng làm mẫu
         req.session.tmp = 0;

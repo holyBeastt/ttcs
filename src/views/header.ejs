@@ -360,7 +360,7 @@
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
     // link8 là tổng hợp số tiết 
-    if (maPhongBan === "NCKH" && userRole === "Duyệt") {
+    if (maPhongBan === "KHCN&HTPT" && userRole === "Duyệt") {
       // Chỉ hiển thị 4 mục đầu
       for (let i = 4; i < links.length; i++) {
         links[i].style.display = "none";
@@ -376,16 +376,18 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
-    if (maPhongBan === "NCKH") {
+    if (maPhongBan === "KHCN&HTPT") {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";
       vuotgioNav.style.display = "none";
       doanNav.style.display = "none";
       tkbNav.style.display = "none";
-    } else if (userRole == "GV" || userRole == "Thường") {
-      nckhNav.style.display = "none";
     }
+    
+    // else if (userRole == "GV" || userRole == "Thường") {
+    //   nckhNav.style.display = "none";
+    // }
   });
 
 </script>

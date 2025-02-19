@@ -183,7 +183,7 @@
         const year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NCKH") {
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
           department = "ALL";
         } else {
           department = localStorage.getItem("MaPhongBan");
@@ -199,39 +199,72 @@
           const userRole = localStorage.getItem("userRole");
           const userPhongBan = localStorage.getItem("MaPhongBan");
 
-          // Định nghĩa các cột, nếu DaoTaoDuyet = 1 thì các ô không cho phép chỉnh sửa
-          let columns = [
-            {
-              title: "Loại Tạp Chí",
-              field: "LoaiTapChi",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tên Bài Báo",
-              field: "TenBaiBao",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tác Giả",
-              field: "TacGia",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tác Giả Chịu Trách Nhiệm",
-              field: "TacGiaChiuTrachNhiem",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Danh Sách Thành Viên",
-              field: "DanhSachThanhVien",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            }
-          ];
+          let columns;
+          // Cấp quyền sửa
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Loại Tạp Chí",
+                field: "LoaiTapChi",
+                editor: "false",
+              },
+              {
+                title: "Tên Bài Báo",
+                field: "TenBaiBao",
+                editor: "false",
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "false",
+              },
+              {
+                title: "Tác Giả Chịu Trách Nhiệm",
+                field: "TacGiaChiuTrachNhiem",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              }
+            ];
+
+          } else {
+            columns = [
+              {
+                title: "Loại Tạp Chí",
+                field: "LoaiTapChi",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tên Bài Báo",
+                field: "TenBaiBao",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tác Giả Chịu Trách Nhiệm",
+                field: "TacGiaChiuTrachNhiem",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              }
+            ];
+
+          }
 
           // Nếu khoa == ALL thì thêm cột khoa
           if (department == "ALL") {
@@ -243,16 +276,18 @@
             });
           }
 
-          // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-          columns.push({
-            title: "Hành Động",
-            field: "actions",
-            formatter: actionFormatter,
-            hozAlign: "center",
-            headerSort: false
-          });
+          // Cấp quyền xóa
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false
+            });
+          }
 
-          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+          // Cấp quyền duyệt
           if (userRole === "Duyệt") {
             columns.push({
               title: "Duyệt",
@@ -652,8 +687,13 @@
             khoa: localStorage.getItem("MaPhongBan"),
           };
 
+          // Phần quyền nhập
+          if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+            alert("Bạn không có quyền truy cấp chức năng này");
+            return;
+          }
 
-
+          // Validate form
           let missing = 0;
 
           for (let key of Object.keys(formData)) {
@@ -666,6 +706,8 @@
             alert("Vui lòng nhập đủ thông tin");
             return;
           }
+
+
           console.log(formData);
 
           // Gửi dữ liệu lên server
