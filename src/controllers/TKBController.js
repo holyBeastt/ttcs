@@ -790,7 +790,7 @@ const deleteTKB = async (req, res) => {
     const [result] = await connection.query(sql, params);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Không có dữ liệu để xóa" });
+      return res.status(200).json({ message: "Không có dữ liệu để xóa" });
     }
 
     res.status(200).json({ message: "Xóa thành công" });
@@ -1093,6 +1093,43 @@ GROUP BY
   }
 };
 
+const checkDataTKBExist = async (req, res) => {
+  const { semester } = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
+    const queryCheck = `SELECT EXISTS(SELECT 1 FROM course_schedule_details WHERE semester = ?) AS exist;`;
+
+    // Thực hiện truy vấn
+    const [results] = await connection.query(queryCheck, [semester]);
+
+    // Kết quả trả về từ cơ sở dữ liệu
+    const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
+
+    if (exist) {
+      return res.status(200).json({
+        message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
+        exists: true,
+      });
+    } else {
+      return res.status(200).json({
+        message: "Dữ liệu không tồn tại trong cơ sở dữ liệu",
+        exists: false,
+      });
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra file import:", err);
+    return res.status(500).json({ error: "Lỗi kiểm tra cơ sở dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getImportTKBSite,
@@ -1107,4 +1144,5 @@ module.exports = {
   exportMultipleWorksheets,
   exportSingleWorksheets,
   insertDataAgain,
+  checkDataTKBExist,
 };

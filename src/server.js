@@ -79,20 +79,40 @@ app.use(
     secret: "your-secret-key",
     resave: false,
     saveUninitialized: true,
+    rolling: true, // Gia hạn mỗi request
     // Đặt true nếu bạn sử dụng HTTPS
-    cookie: { maxAge: 86400000 }, // Session sẽ hết hạn sau 1 ngày không hoạt động
-
-    // cookie: { secure: true, maxAge: 6000000 }, // Session sẽ hết hạn sau 100 phút không hoạt động
+    cookie: { maxAge: 3600000 }, // Session sẽ hết hạn sau 1 giờ không hoạt động
   })
 );
 
+app.use(express.static(path.join(__dirname, "../node_modules")));
+app.use(express.static(path.join(__dirname, "public/images")));
+
+// == src of L ==
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
+
+app.use("/", login);
+
+app.use((req, res, next) => {
+  const publicRoutes = ["/", "/login"];
+
+  // Nếu session không tồn tại & route hiện tại không thuộc danh sách public => Chuyển hướng đến /login
+  if (!req.session.userId && !publicRoutes.includes(req.path)) {
+    return res.redirect("/?sessionExpired=true");
+    //return res.redirect("/");
+  }
+
+  next(); // Tiếp tục xử lý route tiếp theo nếu session hợp lệ
+});
 // config res.body
 //app.use(express.json()); // for json
 //app.use(express.urlencoded({ extended: true })); // for form data
 
 // Khai bao route
 app.use("/", webRoutes);
-app.use("/", login);
 app.use("/", createGvmRoutes);
 app.use("/", gvmListRoutes);
 app.use("/", updateGvm);
@@ -134,14 +154,6 @@ app.listen(port, hostname, () => {
 });
 
 // Phục vụ các file tĩnh từ thư mục node_modules
-app.use(express.static(path.join(__dirname, "../node_modules")));
-app.use(express.static(path.join(__dirname, "public/images")));
-
-// == src of L ==
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
 
 //app.use(express.json()); // Thêm dòng này để xử lý JSON
 

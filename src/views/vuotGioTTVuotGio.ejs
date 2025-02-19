@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/forminput.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/table.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+    <style>
+      input, select{
+        color: #2c9caf !important;
+      }
+
+      .formcreate {
+        display: flex;
+        overflow-y: auto;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 20px;
+        position: relative;
+      }
+
+      .title {
+        font-size: 28px;
+        color: royalblue;
+        font-weight: 600;
+        letter-spacing: -1px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding-left: 30px;
+      }
+
+      .title::before,.title::after {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        left: 0px;
+        background-color: royalblue;
+      }
+
+      .title::before {
+        width: 18px;
+        height: 18px;
+        background-color: royalblue;
+      }
+
+      .title::after {
+        width: 18px;
+        height: 18px;
+        animation: pulse 1s linear infinite;
+      }
+
+      .message, .signin {
+        color: rgba(88, 87, 87, 0.822);
+        font-size: 14px;
+      }
+
+      .signin {
+        text-align: center;
+      }
+
+      .signin a {
+        color: royalblue;
+      }
+
+      .signin a:hover {
+        text-decoration: underline royalblue;
+      }
+
+      .flex {
+        display: flex;
+        width: 100%;
+        gap: 6px;
+      }
+
+      .formcreate label {
+        position: relative;
+      }
+
+      .formcreate label .input {
+        width: 100%;
+        padding: 10px 10px 20px 10px;
+        outline: 0;
+        border: 1px solid rgba(105, 105, 105, 0.397);
+        border-radius: 10px;
+      }
+
+      .formcreate label .input + span {
+        position: absolute;
+        left: 10px;
+        top: 15px;
+        color: grey;
+        font-size: 0.9em;
+        cursor: text;
+        transition: 0.3s ease;
+      }
+
+      .formcreate label .input:placeholder-shown + span {
+        top: 15px;
+        font-size: 0.9em;
+      }
+
+      .formcreate label .input:focus + span,.formcreate label .input:valid + span {
+        top: 30px;
+        font-size: 0.7em;
+        font-weight: 600;
+      }
+
+      .formcreate label .input:valid + span {
+        color: green;
+      }
+
+      .submit {
+        border: none;
+        outline: none;
+        background-color: royalblue;
+        padding: 10px;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 16px;
+        transform: .3s ease;
+      }
+
+      .submit:hover {
+        background-color: rgb(56, 90, 194);
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(0.9);
+          opacity: 1;
+        }
+
+        to {
+          transform: scale(1.8);
+          opacity: 0;
+        }
+      }
+      #formcreate {
+        display: none;
+        /* Ẩn form ban đầu */
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 10px;
+        /* Góc tròn */
+        padding: 20px;
+        background-color: white;
+        z-index: 2000;
+        width: max-content;
+        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
+        /* Tăng bóng đổ */
+        font-family: Arial, sans-serif;
+      }
+      /* phần css cho label tổng số tiết ki*/
+      .total-label {
+        margin-left: auto;
+        margin-right: 0;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 8px;
+        width: fit-content;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: block;
+      }
+
+      .total-label label {
+        font-weight: bold;
+        color: #000;
+        margin-right: 8px;
+        cursor: pointer;
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .total-label label,
+      .total-label label span {
+        background-color: #007BFF;
+        color: #fff;
+      }
+
+      .total-label span {
+        font-weight: bold;
+        color: #333;
+      }
+      #suggestionBox {
+        position: absolute; /* Định vị tuyệt đối để căn theo input */
+        background-color: white; /* Màu nền trắng để dễ nhìn */
+        border: 1px solid #ccc; /* Viền để phân biệt */
+        z-index: 1000; /* Đảm bảo nằm trên các phần tử khác */
+        width: calc(100% - 20px); /* Độ rộng phù hợp với input */
+        max-height: 200px; /* Giới hạn chiều cao */
+        overflow-y: auto; /* Cuộn dọc nếu nội dung quá nhiều */
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Đổ bóng đẹp mắt */
+      }
+      th {
+        word-wrap: break-word;
+      }
+    </style>
+</head>
+<body>
+   
+  <!-- Phần header -->
+  <%- include('header') %>
+
+  <!-- Phần nội dung -->
+      <div>
+        
+        <h1 class="d-flex justify-content-center my-3">Thông tin vượt giờ</h1>
+        <div class="m-3 form">
+          <div class="">
+            <div class="d-flex justify-content-between">
+              <div class="cbb d-flex" style="margin-top: 20px;">
+        
+                <!-- Combo box Năm -->
+                <select class="selectop mx-1" id="NamHoc">
+                  <option value="">Năm học</option>
+                </select>
+        
+                <button id="info" class="btn text-nowrap mx-2" style="height: 45px;">Hiển thị</button>
+              </div>
+              <div class="d-flex align-items-center">
+                <select name="MaPhongBan" id="MaPhongBan" class="form-control mx-2" style="border: 2px solid #2c9caf; height: 45px;">
+
+                </select>
+                <div class="" style="position: relative;">
+                  <input
+                    class="form-control" style="border: 2px solid #2c9caf; height: 45px;"
+                    type="text"
+                    id="TenNhanVien"
+                    onkeyup="suggest()"
+                    placeholder="Nhập tên nhân viên"
+                  />
+                  <div id="suggestionBox"></div>
+                </div>
+                <div>
+                  <button id="xemlopgv" class="btn mx-2" style="margin: 0px; height: 45px;" onclick="loadInfoLopGV()">Xem</button>  
+                </div>
+              </div>
+            </div> 
+            <div id="renderInfo">
+              <table class=" text-center" style="width: 100% !important;">
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 20px;">A. GIẢNG DẠY VÀ ĐÁNH GIÁ HỌC PHẦN</th>
+                </tr>
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">A.1. Giảng dạy</th>
+                </tr>
+                <tr style="background-color: #007BFF;">
+                  <th style="width: 5% !important;">TT</th>
+                  <th>Tên học phần</th>
+                  <th style="width: 10% !important;">Số TC</th>
+                  <th style="width: 10% !important;">Lớp học phần</th>
+                  <th style="width: 10% !important;">Loại hình đào tạo</th>
+                  <th style="width: 10% !important;">Số tiết theo TKB</th>
+                  <th style="width: 10% !important;">Số tiết QC</th>
+
+                </tr>
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ I - Đào tạo chuyên ngành Kỹ thuật mật mã</th>
+                </tr>
+                <tbody id="tableBodyA11" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (1): </strong>
+                    </td>
+                    <td>
+                        <span id="totalGiangDay1">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ I - Đào tạo hệ đóng học phí</th>
+                  </tr>
+                <tbody id="tableBodyA12" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (2): </strong>
+                    </td>
+                    <td>
+                        <span id="totalGiangDay2">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ II - Đào tạo chuyên ngành Kỹ thuật mật mã</th>
+                  </tr>
+                <tbody id="tableBodyA13" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (3): </strong>
+                    </td>
+                    <td>
+                        <span id="totalGiangDay3">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ II - Đào tạo hệ đóng học phí</th>
+                  </tr>
+                <tbody id="tableBodyA14" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                <tr>
+                  <td colspan="6">
+                    <strong>Tổng (4): </strong>
+                  </td>
+                  <td>
+                      <span id="totalGiangDay4">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="6">
+                    <strong>Tổng (A.1): </strong>
+                  </td>
+                  <td>
+                    <span id="totalGiangDay">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">
+                    A.2.Đánh giá giữa học phần
+                  </th>
+                </tr>
+                <tr style="background-color: #007BFF;">
+                  <th style="width: 5% !important;">TT</th>
+                  <th>Tên học phần</th>
+                  <th>Ra đề/ coi thi/ chấm thi giữa học phần</th>
+                  <th>Lớp học phần</th>
+                  <th>Số SV</th>
+                  <th>Số đề</th>
+                  <th>Số tiết ra đề/ coi thi/ chấm thi</th>
+                </tr>
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ I - Đào tạo chuyên ngành Kỹ thuật mật mã</th>
+                </tr>
+                <tbody id="tableBodyA21" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (5): </strong>
+                    </td>
+                    <td>
+                        <span id="totalSoTietKT1">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ I - Đào tạo hệ đóng học phí</th>
+                  </tr>
+                <tbody id="tableBodyA22" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (6): </strong>
+                    </td>
+                    <td>
+                        <span id="totalSoTietKT2">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ II - Đào tạo chuyên ngành Kỹ thuật mật mã</th>
+                  </tr>
+                <tbody id="tableBodyA23" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                  <tr>
+                    <td colspan="6">
+                      <strong>Tổng (7): </strong>
+                    </td>
+                    <td>
+                        <span id="totalSoTietKT3">0</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 14px;">Học kỳ II - Đào tạo chuyên ngành Kỹ thuật mật mã</th>
+                  </tr>
+                <tbody id="tableBodyA24" class="teacher-group">
+                  <!-- Dữ liệu sẽ được chèn vào đây -->
+                </tbody>
+                <tr>
+                  <td colspan="6">
+                    <strong>Tổng (8): </strong>
+                  </td>
+                  <td>
+                      <span id="totalSoTietKT4">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="6">
+                    <strong>Tổng (A.2): </strong>
+                  </td>
+                  <td>
+                      <span id="totalSoTietKT">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="6">
+                    <strong>Tổng A: </strong>
+                  </td>
+                  <td>
+                      <span id="totalA">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">B. HƯỚNG DẪN LUẬN ÁN, LUẬN VĂN, ĐỒ ÁN TỐT NGHIỆP</th>
+                </tr>
+                <tr style="background-color: #007BFF;">
+                  <th style="width: 5% !important;">TT</th>
+                  <th>Họ tên NCS, Học viên, Sinh viên</th>
+                  <th>Khoá đào tạo</th>
+                  <th>Số QĐ Giao Luận án, Luận văn, đồ án</th>
+                  <th>Số Người HD</th>
+                  <th>HD chính/ HD hai</th>
+                  <th>Số tiết quy đổi</th>
+                </tr>
+              <tbody id="tableBodyB" class="teacher-group">
+                <!-- Dữ liệu sẽ được chèn vào đây -->
+              </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng B: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietB">0</span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng A + B: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietAB">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 20px;">C. NGHIÊN CỨU KHOA HỌC</th>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C1. Đề tài, dự án</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên đề tài, dự án, mã số đề tài</th>
+                <th>Chủ trì/ Thư ký/ thành viên</th>
+                <th>Cấp đề tài( Cơ sở, Ban, Nhà nước)</th>
+                <th>Ngày nghiệm thu</th>
+                <th>Kết quả xếp loại</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC1" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.1: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC1">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.2 Bài báo khoa học</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên bài báo</th>
+                <th>Loại tạp chí/ hội nghị</th>
+                <th>Chỉ số tạp chí/ hội nghị</th>
+                <th>Số người</th>
+                <th>Tác giả chính/ thành viên</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC2" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.2: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC2">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C3. Bằng sáng chế, giải thưởng khoa học trong năm</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên bằng sáng chế, giải thưởng </th>
+                <th>Số QĐ công nhận</th>
+                <th>Ngày QĐ công nhận</th>
+                <th>Số người</th>
+                <th>Tác giả chính/ thành viên</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC3" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.3: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC3">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.4 Sách, giáo trình xuất bản trong nước được Hội đồng GSNN tính điểm</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên sách, giáo trình</th>
+                <th>Số xuất bản</th>
+                <th>Số trang</th>
+                <th>Số người</th>
+                <th>Tác giả chính/ thành viên</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC4" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>C.4: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC4">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.5 Hướng dẫn NCKH, huấn luyện đội tuyển</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên đề tài</th>
+                <th>Số QĐ giao nhiệm vụ</th>
+                <th>Ngày ký QĐ giao nhiệm vụ</th>
+                <th>Kết quả bảo vệ cấp Khoa</th>
+                <th>Kết quả bảo vệ cấp Học viện</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC5" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.5: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC5">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.6 Xây dựng chương trình đào tạo</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên chương trình đào tạo</th>
+                <th>Số tín chỉ</th>
+                <th>Số QĐ giao nhiệm vụ, ngày ký QĐ</th>
+                <th>Số thành viên</th>
+                <th>Hình thức xây dựng( mới/ tu chỉnh)</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC6" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.6: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC6">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.7 Biên soạn giáo trình, bài giảng</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên giáo trình/ bài giảng</th>
+                <th>Số QĐ giao nhiệm vụ, ngày ký</th>
+                <th>Số TC</th>
+                <th>Số thành viên</th>
+                <th>Tác giả chính/ thành viên</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC7" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.7: </strong>
+                </td>
+                <td>
+                  <span id="totalSoTietC7">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.8 Hướng dẫn sinh viên nghiên cứu khoa học và huấn luyện đội tuyển</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên đề tài, đội tuyển</th>
+                <th>Số QĐ giao nhiệm vụ, ngày ký</th>
+                <th>Số thành viên hướng dẫn, huấn luyện</th>
+                <th colspan="2" >Kết quả bảo vệ dự thi</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC8" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.8: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC8">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.9 Các nhiệm vụ khoa học và công nghệ khác</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên nhiệm vụ</th>
+                <th colspan="2" >Số QĐ giao nhiệm vụ, ngày ký</th>
+                <th colspan="2" style="width: 50px !important;">Nhiệm vụ được phân công theo quyết định</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC9" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C.9: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC9">0</span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="6">
+                  <strong>Tổng C:</strong>
+                </td>
+                <td>
+                  <span id="totalSoTietC">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">D. TỔNG HỢP KHỐI LƯỢNG ĐÃ THỰC HIỆN:</th>
+            </tr>
+            <tr style="background-color: #007BFF;">
+                <th>TT</th>
+                <th colspan="3">Nội dung công việc</th>
+                <th>Số tiết</th>
+                <th colspan="2">Lý do giảm trừ</th>
+            </tr>
+            <tr>
+                <td>I</td>
+                <td colspan="3">Tổng số tiết thực hiện (A + B)</td>
+                <td><span id="soTietThucHien">0</span></td>
+                <td rowspan="5" colspan="2" id="chucVu"></td>
+            </tr>
+            <tr>
+                <td>II</td>
+                <td colspan="3">Số tiết phải giảng</td>
+                <td id="soTietPhaiGiang">{{ soTietPhaiGiang }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>III</td>
+                <td colspan="3">Số tiết chưa hoàn thành NCKH</td>
+                <td id="soTietChuaHoanThanhNCKH">{{ soTietChuaHoanThanhNCKH }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>IV</td>
+                <td colspan="3">Số tiết được giảm trừ</td>
+                <td id="soTietGiamTru">{{ soTietGiamTru }}</td>
+            </tr>
+            <tr>
+                <td>V</td>
+                <td colspan="3">Tổng số tiết vượt giờ đề nghị thanh toán (I - II - III + IV)</td>
+                <td id="tongSoTietVuotGio">{{ tongSoTietVuotGio }}</td>
+                <td></td>
+            </tr>
+          <tr>
+            <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">F. TỔNG SỐ TIẾT NGHIÊN CỨU KHOA HỌC ĐƯỢC BẢO LƯU (không thanh toán)</th>
+        </tr>
+        <tr style="background-color: #007BFF;">
+            <th>TT</th>
+            <th>Nội dung bảo lưu</th>
+            <th colspan="2">Tổng số tiết NCKH vượt định mức</th>
+            <th colspan="3">Tổng số tiết NCKH được bảo lưu</th>
+        </tr>
+        <tbody id="tableBodyF">
+
+        </tbody>
+              </table>
+            </div>
+            <!-- Label tổng số tiết tách riêng với bảng -->
+          </div>
+        </div>
+        <!-- Modal form -->
+        <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
+        <div id="noteForm" style="display: none;">
+          <h3>Ghi chú</h3>
+          <label for="noteInput">Nội dung:</label>
+          <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
+          <br />
+          <div class="d-flex text-nowrap" style="text-align: right;">
+            <button onclick="saveNote()">Lưu</button>
+            <button onclick="doneNote()">Hoàn Thành</button>
+            <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+          </div>
+        </div>
+      </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // Xóa trạng thái active khỏi tất cả các tab
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active-tab'));
+
+            // Kích hoạt tab được chọn
+            const tabId = this.dataset.tab;
+            document.getElementById(tabId).classList.add('active-tab');  // Hiển thị nội dung tab
+            this.classList.add('active');  // Thêm lớp active vào nút được chọn
+        });
+    });
+});
+</script>
+<script>
+    const Home = document.getElementById("Home");
+    Home.addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa")
+
+        if (isKhoa==0) { // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/maindt";
+        } else {
+          window.location.href = "/mainkhoa";
+        }
+    });
+</script>
+
+<script>
+  document.getElementById("infome").addEventListener("click", function(event) {
+    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+    const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+    if (id_User) {
+        // Chuyển hướng đến trang infome và truyền id_User trong URL
+        window.location.href = `/infome/${id_User}`;
+    } else {
+        alert("Không tìm thấy id_User trong localStorage.");
+    }
+  });
+</script>
+<script>
+  $(document).ready(function () {
+    $('#NamHoc option[value=""]').remove();
+    $('#comboboxki option[value=""]').remove();
+    $('#combobox-dot option[value=""]').remove();
+
+    $.ajax({
+      url: '/getNamHoc',
+      method: 'GET',
+      success: function (response) {
+        if (response.success) {
+
+          response.NamHoc.forEach(function (item) {
+            console.log(item.NamHoc);
+            $('#NamHoc').append(
+              `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+            );
+          });
+
+          response.Ki.forEach(function (item) {
+            console.log(item.Ki);
+            $('#comboboxki').append(
+              `<option value="${item.value}">${item.Ki}</option>`
+            );
+          });
+          loadLopMoiData();
+        } else {
+          console.error("Không lấy được dữ liệu năm học:", response.message);
+        }
+      },
+      error: function (error) {
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      }
+    });
+  });
+</script>
+</script>
+<script>
+  document.getElementById('info').addEventListener('click', loadLopMoiData);
+
+  async function loadLopMoiData() {
+    const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+    const TenNhanVien = localStorage.getItem("TenNhanVien");
+    const Nam = document.getElementById('NamHoc').value;
+    if (!MaPhongBan) {
+      alert("Mã phòng ban không tồn tại!");
+      return;
+    }
+
+    try {
+      console.log("Gửi dữ liệu");
+      const response = await fetch(`/xemttvuotgio/${MaPhongBan}/${Nam}/${TenNhanVien}`, {
+        method: 'GET', // Gửi yêu cầu GET
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json(); // Lấy dữ liệu từ server
+      if (data.success) {
+        // console.log(data)
+        // Danh sách các bảng cần lọc
+        const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
+          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowC9'
+        ];
+
+        // Áp dụng filter cho tất cả các bảng
+        // rowsKeys.forEach(key => {
+        //   if (data[key]) {
+        //     data[key] = data[key].filter(row => row.GiangVien.trim() === TenNhanVien.trim());
+        //   }
+        // });
+        // Kiểm tra xem tất cả các bảng đều là mảng rỗng
+        const allRowsEmpty = rowsKeys.every(key => !data[key] || data[key].length === 0);
+
+        if (allRowsEmpty) {
+          alert("Tất cả các bảng đều không có dữ liệu!");
+        } else {
+          console.log('Dữ liệu bộ môn:', data);
+          renderTable(data); // Gọi hàm render bảng
+          getData(TenNhanVien);
+        }
+      } else {
+        alert("Không tìm thấy dữ liệu!");
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+    }
+  }
+
+</script>
+<script>
+  function renderTable(data) {
+    const role = localStorage.getItem("userRole");
+    const MaPhongBan = localStorage.getItem("MaPhongBan");
+    const isKhoa = localStorage.getItem("isKhoa");
+    let tableRowData = [];
+
+    const tableBodyA11 = document.getElementById('tableBodyA11');
+    tableBodyA11.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA12 = document.getElementById('tableBodyA12');
+    tableBodyA12.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA13 = document.getElementById('tableBodyA13');
+    tableBodyA13.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA14 = document.getElementById('tableBodyA14');
+    tableBodyA14.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA21 = document.getElementById('tableBodyA21');
+    tableBodyA21.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA22 = document.getElementById('tableBodyA22');
+    tableBodyA22.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA23 = document.getElementById('tableBodyA23');
+    tableBodyA23.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyA24 = document.getElementById('tableBodyA24');
+    tableBodyA24.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyB = document.getElementById('tableBodyB');
+    tableBodyB.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC1 = document.getElementById('tableBodyC1');
+    tableBodyC1.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC2 = document.getElementById('tableBodyC2');
+    tableBodyC2.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC3 = document.getElementById('tableBodyC3');
+    tableBodyC3.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC4 = document.getElementById('tableBodyC4');
+    tableBodyC4.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC5 = document.getElementById('tableBodyC5');
+    tableBodyC5.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC6 = document.getElementById('tableBodyC6');
+    tableBodyC6.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC7 = document.getElementById('tableBodyC7');
+    tableBodyC7.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC8 = document.getElementById('tableBodyC8');
+    tableBodyC8.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC9 = document.getElementById('tableBodyC9');
+    tableBodyC9.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyF = document.getElementById('tableBodyF');
+    tableBodyF.innerHTML = ''; // Xóa nội dung cũ
+    //let index = -1;
+    data.rows21.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const hinhThucKTGiuaKyTd = document.createElement('td');
+      hinhThucKTGiuaKyTd.textContent = row.HinhThucKTGiuaKy;
+      tableRow.appendChild(hinhThucKTGiuaKyTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const soSVTd = document.createElement('td');
+      soSVTd.textContent = row.SoSV;
+      tableRow.appendChild(soSVTd);
+      //
+      const soDeTd = document.createElement('td');
+      soDeTd.textContent = row.SoDe;
+      tableRow.appendChild(soDeTd);
+      //
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = row.SoTietKT;
+      tableRow.appendChild(soTietKT);
+
+      tableBodyA21.appendChild(tableRow);
+    });
+
+
+    data.rows22.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const hinhThucKTGiuaKyTd = document.createElement('td');
+      hinhThucKTGiuaKyTd.textContent = row.HinhThucKTGiuaKy;
+      tableRow.appendChild(hinhThucKTGiuaKyTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const soSVTd = document.createElement('td');
+      soSVTd.textContent = row.SoSV;
+      tableRow.appendChild(soSVTd);
+      //
+      const soDeTd = document.createElement('td');
+      soDeTd.textContent = row.SoDe;
+      tableRow.appendChild(soDeTd);
+      //
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = row.SoTietKT;
+      tableRow.appendChild(soTietKT);
+
+      tableBodyA22.appendChild(tableRow);
+    });
+
+    data.rows23.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const hinhThucKTGiuaKyTd = document.createElement('td');
+      hinhThucKTGiuaKyTd.textContent = row.HinhThucKTGiuaKy;
+      tableRow.appendChild(hinhThucKTGiuaKyTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const soSVTd = document.createElement('td');
+      soSVTd.textContent = row.SoSV;
+      tableRow.appendChild(soSVTd);
+      //
+      const soDeTd = document.createElement('td');
+      soDeTd.textContent = row.SoDe;
+      tableRow.appendChild(soDeTd);
+      //
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = row.SoTietKT;
+      tableRow.appendChild(soTietKT);
+
+      tableBodyA23.appendChild(tableRow);
+    });
+
+    data.rows24.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const hinhThucKTGiuaKyTd = document.createElement('td');
+      hinhThucKTGiuaKyTd.textContent = row.HinhThucKTGiuaKy;
+      tableRow.appendChild(hinhThucKTGiuaKyTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const soSVTd = document.createElement('td');
+      soSVTd.textContent = row.SoSV;
+      tableRow.appendChild(soSVTd);
+      //
+      const soDeTd = document.createElement('td');
+      soDeTd.textContent = row.SoDe;
+      tableRow.appendChild(soDeTd);
+      //
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = row.SoTietKT;
+      tableRow.appendChild(soTietKT);
+
+      tableBodyA24.appendChild(tableRow);
+    });
+
+    data.rows11.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const soTCTd = document.createElement('td');
+      soTCTd.textContent = row.SoTC;
+      tableRow.appendChild(soTCTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const sourceTd = document.createElement('td');
+      sourceTd.textContent = "Mật mã";
+      tableRow.appendChild(sourceTd);
+      //
+      const lenLopTd = document.createElement('td');
+      lenLopTd.textContent = row.LenLop;
+      tableRow.appendChild(lenLopTd);
+      //
+      const quyChuanTd = document.createElement('td');
+      quyChuanTd.textContent = row.QuyChuan;
+      tableRow.appendChild(quyChuanTd);
+
+      tableBodyA11.appendChild(tableRow);
+    });
+
+    data.rows12.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const soTCTd = document.createElement('td');
+      soTCTd.textContent = row.SoTC;
+      tableRow.appendChild(soTCTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const sourceTd = document.createElement('td');
+      sourceTd.textContent = "Đóng học phí";
+      tableRow.appendChild(sourceTd);
+      //
+      const lenLopTd = document.createElement('td');
+      lenLopTd.textContent = row.LenLop;
+      tableRow.appendChild(lenLopTd);
+      //
+      const quyChuanTd = document.createElement('td');
+      quyChuanTd.textContent = row.QuyChuan;
+      tableRow.appendChild(quyChuanTd);
+      
+
+      tableBodyA12.appendChild(tableRow);
+    });
+
+    data.rows13.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const soTCTd = document.createElement('td');
+      soTCTd.textContent = row.SoTC;
+      tableRow.appendChild(soTCTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const sourceTd = document.createElement('td');
+      sourceTd.textContent = "Mật mã";
+      tableRow.appendChild(sourceTd);
+      //
+      const lenLopTd = document.createElement('td');
+      lenLopTd.textContent = row.LenLop;
+      tableRow.appendChild(lenLopTd);
+      //
+      const quyChuanTd = document.createElement('td');
+      quyChuanTd.textContent = row.QuyChuan;
+      tableRow.appendChild(quyChuanTd);
+      
+
+      tableBodyA13.appendChild(tableRow);
+    });
+
+    data.rows14.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      tableRow.setAttribute("data-id", row.MaGiangDay);
+
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const tenHocPhanTd = document.createElement('td');
+      tenHocPhanTd.textContent = row.TenHocPhan;
+      tableRow.appendChild(tenHocPhanTd);
+      //
+      const soTCTd = document.createElement('td');
+      soTCTd.textContent = row.SoTC;
+      tableRow.appendChild(soTCTd);
+      //
+      const lopTd = document.createElement('td');
+      lopTd.textContent = row.Lop;
+      tableRow.appendChild(lopTd);
+      //
+      const sourceTd = document.createElement('td');
+      sourceTd.textContent = "Đóng học phí";
+      tableRow.appendChild(sourceTd);
+      //
+      const lenLopTd = document.createElement('td');
+      lenLopTd.textContent = row.LenLop;
+      tableRow.appendChild(lenLopTd);
+      //
+      const quyChuanTd = document.createElement('td');
+      quyChuanTd.textContent = row.QuyChuan;
+      tableRow.appendChild(quyChuanTd);
+      
+
+      tableBodyA14.appendChild(tableRow);
+    });
+
+    data.rowsB.forEach((row, index) => {
+
+      const tableRow = document.createElement('tr');
+
+      // Thêm id vào dữ liệu row để lưu trữ
+      let rowWithId = {
+        id: index,
+        ...row
+      };
+      tableRowData.push(rowWithId);
+
+      // tableRow.setAttribute("data-id", row.MaGiangDay);
+      let soNguoi = 1;
+      let gio = 25;
+      if (row.GiangVien2Real !== null) {
+        soNguoi = 2;
+        if (row.VaiTro === "HD hai") {
+          gio = 10;
+        } else {
+          gio = 15
+        }
+      }
+      
+      //
+      const ttTd = document.createElement('td');
+      ttTd.textContent = index +1;
+      tableRow.appendChild(ttTd);
+      //
+      const sinhVienTd = document.createElement('td');
+      sinhVienTd.textContent = row.SinhVien;
+      tableRow.appendChild(sinhVienTd);
+      //
+      const khoaDaoTaoTd = document.createElement('td');
+      khoaDaoTaoTd.textContent = row.KhoaDaoTao;
+      tableRow.appendChild(khoaDaoTaoTd);
+      //
+      const soQDTd = document.createElement('td');
+      soQDTd.textContent = row.SoQD;
+      tableRow.appendChild(soQDTd);
+      //
+      const soNguoiTd = document.createElement('td');
+      soNguoiTd.textContent = soNguoi;
+      tableRow.appendChild(soNguoiTd);
+      //
+      const vaiTroTd = document.createElement('td');
+      vaiTroTd.textContent = row.VaiTro;
+      tableRow.appendChild(vaiTroTd);
+      //
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = gio;
+      tableRow.appendChild(soTietKT);
+
+      tableBodyB.appendChild(tableRow);
+      });
+      data.rowsC1.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+        
+        let gio = "";
+        let str = "";
+        if (row.VaiTro === "Chủ nhiệm") {
+          str = row.ChuNhiem.trim()
+        } else if (row.VaiTro === "Thư ký") {
+          str = row.ThuKy.trim()
+        } else{
+          str = row.DanhSachThanhVien.trim()
+        }
+        const match = str.match(/^(.+)\s\((.+)\s-\s(\d+(\.\d+)?)\s*giờ\)$/);
+        if (match) {
+            gio = match[3];   // 280
+            
+        }
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const tenDeTaiTd = document.createElement('td');
+        tenDeTaiTd.textContent = row.TenDeTai;
+        tableRow.appendChild(tenDeTaiTd);
+        //
+        const vaiTroTd = document.createElement('td');
+        vaiTroTd.textContent = row.VaiTro;
+        tableRow.appendChild(vaiTroTd);
+        //
+        const capDeTaiTd = document.createElement('td');
+        capDeTaiTd.textContent = row.CapDeTai;
+        tableRow.appendChild(capDeTaiTd);
+        //
+        const ngayNghiemThuTd = document.createElement('td');
+        if (row.NgayNghiemThu) {
+          const date = new Date(row.NgayNghiemThu);
+          ngayNghiemThuTd.textContent = date.toLocaleDateString("vi-VN"); // "24/02/2025"
+        } else {
+            ngayNghiemThuTd.textContent = "N/A"; // Xử lý nếu dữ liệu null
+        }
+        tableRow.appendChild(ngayNghiemThuTd);
+        //
+        const ketQuaXepLoaiTd = document.createElement('td');
+        ketQuaXepLoaiTd.textContent = row.KetQuaXepLoai;
+        tableRow.appendChild(ketQuaXepLoaiTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC1.appendChild(tableRow);
+        });
+      data.rowsC2.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else if (row.VaiTro === "Tác giả") {
+          str = row.TacGiaChiuTrachNhiem.trim()
+          VaiTro = "Tác giả chính"
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.TacGiaChiuTrachNhiem == "null") {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 1 ;
+        } else {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 2;
+        }
+        
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const tenBaiBaoTd = document.createElement('td');
+        tenBaiBaoTd.textContent = row.TenBaiBao;
+        tableRow.appendChild(tenBaiBaoTd);
+        //
+        const LoaiTapChiTd = document.createElement('td');
+        LoaiTapChiTd.textContent = row.LoaiTapChi;
+        tableRow.appendChild(LoaiTapChiTd);
+        //
+        const ChiSoTapChiTd = document.createElement('td');
+        ChiSoTapChiTd.textContent = row.ChiSoTapChi;
+        tableRow.appendChild(ChiSoTapChiTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC2.appendChild(tableRow);
+      });
+      data.rowsC3.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else {
+          str = row.DanhSachThanhVien.trim()
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        const SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenBangSangCheVaGiaiThuongTd = document.createElement('td');
+        TenBangSangCheVaGiaiThuongTd.textContent = row.TenBangSangCheVaGiaiThuong;
+        tableRow.appendChild(TenBangSangCheVaGiaiThuongTd);
+        //
+        const SoQDCongNhanTd = document.createElement('td');
+        SoQDCongNhanTd.textContent = row.SoQDCongNhan;
+        tableRow.appendChild(SoQDCongNhanTd);
+        //
+        const NgayQDCongNhanTd = document.createElement('td');
+        if (row.NgayQDCongNhan) {
+          const date = new Date(row.NgayQDCongNhan);
+          NgayQDCongNhanTd.textContent = date.toLocaleDateString("vi-VN"); // "24/02/2025"
+        } else {
+            NgayQDCongNhanTd.textContent = "N/A"; // Xử lý nếu dữ liệu null
+        }
+        tableRow.appendChild(NgayQDCongNhanTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = row.VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC3.appendChild(tableRow);
+      });
+      data.rowsC4.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else if (row.VaiTro === "Đồng chủ biên") {
+          str = row.DongChuBien.trim()
+          VaiTro = "Tác giả chính"
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.DongChuBien == "null") {
+          if (row.DanhSachThanhVien == "null") {
+            SoNguoi = 1;
+          } else {
+            SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+          }
+        } else {
+          if (row.DanhSachThanhVien == "null") {
+            SoNguoi = row.DongChuBien.split(",").length + 1;
+          } else {
+            SoNguoi = row.DongChuBien.split(",").length + row.DanhSachThanhVien.split(",").length + 1
+          }
+        }
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenSachVaGiaoTrinhTd = document.createElement('td');
+        TenSachVaGiaoTrinhTd.textContent = row.TenSachVaGiaoTrinh;
+        tableRow.appendChild(TenSachVaGiaoTrinhTd);
+        //
+        const SoXuatBanTd = document.createElement('td');
+        SoXuatBanTd.textContent = row.SoXuatBan;
+        tableRow.appendChild(SoXuatBanTd);
+        //
+        const SoTrangTd = document.createElement('td');
+        SoTrangTd.textContent = row.SoTrang;
+        tableRow.appendChild(SoTrangTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC4.appendChild(tableRow);
+      });
+      data.rowsC5.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        const gio = row.DanhSachThanhVien.split("-")[1].split("giờ")[0].trim();
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenDeTaiTd = document.createElement('td');
+        TenDeTaiTd.textContent = row.TenDeTai;
+        tableRow.appendChild(TenDeTaiTd);
+        //
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = row.SoQDGiaoNhiemVu;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const NgayQDGiaoNhiemVuTd = document.createElement('td');
+        if (row.NgayQDGiaoNhiemVu) {
+          const date = new Date(row.NgayQDGiaoNhiemVu);
+          NgayQDGiaoNhiemVuTd.textContent = date.toLocaleDateString("vi-VN"); // "24/02/2025"
+        } else {
+            NgayQDGiaoNhiemVuTd.textContent = "N/A"; // Xử lý nếu dữ liệu null
+        }
+        tableRow.appendChild(NgayQDGiaoNhiemVuTd);
+        //
+        const KetQuaCapKhoaTd = document.createElement('td');
+        KetQuaCapKhoaTd.textContent = row.KetQuaCapKhoa;
+        tableRow.appendChild(KetQuaCapKhoaTd);
+        //
+        const KetQuaCapHocVienTd = document.createElement('td');
+        KetQuaCapHocVienTd.textContent = row.KetQuaCapHocVien;
+        tableRow.appendChild(KetQuaCapHocVienTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC5.appendChild(tableRow);
+      });
+      data.rowsC6.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const gio = row.DanhSachThanhVien.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = row.DanhSachThanhVien.split(",").length;
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenChuongTrinhTd = document.createElement('td');
+        TenChuongTrinhTd.textContent = row.TenChuongTrinh;
+        tableRow.appendChild(TenChuongTrinhTd);
+        //
+        const SoTCTd = document.createElement('td');
+        SoTCTd.textContent = row.SoTC;
+        tableRow.appendChild(SoTCTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const HinhThucXayDungTd = document.createElement('td');
+        HinhThucXayDungTd.textContent = row.HinhThucXayDung;
+        tableRow.appendChild(HinhThucXayDungTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC6.appendChild(tableRow);
+      });
+      data.rowsC7.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        let str = "";
+        let VaiTro = "Tác giả chính"
+        if (row.VaiTro === "Tác giả chính") {
+          str = row.TacGia.trim()
+        } else{
+          str = row.DanhSachThanhVien.trim()
+          VaiTro = "Thành viên"
+        }
+        const gio = str.split("-")[1].split("giờ")[0].trim();
+        let SoNguoi = 0;
+        if (row.DanhSachThanhVien == "null") {
+          SoNguoi = 1;
+        } else {
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+        }
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenGiaoTrinhBaiGiangTd = document.createElement('td');
+        TenGiaoTrinhBaiGiangTd.textContent = row.TenGiaoTrinhBaiGiang;
+        tableRow.appendChild(TenGiaoTrinhBaiGiangTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoTCTd = document.createElement('td');
+        SoTCTd.textContent = row.SoTC;
+        tableRow.appendChild(SoTCTd);
+        //
+        const SoNguoiTd = document.createElement('td');
+        SoNguoiTd.textContent = SoNguoi;
+        tableRow.appendChild(SoNguoiTd);
+        //
+        const VaiTroTd = document.createElement('td');
+        VaiTroTd.textContent = VaiTro;
+        tableRow.appendChild(VaiTroTd);
+        //
+        const gioKT = document.createElement('td');
+        gioKT.textContent = gio;
+        tableRow.appendChild(gioKT);
+
+        tableBodyC7.appendChild(tableRow);
+      });
+      data.rowsC9.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenNhiemVuTd = document.createElement('td');
+        TenNhiemVuTd.textContent = row.TenNhiemVu;
+        tableRow.appendChild(TenNhiemVuTd);
+        //
+        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        const SoQDGiaoNhiemVuTd = document.createElement('td');
+        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        SoQDGiaoNhiemVuTd.colSpan = 2;
+        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        //
+        const SoQDGiaoNhiemVu1Td = document.createElement('td');
+        SoQDGiaoNhiemVu1Td.textContent = row.SoQDGiaoNhiemVu;
+        SoQDGiaoNhiemVu1Td.colSpan = 2; // Gộp 2 cột
+        tableRow.appendChild(SoQDGiaoNhiemVu1Td);
+        //
+        const SoTietBaoLuuSangNamSauTd = document.createElement('td');
+        SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
+        tableRow.appendChild(SoTietBaoLuuSangNamSauTd);
+
+        tableBodyC9.appendChild(tableRow);
+      });
+      data.rowsF.forEach((row, index) => {
+
+        const tableRow = document.createElement('tr');
+
+        // Thêm id vào dữ liệu row để lưu trữ
+        let rowWithId = {
+          id: index,
+          ...row
+        };
+        tableRowData.push(rowWithId);
+
+        // tableRow.setAttribute("data-id", row.MaGiangDay);
+        //
+
+        const ttTd = document.createElement('td');
+        ttTd.textContent = index +1;
+        tableRow.appendChild(ttTd);
+        //
+        const TenNhiemVuTd = document.createElement('td');
+        TenNhiemVuTd.textContent = row.TenNhiemVu;
+        tableRow.appendChild(TenNhiemVuTd);
+        //
+        const SoTietVuotDinhMucTd = document.createElement('td');
+        SoTietVuotDinhMucTd.textContent = row.SoTietVuotDinhMuc;
+        SoTietVuotDinhMucTd.colSpan = 2; // Gộp 2 cột
+        tableRow.appendChild(SoTietVuotDinhMucTd);
+        //
+        const SoTietBaoLuuSangNamSauTd = document.createElement('td');
+        SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
+        SoTietBaoLuuSangNamSauTd.colSpan = 3; // Gộp 2 cột
+        tableRow.appendChild(SoTietBaoLuuSangNamSauTd);
+
+        tableBodyF.appendChild(tableRow);
+      });
+    // Lưu dữ liệu với id vào localStorage
+    localStorage.setItem('tableData', JSON.stringify(tableRowData));
+    calculatetotalGiangDay();
+  }
+
+</script>
+<script>
+  // tổng quy chuẩn
+  function calculatetotalGiangDay() {
+  let totalGiangDay = 0, totalSoTietB = 0, totalSoTietAB = 0, totalSoTietC1 = 0,
+      totalSoTietC2 = 0, totalSoTietC3 = 0, totalSoTietC4 = 0, totalSoTietC5 = 0,
+      totalSoTietC6 = 0, totalSoTietC7 = 0, totalSoTietC8 = 0, totalSoTietC9 = 0,
+      totalSoTietC = 0;
+  let totalSoTietKT = 0;
+  let totalA11 = 0, totalA12 = 0, totalA13 = 0, totalA14 = 0, 
+      totalA21 = 0, totalA22 = 0, totalA23 = 0, totalA24 = 0,
+      totalB = 0, totalAB = 0, totalC1 = 0, totalA = 0,
+      totalC2 = 0, totalC3 = 0, totalC4 = 0, totalC5 = 0,
+      totalC6 = 0, totalC7 = 0, totalC8 = 0, totalC9 = 0,
+      totalC = 0;
+
+
+  // Lấy tất cả các hàng dữ liệu trong bảng
+  const rows11 = document.querySelectorAll('#tableBodyA11 tr');
+  const rows12 = document.querySelectorAll('#tableBodyA12 tr');
+  const rows13 = document.querySelectorAll('#tableBodyA13 tr');
+  const rows14 = document.querySelectorAll('#tableBodyA14 tr');
+  const rows21 = document.querySelectorAll('#tableBodyA21 tr');
+  const rows22 = document.querySelectorAll('#tableBodyA22 tr');
+  const rows23 = document.querySelectorAll('#tableBodyA23 tr');
+  const rows24 = document.querySelectorAll('#tableBodyA24 tr');
+  const rowsB = document.querySelectorAll('#tableBodyB tr');
+  const rowsC1 = document.querySelectorAll('#tableBodyC1 tr');
+  const rowsC2 = document.querySelectorAll('#tableBodyC2 tr');
+  const rowsC3 = document.querySelectorAll('#tableBodyC3 tr');
+  const rowsC4 = document.querySelectorAll('#tableBodyC4 tr');
+  const rowsC5 = document.querySelectorAll('#tableBodyC5 tr');
+  const rowsC6 = document.querySelectorAll('#tableBodyC6 tr');
+  const rowsC7 = document.querySelectorAll('#tableBodyC7 tr');
+  const rowsC8 = document.querySelectorAll('#tableBodyC8 tr');
+  const rowsC9 = document.querySelectorAll('#tableBodyC9 tr');
+
+  rows11.forEach(row => {
+    // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    const totalA11Td = row.querySelector('td:nth-last-child(1)');
+    if (totalA11Td) {
+      const totalA11Value = parseFloat(totalA11Td.textContent.trim());
+      if (!isNaN(totalA11Value)) {
+        totalA11 += totalA11Value;
+      }
+    }
+  });
+  rows12.forEach(row => {
+    // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    const totalA12Td = row.querySelector('td:nth-last-child(1)');
+    if (totalA12Td) {
+      const totalA12Value = parseFloat(totalA12Td.textContent.trim());
+      if (!isNaN(totalA12Value)) {
+        totalA12 += totalA12Value;
+      }
+    }
+  });
+  rows13.forEach(row => {
+    // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    const totalA13Td = row.querySelector('td:nth-last-child(1)');
+    if (totalA13Td) {
+      const totalA13Value = parseFloat(totalA13Td.textContent.trim());
+      if (!isNaN(totalA13Value)) {
+        totalA13 += totalA13Value;
+      }
+    }
+  });
+  rows14.forEach(row => {
+    // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    const totalA14Td = row.querySelector('td:nth-last-child(1)');
+    if (totalA14Td) {
+      const totalA14Value = parseFloat(totalA14Td.textContent.trim());
+      if (!isNaN(totalA14Value)) {
+        totalA14 += totalA14Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalGiangDay1`
+  const totalA11Element = document.getElementById('totalGiangDay1');
+  if (totalA11Element) {
+    totalA11Element.textContent = totalA11.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const totalA12Element = document.getElementById('totalGiangDay2');
+  if (totalA12Element) {
+    totalA12Element.textContent = totalA12.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const totalA13Element = document.getElementById('totalGiangDay3');
+  if (totalA13Element) {
+    totalA13Element.textContent = totalA13.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const totalA14Element = document.getElementById('totalGiangDay4');
+  if (totalA14Element) {
+    totalA14Element.textContent = totalA14.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+
+  //Tính tổng số tiết kiểm tra giữa kì 
+  rows21.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalA21Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalA21Td) {
+      const totalA21Value = parseFloat(totalA21Td.textContent.trim());
+      if (!isNaN(totalA21Value)) {
+        totalA21 += totalA21Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalA21Td`
+  const totalA21Element = document.getElementById('totalSoTietKT1');
+  if (totalA21Element) {
+    totalA21Element.textContent = totalA21.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  rows22.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalA22Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalA22Td) {
+      const totalA22Value = parseFloat(totalA22Td.textContent.trim());
+      if (!isNaN(totalA22Value)) {
+        totalA22 += totalA22Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalA22Td`
+  const totalA22Element = document.getElementById('totalSoTietKT2');
+  if (totalA22Element) {
+    totalA22Element.textContent = totalA22.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+
+  rows23.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalA23Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalA23Td) {
+      const totalA23Value = parseFloat(totalA23Td.textContent.trim());
+      if (!isNaN(totalA23Value)) {
+        totalA23 += totalA23Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalA23Td`
+  const totalA23Element = document.getElementById('totalSoTietKT3');
+  if (totalA23Element) {
+    totalA23Element.textContent = totalA23.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+
+  rows24.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalA24Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalA24Td) {
+      const totalA24Value = parseFloat(totalA24Td.textContent.trim());
+      if (!isNaN(totalA24Value)) {
+        totalA24 += totalA24Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalA24Td`
+  const totalA24Element = document.getElementById('totalSoTietKT4');
+  if (totalA24Element) {
+    totalA24Element.textContent = totalA24.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  totalGiangDay = totalA11 + totalA12 + totalA13 + totalA14;
+  totalSoTietKT = totalA21 + totalA22 + totalA23 + totalA24;
+  const totalGiangDayElement = document.getElementById('totalGiangDay');
+  if (totalGiangDayElement) {
+    totalGiangDayElement.textContent = totalGiangDay.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const totalSoTietKTElement = document.getElementById('totalSoTietKT');
+  if (totalSoTietKTElement) {
+    totalSoTietKTElement.textContent = totalSoTietKT.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  totalA = totalGiangDay + totalSoTietKT
+  const totalAElement = document.getElementById('totalA')
+  if (totalAElement) {
+    totalAElement.textContent = totalA.toFixed(2);
+  }
+  //Tính tổng phần B
+  rowsB.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalBTd = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalBTd) {
+      const totalBValue = parseFloat(totalBTd.textContent.trim());
+      if (!isNaN(totalBValue)) {
+        totalB += totalBValue;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalBTd`
+  const totalBElement = document.getElementById('totalSoTietB');
+  if (totalBElement) {
+    totalBElement.textContent = totalB.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  totalAB = totalA + totalB
+  const totalABElement = document.getElementById('totalSoTietAB');
+  if (totalABElement) {
+    totalABElement.textContent = totalAB.toFixed(2);
+  }
+  
+  // Tính tổng C1
+  rowsC1.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC1Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC1Td) {
+      const totalC1Value = parseFloat(totalC1Td.textContent.trim());
+      if (!isNaN(totalC1Value)) {
+        totalC1 += totalC1Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC1Td`
+  const totalC1Element = document.getElementById('totalSoTietC1');
+  if (totalC1Element) {
+    totalC1Element.textContent = totalC1.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C2
+  rowsC2.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC2Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC2Td) {
+      const totalC2Value = parseFloat(totalC2Td.textContent.trim());
+      if (!isNaN(totalC2Value)) {
+        totalC2 += totalC2Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC2Td`
+  const totalC2Element = document.getElementById('totalSoTietC2');
+  if (totalC2Element) {
+    totalC2Element.textContent = totalC2.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C3
+  rowsC3.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC3Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC3Td) {
+      const totalC3Value = parseFloat(totalC3Td.textContent.trim());
+      if (!isNaN(totalC3Value)) {
+        totalC3 += totalC3Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC3Td`
+  const totalC3Element = document.getElementById('totalSoTietC3');
+  if (totalC3Element) {
+    totalC3Element.textContent = totalC3.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C4
+  rowsC4.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC4Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC4Td) {
+      const totalC4Value = parseFloat(totalC4Td.textContent.trim());
+      if (!isNaN(totalC4Value)) {
+        totalC4 += totalC4Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC4Td`
+  const totalC4Element = document.getElementById('totalSoTietC4');
+  if (totalC4Element) {
+    totalC4Element.textContent = totalC4.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C5
+  rowsC5.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC5Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC5Td) {
+      const totalC5Value = parseFloat(totalC5Td.textContent.trim());
+      if (!isNaN(totalC5Value)) {
+        totalC5 += totalC5Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC5Td`
+  const totalC5Element = document.getElementById('totalSoTietC5');
+  if (totalC5Element) {
+    totalC5Element.textContent = totalC5.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C6
+  rowsC6.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC6Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC6Td) {
+      const totalC6Value = parseFloat(totalC6Td.textContent.trim());
+      if (!isNaN(totalC6Value)) {
+        totalC6 += totalC6Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC6Td`
+  const totalC6Element = document.getElementById('totalSoTietC6');
+  if (totalC6Element) {
+    totalC6Element.textContent = totalC6.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C7
+  rowsC7.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC7Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC7Td) {
+      const totalC7Value = parseFloat(totalC7Td.textContent.trim());
+      if (!isNaN(totalC7Value)) {
+        totalC7 += totalC7Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC7Td`
+  const totalC7Element = document.getElementById('totalSoTietC7');
+  if (totalC7Element) {
+    totalC7Element.textContent = totalC7.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C8
+  rowsC8.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC8Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC8Td) {
+      const totalC8Value = parseFloat(totalC8Td.textContent.trim());
+      if (!isNaN(totalC8Value)) {
+        totalC8 += totalC8Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC8Td`
+  const totalC8Element = document.getElementById('totalSoTietC8');
+  if (totalC8Element) {
+    totalC8Element.textContent = totalC8.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C9
+  rowsC9.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC9Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC9Td) {
+      const totalC9Value = parseFloat(totalC9Td.textContent.trim());
+      if (!isNaN(totalC9Value)) {
+        totalC9 += totalC9Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC9Td`
+  const totalC9Element = document.getElementById('totalSoTietC9');
+  if (totalC9Element) {
+    totalC9Element.textContent = totalC9.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  // Tính tổng C
+  totalC = totalC1 + totalC2 + totalC3 + totalC4 + totalC5 + totalC6 + totalC7 + totalC8 + totalC9
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalCTd`
+  const totalCElement = document.getElementById('totalSoTietC');
+  if (totalCElement) {
+    totalCElement.textContent = totalC.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
+  const soTietThucHienElement = document.getElementById('soTietThucHien');
+  if (soTietThucHienElement) {
+    soTietThucHienElement.textContent = totalAB.toFixed(2);
+  }
+
+
+}
+</script>
+<script>
+  function suggest() {
+    const query = document.getElementById("TenNhanVien").value;
+    const isKhoa = localStorage.getItem("isKhoa");
+    if (query.length === 0) {
+      document.getElementById("suggestionBox").innerHTML = "";
+      return;
+    }
+    let MaPhongBan;
+    if (isKhoa === "1") {
+      MaPhongBan = localStorage.getItem("MaPhongBan");
+    } else {
+      MaPhongBan = document.getElementById("MaPhongBan").value.trim();
+    }
+    
+    fetch(`/suggestPb/${MaPhongBan}/${query}`)
+      .then((response) => response.json())
+      .then((data) => {
+        // Lấy mảng tên nhân viên từ phần tử đầu tiên
+        let results = data[0]; // Lấy dữ liệu từ phần tử đầu tiên
+
+        // Kiểm tra xem results có phải là mảng và có phần tử hay không
+        if (Array.isArray(results) && results.length > 0) {
+          let suggestions = results
+            .map((item) => {
+              return `<div onclick="selectSuggestion('${item.TenNhanVien.trim()}')">${item.TenNhanVien.trim()}</div>`;
+            })
+            .join(""); // Kết hợp tất cả các phần tử thành chuỗi HTML
+
+          // Chèn danh sách vào suggestionBox
+          document.getElementById("suggestionBox").innerHTML = suggestions;
+        } else {
+          // Nếu không có kết quả, hiển thị thông báo
+          document.getElementById("suggestionBox").innerHTML =
+            "<div>No results found</div>";
+        }
+      })
+      .catch((error) => console.error("Lỗi khi lấy dữ liệu:", error));
+  }
+  // Hàm này sẽ được gọi khi người dùng click vào một gợi ý
+  function selectSuggestion(value) {
+    // Thêm giá trị vào ô input
+    document.getElementById("TenNhanVien").value = value;
+
+    // Xóa các gợi ý khi chọn một tên
+    document.getElementById("suggestionBox").innerHTML = "";
+  }
+  async function loadInfoLopGV() {
+    const Nam = document.getElementById('NamHoc').value;
+    const isKhoa = localStorage.getItem("isKhoa");
+    const TenNhanVien = document.getElementById("TenNhanVien").value;
+    let MaPhongBan;
+    if (isKhoa === "1") {
+      MaPhongBan = localStorage.getItem("MaPhongBan");
+    } else {
+      MaPhongBan = document.getElementById("MaPhongBan").value.trim();
+    }
+    if (!MaPhongBan) {
+      alert("Mã phòng ban không tồn tại!");
+      return;
+    }
+
+    try {
+      console.log("Gửi dữ liệu");
+      const response = await fetch(`/xemttvuotgio/${MaPhongBan}/${Nam}/${TenNhanVien}`, {
+        method: 'GET', // Gửi yêu cầu GET
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json(); // Lấy dữ liệu từ server
+      if (data.success) {
+        // Danh sách các bảng cần lọc
+        const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
+          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowsC9'
+        ];
+
+        // Kiểm tra xem tất cả các bảng đều là mảng rỗng
+        const allRowsEmpty = rowsKeys.every(key => !data[key] || data[key].length === 0);
+
+        if (allRowsEmpty) {
+          alert("Tất cả các bảng đều không có dữ liệu!");
+        } else {
+          console.log('Dữ liệu bộ môn:', data);
+          renderTable(data); // Gọi hàm render bảng
+          getData(TenNhanVien);
+        }
+      } else {
+        alert("Không tìm thấy dữ liệu!");
+      }
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+    }
+  }
+</script>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const Quyen = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+        const selectKhoa = document.getElementById("MaPhongBan");
+        const find = document.getElementById("TenNhanVien");
+        const button = document.getElementById("xemlopgv");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (Quyen === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+
+        if (Quyen === "Lãnh đạo khoa") {
+          selectKhoa.style.display = 'none';
+          find.style.display = ''
+          button.style.display = ''
+        } else if (isKhoa === "0") {
+          selectKhoa.style.display = '';
+          find.style.display = ''
+          button.style.display = ''
+        } else {
+          selectKhoa.style.display = 'none';
+          find.style.display = 'none'
+          button.style.display = 'none'
+        }
+      });
+    </script>
+  <script>
+    document.getElementById("changeMessage").addEventListener("click", function(event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+      if (MaPhongBan) {
+        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+        window.location.href = `/changeMessage/${MaPhongBan}`;
+      } else {
+        alert("Không tìm thấy MaPhongBan trong localStorage.");
+      }
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      $('#MaPhongBan option[value=""]').remove();
+      // Gọi AJAX để lấy dữ liệu JSON từ API
+      $.ajax({
+        url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+        method: 'GET',
+        success: function (response) {
+          // Kiểm tra nếu response thành công
+          const MaPhongBan = response.MaPhongBan;
+          if (response.success) {
+            // $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
+            // Lặp qua từng mục trong mảng MaPhongBan
+            response.MaPhongBan.forEach(function (item) {
+              // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+              console.log(item);
+              $('#MaPhongBan').append(
+                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+              );
+              }
+            );
+  
+            // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+            if (!$('#MaPhongBan option:selected').length) {
+              $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
+            }
+          } else {
+            console.error("Không lấy được dữ liệu phongBan:", response.message);
+          }
+        },
+        error: function (error) {
+          console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+        }
+      });
+    });
+  </script>
+  <script>
+    async function getData(TenNhanVien) {
+      try {
+        console.log("Gửi dữ liệu");
+        const response = await fetch(`/getSoTietDM/${TenNhanVien}`, {
+          method: 'GET', // Gửi yêu cầu GET
+        });
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        const data = await response.json(); // Lấy dữ liệu từ server
+        if (data.success) {
+          fillData(data)
+        } else {
+          alert("Không tìm thấy dữ liệu!");
+        }
+      } catch (error) {
+        console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+      }
+    };
+  </script>
+  <script>
+    function fillData(data) {
+      const soTietPhaiGiangElement = document.getElementById('soTietPhaiGiang');
+      if (soTietPhaiGiangElement) {
+        soTietPhaiGiangElement.textContent = data.soTietDM[0].GiangDay.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const soTietNCKH = document.getElementById('totalSoTietC').textContent.trim();
+      let soTietChuaHoanThanhNCKH;
+      if (soTietNCKH >= data.soTietDM[0].NCKH) {
+        soTietChuaHoanThanhNCKH = 0;
+      } else {
+        soTietChuaHoanThanhNCKH = data.soTietDM[0].NCKH - soTietNCKH;
+      }
+      const soTietChuaHoanThanhNCKHElement = document.getElementById('soTietChuaHoanThanhNCKH');
+      if (soTietChuaHoanThanhNCKHElement) {
+        soTietChuaHoanThanhNCKHElement.textContent = soTietChuaHoanThanhNCKH.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const phanTramMienGiam = data.nhanVien[0].PhanTramMienGiam ?? 0;
+      const soTietGiamTru = data.soTietDM[0].GiangDay * phanTramMienGiam /100;
+      const soTietGiamTruElement = document.getElementById('soTietGiamTru');
+      if (soTietGiamTruElement) {
+        soTietGiamTruElement.textContent = soTietGiamTru.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const soTietThucHien = document.getElementById('soTietThucHien').textContent.trim();
+      const tongSoTietVuotGio = soTietThucHien - data.soTietDM[0].GiangDay - soTietChuaHoanThanhNCKH + soTietGiamTru;
+      const tongSoTietVuotGioElement = document.getElementById('tongSoTietVuotGio');
+      if (tongSoTietVuotGioElement) {
+        tongSoTietVuotGioElement.textContent = tongSoTietVuotGio.toFixed(2); // Định dạng 2 chữ số thập phân
+      }
+      const chucVuElement = document.getElementById('chucVu');
+      if (chucVuElement) {
+        chucVuElement.textContent = data.nhanVien[0].ChucVu;
+      }
+    }
+  </script>
+  </body>
+</html>
+

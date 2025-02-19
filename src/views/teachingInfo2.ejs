@@ -201,6 +201,27 @@
       margin-bottom: 20px;
     }
   </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px ; /* Giảm độ rộng */
+      font-size: 12px !important;
+  }
+  
+  
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+        padding: 8px;
+        cursor: default;
+    }
+  </style>
 </head>
 
 <body>
@@ -241,10 +262,11 @@
         <div class="d-flex my-3" style="height: 70px">
           <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search" />
           <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search" />
-          <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
-            class="form-control m-2 search" />
-          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" onclick="showSuggestionsBoMon(this)"
-            class="form-control m-2 search" />
+          <!-- <input type="text" id="filterKhoa" placeholder="Tìm theo khoa" onclick="showSuggestionsKhoa(this)"
+            class="form-control m-2 search" /> -->
+          <input type="text" placeholder="Tìm kiếm theo Khoa" class="filterKhoa form-control m-2 search" id="filterKhoa" />
+
+          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" class="form-control m-2 search" />
         </div>
         <script>
           // Hàm lọc chung
@@ -368,6 +390,19 @@
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+    <!-- Thêm jQuery và jQuery UI -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- jQuery UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -376,7 +411,6 @@
         const check = localStorage.getItem("check");
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
-        console.log(role, MaPhongBan);
 
         if (MaPhongBan == "DAOTAO" && role == "Duyệt") {
           // Ẩn cột 'taiChinhColumn'
@@ -412,6 +446,7 @@
       let nameGvm = []; // Biến toàn cục để lưu tên giảng viên theo khoa
       let rs = [];
       var boMon = [];
+      let phongBanList = [];
 
       //  Hàm khởi động ứng dụng
       function init() {
@@ -422,6 +457,7 @@
 
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
+        // Lấy dữ liệu bộ môn
         try {
           const response = await fetch('/bo-mon', {
             method: 'POST', // Thay đổi thành POST
@@ -437,7 +473,22 @@
 
           const data = await response.json(); // Chuyển đổi dữ liệu JSON
           boMon = data;
-          console.log('Bộ môn : ', boMon)
+
+        } catch (error) {
+          console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
+        }
+
+        try {
+          const response = await fetch('/api/get-khoa-list', {
+            method: 'GET', // Thay đổi thành POST
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+
+          const data = await response.json(); // Chuyển đổi dữ liệu JSON
+          phongBanList = data;
 
         } catch (error) {
           console.error('Có lỗi xảy ra khi lấy dữ liệu bộ môn:', error);
@@ -514,7 +565,6 @@
           localStorage.setItem("TaiChinhCheck", TaiChinhCheck);
 
 
-          console.log("Dữ liệu render bảng : ", globalData)
           renderTable(globalData); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
 
           calculateTotals();
@@ -854,105 +904,6 @@
         }
       }
 
-      // function filterByName() {
-      //   const input = document.getElementById("filterName");
-      //   const filter = input.value.toLowerCase();
-      //   const tableRows = document.querySelectorAll("#tableBody tr");
-
-      //   // Nếu ô tìm kiếm trống, hiển thị tất cả các dòng
-      //   if (!filter) {
-      //     tableRows.forEach((row) => {
-      //       row.style.display = ""; // Hiện tất cả các dòng
-      //       const checkbox = row.querySelector('input[type="checkbox"]');
-      //     });
-      //     return;
-      //   }
-
-      //   // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
-      //   tableRows.forEach((row) => {
-      //     const nameCell = row.querySelector("td:nth-child(3)"); // Giả sử tên giảng viên nằm ở cột thứ 5
-      //     const name = nameCell.textContent.toLowerCase();
-      //     const checkbox = row.querySelector('input[type="checkbox"]');
-
-      //     if (name.includes(filter)) {
-      //       row.style.display = ""; // Hiện hàng nếu khớp
-      //     } else {
-      //       row.style.display = "none"; // Ẩn hàng nếu không khớp
-      //     }
-      //   });
-      //   calculateTotals();
-      // }
-
-      // function filterByClass() {
-      //   const input = document.getElementById("filterClass");
-      //   const filter = input.value.toLowerCase();
-      //   const tableRows = document.querySelectorAll("#tableBody tr");
-
-      //   // Nếu ô tìm kiếm trống, hiển thị tất cả các dòng
-      //   if (!filter) {
-      //     tableRows.forEach((row) => {
-      //       row.style.display = ""; // Hiện tất cả các dòng
-      //     });
-      //     return;
-      //   }
-
-      //   // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
-      //   tableRows.forEach((row) => {
-      //     const nameCell = row.querySelector("td:nth-child(1)"); // Giả sử tên giảng viên nằm ở cột thứ 5
-      //     const name = nameCell.textContent.toLowerCase();
-
-      //     if (name.includes(filter)) {
-      //       row.style.display = ""; // Hiện hàng nếu khớp
-      //     } else {
-      //       row.style.display = "none"; // Ẩn hàng nếu không khớp
-      //     }
-      //   });
-      //   calculateTotals();
-      // }
-
-      // function filterByKhoa() {
-      //   const input = document.getElementById("filterKhoa");
-      //   const filter = input.value.toLowerCase();
-      //   const tableRows = document.querySelectorAll("#tableBody tr");
-
-      //   // Nếu ô tìm kiếm trống, hiển thị tất cả các dòng
-      //   if (!filter) {
-      //     tableRows.forEach((row) => {
-      //       row.style.display = ""; // Hiện tất cả các dòng
-      //     });
-      //     return;
-      //   }
-
-      //   // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
-      //   tableRows.forEach((row) => {
-      //     const nameCell = row.querySelector("td:nth-child(6)"); // Giả sử tên giảng viên nằm ở cột thứ 5
-      //     const name = nameCell.textContent.toLowerCase();
-
-      //     if (name.includes(filter)) {
-      //       row.style.display = ""; // Hiện hàng nếu khớp
-      //     } else {
-      //       row.style.display = "none"; // Ẩn hàng nếu không khớp
-      //     }
-      //   });
-      //   calculateTotals();
-      // }
-
-      // Hàm tính tổng số tiết từ globalData
-      // function calculateTotals() {
-      //   totalLL = 0; // Reset tổng số tiết LL
-      //   totalQC = 0; // Reset tổng số tiết QC
-
-      //   // Duyệt qua từng phần tử trong globalData để cộng dồn số tiết
-      //   globalData.forEach((item) => {
-      //     totalLL += item.LL; // Cộng dồn số tiết LL
-      //     totalQC += item.QuyChuan; // Cộng dồn số tiết QC
-      //   });
-
-      //   // Cập nhật tổng số tiết vào HTML
-      //   document.getElementById("totalLL").textContent = totalLL;
-      //   document.getElementById("totalQC").textContent = totalQC;
-      // }
-
       function calculateTotals() {
         let totalLL = 0; // Reset tổng số tiết LL
         let totalQC = 0; // Reset tổng số tiết QC
@@ -1020,6 +971,77 @@
       document.addEventListener('DOMContentLoaded', function () {
         init();
       });
+
+      // Hàm gợi ý khoa
+      $(document).ready(function () {
+        // Cấu hình autocomplete
+        $("#filterKhoa").autocomplete({
+            source: function (request, response) {
+                const value = request.term.toLowerCase();
+
+                let suggestions = phongBanList
+                    .map(item => `${item.MaPhongBan} - ${item.TenPhongBan}`);
+    
+                // Nếu có giá trị nhập vào thì lọc
+                if (value) {
+                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+                }
+    
+                response(suggestions);
+            },
+            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+            select: function (event, ui) {
+                let parts = ui.item.value.split("-");
+                let processedName = parts[0].trim();
+                $("#filterKhoa").val(processedName);
+                filterTable();
+                return false;
+            }
+        });
+    
+        // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+        $("#filterKhoa").on("focus", function () {
+            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+        });
+    });
+    
+
+      // Hàm gợi ý bộ môn
+      $(document).ready(function () {
+        // Cấu hình autocomplete
+        $("#filterBoMon").autocomplete({
+            source: function (request, response) {
+                const value = request.term.toLowerCase();
+
+                const khoaValue = $("#filterKhoa").val().toLowerCase() || "all";
+
+                let suggestions = boMon
+                    .filter(item => khoaValue === 'all' || item.MaPhongBan.toLowerCase() === khoaValue.toLowerCase())
+                    .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
+    
+                // Nếu có giá trị nhập vào thì lọc
+                if (value) {
+                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+                }
+    
+                response(suggestions);
+            },
+            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+            select: function (event, ui) {
+                let parts = ui.item.value.split("-");
+                let processedName = parts.slice(2).join("-").trim();
+                $("#filterBoMon").val(processedName);
+                filterTable();
+                return false;
+            }
+        });
+    
+        // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+        $("#filterBoMon").on("focus", function () {
+            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+        });
+    });
+    
     </script>
 
     <!-- Phần phân quyền -->
@@ -1067,7 +1089,6 @@
 
       function openNoteForm(row, GhiChu, Deadline) {
         currentRow = row; // Lưu hàng hiện tại
-        console.log(formatInputDate(Deadline));
         document.getElementById("noteForm").style.display = "block"; // Hiển thị form
         document.getElementById("modalBackdrop").style.display = "block"; // Hiển thị nền tối
 
@@ -1217,101 +1238,6 @@
     </script>
 
     <script>
-      // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-      const phongBanData = <% - JSON.stringify(phongBanList) %>
-        localStorage.setItem("phongBanList", JSON.stringify(phongBanData));
-
-      // Hàm gợi ý bộ môn ở ô nhập 
-      function showSuggestionsKhoa(input) {
-        const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-        hideSuggestionsKhoa(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
-
-        // Tạo thẻ div chứa gợi ý
-        const suggestionsContainer = document.createElement('div');
-        suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
-
-        // Đặt vị trí cho suggestionsContainer
-        const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-        suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-        suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-        suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-        suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-        suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-        suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-        suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
-
-        // Thêm suggestionsContainer vào DOM
-        document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
-
-        let suggestions = []; // Khởi tạo mảng gợi ý
-
-        // Lấy dữ liệu từ localStorage
-        const boMon = JSON.parse(localStorage.getItem("phongBanList")) || []; // Giảng viên mời
-        console.log(boMon)
-
-        suggestions = boMon.map(item => `${item.MaPhongBan}`);
-
-
-        // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-        if (value) {
-          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-        }
-
-        // Nếu không có gợi ý, ẩn container
-        if (suggestions.length === 0) {
-          suggestionsContainer.remove();
-          return; // Kết thúc hàm nếu không có gợi ý
-        }
-
-        // Tạo gợi ý dưới dạng danh sách (list)
-        suggestions.forEach(name => {
-          const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-          suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-          suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
-
-          // Thêm sự kiện click để điền tên vào ô input
-          suggestionItem.onclick = function () {
-            // Giả sử 'name' là giá trị gợi ý bạn nhận được từ suggestionItem
-            const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
-
-            // Tìm vị trí của dấu "-" trong chuỗi
-            const dashIndex = name.indexOf("-");
-
-            // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-            let processedName = name;
-
-            if (dashIndex !== -1) {
-              // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
-            }
-
-            // Điền tên gợi ý đã xử lý vào ô input
-            input.value = processedName;
-            // filterBoMon();
-            if (input.id == 'filterKhoa') {
-              filterTable();
-            }
-            hideSuggestionsKhoa(); // Ẩn gợi ý sau khi chọn
-          };
-
-
-          suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-        });
-
-        // Ẩn gợi ý khi input không còn focus
-        input.onblur = function () {
-          setTimeout(() => {
-            hideSuggestionsKhoa();
-          }, 100); // Thời gian chờ để nhận diện click
-        };
-      }
-
-      // Hàm ẩn gợi ý
-      function hideSuggestionsKhoa() {
-        const existingSuggestions = document.querySelectorAll('.suggestions');
-        existingSuggestions.forEach(suggestion => suggestion.remove());
-      }
-
       // Hàm xử lý tìm kiếm theo tên bộ môn
       function filterKhoa() {
         const input = document.getElementById("filterKhoa");
@@ -1338,98 +1264,6 @@
           }
         });
         calculateTotals();
-      }
-
-      // ====================================================
-      // Hàm gợi ý bộ môn ở ô nhập 
-      function showSuggestionsBoMon(input) {
-        const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
-        hideSuggestionsBoMon(); // Ẩn gợi ý cũ trước khi hiển thị gợi ý mới
-
-        // Tạo thẻ div chứa gợi ý
-        const suggestionsContainer = document.createElement('div');
-        suggestionsContainer.className = 'suggestions'; // Đặt class cho khung gợi ý
-
-        // Đặt vị trí cho suggestionsContainer
-        const { bottom, left, width } = input.getBoundingClientRect(); // Lấy vị trí của input
-        suggestionsContainer.style.position = 'absolute'; // Để đè lên bảng
-        suggestionsContainer.style.top = `${bottom + window.scrollY}px`; // Đặt vị trí ngay dưới input
-        suggestionsContainer.style.left = `${left + window.scrollX}px`; // Căn trái với input
-        suggestionsContainer.style.width = `${width}px`; // Chiều rộng bằng với input
-        suggestionsContainer.style.zIndex = '1000'; // Đảm bảo luôn hiển thị trên các thành phần khác
-        suggestionsContainer.style.maxHeight = '200px'; // Giới hạn chiều cao để không quá lớn
-        suggestionsContainer.style.overflowY = 'auto';  // Cho phép cuộn dọc nếu quá nhiều gợi ý
-
-        // Thêm suggestionsContainer vào DOM
-        document.body.appendChild(suggestionsContainer); // Đặt suggestionsContainer vào body thay vì cha của input
-
-        let suggestions = []; // Khởi tạo mảng gợi ý
-
-        // Lấy dữ liệu từ localStorage
-        console.log(boMon)
-
-        suggestions = boMon.map(item => `${item.TenBoMon} - ${item.MaBoMon}`);
-
-
-        // Nếu người dùng nhập dữ liệu, lọc kết quả theo tên giảng viên
-        if (value) {
-          suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-        }
-
-        // Nếu không có gợi ý, ẩn container
-        if (suggestions.length === 0) {
-          suggestionsContainer.remove();
-          return; // Kết thúc hàm nếu không có gợi ý
-        }
-
-        // Tạo gợi ý dưới dạng danh sách (list)
-        suggestions.forEach(name => {
-          const suggestionItem = document.createElement('div'); // Tạo phần tử cho từng gợi ý
-          suggestionItem.className = 'suggestion-item'; // Đặt class để tùy chỉnh giao diện
-          suggestionItem.textContent = name; // Hiển thị tên giảng viên kèm theo khoa
-
-          // Thêm sự kiện click để điền tên vào ô input
-          // Thêm sự kiện click để điền tên vào ô input
-          suggestionItem.onclick = function () {
-            // Giả sử 'name' là giá trị gợi ý bạn nhận được từ suggestionItem
-            const name = suggestionItem.innerText; // Hoặc có thể là suggestionItem.textContent
-
-            // Tìm vị trí của dấu "-" trong chuỗi
-            const dashIndex = name.indexOf("-");
-
-            // Nếu không có dấu "-", sử dụng tên gợi ý gốc
-            let processedName = name;
-
-            if (dashIndex !== -1) {
-              // Lấy phần sau dấu "-" và loại bỏ khoảng trắng
-              processedName = name.slice(dashIndex + 1).trim().replace(/\s+/g, '');
-            }
-
-            // Điền tên gợi ý đã xử lý vào ô input
-            input.value = processedName;
-            // filterBoMon();
-            if (input.id == 'filterBoMon') {
-              filterTable();
-            }
-            hideSuggestionsBoMon(); // Ẩn gợi ý sau khi chọn
-          };
-
-
-          suggestionsContainer.appendChild(suggestionItem); // Thêm mục vào danh sách gợi ý
-        });
-
-        // Ẩn gợi ý khi input không còn focus
-        input.onblur = function () {
-          setTimeout(() => {
-            hideSuggestionsBoMon();
-          }, 100); // Thời gian chờ để nhận diện click
-        };
-      }
-
-      // Hàm ẩn gợi ý
-      function hideSuggestionsBoMon() {
-        const existingSuggestions = document.querySelectorAll('.suggestions');
-        existingSuggestions.forEach(suggestion => suggestion.remove());
       }
 
       // Hàm xử lý tìm kiếm theo tên bộ môn
@@ -1474,20 +1308,17 @@
             if (response.success) {
 
               response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
                 $('#NamHoc').append(
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
 
               response.Ki.forEach(function (item) {
-                console.log(item.Ki);
                 $('#comboboxki').append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
               response.Dot.forEach(function (item) {
-                console.log(item.Dot);
                 $('#combobox-dot').append(
                   `<option value="${item.value}">${item.Dot}</option>`
                 );

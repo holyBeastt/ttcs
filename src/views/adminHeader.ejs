@@ -38,19 +38,20 @@
               <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="HocPhan" href="/hocphan">Học phần</a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link text-center" id="NamHoc" href="/namHoc" style="width: fit-content;">Năm học</a>
             </li>
             <li class="nav-item">
               <a class="nav-link " id="KyTuBD" href="/kytubatdau">Hệ đào tạo</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" id="TienLuong" href="/tienluong">Tiền Mời Giảng</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHocPhan" data-bs-toggle="dropdown" aria-expanded="false">Học phần</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownHocPhan">
+                <a class="nav-link" id="HocPhan" href="/hocphan">Học phần</a>
+                <a class="nav-link" id="" href="/getThemFileHocPhan">Thêm file học phần</a>
+              </div>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="" href="/getThemFileHocPhan">Thêm file học phần</a>
+              <a class="nav-link" id="TienLuong" href="/tienluong">Tiền Mời Giảng</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" id="" href="/sotietDM">Số tiết định mức</a>
@@ -72,7 +73,6 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"
               style="right: 0; left: auto; z-index: 1000;">
-              <a class="dropdown-item" href="#">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
@@ -81,6 +81,7 @@
       </div>
   </nav>
 </header>
+
 
 <script>
   document.getElementById("changePasswordLink").addEventListener("click", function (event) {

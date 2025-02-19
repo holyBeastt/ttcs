@@ -53,11 +53,11 @@
               <label for="namHocForm">Năm học</label>
               <select class="namHoc" id="namHocForm" name="namHoc" required></select>
             </div>
-            <div class="flex-item">
+            <!-- <div class="flex-item">
               <label for="MaPhongBanForm">Khoa</label>
               <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
               </select>
-            </div>
+            </div> -->
           </div>
 
           <div class="form-group">
@@ -125,32 +125,19 @@
             <label for="namHocXem">Chọn Năm Học:</label>
             <select id="namHocXem" class="namHoc"></select>
           </div>
-          <div class="flex-item">
+          <!-- <div class="flex-item">
             <label for="MaPhongBanView">Khoa</label>
-            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;"></select>
-          </div>
+            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
+              <option value="ALL">Tất cả khoa</option>
+            </select>
+          </div> -->
           <div class="flex-item-view">
-            <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+            <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
           </div>
         </div>
 
         <div class="table-container">
-          <table border="1" class="table table-bordered">
-            <thead id="table-header">
-              <tr>
-                <th>Phân loại</th>
-                <th>Tên giáo trình, bài giảng</th>
-                <th>Số tín chỉ</th>
-                <th>Số QĐ giao nhiệm vụ</th>
-                <th>Ngày QĐ giao nhiệm vụ</th>
-                <th>Tác giả</th>
-                <th>Thành viên</th>
-                <th>Thao tác</th>
-
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
+          <div id="table-container"></div>
         </div>
       </div>
     </div>
@@ -162,215 +149,305 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
+    <!-- Link thư viện tabulator -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>f
     <!-- nckh view -->
     <script>
-      // 1. Hàm định dạng ngày từ ISO 8601 sang DD/MM/YYYY
-      function formatDate(dateString) {
-        // Kiểm tra xem đầu vào có đúng định dạng không
-        if (!dateString || typeof dateString !== "string") {
-          return "Invalid Date";
+      var table;
+
+      document.getElementById("render").addEventListener("click", async function () {
+        const year = document.getElementById("namHocXem").value;
+        // const department = document.getElementById("MaPhongBanView").value;
+        let department;
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
+          department = "ALL";
+        } else {
+          department = localStorage.getItem("MaPhongBan");
+        };
+        const url = `/biensoangiaotrinhbaigiang/${year}/${department}`;
+        console.log(url);
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          // Lấy thông tin quyền từ localStorage
+          const userRole = localStorage.getItem("userRole");
+          const userPhongBan = localStorage.getItem("MaPhongBan");
+
+          let columns;
+
+          // Cấp quyền sửa: nếu người dùng là "GV" hoặc "Thường" thì các cột sẽ ở chế độ chỉ xem (editor: "false")
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Phân loại",
+                field: "PhanLoai",
+                editor: "false",
+              },
+              {
+                title: "Tên giáo trình bài giảng",
+                field: "TenGiaoTrinhBaiGiang",
+                editor: "false",
+              },
+              {
+                title: "Số TC",
+                field: "SoTC",
+                editor: "false",
+              },
+              {
+                title: "Số QĐ Giao Nhiệm Vụ",
+                field: "SoQDGiaoNhiemVu",
+                editor: "false",
+              },
+              {
+                title: "Ngày QĐ Giao Nhiệm Vụ",
+                field: "NgayQDGiaoNhiemVu",
+                editor: "false",
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              }
+            ];
+          } else {
+            // Nếu người dùng có quyền chỉnh sửa
+            columns = [
+              {
+                title: "Phân loại",
+                field: "PhanLoai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tên giáo trình bài giảng",
+                field: "TenGiaoTrinhBaiGiang",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Số TC",
+                field: "SoTC",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Số QĐ Giao Nhiệm Vụ",
+                field: "SoQDGiaoNhiemVu",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Ngày QĐ Giao Nhiệm Vụ",
+                field: "NgayQDGiaoNhiemVu",
+                editor: "date",
+                editorParams: {
+                  format: "dd/MM/yyyy",
+                  defaultValue: "",
+                  elementAttributes: { placeholder: "dd/MM/yyyy" }
+                },
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              }
+            ];
+          }
+
+          // Nếu department == "ALL" thì thêm cột "Khoa"
+          // Với chế độ editor phụ thuộc vào vai trò của người dùng
+          if (department == "ALL") {
+            columns.push({
+              title: "Khoa",
+              field: "Khoa",
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+            });
+          }
+
+          // Cột Hành Động: chỉ thêm nếu người dùng có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false,
+            });
+          }
+
+          // Cột Duyệt: chỉ thêm nếu tài khoản có quyền Duyệt
+          if (userRole === "Duyệt") {
+            columns.push({
+              title: "Duyệt",
+              field: "DaoTaoDuyet",
+              formatter: checkboxFormatter,
+              editor: "tickCross",
+              cellClick: function (e, cell) {
+                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                cell.edit();
+              },
+            });
+          }
+
+
+          // Khởi tạo bảng với Tabulator
+          table = new Tabulator("#table-container", {
+            data: data,
+            index: "ID",
+            layout: "fitColumns",
+            columns: columns,
+          });
+
+          table.on("cellEdited", async function (cell) {
+            const field = cell.getField();
+            const row = cell.getRow();
+            let updatedData = row.getData();
+
+            // Nếu chỉnh sửa trường NgayQDGiaoNhiemVu, chuyển đổi sang ISO
+            if (field === "NgayQDGiaoNhiemVu" && updatedData.NgayQDGiaoNhiemVu) {
+              const isoDate = convertDMYtoISO(updatedData.NgayQDGiaoNhiemVu);
+              if (isoDate) updatedData.NgayQDGiaoNhiemVu = isoDate;
+            }
+            // Xử lý cho trường DaoTaoDuyet (checkbox)
+            if (field === "DaoTaoDuyet") {
+              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
+            }
+            await saveData(updatedData.ID, updatedData, row);
+          });
+
+        } catch (error) {
+          console.error("Lỗi khi lấy dữ liệu:", error);
         }
-        const date = new Date(dateString);
-        // Kiểm tra xem date có hợp lệ không
-        if (isNaN(date.getTime())) {
-          return "Invalid Date";
-        }
-        const day = String(date.getUTCDate()).padStart(2, "0");
-        const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-        const year = date.getUTCFullYear();
-        return `${day}/${month}/${year}`;
+      });
+
+      // Formatter cho cột "Duyệt" hiển thị input checkbox
+      function checkboxFormatter(cell, formatterParams, onRendered) {
+        let value = cell.getValue();
+        let checked = (value == 1 || value == true) ? "checked" : "";
+        return `<input type="checkbox" ${checked}/>`;
       }
 
-      // 2. Hàm chuyển đổi định dạng số: "125,00" -> "125.00"
-      function fixNumberFormat(text) {
-        if (typeof text !== "string") return text; // Nếu không phải chuỗi, giữ nguyên
-        return text.replace(/(\d),(\d{2})/g, "$1.$2");
+      // Formatter cho cột Hành Động: hiển thị nút xóa nếu chưa duyệt
+      function actionFormatter(cell) {
+        const rowData = cell.getRow().getData();
+        if (rowData.DaoTaoDuyet == 1) {
+          return "";
+        }
+        const id = rowData.ID;
+        const button = document.createElement("button");
+        button.innerHTML = "<i class='fas fa-trash-alt'></i>";
+        button.classList.add("btn", "btn-delete");
+        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        return button;
       }
 
-      // 3. Chuyển đổi định dạng ngày từ DD/MM/YYYY về ISO 8601
+      async function saveData(id, updatedData, row) {
+        const MaBang = "biensoangiaotrinhbaigiang";
+        try {
+          const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+          });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            document.getElementById("render").click(); // Tải lại bảng
+          } else {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật dữ liệu:", error);
+        }
+      }
+
+      async function deleteRow(id, row) {
+        try {
+          const response = await fetch(`/nckh/delete/${id}/biensoangiaotrinhbaigiang`, { method: "POST" });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            row.delete();
+          } else {
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi xóa dữ liệu:", error);
+        }
+      }
+
+      // Hàm chuyển đổi định dạng ngày từ DD/MM/YYYY về ISO 8601
       function convertDMYtoISO(dateString) {
         const parts = dateString.split("/");
         if (parts.length !== 3) return null;
         const [day, month, year] = parts.map(Number);
-        const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-        return date.toISOString();
+        return new Date(Date.UTC(year, month - 1, day)).toISOString();
       }
-
-      // 4. Hiển thị bảng dữ liệu
-      function renderTable(data) {
-        const tbody = document.getElementById("table-body");
-        window.currentData = data; // Lưu dữ liệu hiện tại để sử dụng khi hủy
-        tbody.innerHTML = "";
-        console.log(data);
-
-        data.forEach(item => {
-          // Tạo bản sao của item để không làm thay đổi dữ liệu gốc
-          const newItem = { ...item };
-
-          newItem.TacGia = fixNumberFormat(newItem.TacGia);
-          newItem.DanhSachThanhVien = fixNumberFormat(newItem.DanhSachThanhVien);
-          // Không chuyển đổi ngay NgayQDGiaoNhiemVu, giữ nguyên dạng ISO
-          const row = createTableRow(newItem);
-          tbody.appendChild(row);
-        });
-      }
-
-      // 5. Hàm tạo một hàng của bảng
-      function createTableRow(item) {
-        const row = document.createElement("tr");
-        row.setAttribute("data-id", item.ID);
-
-        // Hàm lồng: Tạo cell đơn giản
-        function createCell(value) {
-          const cell = document.createElement("td");
-          cell.textContent = value;
-          return cell;
-        }
-
-        row.appendChild(createCell(item.PhanLoai));
-        row.appendChild(createCell(item.TenGiaoTrinhBaiGiang));
-        row.appendChild(createCell(item.SoTC));
-        // Hiển thị SoQDGiaoNhiemVu như cũ (không định dạng)
-        row.appendChild(createCell(item.SoQDGiaoNhiemVu));
-        // Định dạng NgayQDGiaoNhiemVu sang DD/MM/YYYY khi hiển thị
-        row.appendChild(createCell(formatDate(item.NgayQDGiaoNhiemVu)));
-        row.appendChild(createCell(fixNumberFormat(item.TacGia)));
-        row.appendChild(createCell(fixNumberFormat(item.DanhSachThanhVien)));
-
-        // Tạo nút sửa
-        const editButton = document.createElement("button");
-        editButton.classList.add("btn", "btn-edit");
-        editButton.textContent = "Sửa";
-        editButton.addEventListener("click", () => enableEditMode(row, item));
-
-        // Thêm nút sửa vào cuối hàng
-        const actionCell = document.createElement("td");
-        actionCell.appendChild(editButton);
-        row.appendChild(actionCell);
-
-        return row;
-      }
-
-      // 6. Hàm kích hoạt chế độ chỉnh sửa cho một hàng
-      function enableEditMode(row, item) {
-        const id = row.getAttribute("data-id");
-        const originalRow = row.cloneNode(true); // Lưu lại dòng gốc
-        row.innerHTML = "";
-
-        // Hàm lồng: Tạo cell có thể chỉnh sửa (input)
-        function createEditableCell(value, className) {
-          const cell = document.createElement("td");
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = value;
-          input.className = className;
-          cell.appendChild(input);
-          return cell;
-        }
-
-        row.appendChild(createEditableCell(item.PhanLoai, `phan-loai-${id}`));
-        row.appendChild(createEditableCell(item.TenGiaoTrinhBaiGiang, `ten-gtbg-${id}`));
-        row.appendChild(createEditableCell(item.SoTC, `so-tc-${id}`));
-        // Với SoQDGiaoNhiemVu, không gọi formatDate (giả sử đây không phải là ngày)
-        row.appendChild(createEditableCell(item.SoQDGiaoNhiemVu, `so-qd-${id}`));
-        // Với NgayQDGiaoNhiemVu, chuyển đổi sang DD/MM/YYYY để hiển thị trong input
-        row.appendChild(createEditableCell(formatDate(item.NgayQDGiaoNhiemVu), `ngay-qd-${id}`));
-        row.appendChild(createEditableCell(fixNumberFormat(item.TacGia), `tac-gia-${id}`));
-        row.appendChild(createEditableCell(fixNumberFormat(item.DanhSachThanhVien), `ds-thanh-vien-${id}`));
-
-        // Tạo nút lưu
-        const saveButton = document.createElement("button");
-        saveButton.textContent = "Lưu";
-        saveButton.classList.add("btn", "btn-save");
-        saveButton.addEventListener("click", () => saveData(id));
-
-        // Tạo nút hủy
-        const cancelButton = document.createElement("button");
-        cancelButton.textContent = "Hủy";
-        cancelButton.classList.add("btn", "btn-cancel");
-        cancelButton.addEventListener("click", () => {
-          row.replaceWith(createTableRow(item)); // Khôi phục dòng gốc
-        });
-
-        // Thêm nút lưu và hủy vào cuối hàng
-        const actionCell = document.createElement("td");
-        actionCell.appendChild(saveButton);
-        actionCell.appendChild(cancelButton);
-        row.appendChild(actionCell);
-      }
-
-      function cancelEditMode(row, item) {
-        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
-      }
-
-      // 7. Hàm lưu dữ liệu sau khi chỉnh sửa
-      function saveData(id) {
-        const MaBang = "biensoangiaotrinhbaigiang";
-        const NgayQDGiaoNhiemVu = document.querySelector(`.ngay-qd-${id}`).value;
-        const NgayQDGiaoNhiemVuValid = convertDMYtoISO(NgayQDGiaoNhiemVu);
-
-        const updatedData = {
-          PhanLoai: document.querySelector(`.phan-loai-${id}`).value,
-          TenGiaoTrinhBaiGiang: document.querySelector(`.ten-gtbg-${id}`).value,
-          SoTC: document.querySelector(`.so-tc-${id}`).value,
-          SoQDGiaoNhiemVu: document.querySelector(`.so-qd-${id}`).value,
-          NgayQDGiaoNhiemVu: NgayQDGiaoNhiemVuValid,
-          TacGia: document.querySelector(`.tac-gia-${id}`).value,
-          DanhSachThanhVien: document.querySelector(`.ds-thanh-vien-${id}`).value
-        };
-
-        fetch(`/nckh/edit/${id}/${MaBang}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedData),
-        })
-          .then(response => response.json())
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                title: 'Thông báo',
-                html: `${data.message}`,
-                icon: 'success',
-                confirmButtonText: 'OK',
-                width: 'auto',
-                padding: '20px',
-                timer: 3000, // Tự động đóng sau 3 giây
-                timerProgressBar: true, // Hiển thị thanh đếm thời gian
-                didClose: () => {
-                  cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
-                }
-              })
-            }
-          })
-          .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
-      }
-
-      // 8. Hàm lấy dữ liệu từ server
-      async function getData() {
-        const year = document.getElementById("namHocXem").value;
-        const department = document.getElementById("MaPhongBanView").value;
-        const url = `/biensoangiaotrinhbaigiang/${year}/${department}`;
-
-        try {
-          fetch(url)
-            .then(response => response.json())
-            .then(data => renderTable(data))
-            .catch(error => console.error("Lỗi khi lấy dữ liệu:", error));
-        } catch (error) {
-          console.error("Lỗi trong quá trình gửi yêu cầu:", error);
-        }
-      }
-
-      /*
-        Tổng số hàm trong script:
-        - Top-level (8 hàm): formatDate, fixNumberFormat, convertDMYtoISO, renderTable, createTableRow, enableEditMode, saveData, getData
-        - Nested (2 hàm): createCell (trong createTableRow), createEditableCell (trong enableEditMode)
-        => Tổng cộng: 10 hàm.
-      */
     </script>
-
-
 
     <!-- nckh form -->
     <script>
@@ -580,11 +657,18 @@
           thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
             (member) => member.textContent  // Danh sách thành viên
           ),
-          khoa: document.getElementById("MaPhongBanForm").value,
+          // khoa: document.getElementById("MaPhongBanForm").value,
+          khoa: localStorage.getItem("MaPhongBan"),
         };
 
 
+        // Phần quyền nhập
+        if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+          alert("Bạn không có quyền truy cấp chức năng này");
+          return;
+        }
 
+        // Validate form
         let missing = 0;
 
         for (let key of Object.keys(formData)) {

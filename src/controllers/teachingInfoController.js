@@ -523,13 +523,7 @@ const getTeachingInfo2 = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    // Lấy danh sách phòng ban để lọc
-    const qrPhongBan = `select MaPhongBan from phongban where isKhoa = 1`;
-    const [phongBanList] = await connection.query(qrPhongBan);
-
-    res.render("teachingInfo2.ejs", {
-      phongBanList: phongBanList,
-    });
+    res.render("teachingInfo2.ejs");
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).send("Internal Server Error");
@@ -608,7 +602,8 @@ const getTeachingInfo2 = async (req, res) => {
 // };
 
 const getBoMon = async (req, res) => {
-  const MaPhongBan = req.body.MaPhongBan;
+  const isKhoa = req.session.isKhoa;
+  const MaPhongBan = req.session.MaPhongBan;
   let connection;
 
   try {
@@ -616,34 +611,22 @@ const getBoMon = async (req, res) => {
     connection = await createPoolConnection();
 
     // Xác định truy vấn dựa vào MaPhongBan
-    let query;
-    if (MaPhongBan !== "DAOTAO" && MaPhongBan !== "TAICHINH") {
-      query = `
-        SELECT 
-          bomon.MaPhongBan, 
-          bomon.MaBoMon, 
-          bomon.TenBoMon
-        FROM 
-          bomon
-        WHERE 
-          MaPhongBan = ?;
-      `;
-    } else {
-      query = `
-        SELECT 
-          bomon.MaPhongBan, 
-          bomon.MaBoMon, 
-          bomon.TenBoMon
-        FROM 
-          bomon;
-      `;
+    let query = `
+      SELECT 
+        bomon.MaPhongBan, 
+        bomon.MaBoMon, 
+        bomon.TenBoMon
+      FROM 
+        bomon
+  `;
+    let params = [];
+    if (isKhoa == 1) {
+      query += " WHERE MaPhongBan = ?";
+      params.push(MaPhongBan);
     }
 
     // Thực hiện truy vấn với kết nối
-    const [results] = await connection.query(
-      query,
-      MaPhongBan !== "DAOTAO" && MaPhongBan !== "TAICHINH" ? [MaPhongBan] : []
-    );
+    const [results] = await connection.query(query, params);
 
     // Trả về kết quả truy vấn
     return res.status(200).json(results);
@@ -656,6 +639,32 @@ const getBoMon = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
   }
 };
+
+const getKhoaList = async (req, res) => {
+  let connection;
+
+  try {
+    // Tạo kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Xác định truy vấn dựa vào MaPhongBan
+    const query = `select MaPhongBan, TenPhongBan from phongban where isKhoa = 1`;
+
+    // Thực hiện truy vấn với kết nối
+    const [results] = await connection.query(query);
+
+    // Trả về kết quả truy vấn
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Lỗi trong hàm getBoMon:", error);
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
+  }
+};
+
 const SaveNote = async (req, res) => {
   let connection = await createPoolConnection();
   try {
@@ -713,4 +722,5 @@ module.exports = {
   getBoMon,
   SaveNote,
   DoneNote,
+  getKhoaList,
 };

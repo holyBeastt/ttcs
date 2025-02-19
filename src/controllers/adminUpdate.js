@@ -131,6 +131,7 @@ const postUpdateNV = async (req, res) => {
     Quyen,
     HSL,
     PhanTramMienGiam,
+    Luong,
   } = req.body;
 
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
@@ -142,13 +143,46 @@ const postUpdateNV = async (req, res) => {
     const validPhanTramMienGiam =
       PhanTramMienGiam === "" ? 0 : Number(PhanTramMienGiam);
 
-    // Kiểm tra xem PhanTramMienGiam có nằm trong khoảng từ 0 đến 100 hay không
-    if (validPhanTramMienGiam < 0 || validPhanTramMienGiam > 100) {
+    connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+    // Kiểm tra nhân viên có tồn tại không
+    const [nhanVien] = await connection.execute("SELECT * FROM nhanvien WHERE id_User = ?", [Id_User]);
+    if (nhanVien.length === 0) {
+      return res.status(404).json({ message: "Nhân viên không tồn tại" });
+    }
+
+    // Kiểm tra trùng CCCD
+    const [checkCCCD] = await connection.execute("SELECT COUNT(*) AS count FROM nhanvien WHERE CCCD = ? AND id_User != ?", [CCCD, Id_User]);
+    if (checkCCCD[0].count > 0) {
+      return res.status(409).json({ message: "CCCD đã tồn tại. Vui lòng kiểm tra lại." });
+    }
+
+    // Kiểm tra trùng Tên đăng nhập
+    const [checkTenDangNhap] = await connection.execute("SELECT COUNT(*) AS count FROM taikhoannguoidung WHERE TenDangNhap = ? AND id_User != ?", [TenDangNhap, Id_User]);
+    if (checkTenDangNhap[0].count > 0) {
+      return res.status(409).json({ message: "Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác." });
+    }
+    const ModeHSL = parseFloat(HSL); // Chuyển thành số thực
+    if (isNaN(ModeHSL) || ModeHSL < 0) {
+      connection.release();
       return res.status(400).json({
-        message: "Phần trăm miễn giảm phải nằm trong khoảng từ 0 đến 100.",
+        message: "Hệ số lương phải là số lớn hơn 0. Vui lòng kiểm tra lại.",
       });
     }
-    connection = await createPoolConnection(); // Lấy kết nối từ pool
+    if (!/^\d*$/.test(Luong)) {
+      // Kiểm tra nếu Luong không phải là chuỗi số
+      connection.release(); // Giải phóng kết nối trước khi trả về
+      return res.status(400).json({
+        message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
+      });
+    }
+    const phanTram = parseFloat(PhanTramMienGiam); // Chuyển thành số thực
+    if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
+      connection.release();
+      return res.status(400).json({
+        message: "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
+      });
+    }
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
     const query = `UPDATE nhanvien SET 
@@ -173,10 +207,11 @@ const postUpdateNV = async (req, res) => {
       CacMonLienQuan = ?,
       MaNhanVien = ?,
       HSL = ?,
-      PhanTramMienGiam = ?
+      PhanTramMienGiam = ?,
+      Luong = ?
       WHERE id_User = ?`;
 
-    const [updateResult] = await connection.query(query, [
+    await connection.execute(query, [
       TenNhanVien,
       GioiTinh,
       NgaySinh,
@@ -199,23 +234,31 @@ const postUpdateNV = async (req, res) => {
       MaNhanVien,
       validHSL,
       validPhanTramMienGiam,
+      Luong,
       Id_User,
     ]);
 
-    // Cập nhật bảng role sau khi cập nhật nhân viên thành công
-    const queryRole = `UPDATE role SET MaPhongBan = ?, Quyen = ? WHERE TenDangNhap = ?`;
-    const [roleUpdateResult] = await connection.query(queryRole, [
-      MaPhongBan,
-      Quyen,
-      TenDangNhap,
-    ]);
+    await connection.execute(
+      "UPDATE taikhoannguoidung SET TenDangNhap = ? WHERE id_User = ?",
+      [TenDangNhap, Id_User]
+    );
 
-    console.log("Nhân viên đã được cập nhật:", updateResult);
-    console.log("Bảng role đã được cập nhật:", roleUpdateResult);
-    res.redirect("/nhanVien?message=insertSuccess");
+    // Cập nhật bảng role
+    const [resultIsKhoa] = await connection.execute(
+      "SELECT isKhoa FROM phongban WHERE MaPhongBan = ?",
+      [MaPhongBan]
+    );
+    const isKhoa = resultIsKhoa.length > 0 ? resultIsKhoa[0].isKhoa : 0;
+
+    await connection.execute(
+      "UPDATE role SET MaPhongBan = ?, Quyen = ?, isKhoa = ? WHERE TenDangNhap = ?",
+      [MaPhongBan, Quyen, isKhoa, TenDangNhap]
+    );
+
+    res.status(200).json({ message: "Cập nhật nhân viên thành công", MaNhanVien });
   } catch (error) {
-    console.error("Error executing query: ", error);
-    res.redirect("/nhanVien?message=insertFalse");
+    console.error("Lỗi khi cập nhật nhân viên:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi cập nhật nhân viên", error: error.message });
   } finally {
     if (connection) connection.release(); // Giải phóng kết nối
   }

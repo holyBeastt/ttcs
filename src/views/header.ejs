@@ -123,6 +123,7 @@
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
+                <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ</a>
               </div>
             </div>
@@ -142,6 +143,8 @@
                 <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
                 <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
                 <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a>
+                <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
               </div>
             </div>
           </div>
@@ -338,51 +341,53 @@
 <!-- phân quyền nckh -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // nckh xem 3 mục đầu, đào tạo 4 mục sau 
     let maPhongBan = localStorage.getItem("MaPhongBan");
     let userRole = localStorage.getItem("userRole");
     let isKhoa = localStorage.getItem("isKhoa");
 
-    let nckhNav = document.getElementById("nckhNav");
-    let links = nckhNav.getElementsByClassName("nav-link");
+    // phần này cho các thẻ to
+    let gvmNav = document.getElementById("nav-gvm");
+    let quychuanNav = document.getElementById("nav-quychuan");
+    let moigiangNav = document.getElementById("nav-moigiang");
+    let vuotgioNav = document.getElementById("nav-vuotgio");
+    let doanNav = document.getElementById("nav-doan");
+    let tkbNav = document.getElementById("tkb-nav");
+    let nckhNav = document.getElementById("nav-nckh");
+
+    // phần này cho các thẻ links
+    let nckhNavChild = document.getElementById("nckhNav");
+    let links = nckhNavChild.getElementsByClassName("nav-link");
+
+    // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
+    // link8 là tổng hợp số tiết 
+    if (maPhongBan === "KHCN&HTPT" && userRole === "Duyệt") {
+      // Chỉ hiển thị 4 mục đầu
+      for (let i = 4; i < links.length; i++) {
+        links[i].style.display = "none";
+      }
+      links[8].style.display = "block";
+    } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
+      // Chỉ hiển thị 5 mục cuối
+      for (let i = 0; i < links.length - 5; i++) {
+        links[i].style.display = "none";
+      }
+      links[8].style.display = "block";
+    }
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
-    if (maPhongBan === "NCKH") {
-      let gvmNav = document.getElementById("nav-gvm");
-      let quychuanNav = document.getElementById("nav-quychuan");
-      let moigiangNav = document.getElementById("nav-moigiang");
-      let vuotgioNav = document.getElementById("nav-vuotgio");
-      let doanNav = document.getElementById("nav-doan");
+    // quyền thường, gv nhót
+    if (maPhongBan === "KHCN&HTPT") {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";
       vuotgioNav.style.display = "none";
       doanNav.style.display = "none";
+      tkbNav.style.display = "none";
     }
-
-    // quyền giáo vụ, lãnh đạo khoa được xem all  thì cho vào site nckh và đào tạo
-    if (maPhongBan === "NCKH" && userRole === "Duyệt") {
-      // Chỉ hiển thị 4 mục đầu
-      for (let i = 4; i < links.length; i++) {
-        links[i].style.display = "none";
-      }
-    } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
-      // Chỉ hiển thị 3 mục cuối
-      for (let i = 0; i < links.length - 3; i++) {
-        links[i].style.display = "none";
-      }
-    }
-    else if (userRole == "Lãnh đạo khoa" && isKhoa == "1" || isKhoa == "1" && userRole == "GV_CNBM") {
-      // Chỉ hiển thị 3 mục cuối
-      for (let i = 0; i < links.length; i++) {
-        links[i].style.display = "block";
-      }
-    } else {
-      // Nếu không thuộc quyền nào, ẩn toàn bộ
-      for (let i = 0; i < links.length; i++) {
-        links[i].style.display = "none";
-      }
-    }
+    
+    // else if (userRole == "GV" || userRole == "Thường") {
+    //   nckhNav.style.display = "none";
+    // }
   });
 
 </script>

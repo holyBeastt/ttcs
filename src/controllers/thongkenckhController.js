@@ -13,14 +13,14 @@ const thongkenckhController = {
         try {
             connection = await createConnection();
             const queries = [
-                'SELECT COUNT(*) AS total FROM detaiduan',
-                'SELECT COUNT(*) AS total FROM baibaokhoahoc',
-                'SELECT COUNT(*) AS total FROM bangsangchevagiaithuong',
-                'SELECT COUNT(*) AS total FROM biensoangiaotrinhbaigiang',
+                'SELECT COUNT(*) AS total FROM detaiduan Where daotaoduyet = 1',
+                'SELECT COUNT(*) AS total FROM baibaokhoahoc Where daotaoduyet = 1',
+                'SELECT COUNT(*) AS total FROM bangsangchevagiaithuong Where daotaoduyet = 1',
+                'SELECT COUNT(*) AS total FROM biensoangiaotrinhbaigiang Where daotaoduyet = 1',
                 // 'SELECT COUNT(*) AS total FROM nhiemvukhoahocvacongnghe',
-                'SELECT COUNT(*) AS total FROM xaydungctdt',
-                'SELECT COUNT(*) AS total FROM nckhvahuanluyendoituyen',
-                'SELECT COUNT(*) AS total FROM sachvagiaotrinh'
+                'SELECT COUNT(*) AS total FROM xaydungctdt Where daotaoduyet = 1',
+                'SELECT COUNT(*) AS total FROM nckhvahuanluyendoituyen Where daotaoduyet = 1',
+                'SELECT COUNT(*) AS total FROM sachvagiaotrinh Where daotaoduyet = 1'
             ];
 
             const results = await Promise.all(
@@ -59,6 +59,7 @@ const thongkenckhController = {
                 NgayNghiemThu,
                 Khoa
                 FROM detaiduan
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);
@@ -89,6 +90,7 @@ const thongkenckhController = {
                     DanhSachThanhVien,
                     Khoa
                 FROM baibaokhoahoc
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
 
@@ -119,6 +121,7 @@ const thongkenckhController = {
                     NgayQDCongNhan
                     
                 FROM bangsangchevagiaithuong
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);
@@ -148,6 +151,7 @@ const thongkenckhController = {
                    TacGia,
                    Khoa
                 FROM biensoangiaotrinhbaigiang
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);
@@ -201,6 +205,7 @@ const thongkenckhController = {
                 DanhSachThanhVien,
                 Khoa
                 FROM xaydungctdt
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);
@@ -230,6 +235,7 @@ const thongkenckhController = {
             DanhSachThanhVien,
             Khoa
                 FROM nckhvahuanluyendoituyen
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);
@@ -259,6 +265,7 @@ const thongkenckhController = {
             DanhSachThanhVien,
             Khoa
                 FROM sachvagiaotrinh
+                Where daotaoduyet = 1
                 ORDER BY NamHoc DESC;
             `;
             const [rows] = await connection.query(query);

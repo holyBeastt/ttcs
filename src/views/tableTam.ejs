@@ -229,6 +229,14 @@
       document
         .getElementById("export-file-btn")
         .addEventListener("click", function (event) {
+
+          // Ngăn chặn lỗi
+          if (Array.isArray(renderData) && renderData.length === 0) {
+            alert("Không có dữ liệu");  // Hiển thị thông báo khi mảng rỗng
+            return;
+          }
+
+
           // Toggle menu hiển thị
           const menu = document.getElementById("file-format-menu");
           menu.style.display = menu.style.display === "none" ? "block" : "none";
@@ -256,107 +264,44 @@
         QuyChuan: "Quy chuẩn",
       };
 
-      function exportToExcel() {
-        // Mảng tiêu đề theo thứ tự mong muốn
-        const orderedKeys = [
-          "TT",
-          "SoTinChi",
-          "LopHocPhan",
-          "GiaoVien",
-          "SoTietCTDT",
-          "SoSinhVien",
-          "LL",
-          "HeSoT7CN",
-          "HeSoLopDong",
-          "QuyChuan",
-        ];
+      async function exportToExcel() {
+        const requestData = {
+          renderData: renderData
+        };
 
-        // Mảng tiêu đề dựa trên titleMap
-        const headers = orderedKeys.map((key) =>
-          key === "TT" ? "TT" : titleMap[key]
-        );
-
-        // Tạo dữ liệu hàng (rows) theo thứ tự cột và thêm cột "TT"
-        const rows = renderData.map((item, index) => {
-          return orderedKeys.map((key) => {
-            if (key === "TT") {
-              return `${index + 1}.`; // Định dạng số thứ tự
-            }
-            return item[key] || ""; // Lấy giá trị từ dữ liệu hoặc để trống
+        try {
+          const response = await fetch('/qcdk-export-excel', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
           });
-        });
 
-        // Tạo dòng đầu tiên với nội dung tùy chỉnh
-        const headerTitle = [
-          [
-            `SỐ TIẾT QUY CHUẨN HỌC KỲ ${renderData[0].Ki} năm học ${renderData[0].Nam}`,
-          ],
-        ];
-
-        // Kết hợp tiêu đề và dữ liệu
-        const worksheetData = [
-          ...headerTitle, // Dòng tiêu đề đầu tiên
-          [], // Dòng trống giữa tiêu đề và bảng
-          headers, // Dòng tiêu đề cột
-          ...rows, // Dữ liệu
-        ];
-
-        // Tạo workbook và worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-
-        // Căn chỉnh độ rộng cột sao cho vừa vặn
-        const colWidths = headers.map((header, colIndex) => {
-          const maxLength = Math.max(
-            header.length,
-            ...rows.map((row) => String(row[colIndex]).length)
-          );
-          return { wpx: Math.min(maxLength * 10, 150) }; // Điều chỉnh độ rộng cột
-        });
-
-        ws["!cols"] = colWidths;
-
-        // Làm đậm và thay đổi background cho dòng tiêu đề (dòng 3)
-        const headerRowIndex = 2; // Dòng tiêu đề là dòng 3, tương ứng với index 2 trong mảng
-
-        orderedKeys.forEach((key, colIndex) => {
-          const cellRef = XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex });  // Vị trí ô trong dòng tiêu đề
-
-          // Khởi tạo nếu ô chưa có
-          if (!ws[cellRef]) {
-            ws[cellRef] = { v: headers[colIndex] }; // Nếu ô chưa có, gán giá trị
+          if (!response.ok) {
+            throw new Error(`Failed to export: ${response.statusText}`);
           }
 
-          // Áp dụng style cho từng ô trong dòng tiêu đề
-          ws[cellRef].s = {
-            fill: {
-              fgColor: { rgb: "FFFF00" }, // Màu nền vàng
-            },
-            font: {
-              bold: true, // Làm đậm chữ
-              color: { rgb: "000000" }, // Màu chữ đen
-            },
-            alignment: {
-              horizontal: 'center', // Căn giữa văn bản
-              vertical: 'center',
-            }
-          };
-        });
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
 
-        // Gắn sheet vào workbook và xuất file
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(
-          wb,
-          `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`
-        );
+        } catch (error) {
+          console.error('Error exporting data:', error);
+        }
       }
 
       function exportToWord() {
-        console.log(renderData)
 
         // Mảng tiêu đề theo thứ tự mong muốn
         const orderedKeys = [
-          "TT",
+          "STT",
           "SoTinChi",
           "LopHocPhan",
           "GiaoVien",
@@ -371,14 +316,14 @@
 
         // Map tiêu đề hiển thị
         const titleMap = {
-          TT: "TT",
+          STT: "STT",
           SoTinChi: "Số TC",
           LopHocPhan: "Lớp học phần",
           GiaoVien: "Giáo Viên",
           SoTietCTDT: "Số tiết theo CTĐT",
           SoSinhVien: "Số SV",
           LL: "Số tiết lên lớp theo TKB",
-          HeSoT7CN: "Hệ số T7/CNlên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+          HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
           HeSoLopDong: "Hệ số lớp đông",
           QuyChuan: "QC",
           Khoa: "Khoa"
@@ -581,29 +526,22 @@
         table = new Tabulator("#table-container", {
           data: localData,
           layout: "fitColumns",
-          pagination: "local",
-          paginationSize: 100,
           movableColumns: true,
           resizableColumns: true,
           columns: columns,
           index: "ID",
+          renderVertical: "virtual", // Sử dụng render dọc Virtual DOM thay vì phân trang
+          height: "550px", // Giới hạn chiều cao để virtual scroll hoạt động
 
           cellEdited: function (cell) {
             const editedData = cell.getData();
-            // Cập nhật dữ liệu vào localData
             const rowIndex = localData.findIndex(row => row.ID === editedData.ID);
             if (rowIndex !== -1) {
-              localData[rowIndex] = editedData; // Cập nhật dòng dữ liệu trong localData
+              localData[rowIndex] = editedData;
             }
           },
-
-          // rowFormatter: function (row) {
-          //   const data = row.getData();
-          //   if (Object.values(data).some((value) => !isNaN(value) && Number(value) === 0)) {
-          //     row.getElement().classList.add("warning-row");
-          //   }
-          // },
         });
+
       }
 
       // Hàm cập nhật
@@ -641,7 +579,8 @@
                   timer: 3000, // Tự động đóng sau 3 giây
                   timerProgressBar: true, // Hiển thị thanh đếm thời gian
                   didClose: () => {
-                    table.updateData(rs.data);
+                    getDataTable();
+                    renderTable();
                   }
                 })
               }

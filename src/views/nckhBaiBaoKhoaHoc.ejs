@@ -52,12 +52,11 @@
                 <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
               </select>
             </div>
-            <div class="flex-item">
+            <!-- <div class="flex-item">
               <label for="MaPhongBanForm">Khoa</label>
               <select class="MaPhongBan" id="MaPhongBanForm" required>
-                <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
               </select>
-            </div>
+            </div> -->
           </div>
 
           <!-- Tên bài báo -->
@@ -148,29 +147,19 @@
             <label for="namHocXem">Chọn Năm Học:</label>
             <select id="namHocXem" class="namHoc"></select>
           </div>
-          <div class="flex-item">
+          <!-- <div class="flex-item">
             <label for="MaPhongBanView">Khoa</label>
-            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;"></select>
-          </div>
+            <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
+              <option value="ALL">Tất cả khoa</option>
+            </select>
+          </div> -->
           <div class="flex-item-view">
-            <button onclick="getData()" class="btn text-nowrap" id="render">Hiển thị</button>
+            <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
           </div>
         </div>
 
         <div class="table-container">
-          <table border="1" class="table table-bordered">
-            <thead id="table-header">
-              <tr>
-                <th>Loại tạp chí</th>
-                <th>Tên bài báo</th>
-                <th>Tác giả</th>
-                <th>Tác giả CTN</th>
-                <th>Thành viên</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-          </table>
+          <div id="table-container"></div>
         </div>
       </div>
     </div>
@@ -182,177 +171,251 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Link thư viện tabulator -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
     <!-- nckh view -->
     <script>
-      // Hàm định dạng ngày từ ISO 8601 (nếu cần)
-      function formatDate(dateString) {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-      }
+      var table;
 
-      function fixNumberFormat(text) {
-        if (typeof text !== "string") return text;
-        return text.replace(/(\d),(\d{2})/g, "$1.$2"); // Chuyển "125,00" -> "125.00"
-      }
-
-      // Hiển thị bảng dữ liệu
-      function renderTable(data) {
-        console.log("Dữ liệu trước khi render:", data);
-        const tbody = document.getElementById("table-body");
-        window.currentData = data; // Lưu dữ liệu để dùng khi hủy
-
-        tbody.innerHTML = ""; // Xóa dữ liệu cũ
-
-        data.forEach((item) => {
-          const newItem = { ...item };
-          newItem.TacGia = fixNumberFormat(newItem.TacGia);
-          newItem.TacGiaChiuTrachNhiem = fixNumberFormat(newItem.TacGiaChiuTrachNhiem);
-          newItem.DanhSachThanhVien = fixNumberFormat(newItem.DanhSachThanhVien);
-
-          const row = createTableRow(newItem);
-          tbody.appendChild(row);
-        });
-
-        console.log("Dữ liệu sau khi sửa:", window.currentData);
-      }
-
-      function createTableRow(item) {
-        const row = document.createElement("tr");
-        row.setAttribute("data-id", item.ID);
-
-        function createCell(value) {
-          const cell = document.createElement("td");
-          cell.textContent = value;
-          return cell;
-        }
-
-        row.appendChild(createCell(item.LoaiTapChi));
-        row.appendChild(createCell(item.TenBaiBao));
-        row.appendChild(createCell(fixNumberFormat(item.TacGia)));
-        row.appendChild(createCell(fixNumberFormat(item.TacGiaChiuTrachNhiem)));
-        row.appendChild(createCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", ")));
-
-        // Nút sửa
-        const editButton = document.createElement("button");
-        editButton.classList.add("btn", "btn-edit");
-        editButton.textContent = "Sửa";
-        editButton.addEventListener("click", () => enableEditMode(row, item));
-
-        const actionCell = document.createElement("td");
-        actionCell.appendChild(editButton);
-        row.appendChild(actionCell);
-
-        return row;
-      }
-
-      function enableEditMode(row, item) {
-        const id = row.getAttribute("data-id");
-        row.innerHTML = "";
-
-        function createEditableCell(value, className) {
-          const cell = document.createElement("td");
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = value;
-          input.className = className;
-          cell.appendChild(input);
-          return cell;
-        }
-
-        row.appendChild(createEditableCell(item.LoaiTapChi, `loai-tap-chi-${id}`));
-        row.appendChild(createEditableCell(item.TenBaiBao, `ten-bai-bao-${id}`));
-        row.appendChild(createEditableCell(fixNumberFormat(item.TacGia), `tac-gia-${id}`));
-        row.appendChild(createEditableCell(fixNumberFormat(item.TacGiaChiuTrachNhiem), `tac-gia-ctn-${id}`));
-        row.appendChild(createEditableCell(item.DanhSachThanhVien.split(",").map(member => fixNumberFormat(member.trim())).join(", "), `danh-sach-thanh-vien-${id}`));
-
-        // Nút lưu
-        const saveButton = document.createElement("button");
-        saveButton.textContent = "Lưu";
-        saveButton.classList.add("btn", "btn-save");
-        saveButton.addEventListener("click", () => saveData(id));
-
-        // Nút hủy
-        const cancelButton = document.createElement("button");
-        cancelButton.textContent = "Hủy";
-        cancelButton.classList.add("btn", "btn-cancel");
-        cancelButton.addEventListener("click", () => {
-          row.replaceWith(createTableRow(item));
-        });
-
-        const actionCell = document.createElement("td");
-        actionCell.appendChild(saveButton);
-        actionCell.appendChild(cancelButton);
-        row.appendChild(actionCell);
-      }
-
-      function cancelEditMode(row, item) {
-        row.replaceWith(createTableRow(item)); // Thay thế hàng đang chỉnh sửa bằng hàng gốc
-      }
-
-      function saveData(id) {
-        const MaBang = "baibaokhoahoc";
-
-        const updatedData = {
-          LoaiTapChi: document.querySelector(`.loai-tap-chi-${id}`).value,
-          TenBaiBao: document.querySelector(`.ten-bai-bao-${id}`).value,
-          TacGia: document.querySelector(`.tac-gia-${id}`).value,
-          TacGiaChiuTrachNhiem: document.querySelector(`.tac-gia-ctn-${id}`).value,
-          DanhSachThanhVien: document.querySelector(`.danh-sach-thanh-vien-${id}`).value,
+      document.getElementById("render").addEventListener("click", async function () {
+        const year = document.getElementById("namHocXem").value;
+        // const department = document.getElementById("MaPhongBanView").value;
+        let department;
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
+          department = "ALL";
+        } else {
+          department = localStorage.getItem("MaPhongBan");
         };
 
-        console.log(updatedData);
-
-        fetch(`/nckh/edit/${id}/${MaBang}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              if (data.success) {
-                Swal.fire({
-                  title: 'Thông báo',
-                  html: `${data.message}`,
-                  icon: 'success',
-                  confirmButtonText: 'OK',
-                  width: 'auto',
-                  padding: '20px',
-                  timer: 3000, // Tự động đóng sau 3 giây
-                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
-                  didClose: () => {
-                    cancelEditMode(document.querySelector(`[data-id='${id}']`), updatedData);
-                  }
-                })
-              }
-            }
-          })
-          .catch(error => console.error("Lỗi khi cập nhật dữ liệu:", error));
-      }
-
-      async function getData() {
-        const year = document.getElementById("namHocXem").value;
-        const department = document.getElementById("MaPhongBanView").value;
         const url = `/baibaokhoahoc/${year}/${department}`;
 
         try {
-          fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-              renderTable(data);
-            })
-            .catch((error) => {
-              console.error("Lỗi khi lấy dữ liệu:", error);
+          const response = await fetch(url);
+          const data = await response.json();
+
+          // Lấy thông tin từ localStorage (giống mã đề tài dự án)
+          const userRole = localStorage.getItem("userRole");
+          const userPhongBan = localStorage.getItem("MaPhongBan");
+
+          let columns;
+          // Cấp quyền sửa
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Loại Tạp Chí",
+                field: "LoaiTapChi",
+                editor: "false",
+              },
+              {
+                title: "Tên Bài Báo",
+                field: "TenBaiBao",
+                editor: "false",
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "false",
+              },
+              {
+                title: "Tác Giả Chịu Trách Nhiệm",
+                field: "TacGiaChiuTrachNhiem",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              }
+            ];
+
+          } else {
+            columns = [
+              {
+                title: "Loại Tạp Chí",
+                field: "LoaiTapChi",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tên Bài Báo",
+                field: "TenBaiBao",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Tác Giả Chịu Trách Nhiệm",
+                field: "TacGiaChiuTrachNhiem",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              }
+            ];
+
+          }
+
+          // Nếu khoa == ALL thì thêm cột khoa
+          if (department == "ALL") {
+            columns.push({
+              title: "Khoa",
+              field: "Khoa",
+              editor: "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
             });
+          }
+
+          // Cấp quyền xóa
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false
+            });
+          }
+
+          // Cấp quyền duyệt
+          if (userRole === "Duyệt") {
+            columns.push({
+              title: "Duyệt",
+              field: "DaoTaoDuyet",
+              formatter: checkboxFormatter,
+              editor: "tickCross",
+              cellClick: function (e, cell) {
+                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                cell.edit();
+              },
+            });
+          }
+
+          table = new Tabulator("#table-container", {
+            data: data,
+            dependencies: { luxon: luxon.DateTime },
+            index: "ID",
+            layout: "fitColumns",
+            columns: columns
+          });
+
+          table.on("cellEdited", async function (cell) {
+            const field = cell.getField();
+            const row = cell.getRow();
+            let updatedData = row.getData();
+
+            if (field === "DaoTaoDuyet") {
+              // Nếu checkbox được chỉnh sửa, chuyển sang 1 nếu chưa duyệt, ngược lại 0
+              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
+            }
+            await saveData(updatedData.ID, updatedData, row);
+          });
         } catch (error) {
-          console.error("Lỗi trong quá trình gửi yêu cầu:", error);
+          console.error("Lỗi khi lấy dữ liệu:", error);
+        }
+      });
+
+      // Formatter cho cột "Duyệt" hiển thị input checkbox
+      function checkboxFormatter(cell, formatterParams, onRendered) {
+        let value = cell.getValue();
+        // Nếu giá trị là 1 hoặc true thì checkbox được đánh dấu
+        let checked = (value == 1 || value == true) ? "checked" : "";
+        return `<input type="checkbox" ${checked}/>`;
+      }
+
+      // Formatter cho cột Hành Động: không hiển thị nút xóa nếu đã duyệt (DaoTaoDuyet == 1)
+      function actionFormatter(cell) {
+        const rowData = cell.getRow().getData();
+        if (rowData.DaoTaoDuyet == 1) {
+          return "";
+        }
+        const id = rowData.ID;
+        const button = document.createElement("button");
+        button.innerHTML = "<i class='fas fa-trash-alt'></i>";
+        button.classList.add("btn", "btn-delete");
+        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        return button;
+      }
+
+      async function saveData(id, updatedData, row) {
+        const MaBang = 'baibaokhoahoc';
+        try {
+          const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatedData)
+          });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Thông báo',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            // Hiển thị lại bảng
+            document.getElementById("render").click();
+          } else {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Thất bại',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật dữ liệu:", error);
+        }
+      }
+
+      async function deleteRow(id, row) {
+        try {
+          const response = await fetch(`/nckh/delete/${id}/baibaokhoahoc`, { method: "POST" });
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Thông báo',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            row.delete();
+          } else {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Thất bại',
+              text: result.message,
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi xóa dữ liệu:", error);
         }
       }
     </script>
@@ -620,11 +683,17 @@
             thanhVien: Array.from(
               document.querySelectorAll("#memberListDisplay span")
             ).map((member) => member.textContent),
-            khoa: document.getElementById("MaPhongBanForm").value,
+            // khoa: document.getElementById("MaPhongBanForm").value,
+            khoa: localStorage.getItem("MaPhongBan"),
           };
 
+          // Phần quyền nhập
+          if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+            alert("Bạn không có quyền truy cấp chức năng này");
+            return;
+          }
 
-
+          // Validate form
           let missing = 0;
 
           for (let key of Object.keys(formData)) {
@@ -637,6 +706,8 @@
             alert("Vui lòng nhập đủ thông tin");
             return;
           }
+
+
           console.log(formData);
 
           // Gửi dữ liệu lên server

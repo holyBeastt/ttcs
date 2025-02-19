@@ -4,6 +4,7 @@ const connection = require("../controllers/connectDB"); // Giả định rằng 
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const { Document, Packer, Table, TableRow, TableCell, Paragraph, HeadingLevel } = require("docx");
+const XLSX = require('xlsx');
 
 let tableTam = process.env.DB_TABLE_TAM;
 
@@ -395,14 +396,14 @@ const exportToWord = async (req, res) => {
 
     // Định nghĩa ánh xạ Khoa
     const khoaMap = {
-        "CB": "Cơ bản",
-        "ATTT": "An toàn thông tin",
-        "QS&GDTC": "QS&GDTC",
-        "LLCT": "Lý luận chính trị",
-        "TTTH": "Trung tâm thực hành",
-        "CNTT": "Công nghệ thông tin",
-        "ĐTVT": "Điện tử - Viễn thông",
-        "MM": "Mật mã"
+        "CB": "CB",
+        "ATTT": "ATTT",
+        "QS&GDTC": "KQS&GDTC",
+        "LLCT": "LLCT",
+        "TTTH": "TTTH",
+        "CNTT": "CNTT",
+        "ĐTVT": "ĐTVT",
+        "MM": "MM"
     };
 
     try {
@@ -466,7 +467,7 @@ const exportToWord = async (req, res) => {
                     new TableRow({
                         children: filteredKeys.map((key) => {
                             // Nếu là "TT", tạo số thứ tự
-                            const cellValue = key === "TT" ? `${index + 1}.` : row[key];
+                            const cellValue = key === "STT" ? `${index + 1}.` : row[key];
                             return new TableCell({
                                 children: [new Paragraph({ text: cellValue !== null ? String(cellValue) : "" })],
                             });
@@ -506,6 +507,94 @@ const exportToWord = async (req, res) => {
         console.error("Lỗi khi xuất file docx:", error);
         res.status(500).json({ message: "Đã xảy ra lỗi khi xuất file docx." });
     }
+};
+
+
+const exportToExcel = async (req, res) => {
+    const { renderData } = req.body;
+
+    // console.log(renderData[0]);
+    // Mảng tiêu đề theo thứ tự mong muốn
+    const orderedKeys = [
+        "STT", "SoTinChi", "LopHocPhan", "GiaoVien", "SoTietCTDT", "SoSinhVien",
+        "LL", "HeSoT7CN", "HeSoLopDong", "QuyChuan"
+    ];
+
+
+    const titleMap = {
+        SoTinChi: "Số TC",
+        LopHocPhan: "Lớp học phần",
+        GiaoVien: "Giáo viên",
+        SoTietCTDT: "Số tiết theo CTĐT",
+        SoSinhVien: "Số SV",
+        LL: "Số tiết lên lớp theo TKB",
+        HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+        HeSoLopDong: "Hệ số lớp đông",
+        QuyChuan: "QC",
+    };
+
+    // Mảng tiêu đề dựa trên titleMap
+    const headers = orderedKeys.map((key) =>
+        key === "STT" ? "STT" : titleMap[key] || key
+    );
+
+    // Nhóm dữ liệu theo 'Khoa'
+    const groupedData = renderData.reduce((acc, item, index) => {
+        const department = item.Khoa || 'Khac';
+        if (!acc[department]) acc[department] = [];
+
+        // Tạo hàng dữ liệu theo thứ tự
+        const row = orderedKeys.map((key) => (key === "STT" ? `${acc[department].length + 1}.` : item[key] || ""));
+        acc[department].push(row);
+
+        return acc;
+    }, {});
+
+    // Tạo workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Tạo từng sheet cho từng Khoa
+    Object.entries(groupedData).forEach(([department, rows]) => {
+        const headerTitle = [[`SỐ TIẾT QUY CHUẨN THEO KHOA ${department}`]];
+        const worksheetData = [
+            ...headerTitle,
+            [],
+            headers,
+            ...rows
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Căn chỉnh độ rộng cột
+        worksheet['!cols'] = headers.map(header => ({ wpx: Math.min(header.length * 10, 150) }));
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, department);
+    });
+
+    // Tạo tên file dựa trên Ki và Nam học
+    const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+    // Tạo file trong thư mục templates
+    const filePath = path.join('./uploads', fileName);
+
+    // Ghi file Excel vào filePath
+    XLSX.writeFile(workbook, filePath);
+
+    // Gửi file về client và xóa file sau khi gửi
+    res.download(filePath, fileName, (err) => {
+        if (err) {
+            console.error("Lỗi khi gửi file:", err);
+            res.status(500).send("Không thể tải file");
+        } else {
+            // Xóa file sau khi gửi thành công
+            fs.unlink(filePath, (unlinkErr) => {
+                if (unlinkErr) {
+                    console.error("Lỗi khi xóa file:", unlinkErr);
+                } else {
+                    console.log("File đã được xóa thành công.");
+                }
+            });
+        }
+    });
 };
 
 
@@ -632,5 +721,6 @@ module.exports = {
     deleteRow,
     addNewRow,
     exportToWord,
+    exportToExcel,
     editStudentQuanity,
 };

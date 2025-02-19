@@ -145,6 +145,27 @@
       height: 45px;
     }
   </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px ; /* Giảm độ rộng */
+      font-size: 12px !important;
+  }
+  
+  
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+        padding: 8px;
+        cursor: default;
+    }
+  </style>
 </head>
 
 <body>
@@ -184,8 +205,7 @@
           <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
             style="width: 200px;" />
           <!-- Tìm kiếm theo bộ môn -->
-          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" onclick="showSuggestionsBoMon(this)"
-            onkeyup=" showSuggestionsBoMon(this)" class="form-control m-2 search" style="width: 200px;" />
+          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn"  class="form-control m-2 search" style="width: 200px;" />
 
           <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
             <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
@@ -380,6 +400,20 @@
 
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Thêm jQuery và jQuery UI -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- jQuery UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
 
     <script>
       $(document).ready(function () {
@@ -702,7 +736,6 @@
             const data = await response.json(); // Chuyển đổi dữ liệu JSON
             localStorage.setItem('boMonTheoGiangVien', JSON.stringify(data));
             const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
-            console.log(boMonTheoGiangVien);
             // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
 
           } catch (error) {
@@ -865,15 +898,21 @@
 
             giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
             tableRow.appendChild(giaoVienGiangDayTd);
+
+            giaoVienGiangDayInput.onfocus = () => {
+              const moiGiang = inviteCheckbox.checked;
+              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
+            };
+/*
             giaoVienGiangDayInput.onclick = () => {
               const moiGiang = inviteCheckbox.checked;
-              showSuggestions(giaoVienGiangDayInput, moiGiang, row.ID);
+              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
             };
 
             giaoVienGiangDayInput.oninput = () => {
               const moiGiang = inviteCheckbox.checked;
-              showSuggestions(giaoVienGiangDayInput, moiGiang, row.ID);
-            };
+              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
+            };*/
 
             giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
             tableRow.appendChild(giaoVienGiangDayTd);
@@ -896,12 +935,20 @@
             boMonTd.appendChild(boMonInput);
             tableRow.appendChild(boMonTd);
 
+            boMonInput.addEventListener("mousedown", (e) => {
+              showSuggestionsBoMon(boMonInput);
+            });
+  
+            boMonInput.addEventListener("focus", () => {
+              showSuggestionsBoMon(boMonInput);
+            });
+            /*
             boMonInput.onclick = () => {
               showSuggestionsBoMon(boMonInput);
             };
             boMonInput.oninput = () => {
               showSuggestionsBoMon(boMonInput);
-            };
+            };*/
 
             //Thẻ select hình thức thi giữa kỳ
             let he_dao_taoTd;
@@ -1120,10 +1167,11 @@
           const checkAllCheckbox = document.getElementById(`checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`);
 
           if (checkAllCheckbox) {
+            checkAllCheckbox.disabled = true;
             // Ngăn không cho người dùng thay đổi checkbox tổng
-            checkAllCheckbox.addEventListener('click', function (e) {
-              e.preventDefault(); // Ngăn thay đổi trạng thái
-            });
+            //checkAllCheckbox.addEventListener('click', function (e) {
+             // e.preventDefault(); // Ngăn thay đổi trạng thái
+            //});
           }
         }
 
@@ -1309,7 +1357,198 @@
         document.getElementById('totalQC').textContent = totalQC.toFixed(2);
       }
 
+      $(document).ready(function () {
+        // Cấu hình autocomplete
+        $("#filterBoMon").autocomplete({
+            source: function (request, response) {
+                const value = request.term.toLowerCase();
 
+                const boMon = JSON.parse(localStorage.getItem("boMon"));
+
+                let suggestions = boMon
+                    .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
+    
+                // Nếu có giá trị nhập vào thì lọc
+                if (value) {
+                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+                }
+    
+                response(suggestions);
+            },
+            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+            select: function (event, ui) {
+                let parts = ui.item.value.split("-");
+                let processedName = parts.slice(2).join("-").trim();
+                $("#filterBoMon").val(processedName);
+                filterTable();
+                return false;
+            }
+        });
+    
+        // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+        $("#filterBoMon").on("focus", function () {
+            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+        });
+    });
+    
+    let boMonTheoGiangVienCache =
+      JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
+    let nameGvmCache = JSON.parse(localStorage.getItem("nameGvm")) || [];
+    let nameGvCoHuuCache = JSON.parse(localStorage.getItem("nameGv")) || [];
+    let valuesCache;
+
+    function showSuggestionsGiangVien(input, moiGiang, id) {
+      $(input).autocomplete({
+        source: function (request, response) {
+          //const rawValue = request.term.trim();
+          const bangDuLieuCache = globalData;
+          const rawValue = input.value.trim();
+          const values = rawValue.split(",").map((val) => val.trim());
+          valuesCache = values;
+          const value = values.pop().toLowerCase();
+
+          console.log("id = ", id)
+          console.log("bang = ", bangDuLieuCache)
+          const currentObject = bangDuLieuCache.find(
+            (item) => item.ID === id
+          );
+          if (!currentObject){
+            console.log("gf")
+            return;
+          } 
+
+          const he_dao_tao = currentObject.he_dao_tao;
+          const validhe_dao_tao = [
+            "Nghiên cứu sinh (Đóng học phí)",
+            "Cao học (Đóng học phí)",
+          ];
+
+          let suggestions = [];
+
+          // Nếu đã nhập 1 giảng viên và hệ đào tạo không hợp lệ => không gợi ý
+          if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
+            return;
+
+          console.log("moi giang = ", moiGiang)
+          // Gợi ý theo điều kiện
+          if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
+            if (moiGiang) {
+              suggestions = nameGvmCache
+                .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+            } else {
+              suggestions = nameGvCoHuuCache
+                .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
+                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+            }
+          } else if (values.length === 0) {
+            // Nếu chưa có tên nào, lấy tất cả các giảng viên, phân biệt theo moiGiang
+            if (moiGiang) {
+              suggestions = nameGvmCache
+                .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+            } else {
+              suggestions = nameGvCoHuuCache
+                .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
+                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+            }
+          }
+
+          // Lọc nhanh bằng regex
+          if (value) {
+            const regex = new RegExp(value, "i");
+            suggestions = suggestions.filter((name) => regex.test(name));
+          }
+
+          response(suggestions);
+        },
+        minLength: 0,
+        delay: 0,
+        autoFocus: true, // tự động focus mục đầu tiên
+        select: function (event, ui) {
+          const selectedName = ui.item.value.split(" - ")[0];
+          const values = valuesCache;
+          const bangDuLieuCache = globalData;
+          const itemIndex = bangDuLieuCache.findIndex(
+            (item) => item.ID === id
+          );
+          if (itemIndex === -1) return;
+
+          const ID = bangDuLieuCache[itemIndex].ID;
+          input.value =
+            values.length > 0
+              ? `${values.join(", ")}, ${selectedName}`
+              : selectedName;
+
+          const lecturerFound = boMonTheoGiangVienCache.find(
+            (lecturer) => lecturer.HoTen === selectedName.trim()
+          );
+
+          if (lecturerFound) {
+            const data = {
+              GiaoVienGiangDay: input.value,
+              BoMon: lecturerFound.MonGiangDayChinh,
+              ID: ID,
+            };
+
+            const boMonInput = document.getElementById(`boMonInput-${id}`);
+
+            if (boMonInput) boMonInput.value = lecturerFound.MonGiangDayChinh;
+
+            fetch("/update-name", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            }).catch((error) => console.error("Có lỗi xảy ra:", error));
+          }
+
+          return false;
+        },
+      });
+
+      // Gọi autocomplete "search" khi input được focus hoặc click
+      $(input).on("focus click", function () {
+        $(this).autocomplete("search", "");
+      });
+    }
+
+    function showSuggestionsBoMon(input) {
+      // Kiểm tra nếu autocomplete đã được khởi tạo
+      if ($(input).data("ui-autocomplete")) {
+        return;
+      }
+
+      // Lấy dữ liệu từ localStorage chỉ một lần
+      let boMon = JSON.parse(localStorage.getItem("boMon")) || [];
+      let suggestions = boMon.map(
+        (item) => `${item.TenBoMon} - ${item.MaBoMon}`
+      );
+
+      $(input).autocomplete({
+        source: function (request, response) {
+          let value = request.term.toLowerCase();
+          let filteredSuggestions = suggestions.filter((name) =>
+            name.toLowerCase().includes(value)
+          );
+          response(filteredSuggestions);
+        },
+        minLength: 0,
+        select: function (event, ui) {
+          let parts = ui.item.value.split("-");
+          let processedName = parts[1].trim();
+          $(input).val(processedName);
+          return false;
+        },
+      });
+
+      $(input).on("focus", function () {
+        if (!$(this).data("ui-autocomplete")) return;
+        $(this).autocomplete("search", "");
+      });
+    }
+
+
+    /*
       // Hàm gợi ý bộ môn ở ô nhập
       function showSuggestionsBoMon(input) {
         const value = input.value.toLowerCase(); // Lấy giá trị nhập vào và chuyển thành chữ thường
@@ -1400,7 +1639,7 @@
         const existingSuggestions = document.querySelectorAll('.suggestions');
         existingSuggestions.forEach(suggestion => suggestion.remove());
       }
-
+*/
       // Hàm xử lý tìm kiếm theo tên bộ môn
       function filterBoMon() {
         const input = document.getElementById('filterBoMon');

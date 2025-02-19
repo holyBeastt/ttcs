@@ -85,30 +85,41 @@
     .input-group-group {
       display: flex;
       align-items: center;
-      gap: 16px; /* Khoảng cách giữa hai ô */
-      width: fit-content; /* Chỉ chiếm không gian theo nội dung */
+      gap: 16px;
+      /* Khoảng cách giữa hai ô */
+      width: fit-content;
+      /* Chỉ chiếm không gian theo nội dung */
     }
 
     .input-group {
       display: flex;
       align-items: center;
-      border: 1px solid #ccc; /* Đường viền */
-      border-radius: 8px; /* Góc bo */
-      padding: 5px; /* Khoảng cách trong */
-      background-color: #42c2f5; /* Màu nền nhạt */
-      width: 350px; /* Chiều rộng từng ô */
+      border: 1px solid #ccc;
+      /* Đường viền */
+      border-radius: 8px;
+      /* Góc bo */
+      padding: 5px;
+      /* Khoảng cách trong */
+      background-color: #42c2f5;
+      /* Màu nền nhạt */
+      width: 350px;
+      /* Chiều rộng từng ô */
     }
 
     .input-group-text {
       font-weight: bold;
-      background-color: transparent; /* Nền trong suốt */
-      border: none; /* Loại bỏ viền */
+      background-color: transparent;
+      /* Nền trong suốt */
+      border: none;
+      /* Loại bỏ viền */
     }
 
     .form-control {
       border: none;
-      outline: none; /* Bỏ viền focus mặc định */
-      width: 100%; /* Chiếm hết không gian còn lại */
+      outline: none;
+      /* Bỏ viền focus mặc định */
+      width: 100%;
+      /* Chiếm hết không gian còn lại */
     }
   </style>
 
@@ -125,7 +136,7 @@
           <input
             type="file"
             id="fileInput"
-            accept=".pdf, .docx"
+            accept=".pdf, .docx, .xlsx"
             style="display: none"
           />
 
@@ -156,6 +167,14 @@
             <label for="endDate" class="input-group-text">Ngày kết thúc</label>
             <input required type="date" id="endDate" class="form-control" />
           </div>
+
+          <input
+            type="text"
+            id="SoQD"
+            placeholder="Số quyết định"
+            class="form-control m-2 search"
+            style="width: 500px; height: 43px"
+          />
         </div>
 
         <div id="renderInfo">
@@ -167,6 +186,7 @@
                 <th style="width: 100px">Mã SV</th>
                 <th style="width: 400px">Tên đề tài</th>
                 <th style="width: 200px">Giảng Viên Hướng Dẫn</th>
+                <!-- <th style="width: 200px">Đơn vị công tác</th> -->
                 <th style="width: 200px">Giảng Viên Hướng Dẫn 1</th>
                 <th style="width: 200px">Giảng Viên Hướng Dẫn 2</th>
               </tr>
@@ -384,6 +404,17 @@
 
           tableRow.appendChild(giangVienTd);
 
+          // // Đơn vị công tác
+          // const donViCongTacTd = document.createElement("td");
+          // const donViCongTacInput = document.createElement("input");
+          // donViCongTacInput.type = "text";
+          // donViCongTacInput.value = row.DonViCongTac || "";
+          // // Gán id cho input
+          // donViCongTacInput.id = `donvicongtac-${id}`;
+          // donViCongTacTd.appendChild(donViCongTacInput);
+          // tableRow.appendChild(donViCongTacTd);
+          // donViCongTacInput.disabled = true;
+
           // Giảng viên hướng dẫn 1
           const giaoVienHuongDan1Td = document.createElement("td");
           const giaoVienHuongDan1Input = document.createElement("input");
@@ -474,26 +505,25 @@
         const rows = document.querySelectorAll("#tableBody tr"); // Lấy tất cả các hàng trong bảng
         const data = JSON.parse(localStorage.getItem("tableData"));
 
+        // Lấy giá trị ngày bắt đầu, ngày kết thúc
+        const NgayBatDau = document.getElementById(`startDate`).value;
+        const NgayKetThuc = document.getElementById(`endDate`).value;
+        const SoQD = document.getElementById("SoQD").value;
+
         rows.forEach((row, id) => {
           // Bỏ qua các hàng đang bị ẩn
           if (row.style.display === "none") {
             return;
           }
+          data[id].SoQD = SoQD;
 
-          console.log("id = ", id);
-          // Lấy giá trị ngày bắt đầu, ngày kết thúc
-          const NgayBatDau = document.getElementById(`startDate`);
-          const NgayKetThuc = document.getElementById(`endDate`);
-
-          data[id].NgayBatDau = NgayBatDau.value;
-          data[id].NgayKetThuc = NgayKetThuc.value;
+          data[id].NgayBatDau = NgayBatDau;
+          data[id].NgayKetThuc = NgayKetThuc;
 
           // Lấy các giá trị từ các ô nhập Giảng viên
           const GiangVien1 = document.getElementById(`GiangVien1-${id}`);
           const GiangVien2 = document.getElementById(`GiangVien2-${id}`);
 
-          console.log("data = ", data[id]);
-          console.log("gv1 = ", GiangVien1.value);
           data[id].GiangVien1 = GiangVien1.value;
           data[id].GiangVien2 = GiangVien2.value;
         });

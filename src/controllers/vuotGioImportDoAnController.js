@@ -11,6 +11,8 @@ const mammoth = require("mammoth"); // Sử dụng mammoth để đọc file Wor
 const parentDir = path.join(__dirname, "..");
 const p = path.join(parentDir, "..");
 
+const XLSX = require("xlsx");
+
 // Tạo biến chung để lưu dữ liệu
 let tableData;
 let uniqueGV; // Danh sách giảng viên không bị trùng tên
@@ -40,6 +42,7 @@ async function extractFileData(req, res) {
     allGV = duplicateName.allGV;
 
     let content;
+    let tableData;
 
     if (fileExtension === ".pdf") {
       // Xử lý file PDF
@@ -52,6 +55,10 @@ async function extractFileData(req, res) {
       // Xử lý file Word (DOCX)
       content = await processWordFile(filePath);
       tableData = processWordData(content);
+    } else if (fileExtension === ".xlsx") {
+      // Xử lý file Word (DOCX)
+      content = await processExcelFile(filePath);
+      tableData = processExcelData(content);
     } else {
       return res
         .status(400)
@@ -88,7 +95,7 @@ function processWordData(content) {
     "Mã SV",
     "Tên đề tài",
     "Họ tên Cán bộ Giảng viên hướng dẫn",
-    "Đơn vị công tác"
+    "Đơn vị công tác",
   ];
   lines.forEach((line) => {
     line = line.trim(); // Xóa khoảng trắng thừa
@@ -186,8 +193,10 @@ function processWordData(content) {
   }
 
   const invalidIndexes = tableData
-    .map((row, index) => (!Array.isArray(row.GiangVien) || row.GiangVien.length === 0 ? index : -1))
-    .filter(index => index !== -1);
+    .map((row, index) =>
+      !Array.isArray(row.GiangVien) || row.GiangVien.length === 0 ? index : -1
+    )
+    .filter((index) => index !== -1);
 
   // console.log(invalidIndexes);
 
@@ -324,6 +333,151 @@ const duplicateGiangVien = async (req, res) => {
   }
 };
 
+const processExcelFile = async (filePath) => {
+  try {
+    // Đọc tệp Excel
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
+    const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
+
+    const data = worksheet;
+
+    // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
+    const header = data[0];
+    const keys = Object.keys(header);
+
+    const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
+
+    // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
+    const jsonObjects = dataObjects.map((values) => {
+      return keys.reduce((acc, key) => {
+        // Nếu không có giá trị cho key, gán giá trị là 0
+        acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+        return acc;
+      }, {});
+    });
+
+    console.log("Convert file đồ án excel thành công");
+    console.log("Định dạng dữ liệu convert: ", jsonObjects[0]);
+    return jsonObjects;
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    throw new Error("Cannot read file!: " + err.message);
+  }
+};
+
+function processExcelData(dataInput) {
+  // Nếu đầu vào không phải là mảng, trả về mảng rỗng
+  if (!Array.isArray(dataInput)) {
+    return [];
+  }
+
+  return dataInput.map((item) => {
+    // Lấy các thông tin cơ bản
+    const TT = item.STT !== undefined ? String(item.STT) : "";
+    const SinhVien = item["Sinh viên"] ? item["Sinh viên"].trim() : "";
+    const MaSV = item["Mã SV"] ? item["Mã SV"].trim() : "";
+    const TenDeTai = item["Tên đề tài"] ? item["Tên đề tài"].trim() : "";
+    // const DonViCongTac = item["Đơn vị công tác"] ? item["Đơn vị công tác"].trim() : "";
+
+    // Xử lý trường giảng viên
+    // Lấy chuỗi gốc và lưu lại giá trị này
+    const lecturerRaw = item["Họ tên Cán bộ giảng viên hướng dẫn"] || "";
+    const GiangVienDefault = lecturerRaw;
+
+    // Tách chuỗi giảng viên thành các dòng (dựa trên ký tự xuống dòng)
+    let lecturerLines = lecturerRaw.split(/\r?\n/);
+
+    // Với mỗi dòng, loại bỏ số thứ tự và các tiền tố như "TS.", "ThS.", "PGS.TS."…
+    let lecturers = lecturerLines
+      .map((line) => {
+        return (
+          line
+            .trim()
+            // Bước 1: Loại bỏ các số thứ tự như "1.", "2.",...
+            .replace(/^(?:\d+\.\s*)+/g, "")
+            // Bước 2: Loại bỏ các tiền tố giảng viên như "PGS.TS.", "KS.", "ThS.", "TS."
+            .replace(/(?:PGS\.?\s*TS|KS|ThS|TS)\.\s*/gi, "")
+            .trim()
+        );
+      })
+      .filter((line) => line !== "");
+
+    // Nếu không có dòng nào hợp lệ, thêm một chuỗi rỗng vào mảng
+    if (lecturers.length === 0) {
+      lecturers.push("");
+    }
+
+    // // Xác định Giảng viên 1 và Giảng viên 2 dựa vào mảng lecturers
+    // let GiangVien1 = lecturers[0];
+    // let GiangVien2 = lecturers[1];
+
+    // // So sánh với danh sách uniqueGV (được định nghĩa bên ngoài hàm) để kiểm tra tính hợp lệ của tên
+    // const isGiangVien1InUniqueGV = uniqueGV.some(gv => gv.HoTen.trim() === GiangVien1);
+    // const isGiangVien2InUniqueGV = uniqueGV.some(gv => gv.HoTen.trim() === GiangVien2);
+
+    // // Lưu lại tên thật (real) của giảng viên để so sánh bên client
+    // const GiangVien1Real = GiangVien1;
+    // const GiangVien2Real = GiangVien2;
+
+    // if (!isGiangVien1InUniqueGV) {
+    //   GiangVien1 = null;
+    // }
+    // if (!isGiangVien2InUniqueGV) {
+    //   // Nếu có giá trị nhưng không hợp lệ thì gán chuỗi rỗng, nếu không có thì gán "không"
+    //   GiangVien2 = GiangVien2 ? "" : "không";
+    // }
+    // if (!GiangVien2) {
+    //   GiangVien2 = "không";
+    // }
+
+    let [GiangVien1, GiangVien2] = lecturers
+      .join(", ")
+      .split(",")
+      .map((gv) => gv.trim());
+
+    // So sánh tên giảng viên với danh sách uniqueGV (được định nghĩa bên ngoài hàm)
+    const isGiangVien1InUniqueGV = uniqueGV.some(
+      (gv) => gv.HoTen.trim() === GiangVien1
+    );
+    const isGiangVien2InUniqueGV = uniqueGV.some(
+      (gv) => gv.HoTen.trim() === GiangVien2
+    );
+
+    // Lưu lại tên thật của giảng viên để so sánh bên client
+    let gv1Real = GiangVien1;
+    let gv2Real = GiangVien2;
+
+    // Nếu GiangVien1 không hợp lệ, gán null
+    if (!isGiangVien1InUniqueGV) {
+      GiangVien1 = null;
+    }
+    // Với GiangVien2: nếu có giá trị nhưng không hợp lệ thì gán chuỗi rỗng,
+    // nếu không có giá trị (undefined) thì gán "không"
+    if (!isGiangVien2InUniqueGV && GiangVien2 !== undefined) {
+      GiangVien2 = "";
+    }
+    if (GiangVien2 === undefined) {
+      GiangVien2 = "không";
+    }
+
+    return {
+      TT,
+      SinhVien,
+      MaSV,
+      TenDeTai,
+      GiangVienDefault,
+      // DonViCongTac,
+      GiangVien: lecturers,
+      GiangVien1,
+      GiangVien2,
+      GiangVien1Real: gv1Real,
+      GiangVien2Real: gv2Real,
+      NgayBatDau: null,
+      NgayKetThuc: null,
+    };
+  });
+}
 
 function cutUntilTT(data) {
   let index = data.indexOf("STT"); // Tìm vị trí của "TT"
@@ -433,7 +587,6 @@ function processPdfFile(content) {
         line.toLowerCase().startsWith("ts.") ||
         line.toLowerCase().startsWith("pgs.") ||
         line.toLowerCase().startsWith("pgs.ts.")
-
       ) {
         // Nếu dòng bắt đầu bằng "1.", "2.", hoặc "TS.", đây là thông tin Giảng viên
         // Bỏ phần "1. TS", "2. TS", "TS"
@@ -962,7 +1115,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
         row.NgayBatDau,
         row.NgayKetThuc,
         MaPhongBan,
-        row.SoQD,
+        row.SoQD || null,
         KhoaDuyet,
         DaoTaoDuyet,
         TaiChinhDuyet,
