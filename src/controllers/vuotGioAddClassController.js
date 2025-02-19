@@ -355,139 +355,204 @@ const DoneNoteDuyet = async (req, res) => {
   }
 };
 // Hàm xử lý cập nhật dữ liệu
+// const updateLopThiGk = async (req, res) => {
+//   const globalData = req.body; // Lấy dữ liệu từ client gửi đến
+//   if (!globalData || globalData.length === 0) {
+//     return res.status(400).json({ message: "Không có dữ liệu để cập nhật." });
+//   }
+
+//   // Tạo kết nối tới database MySQL
+//   const connection = await createPoolConnection();
+
+//   try {
+//     // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
+//     for (let data of globalData) {
+//       const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } =
+//         data;
+//       // Truy vấn dữ liệu từ bảng giangday bằng MaGiangDay
+//       const query1 = `SELECT * FROM giangday WHERE MaGiangDay = ?`;
+//       let [rows] = await connection.query(query1, [MaGiangDay]);
+
+//       const query = `SELECT * FROM nhanvien WHERE TenNhanVien = ?`;
+//       const [gv] = await connection.query(query, [GiangVien]);
+//       const id_User = gv[0].id_User;
+
+//       // Kiểm tra nếu không tìm thấy dữ liệu
+//       if (rows.length === 0) {
+//         console.log(`Không tìm thấy dữ liệu với MaGiangDay: ${MaGiangDay}`);
+//         continue; // Bỏ qua phần tử này nếu không tìm thấy dữ liệu
+//       }
+//       // Lấy dữ liệu của row đầu tiên (vì chỉ có 1 dòng dữ liệu trả về với mỗi MaGiangDay)
+//       let row = rows[0];
+//       if (select) {
+//         let SoTietKT = 0;
+//         let SoDe = 0;
+//         if (row.SoSV >= 41 && row.SoSV <= 80) {
+//           SoDe = 3;
+//         } else if (row.SoSV >= 81) {
+//           SoDe = 4;
+//         } else {
+//           SoDe = 2;
+//         }
+
+//         if (hinhThucKTGiuaKy === "none") {
+//           SoTietKT = 0;
+//         } else if (
+//           hinhThucKTGiuaKy === "Coi, chấm TN" ||
+//           hinhThucKTGiuaKy === "Coi, chấm viết"
+//         ) {
+//           let number = heSoT7CN * (0.05 * row.SoSV + 2);
+//           SoTietKT = parseFloat(number.toFixed(2));
+//         } else if (
+//           hinhThucKTGiuaKy === "Coi, chấm VĐ" ||
+//           hinhThucKTGiuaKy === "Coi, chấm TH"
+//         ) {
+//           let number = heSoT7CN * (0.125 * row.SoSV + 2);
+//           SoTietKT = parseFloat(number.toFixed(2));
+//         }
+
+//         // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
+//         const checkQuery = `SELECT COUNT(*) AS count FROM giuaky WHERE MaGiangDayNguon = ?`;
+//         const insertQuery = `
+//             INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+//         const updateQuery = `
+//             UPDATE giuaky 
+//             SET id_User = ?, HeSoT7CN = ?, GiangVien = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, SoDe = ?
+//             WHERE MaGiangDayNguon = ?
+//         `;
+
+//         // Thực hiện kiểm tra
+//         connection.query(checkQuery, [MaGiangDay], (err, result) => {
+//           if (err) {
+//               console.error("Lỗi khi kiểm tra bản ghi:", err);
+//               return;
+//           }
+      
+//           if (result[0].count > 0) {
+//               // Nếu đã tồn tại, thực hiện UPDATE
+//               connection.query(updateQuery, [id_User, heSoT7CN, GiangVien, hinhThucKTGiuaKy, SoTietKT, SoDe, MaGiangDay], (err, result) => {
+//                   if (err) {
+//                       console.error("Lỗi khi cập nhật dữ liệu:", err);
+//                   } else {
+//                       console.log("Cập nhật thành công!", result);
+//                   }
+//               });
+//           } else {
+//               // Nếu chưa tồn tại, thực hiện INSERT
+//               connection.query(insertQuery, [MaGiangDay, row.TenHocPhan, id_User, heSoT7CN, row.SoSV, row.HocKy, row.NamHoc, row.MaHocPhan, GiangVien, hinhThucKTGiuaKy, SoTietKT, row.Lop, SoDe, row.Khoa, row.he_dao_tao, "giangday"], (err, result) => {
+//                   if (err) {
+//                       console.error("Lỗi khi thêm mới dữ liệu:", err);
+//                   } else {
+//                       console.log("Thêm mới thành công!", result);
+//                   }
+//               });
+//           }
+//         });
+      
+
+//         const query3 = `UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy= ?, GiangVienCoiGK= ?  WHERE MaGiangDay = ?`;
+//         await connection.query(query3, [
+//           hinhThucKTGiuaKy,
+//           GiangVien,
+//           MaGiangDay,
+//         ]);
+//       } else {
+//         const query2 = `DELETE FROM giuaky WHERE MaGiangDayNguon = ?`;
+//         await connection.query(query2, [MaGiangDay]);
+//         const query3 = `UPDATE giangday SET DaChon = 0, GiangVienCoiGK= NULL WHERE MaGiangDay = ?`;
+//         await connection.query(query3, [MaGiangDay]);
+//       }
+//     }
+
+//     // Gửi phản hồi thành công
+//     res.status(200).json({ message: "Cập nhật thành công" }); // Phản hồi thành công
+//   } catch (error) {
+//     console.error("Lỗi khi cập nhật dữ liệu:", error);
+//     res.status(500).json({ message: "Có lỗi xảy ra khi cập nhật dữ liệu." });
+//   } finally {
+//     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+//   }
+// };
 const updateLopThiGk = async (req, res) => {
-  const globalData = req.body; // Lấy dữ liệu từ client gửi đến
+  const globalData = req.body;
   if (!globalData || globalData.length === 0) {
     return res.status(400).json({ message: "Không có dữ liệu để cập nhật." });
   }
 
-  // Tạo kết nối tới database MySQL
   const connection = await createPoolConnection();
 
   try {
-    // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
     for (let data of globalData) {
-      const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } =
-        data;
-      // Truy vấn dữ liệu từ bảng giangday bằng MaGiangDay
-      const query1 = `SELECT * FROM giangday WHERE MaGiangDay = ?`;
-      let [rows] = await connection.query(query1, [MaGiangDay]);
+      const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } = data;
 
-      const query = `SELECT * FROM nhanvien WHERE TenNhanVien = ?`;
-      const [gv] = await connection.query(query, [GiangVien]);
-      const id_User = gv[0].id_User;
-
-      // Kiểm tra nếu không tìm thấy dữ liệu
+      // Truy vấn dữ liệu từ bảng giangday
+      const [rows] = await connection.query("SELECT * FROM giangday WHERE MaGiangDay = ?", [MaGiangDay]);
       if (rows.length === 0) {
         console.log(`Không tìm thấy dữ liệu với MaGiangDay: ${MaGiangDay}`);
-        continue; // Bỏ qua phần tử này nếu không tìm thấy dữ liệu
+        continue;
       }
-      // Lấy dữ liệu của row đầu tiên (vì chỉ có 1 dòng dữ liệu trả về với mỗi MaGiangDay)
       let row = rows[0];
+
+      // Truy vấn id_User từ bảng nhanvien
+      const [gv] = await connection.query("SELECT id_User FROM nhanvien WHERE TenNhanVien = ?", [GiangVien]);
+      if (gv.length === 0) {
+        console.log(`Không tìm thấy giảng viên: ${GiangVien}`);
+        continue;
+      }
+      const id_User = gv[0].id_User;
+
       if (select) {
         let SoTietKT = 0;
-        let SoDe = 0;
-        if (row.SoSV >= 41 && row.SoSV <= 80) {
-          SoDe = 3;
-        } else if (row.SoSV >= 81) {
-          SoDe = 4;
-        } else {
-          SoDe = 2;
-        }
-
-        if (hinhThucKTGiuaKy === "none") {
-          SoTietKT = 0;
-        } else if (
-          hinhThucKTGiuaKy === "Coi, chấm TN" ||
-          hinhThucKTGiuaKy === "Coi, chấm viết"
-        ) {
-          let number = heSoT7CN * (0.05 * row.SoSV + 2);
-          SoTietKT = parseFloat(number.toFixed(2));
-        } else if (
-          hinhThucKTGiuaKy === "Coi, chấm VĐ" ||
-          hinhThucKTGiuaKy === "Coi, chấm TH"
-        ) {
-          let number = heSoT7CN * (0.125 * row.SoSV + 2);
-          SoTietKT = parseFloat(number.toFixed(2));
-        }
-
-        // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
-        let valuesToInsert = [
-          row.MaGiangDay,
-          row.TenHocPhan,
-          id_User,
-          heSoT7CN,
-          row.SoSV,
-          row.HocKy,
-          row.NamHoc,
-          row.MaHocPhan,
-          GiangVien,
-          hinhThucKTGiuaKy,
-          SoTietKT,
-          row.Lop,
-          SoDe,
-          row.Khoa,
-          row.he_dao_tao,
-        ];
-        const query = `
-          INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE 
-            id_User = VALUES(id_User),
-            HeSoT7CN = VALUES(HeSoT7CN),
-            GiangVien = VALUES(GiangVien),
-            HinhThucKTGiuaKy = VALUES(HinhThucKTGiuaKy),
-            SoTietKT = VALUES(SoTietKT),
-            SoDe = VALUES(SoDe);
-        `;
-
-        try {
-          await connection.query(query, [
-            row.MaGiangDay,
-            row.TenHocPhan,
-            id_User,
-            heSoT7CN,
-            row.SoSV,
-            row.HocKy,
-            row.NamHoc,
-            row.MaHocPhan,
-            GiangVien,
-            hinhThucKTGiuaKy,
-            SoTietKT,
-            row.Lop,
-            SoDe,
-            row.Khoa,
-            row.he_dao_tao,
-            "giangday", // Thêm giá trị cho cột `Nguon`
-          ]);
+        let SoDe = row.SoSV >= 81 ? 4 : row.SoSV >= 41 ? 3 : 2;
         
-        } catch (error) {
-          console.error("Lỗi khi thực hiện truy vấn:", error);
+        if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
+          SoTietKT = parseFloat((heSoT7CN * (0.05 * row.SoSV + 2)).toFixed(2));
+        } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
+          SoTietKT = parseFloat((heSoT7CN * (0.125 * row.SoSV + 2)).toFixed(2));
         }
 
-        const query3 = `UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy= ?, GiangVienCoiGK= ?  WHERE MaGiangDay = ?`;
-        await connection.query(query3, [
-          hinhThucKTGiuaKy,
-          GiangVien,
-          MaGiangDay,
-        ]);
+        // Kiểm tra tồn tại trước khi INSERT hoặc UPDATE
+        const [check] = await connection.query("SELECT COUNT(*) AS count FROM giuaky WHERE MaGiangDayNguon = ?", [MaGiangDay]);
+
+        if (check[0].count > 0) {
+          await connection.query(
+            `UPDATE giuaky 
+             SET id_User = ?, HeSoT7CN = ?, GiangVien = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, SoDe = ? 
+             WHERE MaGiangDayNguon = ?`,
+            [id_User, heSoT7CN, GiangVien, hinhThucKTGiuaKy, SoTietKT, SoDe, MaGiangDay]
+          );
+          console.log(`✅ Cập nhật thành công cho MaGiangDay: ${MaGiangDay}`);
+        } else {
+          await connection.query(
+            `INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [MaGiangDay, row.TenHocPhan, id_User, heSoT7CN, row.SoSV, row.HocKy, row.NamHoc, row.MaHocPhan, GiangVien, hinhThucKTGiuaKy, SoTietKT, row.Lop, SoDe, row.Khoa, row.he_dao_tao, "giangday"]
+          );
+          console.log(`✅ Thêm mới thành công cho MaGiangDay: ${MaGiangDay}`);
+        }
+
+        // Cập nhật giangday
+        await connection.query(
+          "UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy = ?, GiangVienCoiGK = ? WHERE MaGiangDay = ?",
+          [hinhThucKTGiuaKy, GiangVien, MaGiangDay]
+        );
       } else {
-        const query2 = `DELETE FROM giuaky WHERE MaGiangDayNguon = ?`;
-        await connection.query(query2, [MaGiangDay]);
-        const query3 = `UPDATE giangday SET DaChon = 0, GiangVienCoiGK= NULL WHERE MaGiangDay = ?`;
-        await connection.query(query3, [MaGiangDay]);
+        await connection.query("DELETE FROM giuaky WHERE MaGiangDayNguon = ?", [MaGiangDay]);
+        await connection.query("UPDATE giangday SET DaChon = 0, GiangVienCoiGK = NULL WHERE MaGiangDay = ?", [MaGiangDay]);
       }
     }
 
-    // Gửi phản hồi thành công
-    res.status(200).json({ message: "Cập nhật thành công" }); // Phản hồi thành công
+    res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
-    console.error("Lỗi khi cập nhật dữ liệu:", error);
+    console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
     res.status(500).json({ message: "Có lỗi xảy ra khi cập nhật dữ liệu." });
   } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+    if (connection) connection.release();
   }
 };
+
 const getLopGK = async (req, res) => {
   const MaPhongBan = req.params.maPhongBan;
   const { Ki, Nam } = req.params;
