@@ -244,57 +244,60 @@
           });
         </script>
         
-<script>
-  $(document).ready(function () {
-    $('#MaPhongBan option[value=""]').remove();
-
-    // Lấy thông tin role và MaPhongBan từ localStorage
-    const userRole = localStorage.getItem("userRole");
-    const userMaPhongBan = localStorage.getItem("MaPhongBan");
-
-    // Gọi AJAX để lấy dữ liệu JSON từ API
-    $.ajax({
-      url: '/getPhongBan', // Đường dẫn tới API getPhongBan
-      method: 'GET',
-      success: function (response) {
-        // Kiểm tra nếu response thành công
-        if (response.success) {
-          // Nếu role không phải là GV, GV_CNBM, hoặc Lãnh đạo khoa, thêm tùy chọn "Tất cả khoa"
-          if (!["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
-            $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
-          }
-
-          // Lặp qua từng mục trong mảng MaPhongBan
-          response.MaPhongBan.forEach(function (item) {
-            // Nếu role là GV, GV_CNBM, hoặc Lãnh đạo khoa, chỉ hiển thị khoa của giảng viên
-            if (["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
-              if (item.MaPhongBan === userMaPhongBan) {
-                $('#MaPhongBan').append(
-                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                );
+        <script>
+          $(document).ready(function () {
+            $('#MaPhongBan option[value=""]').remove();
+        
+            // Lấy thông tin role và MaPhongBan từ localStorage
+            const userRole = localStorage.getItem("userRole");
+            const userMaPhongBan = localStorage.getItem("MaPhongBan");
+        
+      
+            // Gọi AJAX để lấy dữ liệu JSON từ API
+            $.ajax({
+              url: '/getPhongBan', // Đường dẫn tới API getPhongBan
+              method: 'GET',
+              success: function (response) {
+                // Kiểm tra nếu response thành công
+                if (response.success) {
+                  // Nếu role không phải là GV, GV_CNBM, hoặc Lãnh đạo khoa, thêm tùy chọn "Tất cả khoa"
+                  if (!["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+                    $('#MaPhongBan').prepend('<option value="ALL">Tất cả khoa</option>');
+                  }
+        
+                  // Lặp qua từng mục trong mảng MaPhongBan
+                  response.MaPhongBan.forEach(function (item) {
+                    const displayMaPhongBan = transformMaPhongBan(item.MaPhongBan);
+        
+                    // Nếu role là GV, GV_CNBM, hoặc Lãnh đạo khoa, chỉ hiển thị khoa của giảng viên
+                    if (["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+                      if (item.MaPhongBan === userMaPhongBan) {
+                        $('#MaPhongBan').append(
+                          `<option value="${item.MaPhongBan}">${displayMaPhongBan}</option>`
+                        );
+                      }
+                    } else {
+                      // Nếu không, hiển thị tất cả các khoa
+                      $('#MaPhongBan').append(
+                        `<option value="${item.MaPhongBan}">${displayMaPhongBan}</option>`
+                      );
+                    }
+                  });
+        
+                  // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+                  if (!$('#MaPhongBan option:selected').length) {
+                    $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
+                  }
+                } else {
+                  console.error("Không lấy được dữ liệu phongBan:", response.message);
+                }
+              },
+              error: function (error) {
+                console.error("Lỗi khi lấy dữ liệu phongBan:", error);
               }
-            } else {
-              // Nếu không, hiển thị tất cả các khoa
-              $('#MaPhongBan').append(
-                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-              );
-            }
+            });
           });
-
-          // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-          if (!$('#MaPhongBan option:selected').length) {
-            $('#MaPhongBan').prepend('<option value="">Chọn Phòng Ban</option>');
-          }
-        } else {
-          console.error("Không lấy được dữ liệu phongBan:", response.message);
-        }
-      },
-      error: function (error) {
-        console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-      }
-    });
-  });
-</script>
+        </script>
         <script>
           // Hàm để lấy danh sách giảng viên từ API
           async function fetchGiangVienList() {
