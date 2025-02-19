@@ -97,6 +97,7 @@ const getTableDeTaiDuAn = async (req, res) => {
     try {
         connection = await createPoolConnection();
 
+        // Lấy tất cả dữ liệu của năm học được chọn
         let query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
         const [results] = await connection.execute(query, [NamHoc]);
 
@@ -108,38 +109,41 @@ const getTableDeTaiDuAn = async (req, res) => {
             for (let item of results) {
                 const namesToCheck = [];
 
-                // Xử lý các trường ChuNhiem, ThuKy, DanhSachThanhVien
+                // Xử lý các trường ChuNhiem và ThuKy
                 ['ChuNhiem', 'ThuKy'].forEach((key) => {
                     if (item[key]) {
-                        const name = item[key].replace(/\s*\([^)]*\)/g, '');
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
                         namesToCheck.push(name);
                     }
                 });
 
+                // Xử lý trường DanhSachThanhVien (danh sách các tên, phân tách bằng dấu phẩy)
                 if (item['DanhSachThanhVien']) {
                     const members = item['DanhSachThanhVien']
                         .split(',')
-                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, ''));
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, '').trim());
                     namesToCheck.push(...members);
                 }
 
+                // Loại bỏ các tên trùng lặp
                 const uniqueNames = [...new Set(namesToCheck)];
 
                 // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
-                const placeholders = uniqueNames.map(() => '?').join(', ');
-                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+                if (uniqueNames.length > 0) {
+                    const placeholders = uniqueNames.map(() => '?').join(', ');
+                    const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
 
-                const [employeeResults] = uniqueNames.length > 0
-                    ? await connection.execute(nameQuery, uniqueNames)
-                    : [[]];
+                    const [employeeResults] = await connection.execute(nameQuery, uniqueNames);
 
-                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+                    const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
 
-                if (departmentCodes.some(code => code && code.includes(Khoa))) {
-                    filteredResults.push(item);
+                    // Nếu có bất kỳ mã phòng ban nào chứa chuỗi Khoa thì thêm item vào kết quả
+                    if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                        filteredResults.push(item);
+                    }
                 }
             }
-
+            console.log(filteredResults);
             res.json(filteredResults);
         }
     } catch (error) {
@@ -149,6 +153,7 @@ const getTableDeTaiDuAn = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
 
 
 // lấy dữ liệu giảng viên cơ hữu để thêm vào danh sách thành viên
@@ -359,7 +364,7 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
                 // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
                 ['TacGia', 'TacGiaChiuTrachNhiem'].forEach((key) => {
                     if (item[key]) {
-                        const name = item[key].replace(/\s*\([^)]*\)/g, '');
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
                         namesToCheck.push(name);
                     }
                 });
@@ -989,7 +994,7 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
                 // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
                 ['TacGia', 'DongChuBien'].forEach((key) => {
                     if (item[key]) {
-                        const name = item[key].replace(/\s*\([^)]*\)/g, ''); // Loại bỏ phần trong dấu ngoặc
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
                         namesToCheck.push(name);
                     }
                 });
@@ -1613,7 +1618,7 @@ const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
                 // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
                 ['TacGia'].forEach((key) => {
                     if (item[key]) {
-                        const name = item[key].replace(/\s*\([^)]*\)/g, ''); // Loại bỏ phần trong dấu ngoặc
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
                         namesToCheck.push(name);
                     }
                 });
