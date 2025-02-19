@@ -53,41 +53,103 @@ const getTongHopSoTietNCKH = (req, res) => {
 };
 
 // lấy bảng đề tài dự án
+// const getTableDeTaiDuAn = async (req, res) => {
+
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
+
+//     let connection;
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         let query;
+//         const queryParams = [];
+
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+//             queryParams.push(NamHoc);
+//         } else {
+//             query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
+//             queryParams.push(NamHoc, Khoa);
+//         }
+
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getDeTaiDuAn:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
+
 const getTableDeTaiDuAn = async (req, res) => {
-
-    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
+    const { NamHoc, Khoa } = req.params;
+    console.log(`Lấy dữ liệu bảng detaiduan Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
+        connection = await createPoolConnection();
 
-        let query;
-        const queryParams = [];
+        let query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
 
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
-            queryParams.push(NamHoc);
+        if (Khoa === "ALL") {
+            res.json(results);
         } else {
-            query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
-            queryParams.push(NamHoc, Khoa);
+            const filteredResults = [];
+
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường ChuNhiem, ThuKy, DanhSachThanhVien
+                ['ChuNhiem', 'ThuKy'].forEach((key) => {
+                    if (item[key]) {
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '');
+                        namesToCheck.push(name);
+                    }
+                });
+
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',')
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, ''));
+                    namesToCheck.push(...members);
+                }
+
+                const uniqueNames = [...new Set(namesToCheck)];
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                const placeholders = uniqueNames.map(() => '?').join(', ');
+                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                const [employeeResults] = uniqueNames.length > 0
+                    ? await connection.execute(nameQuery, uniqueNames)
+                    : [[]];
+
+                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                    filteredResults.push(item);
+                }
+            }
+
+            res.json(filteredResults);
         }
-
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
-        console.error("Lỗi trong hàm getDeTaiDuAn:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        console.error("Lỗi trong hàm getTableDeTaiDuAn:", error);
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
+        if (connection) connection.release();
     }
 };
+
 
 // lấy dữ liệu giảng viên cơ hữu để thêm vào danh sách thành viên
 const getTeacher = async (req, res) => {
