@@ -174,7 +174,16 @@
               { title: "Phân loại", field: "PhanLoai", editor: "false" },
               { title: "Tên đề tài", field: "TenDeTai", editor: "false" },
               { title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "false" },
-              { title: "Ngày QĐ giao nhiệm vụ", field: "NgayQDGiaoNhiemVu", editor: "false" },
+              {
+                title: "Ngày Nghiệm Thu",
+                field: "NgayNghiemThu",
+                editor: "false",
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                }
+              },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
             ];
           } else {
