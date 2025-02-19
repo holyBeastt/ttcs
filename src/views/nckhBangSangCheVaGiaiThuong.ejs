@@ -170,7 +170,7 @@
         const year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NCKH") {
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
           department = "ALL";
         } else {
           department = localStorage.getItem("MaPhongBan");
@@ -185,76 +185,119 @@
           const userRole = localStorage.getItem("userRole");
           const userPhongBan = localStorage.getItem("MaPhongBan");
 
-          // Định nghĩa các cột cho bảng (cấu trúc tương tự đề tài dự án)
-          let columns = [
-            {
-              title: "Phân Loại",
-              field: "PhanLoai",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tên Bảng Sáng Chế Và Giải Thưởng",
-              field: "TenBangSangCheVaGiaiThuong",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Ngày QĐ Công Nhận",
-              field: "NgayQDCongNhan",
-              editor: "date",
-              editorParams: {
-                format: "dd/MM/yyyy",
-                defaultValue: ""
-              },
-              formatter: "datetime",
-              formatterParams: {
-                inputFormat: "iso",
-                outputFormat: "dd/MM/yyyy"
-              },
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Số QĐ Công Nhận",
-              field: "SoQDCongNhan",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tác Giả",
-              field: "TacGia",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Danh Sách Thành Viên",
-              field: "DanhSachThanhVien",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            }
-          ];
+          let columns;
 
+          // Cấp quyền sửa
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Phân Loại",
+                field: "PhanLoai",
+                editor: "false",
+              },
+              {
+                title: "Tên Bảng Sáng Chế Và Giải Thưởng",
+                field: "TenBangSangCheVaGiaiThuong",
+                editor: "false",
+              },
+              {
+                title: "Ngày QĐ Công Nhận",
+                field: "NgayQDCongNhan",
+                editor: "false",
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy",
+                },
+              },
+              {
+                title: "Số QĐ Công Nhận",
+                field: "SoQDCongNhan",
+                editor: "false",
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              }
+            ];
+          } else {
+            columns = [
+              {
+                title: "Phân Loại",
+                field: "PhanLoai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tên Bảng Sáng Chế Và Giải Thưởng",
+                field: "TenBangSangCheVaGiaiThuong",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Ngày QĐ Công Nhận",
+                field: "NgayQDCongNhan",
+                editor: "date",
+                editorParams: {
+                  format: "dd/MM/yyyy",
+                  defaultValue: ""
+                },
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Số QĐ Công Nhận",
+                field: "SoQDCongNhan",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              }
+            ];
+          }
 
-          // Nếu khoa == ALL thì thêm cột khoa
+          // Nếu khoa == ALL thì thêm cột "Khoa"
           if (department == "ALL") {
             columns.push({
               title: "Khoa",
               field: "Khoa",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
             });
           }
 
-          // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-          columns.push({
-            title: "Hành Động",
-            field: "actions",
-            formatter: actionFormatter,
-            hozAlign: "center",
-            headerSort: false
-          });
+          // Cấp quyền xóa: chỉ hiển thị cột "Hành Động" nếu tài khoản thuộc các nhóm được phép
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false,
+            });
+          }
 
-          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+          // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
           if (userRole === "Duyệt") {
             columns.push({
               title: "Duyệt",
@@ -267,6 +310,7 @@
               },
             });
           }
+
 
           // Khởi tạo bảng Tabulator
           table = new Tabulator("#table-container", {
@@ -642,7 +686,13 @@
           };
 
 
+          // Phần quyền nhập
+          if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+            alert("Bạn không có quyền truy cấp chức năng này");
+            return;
+          }
 
+          // Validate form
           let missing = 0;
 
           for (let key of Object.keys(formData)) {

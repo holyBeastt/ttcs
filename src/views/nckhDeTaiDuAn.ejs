@@ -176,7 +176,7 @@
         const year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NCKH") {
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
           department = "ALL";
         } else {
           department = localStorage.getItem("MaPhongBan");
@@ -191,83 +191,132 @@
           const userRole = localStorage.getItem("userRole");
           const userPhongBan = localStorage.getItem("MaPhongBan");
 
-          // Định nghĩa các cột, nếu DaoTaoDuyet = 1 thì các ô không cho phép chỉnh sửa
-          let columns = [
-            {
-              title: "Cấp Đề Tài",
-              field: "CapDeTai",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tên Đề Tài",
-              field: "TenDeTai",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Mã Số Đề Tài",
-              field: "MaSoDeTai",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Chủ Nhiệm",
-              field: "ChuNhiem",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Thư Ký",
-              field: "ThuKy",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Danh Sách Thành Viên",
-              field: "DanhSachThanhVien",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Ngày Nghiệm Thu",
-              field: "NgayNghiemThu",
-              editor: "date",
-              editorParams: {
-                format: "dd/MM/yyyy",
-                defaultValue: "",
-                elementAttributes: { placeholder: "dd/MM/yyyy" }
-              },
-              formatter: "datetime",
-              formatterParams: {
-                inputFormat: "iso",
-                outputFormat: "dd/MM/yyyy"
-              },
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            }
-          ];
+          let columns;
 
+          // Nếu tài khoản là "GV" hoặc "Thường", tất cả các cột chỉ ở chế độ xem (editor: "false")
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Cấp Đề Tài",
+                field: "CapDeTai",
+                editor: "false",
+              },
+              {
+                title: "Tên Đề Tài",
+                field: "TenDeTai",
+                editor: "false",
+              },
+              {
+                title: "Mã Số Đề Tài",
+                field: "MaSoDeTai",
+                editor: "false",
+              },
+              {
+                title: "Chủ Nhiệm",
+                field: "ChuNhiem",
+                editor: "false",
+              },
+              {
+                title: "Thư Ký",
+                field: "ThuKy",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              },
+              {
+                title: "Ngày Nghiệm Thu",
+                field: "NgayNghiemThu",
+                editor: "false",
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                }
+              }
+            ];
+          } else {
+            // Nếu tài khoản có quyền chỉnh sửa
+            columns = [
+              {
+                title: "Cấp Đề Tài",
+                field: "CapDeTai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tên Đề Tài",
+                field: "TenDeTai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Mã Số Đề Tài",
+                field: "MaSoDeTai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Chủ Nhiệm",
+                field: "ChuNhiem",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Thư Ký",
+                field: "ThuKy",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Ngày Nghiệm Thu",
+                field: "NgayNghiemThu",
+                editor: "date",
+                editorParams: {
+                  format: "dd/MM/yyyy",
+                  defaultValue: "",
+                  elementAttributes: { placeholder: "dd/MM/yyyy" }
+                },
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              }
+            ];
+          }
 
-          // Nếu khoa == ALL thì thêm cột khoa
+          // Nếu department == "ALL" thì thêm cột "Khoa"
           if (department == "ALL") {
             columns.push({
               title: "Khoa",
               field: "Khoa",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
             });
           }
 
-          // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-          columns.push({
-            title: "Hành Động",
-            field: "actions",
-            formatter: actionFormatter,
-            hozAlign: "center",
-            headerSort: false
-          });
+          // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false,
+            });
+          }
 
-          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+          // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
           if (userRole === "Duyệt") {
             columns.push({
               title: "Duyệt",
@@ -280,6 +329,7 @@
               },
             });
           }
+
 
           table = new Tabulator("#table-container", {
             data: data,
@@ -677,6 +727,13 @@
             ).map((member) => member.textContent),
           };
 
+          // Phần quyền nhập
+          if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+            alert("Bạn không có quyền truy cấp chức năng này");
+            return;
+          }
+
+          // Validate form
           let missing = 0;
 
           for (let key of Object.keys(formData)) {

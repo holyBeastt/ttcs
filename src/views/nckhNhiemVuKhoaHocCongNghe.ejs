@@ -172,7 +172,7 @@
                 const year = document.getElementById("namHocXem").value;
                 // const department = document.getElementById("MaPhongBanView").value;
                 let department;
-                if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NCKH") {
+                if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
                     department = "ALL";
                 } else {
                     department = localStorage.getItem("MaPhongBan");
@@ -187,67 +187,105 @@
                     const userRole = localStorage.getItem("userRole");
                     const userPhongBan = localStorage.getItem("MaPhongBan");
 
-                    // Định nghĩa các cột, nếu DaoTaoDuyet = 1 thì các ô không cho phép chỉnh sửa
-                    let columns = [
-                        {
-                            title: "Tên nhiệm vụ",
-                            field: "TenNhiemVu",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                        {
-                            title: "Năm học",
-                            field: "NamHoc",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                        {
-                            title: "Tên giảng viên",
-                            field: "GiangVien",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                        {
-                            title: "Tổng số tiết NCKH",
-                            field: "TongSoTietNCKHTrongNam",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                        {
-                            title: "Số tiết vượt định mức",
-                            field: "SoTietVuotDinhMuc",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                        {
-                            title: "Số tiết được bảo lưu sang năm",
-                            field: "SoTietBaoLuuSangNamSau",
-                            editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-                        },
-                    ];
+                    let columns;
 
+                    // Cấp quyền sửa
+                    if (userRole === "GV" || userRole === "Thường") {
+                        columns = [
+                            {
+                                title: "Tên nhiệm vụ",
+                                field: "TenNhiemVu",
+                                editor: "false",
+                            },
+                            {
+                                title: "Năm học",
+                                field: "NamHoc",
+                                editor: "false",
+                            },
+                            {
+                                title: "Tên giảng viên",
+                                field: "GiangVien",
+                                editor: "false",
+                            },
+                            {
+                                title: "Tổng số tiết NCKH",
+                                field: "TongSoTietNCKHTrongNam",
+                                editor: "false",
+                            },
+                            {
+                                title: "Số tiết vượt định mức",
+                                field: "SoTietVuotDinhMuc",
+                                editor: "false",
+                            },
+                            {
+                                title: "Số tiết được bảo lưu sang năm",
+                                field: "SoTietBaoLuuSangNamSau",
+                                editor: "false",
+                            }
+                        ];
+                    } else {
+                        columns = [
+                            {
+                                title: "Tên nhiệm vụ",
+                                field: "TenNhiemVu",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            },
+                            {
+                                title: "Năm học",
+                                field: "NamHoc",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            },
+                            {
+                                title: "Tên giảng viên",
+                                field: "GiangVien",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            },
+                            {
+                                title: "Tổng số tiết NCKH",
+                                field: "TongSoTietNCKHTrongNam",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            },
+                            {
+                                title: "Số tiết vượt định mức",
+                                field: "SoTietVuotDinhMuc",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            },
+                            {
+                                title: "Số tiết được bảo lưu sang năm",
+                                field: "SoTietBaoLuuSangNamSau",
+                                editor: "input",
+                                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                            }
+                        ];
+                    }
 
-                    // Nếu khoa == ALL thì thêm cột khoa
-                    if (department == "ALL") {
+                    // Nếu department == "ALL" thì thêm cột khoa
+                    if (department === "ALL") {
                         columns.push({
                             title: "Khoa",
                             field: "Khoa",
                             editor: "input",
-                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                            editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                         });
                     }
 
-                    // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-                    columns.push({
-                        title: "Hành Động",
-                        field: "actions",
-                        formatter: actionFormatter,
-                        hozAlign: "center",
-                        headerSort: false
-                    });
+                    // Cấp quyền xóa
+                    if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+                        columns.push({
+                            title: "Hành Động",
+                            field: "actions",
+                            formatter: actionFormatter,
+                            hozAlign: "center",
+                            headerSort: false,
+                        });
+                    }
 
-                    // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
+                    // Cấp quyền duyệt
                     if (userRole === "Duyệt") {
                         columns.push({
                             title: "Duyệt",
@@ -260,6 +298,7 @@
                             },
                         });
                     }
+
 
                     table = new Tabulator("#table-container", {
                         data: data,
@@ -425,6 +464,13 @@
                         khoa: localStorage.getItem("MaPhongBan"),
                     };
 
+                    // Phần quyền nhập
+                    if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+                        alert("Bạn không có quyền truy cấp chức năng này");
+                        return;
+                    }
+
+                    // Validate form
                     let missing = 0;
 
                     for (let key of Object.keys(formData)) {
