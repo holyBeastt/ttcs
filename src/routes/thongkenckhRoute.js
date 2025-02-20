@@ -13,5 +13,6 @@ router.get('/detail-data/biensoan', thongkenckhController.getDetailDataBiensoan)
 router.get('/detail-data/nckh', thongkenckhController.getDetailDatanckh);
 router.get('/detail-data/xaydung', thongkenckhController.getDetailDataxaydung);
 router.get('/detail-data/sachvagiaotrinh', thongkenckhController.getDetailDatasachvagiaotrinh);
+router.get('/getNamHocAndKhoa', thongkenckhController.getNamHocAndKhoaData);
 module.exports = router;
 
