@@ -133,6 +133,26 @@
       content: "* ";
     }
   </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px; /* Giảm độ rộng */
+      font-size: 12px !important;
+    }
+
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+      padding: 8px;
+      cursor: default;
+    }
+  </style>
 
   <body>
     <!-- Phần header -->
@@ -350,6 +370,19 @@
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+    <!-- Thêm jQuery và jQuery UI -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- jQuery UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
     <script>
       var globalData = [];
       let SoQDList = [];
@@ -600,25 +633,17 @@
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
-          giaoVienHuongDan1Input.onclick = () => {
-            showSuggestions(
-              giaoVienHuongDan1Input,
-              row.GiangVien1Real,
-              1,
-              row.ID,
-              id
-            );
-          };
 
-          giaoVienHuongDan1Td.oninput = () => {
-            showSuggestions(
+          /*
+          giaoVienHuongDan1Input.onfocus = () => {
+            showSuggestionsGiangVien(
               giaoVienHuongDan1Input,
               row.GiangVien1Real,
               1,
               row.ID,
               id
             );
-          };
+          };*/
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
@@ -635,28 +660,35 @@
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
+          /*
           giaoVienHuongDan2Input.onclick = () => {
-            showSuggestions(
+            showSuggestionsGiangVien(
               giaoVienHuongDan2Input,
               row.GiangVien2Real,
               2,
               row.ID,
               id
             );
-          };
-
-          giaoVienHuongDan2Td.oninput = () => {
-            showSuggestions(
-              giaoVienHuongDan2Input,
-              row.GiangVien2Real,
-              2,
-              row.ID,
-              id
-            );
-          };
+          };*/
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
+
+          // Gọi autocomplete ngay sau khi tạo input
+          showSuggestionsGiangVien(
+            giaoVienHuongDan1Input,
+            row.GiangVien1Real,
+            1,
+            row.ID,
+            id
+          );
+          showSuggestionsGiangVien(
+            giaoVienHuongDan2Input,
+            row.GiangVien2Real,
+            2,
+            row.ID,
+            id
+          );
 
           // Tạo 2 cột lưu tên giảng viên để so sánh
           const GiangVien1Real = document.createElement("td");
@@ -1289,10 +1321,62 @@
         };
       }
 
-      // Hàm ẩn gợi ý
-      function hideSuggestions() {
-        const existingSuggestions = document.querySelectorAll(".suggestions");
-        existingSuggestions.forEach((suggestion) => suggestion.remove());
+      let duplicateGV = JSON.parse(localStorage.getItem("duplicateGV")) || [];
+      let allGV = JSON.parse(localStorage.getItem("allGV")) || [];
+      let suggestions = allGV.map(
+        (item) => `${item.HoTen} - ${item.BienChe} - ${item.CCCD}`
+      );
+
+      function showSuggestionsGiangVien(
+        input,
+        GiangVienDefault,
+        position,
+        id,
+        stt
+      ) {
+        $(input).autocomplete({
+          source: function (request, response) {
+            const value = request.term.trim().toLowerCase();
+
+            let filteredSuggestions = suggestions;
+            if (value) {
+              filteredSuggestions = suggestions.filter((name) =>
+                name.toLowerCase().includes(value)
+              );
+            }
+
+            response(filteredSuggestions);
+          },
+          minLength: 0,
+          delay: 0,
+          autoFocus: true,
+          select: function (event, ui) {
+            const selectedName = ui.item.value.split(" - ")[0].trim();
+            const selectedCCCD = ui.item.value.split(" - ")[2].trim();
+
+            const lecturerFound = allGV.find(
+              (lecturer) => lecturer.CCCD.trim() == selectedCCCD
+            );
+
+            if (lecturerFound) {
+              if (position == 1) {
+                document.getElementById(`GiangVien1-${stt}`).value =
+                  ui.item.value;
+              } else {
+                document.getElementById(`GiangVien2-${stt}`).value =
+                  ui.item.value;
+              }
+            }
+
+            return false;
+          },
+        });
+
+        $(input)
+          .off("focus")
+          .on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
       }
     </script>
 

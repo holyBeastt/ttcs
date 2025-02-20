@@ -500,7 +500,13 @@ const getHopDongDuKienData = async (req, res) => {
         SUM(Combined.SoTiet) AS TongTiet,
         dot,
         0 AS KiHoc,
-        NamHoc
+        NamHoc,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM (
         SELECT
             NgayBatDau,
@@ -537,7 +543,8 @@ const getHopDongDuKienData = async (req, res) => {
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
         gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc
+		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
+      gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
     ), 
     
    DaiHocHopDongDuKien AS (
@@ -562,7 +569,13 @@ const getHopDongDuKienData = async (req, res) => {
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM 
         quychuan qc
     JOIN 
@@ -588,7 +601,13 @@ const getHopDongDuKienData = async (req, res) => {
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     ),
    SauDaiHocHopDongDuKien AS (
     SELECT
@@ -612,7 +631,13 @@ const getHopDongDuKienData = async (req, res) => {
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM 
         quychuan qc
     JOIN 
@@ -637,7 +662,13 @@ const getHopDongDuKienData = async (req, res) => {
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     ),
 tableALL AS (SELECT
     Dot,
@@ -661,7 +692,13 @@ tableALL AS (SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     DoAnHopDongDuKien
 UNION ALL
@@ -687,7 +724,13 @@ SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     DaiHocHopDongDuKien
 UNION ALL
@@ -713,7 +756,13 @@ SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     SauDaiHocHopDongDuKien),
 TongSoTietGV AS (
@@ -764,7 +813,13 @@ ORDER BY
         SUM(Combined.SoTiet) AS TongTiet,
         dot,
         0 AS KiHoc,
-        NamHoc
+        NamHoc,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM (
         SELECT
             NgayBatDau,
@@ -803,7 +858,8 @@ ORDER BY
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
         gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc
+		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
+      gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
     ), 
     
    DaiHocHopDongDuKien AS (
@@ -828,7 +884,13 @@ ORDER BY
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM 
         quychuan qc
     JOIN 
@@ -854,7 +916,13 @@ ORDER BY
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     ),
    SauDaiHocHopDongDuKien AS (
     SELECT
@@ -878,7 +946,13 @@ ORDER BY
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     FROM 
         quychuan qc
     JOIN 
@@ -904,7 +978,13 @@ ORDER BY
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
-        qc.Dot
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
     ),
 tableALL AS (SELECT
     Dot,
@@ -928,7 +1008,13 @@ tableALL AS (SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     DoAnHopDongDuKien
 UNION ALL
@@ -954,7 +1040,13 @@ SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     DaiHocHopDongDuKien
 UNION ALL
@@ -980,7 +1072,13 @@ SELECT
     DienThoai,
     STK,
     NganHang,
-    MaPhongBan
+    MaPhongBan,
+    NgayCapCCCD,
+    DiaChi,
+    BangTotNghiep, 
+	  NoiCongTac,
+	  BangTotNghiepLoai,
+	  MonGiangDayChinh
 FROM 
     SauDaiHocHopDongDuKien),
 TongSoTietGV AS (
