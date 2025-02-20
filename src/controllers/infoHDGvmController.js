@@ -836,7 +836,6 @@ ORDER BY
         WHERE 
             GiangVien1 IS NOT NULL
             AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien1, '-', -1)) = 'Giảng viên mời')
-            AND MaPhongBan = ?
         UNION ALL
 
         SELECT
@@ -852,7 +851,6 @@ ORDER BY
             GiangVien2 IS NOT NULL 
             AND GiangVien2 != 'không'
             AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', -1)) = 'Giảng viên mời')
-            AND MaPhongBan = ?
     ) AS Combined
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
@@ -896,7 +894,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND Khoa = ?
+        qc.MoiGiang = 1
     GROUP BY
         gv.HoTen,
         qc.KiHoc,
@@ -959,7 +957,6 @@ ORDER BY
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
         qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
-        AND Khoa = ?
     GROUP BY
         gv.HoTen,
         gv.GioiTinh,
@@ -1099,11 +1096,11 @@ LEFT JOIN
     TongSoTietGV tsgv 
 ON 
     ta.GiangVien = tsgv.GiangVien
-Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ?
+Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ? AND MaPhongBan = ?
 ORDER BY 
     tsgv.TongSoTiet DESC;
 `,
-        [khoa, khoa, khoa, khoa, dot, ki, namHoc, he_dao_tao]
+        [dot, ki, namHoc, he_dao_tao, khoa]
       );
     }
 
