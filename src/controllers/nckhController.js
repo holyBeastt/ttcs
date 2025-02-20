@@ -53,41 +53,108 @@ const getTongHopSoTietNCKH = (req, res) => {
 };
 
 // lấy bảng đề tài dự án
+// const getTableDeTaiDuAn = async (req, res) => {
+
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
+
+//     let connection;
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         let query;
+//         const queryParams = [];
+
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+//             queryParams.push(NamHoc);
+//         } else {
+//             query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
+//             queryParams.push(NamHoc, Khoa);
+//         }
+
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getDeTaiDuAn:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
+
 const getTableDeTaiDuAn = async (req, res) => {
-
-    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng detaiduan Năm:" + NamHoc + " Khoa:" + Khoa);
+    const { NamHoc, Khoa } = req.params;
+    console.log(`Lấy dữ liệu bảng detaiduan Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
+        connection = await createPoolConnection();
 
-        let query;
-        const queryParams = [];
+        // Lấy tất cả dữ liệu của năm học được chọn
+        let query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
 
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM detaiduan WHERE NamHoc = ?`;
-            queryParams.push(NamHoc);
+        if (Khoa === "ALL") {
+            res.json(results);
         } else {
-            query = `SELECT * FROM detaiduan WHERE NamHoc = ? AND Khoa = ?`;
-            queryParams.push(NamHoc, Khoa);
+            const filteredResults = [];
+
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường ChuNhiem và ThuKy
+                ['ChuNhiem', 'ThuKy'].forEach((key) => {
+                    if (item[key]) {
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
+                        namesToCheck.push(name);
+                    }
+                });
+
+                // Xử lý trường DanhSachThanhVien (danh sách các tên, phân tách bằng dấu phẩy)
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',')
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, '').trim());
+                    namesToCheck.push(...members);
+                }
+
+                // Loại bỏ các tên trùng lặp
+                const uniqueNames = [...new Set(namesToCheck)];
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                if (uniqueNames.length > 0) {
+                    const placeholders = uniqueNames.map(() => '?').join(', ');
+                    const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                    const [employeeResults] = await connection.execute(nameQuery, uniqueNames);
+
+                    const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                    // Nếu có bất kỳ mã phòng ban nào chứa chuỗi Khoa thì thêm item vào kết quả
+                    if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                        filteredResults.push(item);
+                    }
+                }
+            }
+            console.log(filteredResults);
+            res.json(filteredResults);
         }
-
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
-        console.error("Lỗi trong hàm getDeTaiDuAn:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        console.error("Lỗi trong hàm getTableDeTaiDuAn:", error);
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
+        if (connection) connection.release();
     }
 };
+
+
 
 // lấy dữ liệu giảng viên cơ hữu để thêm vào danh sách thành viên
 const getTeacher = async (req, res) => {
@@ -239,41 +306,103 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 };
 
 // Lấy bảng đề tài dự án
+// const getTableBaiBaoKhoaHoc = async (req, res) => {
+
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng baibaokhoahoc Năm: " + NamHoc + " Khoa: " + Khoa);
+
+//     let connection;
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         let query;
+//         const queryParams = [];
+
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
+//             queryParams.push(NamHoc);
+//         } else {
+//             query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
+//             queryParams.push(NamHoc, Khoa);
+//         }
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getDeTaiDuAn:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
+
 const getTableBaiBaoKhoaHoc = async (req, res) => {
-
-    const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng baibaokhoahoc Năm: " + NamHoc + " Khoa: " + Khoa);
+    const { NamHoc, Khoa } = req.params;
+    console.log(`Lấy dữ liệu bảng baibaokhoahoc Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
+        connection = await createPoolConnection();
 
-        let query;
-        const queryParams = [];
+        let query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
 
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ?`;
-            queryParams.push(NamHoc);
+        if (Khoa === "ALL") {
+            res.json(results);
         } else {
-            query = `SELECT * FROM baibaokhoahoc WHERE NamHoc = ? AND Khoa = ?`;
-            queryParams.push(NamHoc, Khoa);
+            const filteredResults = [];
+
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
+                ['TacGia', 'TacGiaChiuTrachNhiem'].forEach((key) => {
+                    if (item[key]) {
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
+                        namesToCheck.push(name);
+                    }
+                });
+
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',')
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, ''));
+                    namesToCheck.push(...members);
+                }
+
+                const uniqueNames = [...new Set(namesToCheck)];
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                const placeholders = uniqueNames.map(() => '?').join(', ');
+                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                const [employeeResults] = uniqueNames.length > 0
+                    ? await connection.execute(nameQuery, uniqueNames)
+                    : [[]];
+
+                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                    filteredResults.push(item);
+                }
+            }
+
+            res.json(filteredResults);
         }
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
-        console.error("Lỗi trong hàm getDeTaiDuAn:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        console.error("Lỗi trong hàm getTableBaiBaoKhoaHoc:", error);
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
+        if (connection) connection.release();
     }
 };
+
 
 const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
     const { loaiTapChi, tacGia, tacGiaCtn, danhSachThanhVien } = body;
@@ -804,42 +933,108 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
 
 
 // Lấy bảng sách và giáo trình
+// const getTableSachVaGiaoTrinh = async (req, res) => {
+
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng sachvagiaotrinh Năm:", NamHoc);
+
+//     let connection;
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         let query;
+//         let queryParams = [];
+
+//         // Truy vấn dữ liệu từ bảng sachvagiaotrinh
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
+//             queryParams.push(NamHoc);
+//         } else {
+//             query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
+//             queryParams.push(NamHoc, Khoa);
+//         }
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getTableSachVaGiaoTrinh:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
 const getTableSachVaGiaoTrinh = async (req, res) => {
-
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng sachvagiaotrinh Năm:", NamHoc);
+    console.log(`Lấy dữ liệu bảng sachvagiaotrinh Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        let query;
-        let queryParams = [];
+        // Truy vấn dữ liệu ban đầu từ bảng sachvagiaotrinh
+        let query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
 
-        // Truy vấn dữ liệu từ bảng sachvagiaotrinh
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ?`;
-            queryParams.push(NamHoc);
+        if (Khoa === "ALL") {
+            // Nếu Khoa là "ALL", trả về tất cả các kết quả
+            res.json(results);
         } else {
-            query = `SELECT * FROM sachvagiaotrinh WHERE NamHoc = ? AND Khoa = ?`;
-            queryParams.push(NamHoc, Khoa);
+            const filteredResults = [];
+
+            // Duyệt qua tất cả các kết quả
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
+                ['TacGia', 'DongChuBien'].forEach((key) => {
+                    if (item[key]) {
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
+                        namesToCheck.push(name);
+                    }
+                });
+
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',') // Tách danh sách thành viên
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, '')); // Loại bỏ phần trong dấu ngoặc
+                    namesToCheck.push(...members);
+                }
+
+                const uniqueNames = [...new Set(namesToCheck)]; // Lọc các tên duy nhất
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                const placeholders = uniqueNames.map(() => '?').join(', ');
+                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                const [employeeResults] = uniqueNames.length > 0
+                    ? await connection.execute(nameQuery, uniqueNames)
+                    : [[]]; // Nếu không có tên để kiểm tra, trả về mảng trống
+
+                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                // Kiểm tra xem mã phòng ban có chứa Khoa hay không
+                if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                    filteredResults.push(item); // Thêm vào kết quả đã lọc
+                }
+            }
+
+            // Trả về kết quả đã lọc
+            res.json(filteredResults);
         }
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
         console.error("Lỗi trong hàm getTableSachVaGiaoTrinh:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
 };
+
 
 const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
     // Lấy dữ liệu từ body
@@ -969,42 +1164,108 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
 };
 
 // Lấy bảng nckh và huấn luyện đội tuyển
+// const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
+
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng nckhvahuanluyendoituyen Năm:", NamHoc);
+
+//     let connection;
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         let query;
+//         let queryParams = [];
+
+//         // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
+//             queryParams.push(NamHoc);
+//         } else {
+//             query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
+//             queryParams.push(NamHoc, Khoa);
+//         }
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getTableNckhVaHuanLuyenDoiTuyen:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
 const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
-
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng nckhvahuanluyendoituyen Năm:", NamHoc);
+    console.log(`Lấy dữ liệu bảng nckhvahuanluyendoituyen Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        let query;
-        let queryParams = [];
+        // Truy vấn dữ liệu ban đầu từ bảng nckhvahuanluyendoituyen
+        let query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
 
-        // Truy vấn dữ liệu từ bảng nckhvahuanluyendoituyen
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ?`;
-            queryParams.push(NamHoc);
+        if (Khoa === "ALL") {
+            // Nếu Khoa là "ALL", trả về tất cả các kết quả
+            res.json(results);
         } else {
-            query = `SELECT * FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND Khoa = ?`;
-            queryParams.push(NamHoc, Khoa);
+            const filteredResults = [];
+
+            // Duyệt qua tất cả các kết quả
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
+                // ['TacGia', 'TacGiaChiuTrachNhiem'].forEach((key) => {
+                //     if (item[key]) {
+                //         const name = item[key].replace(/\s*\([^)]*\)/g, ''); // Loại bỏ phần trong dấu ngoặc
+                //         namesToCheck.push(name);
+                //     }
+                // });
+
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',') // Tách danh sách thành viên
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, '')); // Loại bỏ phần trong dấu ngoặc
+                    namesToCheck.push(...members);
+                }
+
+                const uniqueNames = [...new Set(namesToCheck)]; // Lọc các tên duy nhất
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                const placeholders = uniqueNames.map(() => '?').join(', ');
+                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                const [employeeResults] = uniqueNames.length > 0
+                    ? await connection.execute(nameQuery, uniqueNames)
+                    : [[]]; // Nếu không có tên để kiểm tra, trả về mảng trống
+
+                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                // Kiểm tra xem mã phòng ban có chứa Khoa hay không
+                if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                    filteredResults.push(item); // Thêm vào kết quả đã lọc
+                }
+            }
+
+            // Trả về kết quả đã lọc
+            res.json(filteredResults);
         }
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
         console.error("Lỗi trong hàm getTableNckhVaHuanLuyenDoiTuyen:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
 };
+
 
 const saveXayDungCTDT = async (req, res) => {
     // Lấy dữ liệu từ body
@@ -1297,40 +1558,108 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
 
 
 // Lấy bảng biensoangiaotrinhbaigiang
+// const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
+//     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
+
+//     console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
+
+//     let connection;
+//     let query;
+//     let queryParams;
+
+//     try {
+//         connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+//         if (Khoa == "ALL") {
+//             query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+//             queryParams = [NamHoc];
+//         } else {
+//             query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+//             queryParams = [NamHoc, Khoa];
+//         }
+
+//         // Thực hiện truy vấn
+//         const [results] = await connection.execute(query, queryParams);
+
+//         // Trả về kết quả dưới dạng JSON
+//         res.json(results); // results chứa dữ liệu trả về
+//     } catch (error) {
+//         console.error("Lỗi trong hàm getTableBienSoanGiaoTrinhBaiGiang:", error);
+//         res
+//             .status(500)
+//             .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+//     } finally {
+//         if (connection) connection.release(); // Trả lại kết nối cho pool
+//     }
+// };
+
 const getTableBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
-
-    console.log("Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm:", NamHoc);
+    console.log(`Lấy dữ liệu bảng biensoangiaotrinhbaigiang Năm: ${NamHoc} Khoa: ${Khoa}`);
 
     let connection;
-    let query;
-    let queryParams;
-
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-        if (Khoa == "ALL") {
-            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
-            queryParams = [NamHoc];
+        // Truy vấn dữ liệu ban đầu từ bảng biensoangiaotrinhbaigiang
+        let query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?`;
+        const [results] = await connection.execute(query, [NamHoc]);
+
+        if (Khoa === "ALL") {
+            // Nếu Khoa là "ALL", trả về tất cả các kết quả
+            res.json(results);
         } else {
-            query = `SELECT * FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
-            queryParams = [NamHoc, Khoa];
+            const filteredResults = [];
+
+            // Duyệt qua tất cả các kết quả
+            for (let item of results) {
+                const namesToCheck = [];
+
+                // Xử lý các trường TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien
+                ['TacGia'].forEach((key) => {
+                    if (item[key]) {
+                        const name = item[key].replace(/\s*\([^)]*\)/g, '').trim();
+                        namesToCheck.push(name);
+                    }
+                });
+
+                if (item['DanhSachThanhVien']) {
+                    const members = item['DanhSachThanhVien']
+                        .split(',') // Tách danh sách thành viên
+                        .map(name => name.trim().replace(/\s*\([^)]*\)/g, '')); // Loại bỏ phần trong dấu ngoặc
+                    namesToCheck.push(...members);
+                }
+
+                const uniqueNames = [...new Set(namesToCheck)]; // Lọc các tên duy nhất
+
+                // Truy vấn bảng nhanvien để lấy MaPhongBan cho các tên
+                const placeholders = uniqueNames.map(() => '?').join(', ');
+                const nameQuery = `SELECT TenNhanVien, MaPhongBan FROM nhanvien WHERE TenNhanVien IN (${placeholders})`;
+
+                const [employeeResults] = uniqueNames.length > 0
+                    ? await connection.execute(nameQuery, uniqueNames)
+                    : [[]]; // Nếu không có tên để kiểm tra, trả về mảng trống
+
+                const departmentCodes = employeeResults.map(emp => emp.MaPhongBan);
+
+                // Kiểm tra xem mã phòng ban có chứa Khoa hay không
+                if (departmentCodes.some(code => code && code.includes(Khoa))) {
+                    filteredResults.push(item); // Thêm vào kết quả đã lọc
+                }
+            }
+
+            // Trả về kết quả đã lọc
+            res.json(filteredResults);
         }
-
-        // Thực hiện truy vấn
-        const [results] = await connection.execute(query, queryParams);
-
-        // Trả về kết quả dưới dạng JSON
-        res.json(results); // results chứa dữ liệu trả về
     } catch (error) {
         console.error("Lỗi trong hàm getTableBienSoanGiaoTrinhBaiGiang:", error);
-        res
-            .status(500)
-            .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+        res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
 };
+
+
 
 // Lấy dữ liệu từ bảng quydinhsogionckh để đổ vào các thẻ seclect tương ứng 
 const getData = async (req, res) => {
@@ -1817,6 +2146,7 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
             tableQueries.map(item => item.promise)
         );
 
+
         // Lọc các bảng chưa tên giảng viên
         const filteredResults = tableQueries.map((item, index) => {
             // Lấy các bản ghi của bảng hiện tại
@@ -1824,21 +2154,22 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
 
             // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
             const filteredRows = rows.filter(row => {
-                return Object.values(row).some(
-                    value =>
-                        value && typeof value === 'string' && value.includes(TenGiangVien)
+                return Object.values(row).some(value =>
+                    value && typeof value === 'string' &&
+                    value.trim().toLowerCase().includes(TenGiangVien.trim().toLowerCase())
                 );
             });
 
             // Nếu không có bản ghi nào phù hợp thì trả về null
             if (filteredRows.length === 0) return null;
 
-            // Giả sử chỉ có 1 dòng phù hợp (nếu có nhiều bạn có thể cần xử lý khác)
+            // Trả về tất cả các dòng khớp với tên giảng viên
             return {
-                Table: item.table, // Tên bảng
-                ...filteredRows[0] // Hợp nhất dữ liệu từ dòng đầu tiên
+                Table: item.table,
+                rows: filteredRows
             };
         }).filter(item => item !== null);
+
 
         // In ra console kết quả với tên bảng
         // console.log(JSON.stringify(filteredResults, null, 2));
@@ -1872,29 +2203,34 @@ function congTongSoTiet(filteredResults, TenGiangVien) {
         const tableName = record["Table"] || record["table"] || "Unknown Table";
         let tableTotal = 0;
 
-        // Duyệt qua từng key của record (bỏ qua key chứa tên bảng)
-        for (const key in record) {
-            if (key.toLowerCase() === "table") continue;
+        // Kiểm tra nếu có trường "rows" chứa danh sách các dòng
+        if (Array.isArray(record.rows)) {
+            record.rows.forEach(row => {
+                // Duyệt qua từng key trong một dòng dữ liệu
+                for (const key in row) {
+                    if (key.toLowerCase() === "table") continue;
 
-            // Xử lý nếu giá trị là chuỗi không rỗng
-            if (typeof record[key] === "string" && record[key].trim() !== "") {
-                const value = record[key];
+                    // Xử lý nếu giá trị là chuỗi không rỗng
+                    if (typeof row[key] === "string" && row[key].trim() !== "") {
+                        const value = row[key];
 
-                if (key === "DanhSachThanhVien") {
-                    // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
-                    const members = value.split(",").map(item => item.trim());
-                    members.forEach(member => {
-                        if (member.includes(TenGiangVien)) {
-                            tableTotal += extractHours(member);
+                        if (key === "DanhSachThanhVien") {
+                            // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
+                            const members = value.split(",").map(item => item.trim());
+                            members.forEach(member => {
+                                if (member.includes(TenGiangVien)) {
+                                    tableTotal += extractHours(member);
+                                }
+                            });
+                        } else {
+                            // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
+                            if (value.includes(TenGiangVien)) {
+                                tableTotal += extractHours(value);
+                            }
                         }
-                    });
-                } else {
-                    // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
-                    if (value.includes(TenGiangVien)) {
-                        tableTotal += extractHours(value);
                     }
                 }
-            }
+            });
         }
 
         // Lưu số tiết của bảng hiện tại vào đối tượng kết quả
@@ -1906,7 +2242,6 @@ function congTongSoTiet(filteredResults, TenGiangVien) {
     return result;
 }
 
-// Hàm này dùng cho site nhiệm vụ khoa học công nghệ 
 const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
     let connection;
 

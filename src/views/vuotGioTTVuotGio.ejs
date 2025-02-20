@@ -1297,10 +1297,17 @@ document.addEventListener('DOMContentLoaded', function () {
       tableRowData.push(rowWithId);
 
       // tableRow.setAttribute("data-id", row.MaGiangDay);
-      let soNguoi = 2;
-      if (row.GiangVien2Real == null) {
-        soNguoi = 1;
+      let soNguoi = 1;
+      let gio = 25;
+      if (row.GiangVien2Real !== null) {
+        soNguoi = 2;
+        if (row.VaiTro === "HD hai") {
+          gio = 10;
+        } else {
+          gio = 15
+        }
       }
+      
       //
       const ttTd = document.createElement('td');
       ttTd.textContent = index +1;
@@ -1326,9 +1333,9 @@ document.addEventListener('DOMContentLoaded', function () {
       vaiTroTd.textContent = row.VaiTro;
       tableRow.appendChild(vaiTroTd);
       //
-      // const soTietKT = document.createElement('td');
-      // soTietKT.textContent = row.SoTietKT;
-      // tableRow.appendChild(soTietKT);
+      const soTietKT = document.createElement('td');
+      soTietKT.textContent = gio;
+      tableRow.appendChild(soTietKT);
 
       tableBodyB.appendChild(tableRow);
       });

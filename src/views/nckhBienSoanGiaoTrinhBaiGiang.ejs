@@ -53,11 +53,11 @@
               <label for="namHocForm">Năm học</label>
               <select class="namHoc" id="namHocForm" name="namHoc" required></select>
             </div>
-            <div class="flex-item">
+            <!-- <div class="flex-item">
               <label for="MaPhongBanForm">Khoa</label>
               <select id="MaPhongBanForm" class="MaPhongBan" style="width: 100% !important;" required>
               </select>
-            </div>
+            </div> -->
           </div>
 
           <div class="form-group">
@@ -125,12 +125,12 @@
             <label for="namHocXem">Chọn Năm Học:</label>
             <select id="namHocXem" class="namHoc"></select>
           </div>
-          <div class="flex-item">
+          <!-- <div class="flex-item">
             <label for="MaPhongBanView">Khoa</label>
             <select id="MaPhongBanView" class="MaPhongBan" style="width: 150px; height: 35px;">
               <option value="ALL">Tất cả khoa</option>
             </select>
-          </div>
+          </div> -->
           <div class="flex-item-view">
             <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
           </div>
@@ -159,8 +159,15 @@
 
       document.getElementById("render").addEventListener("click", async function () {
         const year = document.getElementById("namHocXem").value;
-        const department = document.getElementById("MaPhongBanView").value;
+        // const department = document.getElementById("MaPhongBanView").value;
+        let department;
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
+          department = "ALL";
+        } else {
+          department = localStorage.getItem("MaPhongBan");
+        };
         const url = `/biensoangiaotrinhbaigiang/${year}/${department}`;
+        console.log(url);
 
         try {
           const response = await fetch(url);
@@ -170,84 +177,134 @@
           const userRole = localStorage.getItem("userRole");
           const userPhongBan = localStorage.getItem("MaPhongBan");
 
-          // Định nghĩa các cột cho Tabulator, với điều kiện editable dựa vào DaoTaoDuyet
-          let columns = [
-            {
-              title: "Phân loại",
-              field: "PhanLoai",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tên giáo trình bài giảng",
-              field: "TenGiaoTrinhBaiGiang",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Số TC",
-              field: "SoTC",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Số QĐ Giao Nhiệm Vụ",
-              field: "SoQDGiaoNhiemVu",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Ngày QĐ Giao Nhiệm Vụ",
-              field: "NgayQDGiaoNhiemVu",
-              editor: "date",
-              editorParams: {
-                format: "dd/MM/yyyy",
-                defaultValue: "",
-                elementAttributes: { placeholder: "dd/MM/yyyy" }
-              },
-              formatter: "datetime",
-              formatterParams: {
-                inputFormat: "iso",
-                outputFormat: "dd/MM/yyyy"
-              },
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Tác Giả",
-              field: "TacGia",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            },
-            {
-              title: "Danh Sách Thành Viên",
-              field: "DanhSachThanhVien",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
-            }
-          ];
+          let columns;
 
+          // Cấp quyền sửa: nếu người dùng là "GV" hoặc "Thường" thì các cột sẽ ở chế độ chỉ xem (editor: "false")
+          if (userRole === "GV" || userRole === "Thường") {
+            columns = [
+              {
+                title: "Phân loại",
+                field: "PhanLoai",
+                editor: "false",
+              },
+              {
+                title: "Tên giáo trình bài giảng",
+                field: "TenGiaoTrinhBaiGiang",
+                editor: "false",
+              },
+              {
+                title: "Số TC",
+                field: "SoTC",
+                editor: "false",
+              },
+              {
+                title: "Số QĐ Giao Nhiệm Vụ",
+                field: "SoQDGiaoNhiemVu",
+                editor: "false",
+              },
+              {
+                title: "Ngày QĐ Giao Nhiệm Vụ",
+                field: "NgayQDGiaoNhiemVu",
+                editor: "false",
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "false",
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "false",
+              }
+            ];
+          } else {
+            // Nếu người dùng có quyền chỉnh sửa
+            columns = [
+              {
+                title: "Phân loại",
+                field: "PhanLoai",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tên giáo trình bài giảng",
+                field: "TenGiaoTrinhBaiGiang",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Số TC",
+                field: "SoTC",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Số QĐ Giao Nhiệm Vụ",
+                field: "SoQDGiaoNhiemVu",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Ngày QĐ Giao Nhiệm Vụ",
+                field: "NgayQDGiaoNhiemVu",
+                editor: "date",
+                editorParams: {
+                  format: "dd/MM/yyyy",
+                  defaultValue: "",
+                  elementAttributes: { placeholder: "dd/MM/yyyy" }
+                },
+                formatter: "datetime",
+                formatterParams: {
+                  inputFormat: "iso",
+                  outputFormat: "dd/MM/yyyy"
+                },
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Tác Giả",
+                field: "TacGia",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
+              {
+                title: "Danh Sách Thành Viên",
+                field: "DanhSachThanhVien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              }
+            ];
+          }
 
-          // Nếu khoa == ALL thì thêm cột khoa
+          // Nếu department == "ALL" thì thêm cột "Khoa"
+          // Với chế độ editor phụ thuộc vào vai trò của người dùng
           if (department == "ALL") {
             columns.push({
               title: "Khoa",
               field: "Khoa",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
             });
           }
 
-          // Cột Hành Động: hiển thị nút xóa nếu dòng chưa được duyệt (DaoTaoDuyet khác 1)
-          columns.push({
-            title: "Hành Động",
-            field: "actions",
-            formatter: actionFormatter,
-            hozAlign: "center",
-            headerSort: false
-          });
+          // Cột Hành Động: chỉ thêm nếu người dùng có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
+          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+            columns.push({
+              title: "Hành Động",
+              field: "actions",
+              formatter: actionFormatter,
+              hozAlign: "center",
+              headerSort: false,
+            });
+          }
 
-          // Nếu tài khoản có quyền Duyệt và thuộc MaPhongBan "DAOTAO" thì thêm cột duyệt
-          if (userRole === "Duyệt" && userPhongBan === "DAOTAO") {
+          // Cột Duyệt: chỉ thêm nếu tài khoản có quyền Duyệt
+          if (userRole === "Duyệt") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
@@ -259,6 +316,8 @@
               },
             });
           }
+
+
           // Khởi tạo bảng với Tabulator
           table = new Tabulator("#table-container", {
             data: data,
@@ -598,11 +657,18 @@
           thanhVien: Array.from(document.querySelectorAll("#memberListDisplay span")).map(
             (member) => member.textContent  // Danh sách thành viên
           ),
-          khoa: document.getElementById("MaPhongBanForm").value,
+          // khoa: document.getElementById("MaPhongBanForm").value,
+          khoa: localStorage.getItem("MaPhongBan"),
         };
 
 
+        // Phần quyền nhập
+        if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+          alert("Bạn không có quyền truy cấp chức năng này");
+          return;
+        }
 
+        // Validate form
         let missing = 0;
 
         for (let key of Object.keys(formData)) {
