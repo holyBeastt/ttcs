@@ -286,18 +286,31 @@
               row.insertCell(1).textContent = Number.parseFloat(
                 item.TongSoTiet
               ).toFixed(2);
-              row.insertCell(2).textContent = new Date(
-                item.NgayBatDau
-              ).toLocaleDateString("vi-VN");
-              row.insertCell(3).textContent = new Date(
-                item.NgayKetThuc
-              ).toLocaleDateString("vi-VN");
+              row.insertCell(2).textContent = item.NgayBatDau
+                ? new Date(item.NgayBatDau).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
+              row.insertCell(3).textContent = item.NgayKetThuc
+                ? new Date(item.NgayKetThuc).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
               row.insertCell(4).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
               row.insertCell(5).textContent = item.GiangVien;
-              row.insertCell(6).textContent = new Date(
-                item.NgaySinh
-              ).toLocaleDateString("vi-VN");
+              row.insertCell(6).textContent = item.NgaySinh
+                ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
+
               row.insertCell(7).textContent = item.CCCD;
               row.insertCell(8).textContent = item.HocVi;
               row.insertCell(9).textContent = item.ChucVu;
@@ -374,22 +387,38 @@
               row.insertCell(1).textContent = Number.parseFloat(
                 item.TongSoTiet
               ).toFixed(2);
-              row.insertCell(2).textContent = new Date(
-                item.NgayBatDau
-              ).toLocaleDateString("vi-VN");
-              row.insertCell(3).textContent = new Date(
-                item.NgayKetThuc
-              ).toLocaleDateString("vi-VN");
+              row.insertCell(2).textContent = item.NgayBatDau
+                ? new Date(item.NgayBatDau).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
+              row.insertCell(3).textContent = item.NgayKetThuc
+                ? new Date(item.NgayKetThuc).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
               row.insertCell(4).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
               row.insertCell(5).textContent = item.GiangVien;
-              row.insertCell(6).textContent = new Date(
-                item.NgaySinh
-              ).toLocaleDateString("vi-VN");
+              row.insertCell(6).textContent = item.NgaySinh
+                ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
               row.insertCell(7).textContent = item.CCCD;
-              row.insertCell(8).textContent = new Date(
-                item.NgayCapCCCD
-              ).toLocaleDateString("vi-VN");
+              row.insertCell(8).textContent = item.NgayCapCCCD
+                ? new Date(item.NgayCapCCCD).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
               row.insertCell(9).textContent = item.HocVi;
               row.insertCell(10).textContent = item.ChucVu;
               row.insertCell(11).textContent = item.DienThoai;
