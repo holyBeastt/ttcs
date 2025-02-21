@@ -2146,6 +2146,7 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
             tableQueries.map(item => item.promise)
         );
 
+
         // Lọc các bảng chưa tên giảng viên
         const filteredResults = tableQueries.map((item, index) => {
             // Lấy các bản ghi của bảng hiện tại
@@ -2153,21 +2154,22 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
 
             // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
             const filteredRows = rows.filter(row => {
-                return Object.values(row).some(
-                    value =>
-                        value && typeof value === 'string' && value.includes(TenGiangVien)
+                return Object.values(row).some(value =>
+                    value && typeof value === 'string' &&
+                    value.trim().toLowerCase().includes(TenGiangVien.trim().toLowerCase())
                 );
             });
 
             // Nếu không có bản ghi nào phù hợp thì trả về null
             if (filteredRows.length === 0) return null;
 
-            // Giả sử chỉ có 1 dòng phù hợp (nếu có nhiều bạn có thể cần xử lý khác)
+            // Trả về tất cả các dòng khớp với tên giảng viên
             return {
-                Table: item.table, // Tên bảng
-                ...filteredRows[0] // Hợp nhất dữ liệu từ dòng đầu tiên
+                Table: item.table,
+                rows: filteredRows
             };
         }).filter(item => item !== null);
+
 
         // In ra console kết quả với tên bảng
         // console.log(JSON.stringify(filteredResults, null, 2));
@@ -2201,29 +2203,34 @@ function congTongSoTiet(filteredResults, TenGiangVien) {
         const tableName = record["Table"] || record["table"] || "Unknown Table";
         let tableTotal = 0;
 
-        // Duyệt qua từng key của record (bỏ qua key chứa tên bảng)
-        for (const key in record) {
-            if (key.toLowerCase() === "table") continue;
+        // Kiểm tra nếu có trường "rows" chứa danh sách các dòng
+        if (Array.isArray(record.rows)) {
+            record.rows.forEach(row => {
+                // Duyệt qua từng key trong một dòng dữ liệu
+                for (const key in row) {
+                    if (key.toLowerCase() === "table") continue;
 
-            // Xử lý nếu giá trị là chuỗi không rỗng
-            if (typeof record[key] === "string" && record[key].trim() !== "") {
-                const value = record[key];
+                    // Xử lý nếu giá trị là chuỗi không rỗng
+                    if (typeof row[key] === "string" && row[key].trim() !== "") {
+                        const value = row[key];
 
-                if (key === "DanhSachThanhVien") {
-                    // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
-                    const members = value.split(",").map(item => item.trim());
-                    members.forEach(member => {
-                        if (member.includes(TenGiangVien)) {
-                            tableTotal += extractHours(member);
+                        if (key === "DanhSachThanhVien") {
+                            // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
+                            const members = value.split(",").map(item => item.trim());
+                            members.forEach(member => {
+                                if (member.includes(TenGiangVien)) {
+                                    tableTotal += extractHours(member);
+                                }
+                            });
+                        } else {
+                            // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
+                            if (value.includes(TenGiangVien)) {
+                                tableTotal += extractHours(value);
+                            }
                         }
-                    });
-                } else {
-                    // Các key khác: nếu chứa TenGiangVien thì trích xuất số tiết
-                    if (value.includes(TenGiangVien)) {
-                        tableTotal += extractHours(value);
                     }
                 }
-            }
+            });
         }
 
         // Lưu số tiết của bảng hiện tại vào đối tượng kết quả
@@ -2235,7 +2242,6 @@ function congTongSoTiet(filteredResults, TenGiangVien) {
     return result;
 }
 
-// Hàm này dùng cho site nhiệm vụ khoa học công nghệ 
 const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
     let connection;
 
