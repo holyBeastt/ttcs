@@ -511,7 +511,7 @@ const getHopDongDuKienData = async (req, res) => {
         SELECT
             NgayBatDau,
             NgayKetThuc,
-            GiangVien1 AS GiangVien,
+            TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
             Dot,
             NamHoc,
             CASE 
@@ -522,13 +522,13 @@ const getHopDongDuKienData = async (req, res) => {
             doantotnghiep
         WHERE 
             GiangVien1 IS NOT NULL
-            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien1, '-', -1)) = 'Giảng viên mời')
+            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
         UNION ALL
 
         SELECT
             NgayBatDau,
             NgayKetThuc,
-            GiangVien2 AS GiangVien,
+            TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
             Dot,
             NamHoc,
             10 AS SoTiet
@@ -537,7 +537,7 @@ const getHopDongDuKienData = async (req, res) => {
         WHERE 
             GiangVien2 IS NOT NULL 
             AND GiangVien2 != 'không'
-            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(GiangVien2, '-', -1)) = 'Giảng viên mời')
+            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
     ) AS Combined
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
