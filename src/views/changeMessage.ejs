@@ -348,6 +348,20 @@
 
     </script>
     <script>
+
+      function convertToUTC(dateStr) {
+        // Giả sử dateStr có định dạng "YYYY-MM-DDTHH:mm"
+        const [datePart, timePart] = dateStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+
+        // Tạo timestamp UTC từ các giá trị (lưu ý: tháng trong Date.UTC là 0-indexed)
+        const utcTimestamp = Date.UTC(year, month - 1, day, hours, minutes);
+
+        // Tạo đối tượng Date từ timestamp và chuyển về chuỗi ISO (UTC)
+        return new Date(utcTimestamp).toISOString();
+      }
+      
       async function submitData() {
         const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
         const rowCount = rows.length;
@@ -363,6 +377,7 @@
 
           const deadlineInput = document.getElementById(`deadlineInput_${index}`);
           const deadline = deadlineInput ? deadlineInput.value : null;
+          const deadlineConvert = convertToUTC(deadline);
 
           // Lấy trạng thái từ selectCheckbox
           const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
@@ -372,11 +387,11 @@
           globalData.push({
             tieuDe,
             loiNhan,
-            deadline,
+            deadlineConvert,
             isChecked,
             id: row.dataset.id, // Thêm thông tin index vào để theo dõi
           });
-          console.log(globalData);
+          // console.log(globalData);
         });
 
         // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
