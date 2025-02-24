@@ -89,8 +89,13 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const HoTen = req.body.HoTen || "unknown-user"; // Đảm bảo có giá trị
-    const fieldName = file.fieldname; // Tên trường để phân loại file
+    let fieldName = file.fieldname; // Tên trường để phân loại file
     const fileExtension = path.extname(file.originalname); // Lấy phần mở rộng của file
+
+    if (fieldName === "fileBoSung") {
+      fieldName = HoTen;
+    }
+
     const fileName = `${fieldName}${fileExtension}`; // Tạo tên file mới
 
     const Khoa = req.session.MaPhongBan || "unknown-dept";
@@ -102,8 +107,6 @@ const storage = multer.diskStorage({
       BoMon,
       HoTen
     );
-
-    console.log("Kiểm tra file trong thư mục:", userFolderPath);
 
     try {
       // Lấy danh sách file trong thư mục
@@ -128,7 +131,6 @@ const storage = multer.diskStorage({
 });
 
 const imageFilter = function (req, file, cb) {
-  console.log("filename: ", file.fieldname);
   if (file == undefined) return;
   // Accept images only
   if (

@@ -32,6 +32,10 @@ const storage = multer.diskStorage({
     let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user";
     let fieldName = file.fieldname; // Tên trường (fieldname) để phân loại file
 
+    if (fieldName === "fileBoSung") {
+      fieldName = HoTen;
+    }
+
     // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
     let fileName = `${fieldName}${path.extname(file.originalname)}`;
     cb(null, fileName); // Đặt tên file theo định dạng: HoTen_fieldname.extension
@@ -42,7 +46,9 @@ const imageFilter = function (req, file, cb) {
   if (file == undefined) return;
   // Accept images only
   if (
-    !file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|jfif|pdf)$/)
+    !file.originalname.match(
+      /\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|jfif|pdf|doc|docx)$/
+    )
   ) {
     req.fileValidationError = "Only image or PDF files are allowed!";
     return cb(new Error("Only image or PDF files are allowed!"), false);
