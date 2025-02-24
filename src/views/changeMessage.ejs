@@ -218,7 +218,7 @@
         }
 
         try {
-          console.log("Gửi dữ liệu");
+          console.log("Get data");
           const response = await fetch(`/getMessage/${MaPhongBan}`, {
             method: 'GET', // Gửi yêu cầu GET
           });
@@ -288,20 +288,27 @@
           loiNhanInput.id = `loiNhanInput_${index}`;
           tableRow.appendChild(loiNhanTd);
 
-          // Deadline
+          // Chuyển đổi row.Deadline (ví dụ: "2025-02-18T23:10:00.000Z") sang đối tượng Date
           const deadlineValue = new Date(row.Deadline);
-          deadlineValue.setMinutes(deadlineValue.getMinutes() - deadlineValue.getTimezoneOffset()); // Chuyển đổi sang giờ địa phương
-          const formattedDeadlineValue = deadlineValue.toISOString().slice(0, 16);
-          console.log(deadlineValue);
+
+          // Chuyển đổi sang định dạng "YYYY-MM-DDTHH:mm" (theo giờ địa phương) bằng cách inlined các bước xử lý
+          const pad = (num) => String(num).padStart(2, '0');
+          const year = deadlineValue.getFullYear();
+          const month = pad(deadlineValue.getMonth() + 1); // getMonth() trả về 0-11
+          const day = pad(deadlineValue.getDate());
+          const hours = pad(deadlineValue.getHours());
+          const minutes = pad(deadlineValue.getMinutes());
+          const formattedDeadlineValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+          // Tạo phần tử input cho deadline
           const deadlineTd = document.createElement('td');
           const deadlineInput = document.createElement('input');
-          deadlineInput.type = 'datetime-local'; // Loại input là text
-          deadlineInput.value = formattedDeadlineValue; // Gán giá trị ban đầu
-          deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-          deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
-          // Gắn input vào ô td
-          deadlineTd.appendChild(deadlineInput);
+          deadlineInput.type = 'datetime-local';
+          deadlineInput.value = formattedDeadlineValue;
+          deadlineInput.classList.add('border-light');
+          deadlineInput.style.width = '100%';
           deadlineInput.id = `deadlineInput_${index}`;
+          deadlineTd.appendChild(deadlineInput);
           tableRow.appendChild(deadlineTd);
 
           //Check box chọn thông báo 

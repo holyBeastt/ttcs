@@ -306,7 +306,7 @@ function convertToMySQLFormat(dateStr) {
   let formattedDate = dateStr.replace('T', ' ');
   // Thêm ':00' vào cuối để biểu diễn giây
   formattedDate += ':00';
-  console.log(formattedDate);
+  // console.log(formattedDate);
   return formattedDate;
 }
 
