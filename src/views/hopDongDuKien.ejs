@@ -119,6 +119,9 @@
       .alert-sotiet {
         background-color: #ffcccc !important; /* Nền đỏ nhạt nếu số tiết > 300 */
       }
+
+      .hd_du_kien_css {
+      }
     </style>
   </head>
 
@@ -129,9 +132,9 @@
     <!-- Phần nội dung -->
 
     <div class="container-fluid m-4 no-shadow-page">
-      <div class="d-flex justify-content-center">
+      <div class="d-flex">
         <!-- Main content -->
-        <div class="gvmList">
+        <div class="gvmList hd_du_kien_css">
           <div class="m-3 reCss">
             <h1>THÔNG TIN HỢP ĐỒNG GIẢNG VIÊN MỜI DỰ KIẾN</h1>
 
@@ -202,12 +205,14 @@
                         <th>Điện thoại</th>
                         <th>Email</th>
                         <th>Số tài khoản</th>
-                        <th>Ngân hàng</th>
+                        <th style="min-width: 150px">Ngân hàng</th>
                         <th>Mã số thuế</th>
                         <th style="display: none">Khoa</th>
-                        <th class="d_none">Địa chỉ</th>
-                        <th class="d_none">Nơi công tác</th>
-                        <!-- <th class="d_none">Khoa</th> -->
+                        <th style="min-width: 150px" class="d_none">Địa chỉ</th>
+                        <th style="min-width: 150px" class="d_none">
+                          Nơi công tác
+                        </th>
+                        <!-- <th class="d_none">Loại bằng</th> -->
                         <th class="d_none">Bộ môn</th>
                       </tr>
                     </thead>
@@ -375,7 +380,7 @@
               .forEach((el) => (el.style.display = "table-cell"));
 
             document.querySelectorAll(".reCss").forEach((el) => {
-              el.style.setProperty("margin-left", "120px", "important");
+              el.style.setProperty("margin-left", "0px", "important");
             });
 
             // Thêm dữ liệu mới vào bảng
@@ -427,8 +432,12 @@
               row.insertCell(14).textContent = item.NganHang;
               row.insertCell(15).textContent = item.MaSoThue;
               row.insertCell(16).textContent = item.DiaChi;
+
+              //const cellNoiCongTac = row.insertCell(17);
+              //cellNoiCongTac.textContent = item.NoiCongTac;
+              //cellNoiCongTac.style.minWidth = "150px";
+
               row.insertCell(17).textContent = item.NoiCongTac;
-              //row.insertCell(18).textContent = item.BangTotNghiepLoai;
               row.insertCell(18).textContent = item.MonGiangDayChinh;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
