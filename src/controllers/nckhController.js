@@ -2308,6 +2308,7 @@ const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
             tableQueries.map(item => item.promise)
         );
 
+
         // Lọc các bảng chưa tên giảng viên
         const filteredResults = tableQueries.map((item, index) => {
             // Lấy các bản ghi của bảng hiện tại
@@ -2315,34 +2316,35 @@ const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
 
             // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
             const filteredRows = rows.filter(row => {
-                return Object.values(row).some(
-                    value =>
-                        value && typeof value === 'string' && value.includes(TenGiangVien)
+                return Object.values(row).some(value =>
+                    value && typeof value === 'string' &&
+                    value.trim().toLowerCase().includes(TenGiangVien.trim().toLowerCase())
                 );
             });
 
             // Nếu không có bản ghi nào phù hợp thì trả về null
             if (filteredRows.length === 0) return null;
 
-            // Giả sử chỉ có 1 dòng phù hợp (nếu có nhiều bạn có thể cần xử lý khác)
+            // Trả về tất cả các dòng khớp với tên giảng viên
             return {
-                Table: item.table, // Tên bảng
-                ...filteredRows[0] // Hợp nhất dữ liệu từ dòng đầu tiên
+                Table: item.table,
+                rows: filteredRows
             };
         }).filter(item => item !== null);
+
 
         // In ra console kết quả với tên bảng
         // console.log(JSON.stringify(filteredResults, null, 2));
 
         const result = congTongSoTiet(filteredResults, TenGiangVien);
 
-        // console.log(result);
+        console.log(result);
 
         // Trả về kết quả cho client
         return result;
     } catch (error) {
         console.error("Error in tongHopSoTietNckhCuaMotGiangVien:", error);
-        // res.status(500).json({ success: false, message: "Không thể truy xuất dữ liệu" });
+        res.status(500).json({ success: false, message: "Không thể truy xuất dữ liệu" });
     } finally {
         if (connection) connection.release();
     }

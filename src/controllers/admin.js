@@ -301,6 +301,18 @@ const addMessage = async (req, res) => {
   }
 };
 
+function convertDateFormat(dateStr) {
+  const date = new Date(dateStr);
+  const mm = String(date.getMonth() + 1).padStart(2, '0'); // Không dùng UTC
+  const dd = String(date.getDate()).padStart(2, '0');      // Không dùng UTC
+  const yyyy = date.getFullYear();                         // Không dùng UTC
+  const hh = String(date.getHours()).padStart(2, '0');     // Giờ (Không dùng UTC)
+  const min = String(date.getMinutes()).padStart(2, '0');  // Phút (Không dùng UTC)
+
+  // console.log(mm, dd, yyyy, hh, min);
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
 const updateMessage = async (req, res) => {
   const globalData = req.body; // Lấy dữ liệu từ client gửi đến
   if (!globalData || globalData.length === 0) {
@@ -317,7 +329,7 @@ const updateMessage = async (req, res) => {
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
 
       // Thực hiện câu truy vấn
-      await connection.query(query, [tieuDe, loiNhan, deadline, isChecked, id]);
+      await connection.query(query, [tieuDe, loiNhan, convertDateFormat(deadline), isChecked, id]);
     }
 
     // Redirect về trang thay đổi thông báo
