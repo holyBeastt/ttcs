@@ -15,502 +15,544 @@
 </head>
 
 <body>
-   <!-- Phần header -->
-   <%- include('header') %>
+  <!-- Phần header -->
+  <%- include('header') %>
 
-   <!-- Phần nội dung -->
+    <!-- Phần nội dung -->
 
-  
 
-  <!-- Phần trên của navbar chứa logo và tiêu đề -->
-  <div class="container-fluid m-4 box">
-    <h2>Thêm thông báo</h2>
 
-    <form id="changeMessageForm" method="POST" >
-      <div class="row">
-        <div class="col-md-4 input-wrapper">
-          <label for="Title">Tiêu đề:</label>
-          <input type="text" id="Title" name="Title" class="form-control" required />
+    <!-- Phần trên của navbar chứa logo và tiêu đề -->
+    <div class="container-fluid m-4 box">
+      <h2>Thêm thông báo</h2>
+
+      <form id="changeMessageForm" method="POST">
+        <div class="row">
+          <div class="col-md-4 input-wrapper">
+            <label for="Title">Tiêu đề:</label>
+            <input type="text" id="Title" name="Title" class="form-control" required />
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4 input-wrapper">
-          <label for="LoiNhan">Thông báo:</label>
-          <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
-          <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;" required></textarea>
+        <div class="row">
+          <div class="col-md-4 input-wrapper">
+            <label for="LoiNhan">Thông báo:</label>
+            <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
+            <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;"
+              required></textarea>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4 input-wrapper">
-          <label for="Deadline">Ngày hết hạn:</label>
-          <input type="datetime-local" id="Deadline" name="Deadline" class="form-control" required />
+        <div class="row">
+          <div class="col-md-4 input-wrapper">
+            <label for="Deadline">Ngày hết hạn:</label>
+            <input type="datetime-local" id="Deadline" name="Deadline" class="form-control" required />
+          </div>
         </div>
+        <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
+        <button type="button" class="btn m-3" onclick="goBack()">
+          Quay Lại
+        </button>
+      </form>
+      <div class="showMessage">
+        <h4>Thông báo đã ban hành</h4>
+        <table class=" text-center" style="width: 100%;">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Tiêu đề</th>
+              <th style="width: 50px;">Lời nhắn</th>
+              <th style="width: 200px;">Hạn cuối</th>
+              <th style="width: 50px;">Ẩn thông báo</th>
+              <th style="width: 50px;">Xoá thông báo</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Dữ liệu sẽ được chèn vào đây -->
+          </tbody>
+        </table>
+        <button onclick="submitData()" class="btn m-2" id="update-qc" style="height: 45px;">Cập nhật</button>
       </div>
-      <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
-      <button type="button" class="btn m-3" onclick="goBack()">
-        Quay Lại
-      </button>
-    </form>
-    <div class="showMessage">
-      <h4>Thông báo đã ban hành</h4>
-      <table class=" text-center" style="width: 100%;">
-        <thead>
-          <tr>
-            <th style="width: 50px;">Tiêu đề</th>
-            <th style="width: 50px;">Lời nhắn</th>
-            <th style="width: 200px;">Hạn cuối</th>
-            <th style="width: 50px;">Ẩn thông báo</th>
-            <th style="width: 50px;">Xoá thông báo</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Dữ liệu sẽ được chèn vào đây -->
-        </tbody>
-      </table>
-      <button onclick="submitData()" class="btn m-2" id="update-qc" style="height: 45px;">Cập nhật</button>
     </div>
-  </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
-      const loiNhan = document.getElementById("LoiNhan").value.trim();
-      const deadline = document.getElementById("Deadline").value;
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
+        const loiNhan = document.getElementById("LoiNhan").value.trim();
+        const deadline = document.getElementById("Deadline").value;
 
-      if (!loiNhan) {
-        alert("Vui lòng nhập nội dung thông báo.");
-        event.preventDefault();
-        return;
-      }
-
-      if (!deadline) {
-        alert("Vui lòng chọn ngày hết hạn.");
-        event.preventDefault();
-        return;
-      }
-
-      const now = new Date();
-      const selectedDate = new Date(deadline);
-
-      if (selectedDate < now) {
-        alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
-        event.preventDefault();
-      }
-    });
-
-    function goBack() {
-      window.history.back();
-    }
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const isKhoa = localStorage.getItem("isKhoa");
-      const role = localStorage.getItem("userRole");
-
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('actionButton');
-      const actionButton1 = document.getElementById('actionButton1');
-      const actionButton2 = document.getElementById('actionButton2');
-      const actionButton3 = document.getElementById('actionButton3');
-
-      if (isKhoa == 0) {
-        actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
-        actionButton2.style.display = 'inline-block'; // Hiện actionButton2
-
-      } else {
-        actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
-        actionButton2.style.display = 'none'; // Ẩn actionButton2
-
-        if (role.toLowerCase() == 'gv') {
-          actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+        if (!loiNhan) {
+          alert("Vui lòng nhập nội dung thông báo.");
+          event.preventDefault();
+          return;
         }
-      }
 
-      //Ẩn site duyệt lớp gk
-      if (role === "Lãnh đạo khoa" || role === "Duyệt") {
-        actionButton3.style.display = '';
-      } else {
-        actionButton3.style.display = 'none';
-      }
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('MessageChanged') === 'true') {
-        Swal.fire({
-          title: "Thông báo",
-          html: "Thêm thông báo thành công",
-          icon: "success",
-          confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
-        });
-      } else if (urlParams.get('MessageChanged') === 'false') {
-        Swal.fire({
-          title: "Thông báo",
-          html: "Thêm thông báo mới không đúng!",
-          icon: "error",
-          confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
-        });
-      } else if (urlParams.get('MessageChanged') === 'false2') {
-        Swal.fire({
-          title: "Thông báo",
-          html: "Cập nhật thông báo thất bại!",
-          icon: "error",
-          confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
-        });
-      }
-      getMessage();
-    });
-  </script>
-  <script>
-    async function getMessage() {
-      const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
-      if (!MaPhongBan) {
-        alert("Mã phòng ban không tồn tại!");
-        return;
-      }
-
-      try {
-        console.log("Gửi dữ liệu");
-        const response = await fetch(`/getMessage/${MaPhongBan}`, {
-          method: 'GET', // Gửi yêu cầu GET
-        });
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        if (!deadline) {
+          alert("Vui lòng chọn ngày hết hạn.");
+          event.preventDefault();
+          return;
         }
-        const data = await response.json(); // Lấy dữ liệu từ server
-        console.log(data);
-        if (data.success) {
-          if (data.Message && data.Message.length > 0) {
-            console.log('Dữ liệu thông báo:', data);
-            renderTable(data);
-          } else {
-          }
-        } else {
-          alert("Không tìm thấy dữ liệu!");
-        }
-      } catch (error) {
-        console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
-      }
-    }
 
-  </script>
-  <script>
-    function renderTable(data) {
-      const MaPhongBan = localStorage.getItem("MaPhongBan");
-      let tableRowData = [];
+        const now = new Date();
+        const selectedDate = new Date(deadline);
 
-      const tableBody = document.getElementById('tableBody');
-      tableBody.innerHTML = ''; // Xóa nội dung cũ
-      //let index = -1;
-      let Data = data.Message;
-      Data.forEach((row, index) => {
-
-        const tableRow = document.createElement('tr');
-
-        // Thêm id vào dữ liệu row để lưu trữ
-        let rowWithId = {
-          id: index,
-          ...row
-        };
-        tableRowData.push(rowWithId);
-
-        tableRow.setAttribute("data-id", row.id);
-
-        //Tiêu đề
-        const tieuDeTd = document.createElement('td');
-        const tieuDeInput = document.createElement('input');
-        tieuDeInput.type = 'text'; // Loại input là text
-        tieuDeInput.value = row.Title; // Gán giá trị ban đầu
-        tieuDeInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-        tieuDeInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
-        // Gắn input vào ô td
-        tieuDeTd.appendChild(tieuDeInput);
-        tieuDeInput.id = `tieuDeInput_${index}`;
-        tableRow.appendChild(tieuDeTd);
-
-        //Lời nhắn
-        const loiNhanTd = document.createElement('td');
-        const loiNhanInput = document.createElement('input');
-        loiNhanInput.type = 'text'; // Loại input là text
-        loiNhanInput.value = row.LoiNhan; // Gán giá trị ban đầu
-        loiNhanInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-        loiNhanInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
-        // Gắn input vào ô td
-        loiNhanTd.appendChild(loiNhanInput);
-        loiNhanInput.id = `loiNhanInput_${index}`;
-        tableRow.appendChild(loiNhanTd);
-
-        // Deadline
-        const deadlineValue = new Date(row.Deadline);
-        deadlineValue.setMinutes(deadlineValue.getMinutes() - deadlineValue.getTimezoneOffset()); // Chuyển đổi sang giờ địa phương
-        const formattedDeadlineValue = deadlineValue.toISOString().slice(0, 16);
-        console.log(deadlineValue);
-        const deadlineTd = document.createElement('td');
-        const deadlineInput = document.createElement('input');
-        deadlineInput.type = 'datetime-local'; // Loại input là text
-        deadlineInput.value = formattedDeadlineValue; // Gán giá trị ban đầu
-        deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-        deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
-        // Gắn input vào ô td
-        deadlineTd.appendChild(deadlineInput);
-        deadlineInput.id = `deadlineInput_${index}`;
-        tableRow.appendChild(deadlineTd);
-
-        //Check box chọn thông báo 
-        let selectCheckboxTd, selectCheckbox;
-        selectCheckboxTd = document.createElement('td');
-        selectCheckbox = document.createElement('input');
-        selectCheckbox.type = 'checkbox';
-        selectCheckbox.style.marginLeft = '30px';
-        selectCheckbox.name = 'select'; // Thêm thuộc tính name
-        selectCheckbox.checked = row.HetHan || false; // Dùng một trường cho checkbox
-        selectCheckboxTd.appendChild(selectCheckbox);
-        tableRow.appendChild(selectCheckboxTd);
-
-        //button xoá thông báo
-        let deleteButtonTd, deleteButton;
-        deleteButtonTd = document.createElement('td');
-        deleteButton = document.createElement('button');
-        deleteButton.style.marginLeft = '30px'; // Canh chỉnh nút
-        deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
-        deleteButton.onclick = () => {
-          const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');
-          if (confirmed) {
-            tableRow.remove(); // Xóa dòng tương ứng
-            // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
-            deleteData(row.id); // Gọi hàm xóa dữ liệu trong database
-          }
-        };
-        deleteButtonTd.appendChild(deleteButton);
-        tableRow.appendChild(deleteButtonTd);
-
-        tableBody.appendChild(tableRow);
-      });
-
-      // Lưu dữ liệu với id vào localStorage
-      localStorage.setItem('tableData', JSON.stringify(tableRowData));
-    }
-
-  </script>
-  <script>
-    async function submitData() {
-      const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
-      const rowCount = rows.length;
-      const globalData = [];
-
-      rows.forEach((row, index) => {
-
-        const tieuDeInput = document.getElementById(`tieuDeInput_${index}`);
-        const tieuDe = tieuDeInput ? tieuDeInput.value : '';
-
-        const loiNhanInput = document.getElementById(`loiNhanInput_${index}`);
-        const loiNhan = loiNhanInput ? loiNhanInput.value : '';
-
-        const deadlineInput = document.getElementById(`deadlineInput_${index}`);
-        const deadline = deadlineInput ? deadlineInput.value : null;
-
-        // Lấy trạng thái từ selectCheckbox
-        const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
-        const isChecked = selectCheckbox ? selectCheckbox.checked : false;
-
-        // Đẩy dữ liệu vào globalData
-        globalData.push({
-          tieuDe,
-          loiNhan,
-          deadline,
-          isChecked,
-          id: row.dataset.id, // Thêm thông tin index vào để theo dõi
-        });
-        console.log(globalData);
-      });
-
-      // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
-      update(globalData);
-    }
-
-    // Gửi dữ liệu lên server
-    function update(globalData) {
-      console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
-      fetch('/updateMessage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
-      })
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(err => {
-              throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
-            });
-          }
-          return response.json(); // Chuyển đổi phản hồi thành JSON
-        })
-        .then(data => {
-          console.log(data.message); // Thông báo khi dữ liệu gửi thành công
-          getMessage();
-        })
-        .catch(error => {
-          console.error('Có lỗi xảy ra:', error);
-          console.log(error.message);
-        });
-    }
-    function deleteData(id) {
-      fetch('/deleteMessage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      })
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(err => {
-              throw new Error(err.message || 'Lỗi khi xóa dữ liệu');
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.success) {
-            // Cập nhật giao diện, ví dụ: xóa hàng khỏi bảng
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            if (row) row.remove();
-          } else {
-            alert(`Lỗi: ${data.message}`);
-          }
-        })
-        .catch(error => {
-          console.error('Có lỗi xảy ra:', error);
-          alert(`Không thể xóa: ${error.message}`);
-        });
-    }
-  </script>
-  <script>
-    window.onload = function () {
-      const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
-      //const Role = localStorage.getItem("userRole");
-      const TenDangNhap = localStorage.getItem("TenDangNhap");
-
-      let Role = localStorage.getItem("userRole");
-      if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
-        Role = 'LĐK';
-      }
-
-      if (TenNhanVien) {
-        // Hiển thị tên người dùng trên phần tử HTML
-        document.querySelector(
-          ".fullname"
-        ).innerText = `${TenNhanVien} - ${Role}`;
-      } else {
-        document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
-      }
-
-      //document.querySelector('.role').innerText = `${Role}`;
-    };
-
-    const fullnameElement = document.querySelector(".fullname");
-    fullnameElement.addEventListener("click", function () {
-      console.log("Full name link clicked");
-    });
-  </script>
-
-  <!-- Phần phân quyền -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-      const ThongTinGD = document.getElementById("ThongTinGD");
-
-      ThongTinGD.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-        if (isKhoa == 0) {
-          // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/info2";
-        } else {
-          window.location.href = "/info";
+        if (selectedDate < now) {
+          alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
+          event.preventDefault();
         }
       });
 
-      // Thêm sự kiện click cho phần tử có id="Home"
-
-      const Home = document.getElementById("Home");
-
-      Home.addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
+      function goBack() {
+        window.history.back();
+      }
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
         const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('actionButton');
+        const actionButton1 = document.getElementById('actionButton1');
+        const actionButton2 = document.getElementById('actionButton2');
+        const actionButton3 = document.getElementById('actionButton3');
 
         if (isKhoa == 0) {
-          // Nếu là đào tạo hoặc tài chính
-          window.location.href = "/maindt";
+          actionButton1.style.display = 'none'; // Ẩn actionButton1 nếu isKhoa = 0
+          actionButton2.style.display = 'inline-block'; // Hiện actionButton2
+
         } else {
-          window.location.href = "/mainkhoa";
+          actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
+          actionButton2.style.display = 'none'; // Ẩn actionButton2
+
+          if (role.toLowerCase() == 'gv') {
+            actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
+          }
+        }
+
+        //Ẩn site duyệt lớp gk
+        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+          actionButton3.style.display = '';
+        } else {
+          actionButton3.style.display = 'none';
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('MessageChanged') === 'true') {
+          Swal.fire({
+            title: "Thông báo",
+            html: "Thêm thông báo thành công",
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
+        } else if (urlParams.get('MessageChanged') === 'false') {
+          Swal.fire({
+            title: "Thông báo",
+            html: "Thêm thông báo mới không đúng!",
+            icon: "error",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
+        } else if (urlParams.get('MessageChanged') === 'false2') {
+          Swal.fire({
+            title: "Thông báo",
+            html: "Cập nhật thông báo thất bại!",
+            icon: "error",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
+        }
+        getMessage2();
+      });
+    </script>
+    <script>
+      async function getMessage() {
+        const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+        if (!MaPhongBan) {
+          alert("Mã phòng ban không tồn tại!");
+          return;
+        }
+
+        try {
+          console.log("Gửi dữ liệu");
+          const response = await fetch(`/getMessage/${MaPhongBan}`, {
+            method: 'GET', // Gửi yêu cầu GET
+          });
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+          const data = await response.json(); // Lấy dữ liệu từ server
+          console.log(data);
+          if (data.success) {
+            if (data.Message && data.Message.length > 0) {
+              console.log('Dữ liệu thông báo:', data);
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Thông báo',
+                text: "Thành công",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+              });
+              renderTable(data);
+            } else {
+            }
+          } else {
+            alert("Không tìm thấy dữ liệu!");
+          }
+        } catch (error) {
+          console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+        }
+      }
+
+      async function getMessage2() {
+        const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+        if (!MaPhongBan) {
+          alert("Mã phòng ban không tồn tại!");
+          return;
+        }
+
+        try {
+          console.log("Gửi dữ liệu");
+          const response = await fetch(`/getMessage/${MaPhongBan}`, {
+            method: 'GET', // Gửi yêu cầu GET
+          });
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          }
+          const data = await response.json(); // Lấy dữ liệu từ server
+          console.log(data);
+          if (data.success) {
+            if (data.Message && data.Message.length > 0) {
+              console.log('Dữ liệu thông báo:', data);
+              renderTable(data);
+            } else {
+            }
+          } else {
+            alert("Không tìm thấy dữ liệu!");
+          }
+        } catch (error) {
+          console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+        }
+      }
+
+    </script>
+    <script>
+      function renderTable(data) {
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        let tableRowData = [];
+
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // Xóa nội dung cũ
+        //let index = -1;
+        let Data = data.Message;
+        Data.forEach((row, index) => {
+
+          const tableRow = document.createElement('tr');
+
+          // Thêm id vào dữ liệu row để lưu trữ
+          let rowWithId = {
+            id: index,
+            ...row
+          };
+          tableRowData.push(rowWithId);
+
+          tableRow.setAttribute("data-id", row.id);
+
+          //Tiêu đề
+          const tieuDeTd = document.createElement('td');
+          const tieuDeInput = document.createElement('input');
+          tieuDeInput.type = 'text'; // Loại input là text
+          tieuDeInput.value = row.Title; // Gán giá trị ban đầu
+          tieuDeInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          tieuDeInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          tieuDeTd.appendChild(tieuDeInput);
+          tieuDeInput.id = `tieuDeInput_${index}`;
+          tableRow.appendChild(tieuDeTd);
+
+          //Lời nhắn
+          const loiNhanTd = document.createElement('td');
+          const loiNhanInput = document.createElement('input');
+          loiNhanInput.type = 'text'; // Loại input là text
+          loiNhanInput.value = row.LoiNhan; // Gán giá trị ban đầu
+          loiNhanInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          loiNhanInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          loiNhanTd.appendChild(loiNhanInput);
+          loiNhanInput.id = `loiNhanInput_${index}`;
+          tableRow.appendChild(loiNhanTd);
+
+          // Deadline
+          const deadlineValue = new Date(row.Deadline);
+          deadlineValue.setMinutes(deadlineValue.getMinutes() - deadlineValue.getTimezoneOffset()); // Chuyển đổi sang giờ địa phương
+          const formattedDeadlineValue = deadlineValue.toISOString().slice(0, 16);
+          console.log(deadlineValue);
+          const deadlineTd = document.createElement('td');
+          const deadlineInput = document.createElement('input');
+          deadlineInput.type = 'datetime-local'; // Loại input là text
+          deadlineInput.value = formattedDeadlineValue; // Gán giá trị ban đầu
+          deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
+          deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          // Gắn input vào ô td
+          deadlineTd.appendChild(deadlineInput);
+          deadlineInput.id = `deadlineInput_${index}`;
+          tableRow.appendChild(deadlineTd);
+
+          //Check box chọn thông báo 
+          let selectCheckboxTd, selectCheckbox;
+          selectCheckboxTd = document.createElement('td');
+          selectCheckbox = document.createElement('input');
+          selectCheckbox.type = 'checkbox';
+          selectCheckbox.style.marginLeft = '30px';
+          selectCheckbox.name = 'select'; // Thêm thuộc tính name
+          selectCheckbox.checked = row.HetHan || false; // Dùng một trường cho checkbox
+          selectCheckboxTd.appendChild(selectCheckbox);
+          tableRow.appendChild(selectCheckboxTd);
+
+          //button xoá thông báo
+          let deleteButtonTd, deleteButton;
+          deleteButtonTd = document.createElement('td');
+          deleteButton = document.createElement('button');
+          deleteButton.style.marginLeft = '30px'; // Canh chỉnh nút
+          deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
+          deleteButton.onclick = () => {
+            const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');
+            if (confirmed) {
+              tableRow.remove(); // Xóa dòng tương ứng
+              // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
+              deleteData(row.id); // Gọi hàm xóa dữ liệu trong database
+            }
+          };
+          deleteButtonTd.appendChild(deleteButton);
+          tableRow.appendChild(deleteButtonTd);
+
+          tableBody.appendChild(tableRow);
+        });
+
+        // Lưu dữ liệu với id vào localStorage
+        localStorage.setItem('tableData', JSON.stringify(tableRowData));
+      }
+
+    </script>
+    <script>
+      async function submitData() {
+        const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
+        const rowCount = rows.length;
+        const globalData = [];
+
+        rows.forEach((row, index) => {
+
+          const tieuDeInput = document.getElementById(`tieuDeInput_${index}`);
+          const tieuDe = tieuDeInput ? tieuDeInput.value : '';
+
+          const loiNhanInput = document.getElementById(`loiNhanInput_${index}`);
+          const loiNhan = loiNhanInput ? loiNhanInput.value : '';
+
+          const deadlineInput = document.getElementById(`deadlineInput_${index}`);
+          const deadline = deadlineInput ? deadlineInput.value : null;
+
+          // Lấy trạng thái từ selectCheckbox
+          const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
+          const isChecked = selectCheckbox ? selectCheckbox.checked : false;
+
+          // Đẩy dữ liệu vào globalData
+          globalData.push({
+            tieuDe,
+            loiNhan,
+            deadline,
+            isChecked,
+            id: row.dataset.id, // Thêm thông tin index vào để theo dõi
+          });
+          console.log(globalData);
+        });
+
+        // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
+        update(globalData);
+      }
+
+      // Gửi dữ liệu lên server
+      function update(globalData) {
+        console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
+        fetch('/updateMessage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
+              });
+            }
+            return response.json(); // Chuyển đổi phản hồi thành JSON
+          })
+          .then(data => {
+            console.log(data.message); // Thông báo khi dữ liệu gửi thành công
+            getMessage();
+          })
+          .catch(error => {
+            console.error('Có lỗi xảy ra:', error);
+            console.log(error.message);
+          });
+      }
+      function deleteData(id) {
+        fetch('/deleteMessage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id }),
+        })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Lỗi khi xóa dữ liệu');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              // Cập nhật giao diện, ví dụ: xóa hàng khỏi bảng
+              const row = document.querySelector(`tr[data-id="${id}"]`);
+              if (row) row.remove();
+            } else {
+              alert(`Lỗi: ${data.message}`);
+            }
+          })
+          .catch(error => {
+            console.error('Có lỗi xảy ra:', error);
+            alert(`Không thể xóa: ${error.message}`);
+          });
+      }
+    </script>
+    <script>
+      window.onload = function () {
+        const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
+        //const Role = localStorage.getItem("userRole");
+        const TenDangNhap = localStorage.getItem("TenDangNhap");
+
+        let Role = localStorage.getItem("userRole");
+        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
+          Role = 'LĐK';
+        }
+
+        if (TenNhanVien) {
+          // Hiển thị tên người dùng trên phần tử HTML
+          document.querySelector(
+            ".fullname"
+          ).innerText = `${TenNhanVien} - ${Role}`;
+        } else {
+          document.querySelector(".fullname").innerText = "Hi, Guest"; // Hiển thị nếu không có tên người dùng
+        }
+
+        //document.querySelector('.role').innerText = `${Role}`;
+      };
+
+      const fullnameElement = document.querySelector(".fullname");
+      fullnameElement.addEventListener("click", function () {
+        console.log("Full name link clicked");
+      });
+    </script>
+
+    <!-- Phần phân quyền -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+        const ThongTinGD = document.getElementById("ThongTinGD");
+
+        ThongTinGD.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/info2";
+          } else {
+            window.location.href = "/info";
+          }
+        });
+
+        // Thêm sự kiện click cho phần tử có id="Home"
+
+        const Home = document.getElementById("Home");
+
+        Home.addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+          const isKhoa = localStorage.getItem("isKhoa");
+
+          if (isKhoa == 0) {
+            // Nếu là đào tạo hoặc tài chính
+            window.location.href = "/maindt";
+          } else {
+            window.location.href = "/mainkhoa";
+          }
+        });
+      });
+    </script>
+
+    <script>
+      document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+        if (tenDangNhap) {
+          // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+          window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+        } else {
+          alert("Không tìm thấy TenDangNhap trong localStorage.");
         }
       });
-    });
-  </script>
+    </script>
+    <script>
+      document.getElementById("infome").addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+        if (id_User) {
+          // Chuyển hướng đến trang infome và truyền id_User trong URL
+          window.location.href = `/infome/${id_User}`;
+        } else {
+          alert("Không tìm thấy id_User trong localStorage.");
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
 
-  <script>
-    document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById('changeMessage');
+        //Ẩn site thêm thông báo
+        if (role === "Duyệt") {
+          actionButton.style.display = '';
+        } else {
+          actionButton.style.display = 'none';
+        }
+      });
+    </script>
+    <script>
+      document.getElementById("changeMessage").addEventListener("click", function (event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-      if (tenDangNhap) {
-        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-      } else {
-        alert("Không tìm thấy TenDangNhap trong localStorage.");
-      }
-    });
-  </script>
-  <script>
-    document.getElementById("infome").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-      if (id_User) {
-        // Chuyển hướng đến trang infome và truyền id_User trong URL
-        window.location.href = `/infome/${id_User}`;
-      } else {
-        alert("Không tìm thấy id_User trong localStorage.");
-      }
-    });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const role = localStorage.getItem("userRole");
-
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('changeMessage');
-      //Ẩn site thêm thông báo
-      if (role === "Duyệt") {
-        actionButton.style.display = '';
-      } else {
-        actionButton.style.display = 'none';
-      }
-    });
-  </script>
-  <script>
-    document.getElementById("changeMessage").addEventListener("click", function (event) {
-      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-      const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
-
-      if (MaPhongBan) {
-        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-        window.location.href = `/changeMessage/${MaPhongBan}`;
-      } else {
-        alert("Không tìm thấy MaPhongBan trong localStorage.");
-      }
-    });
-  </script>
+        if (MaPhongBan) {
+          // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+          window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+          alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+    </script>
 </body>
 
 </html>
