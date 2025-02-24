@@ -10,28 +10,54 @@ const thongkenckhController = {
     // Lấy dữ liệu thống kê
     getStatisticsData: async (req, res) => {
         let connection;
-        const { namhoc, khoa } = req.query; // Get filters from query parameters
+        const { namhoc, khoa } = req.query; // Lấy giá trị từ query parameters
+    
         try {
             connection = await createConnection();
-            const queries = [
-                `SELECT COUNT(*) AS total FROM detaiduan WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM baibaokhoahoc WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM bangsangchevagiaithuong WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM biensoangiaotrinhbaigiang WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM xaydungctdt WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM nckhvahuanluyendoituyen WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`,
-                `SELECT COUNT(*) AS total FROM sachvagiaotrinh WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1`
+    
+            const baseQuery = `SELECT COUNT(*) AS total FROM ?? WHERE daotaoduyet = 1`;
+            const tables = [
+                "detaiduan",
+                "baibaokhoahoc",
+                "bangsangchevagiaithuong",
+                "biensoangiaotrinhbaigiang",
+                "xaydungctdt",
+                "nckhvahuanluyendoituyen",
+                "sachvagiaotrinh"
             ];
-
+    
             const results = await Promise.all(
-                queries.map(query => connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]))
+                tables.map(async (table) => {
+                    let conditions = [];
+                    let params = [table];
+    
+                    // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+                    if (khoa && khoa !== 'ALL') {
+                        conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                        params.push(khoa);
+                    }
+    
+                    // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+                    if (namhoc) {
+                        conditions.push("NamHoc = ?");
+                        params.push(namhoc);
+                    }
+    
+                    // Gộp các điều kiện vào câu query
+                    let finalQuery = baseQuery;
+                    if (conditions.length > 0) {
+                        finalQuery += ` AND ${conditions.join(" AND ")}`;
+                    }
+    
+                    // Thực thi truy vấn
+                    const [rows] = await connection.query(finalQuery, params);
+                    return rows[0].total;
+                })
             );
-
-            const totals = results.map(([rows]) => rows[0].total); // Lấy tổng từ mỗi bảng
-
+    
             res.json({
                 success: true,
-                data: totals
+                data: results
             });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu thống kê:", err);
@@ -40,6 +66,7 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
+    
 
     // đề tài dự án
     getDetail1Data: async (req, res) => {
@@ -47,7 +74,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query; // Get filters from query parameters
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT 
                     ID,
                     CapDeTai,
@@ -60,9 +87,30 @@ const thongkenckhController = {
                     NgayNghiemThu,
                     Khoa
                 FROM detaiduan 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng đề tài dự án:", err);
@@ -77,7 +125,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT 
                     NamHoc,
                     Khoa,
@@ -90,10 +138,30 @@ const thongkenckhController = {
                     DanhSachThanhVien,
                     Khoa
                 FROM baibaokhoahoc 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            //không có khoảng trắng sau dấu phẩy
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng bái báo khoa học:", err);
@@ -113,7 +181,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT
                     ID,
                     NamHoc,
@@ -125,9 +193,30 @@ const thongkenckhController = {
                     Khoa,
                     NgayQDCongNhan
                 FROM bangsangchevagiaithuong 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng bằng sáng chế:", err);
@@ -142,7 +231,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT
                    ID,
                    Phanloai,
@@ -155,9 +244,30 @@ const thongkenckhController = {
                    TacGia,
                    Khoa
                 FROM biensoangiaotrinhbaigiang 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng biên soạn giáo trình:", err);
@@ -171,7 +281,7 @@ const thongkenckhController = {
     //     let connection;
     //     try {
     //         connection = await createConnection();
-    //         const query = `
+    //         let query = `
     //             SELECT 
     //             MaNhiemVu,
     //             NamHoc,
@@ -196,7 +306,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT
                     ID,
                     NamHoc,
@@ -209,9 +319,30 @@ const thongkenckhController = {
                     DanhSachThanhVien,
                     Khoa
                 FROM xaydungctdt 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu bảng xây dưng ctđt::", err);
@@ -226,7 +357,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
             SELECT
                 ID,
                 PhanLoai,
@@ -239,9 +370,30 @@ const thongkenckhController = {
                 DanhSachThanhVien,
                 Khoa
             FROM nckhvahuanluyendoituyen 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng NCKH và huấn luyện đổi tuyển:", err);
@@ -256,7 +408,7 @@ const thongkenckhController = {
         const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT
                     ID,
                     PhanLoai,
@@ -269,9 +421,30 @@ const thongkenckhController = {
                     DanhSachThanhVien,
                     Khoa
                 FROM sachvagiaotrinh 
-                WHERE (? IS NULL OR FIND_IN_SET(?, KhoaThanhVien)) AND (? IS NULL OR NamHoc = ?) AND daotaoduyet = 1
+                WHERE daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query, [khoa || null, khoa || null, namhoc || null, namhoc || null]);
+
+            let conditions = [];
+            let params = [];
+
+            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+            if (khoa && khoa !== 'ALL') {
+                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                params.push(khoa);
+            }
+
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, [...params]);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng sách và giáo trình:", err);

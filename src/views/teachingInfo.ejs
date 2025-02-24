@@ -903,19 +903,6 @@
               const moiGiang = inviteCheckbox.checked;
               showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
             };
-/*
-            giaoVienGiangDayInput.onclick = () => {
-              const moiGiang = inviteCheckbox.checked;
-              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
-            };
-
-            giaoVienGiangDayInput.oninput = () => {
-              const moiGiang = inviteCheckbox.checked;
-              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
-            };*/
-
-            giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
-            tableRow.appendChild(giaoVienGiangDayTd);
 
             giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
             tableRow.appendChild(giaoVienGiangDayTd);
@@ -934,21 +921,8 @@
             boMonInput.id = `boMonInput-${row.ID}`;
             boMonTd.appendChild(boMonInput);
             tableRow.appendChild(boMonTd);
-
-            boMonInput.addEventListener("mousedown", (e) => {
-              showSuggestionsBoMon(boMonInput);
-            });
   
-            boMonInput.addEventListener("focus", () => {
-              showSuggestionsBoMon(boMonInput);
-            });
-            /*
-            boMonInput.onclick = () => {
-              showSuggestionsBoMon(boMonInput);
-            };
-            boMonInput.oninput = () => {
-              showSuggestionsBoMon(boMonInput);
-            };*/
+            showSuggestionsBoMon(boMonInput);
 
             //Thẻ select hình thức thi giữa kỳ
             let he_dao_taoTd;
@@ -1407,13 +1381,10 @@
           valuesCache = values;
           const value = values.pop().toLowerCase();
 
-          console.log("id = ", id)
-          console.log("bang = ", bangDuLieuCache)
           const currentObject = bangDuLieuCache.find(
             (item) => item.ID === id
           );
           if (!currentObject){
-            console.log("gf")
             return;
           } 
 
@@ -1429,7 +1400,6 @@
           if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
             return;
 
-          console.log("moi giang = ", moiGiang)
           // Gợi ý theo điều kiện
           if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
             if (moiGiang) {
@@ -1464,7 +1434,7 @@
         },
         minLength: 0,
         delay: 0,
-        autoFocus: true, // tự động focus mục đầu tiên
+        autoFocus: false, // tự động focus mục đầu tiên
         select: function (event, ui) {
           const selectedName = ui.item.value.split(" - ")[0];
           const values = valuesCache;
