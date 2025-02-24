@@ -314,7 +314,7 @@ function convertToMySQLFormat(dateStr) {
   let seconds = String(date.getUTCSeconds()).padStart(2, '0');
 
   // Định dạng theo chuẩn MySQL: YYYY-MM-DD HH:MM:SS
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}:00`;
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 const updateMessage = async (req, res) => {
