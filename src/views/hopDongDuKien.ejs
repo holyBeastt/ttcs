@@ -207,8 +207,8 @@
                         <th style="display: none">Khoa</th>
                         <th class="d_none">Địa chỉ</th>
                         <th class="d_none">Nơi công tác</th>
-                        <th class="d_none">Loại bằng</th>
-                        <th class="d_none">Môn giảng dạy</th>
+                        <!-- <th class="d_none">Khoa</th> -->
+                        <th class="d_none">Bộ môn</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -428,8 +428,8 @@
               row.insertCell(15).textContent = item.MaSoThue;
               row.insertCell(16).textContent = item.DiaChi;
               row.insertCell(17).textContent = item.NoiCongTac;
-              row.insertCell(18).textContent = item.BangTotNghiepLoai;
-              row.insertCell(19).textContent = item.MonGiangDayChinh;
+              //row.insertCell(18).textContent = item.BangTotNghiepLoai;
+              row.insertCell(18).textContent = item.MonGiangDayChinh;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
               if (item.TongSoTiet > 300) {
