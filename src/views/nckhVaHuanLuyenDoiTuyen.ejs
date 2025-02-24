@@ -140,6 +140,12 @@
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
     <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <!-- fix ngày -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <!-- Flatpickr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <!-- nckh view -->
     <script>
       var table;
@@ -194,16 +200,11 @@
               {
                 title: "Ngày QĐ giao nhiệm vụ",
                 field: "NgayQDGiaoNhiemVu",
-                editor: "date",
-                editorParams: {
-                  format: "dd/MM/yyyy",
-                  defaultValue: "",
-                  elementAttributes: { placeholder: "dd/MM/yyyy" }
-                },
+                editor: customDateEditor,
                 formatter: "datetime",
                 formatterParams: {
                   inputFormat: "iso",
-                  outputFormat: "dd/MM/yyyy"
+                  outputFormat: "MM/dd/yyyy"
                 },
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
               },
@@ -277,6 +278,38 @@
           console.error("Lỗi khi lấy dữ liệu:", error);
         }
       });
+
+      // Hàm tạo custom editor cho Tabulator
+      function customDateEditor(cell, onRendered, success, cancel, editorParams) {
+        var cellValue = cell.getValue();
+        var formattedValue = cellValue ? moment(cellValue).format("MM/DD/YYYY") : "";
+
+        var input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.style.padding = "3px";
+        input.style.width = "100%";
+        input.style.boxSizing = "border-box";
+        input.value = formattedValue;
+
+        // Gọi flatpickr khi editor được render
+        onRendered(function () {
+          input.focus();
+          flatpickr(input, {
+            dateFormat: "m/d/Y",  // Định dạng mm/dd/yyyy
+            defaultDate: formattedValue,
+            allowInput: true,      // ✅ Cho phép nhập tay từ bàn phím
+            clickOpens: true,      // Mở lịch khi click vào input
+            onChange: function (selectedDates, dateStr) {
+              success(selectedDates.length ? moment(selectedDates[0]).toISOString() : "");
+            },
+            onClose: function (selectedDates, dateStr) {
+              if (!selectedDates.length) cancel();
+            }
+          });
+        });
+
+        return input;
+      }
 
       // Formatter hiển thị checkbox cho cột Duyệt
       function checkboxFormatter(cell, formatterParams, onRendered) {

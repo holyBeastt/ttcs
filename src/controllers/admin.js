@@ -301,6 +301,15 @@ const addMessage = async (req, res) => {
   }
 };
 
+function convertToMySQLFormat(dateStr) {
+  // Thay 'T' bằng khoảng trắng
+  let formattedDate = dateStr.replace('T', ' ');
+  // Thêm ':00' vào cuối để biểu diễn giây
+  formattedDate += ':00';
+  console.log(formattedDate);
+  return formattedDate;
+}
+
 const updateMessage = async (req, res) => {
   const globalData = req.body; // Lấy dữ liệu từ client gửi đến
   if (!globalData || globalData.length === 0) {
@@ -317,7 +326,7 @@ const updateMessage = async (req, res) => {
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
 
       // Thực hiện câu truy vấn
-      await connection.query(query, [tieuDe, loiNhan, deadline, isChecked, id]);
+      await connection.query(query, [tieuDe, loiNhan, convertToMySQLFormat(deadline), isChecked, id]);
     }
 
     // Redirect về trang thay đổi thông báo
