@@ -12,6 +12,29 @@
   <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .box {
+      display: flex;
+      flex-direction: column;
+      /* Xếp dọc nội dung */
+      justify-content: center;
+      /* Căn giữa theo chiều dọc */
+      align-items: center;
+      /* Căn giữa theo chiều ngang */
+      min-height: 100vh;
+      /* Đảm bảo chiều cao full màn */
+      /* text-align: center; */
+      /* Căn giữa nội dung văn bản */
+    }
+
+    .box form,
+    .box .showMessage {
+      width: 100%;
+      /* Đảm bảo nội dung bên trong full màn */
+      max-width: 1200px;
+      /* Giới hạn chiều rộng tối đa (tùy chỉnh theo nhu cầu) */
+    }
+  </style>
 </head>
 
 <body>
@@ -23,18 +46,18 @@
 
 
     <!-- Phần trên của navbar chứa logo và tiêu đề -->
-    <div class="container-fluid m-4 box">
+    <div class="container-fluid box">
       <h2>Thêm thông báo</h2>
 
       <form id="changeMessageForm" method="POST">
         <div class="row">
-          <div class="col-md-4 input-wrapper">
+          <div class="col-md-12 input-wrapper">
             <label for="Title">Tiêu đề:</label>
             <input type="text" id="Title" name="Title" class="form-control" required />
           </div>
         </div>
         <div class="row">
-          <div class="col-md-4 input-wrapper">
+          <div class="col-md-12 input-wrapper">
             <label for="LoiNhan">Thông báo:</label>
             <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
             <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;"
@@ -57,11 +80,11 @@
         <table class=" text-center" style="width: 100%;">
           <thead>
             <tr>
-              <th style="width: 50px;">Tiêu đề</th>
-              <th style="width: 50px;">Lời nhắn</th>
-              <th style="width: 200px;">Hạn cuối</th>
-              <th style="width: 50px;">Ẩn thông báo</th>
-              <th style="width: 50px;">Xoá thông báo</th>
+              <th style="width: 30%;">Tiêu đề</th>
+              <th style="width: 50%;">Thông báo</th>
+              <th style="width: 10%;">Hạn cuối</th>
+              <th style="width: 5%;">Ẩn TB</th>
+              <th style="width: 5%;">Xoá TB</th>
             </tr>
           </thead>
           <tbody id="tableBody">
