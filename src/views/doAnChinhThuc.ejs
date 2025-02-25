@@ -267,8 +267,16 @@
         const tableHeader = document.getElementById('table-header');
         tableHeader.innerHTML = columnsToDisplay.map(header => {
           const newHeaderName = headersMap[header] || header;
-          return `<th>${newHeaderName}</th>`;
+          let widthStyle = '';
+
+          if (header === 'TenDeTai') widthStyle = 'width: 20%';
+          if (header === 'GiangVienDefault') widthStyle = 'width: 15%';
+          if (header === 'GiangVien1') widthStyle = 'width: 15%';
+
+          return `<th style="${widthStyle}">${newHeaderName}</th>`;
         }).join('');
+
+
 
         const tableBody = document.getElementById('data-table-body');
         tableBody.innerHTML = data.map(item => {
