@@ -258,8 +258,9 @@ const login = async (req, res) => {
             WHERE TenDangNhap = ?`;
         const [TenNhanViens] = await connection.query(query, [username]);
         const TenNhanVien = TenNhanViens[0]?.TenNhanVien;
-        await createTrigger(connection, req.session.userId, TenNhanVien);
-
+        await createTriggermoigiang(connection, req.session.userId, TenNhanVien);
+        await createTriggerdoan(connection, req.session.userId, TenNhanVien);
+        
         // Phân quyền người dùng
         const [roles] = await connection.query(
           "SELECT MaPhongBan, Quyen, isKhoa FROM role WHERE TenDangNhap = ?",
