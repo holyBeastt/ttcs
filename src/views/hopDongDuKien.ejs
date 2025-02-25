@@ -214,6 +214,7 @@
                         </th>
                         <!-- <th class="d_none">Loại bằng</th> -->
                         <th class="d_none">Bộ môn</th>
+                        <th class="d_none">Xem</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -439,6 +440,14 @@
 
               row.insertCell(17).textContent = item.NoiCongTac;
               row.insertCell(18).textContent = item.MonGiangDayChinh;
+              const cellAction = row.insertCell(19); // Thêm cột thứ 19 (sau MonGiangDayChinh)
+              cellAction.innerHTML = `
+                <td>
+                  <button class="action-button view" onclick="viewClass(this, '${
+                    parseInt(item.id_Gvm) - 1
+                  }')">👁️</button>
+                </td>
+              `;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
               if (item.TongSoTiet > 300) {
@@ -462,6 +471,11 @@
     <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+      function viewClass(button, index) {
+        var hre = "/viewGvm/" + index;
+        window.location.href = hre;
+      }
+
       // Lấy query string từ URL
       const urlParams = new URLSearchParams(window.location.search);
       const message = urlParams.get("message");
