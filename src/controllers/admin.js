@@ -309,12 +309,12 @@ function convertToMySQLFormat(dateStr) {
   let year = date.getUTCFullYear();
   let month = String(date.getUTCMonth() + 1).padStart(2, '0');
   let day = String(date.getUTCDate()).padStart(2, '0');
-  let hours = String(date.getUTCHours()).padStart(2, '0');
-  let minutes = String(date.getUTCMinutes()).padStart(2, '0');
-  let seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  // let hours = String(date.getUTCHours()).padStart(2, '0');
+  // let minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  // let seconds = String(date.getUTCSeconds()).padStart(2, '0');
 
   // Định dạng theo chuẩn MySQL: YYYY-MM-DD HH:MM:SS
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return `${year}-${month}-${day}`;
 }
 
 const updateMessage = async (req, res) => {

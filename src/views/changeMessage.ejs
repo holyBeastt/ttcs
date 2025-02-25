@@ -288,22 +288,20 @@
           loiNhanInput.id = `loiNhanInput_${index}`;
           tableRow.appendChild(loiNhanTd);
 
-          // Chuyển đổi row.Deadline (ví dụ: "2025-02-18T23:10:00.000Z") sang đối tượng Date
+          // Chuyển đổi row.Deadline sang đối tượng Date
           const deadlineValue = new Date(row.Deadline);
 
-          // Chuyển đổi sang định dạng "YYYY-MM-DDTHH:mm" (theo giờ địa phương) bằng cách inlined các bước xử lý
+          // Chuyển đổi sang định dạng "YYYY-MM-DD" (không có giờ phút)
           const pad = (num) => String(num).padStart(2, '0');
           const year = deadlineValue.getFullYear();
-          const month = pad(deadlineValue.getMonth() + 1); // getMonth() trả về 0-11
+          const month = pad(deadlineValue.getMonth() + 1);
           const day = pad(deadlineValue.getDate());
-          const hours = pad(deadlineValue.getHours());
-          const minutes = pad(deadlineValue.getMinutes());
-          const formattedDeadlineValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+          const formattedDeadlineValue = `${year}-${month}-${day}`;
 
           // Tạo phần tử input cho deadline
           const deadlineTd = document.createElement('td');
           const deadlineInput = document.createElement('input');
-          deadlineInput.type = 'datetime-local';
+          deadlineInput.type = 'date'; // Chỉ lấy ngày
           deadlineInput.value = formattedDeadlineValue;
           deadlineInput.classList.add('border-light');
           deadlineInput.style.width = '100%';
@@ -361,7 +359,7 @@
         // Tạo đối tượng Date từ timestamp và chuyển về chuỗi ISO (UTC)
         return new Date(utcTimestamp).toISOString();
       }
-      
+
       async function submitData() {
         const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
         const rowCount = rows.length;
@@ -377,7 +375,8 @@
 
           const deadlineInput = document.getElementById(`deadlineInput_${index}`);
           const deadline = deadlineInput ? deadlineInput.value : null;
-          const deadlineConvert = convertToUTC(deadline);
+          // const deadlineConvert = convertToUTC(deadline);
+          const deadlineConvert = deadline;
 
           // Lấy trạng thái từ selectCheckbox
           const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
@@ -387,6 +386,7 @@
           globalData.push({
             tieuDe,
             loiNhan,
+            // deadline,
             deadlineConvert,
             isChecked,
             id: row.dataset.id, // Thêm thông tin index vào để theo dõi
