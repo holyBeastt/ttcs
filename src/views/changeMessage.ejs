@@ -12,6 +12,29 @@
   <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .box {
+      display: flex;
+      flex-direction: column;
+      /* Xếp dọc nội dung */
+      justify-content: center;
+      /* Căn giữa theo chiều dọc */
+      align-items: center;
+      /* Căn giữa theo chiều ngang */
+      min-height: 100vh;
+      /* Đảm bảo chiều cao full màn */
+      /* text-align: center; */
+      /* Căn giữa nội dung văn bản */
+    }
+
+    .box form,
+    .box .showMessage {
+      width: 100%;
+      /* Đảm bảo nội dung bên trong full màn */
+      max-width: 1200px;
+      /* Giới hạn chiều rộng tối đa (tùy chỉnh theo nhu cầu) */
+    }
+  </style>
 </head>
 
 <body>
@@ -23,18 +46,18 @@
 
 
     <!-- Phần trên của navbar chứa logo và tiêu đề -->
-    <div class="container-fluid m-4 box">
+    <div class="container-fluid box">
       <h2>Thêm thông báo</h2>
 
       <form id="changeMessageForm" method="POST">
         <div class="row">
-          <div class="col-md-4 input-wrapper">
+          <div class="col-md-12 input-wrapper">
             <label for="Title">Tiêu đề:</label>
             <input type="text" id="Title" name="Title" class="form-control" required />
           </div>
         </div>
         <div class="row">
-          <div class="col-md-4 input-wrapper">
+          <div class="col-md-12 input-wrapper">
             <label for="LoiNhan">Thông báo:</label>
             <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
             <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;"
@@ -44,7 +67,7 @@
         <div class="row">
           <div class="col-md-4 input-wrapper">
             <label for="Deadline">Ngày hết hạn:</label>
-            <input type="datetime-local" id="Deadline" name="Deadline" class="form-control" required />
+            <input type="date" id="Deadline" name="Deadline" class="form-control" required />
           </div>
         </div>
         <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
@@ -57,11 +80,11 @@
         <table class=" text-center" style="width: 100%;">
           <thead>
             <tr>
-              <th style="width: 50px;">Tiêu đề</th>
-              <th style="width: 50px;">Lời nhắn</th>
-              <th style="width: 200px;">Hạn cuối</th>
-              <th style="width: 50px;">Ẩn thông báo</th>
-              <th style="width: 50px;">Xoá thông báo</th>
+              <th style="width: 30%;">Tiêu đề</th>
+              <th style="width: 50%;">Thông báo</th>
+              <th style="width: 10%;">Hạn cuối</th>
+              <th style="width: 5%;">Ẩn TB</th>
+              <th style="width: 5%;">Xoá TB</th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -218,7 +241,7 @@
         }
 
         try {
-          console.log("Gửi dữ liệu");
+          console.log("Get data");
           const response = await fetch(`/getMessage/${MaPhongBan}`, {
             method: 'GET', // Gửi yêu cầu GET
           });
@@ -288,20 +311,25 @@
           loiNhanInput.id = `loiNhanInput_${index}`;
           tableRow.appendChild(loiNhanTd);
 
-          // Deadline
+          // Chuyển đổi row.Deadline sang đối tượng Date
           const deadlineValue = new Date(row.Deadline);
-          deadlineValue.setMinutes(deadlineValue.getMinutes() - deadlineValue.getTimezoneOffset()); // Chuyển đổi sang giờ địa phương
-          const formattedDeadlineValue = deadlineValue.toISOString().slice(0, 16);
-          console.log(deadlineValue);
+
+          // Chuyển đổi sang định dạng "YYYY-MM-DD" (không có giờ phút)
+          const pad = (num) => String(num).padStart(2, '0');
+          const year = deadlineValue.getFullYear();
+          const month = pad(deadlineValue.getMonth() + 1);
+          const day = pad(deadlineValue.getDate());
+          const formattedDeadlineValue = `${year}-${month}-${day}`;
+
+          // Tạo phần tử input cho deadline
           const deadlineTd = document.createElement('td');
           const deadlineInput = document.createElement('input');
-          deadlineInput.type = 'datetime-local'; // Loại input là text
-          deadlineInput.value = formattedDeadlineValue; // Gán giá trị ban đầu
-          deadlineInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-          deadlineInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
-          // Gắn input vào ô td
-          deadlineTd.appendChild(deadlineInput);
+          deadlineInput.type = 'date'; // Chỉ lấy ngày
+          deadlineInput.value = formattedDeadlineValue;
+          deadlineInput.classList.add('border-light');
+          deadlineInput.style.width = '100%';
           deadlineInput.id = `deadlineInput_${index}`;
+          deadlineTd.appendChild(deadlineInput);
           tableRow.appendChild(deadlineTd);
 
           //Check box chọn thông báo 
@@ -341,6 +369,20 @@
 
     </script>
     <script>
+
+      function convertToUTC(dateStr) {
+        // Giả sử dateStr có định dạng "YYYY-MM-DDTHH:mm"
+        const [datePart, timePart] = dateStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+
+        // Tạo timestamp UTC từ các giá trị (lưu ý: tháng trong Date.UTC là 0-indexed)
+        const utcTimestamp = Date.UTC(year, month - 1, day, hours, minutes);
+
+        // Tạo đối tượng Date từ timestamp và chuyển về chuỗi ISO (UTC)
+        return new Date(utcTimestamp).toISOString();
+      }
+
       async function submitData() {
         const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
         const rowCount = rows.length;
@@ -356,6 +398,8 @@
 
           const deadlineInput = document.getElementById(`deadlineInput_${index}`);
           const deadline = deadlineInput ? deadlineInput.value : null;
+          // const deadlineConvert = convertToUTC(deadline);
+          const deadlineConvert = deadline;
 
           // Lấy trạng thái từ selectCheckbox
           const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
@@ -365,11 +409,12 @@
           globalData.push({
             tieuDe,
             loiNhan,
-            deadline,
+            // deadline,
+            deadlineConvert,
             isChecked,
             id: row.dataset.id, // Thêm thông tin index vào để theo dõi
           });
-          console.log(globalData);
+          // console.log(globalData);
         });
 
         // Gọi hàm update() sau khi đã thu thập tất cả dữ liệu
