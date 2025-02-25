@@ -81,6 +81,7 @@ const upload = multer().single("truocCCCD");
 
 const postUpdateGvm = async (req, res) => {
   // Lấy các thông tin từ form
+  let IdGvm = req.body.IdGvm;
   let HoTen = req.body.HoTen;
   let GioiTinh = req.body.GioiTinh;
   let NgaySinh = req.body.NgaySinh;
@@ -111,6 +112,17 @@ const postUpdateGvm = async (req, res) => {
   // Khởi tạo connection
   const connection = await createPoolConnection();
 
+  // Kiểm tra HSL
+  // Nếu là chuỗi, thay dấu phẩy bằng dấu chấm
+  if (typeof HeSoLuong === "string") {
+    HeSoLuong = HeSoLuong.replace(",", ".");
+  }
+
+  if (isNaN(HeSoLuong)) {
+    connection.release(); // Giải phóng kết nối trước khi trả về
+    return res.redirect(`/updateGvm/${IdGvm}?message=HeSoLuongNotValue`);
+  }
+
   // Kiểm tra trùng lặp CCCD
   const checkDuplicateQuery =
     "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND HoTen != ?";
@@ -126,7 +138,6 @@ const postUpdateGvm = async (req, res) => {
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
     ? req.body.maPhongBan.join(",") // Nếu là mảng
     : req.body.maPhongBan || ""; // Nếu là chuỗi hoặc không có giá trị
-  let IdGvm = req.body.IdGvm;
   const parts = IdGvm.split("_"); // Chia chuỗi theo dấu gạch dưới
   const lastPart = parts[parts.length - 1]; // Lấy phần cuối cùng của mảng
 
