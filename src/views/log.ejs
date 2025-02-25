@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/css/gvmList.css" />
   <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     .filter-container {
         display: flex; /* Sử dụng Flexbox */
@@ -153,14 +154,28 @@
     });
 
     async function fetchNamHocData() {
-        const response = await fetch('/api/namhoc'); // Gọi đến API để lấy năm học
-        const data = await response.json();
-        const namHocSelect = document.getElementById('NamHoc');
-        data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.NamHoc; // Giả sử cột là NamHoc
-            option.textContent = item.NamHoc;
-            namHocSelect.appendChild(option);
+        $('#NamHoc option[value=""]').empty();
+        $.ajax({
+            url: "/getNamHoc",
+            method: "GET",
+            success: function (response) {
+                if (response.success) {
+                    response.NamHoc.forEach(function (item) {
+                        console.log(item.NamHoc);
+                        $("#NamHoc").append(
+                            `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                        );
+                    });
+                } else {
+                    console.error(
+                        "Không lấy được dữ liệu năm học:",
+                        response.message
+                    );
+                }
+            },
+            error: function (error) {
+                console.error("Lỗi khi lấy dữ liệu năm học:", error);
+            },
         });
     }
 
