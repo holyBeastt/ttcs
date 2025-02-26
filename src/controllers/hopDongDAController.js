@@ -230,39 +230,39 @@ const exportMultipleContracts = async (req, res) => {
     connection = await createPoolConnection();
     let query = `
 SELECT 
-  gv.CCCD,
-  gv.DienThoai,
-  gv.Email,
-  gv.MaSoThue,
-  gv.HoTen,
-  gv.NgaySinh,
-  gv.NgayCapCCCD,
-  gv.GioiTinh,
-gv.STK,
-  gv.HocVi,
-  gv.ChucVu,
-  gv.HSL,
-  gv.NoiCapCCCD,
-  gv.DiaChi ,
-  gv.NganHang,
-  gv.NoiCongTac,
-  ed.Dot, -- Thêm cột Dot từ bảng exportdoantotnghiep
-  ed.KhoaDaoTao, -- Thêm cột KhoaDaoTao từ bảng exportdoantotnghiep
+  ed.CCCD,
+  ed.DienThoai,
+  ed.Email,
+  ed.MaSoThue,
+  ed.GiangVien as 'HoTen',
+  ed.NgaySinh,
+  ed.NgayCapCCCD,
+  ed.GioiTinh,
+  ed.STK,
+  ed.HocVi,
+  ed.ChucVu,
+  ed.HSL,
+  ed.NoiCapCCCD,
+  ed.DiaChi ,
+  ed.NganHang,
+  ed.NoiCongTac,
+  ed.Dot,
+  ed.KhoaDaoTao,
   MIN(ed.NgayBatDau) AS NgayBatDau,
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
   ed.NamHoc,
   gv.MaPhongBan
-FROM 
+FROM
   gvmoi gv
 JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
 WHERE 
   ed.Dot = ?  AND ed.NamHoc = ?
 GROUP BY 
-  gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-  gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
+  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
 `;
 
     let params = [dot, namHoc];
@@ -271,22 +271,22 @@ GROUP BY
     if (khoa && khoa !== "ALL") {
       query = `
   SELECT 
-    gv.CCCD,
-    gv.DienThoai,
-    gv.Email,
-    gv.MaSoThue,
-    gv.HoTen,
-    gv.NgaySinh,
-    gv.GioiTinh,
-    gv.HocVi,
-    gv.NgayCapCCCD,
-    gv.ChucVu,
-    gv.STK,
-    gv.HSL,
-    gv.NoiCapCCCD,
-    gv.DiaChi ,
-    gv.NganHang,
-    gv.NoiCongTac,
+    ed.CCCD,
+    ed.DienThoai,
+    ed.Email,
+    ed.MaSoThue,
+    ed.GiangVien as 'HoTen',
+    ed.NgaySinh,
+    ed.GioiTinh,
+    ed.HocVi,
+    ed.NgayCapCCCD,
+    ed.ChucVu,
+    ed.STK,
+    ed.HSL,
+    ed.NoiCapCCCD,
+    ed.DiaChi ,
+    ed.NganHang,
+    ed.NoiCongTac,
     ed.Dot,
     ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
@@ -301,9 +301,9 @@ GROUP BY
   WHERE 
     ed.Dot = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
   GROUP BY 
-    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac, gv.STK,gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
+    ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+    ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
   `;
       params = [dot, namHoc, `%${khoa}%`];
     }
@@ -312,22 +312,22 @@ GROUP BY
     if (teacherName) {
       query = `
   SELECT 
-    gv.CCCD,
-    gv.DienThoai,
-    gv.Email,
-    gv.MaSoThue,
-    gv.HoTen,
-    gv.NgaySinh,
-        gv.NgayCapCCCD,
-gv.GioiTinh,
-    gv.HocVi,
-    gv.ChucVu,
-    gv.HSL,
-    gv.NoiCapCCCD,
-    gv.DiaChi ,
-    gv.STK,
-    gv.NganHang,
-    gv.NoiCongTac,
+    ed.CCCD,
+    ed.DienThoai,
+    ed.Email,
+    ed.MaSoThue,
+    ed.GiangVien as 'HoTen',
+    ed.NgaySinh,
+    ed.NgayCapCCCD,
+    ed.GioiTinh,
+    ed.HocVi,
+    ed.ChucVu,
+    ed.HSL,
+    ed.NoiCapCCCD,
+    ed.DiaChi ,
+    ed.STK,
+    ed.NganHang,
+    ed.NoiCongTac,
     ed.Dot,
     ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
@@ -342,9 +342,9 @@ gv.GioiTinh,
   WHERE 
     ed.Dot = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
   GROUP BY 
-    gv.CCCD, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh, gv.HocVi, gv.ChucVu, 
-    gv.HSL, gv.NoiCapCCCD, gv.DiaChi, gv.NganHang, gv.NoiCongTac,gv.STK, gv.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,gv.NgayCapCCCD
+    ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+    ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
   `;
       params = [dot, namHoc, `%${teacherName}%`];
     }
@@ -367,6 +367,9 @@ gv.GioiTinh,
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
+
+    // Lấy dữ liệu phòng ban
+    const [phongBanList] = await connection.query("SELECT * FROM phongban");
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
@@ -397,15 +400,16 @@ gv.GioiTinh,
 
       let tenNganh;
 
-      // Giả sử bạn có biến maPhongBan chứa mã ngành
-      if (maPhongBan === "ATTT") {
-        tenNganh = "An toàn thông tin";
-      } else if (maPhongBan === "DVVT") {
-        tenNganh = "Điện tử viễn thông";
-      } else if (maPhongBan === "CNTT") {
-        tenNganh = "Công Nghệ Thông tin";
+      const phongBan = phongBanList.find(
+        (item) =>
+          item.MaPhongBan.trim().toUpperCase() ==
+          maPhongBan.trim().toUpperCase()
+      );
+
+      if (phongBan) {
+        tenNganh = phongBan.TenPhongBan; // Lấy từ object tìm được
       } else {
-        tenNganh = "Không xác định"; // Hoặc có thể gán một giá trị mặc định khác
+        tenNganh = "Không xác định";
       }
 
       const tienText = soTiet * 100000;
@@ -430,7 +434,7 @@ gv.GioiTinh,
         Nơi_cấp: teacher.NoiCapCCCD,
         Chức_vụ: teacher.ChucVu,
         Cấp_bậc: teacher.HocVi,
-        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace('.', ','),
+        Hệ_số_lương: Number(teacher.HSL).toFixed(2).replace(".", ","),
         Địa_chỉ_theo_CCCD: teacher.DiaChi,
         Điện_thoại: teacher.DienThoai,
         Mã_số_thuế: teacher.MaSoThue,
