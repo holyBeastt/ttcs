@@ -312,9 +312,9 @@
           <table class="text-center">
             <thead>
               <tr>
-                <th style="width: 200px;">Học phần</th>
-                <th style="width: 50px;">Số TC</th>
-                <th style="width: 200px;">
+                <th style="width: 150px;">Học phần</th>
+                <th style="width: 30px;">Số TC</th>
+                <th style="width: 130px;">
                   <span onclick="sortTableByColumn(2, 'asc')">GV theo TKB</span>
                   <span class="sort-icon">
                     <i class="bi bi-arrow-up" onclick="sortTableByColumn(2, 'asc')"></i>
@@ -322,7 +322,7 @@
                   </span>
                 </th>
                 <th style="width: 50px;">Mời giảng?</th>
-                <th style="width: 150px;">GV giảng dạy</th>
+                <th style="width: 250px;">GV giảng dạy</th>
                 <th style="width: 50px;">Khoa</th>
                 <th style="width: 50px;">Bộ môn</th>
                 <th style="width: 100px;">Hệ đào tạo</th>
@@ -887,9 +887,10 @@
             // Thêm ô td vào hàng bảng
             tableRow.appendChild(moiGiangTd);
 
-
             const giaoVienGiangDayTd = document.createElement('td');
             const giaoVienGiangDayInput = document.createElement('input');
+            giaoVienGiangDayInput.style.width = "100%";
+            giaoVienGiangDayInput.style.boxSizing = "border-box";
             giaoVienGiangDayInput.type = 'text';
             giaoVienGiangDayInput.placeholder = 'Nhập tên giảng viên';
             giaoVienGiangDayInput.value = row.GiaoVienGiangDay || '';
@@ -913,6 +914,7 @@
 
             const boMonTd = document.createElement('td');
             const boMonInput = document.createElement('input');
+            boMonTd.style.maxWidth = '50px';
             boMonInput.type = 'text';
             boMonInput.name = 'bomon';
             boMonInput.value = row.BoMon || '';
@@ -953,6 +955,7 @@
             he_dao_taoSelect.style.setProperty('background-color', 'white', 'important');
             he_dao_taoSelect.style.setProperty('color', 'black', 'important');
             he_dao_taoSelect.style.padding = '5px';
+            //he_dao_taoSelect.style.maxWidth = "120px"
 
             he_dao_taoTd.appendChild(he_dao_taoSelect);
             // Thêm id để lấy dữ liệu 
@@ -971,6 +974,9 @@
             // Cột Ngày Bắt Đầu
             const ngayBatDauTd = document.createElement('td');
             const ngayBatDauInput = document.createElement('input');
+            ngayBatDauTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+            ngayBatDauInput.style.width = "100%";
+            ngayBatDauInput.style.boxSizing = "border-box";
             ngayBatDauInput.type = 'date';
             ngayBatDauInput.name = 'startDate';
             ngayBatDauInput.value = formatDate(row.NgayBatDau); // Định dạng ngày
@@ -986,6 +992,9 @@
             // Cột Ngày Kết Thúc
             const ngayKetThucTd = document.createElement('td');
             const ngayKetThucInput = document.createElement('input');
+            ngayKetThucTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+            ngayKetThucInput.style.width = "100%";
+            ngayKetThucInput.style.boxSizing = "border-box";
             ngayKetThucInput.type = 'date';
             ngayKetThucInput.name = 'endDate';
             ngayKetThucInput.value = formatDate(row.NgayKetThuc); // Định dạng ngày

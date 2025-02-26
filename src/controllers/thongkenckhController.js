@@ -186,7 +186,7 @@ const thongkenckhController = {
         }
     },
     
-    // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(KhoaThanhVien, ' ', ''))
+    // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(khoathanhvien, ' ', ''))
     // TH nếu sau dấu phẩy có khoảng trắng
     
 

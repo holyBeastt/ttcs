@@ -106,7 +106,6 @@ const convertExcelToJSON = async (filePath) => {
   }
 };
 
-
 // Hàm chuyển dữ liệu thiếu thành 0 khi import bằng file excel
 const validateFileExcelQC = (data) => {
   // Kiểm tra nếu dữ liệu trống
@@ -140,7 +139,7 @@ const validateFileExcelQC = (data) => {
 
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
-  console.log("Start func parseDataToObjects")
+  console.log("Start func parseDataToObjects");
   const result = []; // Khởi tạo mảng kết quả để chứa các đối tượng
   let currentKhoa = "";
   let nextKhoa = "";
@@ -161,7 +160,9 @@ const parseDataToObjects = (lines) => {
       }
     } else if (line.includes("học phần thuộc Khoa")) {
       // console.log(line);
-      const khoaMatch = line.match(/Các học phần thuộc Khoa\s+(.+?)(?=\s*STT|$)/);
+      const khoaMatch = line.match(
+        /Các học phần thuộc Khoa\s+(.+?)(?=\s*STT|$)/
+      );
       nextKhoa = khoaMatch[1].trim().replace(/\d+/g, ""); // Lấy tên Khoa từ dòng kiểm tra
       if (index == 0) {
         currentKhoa = nextKhoa;
@@ -236,7 +237,7 @@ const parseDataToObjects = (lines) => {
 const splitAndCleanLines = (text) => {
   // Danh sách các ký tự hoặc từ cần loại bỏ (dùng "includes" để kiểm tra sự tồn tại của chuỗi)
   const unwantedWords = [
-    // "STT", 
+    // "STT",
     "Số TC",
     "Lớp học phần",
     "Giáo viên",
@@ -384,7 +385,6 @@ const handleUploadAndRender = async (req, res) => {
 
     // Gửi kết quả cho client
     res.send(result);
-
   } catch (error) {
     console.error("Error processing file:", error);
     res.status(500).send({ error: "Internal server error" });
@@ -1005,7 +1005,8 @@ const importTableTam = async (jsonData) => {
       item["Số tiết theo CTĐT"],
       item["Số SV"],
       item["Số tiết lên lớp theo TKB"],
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
       item["Hệ số lớp đông"],
       item["QC"],
     ]);
@@ -1823,62 +1824,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-          .map(
-            (u) =>
-              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-          )
-          .join(" ")}
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayBatDau
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayKetThuc
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-          .map(
-            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-          )
-          .join(" ")}
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2157,7 +2158,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
         SUM(qc.QuyChuan) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
@@ -2172,7 +2173,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac;
     `;
 
   const value = [dot, ki, namHoc];
@@ -2229,6 +2230,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             TaiChinhDuyet,
             GioiTinh,
             he_dao_tao,
+            NoiCongTac,
           } = item;
 
           req.session.tmp++;
@@ -2273,6 +2275,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             he_dao_tao,
+            NoiCongTac,
           ];
         })
     );
@@ -2282,7 +2285,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao, NoiCongTac
       ) VALUES ?;
     `;
 
@@ -3040,7 +3043,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
         SUM(qc.QuyChuan * 0.3) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
@@ -3057,7 +3060,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,;
 `;
 
   const value = [dot, ki, namHoc];
@@ -3109,6 +3112,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             TaiChinhDuyet,
             GioiTinh,
             he_dao_tao,
+            NoiCongTac,
           } = item;
 
           req.session.tmp++;
@@ -3153,6 +3157,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             DaoTaoDuyet,
             TaiChinhDuyet,
             he_dao_tao,
+            NoiCongTac,
           ];
         })
     );
@@ -3162,7 +3167,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
       INSERT INTO hopdonggvmoi (
         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
+        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao, NoiCongTac
       ) VALUES ?;
     `;
 

@@ -188,14 +188,16 @@ const updateDoAn = async (req, res) => {
   const NamHoc = req.query.NamHoc;
   const MaPhongBan = req.query.MaPhongBan;
 
-  let connection, GiangVien;
+  let connection, GiangVien, BienChe, CCCD;
   const errors = []; // Tích lũy lỗi
 
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    const uniqueGV = (await getDuplicateUniqueGV()).uniqueGV;
+    const gvData = await getDuplicateUniqueGV();
+    const uniqueGV = gvData.uniqueGV;
+    const allGV = gvData.allGV;
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
@@ -217,7 +219,23 @@ const updateDoAn = async (req, res) => {
       if (KhoaDuyet == 1) {
         // Xử lý giảng viên 1
         if (item.GiangVien1.includes("-")) {
-          GiangVien = item.GiangVien1.split(" - ")[0];
+          GiangVien = item.GiangVien1.split("-")[0].trim();
+          BienChe = item.GiangVien1.split("-")[1].trim();
+          CCCD = item.GiangVien1.split("-")[2].trim();
+
+          const matchedItem = allGV.find(
+            (arr) =>
+              arr.HoTen?.trim() === GiangVien?.trim() &&
+              arr.BienChe?.trim().toLowerCase() === BienChe?.toLowerCase() &&
+              arr.CCCD?.trim() === CCCD?.trim()
+          );
+
+          if (!matchedItem) {
+            errors.push(
+              `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+            );
+            continue;
+          }
         } else {
           const matchedItem = uniqueGV.find(
             (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
@@ -241,7 +259,23 @@ const updateDoAn = async (req, res) => {
           continue;
         } else if (item.GiangVien2.toLowerCase().trim() != "không") {
           if (item.GiangVien2.includes("-")) {
-            GiangVien = item.GiangVien2.split(" - ")[0];
+            GiangVien = item.GiangVien2.split("-")[0].trim();
+            BienChe = item.GiangVien2.split("-")[1].trim();
+            CCCD = item.GiangVien2.split("-")[2].trim();
+
+            const matchedItem = allGV.find(
+              (arr) =>
+                arr.HoTen?.trim() === GiangVien?.trim() &&
+                arr.BienChe?.trim().toLowerCase() === BienChe?.toLowerCase() &&
+                arr.CCCD?.trim() === CCCD?.trim()
+            );
+
+            if (!matchedItem) {
+              errors.push(
+                `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+              );
+              continue;
+            }
           } else {
             const matchedItem = uniqueGV.find(
               (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
@@ -910,6 +944,105 @@ const getDuplicateUniqueGV = async () => {
   }
 };
 
+const getGVData = async () => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    // Hàm chuẩn hóa tên
+    const normalizeName = (name) => name.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+    // Lấy dữ liệu giảng viên mời và cơ hữu
+    const [gvms] = await connection.query(`SELECT * FROM gvmoi`);
+    const [nvs] = await connection.query(`SELECT * FROM nhanvien`);
+
+    // Gộp và chuẩn hóa danh sách
+    const combinedList = [
+      ...gvms.map((item) => ({
+        HoTen: item.HoTen,
+        CCCD: item.CCCD,
+        BienChe: "Giảng viên mời",
+        HoTenReal: normalizeName(item.HoTen),
+        GioiTinh: item.GioiTinh,
+        NgaySinh: item.NgaySinh,
+        NgayCapCCCD: item.NgayCapCCCD,
+        NoiCapCCCD: item.NoiCapCCCD,
+        DiaChi: item.DiaChi,
+        DienThoai: item.DienThoai,
+        Email: item.Email,
+        MaSoThue: item.MaSoThue,
+        HocVi: item.HocVi,
+        NoiCongTac: item.NoiCongTac,
+        ChucVu: item.ChucVu,
+        HSL: item.HSL,
+        STK: item.STK,
+        NganHang: item.NganHang,
+        MonGiangDayChinh: item.MonGiangDayChinh,
+      })),
+      ...nvs.map((item) => ({
+        HoTen: item.TenNhanVien,
+        CCCD: item.CCCD,
+        BienChe: "Cơ hữu",
+        HoTenReal: normalizeName(item.TenNhanVien),
+        GioiTinh: null,
+        NgaySinh: null,
+        NgayCapCCCD: null,
+        NoiCapCCCD: null,
+        DiaChi: null,
+        DienThoai: null,
+        Email: null,
+        MaSoThue: null,
+        HocVi: null,
+        NoiCongTac: null,
+        ChucVu: null,
+        HSL: null,
+        STK: null,
+        NganHang: null,
+        MonGiangDayChinh: null,
+      })),
+    ];
+
+    // Đếm số lần xuất hiện của mỗi tên chuẩn hóa
+    const nameCount = {};
+    combinedList.forEach((item) => {
+      const normalizedName = item.HoTenReal;
+
+      if (!nameCount[normalizedName]) {
+        nameCount[normalizedName] = { count: 0, items: [] };
+      }
+
+      nameCount[normalizedName].count += 1;
+      nameCount[normalizedName].items.push(item);
+    });
+
+    // Phân loại giảng viên
+    const allGV = [];
+    const duplicateGV = [];
+    const uniqueGV = [];
+
+    Object.values(nameCount).forEach((entry) => {
+      allGV.push(...entry.items);
+      if (entry.count > 1) {
+        duplicateGV.push(...entry.items);
+      } else {
+        uniqueGV.push(...entry.items);
+      }
+    });
+
+    // Trả về dữ liệu
+    return {
+      duplicateGV,
+      uniqueGV,
+      allGV,
+    };
+  } catch (error) {
+    console.error("Error in getDuplicateUniqueGV:", error);
+    throw new Error("Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
+  } finally {
+    if (connection) await connection.release();
+  }
+};
+
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
   const NamHoc = req.body.NamHoc;
@@ -921,7 +1054,10 @@ const saveToExportDoAn = async (req, res) => {
     const errors = []; // Tích lũy lỗi
     let count = 0; // Đếm xem bao nhiêu dòng được chèn
 
-    const uniqueGV = (await getDuplicateUniqueGV()).uniqueGV;
+    const gvData = await getGVData();
+    const uniqueGV = gvData.uniqueGV;
+    const allGV = gvData.allGV;
+
     const daDuyetHet = await TaiChinhCheckAll(req, Dot, NamHoc);
     const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
 
@@ -964,27 +1100,29 @@ const saveToExportDoAn = async (req, res) => {
 
           isHDChinh = 1;
           let GiangVien, CCCD;
+          let matchedItem1;
 
           // Xử lý giảng viên 1
           if (item.GiangVien1.includes("-")) {
-            GiangVien = item.GiangVien1.split(" - ")[0];
-            CCCD = item.GiangVien1.split(" - ")[2];
+            GiangVien = item.GiangVien1.split("-")[0].trim();
+            CCCD = item.GiangVien1.split("-")[2].trim();
             isMoiGiang =
-              item.GiangVien1.split(" - ")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+              item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+            matchedItem1 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
           } else {
-            const matchedItem = uniqueGV.find(
+            matchedItem1 = uniqueGV.find(
               (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
             );
-            if (!matchedItem) {
+            if (!matchedItem1) {
               errors.push(
                 `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
               );
               return;
             }
 
-            GiangVien = matchedItem.HoTen.trim();
-            CCCD = matchedItem.CCCD;
-            isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
+            GiangVien = matchedItem1.HoTen.trim();
+            CCCD = matchedItem1.CCCD;
+            isMoiGiang = matchedItem1.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
           }
 
           let SoTiet = 25;
@@ -1011,35 +1149,51 @@ const saveToExportDoAn = async (req, res) => {
             NamHoc || null,
             item.Dot || null,
             item.TT || null,
+            matchedItem1.GioiTinh || null,
+            matchedItem1.NgaySinh || null,
+            matchedItem1.NgayCapCCCD || null,
+            matchedItem1.NoiCapCCCD || null,
+            matchedItem1.DiaChi || null,
+            matchedItem1.DienThoai || null,
+            matchedItem1.Email,
+            matchedItem1.MaSoThue,
+            matchedItem1.HocVi,
+            matchedItem1.NoiCongTac,
+            matchedItem1.ChucVu,
+            matchedItem1.STK,
+            matchedItem1.NganHang,
+            matchedItem1.MonGiangDayChinh,
+            matchedItem1.HSL,
           ]);
 
+          let matchedItem2;
           count++;
           // Nếu có giảng viên thứ 2, xử lý giảng viên 2 và thêm bản ghi thứ hai
           if (SoNguoi == 2) {
             isHDChinh = 0; // Hướng dẫn phụ
 
             if (item.GiangVien2.includes("-")) {
-              GiangVien = item.GiangVien2.split(" - ")[0];
-              CCCD = item.GiangVien2.split(" - ")[2];
+              GiangVien = item.GiangVien2.split("-")[0].trim();
+              CCCD = item.GiangVien2.split("-")[2].trim();
               isMoiGiang =
-                item.GiangVien2.split(" - ")[1].toLowerCase() == "cơ hữu"
-                  ? 0
-                  : 1;
+                item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+
+              matchedItem2 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
             } else {
-              const matchedItem = uniqueGV.find(
+              matchedItem2 = uniqueGV.find(
                 (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
               );
-              if (!matchedItem) {
+              if (!matchedItem2) {
                 errors.push(
                   `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien}`
                 );
                 return;
               }
-              GiangVien = matchedItem.HoTen.trim();
-              CCCD = matchedItem.CCCD;
+              GiangVien = matchedItem2.HoTen.trim();
+              CCCD = matchedItem2.CCCD;
 
               isMoiGiang =
-                matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
+                matchedItem2.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
             }
 
             SoTiet = 10; // Giảm số tiết cho giảng viên thứ 2
@@ -1061,6 +1215,21 @@ const saveToExportDoAn = async (req, res) => {
               NamHoc || null,
               item.Dot || null,
               item.TT || null,
+              matchedItem2.GioiTinh || null,
+              matchedItem2.NgaySinh || null,
+              matchedItem2.NgayCapCCCD || null,
+              matchedItem2.NoiCapCCCD || null,
+              matchedItem2.DiaChi || null,
+              matchedItem2.DienThoai || null,
+              matchedItem2.Email,
+              matchedItem2.MaSoThue,
+              matchedItem2.HocVi,
+              matchedItem2.NoiCongTac,
+              matchedItem2.ChucVu,
+              matchedItem2.STK,
+              matchedItem2.NganHang,
+              matchedItem2.MonGiangDayChinh,
+              matchedItem2.HSL,
             ]);
           }
         })
@@ -1081,7 +1250,10 @@ const saveToExportDoAn = async (req, res) => {
     }
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
-    const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, Dot, TT)
+    const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
+    isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, Dot, TT,
+    GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
+    ChucVu, STK, NganHang, MonGiangDayChinh, HSL)
                  VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
