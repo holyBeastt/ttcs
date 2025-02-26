@@ -10,12 +10,16 @@ const thongkenckhController = {
     // Lấy dữ liệu thống kê
     getStatisticsData: async (req, res) => {
         let connection;
-        const { namhoc, khoa } = req.query; // Lấy giá trị từ query parameters
+        const { namhoc, khoa } = req.query;
     
         try {
             connection = await createConnection();
     
-            const baseQuery = `SELECT COUNT(*) AS total FROM ?? WHERE daotaoduyet = 1`;
+            const baseQuery = `
+                SELECT COUNT(*) AS total 
+                FROM ?? t
+                WHERE t.daotaoduyet = 1
+            `;
             const tables = [
                 "detaiduan",
                 "baibaokhoahoc",
@@ -31,25 +35,28 @@ const thongkenckhController = {
                     let conditions = [];
                     let params = [table];
     
-                    // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
                     if (khoa && khoa !== 'ALL') {
-                        conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                        conditions.push(`
+                            EXISTS (
+                                SELECT 1 FROM nhanvien nv 
+                                WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                                    LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                                AND nv.MaPhongBan = ?
+                            )
+                        `);
                         params.push(khoa);
                     }
     
-                    // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
                     if (namhoc) {
-                        conditions.push("NamHoc = ?");
+                        conditions.push("t.NamHoc = ?");
                         params.push(namhoc);
                     }
     
-                    // Gộp các điều kiện vào câu query
                     let finalQuery = baseQuery;
                     if (conditions.length > 0) {
                         finalQuery += ` AND ${conditions.join(" AND ")}`;
                     }
     
-                    // Thực thi truy vấn
                     const [rows] = await connection.query(finalQuery, params);
                     return rows[0].total;
                 })
@@ -71,46 +78,50 @@ const thongkenckhController = {
     // đề tài dự án
     getDetail1Data: async (req, res) => {
         let connection;
-        const { namhoc, khoa } = req.query; // Get filters from query parameters
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
             let query = `
                 SELECT 
-                    ID,
-                    CapDeTai,
-                    NamHoc,
-                    TenDeTai,
-                    MaSoDeTai,
-                    ChuNhiem,
-                    ThuKy,
-                    DanhSachThanhVien,
-                    NgayNghiemThu,
-                    Khoa
-                FROM detaiduan 
-                WHERE daotaoduyet = 1
+                    t.ID,
+                    t.CapDeTai,
+                    t.NamHoc,
+                    t.TenDeTai,
+                    t.MaSoDeTai,
+                    t.ChuNhiem,
+                    t.ThuKy,
+                    t.DanhSachThanhVien,
+                    t.NgayNghiemThu,
+                    t.Khoa
+                FROM detaiduan t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng đề tài dự án:", err);
@@ -127,44 +138,48 @@ const thongkenckhController = {
             connection = await createConnection();
             let query = `
                 SELECT 
-                    NamHoc,
-                    Khoa,
-                    ID,
-                    TenBaiBao,
-                    LoaiTapChi,
-                    ChiSoTapChi,
-                    TacGia,
-                    TacGiaChiuTrachNhiem,
-                    DanhSachThanhVien,
-                    Khoa
-                FROM baibaokhoahoc 
-                WHERE daotaoduyet = 1
+                    t.NamHoc,
+                    t.Khoa,
+                    t.ID,
+                    t.TenBaiBao,
+                    t.LoaiTapChi,
+                    t.ChiSoTapChi,
+                    t.TacGia,
+                    t.TacGiaChiuTrachNhiem,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM baibaokhoahoc t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu từ bảng bái báo khoa học:", err);
+            console.error("Lỗi khi lấy dữ liệu từ bảng bài báo khoa học:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -183,40 +198,44 @@ const thongkenckhController = {
             connection = await createConnection();
             let query = `
                 SELECT
-                    ID,
-                    NamHoc,
-                    TenBangSangCheVaGiaiThuong,
-                    PhanLoai,
-                    TacGia,
-                    SoQDCongNhan,
-                    DanhSachThanhVien,
-                    Khoa,
-                    NgayQDCongNhan
-                FROM bangsangchevagiaithuong 
-                WHERE daotaoduyet = 1
+                    t.ID,
+                    t.NamHoc,
+                    t.TenBangSangCheVaGiaiThuong,
+                    t.PhanLoai,
+                    t.TacGia,
+                    t.SoQDCongNhan,
+                    t.DanhSachThanhVien,
+                    t.Khoa,
+                    t.NgayQDCongNhan
+                FROM bangsangchevagiaithuong t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng bằng sáng chế:", err);
@@ -233,41 +252,45 @@ const thongkenckhController = {
             connection = await createConnection();
             let query = `
                 SELECT
-                   ID,
-                   Phanloai,
-                   NamHoc,
-                   TenGiaoTrinhBaiGiang,
-                   SoQDGiaoNhiemVu,
-                   SoTC,
-                   NgayQDGiaoNhiemVu,
-                   DanhSachThanhVien,
-                   TacGia,
-                   Khoa
-                FROM biensoangiaotrinhbaigiang 
-                WHERE daotaoduyet = 1
+                    t.ID,
+                    t.Phanloai,
+                    t.NamHoc,
+                    t.TenGiaoTrinhBaiGiang,
+                    t.SoQDGiaoNhiemVu,
+                    t.SoTC,
+                    t.NgayQDGiaoNhiemVu,
+                    t.DanhSachThanhVien,
+                    t.TacGia,
+                    t.Khoa
+                FROM biensoangiaotrinhbaigiang t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng biên soạn giáo trình:", err);
@@ -308,44 +331,48 @@ const thongkenckhController = {
             connection = await createConnection();
             let query = `
                 SELECT
-                    ID,
-                    NamHoc,
-                    TenChuongTrinh,
-                    SoTC,
-                    SoQDGiaoNhiemVu,
-                    NgayQDGiaoNhiemVu,
-                    HinhThucXayDung,
-                    KetQua,
-                    DanhSachThanhVien,
-                    Khoa
-                FROM xaydungctdt 
-                WHERE daotaoduyet = 1
+                    t.ID,
+                    t.NamHoc,
+                    t.TenChuongTrinh,
+                    t.SoTC,
+                    t.SoQDGiaoNhiemVu,
+                    t.NgayQDGiaoNhiemVu,
+                    t.HinhThucXayDung,
+                    t.KetQua,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM xaydungctdt t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu bảng xây dưng ctđt::", err);
+            console.error("Lỗi khi lấy dữ liệu bảng xây dựng ctđt:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -358,45 +385,49 @@ const thongkenckhController = {
         try {
             connection = await createConnection();
             let query = `
-            SELECT
-                ID,
-                PhanLoai,
-                NamHoc,
-                TenDeTai,
-                SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu,
-                KetQuaCapKhoa,
-                KetQuaCapHocVien,
-                DanhSachThanhVien,
-                Khoa
-            FROM nckhvahuanluyendoituyen 
-                WHERE daotaoduyet = 1
+                SELECT
+                    t.ID,
+                    t.PhanLoai,
+                    t.NamHoc,
+                    t.TenDeTai,
+                    t.SoQDGiaoNhiemVu,
+                    t.NgayQDGiaoNhiemVu,
+                    t.KetQuaCapKhoa,
+                    t.KetQuaCapHocVien,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM nckhvahuanluyendoituyen t
+                WHERE t.daotaoduyet = 1
             `;
 
             let conditions = [];
             let params = [];
 
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
                 params.push(khoa);
             }
 
-            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
 
-            // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
 
-            const [rows] = await connection.query(query, [...params]);
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng NCKH và huấn luyện đổi tuyển:", err);
+            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng NCKH và huấn luyện đội tuyển:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -410,41 +441,52 @@ const thongkenckhController = {
             connection = await createConnection();
             let query = `
                 SELECT
-                    ID,
-                    PhanLoai,
-                    NamHoc,
-                    TenSachVaGiaoTrinh,
-                    SoTrang,
-                    SoXuatBan,
-                    TacGia,
-                    DongChuBien,
-                    DanhSachThanhVien,
-                    Khoa
-                FROM sachvagiaotrinh 
-                WHERE daotaoduyet = 1
+                    t.ID,
+                    t.PhanLoai,
+                    t.NamHoc,
+                    t.TenSachVaGiaoTrinh,
+                    t.SoTrang,
+                    t.SoXuatBan,
+                    t.TacGia,
+                    t.DongChuBien,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM sachvagiaotrinh t
+                WHERE t.daotaoduyet = 1
             `;
-
+    
             let conditions = [];
             let params = [];
-
-            // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
+    
+            // Nếu không phải 'ALL', lọc theo khoa nhưng chỉ dựa vào thành viên không nằm trong dấu ()
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
-                params.push(khoa);
-            }
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
 
+                `);
+                params.push(khoa);
+                console.log("Generated Query:", query, params);
+
+            }
+            
+    
             // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
-                conditions.push("NamHoc = ?");
+                conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
-
+    
             // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
-
-            const [rows] = await connection.query(query, [...params]);
+    
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu từ bảng sách và giáo trình:", err);
@@ -453,6 +495,7 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
+    
 
     getNamHocAndKhoaData: async (req, res) => {
         let connection;
@@ -471,47 +514,9 @@ const thongkenckhController = {
                 ORDER BY NamHoc DESC`
             );
 
-            // Lấy dữ liệu khoa từ KhoaThanhVien
+            // Lấy dữ liệu khoa từ bảng phongban
             const [khoa] = await connection.query(
-                `WITH RECURSIVE KhoaCTE AS (
-                SELECT 
-                    TRIM(SUBSTRING_INDEX(KhoaThanhVien, ',', 1)) AS Khoa, 
-                    CASE 
-                        WHEN LOCATE(',', KhoaThanhVien) > 0 
-                        THEN SUBSTRING(KhoaThanhVien FROM LOCATE(',', KhoaThanhVien) + 1) 
-                        ELSE NULL 
-                    END AS Remaining
-                FROM (
-                    SELECT KhoaThanhVien FROM detaiduan WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM baibaokhoahoc WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM bangsangchevagiaithuong WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM biensoangiaotrinhbaigiang WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM xaydungctdt WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM nckhvahuanluyendoituyen WHERE KhoaThanhVien IS NOT NULL
-                    UNION ALL
-                    SELECT KhoaThanhVien FROM sachvagiaotrinh WHERE KhoaThanhVien IS NOT NULL
-                ) AS AllKhoa
-
-                UNION ALL
-                SELECT 
-                    TRIM(SUBSTRING_INDEX(Remaining, ',', 1)) AS Khoa, 
-                    CASE 
-                        WHEN LOCATE(',', Remaining) > 0 
-                        THEN SUBSTRING(Remaining FROM LOCATE(',', Remaining) + 1) 
-                        ELSE NULL 
-                    END
-                FROM KhoaCTE
-                WHERE Remaining IS NOT NULL
-            )
-            SELECT DISTINCT Khoa FROM KhoaCTE WHERE Khoa IS NOT NULL AND Khoa <> '';
-
-
-`
+                `SELECT MaPhongBan as Khoa, TenPhongBan FROM phongban WHERE isKhoa=1`
             );
 
             const data = {
