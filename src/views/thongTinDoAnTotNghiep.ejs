@@ -1,174 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link rel="stylesheet" href="/css/table.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/import.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
-  </head>
-  <style>
-    .btn {
-      height: 45px;
-      margin-bottom: 0px;
-      text-wrap: nowrap;
-    }
 
-    /* Css phần suggestion */
-    .suggestions {
-      position: absolute;
-      /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
-      top: calc(100% + 5px);
-      /* Đặt gợi ý phía trên input với một khoảng cách */
-      font-size: 12px;
-      left: 0;
-      background-color: #f0f0f0;
-      color: #000;
-      border: 1px solid #ccc;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      /* Đảm bảo gợi ý nằm trên các thành phần khác */
-      border-radius: 4px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/table.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/import.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+</head>
+<style>
+  .btn {
+    height: 45px;
+    margin-bottom: 0px;
+    text-wrap: nowrap;
+  }
 
-    /* Hiệu ứng lung linh khi hover */
-    .suggestions:hover {
-      background-color: #e0e0e0;
-      /* Thay đổi màu nền khi hover */
-      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-      /* Tăng độ bóng khi hover */
-    }
+  /* Css phần suggestion */
+  .suggestions {
+    position: absolute;
+    /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
+    top: calc(100% + 5px);
+    /* Đặt gợi ý phía trên input với một khoảng cách */
+    font-size: 12px;
+    left: 0;
+    background-color: #f0f0f0;
+    color: #000;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    /* Đảm bảo gợi ý nằm trên các thành phần khác */
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
 
-    /* CSS cho từng mục gợi ý */
-    .suggestion-item {
-      padding: 8px 12px;
-      /* Khoảng cách bên trong từng mục */
-      cursor: pointer;
-      /* Con trỏ chuột thay đổi khi hover */
-      transition: background-color 0.2s ease;
-      /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
-    }
+  /* Hiệu ứng lung linh khi hover */
+  .suggestions:hover {
+    background-color: #e0e0e0;
+    /* Thay đổi màu nền khi hover */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    /* Tăng độ bóng khi hover */
+  }
 
-    /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
-    .suggestion-item:hover {
-      background-color: #f0f0f0;
-      /* Màu nền khi hover */
-    }
+  /* CSS cho từng mục gợi ý */
+  .suggestion-item {
+    padding: 8px 12px;
+    /* Khoảng cách bên trong từng mục */
+    cursor: pointer;
+    /* Con trỏ chuột thay đổi khi hover */
+    transition: background-color 0.2s ease;
+    /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
+  }
 
-    /* Đặt lại một số thuộc tính khi input mất focus */
-    input:focus + .suggestions {
-      display: block;
-      /* Đảm bảo khung hiển thị khi input được focus */
-    }
+  /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
+  .suggestion-item:hover {
+    background-color: #f0f0f0;
+    /* Màu nền khi hover */
+  }
 
-    /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
-    .suggestions {
-      overflow: hidden;
-    }
+  /* Đặt lại một số thuộc tính khi input mất focus */
+  input:focus+.suggestions {
+    display: block;
+    /* Đảm bảo khung hiển thị khi input được focus */
+  }
 
-    /* Phần ngày bắt đầu, ngày kết thúc */
-    .input-group-group {
-      display: flex;
-      align-items: center;
-      gap: 16px; /* Khoảng cách giữa hai ô */
-      width: fit-content; /* Chỉ chiếm không gian theo nội dung */
-    }
+  /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
+  .suggestions {
+    overflow: hidden;
+  }
 
-    .input-group {
-      display: flex;
-      align-items: center;
-      border: 1px solid #ccc; /* Đường viền */
-      border-radius: 8px; /* Góc bo */
-      padding: 5px; /* Khoảng cách trong */
-      background-color: #42c2f5; /* Màu nền nhạt */
-      width: 350px; /* Chiều rộng từng ô */
-    }
+  /* Phần ngày bắt đầu, ngày kết thúc */
+  .input-group-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* Khoảng cách giữa hai ô */
+    width: fit-content;
+    /* Chỉ chiếm không gian theo nội dung */
+  }
 
-    .input-group-text {
-      font-weight: bold;
-      background-color: transparent; /* Nền trong suốt */
-      border: none; /* Loại bỏ viền */
-    }
+  .input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    /* Đường viền */
+    border-radius: 8px;
+    /* Góc bo */
+    padding: 5px;
+    /* Khoảng cách trong */
+    background-color: #42c2f5;
+    /* Màu nền nhạt */
+    width: 350px;
+    /* Chiều rộng từng ô */
+  }
 
-    .form-control {
-      border: none;
-      outline: none; /* Bỏ viền focus mặc định */
-      width: 100%; /* Chiếm hết không gian còn lại */
-    }
+  .input-group-text {
+    font-weight: bold;
+    background-color: transparent;
+    /* Nền trong suốt */
+    border: none;
+    /* Loại bỏ viền */
+  }
 
-    /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
-    input[type="date"],
-    input[type="text"] {
-      width: 120px;
-      /* Điều chỉnh giá trị này theo mong muốn */
-      box-sizing: border-box;
-      padding: 5px;
-      /* Giữ padding như cũ */
-    }
+  .form-control {
+    border: none;
+    outline: none;
+    /* Bỏ viền focus mặc định */
+    width: 100%;
+    /* Chiếm hết không gian còn lại */
+  }
 
-    #SoQD-list {
-      font-style: italic; /* Chữ nghiêng */
-      font-size: 0.9em; /* Nhỏ hơn bình thường một chút */
-      color: #666; /* Màu xám nhạt hơn */
-      list-style-type: none; /* Bỏ dấu chấm đầu dòng */
-      margin-left: 10px; /* Dịch sang trái một chút */
-    }
+  /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
+  input[type="date"],
+  input[type="text"] {
+    width: 120px;
+    /* Điều chỉnh giá trị này theo mong muốn */
+    box-sizing: border-box;
+    padding: 5px;
+    /* Giữ padding như cũ */
+  }
 
-    #SoQD-list li::before {
-      content: "* ";
-    }
-  </style>
-  <style>
-    /* Tùy chỉnh danh sách gợi ý */
-    .ui-autocomplete {
-      background: white;
-      border: 1px solid #ccc;
-      max-height: 200px;
-      overflow-y: auto;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-      font-size: 14px;
-      padding: 5px;
-      width: 200px; /* Giảm độ rộng */
-      font-size: 12px !important;
-    }
+  #SoQD-list {
+    font-style: italic;
+    /* Chữ nghiêng */
+    font-size: 0.9em;
+    /* Nhỏ hơn bình thường một chút */
+    color: #666;
+    /* Màu xám nhạt hơn */
+    list-style-type: none;
+    /* Bỏ dấu chấm đầu dòng */
+    margin-left: 10px;
+    /* Dịch sang trái một chút */
+  }
 
-    /* Hiển thị đẹp hơn, không cần hover */
-    .ui-menu-item {
-      padding: 8px;
-      cursor: default;
-    }
-  </style>
+  #SoQD-list li::before {
+    content: "* ";
+  }
+</style>
+<style>
+  /* Tùy chỉnh danh sách gợi ý */
+  .ui-autocomplete {
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    padding: 5px;
+    width: 200px;
+    /* Giảm độ rộng */
+    font-size: 12px !important;
+  }
 
-  <body>
-    <!-- Phần header -->
-    <%- include('header') %>
+  /* Hiển thị đẹp hơn, không cần hover */
+  .ui-menu-item {
+    padding: 8px;
+    cursor: default;
+  }
+</style>
+
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
 
     <!-- Phần nội dung -->
 
     <div class="container-fluid m-4 box d-flex justify-content-start">
       <div class="mx-2">
         <div class="d-flex align-items-center mb-3">
-          <input
-            type="file"
-            id="fileInput"
-            accept=".pdf, .docx"
-            style="display: none"
-          />
+          <input type="file" id="fileInput" accept=".pdf, .docx" style="display: none" />
 
           <!-- Combo chọn đợt -->
           <select class="selectop w-100px mx-1" id="combobox-dot">
@@ -188,63 +192,29 @@
           <button id="infoDoAn" class="btn text-nowrap mx-2">Hiển thị</button>
           <button class="btn mx-2" id="updateDoAn">Cập nhật</button>
 
-          <button
-            class="btn mx-2 ms-auto"
-            id="saveDataDoAn"
-            style="display: none; height: 45px"
-          >
+          <button class="btn mx-2 ms-auto" id="saveDataDoAn" style="display: none; height: 45px">
             Lưu dữ liệu hợp đồng
           </button>
         </div>
 
         <div class="d-flex my-3" style="height: 70px">
-          <input
-            type="text"
-            id="filterName"
-            placeholder="Tìm theo tên sinh viên"
-            class="form-control m-2 search"
-            style="width: 200px"
-          />
-          <input
-            type="text"
-            id="filterClass"
-            placeholder="Tìm theo tên đề tài"
-            class="form-control m-2 search"
-            style="width: 200px"
-          />
+          <input type="text" id="filterName" placeholder="Tìm theo tên sinh viên" class="form-control m-2 search"
+            style="width: 200px" />
+          <input type="text" id="filterClass" placeholder="Tìm theo tên đề tài" class="form-control m-2 search"
+            style="width: 200px" />
+          <input type="text" id="filterNameGV" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
+            style="width: 200px" />
 
           <div class="date-all-container" style="display: none">
             <div class="input-group my-2 mx-1" style="width: 350px" id="batdau">
-              <label for="startDateAll" class="input-group-text"
-                >Ngày bắt đầu</label
-              >
-              <input
-                required
-                type="date"
-                id="startDateAll"
-                class="form-control"
-              />
+              <label for="startDateAll" class="input-group-text">Ngày bắt đầu</label>
+              <input required type="date" id="startDateAll" class="form-control" />
             </div>
-            <div
-              class="input-group my-2 mx-1"
-              style="width: 350px"
-              id="ketthuc"
-            >
-              <label for="endDateAll" class="input-group-text"
-                >Ngày kết thúc</label
-              >
-              <input
-                required
-                type="date"
-                id="endDateAll"
-                class="form-control"
-              />
+            <div class="input-group my-2 mx-1" style="width: 350px" id="ketthuc">
+              <label for="endDateAll" class="input-group-text">Ngày kết thúc</label>
+              <input required type="date" id="endDateAll" class="form-control" />
             </div>
-            <button
-              id="fillDay"
-              class="btn text-nowrap my-2 mx-1"
-              style="height: 54px"
-            >
+            <button id="fillDay" class="btn text-nowrap my-2 mx-1" style="height: 54px">
               Chèn ngày
             </button>
           </div>
@@ -269,45 +239,20 @@
                 <th style="width: 50px">Ghi chú</th>
                 <th style="width: 80px" id="khoaColumn">
                   <div class="form-check d-flex">
-                    <input
-                      class="check"
-                      type="checkbox"
-                      id="checkAllKhoa"
-                      onclick="checkAll('khoa')"
-                    />
-                    <label class="form-check-label" for="checkAllKhoa"
-                      >Khoa</label
-                    >
+                    <input class="check" type="checkbox" id="checkAllKhoa" onclick="checkAll('khoa')" />
+                    <label class="form-check-label" for="checkAllKhoa">Khoa</label>
                   </div>
                 </th>
                 <th style="width: 50px" id="daoTaoColumn">
                   <div class="form-check d-flex">
-                    <input
-                      class="check"
-                      type="checkbox"
-                      id="checkAllDaoTao"
-                      onclick="checkAll('daoTao')"
-                    />
-                    <label
-                      class="form-check-label text-nowrap"
-                      for="checkAllDaoTao"
-                      >Đào Tạo</label
-                    >
+                    <input class="check" type="checkbox" id="checkAllDaoTao" onclick="checkAll('daoTao')" />
+                    <label class="form-check-label text-nowrap" for="checkAllDaoTao">Đào Tạo</label>
                   </div>
                 </th>
                 <th style="width: 50px" id="taiChinhColumn">
                   <div class="form-check d-flex">
-                    <input
-                      class="check"
-                      type="checkbox"
-                      id="checkAllTaiChinh"
-                      onclick="checkAll('taiChinh')"
-                    />
-                    <label
-                      class="form-check-label text-nowrap"
-                      for="checkAllTaiChinh"
-                      >Tài Chính</label
-                    >
+                    <input class="check" type="checkbox" id="checkAllTaiChinh" onclick="checkAll('taiChinh')" />
+                    <label class="form-check-label text-nowrap" for="checkAllTaiChinh">Tài Chính</label>
                   </div>
                 </th>
               </tr>
@@ -339,16 +284,12 @@
           <!-- Sử dụng textarea cho ghi chú dài -->
           <br />
           <label for="deadlineInput">Hạn:</label>
-          <input
-            type="date"
-            id="deadlineInput"
-            style="
+          <input type="date" id="deadlineInput" style="
               width: 100%;
               padding: 5px;
               border: 1px solid #ccc;
               border-radius: 4px;
-            "
-          />
+            " />
           <br />
           <div class="d-flex text-nowrap" style="text-align: right">
             <button onclick="saveNote()">Lưu</button>
@@ -362,27 +303,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Link script Sweet alert 2 -->
     <!-- SweetAlert2 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
 
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <!-- Thêm jQuery và jQuery UI -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <!-- jQuery UI CSS -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script>
       var globalData = [];
       let SoQDList = [];
@@ -489,37 +421,35 @@
 
       // Hàm lọc thông tin trong bảng
       function filterTable() {
-        const nameFilter = document
-          .getElementById("filterName")
-          .value.toLowerCase();
-        const classFilter = document
-          .getElementById("filterClass")
-          .value.toLowerCase();
+        const nameFilter = document.getElementById("filterName").value.toLowerCase();
+        const classFilter = document.getElementById("filterClass").value.toLowerCase();
+        const gvFilter = document.getElementById("filterNameGV").value.toLowerCase(); // Thêm lọc theo giảng viên
 
         const tableRows = document.querySelectorAll("#tableBody tr");
 
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
           const classCell = row.querySelector("td:nth-child(5)"); // Cột tên đề tài
+          const gvCell1 = row.querySelector("td:nth-child(6)"); // Cột giảng viên 1
+          const gvCell2 = row.querySelector("td:nth-child(7)"); // Cột giảng viên 2
 
           const name = nameCell ? nameCell.textContent.toLowerCase() : "";
-          const className = classCell
-            ? classCell.textContent.toLowerCase()
-            : "";
+          const className = classCell ? classCell.textContent.toLowerCase() : "";
+          const gv1 = gvCell1 ? gvCell1.textContent.toLowerCase() : "";
+          const gv2 = gvCell2 ? gvCell2.textContent.toLowerCase() : "";
 
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
           const matchesClass = className.includes(classFilter);
+          const matchesGV = gvFilter === "" || gv1.includes(gvFilter) || gv2.includes(gvFilter); // Nếu ô giảng viên rỗng thì bỏ qua
 
           // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-          if (matchesName && matchesClass) {
+          if (matchesName && matchesClass && matchesGV) {
             row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             row.style.display = "none"; // Ẩn hàng nếu không khớp
           }
         });
-
-        //calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
       }
 
       // Gán sự kiện cho các input filter
@@ -528,6 +458,9 @@
         .addEventListener("input", filterTable);
       document
         .getElementById("filterClass")
+        .addEventListener("input", filterTable);
+      document
+        .getElementById("filterNameGV")
         .addEventListener("input", filterTable);
 
       // Hàm format lại Ngày phù hợp với múi giờ
@@ -1821,5 +1754,6 @@
           }
         });
     </script>
-  </body>
+</body>
+
 </html>
