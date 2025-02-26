@@ -331,18 +331,24 @@
                 id="fileBoSung"
               />
             </div>
-            <div class="col-md-4 thuocQuanDoiBox">
-              <div class="form-group">
-                <label for="thuocQuanDoi" class="thuocQuanDoi-label"
-                  >Thuộc quân đội:</label
-                >
-                <input
-                  type="checkbox"
-                  class="thuocQuanDoi-input"
-                  id="thuocQuanDoi"
-                  name="thuocQuanDoi"
-                  value="1"
-                />
+            <div class="row mb-3" style="margin-top: 20px">
+              <div class="col-md-4">
+                <label><b>MÃ KHOA:</b></label>
+                <label id="Ma_Khoa_Label"></label>
+              </div>
+              <div class="col-md-4 thuocQuanDoiBox">
+                <div class="form-group">
+                  <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                    >Thuộc quân đội:</label
+                  >
+                  <input
+                    type="checkbox"
+                    class="thuocQuanDoi-input"
+                    id="thuocQuanDoi"
+                    name="thuocQuanDoi"
+                    value="1"
+                  />
+                </div>
               </div>
             </div>
             <!-- <div
@@ -385,6 +391,10 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const maPhongBan = localStorage.getItem("MaPhongBan");
+        document.getElementById(
+          "Ma_Khoa_Label"
+        ).innerHTML = `<b>${maPhongBan}</b>`;
+
         fetch(`/getMaBoMon/${maPhongBan}`)
           .then((response) => response.json())
           .then((data) => {

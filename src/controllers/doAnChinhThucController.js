@@ -188,14 +188,16 @@ const updateDoAn = async (req, res) => {
   const NamHoc = req.query.NamHoc;
   const MaPhongBan = req.query.MaPhongBan;
 
-  let connection, GiangVien;
+  let connection, GiangVien, BienChe, CCCD;
   const errors = []; // Tích lũy lỗi
 
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    const uniqueGV = (await getDuplicateUniqueGV()).uniqueGV;
+    const gvData = await getDuplicateUniqueGV();
+    const uniqueGV = gvData.uniqueGV;
+    const allGV = gvData.allGV;
 
     // Duyệt qua từng phần tử trong jsonData
     for (let item of jsonData) {
@@ -217,7 +219,23 @@ const updateDoAn = async (req, res) => {
       if (KhoaDuyet == 1) {
         // Xử lý giảng viên 1
         if (item.GiangVien1.includes("-")) {
-          GiangVien = item.GiangVien1.split(" - ")[0];
+          GiangVien = item.GiangVien1.split("-")[0].trim();
+          BienChe = item.GiangVien1.split("-")[1].trim();
+          CCCD = item.GiangVien1.split("-")[2].trim();
+
+          const matchedItem = allGV.find(
+            (arr) =>
+              arr.HoTen?.trim() === GiangVien?.trim() &&
+              arr.BienChe?.trim().toLowerCase() === BienChe?.toLowerCase() &&
+              arr.CCCD?.trim() === CCCD?.trim()
+          );
+
+          if (!matchedItem) {
+            errors.push(
+              `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+            );
+            continue;
+          }
         } else {
           const matchedItem = uniqueGV.find(
             (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
@@ -241,7 +259,23 @@ const updateDoAn = async (req, res) => {
           continue;
         } else if (item.GiangVien2.toLowerCase().trim() != "không") {
           if (item.GiangVien2.includes("-")) {
-            GiangVien = item.GiangVien2.split(" - ")[0];
+            GiangVien = item.GiangVien2.split("-")[0].trim();
+            BienChe = item.GiangVien2.split("-")[1].trim();
+            CCCD = item.GiangVien2.split("-")[2].trim();
+
+            const matchedItem = allGV.find(
+              (arr) =>
+                arr.HoTen?.trim() === GiangVien?.trim() &&
+                arr.BienChe?.trim().toLowerCase() === BienChe?.toLowerCase() &&
+                arr.CCCD?.trim() === CCCD?.trim()
+            );
+
+            if (!matchedItem) {
+              errors.push(
+                `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+              );
+              continue;
+            }
           } else {
             const matchedItem = uniqueGV.find(
               (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
@@ -1070,10 +1104,10 @@ const saveToExportDoAn = async (req, res) => {
 
           // Xử lý giảng viên 1
           if (item.GiangVien1.includes("-")) {
-            GiangVien = item.GiangVien1.split(" - ")[0].trim();
-            CCCD = item.GiangVien1.split(" - ")[2].trim();
+            GiangVien = item.GiangVien1.split("-")[0].trim();
+            CCCD = item.GiangVien1.split("-")[2].trim();
             isMoiGiang =
-              item.GiangVien1.split(" - ")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
+              item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
             matchedItem1 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
           } else {
             matchedItem1 = uniqueGV.find(
@@ -1139,14 +1173,11 @@ const saveToExportDoAn = async (req, res) => {
             isHDChinh = 0; // Hướng dẫn phụ
 
             if (item.GiangVien2.includes("-")) {
-              GiangVien = item.GiangVien2.split(" - ")[0].trim();
-              CCCD = item.GiangVien2.split(" - ")[2].trim();
+              GiangVien = item.GiangVien2.split("-")[0].trim();
+              CCCD = item.GiangVien2.split("-")[2].trim();
               isMoiGiang =
-                item.GiangVien2.split(" - ")[1].toLowerCase() == "cơ hữu"
-                  ? 0
-                  : 1;
+                item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
-              console.log("gv2 = ", GiangVien);
               matchedItem2 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
             } else {
               matchedItem2 = uniqueGV.find(
