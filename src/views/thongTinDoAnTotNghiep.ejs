@@ -257,17 +257,17 @@
             <thead>
               <tr>
                 <th style="width: 30px">TT</th>
-                <th style="width: 200px">Sinh Viên</th>
-                <th style="width: 100px">Mã SV</th>
+                <th style="width: 150px">Sinh Viên</th>
+                <th style="width: 75px">Mã SV</th>
                 <th style="width: 50px">Khoa</th>
-                <th style="width: 400px">Tên đề tài</th>
+                <th style="width: 300px">Tên đề tài</th>
                 <th style="width: 200px">Giảng Viên Hướng Dẫn</th>
-                <th style="width: 200px">Giảng Viên Hướng Dẫn 1</th>
-                <th style="width: 200px">Giảng Viên Hướng Dẫn 2</th>
+                <th style="width: 260px">Giảng Viên Hướng Dẫn 1</th>
+                <th style="width: 260px">Giảng Viên Hướng Dẫn 2</th>
                 <th style="min-width: 90px">Ngày bắt đầu</th>
                 <th style="min-width: 90px">Ngày kết thúc</th>
                 <th style="width: 50px">Ghi chú</th>
-                <th style="width: 80px" id="khoaColumn">
+                <th style="width: 70px" id="khoaColumn">
                   <div class="form-check d-flex">
                     <input
                       class="check"
@@ -593,6 +593,7 @@
 
           // Sinh Viên
           const sinhVienTd = document.createElement("td");
+          sinhVienTd.style.maxWidth = "300px";
           sinhVienTd.textContent = row.SinhVien || "";
           tableRow.appendChild(sinhVienTd);
 
@@ -625,6 +626,9 @@
           // Giảng viên hướng dẫn 1
           const giaoVienHuongDan1Td = document.createElement("td");
           const giaoVienHuongDan1Input = document.createElement("input");
+          giaoVienHuongDan1Input.style.width = "100%";
+          giaoVienHuongDan1Input.style.boxSizing = "border-box";
+
           giaoVienHuongDan1Input.type = "text";
           giaoVienHuongDan1Input.placeholder = "Nhập tên giảng viên 1";
           giaoVienHuongDan1Input.value = row.GiangVien1 || "";
@@ -634,17 +638,6 @@
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
 
-          /*
-          giaoVienHuongDan1Input.onfocus = () => {
-            showSuggestionsGiangVien(
-              giaoVienHuongDan1Input,
-              row.GiangVien1Real,
-              1,
-              row.ID,
-              id
-            );
-          };*/
-
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
 
@@ -652,6 +645,9 @@
 
           const giaoVienHuongDan2Td = document.createElement("td");
           const giaoVienHuongDan2Input = document.createElement("input");
+          giaoVienHuongDan2Input.style.width = "100%";
+          giaoVienHuongDan2Input.style.boxSizing = "border-box";
+
           giaoVienHuongDan2Input.type = "text";
           giaoVienHuongDan2Input.placeholder = "Nhập tên giảng viên 2";
           giaoVienHuongDan2Input.value = row.GiangVien2 || "";
@@ -660,16 +656,6 @@
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
-          /*
-          giaoVienHuongDan2Input.onclick = () => {
-            showSuggestionsGiangVien(
-              giaoVienHuongDan2Input,
-              row.GiangVien2Real,
-              2,
-              row.ID,
-              id
-            );
-          };*/
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
@@ -707,6 +693,10 @@
 
           const NgayBatDauTd = document.createElement("td");
           const NgayBatDauInput = document.createElement("input");
+          NgayBatDauTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayBatDauInput.style.width = "100%";
+          NgayBatDauInput.style.boxSizing = "border-box";
+
           NgayBatDauInput.type = "date";
           NgayBatDauInput.id = `NgayBatDau-${id}`; // Thêm id
           NgayBatDauInput.value = formatDateToInput(row.NgayBatDau);
@@ -716,6 +706,10 @@
           // Ngày Kết Thúc
           const NgayKetThucTd = document.createElement("td");
           const NgayKetThucInput = document.createElement("input");
+          NgayKetThucTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayKetThucInput.style.width = "100%";
+          NgayKetThucInput.style.boxSizing = "border-box";
+
           NgayKetThucInput.type = "date";
           NgayKetThucInput.id = `NgayKetThuc-${id}`; // Thêm id
           NgayKetThucInput.value = formatDateToInput(row.NgayKetThuc);
