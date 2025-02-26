@@ -75,21 +75,28 @@
 
 // module.exports = login;
 
-//log_moigiang
+//log_giangday
 const createPoolConnection = require("../config/databasePool");
 const { use } = require("../routes/adminRoute");
 require("dotenv").config();
 
-const createTriggermoigiang = async (connection, userId, tenNhanVien) => {
+const createTriggergiangday = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
-  const dropTriggerQuery = `DROP TRIGGER IF EXISTS moigiang_log;`;
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS giangday_log;`;
   const triggerQuery = `
-  CREATE TRIGGER moigiang_log
+  CREATE TRIGGER giangday_log
   AFTER UPDATE ON quychuan
   FOR EACH ROW
 BEGIN
   DECLARE change_message VARCHAR(255) DEFAULT '';
-  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin mời giảng';
+  DECLARE loai_thong_tin VARCHAR(50);
+
+  -- Xác định loại thông tin dựa trên giá trị MoiGiang
+  IF NEW.MoiGiang = 1 THEN
+      SET loai_thong_tin = 'Thay đổi thông tin lớp mời giảng';
+  ELSE
+      SET loai_thong_tin = 'Thay đổi thông tin lớp vượt giờ';
+  END IF;
 
   -- Kiểm tra cột GiaoVienGiangDay
   IF OLD.GiaoVienGiangDay != NEW.GiaoVienGiangDay THEN
@@ -627,6 +634,9 @@ END;
   }
 };
 
+//vuotgio_log
+
+
 
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -655,7 +665,7 @@ const login = async (req, res) => {
             WHERE TenDangNhap = ?`;
         const [TenNhanViens] = await connection.query(query, [username]);
         const TenNhanVien = TenNhanViens[0]?.TenNhanVien;
-        await createTriggermoigiang(connection, req.session.userId, TenNhanVien);
+        await createTriggergiangday(connection, req.session.userId, TenNhanVien);
         await createTriggerdoan(connection, req.session.userId, TenNhanVien);
         await createTriggerbaibaokhoahoc(connection, req.session.userId, TenNhanVien);
         await createTriggerbangsangche(connection, req.session.userId, TenNhanVien);
