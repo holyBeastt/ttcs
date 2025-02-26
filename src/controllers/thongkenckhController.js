@@ -33,7 +33,7 @@ const thongkenckhController = {
     
                     // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
                     if (khoa && khoa !== 'ALL') {
-                        conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                        conditions.push("FIND_IN_SET(?, khoathanhvien)");
                         params.push(khoa);
                     }
     
@@ -95,7 +95,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -146,7 +146,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -171,7 +171,7 @@ const thongkenckhController = {
         }
     },
     
-    // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(KhoaThanhVien, ' ', ''))
+    // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(khoathanhvien, ' ', ''))
     // TH nếu sau dấu phẩy có khoảng trắng
     
 
@@ -201,7 +201,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -252,7 +252,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -327,7 +327,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -378,7 +378,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -429,7 +429,7 @@ const thongkenckhController = {
 
             // Nếu không phải 'ALL', thêm điều kiện lọc theo Khoa
             if (khoa && khoa !== 'ALL') {
-                conditions.push("FIND_IN_SET(?, KhoaThanhVien)");
+                conditions.push("FIND_IN_SET(?, khoathanhvien)");
                 params.push(khoa);
             }
 
@@ -471,30 +471,30 @@ const thongkenckhController = {
                 ORDER BY NamHoc DESC`
             );
 
-            // Lấy dữ liệu khoa từ KhoaThanhVien
+            // Lấy dữ liệu khoa từ khoathanhvien
             const [khoa] = await connection.query(
                 `WITH RECURSIVE KhoaCTE AS (
                 SELECT 
-                    TRIM(SUBSTRING_INDEX(KhoaThanhVien, ',', 1)) AS Khoa, 
+                    TRIM(SUBSTRING_INDEX(khoathanhvien, ',', 1)) AS Khoa, 
                     CASE 
-                        WHEN LOCATE(',', KhoaThanhVien) > 0 
-                        THEN SUBSTRING(KhoaThanhVien FROM LOCATE(',', KhoaThanhVien) + 1) 
+                        WHEN LOCATE(',', khoathanhvien) > 0 
+                        THEN SUBSTRING(khoathanhvien FROM LOCATE(',', khoathanhvien) + 1) 
                         ELSE NULL 
                     END AS Remaining
                 FROM (
-                    SELECT KhoaThanhVien FROM detaiduan WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM detaiduan WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM baibaokhoahoc WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM baibaokhoahoc WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM bangsangchevagiaithuong WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM bangsangchevagiaithuong WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM biensoangiaotrinhbaigiang WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM biensoangiaotrinhbaigiang WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM xaydungctdt WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM xaydungctdt WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM nckhvahuanluyendoituyen WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM nckhvahuanluyendoituyen WHERE khoathanhvien IS NOT NULL
                     UNION ALL
-                    SELECT KhoaThanhVien FROM sachvagiaotrinh WHERE KhoaThanhVien IS NOT NULL
+                    SELECT khoathanhvien FROM sachvagiaotrinh WHERE khoathanhvien IS NOT NULL
                 ) AS AllKhoa
 
                 UNION ALL
