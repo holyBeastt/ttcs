@@ -80,9 +80,9 @@ require("dotenv").config();
 
 const createTriggermoigiang = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
-  const dropTriggerQuery = `DROP TRIGGER IF EXISTS log_changes;`;
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS moigiang_log;`;
   const triggerQuery = `
-  CREATE TRIGGER log_changes
+  CREATE TRIGGER moigiang_log
   AFTER UPDATE ON quychuan
   FOR EACH ROW
 BEGIN
@@ -157,61 +157,61 @@ END;
 
 const createTriggerdoan = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
-  const dropTriggerQuery = `DROP TRIGGER IF EXISTS doantriggers;`;
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS doan_log;`;
   const triggerQuery = `
-  CREATE TRIGGER doantriggers
-  AFTER UPDATE ON doantotnghiep
-  FOR EACH ROW
+CREATE TRIGGER doan_log
+AFTER UPDATE ON doantotnghiep
+FOR EACH ROW
 BEGIN
-  DECLARE change_message VARCHAR(255) DEFAULT '';
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
   DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin đồ án';
 
   -- Kiểm tra cột Giangvien1real
-  IF OLD.GangVien1Real != NEW.GiangVien1Real THEN
-     SET change_message = CONCAT(change_message, 'Giảng Viên 1 cho đồ án "', NEW.TenDeTai,'": từ "', OLD.GiangVien1Real, '" thành "', NEW.GiangVien1Real, '". ');
+  IF OLD.GiangVien1Real != NEW.GiangVien1Real THEN
+     SET change_message = CONCAT(change_message, 'Giảng Viên 1 cho đồ án "', NEW.TenDeTai, '": từ "', OLD.GiangVien1Real, '" thành "', NEW.GiangVien1Real, '". ');
   END IF;
 
-   -- Kiểm tra cột Giangvien2real
-  IF OLD.GangVien2Real != NEW.GiangVien2Real THEN
-     SET change_message = CONCAT(change_message, 'Giảng Viên 2 cho đồ án "', NEW.TenDeTai,'": từ "', OLD.GiangVien1Real, '" thành "', NEW.GiangVien1Real, '". ');
+  -- Kiểm tra cột Giangvien2real
+  IF OLD.GiangVien2Real != NEW.GiangVien2Real THEN
+     SET change_message = CONCAT(change_message, 'Giảng Viên 2 cho đồ án "', NEW.TenDeTai, '": từ "', OLD.GiangVien2Real, '" thành "', NEW.GiangVien2Real, '". ');
   END IF;
 
   -- Kiểm tra cột KhoaDuyet
   IF OLD.KhoaDuyet != NEW.KhoaDuyet THEN
       IF OLD.KhoaDuyet = 0 AND NEW.KhoaDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "',  NEW.TenDeTai,'": Đã duyệt. ');
+          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
       ELSEIF OLD.KhoaDuyet = 1 AND NEW.KhoaDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "',  NEW.TenDeTai,' ": Hủy duyệt. ');
+          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
       END IF;
   END IF;
 
   -- Kiểm tra cột DaoTaoDuyet
   IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
       IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "',  NEW.TenDeTai,'": Đã duyệt. ');
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
       ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "',  NEW.TenDeTai,'": Hủy duyệt. ');
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
       END IF;
   END IF;
 
   -- Kiểm tra cột TaiChinhDuyet
   IF OLD.TaiChinhDuyet != NEW.TaiChinhDuyet THEN
       IF OLD.TaiChinhDuyet = 0 AND NEW.TaiChinhDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt đồ án "',  NEW.TenDeTai,'": Đã duyệt. ');
+          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
       ELSEIF OLD.TaiChinhDuyet = 1 AND NEW.TaiChinhDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt môn "',  NEW.TenDetai,'": Hủy duyệt. ');
+          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
       END IF;
   END IF;
-  
+
   -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
   IF change_message != '' THEN
       INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
       VALUES (
         ${userId},  
-          '${tenNhanVien}',
-          loai_thong_tin,  -- Loại thông tin
-          change_message,  -- Nội dung mới với thông báo thay đổi
-          NOW()  -- Thời gian thay đổi
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
       );
   END IF;
 END;
