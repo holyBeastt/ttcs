@@ -480,6 +480,7 @@ const getHopDongDuKienData = async (req, res) => {
       [rows] = await connection.execute(
         `WITH DoAnHopDongDuKien AS (
     SELECT
+        gv.id_Gvm,
         gv.HoTen AS GiangVien,
         gv.GioiTinh,
         gv.Email,
@@ -542,7 +543,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
-        gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+      gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
 		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
       gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
     ), 
@@ -551,6 +552,7 @@ const getHopDongDuKienData = async (req, res) => {
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -583,6 +585,7 @@ const getHopDongDuKienData = async (req, res) => {
     WHERE
         qc.MoiGiang = 1
     GROUP BY
+        gv.id_Gvm,
         gv.HoTen,
         qc.KiHoc,
         gv.GioiTinh,
@@ -613,6 +616,7 @@ const getHopDongDuKienData = async (req, res) => {
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -645,6 +649,7 @@ const getHopDongDuKienData = async (req, res) => {
     WHERE
         qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
     GROUP BY
+        gv.id_Gvm,
         gv.HoTen,
         gv.GioiTinh,
         gv.NgaySinh,
@@ -675,6 +680,7 @@ tableALL AS (SELECT
     KiHoc,
     NamHoc,
     'DoAn' AS LoaiHopDong,
+    id_Gvm,
     GiangVien,
     he_dao_tao,
     NgayBatDau,
@@ -707,6 +713,7 @@ SELECT
     KiHoc,
     NamHoc,
     'DaiHoc' AS LoaiHopDong,
+    id_Gvm,
     HoTen AS GiangVien,
     he_dao_tao,
     NgayBatDau,
@@ -739,6 +746,7 @@ SELECT
     KiHoc,
     NamHoc,
     'SauDaiHoc' AS LoaiHopDong,
+    id_Gvm,
     HoTen AS GiangVien,
     he_dao_tao,
     NgayBatDau,
@@ -793,6 +801,7 @@ ORDER BY
       [rows] = await connection.execute(
         `WITH DoAnHopDongDuKien AS (
     SELECT
+        gv.id_Gvm,
         gv.HoTen AS GiangVien,
         gv.GioiTinh,
         gv.Email,
@@ -855,7 +864,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     GROUP BY 
-        gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+      gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
 		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
       gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
     ), 
@@ -864,6 +873,7 @@ ORDER BY
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -896,6 +906,7 @@ ORDER BY
     WHERE
         qc.MoiGiang = 1
     GROUP BY
+        gv.id_Gvm,
         gv.HoTen,
         qc.KiHoc,
         gv.GioiTinh,
@@ -926,6 +937,7 @@ ORDER BY
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
         gv.NgaySinh,
@@ -958,6 +970,7 @@ ORDER BY
     WHERE
         qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
     GROUP BY
+        gv.id_Gvm,
         gv.HoTen,
         gv.GioiTinh,
         gv.NgaySinh,
@@ -988,6 +1001,7 @@ tableALL AS (SELECT
     KiHoc,
     NamHoc,
     'DoAn' AS LoaiHopDong,
+    id_Gvm,
     GiangVien,
     he_dao_tao,
     NgayBatDau,
@@ -1020,6 +1034,7 @@ SELECT
     KiHoc,
     NamHoc,
     'DaiHoc' AS LoaiHopDong,
+    id_Gvm,
     HoTen AS GiangVien,
     he_dao_tao,
     NgayBatDau,
@@ -1052,6 +1067,7 @@ SELECT
     KiHoc,
     NamHoc,
     'SauDaiHoc' AS LoaiHopDong,
+    id_Gvm,
     HoTen AS GiangVien,
     he_dao_tao,
     NgayBatDau,

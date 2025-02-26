@@ -64,6 +64,17 @@ let createGvm = async (req, res) => {
     const MaPhongBan = khoa;
     let isQuanDoi = req.body.thuocQuanDoi;
 
+    // Kiểm tra HSL
+    // Nếu là chuỗi, thay dấu phẩy bằng dấu chấm
+    if (typeof HeSoLuong === "string") {
+      HeSoLuong = HeSoLuong.replace(",", ".");
+    }
+
+    if (isNaN(HeSoLuong)) {
+      con2.release(); // Giải phóng kết nối trước khi trả về
+      return res.redirect("/gvmList?message=HeSoLuongNotValue");
+    }
+
     // Kiểm tra trùng lặp CCCD
     const checkDuplicateQuery =
       "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ?";

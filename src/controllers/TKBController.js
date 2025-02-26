@@ -209,6 +209,13 @@ const updateRowTKB = async (req, res) => {
     if (field === "student_quantity") {
       let student_bonus = 1;
 
+      // 🛠 Kiểm tra giá trị nhập vào có phải số không
+      if (isNaN(value) || value < 0) {
+        return res
+          .status(400)
+          .json({ message: "Số lượng sinh viên không hợp lệ." });
+      }
+
       switch (true) {
         case data.student_quantity >= 101:
           student_bonus = 1.5;
@@ -238,6 +245,11 @@ const updateRowTKB = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     } else if (field === "bonus_time") {
       value = parseFloat(value.replace(",", "."));
+
+      if (isNaN(value) || value < 0) {
+        return res.status(400).json({ message: "Hệ số T7/CN không hợp lệ" });
+      }
+
       const qc = data.student_bonus * value * data.ll_total;
 
       const updateQuery = `
@@ -249,6 +261,13 @@ const updateRowTKB = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     } else if (field === "ll_total") {
       value = parseFloat(value.replace(",", "."));
+
+      if (isNaN(value) || value < 0) {
+        return res
+          .status(400)
+          .json({ message: "Số tiết lên lớp không hợp lệ" });
+      }
+
       const qc = data.student_bonus * data.bonus_time * value;
 
       const updateQuery = `
@@ -258,6 +277,21 @@ const updateRowTKB = async (req, res) => {
       const updateValues = [value, qc, id];
 
       await connection.query(updateQuery, updateValues);
+    } else if (field === "qc") {
+      value = parseFloat(value.replace(",", "."));
+
+      if (isNaN(value) || value < 0) {
+        return res
+          .status(400)
+          .json({ message: "Số tiết quy chuẩn không hợp lệ" });
+      }
+
+      const updateQuery = `
+        UPDATE course_schedule_details SET qc = ? 
+        WHERE id = ?`;
+      const updateValues = [value, id];
+
+      await connection.query(updateQuery, updateValues);
     } else {
       if (field === "start_date" || field === "end_date") {
         value = formatDateForDB(value);
@@ -265,7 +299,6 @@ const updateRowTKB = async (req, res) => {
 
       const updateQuery = `UPDATE course_schedule_details SET ${field} = ? WHERE id = ?`;
       const updateValues = [value, id];
-      console.log(updateValues);
 
       await connection.query(updateQuery, updateValues);
     }
@@ -303,16 +336,9 @@ function formatDateForDB(dateStr) {
   return null; // Trả về null nếu sai định dạng
 }
 
-function convertDateFormat(dateStr) {
-  const parts = dateStr.split("-");
-  return `${parts[2]}-${parts[1]}-${parts[0]}`; // Chuyển từ DD-MM-YYYY sang YYYY-MM-DD
-}
-
 // hàm xóa 1 dòng
 const deleteRow = async (req, res) => {
   const { id } = req.params; // Lấy ID từ URL
-
-  console.log(`Xóa ${id} trong bảng TKB:`);
 
   let connection;
 
@@ -521,7 +547,6 @@ const updateStudentQuantity = async (req, res) => {
           student_bonus * (Number(bonus_time) || 0) * (Number(ll_total) || 0);
 
         qcCase += ` WHEN id = ? THEN ?`;
-        console.log(qc);
         updateValues.push(id, qc);
       });
       qcCase += ` END`;
