@@ -12,27 +12,117 @@
   <link rel="stylesheet" href="/css/table.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
-    .box {
-      display: flex;
-      flex-direction: column;
-      /* Xếp dọc nội dung */
-      justify-content: center;
-      /* Căn giữa theo chiều dọc */
-      align-items: center;
-      /* Căn giữa theo chiều ngang */
-      min-height: 100vh;
-      /* Đảm bảo chiều cao full màn */
-      /* text-align: center; */
-      /* Căn giữa nội dung văn bản */
+    /* Container chính */
+    .container-fluid.box {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .box form,
-    .box .showMessage {
+    /* Tiêu đề chính */
+    .container-fluid.box h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    /* Input wrapper */
+    .input-wrapper {
+      margin-bottom: 15px;
+    }
+
+    /* Label */
+    .input-wrapper label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    /* Các trường nhập liệu */
+    .form-control {
       width: 100%;
-      /* Đảm bảo nội dung bên trong full màn */
-      max-width: 1200px;
-      /* Giới hạn chiều rộng tối đa (tùy chỉnh theo nhu cầu) */
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    input,
+    textarea {
+      padding: 6px;
+      outline: none;
+      background-color: white !important;
+      border: none;
+    }
+
+
+    /* Hiệu ứng hover và focus cho input */
+    input:focus {
+      outline: none;
+      background-image: none !important;
+    }
+
+    thead {
+      height: 35px;
+    }
+    table tr:hover {
+      background-color: white !important;
+    }
+
+
+    /* Cho textarea, cho phép thay đổi kích thước theo chiều dọc */
+    textarea.form-control {
+      resize: vertical;
+      background-image: none !important;
+    }
+
+    /* Các khoảng cách margin cho nút */
+    .btn.mt-3 {
+      margin-top: 15px;
+    }
+
+    .btn.m-3 {
+      margin: 15px;
+    }
+
+    .btn.m-2 {
+      margin: 10px;
+    }
+
+    /* Phần hiển thị danh sách thông báo */
+    .showMessage {
+      margin-top: 30px;
+    }
+
+    /* Tiêu đề bảng thông báo */
+    .showMessage h4 {
+      margin-bottom: 15px;
+      color: #333;
+      text-align: center;
+    }
+
+    /* Định dạng bảng */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+
+    table th,
+    table td {
+      padding: 0px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #f8f8f8;
     }
   </style>
 </head>
@@ -76,7 +166,7 @@
         </button>
       </form>
       <div class="showMessage">
-        <h4>Thông báo đã ban hành</h4>
+        <h2>Thông báo đã ban hành</h2>
         <table class=" text-center" style="width: 100%;">
           <thead>
             <tr>
@@ -337,7 +427,6 @@
           selectCheckboxTd = document.createElement('td');
           selectCheckbox = document.createElement('input');
           selectCheckbox.type = 'checkbox';
-          selectCheckbox.style.marginLeft = '30px';
           selectCheckbox.name = 'select'; // Thêm thuộc tính name
           selectCheckbox.checked = row.HetHan || false; // Dùng một trường cho checkbox
           selectCheckboxTd.appendChild(selectCheckbox);
@@ -347,7 +436,6 @@
           let deleteButtonTd, deleteButton;
           deleteButtonTd = document.createElement('td');
           deleteButton = document.createElement('button');
-          deleteButton.style.marginLeft = '30px'; // Canh chỉnh nút
           deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
           deleteButton.onclick = () => {
             const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');

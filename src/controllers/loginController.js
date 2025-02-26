@@ -74,32 +74,30 @@
 // };
 
 // module.exports = login;
+
+//log_moigiang
 const createPoolConnection = require("../config/databasePool");
 const { use } = require("../routes/adminRoute");
 require("dotenv").config();
 
-const createTrigger = async (connection, userId, tenNhanVien) => {
+const createTriggermoigiang = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
-  const dropTriggerQuery = `DROP TRIGGER IF EXISTS log_changes;`;
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS moigiang_log;`;
   const triggerQuery = `
-  CREATE TRIGGER log_changes
+  CREATE TRIGGER moigiang_log
   AFTER UPDATE ON quychuan
   FOR EACH ROW
 BEGIN
   DECLARE change_message VARCHAR(255) DEFAULT '';
-  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin lớp học';
-  DECLARE thay_doi_duyet TINYINT DEFAULT 0;
-  DECLARE thay_doi_thong_tin TINYINT DEFAULT 0;
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin mời giảng';
 
   -- Kiểm tra cột GiaoVienGiangDay
   IF OLD.GiaoVienGiangDay != NEW.GiaoVienGiangDay THEN
      SET change_message = CONCAT(change_message, 'Giảng Viên giảng dạy cho môn "', NEW.LopHocPhan, ' - ', NEW.TenLop, '": từ "', OLD.GiaoVienGiangDay, '" thành "', NEW.GiaoVienGiangDay, '". ');
-      SET thay_doi_thong_tin = 1;
   END IF;
 
   -- Kiểm tra cột KhoaDuyet
   IF OLD.KhoaDuyet != NEW.KhoaDuyet THEN
-      SET thay_doi_duyet = 1;
       IF OLD.KhoaDuyet = 0 AND NEW.KhoaDuyet = 1 THEN
           SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
       ELSEIF OLD.KhoaDuyet = 1 AND NEW.KhoaDuyet = 0 THEN
@@ -109,7 +107,6 @@ BEGIN
 
   -- Kiểm tra cột DaoTaoDuyet
   IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
-      SET thay_doi_duyet = 1;
       IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
           SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
       ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
@@ -119,7 +116,6 @@ BEGIN
 
   -- Kiểm tra cột TaiChinhDuyet
   IF OLD.TaiChinhDuyet != NEW.TaiChinhDuyet THEN
-      SET thay_doi_duyet = 1;
       IF OLD.TaiChinhDuyet = 0 AND NEW.TaiChinhDuyet = 1 THEN
           SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
       ELSEIF OLD.TaiChinhDuyet = 1 AND NEW.TaiChinhDuyet = 0 THEN
@@ -130,14 +126,6 @@ BEGIN
   -- Kiểm tra cột GiaoVien
   IF OLD.GiaoVien != NEW.GiaoVien THEN
       SET change_message = CONCAT(change_message, 'Giảng viên cho môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": từ "', OLD.GiaoVien, '" thành "', NEW.GiaoVien, '". ');
-      SET thay_doi_thong_tin = 1;
-  END IF;
-
-  -- Xác định loại thông tin
-  IF thay_doi_duyet = 1 AND thay_doi_thong_tin = 1 THEN
-      SET loai_thong_tin = 'Thay đổi chung';
-  ELSEIF thay_doi_duyet = 1 THEN
-      SET loai_thong_tin = 'Thay đổi trạng thái lớp học';
   END IF;
 
   -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
@@ -168,6 +156,477 @@ END;
     console.error("Lỗi khi tạo trigger:", error.message);
   }
 };
+//log_doantotnghiep
+const createTriggerdoan = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS doan_log;`;
+  const triggerQuery = `
+CREATE TRIGGER doan_log
+AFTER UPDATE ON doantotnghiep
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin đồ án';
+
+  -- Kiểm tra cột Giangvien1real
+  IF OLD.GiangVien1Real != NEW.GiangVien1Real THEN
+     SET change_message = CONCAT(change_message, 'Giảng Viên 1 cho đồ án "', NEW.TenDeTai, '": từ "', OLD.GiangVien1Real, '" thành "', NEW.GiangVien1Real, '". ');
+  END IF;
+
+  -- Kiểm tra cột Giangvien2real
+  IF OLD.GiangVien2Real != NEW.GiangVien2Real THEN
+     SET change_message = CONCAT(change_message, 'Giảng Viên 2 cho đồ án "', NEW.TenDeTai, '": từ "', OLD.GiangVien2Real, '" thành "', NEW.GiangVien2Real, '". ');
+  END IF;
+
+  -- Kiểm tra cột KhoaDuyet
+  IF OLD.KhoaDuyet != NEW.KhoaDuyet THEN
+      IF OLD.KhoaDuyet = 0 AND NEW.KhoaDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
+      ELSEIF OLD.KhoaDuyet = 1 AND NEW.KhoaDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Kiểm tra cột TaiChinhDuyet
+  IF OLD.TaiChinhDuyet != NEW.TaiChinhDuyet THEN
+      IF OLD.TaiChinhDuyet = 0 AND NEW.TaiChinhDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt đồ án "', NEW.TenDeTai, '": Đã duyệt. ');
+      ELSEIF OLD.TaiChinhDuyet = 1 AND NEW.TaiChinhDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt đồ án "', NEW.TenDeTai, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+//log_nckh
+const createTriggerbaibaokhoahoc = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS baibaokhoahoc_log;`;
+  const triggerQuery = `
+CREATE TRIGGER baibaokhoahoc_log
+AFTER UPDATE ON baibaokhoahoc
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt bài báo "', NEW.TenBaiBao, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt bài báo "', NEW.TenBaiBao, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggerbangsangche = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS bangsangche_log;`;
+  const triggerQuery = `
+CREATE TRIGGER bangsangche_log
+AFTER UPDATE ON bangsangchevagiaithuong
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt bằng sáng chế và giải thưởng "', NEW.TenBangSangCheVaGiaiThuong, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt bằng sáng chế và giải thưởng "', NEW.TenBangSangCheVaGiaiThuong, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggerbiensoangiaotrinh = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS biensoan_log;`;
+  const triggerQuery = `
+CREATE TRIGGER biensoan_log
+AFTER UPDATE ON biensoangiaotrinhbaigiang
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt giáo trình "', NEW.TenGiaoTrinhBaiGiang, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt giáo trình "', NEW.TenGiaoTrinhBaiGiang, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggerdetaiduan = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS detaiduan_log;`;
+  const triggerQuery = `
+CREATE TRIGGER detaiduan_log
+AFTER UPDATE ON detaiduan
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đề tài "', NEW.TenDeTai, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt đề tài "', NEW.TenDeTai, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggernckhvahuanluyen = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS huanluyen_log;`;
+  const triggerQuery = `
+CREATE TRIGGER huanluyen_log
+AFTER UPDATE ON nckhvahuanluyendoituyen
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt NCKH và Huấn luyện đội tuyển "', NEW.TenDeTai, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt NCKH và Huấn luyện đội tuyển "', NEW.TenDeTai, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggernckhvacongnghe = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS congnghe_log;`;
+  const triggerQuery = `
+CREATE TRIGGER congnghe_log
+AFTER UPDATE ON nhiemvukhoahocvacongnghe
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt nhiệm vụ "', NEW.TenNhiemVu, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt nhiệm vụ "', NEW.TenNhiemVu, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggersachvagiaotrinh = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS sachvagt_log;`;
+  const triggerQuery = `
+CREATE TRIGGER sachvagt_log
+AFTER UPDATE ON sachvagiaotrinh
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt sách và giáo trình "', NEW.TenSachVaGiaoTrinh, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt sách và giáo trình "', NEW.TenSachVaGiaoTrinh, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggerxaydungctdt = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS xaydung_log;`;
+  const triggerQuery = `
+CREATE TRIGGER xaydung_log
+AFTER UPDATE ON xaydungctdt
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(1000) DEFAULT '';
+  DECLARE loai_thong_tin VARCHAR(50) DEFAULT 'Thay đổi thông tin NCKH';
+  
+  -- Kiểm tra cột DaoTaoDuyet
+  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
+      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt chương trình đào tạo "', NEW.TenChuongTrinh, '": Đã duyệt. ');
+      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
+          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt chương trình đào tạo "', NEW.TenChuongTrinh, '": Hủy duyệt. ');
+      END IF;
+  END IF;
+
+  -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+  IF change_message != '' THEN
+      INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (
+        ${userId},  
+          '${tenNhanVien}',  -- Giả sử có cột TenNhanVien
+          loai_thong_tin,
+          change_message,
+          NOW()
+      );
+  END IF;
+END;
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
 
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -196,8 +655,17 @@ const login = async (req, res) => {
             WHERE TenDangNhap = ?`;
         const [TenNhanViens] = await connection.query(query, [username]);
         const TenNhanVien = TenNhanViens[0]?.TenNhanVien;
-        await createTrigger(connection, req.session.userId, TenNhanVien);
-
+        await createTriggermoigiang(connection, req.session.userId, TenNhanVien);
+        await createTriggerdoan(connection, req.session.userId, TenNhanVien);
+        await createTriggerbaibaokhoahoc(connection, req.session.userId, TenNhanVien);
+        await createTriggerbangsangche(connection, req.session.userId, TenNhanVien);
+        await createTriggerbiensoangiaotrinh(connection, req.session.userId, TenNhanVien);
+        await createTriggerdetaiduan(connection, req.session.userId, TenNhanVien);
+        await createTriggernckhvahuanluyen(connection, req.session.userId, TenNhanVien);
+        await createTriggernckhvacongnghe(connection, req.session.userId, TenNhanVien);
+        await createTriggersachvagiaotrinh(connection, req.session.userId, TenNhanVien);
+        await createTriggerxaydungctdt(connection, req.session.userId, TenNhanVien);
+        
         // Phân quyền người dùng
         const [roles] = await connection.query(
           "SELECT MaPhongBan, Quyen, isKhoa FROM role WHERE TenDangNhap = ?",
