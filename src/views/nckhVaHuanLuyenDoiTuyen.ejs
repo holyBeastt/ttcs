@@ -217,8 +217,8 @@
             columns.push({
               title: "Khoa",
               field: "Khoa",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
             });
           }
 
@@ -233,7 +233,7 @@
             });
           }
 
-          // Cấp quyền duyệt
+          // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
           if (userRole === "Duyệt") {
             columns.push({
               title: "Duyệt",
@@ -269,7 +269,7 @@
             }
             // Nếu chỉnh sửa ô Duyệt thì chuyển checkbox value thành 1 hoặc 0
             if (field === "DaoTaoDuyet") {
-              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
+              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet ? 1 : 0;
             }
             await saveData(updatedData.ID, updatedData, row);
           });
@@ -334,6 +334,7 @@
 
       // Hàm cập nhật dữ liệu sau khi chỉnh sửa
       async function saveData(id, updatedData, row) {
+        console.log(updatedData);
         const MaBang = 'nckhvahuanluyendoituyen';
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
@@ -485,15 +486,15 @@
         ); // Thành viên gợi ý
 
         // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
-        chuNhiemCheckbox.addEventListener("change", function () {
-          if (this.checked) {
-            // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
-            chuNhiemSuggestions.style.display = "none";
-          } else {
-            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
-            chuNhiemSuggestions.style.display = "block";
-          }
-        });
+        // chuNhiemCheckbox.addEventListener("change", function () {
+        //   if (this.checked) {
+        //     // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
+        //     chuNhiemSuggestions.style.display = "none";
+        //   } else {
+        //     // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
+        //     chuNhiemSuggestions.style.display = "block";
+        //   }
+        // });
 
         // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
         thanhVienCheckbox.addEventListener("change", function () {

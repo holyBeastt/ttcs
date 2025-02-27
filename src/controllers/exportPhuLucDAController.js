@@ -277,22 +277,27 @@ const exportPhuLucDA = async (req, res) => {
 
     const headerRow = summarySheet.addRow(summaryHeader);
     headerRow.font = { name: "Times New Roman", bold: true };
+    headerRow.font = { name: "Times New Roman", bold: true };
+    summarySheet.getColumn(10).numFmt = "#,##0"; // Thành tiền
+
+    summarySheet.getColumn(11).numFmt = "#,##0"; // Thành tiền
+    summarySheet.getColumn(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
+    summarySheet.getColumn(13).numFmt = "#,##0"; // Còn lại
 
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 14; // Tên học phần
-    summarySheet.getColumn(4).width = 14; // Tên lớp
+    summarySheet.getColumn(3).width = 20; // Tên đồ án
+    summarySheet.getColumn(4).width = 14; // Sinh viên thực hiện
     summarySheet.getColumn(5).width = 10; // Số tiết
-    summarySheet.getColumn(6).width = 16; // Thời gian thực hiện
-    // summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 16; // Địa chỉ
-    summarySheet.getColumn(9).width = 6; // Học vị
-    summarySheet.getColumn(10).width = 7; // Hệ số lương
-    summarySheet.getColumn(11).width = 12; // Mức thanh toán
-    summarySheet.getColumn(12).width = 15; // Thành tiền
-    summarySheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-    summarySheet.getColumn(14).width = 15; // Còn lại
+    summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
+      summarySheet.getColumn(7).width = 18; // Địa chỉ
+      summarySheet.getColumn(8).width = 6; // Học vị
+      summarySheet.getColumn(9).width = 7; // Hệ số lương
+      summarySheet.getColumn(10).width = 12; // Mức thanh toán
+      summarySheet.getColumn(11).width = 15; // Thành tiền
+      summarySheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
+      summarySheet.getColumn(13).width = 15; // Còn lại
 
     // Thêm dữ liệu vào sheet tổng hợp
     let stt = 1;
@@ -329,9 +334,9 @@ const exportPhuLucDA = async (req, res) => {
           hocViVietTat,
           item.HSL,
           100000, // Mức thanh toán
-          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN"), // Định dạng số tiền
-          conLai.toLocaleString("vi-VN"), // Định dạng số tiền
+          soTien, // Định dạng số tiền
+          truThue, // Định dạng số tiền
+          conLai, // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
@@ -382,9 +387,7 @@ const exportPhuLucDA = async (req, res) => {
             case 13: // Trừ thuế TNCN 10%
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-            case 14: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
-              break;
+          
             default:
               cell.font = { name: "Times New Roman", size: 15 };
               break;
@@ -409,9 +412,9 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
       "",
-      totalSoTien.toLocaleString("vi-VN"),
-      totalTruThue.toLocaleString("vi-VN"),
-      totalThucNhan.toLocaleString("vi-VN"),
+      totalSoTien,
+      totalTruThue,
+      totalThucNhan,
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
@@ -550,17 +553,18 @@ const exportPhuLucDA = async (req, res) => {
       // Thêm tiêu đề cột
       const headerRow = worksheet.addRow(header);
       headerRow.font = { name: "Times New Roman", bold: true };
+      worksheet.getColumn(10).numFmt = "#,##0"; // Thành tiền
+
       worksheet.getColumn(11).numFmt = "#,##0"; // Thành tiền
       worksheet.getColumn(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
       worksheet.getColumn(13).numFmt = "#,##0"; // Còn lại
-      worksheet.getColumn(14).numFmt = "#,##0"; // Còn lại
 
       worksheet.pageSetup = {
-        paperSize: 9, // A4 paper size
+        paperSize: 9, // Kích thước giấy A4
         orientation: "landscape",
-        fitToPage: true, // Fit to page
-        fitToWidth: 1, // Fit to width
-        fitToHeight: 0, // Do not fit to height
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
         margins: {
           left: 0.3149,
           right: 0.3149,
@@ -572,21 +576,20 @@ const exportPhuLucDA = async (req, res) => {
       };
 
       // Căn chỉnh độ rộng cột
-      // Định dạng độ rộng cột, bao gồm cột STT
-      worksheet.getColumn(1).width = 5; // STT
-      worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 14; // Tên học phần
-      worksheet.getColumn(4).width = 14; // Tên lớp
-      worksheet.getColumn(5).width = 10; // Số tiết
-      worksheet.getColumn(6).width = 16; // Thời gian thực hiện
-      //   worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 16; // Địa Chỉ
-      worksheet.getColumn(9).width = 6; // Học vị
-      worksheet.getColumn(10).width = 7; // Hệ số lương
-      worksheet.getColumn(11).width = 12; // Mức thanh toán
-      worksheet.getColumn(12).width = 15; // Thành tiền
-      worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-      worksheet.getColumn(14).width = 15; // Còn lại
+    // Định dạng cột
+    worksheet.getColumn(1).width = 5; // STT
+    worksheet.getColumn(2).width = 18; // Họ tên giảng viên
+    worksheet.getColumn(3).width = 20; // Tên đồ án
+    worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
+    worksheet.getColumn(5).width = 10; // Số tiết
+    worksheet.getColumn(6).width = 18; // Thời gian thực hiện
+      worksheet.getColumn(7).width = 18; // Địa chỉ
+      worksheet.getColumn(8).width = 6; // Học vị
+      worksheet.getColumn(9).width = 7; // Hệ số lương
+      worksheet.getColumn(10).width = 12; // Mức thanh toán
+      worksheet.getColumn(11).width = 15; // Thành tiền
+      worksheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
+      worksheet.getColumn(13).width = 15; // Còn lại
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
@@ -647,10 +650,10 @@ const exportPhuLucDA = async (req, res) => {
           thucNhan,
         ]);
         row.font = { name: "Times New Roman", size: 13 };
+        row.getCell(11).numFmt = "#,##0"; // Còn lại
 
         row.getCell(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
         row.getCell(13).numFmt = "#,##0"; // Còn lại
-        row.getCell(14).numFmt = "#,##0"; // Còn lại
 
         // Bật wrapText cho các ô dữ liệu và căn giữa
         row.eachCell((cell, colNumber) => {
@@ -683,25 +686,25 @@ const exportPhuLucDA = async (req, res) => {
             // case 7: // Học kỳ
             //   cell.font = { name: "Times New Roman", size: 13 };
             //   break;
-            case 8: // Địa Chỉ
+            case 7: // Địa Chỉ
               cell.font = { name: "Times New Roman", size: 14 };
               break;
-            case 9: // Học vị
+            case 8: // Học vị
               cell.font = { name: "Times New Roman", size: 14 };
               break;
-            case 10: // Hệ số lương
+            case 9: // Hệ số lương
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-            case 11: // Mức thanh toán
+            case 10: // Mức thanh toán
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-            case 12: // Thành tiền
+            case 11: // Thành tiền
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-            case 13: // Trừ thuế TNCN 10%
+            case 12: // Trừ thuế TNCN 10%
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-            case 14: // Còn lại
+            case 13: // Còn lại
               cell.font = { name: "Times New Roman", size: 15 };
               break;
             default:
