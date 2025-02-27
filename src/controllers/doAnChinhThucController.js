@@ -1274,36 +1274,114 @@ const saveToExportDoAn = async (req, res) => {
   }
 };
 
+// const updateDoAnDateAll = async (req, res) => {
+//   const jsonData = req.body;
+
+//   let connection;
+
+//   try {
+//     // Lấy kết nối từ createPoolConnection
+//     connection = await createPoolConnection();
+
+//     // Duyệt qua từng phần tử trong jsonData
+//     for (let item of jsonData) {
+//       const { ID, NgayBatDau, NgayKetThuc } = item;
+
+//       let updateQuery, updateValues;
+
+//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
+//       updateQuery = `
+//       UPDATE doantotnghiep
+//       SET
+//         NgayBatDau = ?,
+//         NgayKetThuc = ?
+//       WHERE ID = ?
+//     `;
+
+//       updateValues = [
+//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
+//         ID,
+//       ];
+
+//       await connection.query(updateQuery, updateValues);
+//     }
+
+//     res.status(200).json({ message: "Cập nhật thành công" });
+//   } catch (error) {
+//     console.error("Lỗi cập nhật:", error);
+//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
+
 const updateDoAnDateAll = async (req, res) => {
   const jsonData = req.body;
 
   let connection;
 
   try {
+    // Kiểm tra dữ liệu đầu vào
+    if (!jsonData || jsonData.length === 0) {
+      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
+    }
+
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
 
-    // Duyệt qua từng phần tử trong jsonData
-    for (let item of jsonData) {
-      const { ID, NgayBatDau, NgayKetThuc } = item;
+    // Giới hạn số lượng bản ghi mỗi batch (tránh quá tải)
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < jsonData.length; i += batchSize) {
+      batches.push(jsonData.slice(i, i + batchSize));
+    }
 
-      let updateQuery, updateValues;
+    // Xử lý từng batch
+    for (const batch of batches) {
+      let updateQuery = `
+        UPDATE doantotnghiep
+        SET
+          NgayBatDau = CASE
+      `;
+      const updateValues = [];
+      const ids = [];
 
-      // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-      updateQuery = `
-      UPDATE doantotnghiep
-      SET 
-        NgayBatDau = ?,
-        NgayKetThuc = ?
-      WHERE ID = ?
-    `;
+      batch.forEach(({ ID, NgayBatDau, NgayKetThuc }) => {
+        // Chuẩn hóa dữ liệu
+        const validNgayBatDau = isNaN(new Date(NgayBatDau).getTime())
+          ? null
+          : NgayBatDau;
+        const validNgayKetThuc = isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc;
 
-      updateValues = [
-        isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-        isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-        ID,
-      ];
+        // Thêm logic cập nhật cho NgayBatDau
+        updateQuery += ` WHEN ID = ? THEN ? `;
+        updateValues.push(ID, validNgayBatDau);
 
+        // Thêm logic cập nhật cho NgayKetThuc
+        if (!ids.includes(ID)) ids.push(ID);
+      });
+
+      updateQuery += `
+        END, 
+        NgayKetThuc = CASE
+      `;
+
+      batch.forEach(({ ID, NgayKetThuc }) => {
+        const validNgayKetThuc = isNaN(new Date(NgayKetThuc).getTime())
+          ? null
+          : NgayKetThuc;
+        updateQuery += ` WHEN ID = ? THEN ? `;
+        updateValues.push(ID, validNgayKetThuc);
+      });
+
+      // Hoàn thiện truy vấn
+      updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
+      updateValues.push(...ids);
+
+      // Thực hiện truy vấn cập nhật
       await connection.query(updateQuery, updateValues);
     }
 
