@@ -324,7 +324,7 @@
                 <th style="width: 50px;">Mời giảng?</th>
                 <th style="width: 250px;">GV giảng dạy</th>
                 <th style="width: 50px;">Khoa</th>
-                <th style="width: 50px;">Bộ môn</th>
+                <th style="width: 64px;">Bộ môn</th>
                 <th style="width: 100px;">Hệ đào tạo</th>
                 <th style="width: 50px;">Số tiết LL</th>
                 <th style="width: 50px;">Số tiết QC</th>
@@ -914,7 +914,9 @@
 
             const boMonTd = document.createElement('td');
             const boMonInput = document.createElement('input');
-            boMonTd.style.maxWidth = '50px';
+            boMonTd.style.maxWidth = '64px';
+            boMonInput.style.width = "100%";
+            boMonInput.style.boxSizing = "border-box";
             boMonInput.type = 'text';
             boMonInput.name = 'bomon';
             boMonInput.value = row.BoMon || '';
