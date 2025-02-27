@@ -811,9 +811,11 @@
             showSuggestionsGiangVien(giaoVienGiangDayInput, index, row.ID);
           };*/
 
+          /*
           giaoVienGiangDayInput.onfocus = () => {
             showSuggestionsGiangVien(giaoVienGiangDayInput, index, row.ID);
-          };
+          }; */
+          showSuggestionsGiangVien(giaoVienGiangDayInput, index, row.ID);
 
           // Thêm id để lấy dữ liệu
           giaoVienGiangDayInput.id = `giaoVienGiangDay_${index}`;
@@ -851,14 +853,11 @@
             }
             showSuggestionsBoMon(boMonInput);
           }); */
-
-          boMonInput.addEventListener("mousedown", (e) => {
-            showSuggestionsBoMon(boMonInput);
-          });
-
+          /*
           boMonInput.addEventListener("focus", () => {
             showSuggestionsBoMon(boMonInput);
-          });
+          });*/
+          showSuggestionsBoMon(boMonInput);
 
           boMonTd.appendChild(boMonInput);
           tableRow.appendChild(boMonTd);
@@ -1614,7 +1613,7 @@
           },
           minLength: 0,
           delay: 0,
-          autoFocus: true, // tự động focus mục đầu tiên
+          autoFocus: false, // tự động focus mục đầu tiên
           select: function (event, ui) {
             const selectedName = ui.item.value.split(" - ")[0];
             const values = valuesCache;

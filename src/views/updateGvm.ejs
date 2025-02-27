@@ -218,15 +218,15 @@
           </div>
         </div>
         <div class="row mb-3">
-          <div class="col-md-4">
+          <div class="col-md-1">
             <label for="hsl">Hệ số lương:</label>
             <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label for="stk">Số tài khoản:</label>
             <input required class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-8">
             <label for="nganHang">Ngân hàng:</label>
             <input required class="form-control" type="text" name="NganHang" id="nganHang"
               value="<%= value.NganHang %>">
@@ -383,17 +383,28 @@
       Swal.fire({
         title: 'Thông báo',
         html: "Thêm thất bại",
-        icon: 'success',
+        icon: 'error',
         confirmButtonText: 'OK',
         width: 'auto', // Tự động điều chỉnh chiều rộng
         padding: '20px', // Giữ khoảng cách cho nội dung
       });
+    } else if (message == 'HeSoLuongNotValue'){
+      Swal.fire({
+        title: 'Thông báo',
+        html: "Hệ số lương không đúng kiểu dữ liệu",
+        icon: 'info',
+        confirmButtonText: 'OK',
+        width: 'auto', // Tự động điều chỉnh chiều rộng
+        padding: '20px', // Giữ khoảng cách cho nội dung
+      }).then(() => {
+        // Xóa query string sau khi user nhấn "OK"
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      });
     }
     // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
     if (message) {
-      // Sử dụng window.history để xóa query string mà không refresh lại trang
-      //const newUrl = window.location.origin + window.location.pathname;
-      //window.history.replaceState({}, document.title, newUrl);
+
     }
 
     // Quay lại trang cũ

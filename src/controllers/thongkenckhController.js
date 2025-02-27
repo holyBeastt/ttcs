@@ -10,28 +10,61 @@ const thongkenckhController = {
     // Lấy dữ liệu thống kê
     getStatisticsData: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
+    
         try {
             connection = await createConnection();
-            const queries = [
-                'SELECT COUNT(*) AS total FROM detaiduan Where daotaoduyet = 1',
-                'SELECT COUNT(*) AS total FROM baibaokhoahoc Where daotaoduyet = 1',
-                'SELECT COUNT(*) AS total FROM bangsangchevagiaithuong Where daotaoduyet = 1',
-                'SELECT COUNT(*) AS total FROM biensoangiaotrinhbaigiang Where daotaoduyet = 1',
-                // 'SELECT COUNT(*) AS total FROM nhiemvukhoahocvacongnghe',
-                'SELECT COUNT(*) AS total FROM xaydungctdt Where daotaoduyet = 1',
-                'SELECT COUNT(*) AS total FROM nckhvahuanluyendoituyen Where daotaoduyet = 1',
-                'SELECT COUNT(*) AS total FROM sachvagiaotrinh Where daotaoduyet = 1'
+    
+            const baseQuery = `
+                SELECT COUNT(*) AS total 
+                FROM ?? t
+                WHERE t.daotaoduyet = 1
+            `;
+            const tables = [
+                "detaiduan",
+                "baibaokhoahoc",
+                "bangsangchevagiaithuong",
+                "biensoangiaotrinhbaigiang",
+                "xaydungctdt",
+                "nckhvahuanluyendoituyen",
+                "sachvagiaotrinh"
             ];
-
+    
             const results = await Promise.all(
-                queries.map(query => connection.query(query))
+                tables.map(async (table) => {
+                    let conditions = [];
+                    let params = [table];
+    
+                    if (khoa && khoa !== 'ALL') {
+                        conditions.push(`
+                            EXISTS (
+                                SELECT 1 FROM nhanvien nv 
+                                WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                                    LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                                AND nv.MaPhongBan = ?
+                            )
+                        `);
+                        params.push(khoa);
+                    }
+    
+                    if (namhoc) {
+                        conditions.push("t.NamHoc = ?");
+                        params.push(namhoc);
+                    }
+    
+                    let finalQuery = baseQuery;
+                    if (conditions.length > 0) {
+                        finalQuery += ` AND ${conditions.join(" AND ")}`;
+                    }
+    
+                    const [rows] = await connection.query(finalQuery, params);
+                    return rows[0].total;
+                })
             );
-
-            const totals = results.map(([rows]) => rows[0].total); // Lấy tổng từ mỗi bảng
-
+    
             res.json({
                 success: true,
-                data: totals
+                data: results
             });
         } catch (err) {
             console.error("Lỗi khi lấy dữ liệu thống kê:", err);
@@ -40,32 +73,58 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
+    
 
     // đề tài dự án
     getDetail1Data: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
+            let query = `
                 SELECT 
-                ID,
-                CapDeTai,
-                NamHoc,
-                TenDeTai,
-                MaSoDeTai,
-                ChuNhiem,
-                ThuKy,
-                DanhSachThanhVien,
-                NgayNghiemThu,
-                Khoa
-                FROM detaiduan
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+                    t.ID,
+                    t.CapDeTai,
+                    t.NamHoc,
+                    t.TenDeTai,
+                    t.MaSoDeTai,
+                    t.ChuNhiem,
+                    t.ThuKy,
+                    t.DanhSachThanhVien,
+                    t.NgayNghiemThu,
+                    t.Khoa
+                FROM detaiduan t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết:", err);
+            console.error("Lỗi khi lấy dữ liệu từ bảng đề tài dự án:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -74,60 +133,112 @@ const thongkenckhController = {
     //bài báo khoa học
     getDetailDataBaiBao: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-
-            const query = `
+            let query = `
                 SELECT 
-                    NamHoc,
-                    Khoa,
-                    ID,
-                    TenBaiBao,
-                    LoaiTapChi,
-                    ChiSoTapChi,
-                    TacGia,
-                    TacGiaChiuTrachNhiem,
-                    DanhSachThanhVien,
-                    Khoa
-                FROM baibaokhoahoc
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+                    t.NamHoc,
+                    t.Khoa,
+                    t.ID,
+                    t.TenBaiBao,
+                    t.LoaiTapChi,
+                    t.ChiSoTapChi,
+                    t.TacGia,
+                    t.TacGiaChiuTrachNhiem,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM baibaokhoahoc t
+                WHERE t.daotaoduyet = 1
             `;
 
-            const [rows] = await connection.query(query);
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết:", error);
+        } catch (err) {
+            console.error("Lỗi khi lấy dữ liệu từ bảng bài báo khoa học:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
         }
     },
-    /// bằng sáng chế và giải thưởng
+    
+    // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(khoathanhvien, ' ', ''))
+    // TH nếu sau dấu phẩy có khoảng trắng
+    
+
+    // bằng sáng chế và giải thưởng
     getDetailDataBangsangche: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
-                SELECT 
-                    ID,
-                    NamHoc,
-                    TenBangSangCheVaGiaiThuong,
-                    PhanLoai,
-                    TacGia,
-                    SoQDCongNhan,
-                    DanhSachThanhVien,
-                    Khoa,
-                    NgayQDCongNhan
-                    
-                FROM bangsangchevagiaithuong
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+            let query = `
+                SELECT
+                    t.ID,
+                    t.NamHoc,
+                    t.TenBangSangCheVaGiaiThuong,
+                    t.PhanLoai,
+                    t.TacGia,
+                    t.SoQDCongNhan,
+                    t.DanhSachThanhVien,
+                    t.Khoa,
+                    t.NgayQDCongNhan
+                FROM bangsangchevagiaithuong t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Bằng sáng chế/giải thưởng:", err);
+            console.error("Lỗi khi lấy dữ liệu từ bảng bằng sáng chế:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -136,28 +247,53 @@ const thongkenckhController = {
     //biên soạn 
     getDetailDataBiensoan: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
-                SELECT 
-                   ID,
-                   Phanloai,
-                   NamHoc,
-                   TenGiaoTrinhBaiGiang,
-                   SoQDGiaoNhiemVu,
-                   SoTC,
-                   NgayQDGiaoNhiemVu,
-                   DanhSachThanhVien,
-                   TacGia,
-                   Khoa
-                FROM biensoangiaotrinhbaigiang
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+            let query = `
+                SELECT
+                    t.ID,
+                    t.Phanloai,
+                    t.NamHoc,
+                    t.TenGiaoTrinhBaiGiang,
+                    t.SoQDGiaoNhiemVu,
+                    t.SoTC,
+                    t.NgayQDGiaoNhiemVu,
+                    t.DanhSachThanhVien,
+                    t.TacGia,
+                    t.Khoa
+                FROM biensoangiaotrinhbaigiang t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Biên soạn giáo trình:", err);
+            console.error("Lỗi khi lấy dữ liệu từ bảng biên soạn giáo trình:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -168,7 +304,7 @@ const thongkenckhController = {
     //     let connection;
     //     try {
     //         connection = await createConnection();
-    //         const query = `
+    //         let query = `
     //             SELECT 
     //             MaNhiemVu,
     //             NamHoc,
@@ -190,28 +326,53 @@ const thongkenckhController = {
     // Xây dựng CTĐT
     getDetailDataxaydung: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
-                SELECT 
-                ID,
-                 NamHoc,
-                TenChuongTrinh,
-                SoTC,
-                SoQDGiaoNhiemVu,
-                NgayQDGiaoNhiemVu,
-                HinhThucXayDung,
-                KetQua,
-                DanhSachThanhVien,
-                Khoa
-                FROM xaydungctdt
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+            let query = `
+                SELECT
+                    t.ID,
+                    t.NamHoc,
+                    t.TenChuongTrinh,
+                    t.SoTC,
+                    t.SoQDGiaoNhiemVu,
+                    t.NgayQDGiaoNhiemVu,
+                    t.HinhThucXayDung,
+                    t.KetQua,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM xaydungctdt t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Xây dựng chương trình đào tạo:", err);
+            console.error("Lỗi khi lấy dữ liệu bảng xây dựng ctđt:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -220,28 +381,53 @@ const thongkenckhController = {
     //nckh và huấn luyện đội tuyển
     getDetailDatanckh: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
-                SELECT 
-            ID,
-            PhanLoai,
-            NamHoc,
-            TenDeTai,
-            SoQDGiaoNhiemVu,
-            NgayQDGiaoNhiemVu,
-            KetQuaCapKhoa,
-            KetQuaCapHocVien,
-            DanhSachThanhVien,
-            Khoa
-                FROM nckhvahuanluyendoituyen
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+            let query = `
+                SELECT
+                    t.ID,
+                    t.PhanLoai,
+                    t.NamHoc,
+                    t.TenDeTai,
+                    t.SoQDGiaoNhiemVu,
+                    t.NgayQDGiaoNhiemVu,
+                    t.KetQuaCapKhoa,
+                    t.KetQuaCapHocVien,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM nckhvahuanluyendoituyen t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+
+            let conditions = [];
+            let params = [];
+
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+                `);
+                params.push(khoa);
+            }
+
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng NCKH và huấn luyện đổi tuyển:", err);
+            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng NCKH và huấn luyện đội tuyển:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
@@ -250,34 +436,106 @@ const thongkenckhController = {
     /// sách và giáo trình
     getDetailDatasachvagiaotrinh: async (req, res) => {
         let connection;
+        const { namhoc, khoa } = req.query;
         try {
             connection = await createConnection();
-            const query = `
-                SELECT 
-            ID,
-            PhanLoai,
-            NamHoc,
-            TenSachVaGiaoTrinh,
-            SoTrang,
-            SoXuatBan,
-            TacGia,
-            DongChuBien,
-            DanhSachThanhVien,
-            Khoa
-                FROM sachvagiaotrinh
-                Where daotaoduyet = 1
-                ORDER BY NamHoc DESC;
+            let query = `
+                SELECT
+                    t.ID,
+                    t.PhanLoai,
+                    t.NamHoc,
+                    t.TenSachVaGiaoTrinh,
+                    t.SoTrang,
+                    t.SoXuatBan,
+                    t.TacGia,
+                    t.DongChuBien,
+                    t.DanhSachThanhVien,
+                    t.Khoa
+                FROM sachvagiaotrinh t
+                WHERE t.daotaoduyet = 1
             `;
-            const [rows] = await connection.query(query);
+    
+            let conditions = [];
+            let params = [];
+    
+            // Nếu không phải 'ALL', lọc theo khoa nhưng chỉ dựa vào thành viên không nằm trong dấu ()
+            if (khoa && khoa !== 'ALL') {
+                conditions.push(`
+                    EXISTS (
+                        SELECT 1 FROM nhanvien nv 
+                        WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                            LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                        AND nv.MaPhongBan = ?
+                    )
+
+                `);
+                params.push(khoa);
+                console.log("Generated Query:", query, params);
+
+            }
+            
+    
+            // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
+            if (namhoc) {
+                conditions.push("t.NamHoc = ?");
+                params.push(namhoc);
+            }
+    
+            // Gộp các điều kiện vào câu query
+            if (conditions.length > 0) {
+                query += ` AND ${conditions.join(" AND ")}`;
+            }
+    
+            const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
-            console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Sách và giáo trình:", err);
+            console.error("Lỗi khi lấy dữ liệu từ bảng sách và giáo trình:", err);
             res.status(500).json({ success: false, message: "Lỗi máy chủ" });
         } finally {
             if (connection) connection.release();
         }
     },
+    
 
+    getNamHocAndKhoaData: async (req, res) => {
+        let connection;
+        try {
+            connection = await createConnection();
+            
+            // Lấy dữ liệu năm học
+            const [namHoc] = await connection.query(
+                `SELECT DISTINCT NamHoc FROM detaiduan 
+                UNION SELECT DISTINCT NamHoc FROM baibaokhoahoc 
+                UNION SELECT DISTINCT NamHoc FROM bangsangchevagiaithuong 
+                UNION SELECT DISTINCT NamHoc FROM biensoangiaotrinhbaigiang 
+                UNION SELECT DISTINCT NamHoc FROM xaydungctdt 
+                UNION SELECT DISTINCT NamHoc FROM nckhvahuanluyendoituyen 
+                UNION SELECT DISTINCT NamHoc FROM sachvagiaotrinh 
+                ORDER BY NamHoc DESC`
+            );
+
+            // Lấy dữ liệu khoa từ bảng phongban
+            const [khoa] = await connection.query(
+                `SELECT MaPhongBan as Khoa, TenPhongBan FROM phongban WHERE isKhoa=1`
+            );
+
+            const data = {
+                success: true,
+                NamHoc: namHoc,
+                Khoa: khoa
+            };
+
+            res.json(data);
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học và khoa:", error);
+            res.status(500).json({
+                success: false,
+                message: "Lỗi server"
+            });
+        } finally {
+            if (connection) connection.release();
+        }
+    },
 };
 
 

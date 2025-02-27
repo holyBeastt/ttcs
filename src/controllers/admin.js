@@ -301,23 +301,40 @@ const addMessage = async (req, res) => {
   }
 };
 
+function convertToMySQLFormat(dateStr) {
+  // Chuyển chuỗi ISO 8601 thành đối tượng Date
+  let date = new Date(dateStr);
+
+  // Lấy các thành phần ngày, giờ, phút, giây theo múi giờ UTC
+  let year = date.getUTCFullYear();
+  let month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  let day = String(date.getUTCDate()).padStart(2, '0');
+  // let hours = String(date.getUTCHours()).padStart(2, '0');
+  // let minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  // let seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+  // Định dạng theo chuẩn MySQL: YYYY-MM-DD HH:MM:SS
+  return `${year}-${month}-${day}`;
+}
+
 const updateMessage = async (req, res) => {
   const globalData = req.body; // Lấy dữ liệu từ client gửi đến
   if (!globalData || globalData.length === 0) {
     return res.status(400).json({ message: "Không có dữ liệu để cập nhật." });
   }
+  console.log(globalData)
 
   let connection;
 
   try {
     connection = await createPoolConnection();
     for (let data of globalData) {
-      const { tieuDe, loiNhan, deadline, isChecked, id } = data; // Lấy LoiNhan và Deadline từ body
+      const { tieuDe, loiNhan, deadlineConvert, isChecked, id } = data; // Lấy LoiNhan và Deadline từ body
       // Câu truy vấn SQL
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
 
       // Thực hiện câu truy vấn
-      await connection.query(query, [tieuDe, loiNhan, deadline, isChecked, id]);
+      await connection.query(query, [tieuDe, loiNhan, convertToMySQLFormat(deadlineConvert), isChecked, id]);
     }
 
     // Redirect về trang thay đổi thông báo

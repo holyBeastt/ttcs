@@ -312,9 +312,9 @@
           <table class="text-center">
             <thead>
               <tr>
-                <th style="width: 200px;">Học phần</th>
-                <th style="width: 50px;">Số TC</th>
-                <th style="width: 200px;">
+                <th style="width: 150px;">Học phần</th>
+                <th style="width: 30px;">Số TC</th>
+                <th style="width: 130px;">
                   <span onclick="sortTableByColumn(2, 'asc')">GV theo TKB</span>
                   <span class="sort-icon">
                     <i class="bi bi-arrow-up" onclick="sortTableByColumn(2, 'asc')"></i>
@@ -322,9 +322,9 @@
                   </span>
                 </th>
                 <th style="width: 50px;">Mời giảng?</th>
-                <th style="width: 150px;">GV giảng dạy</th>
+                <th style="width: 250px;">GV giảng dạy</th>
                 <th style="width: 50px;">Khoa</th>
-                <th style="width: 50px;">Bộ môn</th>
+                <th style="width: 64px;">Bộ môn</th>
                 <th style="width: 100px;">Hệ đào tạo</th>
                 <th style="width: 50px;">Số tiết LL</th>
                 <th style="width: 50px;">Số tiết QC</th>
@@ -887,9 +887,10 @@
             // Thêm ô td vào hàng bảng
             tableRow.appendChild(moiGiangTd);
 
-
             const giaoVienGiangDayTd = document.createElement('td');
             const giaoVienGiangDayInput = document.createElement('input');
+            giaoVienGiangDayInput.style.width = "100%";
+            giaoVienGiangDayInput.style.boxSizing = "border-box";
             giaoVienGiangDayInput.type = 'text';
             giaoVienGiangDayInput.placeholder = 'Nhập tên giảng viên';
             giaoVienGiangDayInput.value = row.GiaoVienGiangDay || '';
@@ -903,19 +904,6 @@
               const moiGiang = inviteCheckbox.checked;
               showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
             };
-/*
-            giaoVienGiangDayInput.onclick = () => {
-              const moiGiang = inviteCheckbox.checked;
-              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
-            };
-
-            giaoVienGiangDayInput.oninput = () => {
-              const moiGiang = inviteCheckbox.checked;
-              showSuggestionsGiangVien(giaoVienGiangDayInput, moiGiang, row.ID);
-            };*/
-
-            giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
-            tableRow.appendChild(giaoVienGiangDayTd);
 
             giaoVienGiangDayTd.appendChild(giaoVienGiangDayInput);
             tableRow.appendChild(giaoVienGiangDayTd);
@@ -926,6 +914,9 @@
 
             const boMonTd = document.createElement('td');
             const boMonInput = document.createElement('input');
+            boMonTd.style.maxWidth = '64px';
+            boMonInput.style.width = "100%";
+            boMonInput.style.boxSizing = "border-box";
             boMonInput.type = 'text';
             boMonInput.name = 'bomon';
             boMonInput.value = row.BoMon || '';
@@ -934,21 +925,8 @@
             boMonInput.id = `boMonInput-${row.ID}`;
             boMonTd.appendChild(boMonInput);
             tableRow.appendChild(boMonTd);
-
-            boMonInput.addEventListener("mousedown", (e) => {
-              showSuggestionsBoMon(boMonInput);
-            });
   
-            boMonInput.addEventListener("focus", () => {
-              showSuggestionsBoMon(boMonInput);
-            });
-            /*
-            boMonInput.onclick = () => {
-              showSuggestionsBoMon(boMonInput);
-            };
-            boMonInput.oninput = () => {
-              showSuggestionsBoMon(boMonInput);
-            };*/
+            showSuggestionsBoMon(boMonInput);
 
             //Thẻ select hình thức thi giữa kỳ
             let he_dao_taoTd;
@@ -979,6 +957,7 @@
             he_dao_taoSelect.style.setProperty('background-color', 'white', 'important');
             he_dao_taoSelect.style.setProperty('color', 'black', 'important');
             he_dao_taoSelect.style.padding = '5px';
+            //he_dao_taoSelect.style.maxWidth = "120px"
 
             he_dao_taoTd.appendChild(he_dao_taoSelect);
             // Thêm id để lấy dữ liệu 
@@ -997,6 +976,9 @@
             // Cột Ngày Bắt Đầu
             const ngayBatDauTd = document.createElement('td');
             const ngayBatDauInput = document.createElement('input');
+            ngayBatDauTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+            ngayBatDauInput.style.width = "100%";
+            ngayBatDauInput.style.boxSizing = "border-box";
             ngayBatDauInput.type = 'date';
             ngayBatDauInput.name = 'startDate';
             ngayBatDauInput.value = formatDate(row.NgayBatDau); // Định dạng ngày
@@ -1012,6 +994,9 @@
             // Cột Ngày Kết Thúc
             const ngayKetThucTd = document.createElement('td');
             const ngayKetThucInput = document.createElement('input');
+            ngayKetThucTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+            ngayKetThucInput.style.width = "100%";
+            ngayKetThucInput.style.boxSizing = "border-box";
             ngayKetThucInput.type = 'date';
             ngayKetThucInput.name = 'endDate';
             ngayKetThucInput.value = formatDate(row.NgayKetThuc); // Định dạng ngày
@@ -1407,13 +1392,10 @@
           valuesCache = values;
           const value = values.pop().toLowerCase();
 
-          console.log("id = ", id)
-          console.log("bang = ", bangDuLieuCache)
           const currentObject = bangDuLieuCache.find(
             (item) => item.ID === id
           );
           if (!currentObject){
-            console.log("gf")
             return;
           } 
 
@@ -1429,7 +1411,6 @@
           if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
             return;
 
-          console.log("moi giang = ", moiGiang)
           // Gợi ý theo điều kiện
           if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
             if (moiGiang) {
@@ -1464,7 +1445,7 @@
         },
         minLength: 0,
         delay: 0,
-        autoFocus: true, // tự động focus mục đầu tiên
+        autoFocus: false, // tự động focus mục đầu tiên
         select: function (event, ui) {
           const selectedName = ui.item.value.split(" - ")[0];
           const values = valuesCache;

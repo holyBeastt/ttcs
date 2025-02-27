@@ -80,7 +80,12 @@
     <div class="mx-5 flex-grow-1">
       <div class="d-flex justify-content-start align-items-end mb-3">
         <!-- Combo box Năm -->
-        <select class="form-select w-100px mx-1 selectop" id="NamHoc">
+        <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;">
+            <option value="">Tất cả năm</option>
+        </select>
+        <!-- Combo box Khoa -->
+        <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
+
         </select>
       </div>
       <div class="overflow-auto">
@@ -100,15 +105,26 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <canvas id="myChart" width="800" height="400"></canvas>
   <script>
-      // Gọi API để lấy dữ liệu
-      fetch('/statistics')
-          .then(response => response.json())
-          .then(data => {
+      // Function to fetch data for both the chart and the tables
+      async function fetchData() {
+          const nam = document.getElementById('NamHoc').value; // Get selected year
+          const khoa = document.getElementById('Khoa').value; // Get selected department
+
+          // Fetch statistics data for the chart
+          try {
+              const response = await fetch(`/statistics?namhoc=${nam}&khoa=${khoa}`);
+              const data = await response.json();
               if (data.success) {
-                  // Tạo biểu đồ với dữ liệu API trả về
                   const ctx = document.getElementById('myChart').getContext('2d');
-                  const myChart = new Chart(ctx, {
-                      type: 'bar', // Loại biểu đồ: cột
+
+                  // Destroy existing chart if it exists
+                  if (window.myChart instanceof Chart) {
+                      window.myChart.destroy();
+                  }
+
+                  // Create a new chart
+                  window.myChart = new Chart(ctx, {
+                      type: 'bar',
                       data: {
                           labels: [
                               'Đề tài/Dự án',
@@ -144,49 +160,186 @@
                           }]
                       },
                       options: {
-    responsive: true,
-    plugins: {
-        legend: {
-            position: 'top',
-        },
-        title: {
-            display: true,
-            text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
-            font: { size: 30 }
-        },
-        tooltip: {   // Phần này hiển thị thông tin khi di chuột vào cột
-            enabled: true,
-            callbacks: {
-                label: function (context) {
-                    let label = context.dataset.label || '';
-                    if (label) {
-                        label += ': ';
-                    }
-                    label += context.raw;
-                    return label;
-                }
-            }
-        }
-    },
-    scales: {
-        y: {
-            beginAtZero: true
-        },
-        x: {
-            ticks: {
-                align: 'right',
-            }
-        }
-    }
-}
-
+                          responsive: true,
+                          plugins: {
+                              legend: {
+                                  position: 'top',
+                              },
+                              title: {
+                                  display: true,
+                                  text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
+                                  font: { size: 30 }
+                              },
+                              tooltip: {
+                                  enabled: true,
+                                  callbacks: {
+                                      label: function (context) {
+                                          let label = context.dataset.label || '';
+                                          if (label) {
+                                              label += ': ';
+                                          }
+                                          label += context.raw;
+                                          return label;
+                                      }
+                                  }
+                              }
+                          },
+                          scales: {
+                              y: {
+                                  beginAtZero: true
+                              },
+                              x: {
+                                  ticks: {
+                                      align: 'right',
+                                  }
+                              }
+                          }
+                      }
                   });
               } else {
                   alert('Không thể tải dữ liệu từ server.');
               }
-          })
-          .catch(error => console.error('Lỗi:', error));
-          </script>
+          } catch (error) {
+              console.error('Lỗi:', error);
+          }
+
+          // Fetch detail data for each table
+          const detailTables = [
+              { id: 'detailTable', endpoint: '/detail-data' },
+              { id: 'detailTable2', endpoint: '/detail-data/baibaokhoahoc' },
+              { id: 'detailTable3', endpoint: '/detail-data/bangsangchevagiaithuong' },
+              { id: 'detailTable4', endpoint: '/detail-data/biensoan' },
+              { id: 'detailTable6', endpoint: '/detail-data/xaydung' },
+              { id: 'detailTable7', endpoint: '/detail-data/nckh' },
+              { id: 'detailTable8', endpoint: '/detail-data/sachvagiaotrinh' },
+          ];
+
+          for (const table of detailTables) {
+              try {
+                  const detailResponse = await fetch(`${table.endpoint}?namhoc=${nam}&khoa=${khoa}`);
+                  const detailData = await detailResponse.json();
+                  if (detailData.success) {
+                      const detailTable = document.getElementById(table.id);
+                      detailTable.innerHTML = ''; // Clear existing rows
+                      detailData.data.forEach(item => {
+                          const row = document.createElement('tr');
+                          // Adjust the row creation logic based on the specific table's data structure
+                          switch (table.id) {
+                              case 'detailTable':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.CapDeTai}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenDeTai}</td>
+                                    <td>${item.MaSoDeTai}</td>
+                                    <td>${item.Khoa}</td>
+                                    <td>${item.ChuNhiem}</td>
+                                    <td>${item.ThuKy}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${formatDate(item.NgayNghiemThu)}</td>
+                                  `;
+                                  break;
+                              case 'detailTable2':
+                                  row.innerHTML = `
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.ID}</td>
+                                    <td>${item.TenBaiBao}</td>
+                                    <td>${item.LoaiTapChi}</td>
+                                    <td>${item.ChiSoTapChi}</td>
+                                    <td>${item.TacGia}</td>
+                                    <td>${item.TacGiaChiuTrachNhiem}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.Khoa}</td>
+                                  `;
+                                  break;
+                              case 'detailTable3':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenBangSangCheVaGiaiThuong}</td>
+                                    <td>${item.PhanLoai}</td>
+                                    <td>${item.TacGia}</td>
+                                    <td>${item.SoQDCongNhan}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.Khoa}</td>
+                                    <td>${formatDate(item.NgayQDCongNhan)}</td>
+                                  `;
+                                  break;
+                              case 'detailTable4':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.Phanloai}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenGiaoTrinhBaiGiang}</td>
+                                    <td>${item.SoQDGiaoNhiemVu}</td>
+                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                                    <td>${item.SoTC}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.TacGia}</td>
+                                    <td>${item.Khoa}</td>
+                                  `;
+                                  break;
+                              case 'detailTable6':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenChuongTrinh}</td>
+                                    <td>${item.SoTC}</td>
+                                    <td>${item.SoQDGiaoNhiemVu}</td>
+                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                                    <td>${item.HinhThucXayDung}</td>\
+                                    <td>${item.KetQua}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.Khoa}</td>
+                                  `;
+                                  break;
+                              case 'detailTable7':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.PhanLoai}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenDeTai}</td>
+                                    <td>${item.SoQDGiaoNhiemVu}</td>
+                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                                    <td>${item.KetQuaCapKhoa}</td>
+                                    <td>${item.KetQuaCapHocVien}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.Khoa}</td>
+                                  `;
+                                  break;
+                              case 'detailTable8':
+                                  row.innerHTML = `
+                                    <td>${item.ID}</td>
+                                    <td>${item.PhanLoai}</td>
+                                    <td>${item.NamHoc}</td>
+                                    <td>${item.TenSachVaGiaoTrinh}</td>
+                                    <td>${item.SoTrang}</td>
+                                    <td>${item.SoXuatBan}</td>
+                                    <td>${item.TacGia}</td>\
+                                    <td>${item.DongChuBien}</td>
+                                    <td>${item.DanhSachThanhVien}</td>
+                                    <td>${item.Khoa}</td>
+                                  `;
+                                  break;
+                          }
+                          detailTable.appendChild(row);
+                      });
+                  } else {
+                      alert('Không thể tải dữ liệu chi tiết.');
+                  }
+              } catch (error) {
+                  console.error('Lỗi:', error);
+              }
+          }
+      }
+
+      // Event listeners for dropdown changes
+      document.getElementById('NamHoc').addEventListener('change', fetchData);
+      document.getElementById('Khoa').addEventListener('change', fetchData);
+
+      // Initial fetch
+      fetchData();
+  </script>
             <h2 style="margin-top: 30px; text-align: center;">Chi tiết Đề tài/Dự án</h2>
             <table class="table table-bordered my-2" border="1" id="thongkemgTable">
                 <thead>
@@ -284,7 +437,7 @@
     <tbody id="detailTable5">
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
-</table> -->
+</table> 
 <!-- Xây dựng CTĐT -->
 <h2 style="margin-top: 30px; text-align: center;">Chi tiết Xây dựng chương trình đào tạo</h2>
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
@@ -352,238 +505,9 @@
     function formatDate(dateString) {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", { day: 'numeric', month: 'numeric', year: '2-digit' });
+    return date.toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 </script>
-<script>
-    
-  fetch('/detail-data')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ID}</td>
-                    <td>${item.CapDeTai}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenDeTai}</td>
-                    <td>${item.MaSoDeTai}</td>
-                     <td>${item.Khoa}</td>
-                    <td>${item.ChuNhiem}</td>
-                    <td>${item.ThuKy}</td>
-                    <td>${item.DanhSachThanhVien}</td>
-                    <td>${formatDate(item.NgayNghiemThu)}</td>
-                   
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
-  </script>
- <script>
- fetch('/detail-data/baibaokhoahoc')
-   .then(response => response.json())
-   .then(data => {
-       if (data.success) {
-           const detailTable = document.getElementById('detailTable2');
-           data.data.forEach(item => {
-               const row = document.createElement('tr');
-               row.innerHTML = `
-                   <td>${item.NamHoc}</td>
-                   <td>${item.ID}</td>
-                   <td>${item.TenBaiBao}</td>
-                   <td>${item.LoaiTapChi}</td>
-                   <td>${item.ChiSoTapChi}</td>
-                   <td>${item.TacGia}</td>
-                   <td>${item.TacGiaChiuTrachNhiem}</td>
-                   <td>${item.DanhSachThanhVien}</td>
-                   <td>${item.Khoa}</td>
-               `;
-               detailTable.appendChild(row);
-           });
-       } else {
-           alert('Không thể tải dữ liệu chi tiết.');
-       }
-   })
-   .catch(error => console.error('Lỗi:', error));
-</script>
-<script>
-          fetch('/detail-data/bangsangchevagiaithuong')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const detailTable = document.getElementById('detailTable3');
-                    data.data.forEach(item => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${item.ID}</td>
-                            <td>${item.NamHoc}</td>
-                            <td>${item.TenBangSangCheVaGiaiThuong}</td>
-                            <td>${item.PhanLoai}</td>
-                            <td>${item.TacGia}</td>
-                            <td>${item.SoQDCongNhan}</td>
-                            <td>${item.DanhSachThanhVien}</td>
-                            <td>${item.Khoa}</td>
-                            <td>${formatDate(item.NgayQDCongNhan)}</td>
-                            
-                        `;
-                        detailTable.appendChild(row);
-                    });
-                } else {
-                    alert('Không thể tải dữ liệu chi tiết.');
-                }
-            })
-            .catch(error => console.error('Lỗi:', error));
-
-</script>
-
-<script>
-  fetch('/detail-data/biensoan')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable4');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ID}</td>
-                    <td>${item.Phanloai}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenGiaoTrinhBaiGiang}</td>
-                    <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                    <td>${item.SoTC}</td>
-                    <td>${item.DanhSachThanhVien}</td>
-                    <td>${item.TacGia}</td>
-                    <td>${item.Khoa}</td>
-                   
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
- </script>
-<!-- <script>
-  fetch('/detail-data/nhiemvu')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable5');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.MaNhiemVu}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenNhiemVu}</td>
-                    <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${item.NgayQDGiaoNhiemVu}</td>
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
- </script> -->
-
-
-<script>
-  fetch('/detail-data/nckh')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable7');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ID}</td>
-                    <td>${item.PhanLoai}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenDeTai}</td>
-                    <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                    <td>${item.KetQuaCapKhoa}</td>
-                    <td>${item.KetQuaCapHocVien}</td>
-                    <td>${item.DanhSachThanhVien}</td>
-                    <td>${item.Khoa}</td>
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
- </script>
-
-
-<script>
-  fetch('/detail-data/xaydung')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable6');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ID}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenChuongTrinh}</td>
-                    <td>${item.SoTC}</td>
-                    <td>${item.SoQDGiaoNhiemVu}</td>
-                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                    <td>${item.HinhThucXayDung}</td>\
-                    <td>${item.KetQua}</td>
-                    <td>${item.DanhSachThanhVien}</td>
-                    <td>${item.Khoa}</td>  
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
- </script>
-
-
-<script>
-  fetch('/detail-data/sachvagiaotrinh')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const detailTable = document.getElementById('detailTable8');
-            data.data.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ID}</td>
-                    <td>${item.PhanLoai}</td>
-                    <td>${item.NamHoc}</td>
-                    <td>${item.TenSachVaGiaoTrinh}</td>
-                    <td>${item.SoTrang}</td>
-                    <td>${item.SoXuatBan}</td>
-                    <td>${item.TacGia}</td>\
-                    <td>${item.DongChuBien}</td>
-                    <td>${item.DanhSachThanhVien}</td>
-                    <td>${item.Khoa}</td>
-                `;
-                detailTable.appendChild(row);
-            });
-        } else {
-            alert('Không thể tải dữ liệu chi tiết.');
-        }
-    })
-    .catch(error => console.error('Lỗi:', error));
- </script>
 
  <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -606,6 +530,14 @@
       actionButton.style.display = '';
     } else {
       actionButton.style.display = 'none';
+    }
+
+    if (isKhoa == 1) {
+         // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
+            document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
+    } else if(isKhoa == 0){
+        // Nếu isKhoa = 0, hiển thị combobox Khoa
+        document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
     }
   });
 
@@ -662,6 +594,46 @@
             alert("Không tìm thấy TenDangNhap trong localStorage.");
         }
     });
+</script>
+
+<script>
+    $(document).ready(function () {
+    $.ajax({
+        url: '/getNamHocAndKhoa',
+        method: 'GET',
+        success: function (response) {
+            console.log(response); 
+
+            if (response.success) {
+                // Cập nhật danh sách năm học
+                response.NamHoc.forEach(function (item) {
+                    $('#NamHoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`);
+                });
+                
+                // Cập nhật danh sách khoa, loại bỏ trùng lặp
+                let uniqueKhoa = [...new Set(response.Khoa.map(k => k.Khoa))]; 
+                $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+                uniqueKhoa.forEach(function (item) {
+                    $('#Khoa').append(`<option value="${item}">${item}</option>`);
+                });
+                // Kiểm tra nếu người dùng có MaPhongBan cụ thể
+                const MaPhongBan = localStorage.getItem("MaPhongBan");
+                const isKhoa = localStorage.getItem("isKhoa");
+                console.log("Khoa:", MaPhongBan)
+                        if (isKhoa == 0) {
+                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
+                        } else if (isKhoa == 1) {
+                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
+                            $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
+                        }
+                        fetchData();
+            }
+        },
+        error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học và khoa:", error);
+        }
+    });
+});
 </script>
 
 </body>

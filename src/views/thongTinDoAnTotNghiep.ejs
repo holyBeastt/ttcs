@@ -85,30 +85,41 @@
     .input-group-group {
       display: flex;
       align-items: center;
-      gap: 16px; /* Khoảng cách giữa hai ô */
-      width: fit-content; /* Chỉ chiếm không gian theo nội dung */
+      gap: 16px;
+      /* Khoảng cách giữa hai ô */
+      width: fit-content;
+      /* Chỉ chiếm không gian theo nội dung */
     }
 
     .input-group {
       display: flex;
       align-items: center;
-      border: 1px solid #ccc; /* Đường viền */
-      border-radius: 8px; /* Góc bo */
-      padding: 5px; /* Khoảng cách trong */
-      background-color: #42c2f5; /* Màu nền nhạt */
-      width: 350px; /* Chiều rộng từng ô */
+      border: 1px solid #ccc;
+      /* Đường viền */
+      border-radius: 8px;
+      /* Góc bo */
+      padding: 5px;
+      /* Khoảng cách trong */
+      background-color: #42c2f5;
+      /* Màu nền nhạt */
+      width: 350px;
+      /* Chiều rộng từng ô */
     }
 
     .input-group-text {
       font-weight: bold;
-      background-color: transparent; /* Nền trong suốt */
-      border: none; /* Loại bỏ viền */
+      background-color: transparent;
+      /* Nền trong suốt */
+      border: none;
+      /* Loại bỏ viền */
     }
 
     .form-control {
       border: none;
-      outline: none; /* Bỏ viền focus mặc định */
-      width: 100%; /* Chiếm hết không gian còn lại */
+      outline: none;
+      /* Bỏ viền focus mặc định */
+      width: 100%;
+      /* Chiếm hết không gian còn lại */
     }
 
     /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
@@ -122,15 +133,41 @@
     }
 
     #SoQD-list {
-      font-style: italic; /* Chữ nghiêng */
-      font-size: 0.9em; /* Nhỏ hơn bình thường một chút */
-      color: #666; /* Màu xám nhạt hơn */
-      list-style-type: none; /* Bỏ dấu chấm đầu dòng */
-      margin-left: 10px; /* Dịch sang trái một chút */
+      font-style: italic;
+      /* Chữ nghiêng */
+      font-size: 0.9em;
+      /* Nhỏ hơn bình thường một chút */
+      color: #666;
+      /* Màu xám nhạt hơn */
+      list-style-type: none;
+      /* Bỏ dấu chấm đầu dòng */
+      margin-left: 10px;
+      /* Dịch sang trái một chút */
     }
 
     #SoQD-list li::before {
       content: "* ";
+    }
+  </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px;
+      /* Giảm độ rộng */
+      font-size: 12px !important;
+    }
+
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+      padding: 8px;
+      cursor: default;
     }
   </style>
 
@@ -141,7 +178,7 @@
     <!-- Phần nội dung -->
 
     <div class="container-fluid m-4 box d-flex justify-content-start">
-      <div class="mx-2">
+      <div class="mx-2" style="width: 100%">
         <div class="d-flex align-items-center mb-3">
           <input
             type="file"
@@ -177,24 +214,31 @@
           </button>
         </div>
 
-        <div class="d-flex my-3" style="height: 70px">
+        <div class="d-flex my-3" style="height: 70px; width: 100%">
           <input
             type="text"
             id="filterName"
             placeholder="Tìm theo tên sinh viên"
             class="form-control m-2 search"
-            style="width: 200px"
+            style="width: 28%"
           />
           <input
             type="text"
             id="filterClass"
             placeholder="Tìm theo tên đề tài"
             class="form-control m-2 search"
-            style="width: 200px"
+            style="width: 30%"
+          />
+          <input
+            type="text"
+            id="filterNameGV"
+            placeholder="Tìm theo tên giảng viên"
+            class="form-control m-2 search"
+            style="width: 30%"
           />
 
-          <div class="date-all-container" style="display: none">
-            <div class="input-group my-2 mx-1" style="width: 350px" id="batdau">
+          <div class="date-all-container" style="display: none; width: 100%">
+            <div class="input-group my-2 mx-1" style="width: 40%" id="batdau">
               <label for="startDateAll" class="input-group-text"
                 >Ngày bắt đầu</label
               >
@@ -205,11 +249,7 @@
                 class="form-control"
               />
             </div>
-            <div
-              class="input-group my-2 mx-1"
-              style="width: 350px"
-              id="ketthuc"
-            >
+            <div class="input-group my-2 mx-1" style="width: 40%" id="ketthuc">
               <label for="endDateAll" class="input-group-text"
                 >Ngày kết thúc</label
               >
@@ -223,7 +263,7 @@
             <button
               id="fillDay"
               class="btn text-nowrap my-2 mx-1"
-              style="height: 54px"
+              style="width: 18%"
             >
               Chèn ngày
             </button>
@@ -237,17 +277,17 @@
             <thead>
               <tr>
                 <th style="width: 30px">TT</th>
-                <th style="width: 200px">Sinh Viên</th>
-                <th style="width: 100px">Mã SV</th>
+                <th style="width: 120px">Sinh Viên</th>
+                <th style="width: 75px">Mã SV</th>
                 <th style="width: 50px">Khoa</th>
-                <th style="width: 400px">Tên đề tài</th>
+                <th style="width: 300px">Tên đề tài</th>
                 <th style="width: 200px">Giảng Viên Hướng Dẫn</th>
-                <th style="width: 200px">Giảng Viên Hướng Dẫn 1</th>
-                <th style="width: 200px">Giảng Viên Hướng Dẫn 2</th>
+                <th style="width: 260px">Giảng Viên Hướng Dẫn 1</th>
+                <th style="width: 260px">Giảng Viên Hướng Dẫn 2</th>
                 <th style="min-width: 90px">Ngày bắt đầu</th>
                 <th style="min-width: 90px">Ngày kết thúc</th>
                 <th style="width: 50px">Ghi chú</th>
-                <th style="width: 80px" id="khoaColumn">
+                <th style="width: 70px" id="khoaColumn">
                   <div class="form-check d-flex">
                     <input
                       class="check"
@@ -350,6 +390,19 @@
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+    <!-- Thêm jQuery và jQuery UI -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- jQuery UI CSS -->
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
     <script>
       var globalData = [];
       let SoQDList = [];
@@ -462,31 +515,36 @@
         const classFilter = document
           .getElementById("filterClass")
           .value.toLowerCase();
+        const gvFilter = document
+          .getElementById("filterNameGV")
+          .value.toLowerCase(); // Thêm lọc theo giảng viên
 
         const tableRows = document.querySelectorAll("#tableBody tr");
 
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
           const classCell = row.querySelector("td:nth-child(5)"); // Cột tên đề tài
-
-          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
-          const className = classCell
-            ? classCell.textContent.toLowerCase()
-            : "";
+          const gvCell1 = row.querySelector("td:nth-child(7)");
+          const gvCell2 = row.querySelector("td:nth-child(8)");
+          const gvInput1 = gvCell1 ? gvCell1.querySelector("input") : null;
+          const gvInput2 = gvCell2 ? gvCell2.querySelector("input") : null;
+          const name = nameCell.textContent.toLowerCase();
+          const className = classCell.textContent.toLowerCase();
+          const gv1 = gvInput1.value.toLowerCase();
+          const gv2 = gvInput2.value.toLowerCase();
 
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
           const matchesClass = className.includes(classFilter);
+          const matchesGV = gv1.includes(gvFilter) || gv2.includes(gvFilter); // Nếu ô giảng viên rỗng thì bỏ qua
 
           // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-          if (matchesName && matchesClass) {
+          if (matchesName && matchesClass && matchesGV) {
             row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             row.style.display = "none"; // Ẩn hàng nếu không khớp
           }
         });
-
-        //calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
       }
 
       // Gán sự kiện cho các input filter
@@ -495,6 +553,9 @@
         .addEventListener("input", filterTable);
       document
         .getElementById("filterClass")
+        .addEventListener("input", filterTable);
+      document
+        .getElementById("filterNameGV")
         .addEventListener("input", filterTable);
 
       // Hàm format lại Ngày phù hợp với múi giờ
@@ -560,6 +621,7 @@
 
           // Sinh Viên
           const sinhVienTd = document.createElement("td");
+          //sinhVienTd.style.maxWidth = "300px";
           sinhVienTd.textContent = row.SinhVien || "";
           tableRow.appendChild(sinhVienTd);
 
@@ -592,33 +654,18 @@
           // Giảng viên hướng dẫn 1
           const giaoVienHuongDan1Td = document.createElement("td");
           const giaoVienHuongDan1Input = document.createElement("input");
+          giaoVienHuongDan1Input.style.width = "100%";
+          giaoVienHuongDan1Input.style.boxSizing = "border-box";
+
           giaoVienHuongDan1Input.type = "text";
           giaoVienHuongDan1Input.placeholder = "Nhập tên giảng viên 1";
           giaoVienHuongDan1Input.value = row.GiangVien1 || "";
           // Gán id cho input
           giaoVienHuongDan1Input.id = `GiangVien1-${id}`;
+          giaoVienHuongDan1Input.name = "GV1";
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
-          giaoVienHuongDan1Input.onclick = () => {
-            showSuggestions(
-              giaoVienHuongDan1Input,
-              row.GiangVien1Real,
-              1,
-              row.ID,
-              id
-            );
-          };
-
-          giaoVienHuongDan1Td.oninput = () => {
-            showSuggestions(
-              giaoVienHuongDan1Input,
-              row.GiangVien1Real,
-              1,
-              row.ID,
-              id
-            );
-          };
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
@@ -627,36 +674,37 @@
 
           const giaoVienHuongDan2Td = document.createElement("td");
           const giaoVienHuongDan2Input = document.createElement("input");
+          giaoVienHuongDan2Input.style.width = "100%";
+          giaoVienHuongDan2Input.style.boxSizing = "border-box";
+
           giaoVienHuongDan2Input.type = "text";
           giaoVienHuongDan2Input.placeholder = "Nhập tên giảng viên 2";
           giaoVienHuongDan2Input.value = row.GiangVien2 || "";
           // Gán id cho input
           giaoVienHuongDan2Input.id = `GiangVien2-${id}`;
+          giaoVienHuongDan2Input.name = "GV2";
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
-          giaoVienHuongDan2Input.onclick = () => {
-            showSuggestions(
-              giaoVienHuongDan2Input,
-              row.GiangVien2Real,
-              2,
-              row.ID,
-              id
-            );
-          };
-
-          giaoVienHuongDan2Td.oninput = () => {
-            showSuggestions(
-              giaoVienHuongDan2Input,
-              row.GiangVien2Real,
-              2,
-              row.ID,
-              id
-            );
-          };
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
+
+          // Gọi autocomplete ngay sau khi tạo input
+          showSuggestionsGiangVien(
+            giaoVienHuongDan1Input,
+            row.GiangVien1Real,
+            1,
+            row.ID,
+            id
+          );
+          showSuggestionsGiangVien(
+            giaoVienHuongDan2Input,
+            row.GiangVien2Real,
+            2,
+            row.ID,
+            id
+          );
 
           // Tạo 2 cột lưu tên giảng viên để so sánh
           const GiangVien1Real = document.createElement("td");
@@ -675,6 +723,10 @@
 
           const NgayBatDauTd = document.createElement("td");
           const NgayBatDauInput = document.createElement("input");
+          NgayBatDauTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayBatDauInput.style.width = "100%";
+          NgayBatDauInput.style.boxSizing = "border-box";
+
           NgayBatDauInput.type = "date";
           NgayBatDauInput.id = `NgayBatDau-${id}`; // Thêm id
           NgayBatDauInput.value = formatDateToInput(row.NgayBatDau);
@@ -684,6 +736,10 @@
           // Ngày Kết Thúc
           const NgayKetThucTd = document.createElement("td");
           const NgayKetThucInput = document.createElement("input");
+          NgayKetThucTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayKetThucInput.style.width = "100%";
+          NgayKetThucInput.style.boxSizing = "border-box";
+
           NgayKetThucInput.type = "date";
           NgayKetThucInput.id = `NgayKetThuc-${id}`; // Thêm id
           NgayKetThucInput.value = formatDateToInput(row.NgayKetThuc);
@@ -780,8 +836,8 @@
           // Nếu không phải khoa -> không có quyền nhập
 
           if (isKhoa == 0) {
-            giaoVienHuongDan1Input.disabled = true; // Chỉ xem
-            giaoVienHuongDan2Input.disabled = true; // Chỉ xem
+            giaoVienHuongDan1Input.disabled = true;
+            giaoVienHuongDan2Input.disabled = true;
             NgayBatDauInput.disabled = true;
             NgayKetThucInput.disabled = true;
           }
@@ -1289,10 +1345,62 @@
         };
       }
 
-      // Hàm ẩn gợi ý
-      function hideSuggestions() {
-        const existingSuggestions = document.querySelectorAll(".suggestions");
-        existingSuggestions.forEach((suggestion) => suggestion.remove());
+      let duplicateGV = JSON.parse(localStorage.getItem("duplicateGV")) || [];
+      let allGV = JSON.parse(localStorage.getItem("allGV")) || [];
+      let suggestions = allGV.map(
+        (item) => `${item.HoTen} - ${item.BienChe} - ${item.CCCD}`
+      );
+
+      function showSuggestionsGiangVien(
+        input,
+        GiangVienDefault,
+        position,
+        id,
+        stt
+      ) {
+        $(input).autocomplete({
+          source: function (request, response) {
+            const value = request.term.trim().toLowerCase();
+
+            let filteredSuggestions = suggestions;
+            if (value) {
+              filteredSuggestions = suggestions.filter((name) =>
+                name.toLowerCase().includes(value)
+              );
+            }
+
+            response(filteredSuggestions);
+          },
+          minLength: 0,
+          delay: 0,
+          autoFocus: true,
+          select: function (event, ui) {
+            const selectedName = ui.item.value.split(" - ")[0].trim();
+            const selectedCCCD = ui.item.value.split(" - ")[2].trim();
+
+            const lecturerFound = allGV.find(
+              (lecturer) => lecturer.CCCD.trim() == selectedCCCD
+            );
+
+            if (lecturerFound) {
+              if (position == 1) {
+                document.getElementById(`GiangVien1-${stt}`).value =
+                  ui.item.value;
+              } else {
+                document.getElementById(`GiangVien2-${stt}`).value =
+                  ui.item.value;
+              }
+            }
+
+            return false;
+          },
+        });
+
+        $(input)
+          .off("focus")
+          .on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
       }
     </script>
 

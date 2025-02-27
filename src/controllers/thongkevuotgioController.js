@@ -62,8 +62,7 @@ const thongkevuotgioController = {
                               SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                           FROM 
                               giuaky
-                          WHERE 
-                              NamHoc = ? 
+                          ${namhoc && namhoc !== 'ALL' ? 'WHERE NamHoc = ?' : ''}
                           GROUP BY 
                               id_User
                       ) gk 
@@ -74,16 +73,18 @@ const thongkevuotgioController = {
                   ON 
                       gd.id_User = nv.id_User
                   WHERE 
-                      gd.NamHoc = ? 
-                      AND gd.Khoa = ? 
+                      ${namhoc && namhoc !== 'ALL' ? 'gd.NamHoc = ? AND' : ''} 
+                      gd.Khoa = ? 
                       AND gd.id_User != 1
                   GROUP BY 
-                      gd.GiangVien, nv.ChucVu -- Thêm nv.ChucVu vào GROUP BY
+                      gd.GiangVien, nv.ChucVu
                   ORDER BY 
                       TongSoTiet DESC;
-
                 `;
-        params.push(namhoc, namhoc, khoa);
+        if (namhoc && namhoc !== 'ALL') {
+          params.push(namhoc, namhoc);
+        }
+        params.push(khoa);
       } else {
         // Query for all departments
         query = `
@@ -114,50 +115,44 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        WHERE NamHoc = ? 
+                        ${namhoc && namhoc !== 'ALL' ? 'WHERE NamHoc = ?' : ''}
                         GROUP BY id_User) gk 
                     ON gd.id_User = gk.id_User
                     LEFT JOIN 
                         nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
-                        gd.NamHoc = ? AND gd.id_User != 1
+                        ${namhoc && namhoc !== 'ALL' ? 'gd.NamHoc = ? AND' : ''} gd.id_User != 1
                     GROUP BY 
                         gd.Khoa, gd.GiangVien, nv.ChucVu
                 )
                 SELECT 
                     Khoa AS Khoa, 
                     SUM(SoTietVuotGio) AS SoTietVuotGio,
-                    SUM(SoLuongGiangVien) AS SoLuongGiangVien
+                    COUNT(DISTINCT GiangVien) AS SoLuongGiangVien
                 FROM final
                 GROUP BY Khoa 
                 ORDER BY SoTietVuotGio DESC;
                 `;
-        params.push(namhoc, namhoc);
+        if (namhoc && namhoc !== 'ALL') {
+          params.push(namhoc, namhoc);
+        }
       }
 
-      // Add parameters for the query
-      if (namhoc) {
-        params.push(namhoc);
-      }
-
+      console.log("Executing query with params:", params);
       const [result] = await connection.query(query, params);
+      console.log("Query result:", result);
 
-      // Check if result is empty
       if (result.length === 0) {
         console.log("No data found for the query.");
-        return res.json([
-          { message: "Không có dữ liệu cho khoảng thời gian này" },
-        ]); // Return message if no data found
+        return res.json([]);
       }
 
-      // Calculate total hours for each lecturer
       const finalResult = result.map((item) => ({
         ...item,
-
         TongSoTiet: (
-          parseFloat(item.SoTietGiangDay) + parseFloat(item.SoTietKTGK || 0)
-        ) // Bao gồm SoTietKTGK
-          .toFixed(2), // Cột "Tổng số tiết"
+          parseFloat(item.SoTietGiangDay || 0) + parseFloat(item.SoTietKTGK || 0)
+        ).toFixed(2),
+        SoTietVuotGio: parseFloat(item.SoTietVuotGio || 0).toFixed(2)
       }));
 
       res.json(finalResult);
@@ -171,50 +166,30 @@ const thongkevuotgioController = {
     }
   },
 
-  getFilterOptions: async (req, res) => {
-    let connection;
-    try {
-      connection = await createConnection();
-      const query = `
-                SELECT DISTINCT NamHoc, Khoa 
-                FROM giangday 
-                ORDER BY NamHoc DESC;
-            `;
-      const [result] = await connection.query(query);
-      res.json(result);
-    } catch (err) {
-      console.error("Lỗi khi lấy dữ liệu filter:", err);
-      res.status(500).send("Lỗi máy chủ");
-    } finally {
-      if (connection) connection.release();
-    }
-  },
-
-
   getNamHocData: async (req, res) => {
     let connection;
     try {
       connection = await createConnection();
-            const [namHoc] = await connection.query(
-                "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
-            );
-            const [ki] = await connection.query(
-                "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
-            );
+      const [namHoc] = await connection.query(
+        "SELECT DISTINCT namhoc as NamHoc FROM giangday ORDER BY namhoc DESC"
+      );
 
-            res.json({
-                success: true,
-                NamHoc: namHoc,
-                Ki: ki
-            });
-  } catch (error) {
+      // Thêm option "Tất cả năm" vào đầu mảng kết quả
+      const allYearsOption = { NamHoc: 'ALL' };
+      namHoc.unshift(allYearsOption);
+
+      res.json({
+        success: true,
+        NamHoc: namHoc
+      });
+    } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
       res.status(500).json({
-          success: false,
-          message: "Lỗi server"
+        success: false,
+        message: "Lỗi server"
       });
-  } finally {
-        if (connection) connection.release();
+    } finally {
+      if (connection) connection.release();
     }
   },
 

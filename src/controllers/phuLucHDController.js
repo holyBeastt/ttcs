@@ -179,7 +179,7 @@ phuLucSauDH AS (
     SELECT DISTINCT
         TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
         qc.TenLop AS Lop, 
-        ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
+        ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, 
         qc.LopHocPhan AS TenHocPhan, 
         qc.KiHoc AS HocKy,
         gv.HocVi, 
@@ -194,7 +194,7 @@ phuLucSauDH AS (
         qc.he_dao_tao
     FROM quychuan qc
     JOIN gvmoi gv 
-        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen 
     WHERE qc.GiaoVienGiangDay LIKE '%,%'
 ),
 phuLucDH AS (

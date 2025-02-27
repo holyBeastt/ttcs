@@ -261,7 +261,7 @@ const exportMultipleContracts = async (req, res) => {
     hd.NamHoc,
     hd.MaPhongBan,
     hd.MaBoMon,
-    gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
+    hd.NoiCongTac
   FROM
     hopdonggvmoi hd
   JOIN
@@ -271,7 +271,7 @@ const exportMultipleContracts = async (req, res) => {
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
+    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
     let params = [dot, ki, namHoc, loaiHopDong];
 
@@ -306,7 +306,7 @@ const exportMultipleContracts = async (req, res) => {
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
+      hd.NoiCongTac  
     FROM
       hopdonggvmoi hd
     JOIN
@@ -316,7 +316,7 @@ const exportMultipleContracts = async (req, res) => {
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
       params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
     }
     if (teacherName) {
@@ -349,7 +349,7 @@ const exportMultipleContracts = async (req, res) => {
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      gv.NoiCongTac  -- Thêm cột NoiCongTac từ bảng gvmoi
+      hd.NoiCongTac
     FROM
       hopdonggvmoi hd
     JOIN
@@ -359,7 +359,7 @@ const exportMultipleContracts = async (req, res) => {
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, gv.NoiCongTac`;
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
       params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
     }
