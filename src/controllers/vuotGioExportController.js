@@ -1757,7 +1757,6 @@ worksheet.getColumn('F').width = 16.89; // Cột Kết quả bảo vệ /dự th
 worksheet.getColumn('G').width = 10.67; // Cột Số giờ quy đổi
 
       // Bỏ viền từ dòng 15 trở đi
-     // Add a row for the total hours
 const totalRow8 = worksheet.addRow(["Tổng C.8", "", "", "", "", "", ""]);
 
 // Merge cells from A to F for the total row
