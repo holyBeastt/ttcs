@@ -430,13 +430,14 @@
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
           const classCell = row.querySelector("td:nth-child(5)"); // Cột tên đề tài
-          const gvCell1 = row.querySelector("td:nth-child(6)"); // Cột giảng viên 1
-          const gvCell2 = row.querySelector("td:nth-child(7)"); // Cột giảng viên 2
+          const gvCell1 = row.querySelector("td:nth-child(7)"); // Cột giảng viên 1
+          const gvCell2 = row.querySelector("td:nth-child(8)"); // Cột giảng viên 2
 
           const name = nameCell ? nameCell.textContent.toLowerCase() : "";
           const className = classCell ? classCell.textContent.toLowerCase() : "";
           const gv1 = gvCell1 ? gvCell1.textContent.toLowerCase() : "";
           const gv2 = gvCell2 ? gvCell2.textContent.toLowerCase() : "";
+          console.log(log)
 
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
