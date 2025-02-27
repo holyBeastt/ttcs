@@ -85,6 +85,22 @@ const logController = {
     } finally {
       if (connection) connection.release();
     }
+  },
+
+  // Phương thức để lấy dữ liệu LoạiThongTin
+  getLoaiThongTinData: async (req, res) => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const query = "SELECT DISTINCT LoaiThongTin FROM lichsunhaplieu ORDER BY LoaiThongTin";
+      const [result] = await connection.query(query);
+      res.json(result);
+    } catch (err) {
+      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+      res.status(500).send("Lỗi máy chủ");
+    } finally {
+      if (connection) connection.release();
+    }
   }
 };
 

@@ -14,5 +14,6 @@ router.get('/api/namhoc', logController.getNamHocData);
 
 // Route API để trả về dữ liệu nhân viên
 router.get('/api/nhanvien', logController.getNhanVienData);
+router.get('/api/loaithongtin', logController.getLoaiThongTinData);
 
 module.exports = router;
