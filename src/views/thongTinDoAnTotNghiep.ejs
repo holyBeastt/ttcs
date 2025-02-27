@@ -427,22 +427,23 @@
 
         const tableRows = document.querySelectorAll("#tableBody tr");
 
+
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
           const classCell = row.querySelector("td:nth-child(5)"); // Cột tên đề tài
-          const gvCell1 = row.querySelector("td:nth-child(7)"); // Cột giảng viên 1
-          const gvCell2 = row.querySelector("td:nth-child(8)"); // Cột giảng viên 2
-
-          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
-          const className = classCell ? classCell.textContent.toLowerCase() : "";
-          const gv1 = gvCell1 ? gvCell1.textContent.toLowerCase() : "";
-          const gv2 = gvCell2 ? gvCell2.textContent.toLowerCase() : "";
-          console.log(log)
+          const gvCell1 = row.querySelector("td:nth-child(7)");
+          const gvCell2 = row.querySelector("td:nth-child(8)");
+          const gvInput1 = gvCell1 ? gvCell1.querySelector("input") : null;
+          const gvInput2 = gvCell2 ? gvCell2.querySelector("input") : null;
+          const name = nameCell.textContent.toLowerCase();
+          const className = classCell.textContent.toLowerCase();
+          const gv1 = gvInput1.value.toLowerCase();
+          const gv2 = gvInput2.value.toLowerCase();
 
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
           const matchesClass = className.includes(classFilter);
-          const matchesGV = gvFilter === "" || gv1.includes(gvFilter) || gv2.includes(gvFilter); // Nếu ô giảng viên rỗng thì bỏ qua
+          const matchesGV = gv1.includes(gvFilter) || gv2.includes(gvFilter); // Nếu ô giảng viên rỗng thì bỏ qua
 
           // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
           if (matchesName && matchesClass && matchesGV) {
@@ -566,8 +567,10 @@
           giaoVienHuongDan1Input.type = "text";
           giaoVienHuongDan1Input.placeholder = "Nhập tên giảng viên 1";
           giaoVienHuongDan1Input.value = row.GiangVien1 || "";
-          // Gán id cho input
+          // Gán id cho input 
           giaoVienHuongDan1Input.id = `GiangVien1-${id}`;
+          giaoVienHuongDan1Input.name = "GV1";
+
 
           giaoVienHuongDan1Td.appendChild(giaoVienHuongDan1Input);
           tableRow.appendChild(giaoVienHuongDan1Td);
@@ -587,6 +590,7 @@
           giaoVienHuongDan2Input.value = row.GiangVien2 || "";
           // Gán id cho input
           giaoVienHuongDan2Input.id = `GiangVien2-${id}`;
+          giaoVienHuongDan2Input.name = "GV2";
 
           giaoVienHuongDan2Td.appendChild(giaoVienHuongDan2Input);
           tableRow.appendChild(giaoVienHuongDan2Td);
@@ -740,8 +744,8 @@
           // Nếu không phải khoa -> không có quyền nhập
 
           if (isKhoa == 0) {
-            giaoVienHuongDan1Input.disabled = true; // Chỉ xem
-            giaoVienHuongDan2Input.disabled = true; // Chỉ xem
+            giaoVienHuongDan1Input.disabled = true;
+            giaoVienHuongDan2Input.disabled = true;
             NgayBatDauInput.disabled = true;
             NgayKetThucInput.disabled = true;
           }
