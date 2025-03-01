@@ -400,6 +400,7 @@
 
       // Hàm cập nhật dữ liệu lên server
       async function saveData(id, updatedData, row) {
+        // console.log(updatedData);
         const MaBang = 'bangsangchevagiaithuong';
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {

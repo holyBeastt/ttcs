@@ -313,8 +313,13 @@ $(document).ready(function () {
         let url = '/api/thongkevuotgio-data';
         const params = new URLSearchParams();
         
-        if (nam && nam !== 'ALL') params.append('namhoc', nam);
-        if (khoa === 'ALL' || (khoa && khoa !== '')) {
+        // Chỉ thêm namhoc vào params nếu không phải 'ALL'
+        if (nam && nam !== 'ALL') {
+            params.append('namhoc', nam);
+        }
+        
+        // Luôn thêm khoa vào params
+        if (khoa === 'ALL' || khoa) {
             params.append('khoa', khoa);
         }
 
@@ -342,7 +347,7 @@ $(document).ready(function () {
         if (data.length === 0 || data === null || data.some(item => item.SoTietVuotGio === null || isNaN(item.SoTietVuotGio))) {
             const row = tableBody.insertRow();
             const cell = row.insertCell(0);
-            cell.colSpan = 5;
+            cell.colSpan = khoa === 'ALL' ? 3 : 6; // Điều chỉnh colspan dựa vào chế độ hiển thị
             cell.style.textAlign = 'center';
             cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
             document.getElementById('total').textContent = '0';
@@ -351,13 +356,13 @@ $(document).ready(function () {
             return;
         }
 
+        // Cập nhật header và nội dung bảng
         const tableHeader = document.querySelector('#thongkevuotgioTable thead tr');
         if (tableHeader) {
             tableHeader.innerHTML = (khoa === 'ALL') ?
                 `<th>Khoa</th>
                 <th>Số tiết vượt giờ</th>
                 <th>Số lượng giảng viên</th>` :
-
                 `<th>STT</th>
                 <th>Họ tên</th>
                 <th>Tổng số tiết</th>
@@ -370,8 +375,7 @@ $(document).ready(function () {
             data.forEach((item) => {
                 const row = tableBody.insertRow();
                 row.insertCell(0).textContent = item.Khoa || 'Không xác định';
-                console.log("vuot hio = ", item.SoTietVuotGio);
-                row.insertCell(1).textContent = parseFloat(item.SoTietVuotGio).toFixed(2);
+                row.insertCell(1).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
                 row.insertCell(2).textContent = item.SoLuongGiangVien || 0;
             });
         } else {
@@ -389,16 +393,18 @@ $(document).ready(function () {
             });
         }
 
-        const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0) , 0);
+        // Tính tổng số tiết vượt giờ
+        const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
         document.getElementById('total').textContent = total.toFixed(2);
 
+        // Cập nhật biểu đồ
         updateCharts(data, khoa);
 
     } catch (error) {
         console.error('Lỗi trong fetchThongkevuotgioData:', error);
         document.getElementById('tableBody').innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; color: red;">
+                <td colspan="6" style="text-align: center; color: red;">
                     Lỗi tải dữ liệu: ${error.message}
                 </td>
             </tr>
