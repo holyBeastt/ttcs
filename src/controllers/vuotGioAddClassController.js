@@ -662,7 +662,7 @@ const getLopNgoaiQuyChuan = async (req, res) => {
   }
 };
 const updateDuyet = async (req, res) => {
-  const { MaGiangDay, KhoaDuyet, daoTaoDuyet, MaPhongBan } = req.body;
+  const { MaGiangDay, KhoaDuyet, daoTaoDuyet } = req.body;
   let connection;
   try {
     connection = await createPoolConnection();
@@ -670,35 +670,18 @@ const updateDuyet = async (req, res) => {
     const [rows] = await connection.query(query, [MaGiangDay]);
     const MaGiangDayNguon = rows[0].MaGiangDayNguon;
     const Table = rows[0].Nguon;
-    if (MaPhongBan === "DAOTAO") {
-      if (Table === "lopngoaiquychuan") {
-        const query1 = `UPDATE lopngoaiquychuan SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query1, [
-          KhoaDuyet,
-          daoTaoDuyet,
-          MaGiangDayNguon,
-        ]);
-        const query2 = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query2, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
-      } else {
-        const query1 = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query1, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
-      }
-    }
-    if (MaPhongBan === "TAICHINH") {
-      if (Table === "lopngoaiquychuan") {
-        const query1 = `UPDATE lopngoaiquychuan SET DaoTaoDuyet = ?, TaiChinhDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query1, [
-          KhoaDuyet,
-          daoTaoDuyet,
-          MaGiangDayNguon,
-        ]);
-        const query2 = `UPDATE giuaky SET DaoTaoDuyet = ?, TaiChinhDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query2, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
-      } else {
-        const query1 = `UPDATE giuaky SET DaoTaoDuyet = ?, TaiChinhDuyet = ? WHERE MaGiangDay = ?`;
-        await connection.query(query1, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
-      }
+    if (Table === "lopngoaiquychuan") {
+      const query1 = `UPDATE lopngoaiquychuan SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
+      await connection.query(query1, [
+        KhoaDuyet,
+        daoTaoDuyet,
+        MaGiangDayNguon,
+      ]);
+      const query2 = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
+      await connection.query(query2, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
+    } else {
+      const query1 = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
+      await connection.query(query1, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
     }
     res.status(200).send({ message: "Cập nhật thành công" }); // Phản hồi thành công
   } catch (error) {

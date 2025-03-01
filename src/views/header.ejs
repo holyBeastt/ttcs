@@ -308,7 +308,7 @@
         tkb.style.display = "block";
       }
 
-      if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+      if (role === "Lãnh đạo khoa" || (MaPhongBan === "DAOTAO" && role === "Duyệt")) {
         actionButton3.style.display = "";
       } else {
         actionButton3.style.display = "none";
