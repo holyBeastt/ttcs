@@ -259,13 +259,6 @@
                     style="margin-left: 0px; margin-right: 0px;">Đào Tạo</label>
                 </div>
               </th>
-              <th style="width: 80px; " id="taiChinhDuyet">
-                <div class="form-check d-flex justify-content-center" style="padding: 0px;">
-                  <input class="check" type="checkbox" id="checkAllTaiChinhDuyet" onclick="checkAll('taiChinhDuyet')">
-                  <label class="form-check-label" for="checkAllTaiChinhDuyet"
-                    style="margin-left: 0px; margin-right: 0px;">Tài Chính</label>
-                </div>
-              </th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -311,23 +304,13 @@
     if (isKhoa === "1") {
       document.getElementById("khoaDuyet").style.display = '';
       document.getElementById("daoTaoDuyet").style.display = 'none';
-      document.getElementById("taiChinhDuyet").style.display = 'none';
       document.getElementById("MaPhongBan").style.display = 'none';
 
     } else {
       document.getElementById("MaPhongBan").style.display = '';
-      if (MaPhongBan === "DAOTAO") {
-        document.getElementById("select").style.display = 'none';
-        document.getElementById("khoaDuyet").style.display = '';
-        document.getElementById("daoTaoDuyet").style.display = '';
-        document.getElementById("taiChinhDuyet").style.display = 'none';
-      }
-      if (MaPhongBan === "TAICHINH") {
-        document.getElementById("select").style.display = 'none';
-        document.getElementById("khoaDuyet").style.display = 'none';
-        document.getElementById("daoTaoDuyet").style.display = '';
-        document.getElementById("taiChinhDuyet").style.display = '';
-      }
+      document.getElementById("select").style.display = 'none';
+      document.getElementById("khoaDuyet").style.display = '';
+      document.getElementById("daoTaoDuyet").style.display = '';
     }
   });
 </script>
@@ -633,51 +616,21 @@
       daoTaoDuyetCheckboxTd.appendChild(daoTaoDuyetCheckbox);
       tableRow.appendChild(daoTaoDuyetCheckboxTd);
 
-      //Check box tài chính duyệt 
-      let taiChinhDuyetCheckboxTd, taiChinhDuyetCheckbox;
-      taiChinhDuyetCheckboxTd = document.createElement('td');
-      taiChinhDuyetCheckbox = document.createElement('input');
-      taiChinhDuyetCheckbox.type = 'checkbox';
-      taiChinhDuyetCheckbox.id = 'taiChinhDuyetCheckbox';
-      taiChinhDuyetCheckbox.style.marginLeft = '30px';
-      taiChinhDuyetCheckbox.name = 'taiChinhDuyet'; // Thêm thuộc tính name
-      taiChinhDuyetCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
-      taiChinhDuyetCheckbox.onchange = () => updateCheckAll('taiChinhDuyet'); // Gọi hàm khi checkbox thay đổi
-      taiChinhDuyetCheckboxTd.appendChild(taiChinhDuyetCheckbox);
-      tableRow.appendChild(taiChinhDuyetCheckboxTd);
 
       //Ẩn check box
       if (isKhoa === "1") {
         daoTaoDuyetCheckboxTd.style.display = 'none';
-        taiChinhDuyetCheckboxTd.style.display = 'none';
       } else {
-        if (MaPhongBan === "DAOTAO") {
           selectCheckboxTd.style.display = 'none'
           daoTaoDuyetCheckboxTd.style.display = '';
-          taiChinhDuyetCheckboxTd.style.display = 'none';
           if (row.KhoaDuyet === 0) {
             console.log("ẨN");
             tableRow.style.display = 'none';
           }
-        } else {
-          if (MaPhongBan === "TAICHINH") {
-            selectCheckboxTd.style.display = 'none';
-            khoaDuyetCheckboxTd.style.display = 'none'
-            if (row.DaoTaoDuyet === 0) {
-              console.log("ẨN");
-              tableRow.style.display = 'none';
-            }
-          }
-        }
-
       }
       if(row.DaoTaoDuyet && MaPhongBan !== "DAOTAO"){
         khoaDuyetCheckbox.disabled = true;
         selectCheckbox.disabled = true;
-      }
-      if(row.TaiChinhDuyet && MaPhongBan != "TAICHINH"){
-        khoaDuyetCheckbox.disabled = true;
-        daoTaoDuyetCheckbox.disabled = true;
       }
       calculateTotalSoTietKT();
     });
@@ -732,14 +685,12 @@
       const khoaDuyetCheckbox = row.querySelector('input[type="checkbox"][name="khoaDuyet"]');
       let MaGiangDay = row.dataset.id; // Thêm thông tin index vào để theo dõi
       const daoTaoDuyetCheckbox = row.querySelector('input[type="checkbox"][name="daoTaoDuyet"]');
-      const taiChinhDuyetCheckbox = row.querySelector('input[type="checkbox"][name="taiChinhDuyet"]');
 
 
       // Lấy trạng thái của checkbox "select"
       let select = selectCheckbox ? selectCheckbox.checked : false;
       let khoaDuyet = khoaDuyetCheckbox ? khoaDuyetCheckbox.checked : false;
       let daoTaoDuyet = daoTaoDuyetCheckbox ? daoTaoDuyetCheckbox.checked : false;
-      let taiChinhDuyet = taiChinhDuyetCheckbox ? taiChinhDuyetCheckbox.checked : false;
 
       if (isKhoa === "1") {
         console.log(select, khoaDuyet, MaGiangDay);
@@ -749,14 +700,8 @@
           deleteLopGK(MaGiangDay);
         }
       } else {
-        if (MaPhongBan === "DAOTAO") {
-          console.log(khoaDuyet, daoTaoDuyet, MaGiangDay);
-          updateDuyet(MaGiangDay, khoaDuyet, daoTaoDuyet, MaPhongBan);
-        }
-        if (MaPhongBan === "TAICHINH") {
-          console.log(daoTaoDuyet, taiChinhDuyet, MaGiangDay);
-          updateDuyet(MaGiangDay, daoTaoDuyet, taiChinhDuyet, MaPhongBan);
-        }
+        console.log(khoaDuyet, daoTaoDuyet, MaGiangDay);
+        updateDuyet(MaGiangDay, khoaDuyet, daoTaoDuyet, MaPhongBan);
       }
 
 
@@ -824,13 +769,13 @@
         console.log(error.message);
       });
   }
-  function updateDuyet(MaGiangDay, KhoaDuyet, daoTaoDuyet, MaPhongBan) {
+  function updateDuyet(MaGiangDay, KhoaDuyet, daoTaoDuyet) {
     fetch('/updateDuyet', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ MaGiangDay, KhoaDuyet, daoTaoDuyet, MaPhongBan }) // Chuyển đổi globalData thành chuỗi JSON
+      body: JSON.stringify({ MaGiangDay, KhoaDuyet, daoTaoDuyet }) // Chuyển đổi globalData thành chuỗi JSON
     })
       .then(response => {
         if (!response.ok) {
@@ -861,8 +806,6 @@
           });
       });
   }
-
-
 </script>
 <script>
   let currentRow; // Biến toàn cục để lưu hàng hiện tại
