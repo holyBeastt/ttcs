@@ -669,10 +669,14 @@
 
           rs = await teachingResponse.json();
           // Thêm check
-          globalData = rs.results.map((item) => ({
-            ...item,
-            ghiChu: "", // Khởi tạo ghi chú rỗng
-          }));
+          //globalData = rs.results.map((item) => ({
+          //  ...item,
+          //  ghiChu: "", // Khởi tạo ghi chú rỗng
+          //}));
+
+          const globalData = rs.results?.length
+            ? rs.results.map((item) => ({ ...item, ghiChu: "" }))
+            : [];
 
           const check = rs.check; // Dữ liệu check
           const DaoTaoCheck = rs.DaoTaoCheck;
