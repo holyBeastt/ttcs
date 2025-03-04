@@ -20,31 +20,58 @@ h1 {
 }
 
 .schedule-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     margin: 0 auto;
     max-width: 1200px;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+        url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDBNIDAgMjAgTCA0MCAyMCBNIDIwIDAgTCAyMCA0MCBNIDAgMzAgTCA0MCAzMCBNIDMwIDAgTCAzMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTllY2VmIiBvcGFjaXR5PSIwLjMiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');
+    border: 1px solid #e0e0e0;
 }
 
 /* Style cho các hàng (F1, F2, etc) */
 .floor-row {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.floor-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .floor-label {
-    width: 50px;
+    min-width: 60px;
+    height: 60px;
     font-weight: bold;
     text-align: center;
+    background: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    margin-right: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 3px 6px rgba(76, 175, 80, 0.2);
 }
 
 .rooms-container {
-    display: flex;
-    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
+    flex-grow: 1;
+    padding: 10px;
 }
 
 .rooms-container:hover .room {
@@ -58,34 +85,98 @@ h1 {
 }
 
 .room {
-    flex: 1;
-    height: 100px;
-    border-radius: 8px;
+    aspect-ratio: 16/8;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
     cursor: pointer;
-    transition: all 0.6s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.room::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0,0,0,0.1), rgba(255,255,255,0.1));
+    z-index: 1;
 }
 
 .room.available {
-    background-color: #5cd360;
+    background: linear-gradient(135deg, #5cd360, #4CAF50);
+    box-shadow: 0 4px 15px rgba(92, 211, 96, 0.3);
 }
 
 .room.occupied {
-    background-color: #f44336;
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.room span {
+    position: relative;
+    z-index: 2;
 }
 
 .room span:first-child {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 .room span:last-child {
     font-size: 14px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 15px;
+}
+
+.room:hover {
+    transform: translateY(-5px) scale(1.02);
+}
+
+.room.available:hover {
+    box-shadow: 0 8px 25px rgba(92, 211, 96, 0.4);
+}
+
+.room.occupied:hover {
+    box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .rooms-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .rooms-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .rooms-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .floor-row {
+        flex-direction: column;
+    }
+    
+    .floor-label {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
 }
 
 /* Style chung cho tất cả các elements trong filter */
