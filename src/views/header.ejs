@@ -206,6 +206,7 @@
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
+              <a class="dropdown-item" id="backup-btn" href="/backup">Backup dữ liệu</a>
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -286,6 +287,7 @@
       const actionButton1 = document.getElementById("actionButton1");
       const actionButton2 = document.getElementById("actionButton2");
       const actionButton3 = document.getElementById("actionButton3");
+      const actionButtonBackup = document.getElementById("backup-btn");
 
       if (actionButton1 && actionButton2) {
         if (isKhoa === "0") {
@@ -312,6 +314,11 @@
         actionButton3.style.display = "";
       } else {
         actionButton3.style.display = "none";
+      }
+      if (MaPhongBan === "DAOTAO" && role === "Duyệt") {
+        actionButtonBackup.style.display = "";
+      } else {
+        actionButtonBackup.style.display = "none";
       }
     }
     const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
