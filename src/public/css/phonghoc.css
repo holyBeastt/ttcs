@@ -1,0 +1,279 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f8f8;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.filter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+    padding: 20px;
+}
+
+.schedule-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+/* Style cho các hàng (F1, F2, etc) */
+.floor-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.floor-label {
+    width: 50px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.rooms-container {
+    display: flex;
+    flex-grow: 1;
+    gap: 20px;
+}
+
+.rooms-container:hover .room {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.rooms-container .room:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.room {
+    flex: 1;
+    height: 100px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.6s ease;
+}
+
+.room.available {
+    background-color: #5cd360;
+}
+
+.room.occupied {
+    background-color: #f44336;
+}
+
+.room span:first-child {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.room span:last-child {
+    font-size: 14px;
+}
+
+/* Style chung cho tất cả các elements trong filter */
+.filter-container select,
+.filter-container input[type="date"],
+.filter-container #searchBtn {
+    height: 40px;
+    padding: 0 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 150px;
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+}
+
+/* Style riêng cho select và input */
+.filter-container select,
+.filter-container input[type="date"] {
+    border: 1px solid #ddd;
+    background-color: white;
+}
+
+/* Style cho nút tìm kiếm */
+.filter-container #searchBtn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    justify-content: center;
+    gap: 8px;
+    margin: 0; /* Xóa margin mặc định */
+    line-height: 40px; /* Căn chỉnh line-height bằng với height */
+}
+
+/* Style cho icon trong button */
+.filter-container #searchBtn i {
+    margin: auto 0; /* Căn giữa icon */
+}
+
+/* Style cho label */
+.filter-container label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    margin: 0; /* Xóa margin mặc định */
+}
+
+/* Style cho icon trong label */
+.filter-container label i {
+    width: 16px;
+    text-align: center;
+}
+
+.modal-backdrop {
+    transition: 0.5s;
+}
+
+.modal-dialog {
+    transition: 0.5s;
+    transform: translate(0, -50px);
+    opacity: 0;
+}
+
+.modal.show .modal-dialog {
+    transform: translate(0, 0);
+    opacity: 1;
+}
+
+@keyframes modal-in {
+    0% {
+        transform: translate(0, -30px) scale(0.95);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+}
+
+.schedule-container {
+    transition: 0.5s;
+}
+
+body.modal-open .schedule-container {
+    transform: scale(0.98);
+    filter: blur(1px);
+}
+
+.modal-content {
+    background: #f8f9fa;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    background: #4CAF50;
+    color: white;
+    border-radius: 15px 15px 0 0;
+    padding: 20px 30px;
+}
+
+.modal-title {
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-title::before {
+    content: '\f19d';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+}
+
+.modal-body {
+    padding: 30px;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDBNIDAgMjAgTCA0MCAyMCBNIDIwIDAgTCAyMCA0MCBNIDAgMzAgTCA0MCAzMCBNIDMwIDAgTCAzMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTllY2VmIiBvcGFjaXR5PSIwLjMiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');
+}
+
+.modal-body p {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #4CAF50;
+    transition: transform 0.2s;
+}
+
+.modal-body p:hover {
+    transform: translateX(5px);
+}
+
+.modal-body i {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    margin-right: 12px;
+    font-size: 12px;
+}
+
+.modal-body strong {
+    color: #2c3e50;
+    margin-right: 8px;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 20px;
+}
+
+.btn-primary {
+    background: #4CAF50;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background: #388E3C;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+/* Animation cho modal */
+.modal.fade .modal-dialog {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
