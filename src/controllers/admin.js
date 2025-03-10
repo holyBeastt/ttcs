@@ -277,28 +277,12 @@ const deleteNamHoc = async (req, res) => {
   }
 };
 
-function convertDatetimeLocalToFormatted(datetimeLocalString) {
-  // Tách phần ngày và thời gian theo ký tự 'T'
-  const [datePart, timePart] = datetimeLocalString.split('T');
-
-  // Tách phần thời gian thành các thành phần (giờ, phút, có thể giây)
-  const timeComponents = timePart.split(':');
-
-  // Nếu không có giây thì mặc định là 00
-  if (timeComponents.length === 2) {
-    timeComponents.push('00');
-  }
-
-  // Ghép lại thành chuỗi với dấu cách thay cho 'T'
-  return `${datePart} ${timeComponents.join(':')}`;
-}
-
 const addMessage = async (req, res) => {
   const { MaPhongBan } = req.params; // Lấy MaPhongBan từ params
   const { Title, LoiNhan, Deadline } = req.body; // Lấy LoiNhan và Deadline từ body
   let connection;
   // console.log(Deadline)
-  const DeadlineConvert = convertDatetimeLocalToFormatted(Deadline);
+  const DeadlineConvert = convertToMySQLFormat(Deadline);
 
   try {
     connection = await createPoolConnection();
@@ -310,7 +294,10 @@ const addMessage = async (req, res) => {
     await connection.query(query, [MaPhongBan, Title, LoiNhan, DeadlineConvert]);
 
     // Redirect về trang thay đổi thông báo
-    return res.redirect(`/changeMessage/${MaPhongBan}?MessageChanged=true`);
+    return res.status(200).send({
+      success: true,
+      message: "Thêm thông báo thành công",
+    })
   } catch (error) {
     console.error("Lỗi khi thêm thông báo:", error);
     return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");

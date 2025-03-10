@@ -140,7 +140,7 @@
     <div class="container-fluid box">
       <h2>Thêm thông báo</h2>
 
-      <form id="changeMessageForm" method="POST">
+      <form id="changeMessageForm">
         <div class="row">
           <div class="col-md-12 input-wrapper">
             <label for="Title">Tiêu đề:</label>
@@ -191,34 +191,92 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
-        const loiNhan = document.getElementById("LoiNhan").value.trim();
-        const deadline = document.getElementById("Deadline").value;
+      function convertDatetimeLocalToISO(datetimeLocal) {
+        if (!datetimeLocal) return null;
 
-        if (!loiNhan) {
-          alert("Vui lòng nhập nội dung thông báo.");
-          event.preventDefault();
+        // Tạo đối tượng Date từ chuỗi datetime-local
+        const date = new Date(datetimeLocal);
+
+        // Chuyển sang ISO 8601 với định dạng chuẩn
+        return date.toISOString();
+      }
+
+      document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Ngăn chặn form gửi mặc định
+
+        // Lấy giá trị từ form
+        const Title = document.getElementById("Title").value.trim();
+        const LoiNhan = document.getElementById("LoiNhan").value.trim();
+        const Deadline = convertDatetimeLocalToISO(document.getElementById("Deadline").value);
+
+        // Kiểm tra dữ liệu hợp lệ
+        if (!Title) {
+          alert("Vui lòng nhập tiêu đề.");
           return;
         }
-
-        if (!deadline) {
+        if (!LoiNhan) {
+          alert("Vui lòng nhập nội dung thông báo.");
+          return;
+        }
+        if (!Deadline) {
           alert("Vui lòng chọn ngày hết hạn.");
-          event.preventDefault();
           return;
         }
 
         const now = new Date();
-        const selectedDate = new Date(deadline);
-
+        const selectedDate = new Date(Deadline);
         if (selectedDate < now) {
           alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
-          event.preventDefault();
+          return;
         }
+
+        // Tạo object dữ liệu để gửi
+        const formData = {
+          Title: Title,
+          LoiNhan: LoiNhan,
+          Deadline: Deadline
+        };
+
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        // console.log(formData)
+
+        // Gửi request bằng Fetch API (AJAX)
+        fetch(`/changeMessage/${MaPhongBan}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: "Thông báo",
+                html: data.message,
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+                timerProgressBar: true,
+                timer: 3000
+              });
+              location.reload();
+            } else {
+              alert("Có lỗi xảy ra: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Lỗi khi gửi dữ liệu:", error);
+            alert("Đã xảy ra lỗi khi gửi thông báo.");
+          });
       });
 
+      // Nút quay lại
       function goBack() {
         window.history.back();
       }
+
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
