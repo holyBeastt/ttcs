@@ -303,23 +303,14 @@
                 <option value="false">Đã ngừng giảng dạy</option>
               </select>
             </div>
-            <!-- <div class="col-md-4">
-              <label for="monGiangDayChinh">Bộ môn:</label>
-              <select
-                class="form-control"
-                type="text"
-                name="monGiangDayChinh"
-                id="monGiangDayChinh"
-              ></select>
-            </div> -->
             <div class="col-md-4">
-              <label for="email">Email:</label>
+              <label>QR Code:</label>
+              <img id="QrCode" src="" alt="QR CODE" />
               <input
-                required
                 class="form-control"
-                type="email"
-                name="email"
-                id="email"
+                type="file"
+                name="QrCode"
+                id="QrCode"
               />
             </div>
             <div class="col-md-4">
@@ -331,35 +322,36 @@
                 id="fileBoSung"
               />
             </div>
-            <div class="row mb-3" style="margin-top: 20px">
-              <div class="col-md-4">
-                <label><b>MÃ KHOA:</b></label>
-                <label id="Ma_Khoa_Label"></label>
-              </div>
-              <div class="col-md-4 thuocQuanDoiBox">
-                <div class="form-group">
-                  <label for="thuocQuanDoi" class="thuocQuanDoi-label"
-                    >Thuộc quân đội:</label
-                  >
-                  <input
-                    type="checkbox"
-                    class="thuocQuanDoi-input"
-                    id="thuocQuanDoi"
-                    name="thuocQuanDoi"
-                    value="1"
-                  />
-                </div>
+          </div>
+          <div class="row mb-3" style="margin-top: 20px">
+            <div class="col-md-4">
+              <label><b>MÃ KHOA:</b></label>
+              <label id="Ma_Khoa_Label"></label>
+            </div>
+            <div class="col-md-4">
+              <label for="email">Email:</label>
+              <input
+                required
+                class="form-control"
+                type="email"
+                name="email"
+                id="email"
+              />
+            </div>
+            <div class="col-md-4 thuocQuanDoiBox">
+              <div class="form-group">
+                <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                  >Thuộc quân đội:</label
+                >
+                <input
+                  type="checkbox"
+                  class="thuocQuanDoi-input"
+                  id="thuocQuanDoi"
+                  name="thuocQuanDoi"
+                  value="1"
+                />
               </div>
             </div>
-            <!-- <div
-              class="col-md-4 d-flex justify-content-between"
-              style="position: absolute; top: 23px; right: 0"
-            >
-              <button class="btn" id="submit">Thêm mới</button>
-              <button class="btn" id="return" onclick="goBack()">
-                Quay lại
-              </button>
-            </div> -->
             <div class="justify-content-between" style="margin-top: 23px">
               <button class="btn" id="submit">Thêm mới</button>
               <button

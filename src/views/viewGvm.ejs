@@ -220,12 +220,24 @@
             <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
           </div>
           <div class="col-md-4">
-            <label for="tinhTrang">Tình trạng giảng dạy:</label>
-            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang" disabled>
-              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
-              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
-            </select>
+            <label>QR CODE:</label>
+            <img 
+              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+              alt="QR CODE" 
+              width="100" 
+              id="QrCode" 
+              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'none' : 'block' %>;">
+            <a 
+              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+              target="_blank" 
+              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
+              Xem file PDF
+            </a>
+            <br>
+            <input class="form-control" type="file" name="QrCode" id="QrCode" disabled>
+            <input type="hidden" name="QrCode" value="<%= value.QrCode %>" disabled>
           </div>
+
           <div class="col-md-4">
             <label for="monGiangDayChinh">Bộ môn:</label>
             <select type="text" class="form-control" name="monGiangDayChinh" id="monGiangDayChinh" disabled>
@@ -240,6 +252,13 @@
             </a>
             <input class="form-control" type="file" name="fileBoSung" id="fileBoSung" disabled>
             <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>" disabled>
+          </div>
+          <div class="col-md-4">
+            <label for="tinhTrang">Tình trạng giảng dạy:</label>
+            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang" disabled>
+              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+            </select>
           </div>
           <div class="col-md-4 thuocQuanDoiBox">      
               <label for="thuocQuanDoi" class="thuocQuanDoi-label"

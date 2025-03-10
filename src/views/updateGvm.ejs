@@ -237,27 +237,25 @@
             <p style="margin-bottom: 8px;">Mã phòng ban:</p>
             <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan"
               value="<%= value.MaPhongBan %>" readonly>
-            <!-- <select id="filterByDepartment" name="maPhongBan" class="form-control filter" style="cursor: pointer;">
-                <% phongBanList.forEach(function(phongBan) { %>
-                  <option value="<%= phongBan.MaPhongBan %>" <%= value.MaPhongBan === phongBan.MaPhongBan ? 'selected' : '' %>>
-                    <%= phongBan.MaPhongBan %>
-                  </option>
-                <% }); %>
-              </select> -->
           </div>
           <div class="col-md-4">
-            <label for="tinhTrang">Tình trạng giảng dạy:</label>
-            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
-              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
-              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
-            </select>
+            <label>QR CODE:</label>
+            <img 
+              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+              alt="QR CODE" 
+              id="QrCode" 
+              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'none' : 'block' %>;">
+              <a 
+              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+              target="_blank" 
+              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
+            QR CODE
+            </a>
+            <br>
+            <input class="form-control" type="file" name="QrCode" id="QrCode" value="<%= value.MatTruocCCCD %>">
+            <input type="hidden" name="oldQrCode" value="<%= value.QrCode %>">
           </div>
-          <!-- <div class="col-md-4">
-            <label for="monGiangDayChinh">Bộ môn:</label>
-            <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
-              <option value="">---</option>
-            </select>
-          </div> -->
+
           <div class="col-md-4">
             <label for="msthue">Mã số thuế:</label>
             <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
@@ -269,6 +267,13 @@
             </a>
             <input class="form-control" type="file" name="fileBoSung" id="fileBoSung">
             <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>">
+          </div>
+          <div class="col-md-4">
+            <label for="tinhTrang">Tình trạng giảng dạy:</label>
+            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
+              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+            </select>
           </div>
           <div class="col-md-4 thuocQuanDoiBox">
               <label for="thuocQuanDoi" class="thuocQuanDoi-label">Thuộc quân đội:</label>
