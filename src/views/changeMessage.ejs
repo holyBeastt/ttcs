@@ -71,6 +71,7 @@
     thead {
       height: 35px;
     }
+
     table tr:hover {
       background-color: white !important;
     }
@@ -157,7 +158,7 @@
         <div class="row">
           <div class="col-md-4 input-wrapper">
             <label for="Deadline">Ngày hết hạn:</label>
-            <input type="date" id="Deadline" name="Deadline" class="form-control" required />
+            <input type="datetime-local" id="Deadline" name="Deadline" class="form-control" required />
           </div>
         </div>
         <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
@@ -356,6 +357,19 @@
 
     </script>
     <script>
+      function convertISOToDatetimeLocal(isoString) {
+        const date = new Date(isoString);
+        const pad = num => String(num).padStart(2, '0');
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1); // Tháng trong JS là 0-indexed
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
       function renderTable(data) {
         const MaPhongBan = localStorage.getItem("MaPhongBan");
         let tableRowData = [];
@@ -401,21 +415,14 @@
           loiNhanInput.id = `loiNhanInput_${index}`;
           tableRow.appendChild(loiNhanTd);
 
-          // Chuyển đổi row.Deadline sang đối tượng Date
-          const deadlineValue = new Date(row.Deadline);
-
-          // Chuyển đổi sang định dạng "YYYY-MM-DD" (không có giờ phút)
-          const pad = (num) => String(num).padStart(2, '0');
-          const year = deadlineValue.getFullYear();
-          const month = pad(deadlineValue.getMonth() + 1);
-          const day = pad(deadlineValue.getDate());
-          const formattedDeadlineValue = `${year}-${month}-${day}`;
+          // Chuyển đổi sang định dạng chuẩn đầu vào của type datetimelocal
+          const deadlineValue = convertISOToDatetimeLocal(row.Deadline);
 
           // Tạo phần tử input cho deadline
           const deadlineTd = document.createElement('td');
           const deadlineInput = document.createElement('input');
-          deadlineInput.type = 'date'; // Chỉ lấy ngày
-          deadlineInput.value = formattedDeadlineValue;
+          deadlineInput.type = 'datetime-local';
+          deadlineInput.value = deadlineValue;
           deadlineInput.classList.add('border-light');
           deadlineInput.style.width = '100%';
           deadlineInput.id = `deadlineInput_${index}`;
@@ -457,6 +464,19 @@
 
     </script>
     <script>
+      function convertDatetimeLocalToISO(datetimeLocalString) {
+        // Tách phần ngày và phần giờ
+        const [datePart, timePart] = datetimeLocalString.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+
+        // Tạo đối tượng Date sử dụng giờ địa phương
+        // Lưu ý: tháng trong Date khởi tạo là 0-indexed nên trừ đi 1
+        const date = new Date(year, month - 1, day, hour, minute);
+
+        // Chuyển đổi sang chuỗi ISO 8601 dạng UTC
+        return date.toISOString();
+      }
       async function submitData() {
         const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
         const rowCount = rows.length;
@@ -472,8 +492,9 @@
 
           const deadlineInput = document.getElementById(`deadlineInput_${index}`);
           const deadline = deadlineInput ? deadlineInput.value : null;
-          // const deadlineConvert = convertToUTC(deadline);
-          const deadlineConvert = deadline;
+          const deadlineConvert = convertDatetimeLocalToISO(deadline);
+          // const deadlineConvert = deadline;
+          console.log("datetime-local:" + deadlineConvert)
 
           // Lấy trạng thái từ selectCheckbox
           const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
