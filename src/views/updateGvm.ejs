@@ -243,16 +243,17 @@
             <img 
               src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
               alt="QR CODE" 
-              id="QrCode" 
+              id="QrCodeImg"
               style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'none' : 'block' %>;">
               <a 
-              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
-              target="_blank" 
-              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
-            QR CODE
-            </a>
+                href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+                target="_blank" 
+                id="QrCodePdf"
+                style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
+                Xem file PDF
+              </a>
             <br>
-            <input class="form-control" type="file" name="QrCode" id="QrCode" value="<%= value.MatTruocCCCD %>">
+            <input class="form-control" type="file" name="QrCode" id="QrCodeInput" value="<%= value.QrCode %>">
             <input type="hidden" name="oldQrCode" value="<%= value.QrCode %>">
           </div>
 
@@ -434,6 +435,11 @@
     const imgBangInput = document.getElementById('bangTotNghiep');
     const imgBangElement = document.getElementById('imgbang');
     const linkBangElement = document.getElementById('linkbang');
+
+    // Hình ảnh Qr Code
+    const QrInput = document.getElementById('QrCodeInput');
+    const QrElement = document.getElementById('QrCodeImg');
+    const linkQrElement = document.getElementById('QrCodePdf');
   
     // Xử lý hiển thị file mặt trước CCCD
     imgTruocInput.addEventListener('change', function (event) {
@@ -451,6 +457,12 @@
     imgBangInput.addEventListener('change', function (event) {
       const file = event.target.files[0];
       handleFilePreview(file, imgBangElement, linkBangElement);
+    });
+
+    // Xử lý hiển thị file Qr Code
+    QrInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      handleFilePreview(file, QrElement, linkQrElement);
     });
   
     // Hàm xử lý hiển thị file
