@@ -305,7 +305,7 @@
             </div>
             <div class="col-md-4">
               <label>QR Code:</label>
-              <img id="QrCode" src="" alt="QR CODE" />
+              <img id="QrCodeImg" src="" alt="QR CODE" />
               <input
                 class="form-control"
                 type="file"
@@ -535,6 +535,12 @@
         .getElementById("bangTotNghiep")
         .addEventListener("change", function (event) {
           displayImage(event, "imagebang");
+        });
+
+      document
+        .getElementById("QrCode")
+        .addEventListener("change", function (event) {
+          displayImage(event, "QrCodeImg");
         });
 
       function displayImage(event, imgId) {
