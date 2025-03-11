@@ -47,30 +47,44 @@
           <a>Id:<input class="input" type="text" name="IdGvm" id="IdGvm" value="<%= value.id_Gvm %> " disabled></a>
         </div>
         <div class="row mb-3">
-          <div class="col-md-4">
+          <div style="width: 20%; padding-right: 0px;">
             <label for="HoTen">Họ tên:</label>
             <input class="form-control" type="text" name="HoTen" id="HoTen" value="<%= value.HoTen %>" disabled>
           </div>
-          <div class="col-md-4">
+          <div style="width: 12%;">
+            <label for="ngaySinh">Ngày sinh:</label>
+            <input class="form-control" type="date" name="NgaySinh" id="ngaySinh"
+              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" disabled>
+          </div>
+
+          <div style="width: 13%;">
+            <label for="CCCD">CCCD:</label>
+            <input class="form-control" type="text" name="CCCD" id="CCCD" value="<%= value.CCCD %>" disabled>
+          </div>
+
+          <div class="col-md-1">
             <label for="gioitinh">Giới tính:</label>
             <select class="form-control" name="GioiTinh" id="gioitinh" disabled>
               <option value="Nam" <%=value.GioiTinh==='Nam' ? 'selected' : '' %>>Nam</option>
               <option value="Nu" <%=value.GioiTinh==='Nữ' ? 'selected' : '' %>>Nữ</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="ngaySinh">Ngày sinh:</label>
-            <input class="form-control" type="date" name="NgaySinh" id="ngaySinh"
-              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" disabled>
+          <div style="padding: 0px; width: 30%;">
+            <label for="monGiangDayChinh">Bộ môn:</label>
+            <select type="text" class="form-control" name="monGiangDayChinh" id="monGiangDayChinh" disabled>
+              <option value="">---</option>
+            </select>
+          </div>
+          <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
+
+          <div class="col-md-2">
+            <label for="hocVi">Bằng cấp cao nhất:</label>
+            <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
           </div>
         </div>
 
         <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="CCCD">CCCD:</label>
-            <input class="form-control" type="text" name="CCCD" id="CCCD" value="<%= value.CCCD %>" disabled>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-2">
             <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
             <input class="form-control" type="date" name="NgayCapCCCD" id="NgayCapCCCD"
               value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>" disabled>
@@ -80,22 +94,12 @@
             <input class="form-control" type="text" name="NoiCapCCCD" id="NoiCapCCCD" value="<%= value.NoiCapCCCD %>"
               disabled>
           </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="DiaChi">Địa chỉ theo CCCD:</label>
             <input class="form-control" type="text" name="DiaChi" id="DiaChi" value="<%= value.DiaChi %>" disabled>
           </div>
-          <div class="col-md-4">
-            <label for="msthue">Mã số thuế:</label>
-            <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>" disabled>
-          </div>
-          <div class="col-md-4">
-            <label for="hocVi">Bằng cấp cao nhất:</label>
-            <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
-          </div>
-        </div>      
+        </div>
+  
         <div class="row mb-3">
           <div class="col-md-4">
             <label>Mặt trước CCCD:</label>
@@ -161,42 +165,6 @@
           </div>
           
         </div>
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="dienThoai">Điện thoại:</label>
-            <input class="form-control" type="text" name="DienThoai" id="dienThoai" value="<%= value.DienThoai %>"
-              disabled>
-          </div>
-          <div class="col-md-4">
-            <label for="email">Email:</label>
-            <input class="form-control" type="email" name="email" id="email" value="<%= value.Email %>" disabled>
-          </div>
-          <div class="col-md-4">
-            <label>File lý lịch (PDF):</label>
-            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" target="_blank">
-              <%= value.FileLyLich %>
-            </a>
-            <input class="form-control" type="file" name="FileLyLich" id="FileLyLich" disabled>
-            <input type="hidden" name="oldFileLyLich" value="<%= value.FileLyLich %>" disabled>
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="NoiCongTac">Nơi công tác:</label>
-            <input class="form-control" type="text" name="NoiCongTac" id="NoiCongTac" value="<%= value.NoiCongTac %>"
-              disabled>
-          </div>
-          <div class="col-md-4">
-            <label for="chucvu">Chức vụ:</label>
-            <input class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>" disabled>
-          </div>
-          <div class="col-md-4">
-            <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
-            <input class="form-control" type="text" name="BangTotNghiepLoai" id="BangTotNghiepLoai"
-              value="<%= value.BangTotNghiepLoai %>" disabled>
-          </div>
-        </div>
 
         <div class="row mb-3">
           <div class="col-md-1">
@@ -214,68 +182,120 @@
               disabled>
           </div>
         </div>
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <p style="margin-bottom: 8px;">Mã phòng ban:</p>
-            <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
-          </div>
-          <div class="col-md-4">
-            <label>QR CODE:</label>
-            <img 
-              src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
-              alt="QR CODE" 
-              width="100" 
-              id="QrCode" 
-              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'none' : 'block' %>;">
-            <a 
-              href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
-              target="_blank" 
-              style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
-              Xem file PDF
-            </a>
-            <br>
-            <input class="form-control" type="file" name="QrCode" id="QrCode" disabled>
-            <input type="hidden" name="QrCode" value="<%= value.QrCode %>" disabled>
-          </div>
 
-          <div class="col-md-4">
-            <label for="monGiangDayChinh">Bộ môn:</label>
-            <select type="text" class="form-control" name="monGiangDayChinh" id="monGiangDayChinh" disabled>
-              <option value="">---</option>
-            </select>
+        <div class="row">
+          <div class="col-md-8">
+            <!-- Dòng 1 -->
+            <div class="row">
+              <div style="width: 20%; padding-right: 0px">
+                <label for="dienThoai">Điện thoại:</label>
+                <input class="form-control" type="text" name="DienThoai" id="dienThoai" value="<%= value.DienThoai %>"
+                  disabled>
+              </div>
+              <div style="width: 80%;">
+                <label for="NoiCongTac">Nơi công tác:</label>
+                <input class="form-control" type="text" name="NoiCongTac" id="NoiCongTac" value="<%= value.NoiCongTac %>"
+                  disabled>
+              </div>
+            </div>
+
+             <!-- Dòng 2 -->
+              <p></p>
+             <div class="row">
+              <div style="width: 20%; padding-right: 0px">
+                <label for="msthue">Mã số thuế:</label>
+                <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>" disabled>
+              </div>
+              <div style="width: 20%; padding-right: 0px">
+                <label for="chucvu">Chức vụ:</label>
+                <input class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>" disabled>
+              </div>
+              <div style="width: 60%;">
+                <label for="email">Email:</label>
+                <input class="form-control" type="email" name="email" id="email" value="<%= value.Email %>" disabled>
+              </div>
+             </div>
+             <!-- Dòng 3 -->
+             <div class="row">
+              <p></p>
+              <div style="width: 20%; padding-right: 0px">
+                <label>Mã phòng ban:</label>
+                <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
+              </div>
+              <div style="width: 20%; padding-right: 0px">
+                <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
+                <input class="form-control" type="text" name="BangTotNghiepLoai" id="BangTotNghiepLoai"
+                  value="<%= value.BangTotNghiepLoai %>" disabled>
+              </div>
+              <div style="width: 30%; padding-right: 0px">
+                <label for="tinhTrang">Tình trạng giảng dạy:</label>
+                <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang" disabled>
+                  <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+                  <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+                </select>
+              </div>
+              <div style="width: 30%; padding-right: 0px" class="thuocQuanDoiBox">      
+                  <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                    >Thuộc quân đội:</label
+                  >
+                  <input
+                    disabled
+                    type="checkbox"
+                    class="thuocQuanDoi-input"
+                    id="thuocQuanDoi"
+                    name="thuocQuanDoi"
+                    value="1"
+                    <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
+                  />
+              </div>
+             </div>
+             <!-- Dòng 4 -->
+             <div class="row">
+              <p></p>
+              <div class="col-md-6">
+                <label>File bổ sung: </label>
+                <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.fileBoSung %>" target="_blank">
+                  <%= value.fileBoSung %>
+                </a>
+                <input class="form-control" type="file" name="fileBoSung" id="fileBoSung" disabled>
+                <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>" disabled>
+              </div>
+              <div class="col-md-6">
+                <label>File lý lịch (PDF):</label>
+                <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" target="_blank">
+                  <%= value.FileLyLich %>
+                </a>
+                <input class="form-control" type="file" name="FileLyLich" id="FileLyLich" disabled>
+                <input type="hidden" name="oldFileLyLich" value="<%= value.FileLyLich %>" disabled>
+              </div>
+             </div>
+
+             <!-- Dòng cuối -->
+             <div class="row mb-3" style="padding-top: 130px;">
+              <div class="col-md-4">
+                <button class="btn mt-3" type="button" id="return" onclick="goBack()">Quay lại</button>
+              </div>
+            </div>
           </div>
-          <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
-          <div class="col-md-4">
-            <label>File bổ sung: </label>
-            <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.fileBoSung %>" target="_blank">
-              <%= value.fileBoSung %>
-            </a>
-            <input class="form-control" type="file" name="fileBoSung" id="fileBoSung" disabled>
-            <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>" disabled>
-          </div>
-          <div class="col-md-4">
-            <label for="tinhTrang">Tình trạng giảng dạy:</label>
-            <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang" disabled>
-              <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
-              <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
-            </select>
-          </div>
-          <div class="col-md-4 thuocQuanDoiBox">      
-              <label for="thuocQuanDoi" class="thuocQuanDoi-label"
-                >Thuộc quân đội:</label
-              >
-              <input
-                disabled
-                type="checkbox"
-                class="thuocQuanDoi-input"
-                id="thuocQuanDoi"
-                name="thuocQuanDoi"
-                value="1"
-                <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
-              />
-          </div>
-          <div class="col-md-4">
-            <button class="btn mt-3" type="button" id="return" onclick="goBack()">Quay lại</button>
+          <div class="col-md-4" style="position: relative; top: -40px;">
+            <div class="col-md-12">
+              <label>QR CODE:</label>
+              <img 
+                src="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+                alt="QR CODE" 
+                width="100" 
+                id="QrCodeImg" 
+                style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'none' : 'block' %>;">
+              <a 
+                href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.QrCode %>" 
+                target="_blank" 
+                style="display: <%= value.QrCode && value.QrCode.endsWith('.pdf') ? 'block' : 'none' %>;">
+                Xem file PDF
+              </a>
+              <br>
+              <input class="form-control" type="file" name="QrCode" id="QrCode" disabled>
+              <input type="hidden" name="QrCode" value="<%= value.QrCode %>" disabled>
+            </div>
           </div>
         </div>
       </fieldset>

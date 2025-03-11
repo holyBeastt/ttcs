@@ -36,6 +36,10 @@ const storage = multer.diskStorage({
       fieldName = HoTen;
     }
 
+    if (fieldName === "FileLyLich") {
+      fieldName = `Lý lịch ${HoTen}`;
+    }
+
     // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
     let fileName = `${fieldName}${path.extname(file.originalname)}`;
     cb(null, fileName); // Đặt tên file theo định dạng: HoTen_fieldname.extension

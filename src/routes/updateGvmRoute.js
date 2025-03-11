@@ -96,6 +96,10 @@ const storage = multer.diskStorage({
       fieldName = HoTen;
     }
 
+    if (fieldName === "FileLyLich") {
+      fieldName = `Lý lịch ${HoTen}`;
+    }
+
     const fileName = `${fieldName}${fileExtension}`; // Tạo tên file mới
 
     const Khoa = req.session.MaPhongBan || "unknown-dept";

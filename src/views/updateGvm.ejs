@@ -32,11 +32,6 @@
   cursor: pointer; 
   accent-color: #007bff; 
 }
-
-#QrCodeImg {
-  height: 320px;
-}
-
   </style>
 </head>
 
@@ -55,17 +50,17 @@
           <a>Id:<input class="input" type="text" name="IdGvm" id="IdGvm" value="<%= value.id_Gvm %> "></a>
         </div>
         <div class="row mb-3">
-          <div class="col-md-2">
+          <div style="width: 20%; padding-right: 0px;">
             <label for="HoTen">Họ tên:</label>
             <input required class="form-control" type="text" name="HoTen" id="HoTen" value="<%= value.HoTen %>">
           </div>
-          <div class="col-md-1" style="flex: 1.3;">
+          <div style="width: 12%;">
             <label for="ngaySinh">Ngày sinh:</label>
             <input required class="form-control" type="date" name="NgaySinh" id="ngaySinh"
               value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>">
           </div>
 
-          <div class="col-md-2">
+          <div style="width: 13%;">
             <label for="CCCD">CCCD:</label>
             <input required class="form-control" type="text" name="CCCD" id="CCCD" value="<%= value.CCCD %>">
           </div>
@@ -78,7 +73,7 @@
             </select>
           </div>
 
-          <div class="col-md-3">
+          <div style="padding: 0px; width: 30%;">
             <label for="monGiangDayChinh">Bộ môn:</label>
             <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
               <option value="">---</option>
@@ -199,32 +194,49 @@
           <div class="col-md-8">
             <!-- Dòng 1 -->
             <div class="row">
-              <div class="col-md-2">
+              <div style="width: 20%; padding-right: 0px">
                 <label for="dienThoai">Điện thoại:</label>
                 <input required class="form-control" type="text" name="DienThoai" id="dienThoai"
                   value="<%= value.DienThoai %>">
               </div>
-              <div class="col-md-3">
-                <label for="email">Email:</label>
-                <input required class="form-control" type="email" name="email" id="email" value="<%= value.Email %>">
-              </div>
-              <div class="col-md-7">
-                <label>File lý lịch (PDF):</label>
-                <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" target="_blank">
-                  <%= value.FileLyLich %>
-                </a>
-                <input class="form-control" type="file" name="FileLyLich" id="FileLyLich">
-                <input type="hidden" name="oldFileLyLich" value="<%= value.FileLyLich %>">
+              <div style="width: 80%;">
+                <label for="NoiCongTac">Nơi công tác:</label>
+                <input required class="form-control" type="text" name="NoiCongTac" id="NoiCongTac"
+                  value="<%= value.NoiCongTac %>">
               </div>
             </div>
             <!-- Dòng 2 -->
              <p></p>
             <div class="row">
-              <div class="col-md-2">
+              <!-- Mã số thuế -->
+              <div style="width: 20%; padding-right: 0px">
+                <label for="msthue">Mã số thuế:</label>
+                <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
+              </div>
+              <!-- Chức vụ -->
+              <div style="width: 20%; padding-right: 0px">
                 <label for="chucvu">Chức vụ:</label>
                 <input required class="form-control" type="text" name="ChucVu" id="chucvu" value="<%= value.ChucVu %>">
               </div>
-              <div class="col-md-3">
+
+              <!-- Email -->
+              <div style="width: 60%;">
+                <label for="email">Email:</label>
+                <input required class="form-control" type="email" name="email" id="email" value="<%= value.Email %>">
+              </div>
+            </div>
+
+            <!-- Dòng 3 -->
+            <div class="row">
+              <p></p>
+              <!-- Mã phòng ban -->
+              <div style="width: 20%; padding-right: 0px">
+                <label>Mã phòng ban:</label>
+                <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan"
+                  value="<%= value.MaPhongBan %>" readonly>
+              </div>
+              <!-- Bằng loại -->
+              <div style="width: 20%; padding-right: 0px">
                 <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
                 <select class="form-control" name="BangTotNghiepLoai" id="BangTotNghiepLoai">
                   <option value="">---</option>
@@ -235,29 +247,31 @@
                   <option value="Xuất sắc" <%=value.BangTotNghiepLoai==="Xuất sắc" ? "selected" : "" %>>Xuất sắc</option>
                 </select>
               </div>
-              <div class="col-md-7">
-                <label for="NoiCongTac">Nơi công tác:</label>
-                <input required class="form-control" type="text" name="NoiCongTac" id="NoiCongTac"
-                  value="<%= value.NoiCongTac %>">
+              <div style="width: 30%; padding-right: 0px">
+                <label for="tinhTrang" style="margin-bottom: 3px;">Tình trạng giảng dạy:</label>
+                <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
+                  <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+                  <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+                </select>
               </div>
+              <!-- Thuộc quân đội -->
+             <div style="width: 30%; padding-right: 0px" class="thuocQuanDoiBox">
+                <label for="thuocQuanDoi" class="thuocQuanDoi-label">Thuộc quân đội:</label>
+              <input
+                type="checkbox"
+                class="thuocQuanDoi-input"
+                id="thuocQuanDoi"
+                name="thuocQuanDoi"
+                value="1"
+                <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
+              />
+             </div>
             </div>
 
-            <!-- Dòng 3 -->
-             <p></p>
-             <div class="row">
-              <!-- Mã phòng ban -->
-              <div class="col-md-2">
-                <label>Mã phòng ban:</label>
-                <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan"
-                  value="<%= value.MaPhongBan %>" readonly>
-              </div>
-              <!-- Mã số thuế -->
-              <div class="col-md-3">
-                <label for="msthue">Mã số thuế:</label>
-                <input class="form-control" type="text" name="MaSoThue" id="msthue" value="<%= value.MaSoThue %>">
-              </div>
-              <!-- File bổ sung -->
-              <div class="col-md-7">
+              <!-- Dòng 4 -->
+            <div class="row">
+              <p></p>
+              <div class="col-md-6">
                 <label>File bổ sung:</label>
                 <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.fileBoSung %>" download>
                   <%= value.fileBoSung %>
@@ -265,33 +279,18 @@
                 <input class="form-control" type="file" name="fileBoSung" id="fileBoSung">
                 <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>">
               </div>
-             </div>
-
-             <!-- Dòng 4 -->
-              <p></p>
-              <div class="row">
-                <div class="col-md-2 thuocQuanDoiBox">
-                  <label for="thuocQuanDoi" class="thuocQuanDoi-label">Thuộc quân đội:</label>
-                <input
-                  type="checkbox"
-                  class="thuocQuanDoi-input"
-                  id="thuocQuanDoi"
-                  name="thuocQuanDoi"
-                  value="1"
-                  <% if (value.isQuanDoi === 1 || value.isQuanDoi === true) { %> checked <% } %>
-                />
+              <div class="col-md-6">
+                <label>File lý lịch (PDF):</label>
+                <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>" target="_blank">
+                  <%= value.FileLyLich %>
+                </a>
+                <input class="form-control" type="file" name="FileLyLich" id="FileLyLich">
+                <input type="hidden" name="oldFileLyLich" value="<%= value.FileLyLich %>">
               </div>
-                <div class="col-md-3">
-                  <label for="tinhTrang" style="margin-bottom: 3px;">Tình trạng giảng dạy:</label>
-                  <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
-                    <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
-                    <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
-                  </select>
-                </div>
-              </div>
+            </div>
 
-              <!-- Dòng cuối -->
-              <div class="row mb-3" style="padding-top: 50px;">
+              <!-- Dòng 5 -->
+              <div class="row mb-3" style="padding-top: 130px;">
                 <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
                 <div class="col-md-4 d-flex justify-content-between" style="margin-top: 15px;">
                   <button class="btn" id="submit">Cập nhật</button>
@@ -299,7 +298,7 @@
                 </div>
               </div>
           </div>
-          <div class="col-md-4" style="position: relative; top: -36px;">
+          <div class="col-md-4" style="position: relative; top: -40px;">
             <div class="col-md-12">
               <label>QR CODE:</label>
               <img 

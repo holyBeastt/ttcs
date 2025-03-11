@@ -70,7 +70,7 @@
                 <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
                 <a
                   class="nav-link"
-                  id="actionButton1"
+                  id="addNewFileGvm"
                   href="/importGvmList"
                   style="width: 100%"
                   >Thêm giảng viên mời bằng file</a
@@ -107,7 +107,7 @@
                     <a
                       class="nav-link"
                       href="/import"
-                      id="actionButton2"
+                      id="addNewFileQCDK"
                       style="width: 100%"
                       >Thêm file quy chuẩn dự kiến</a
                     >
@@ -390,7 +390,9 @@
               <a class="dropdown-item" id="infome">Thông tin cá nhân</a>
               <a class="dropdown-item" id="changePasswordLink">Đổi mật khẩu</a>
               <a class="dropdown-item" id="changeMessage">Thêm thông báo</a>
-              <a class="dropdown-item" id="backup-btn" href="/backup">Backup dữ liệu</a>
+              <a class="dropdown-item" id="backup-btn" href="/backup"
+                >Backup dữ liệu</a
+              >
               <a class="dropdown-item" href="/">Đăng xuất</a>
             </div>
           </div>
@@ -467,20 +469,12 @@
     if (isKhoa === null) {
       console.log("Không tìm thấy giá trị isKhoa trong localStorage");
     } else {
-      const actionButton = document.getElementById("actionButton");
-      const actionButton1 = document.getElementById("actionButton1");
-      const actionButton2 = document.getElementById("actionButton2");
+      const addNewFileGvm = document.getElementById("addNewFileGvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
 
-      if (actionButton1 && actionButton2) {
-        if (isKhoa === "0") {
-          actionButton1.style.display = "none"; // Ẩn actionButton1 nếu isKhoa = 0
-          actionButton2.style.display = "inline-block"; // Hiện actionButton2
-        } else {
-          actionButton1.style.display = "inline-block"; // Hiện actionButton1 nếu isKhoa khác 0
-          actionButton2.style.display = "none"; // Ẩn actionButton2
-        }
+      if (isKhoa === "0" || role === "GV") {
+        addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
       }
 
       // Ẩn button import đồ án
@@ -488,13 +482,17 @@
       const suaHD = document.getElementById("suaHD");
       const tkb = document.getElementById("tkb-nav");
 
-      if (isKhoa == 0 && role == "Duyệt") {
+      // Chỉ đào tạo (duyệt) được quyền thao tác với TKB, thêm file và sửa hợp đồng
+      if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
         themFile.style.display = "block";
         suaHD.style.display = "block";
         tkb.style.display = "block";
       }
 
-      if (role === "Lãnh đạo khoa" || (MaPhongBan === "DAOTAO" && role === "Duyệt")) {
+      if (
+        role === "Lãnh đạo khoa" ||
+        (MaPhongBan === "DAOTAO" && role === "Duyệt")
+      ) {
         actionButton3.style.display = "";
       } else {
         actionButton3.style.display = "none";
