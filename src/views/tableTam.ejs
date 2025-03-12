@@ -200,13 +200,14 @@
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
         unhideButton2(role);
       });
 
       function unhideButton2(role) {
-        if (role == "Duyệt") {
+        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
           const addBtn = document.getElementById("add-row-btn");
           const exportBtn = document.getElementById("export-file-btn");
           const saveBtn = document.getElementById("save-btn");
@@ -494,7 +495,7 @@
 
         const role = localStorage.getItem("userRole");
 
-        if (role === "Duyệt") {
+        if (role === "Duyệt" && MaPhongBan == "DAOTAO") {
           columns.push({
             title: "Xóa",
             field: "actions",

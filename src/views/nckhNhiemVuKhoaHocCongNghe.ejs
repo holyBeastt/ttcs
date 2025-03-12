@@ -269,7 +269,7 @@
                     }
 
                     // Cấp quyền xóa
-                    if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+                    if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
                         columns.push({
                             title: "Hành Động",
                             field: "actions",
@@ -280,7 +280,7 @@
                     }
 
                     // Cấp quyền duyệt
-                    if (userRole === "Duyệt") {
+                    if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
                         columns.push({
                             title: "Duyệt",
                             field: "DaoTaoDuyet",
@@ -421,6 +421,8 @@
         <script>
             // giảng viên cơ hữu của trường, để gợi ý tên
             var giangVienCoHuu = [];
+            var role = localStorage.getItem("userRole");
+            var MaPhongBan = localStorage.getItem("MaPhongBan");
 
             // lấy dữ liệu giảng viên cơ hữu
             document.addEventListener("DOMContentLoaded", async () => {
@@ -459,7 +461,7 @@
                     };
 
                     // Phần quyền nhập
-                    if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+                    if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
                         alert("Bạn không có quyền truy cấp chức năng này");
                         return;
                     }
