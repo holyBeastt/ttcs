@@ -100,12 +100,14 @@ const postUpdateGvm = async (req, res) => {
   let NganHang = req.body.NganHang;
   let BangTotNghiepLoai = req.body.BangTotNghiepLoai;
   let MonGiangDayChinh = req.body.monGiangDayChinh;
+  let QrCode = req.body.QrCode;
 
   let oldTruocCCCD = req.body.oldTruocCCCD;
   let oldSauCCCD = req.body.oldSauCCCD;
   let oldFileLyLich = req.body.oldFileLyLich;
   let oldbangTotNghiep = req.body.oldbangTotNghiep;
   let oldFileBoSung = req.body.oldFileBoSung;
+  let oldQrCode = req.body.oldQrCode;
 
   let isQuanDoi = req.body.thuocQuanDoi;
 
@@ -175,6 +177,9 @@ const postUpdateGvm = async (req, res) => {
     let fileBoSung = req.files["fileBoSung"]
       ? req.files["fileBoSung"][0].filename
       : oldFileBoSung;
+    let QrCode = req.files["QrCode"]
+      ? req.files["QrCode"][0].filename
+      : oldQrCode;
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
     const query = `UPDATE gvmoi SET 
@@ -204,7 +209,8 @@ const postUpdateGvm = async (req, res) => {
       TinhTrangGiangDay = ?, 
       MonGiangDayChinh = ?,
       isQuanDoi = ?,
-      fileBoSung = ?
+      fileBoSung = ?,
+      QrCode = ?
     WHERE id_Gvm = ?`;
 
     try {
@@ -236,6 +242,7 @@ const postUpdateGvm = async (req, res) => {
         MonGiangDayChinh,
         isQuanDoi,
         fileBoSung,
+        QrCode,
         IdGvm,
       ]);
       res.redirect("/gvmList?message=insertSuccess");

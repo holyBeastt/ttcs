@@ -57,7 +57,7 @@
       >
         <fieldset>
           <div class="row mb-3">
-            <div class="col-md-4">
+            <div style="width: 20%; padding-right: 0px">
               <label for="HoTen">Họ tên:</label>
               <input
                 required
@@ -67,14 +67,8 @@
                 id="HoTen"
               />
             </div>
-            <div class="col-md-4">
-              <label for="gioitinh">Giới tính:</label>
-              <select class="form-control" name="GioiTinh" id="gioitinh">
-                <option value="Nam">Nam</option>
-                <option value="Nu">Nữ</option>
-              </select>
-            </div>
-            <div class="col-md-4">
+
+            <div style="width: 12%">
               <label for="ngaySinh">Ngày sinh:</label>
               <input
                 required
@@ -84,10 +78,8 @@
                 id="ngaySinh"
               />
             </div>
-          </div>
-          <div class="row mb-3"></div>
-          <div class="row mb-3">
-            <div class="col-md-4">
+
+            <div style="width: 13%">
               <label for="CCCD">CCCD:</label>
               <input
                 required
@@ -97,7 +89,41 @@
                 id="CCCD"
               />
             </div>
-            <div class="col-md-4">
+
+            <div class="col-md-1">
+              <label for="gioitinh">Giới tính:</label>
+              <select class="form-control" name="GioiTinh" id="gioitinh">
+                <option value="Nam">Nam</option>
+                <option value="Nu">Nữ</option>
+              </select>
+            </div>
+            <div style="padding: 0px; width: 30%">
+              <label for="monGiangDayChinh">Bộ môn:</label>
+              <select
+                class="form-control"
+                type="text"
+                name="monGiangDayChinh"
+                id="monGiangDayChinh"
+              ></select>
+            </div>
+
+            <div class="col-md-2">
+              <label for="hocVi">Bằng cấp cao nhất:</label>
+              <select class="form-control" name="hocVi" id="hocVi">
+                <option value="Cử nhân">Cử nhân</option>
+                <option value="Kỹ sư">Kỹ sư</option>
+                <option value="Thạc sĩ">Thạc sĩ</option>
+                <option value="Tiến sĩ">Tiến sĩ</option>
+                <option value="Phó giáo sư. Tiến sĩ">
+                  Phó giáo sư. Tiến sĩ
+                </option>
+                <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-2">
               <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
               <input
                 required
@@ -117,9 +143,8 @@
                 id="NoiCapCCCD"
               />
             </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4">
+
+            <div class="col-md-6">
               <label for="DiaChi">Địa chỉ theo CCCD:</label>
               <input
                 required
@@ -129,29 +154,8 @@
                 id="DiaChi"
               />
             </div>
-            <div class="col-md-4">
-              <label for="monGiangDayChinh">Bộ môn:</label>
-              <select
-                class="form-control"
-                type="text"
-                name="monGiangDayChinh"
-                id="monGiangDayChinh"
-              ></select>
-            </div>
-            <div class="col-md-4">
-              <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
-              <select
-                class="form-control"
-                name="BangTotNghiepLoai"
-                id="BangTotNghiepLoai"
-              >
-                <option value="Trung bình">Trung bình</option>
-                <option value="Khá">Khá</option>
-                <option value="Giỏi">Giỏi</option>
-                <option value="Xuất sắc">Xuất sắc</option>
-              </select>
-            </div>
           </div>
+
           <div class="row mb-3">
             <div class="col-md-4">
               <label>Mặt trước CCCD:</label>
@@ -185,81 +189,6 @@
             </div>
           </div>
           <div class="row mb-3">
-            <div class="col-md-4">
-              <label for="dienThoai">Điện thoại:</label>
-              <input
-                required
-                class="form-control"
-                type="text"
-                name="DienThoai"
-                id="dienThoai"
-              />
-            </div>
-            <!-- <div class="col-md-4">
-              <label for="email">Email:</label>
-              <input
-                required
-                class="form-control"
-                type="email"
-                name="email"
-                id="email"
-              />
-            </div> -->
-            <div class="col-md-4">
-              <label for="msthue">Mã số thuế:</label>
-              <input
-                class="form-control"
-                type="text"
-                name="MaSoThue"
-                id="msthue"
-              />
-            </div>
-            <div class="col-md-4">
-              <label>File lý lịch (PDF):</label>
-              <input
-                class="form-control"
-                type="file"
-                name="FileLyLich"
-                id="FileLyLich"
-              />
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <label for="NoiCongTac">Nơi công tác:</label>
-              <input
-                required
-                class="form-control"
-                type="text"
-                name="NoiCongTac"
-                id="NoiCongTac"
-              />
-            </div>
-            <div class="col-md-4">
-              <label for="chucvu">Chức vụ:</label>
-              <input
-                class="form-control"
-                type="text"
-                name="ChucVu"
-                id="chucvu"
-              />
-            </div>
-            <div class="col-md-4">
-              <label for="hocVi">Học hàm/Học vị:</label>
-              <select class="form-control" name="hocVi" id="hocVi">
-                <option value="Cử nhân">Cử nhân</option>
-                <option value="Kỹ sư">Kỹ sư</option>
-                <option value="Thạc sĩ">Thạc sĩ</option>
-                <option value="Tiến sĩ">Tiến sĩ</option>
-                <option value="Phó giáo sư. Tiến sĩ">
-                  Phó giáo sư. Tiến sĩ
-                </option>
-                <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
-              </select>
-            </div>
-          </div>
-          <div class="row mb-3"></div>
-          <div class="row mb-3">
             <div class="col-md-1">
               <label for="hsl">Hệ số lương:</label>
               <input
@@ -291,85 +220,167 @@
               />
             </div>
           </div>
-          <div class="row mb-3" style="position: relative">
-            <div class="col-md-4">
-              <label for="tinhTrang">Tình trạng giảng dạy:</label>
-              <select
-                class="form-control"
-                name="tinhTrangGiangDay"
-                id="tinhTrang"
-              >
-                <option value="true">Đang giảng dạy</option>
-                <option value="false">Đã ngừng giảng dạy</option>
-              </select>
-            </div>
-            <!-- <div class="col-md-4">
-              <label for="monGiangDayChinh">Bộ môn:</label>
-              <select
-                class="form-control"
-                type="text"
-                name="monGiangDayChinh"
-                id="monGiangDayChinh"
-              ></select>
-            </div> -->
-            <div class="col-md-4">
-              <label for="email">Email:</label>
-              <input
-                required
-                class="form-control"
-                type="email"
-                name="email"
-                id="email"
-              />
-            </div>
-            <div class="col-md-4">
-              <label>File bổ sung:</label>
-              <input
-                class="form-control"
-                type="file"
-                name="fileBoSung"
-                id="fileBoSung"
-              />
-            </div>
-            <div class="row mb-3" style="margin-top: 20px">
-              <div class="col-md-4">
-                <label><b>MÃ KHOA:</b></label>
-                <label id="Ma_Khoa_Label"></label>
-              </div>
-              <div class="col-md-4 thuocQuanDoiBox">
-                <div class="form-group">
-                  <label for="thuocQuanDoi" class="thuocQuanDoi-label"
-                    >Thuộc quân đội:</label
-                  >
+
+          <div class="row">
+            <div class="col-md-8">
+              <!-- Dòng 1 -->
+              <div class="row">
+                <div style="width: 20%; padding-right: 0px">
+                  <label for="dienThoai">Điện thoại:</label>
                   <input
-                    type="checkbox"
-                    class="thuocQuanDoi-input"
-                    id="thuocQuanDoi"
-                    name="thuocQuanDoi"
-                    value="1"
+                    required
+                    class="form-control"
+                    type="text"
+                    name="DienThoai"
+                    id="dienThoai"
+                  />
+                </div>
+                <div style="width: 80%">
+                  <label for="NoiCongTac">Nơi công tác:</label>
+                  <input
+                    required
+                    class="form-control"
+                    type="text"
+                    name="NoiCongTac"
+                    id="NoiCongTac"
                   />
                 </div>
               </div>
+              <!-- Dòng 2 -->
+              <div class="row">
+                <p></p>
+                <div style="width: 20%; padding-right: 0px">
+                  <label for="msthue">Mã số thuế:</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    name="MaSoThue"
+                    id="msthue"
+                  />
+                </div>
+                <div style="width: 20%; padding-right: 0px">
+                  <label for="chucvu">Chức vụ:</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    name="ChucVu"
+                    id="chucvu"
+                  />
+                </div>
+                <div style="width: 60%">
+                  <label for="email">Email:</label>
+                  <input
+                    required
+                    class="form-control"
+                    type="email"
+                    name="email"
+                    id="email"
+                  />
+                </div>
+              </div>
+              <!-- Dòng 3 -->
+              <div class="row">
+                <p></p>
+                <div style="width: 20%; padding-right: 0px">
+                  <label>Mã phòng ban:</label>
+                  <input
+                    class="form-control"
+                    id="Ma_Khoa_Label"
+                    type="text"
+                    disabled
+                  />
+                  <!-- <label id="Ma_Khoa_Label"></label> -->
+                </div>
+                <div style="width: 20%; padding-right: 0px">
+                  <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
+                  <select
+                    class="form-control"
+                    name="BangTotNghiepLoai"
+                    id="BangTotNghiepLoai"
+                  >
+                    <option value="Trung bình">Trung bình</option>
+                    <option value="Khá">Khá</option>
+                    <option value="Giỏi">Giỏi</option>
+                    <option value="Xuất sắc">Xuất sắc</option>
+                  </select>
+                </div>
+                <div style="width: 30%; padding-right: 0px">
+                  <label for="tinhTrang">Tình trạng giảng dạy:</label>
+                  <select
+                    class="form-control"
+                    name="tinhTrangGiangDay"
+                    id="tinhTrang"
+                  >
+                    <option value="true">Đang giảng dạy</option>
+                    <option value="false">Đã ngừng giảng dạy</option>
+                  </select>
+                </div>
+                <div
+                  style="width: 30%; padding-right: 0px"
+                  class="thuocQuanDoiBox"
+                >
+                  <div class="form-group">
+                    <label for="thuocQuanDoi" class="thuocQuanDoi-label"
+                      >Thuộc quân đội:</label
+                    >
+                    <input
+                      type="checkbox"
+                      class="thuocQuanDoi-input"
+                      id="thuocQuanDoi"
+                      name="thuocQuanDoi"
+                      value="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- Dòng 4 -->
+              <div class="row">
+                <p></p>
+                <div class="col-md-6">
+                  <label>File bổ sung:</label>
+                  <input
+                    class="form-control"
+                    type="file"
+                    name="fileBoSung"
+                    id="fileBoSung"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label>File lý lịch (PDF):</label>
+                  <input
+                    class="form-control"
+                    type="file"
+                    name="FileLyLich"
+                    id="FileLyLich"
+                  />
+                </div>
+              </div>
+              <!-- Dòng 5 -->
+              <div class="row mb-3" style="padding-top: 130px">
+                <div class="justify-content-between">
+                  <button class="btn" id="submit">Thêm mới</button>
+                  <button
+                    class="btn"
+                    id="return"
+                    style="margin-left: 20px"
+                    onclick="goBack()"
+                  >
+                    Quay lại
+                  </button>
+                </div>
+              </div>
             </div>
-            <!-- <div
-              class="col-md-4 d-flex justify-content-between"
-              style="position: absolute; top: 23px; right: 0"
-            >
-              <button class="btn" id="submit">Thêm mới</button>
-              <button class="btn" id="return" onclick="goBack()">
-                Quay lại
-              </button>
-            </div> -->
-            <div class="justify-content-between" style="margin-top: 23px">
-              <button class="btn" id="submit">Thêm mới</button>
-              <button
-                class="btn"
-                id="return"
-                style="margin-left: 20px"
-                onclick="goBack()"
-              >
-                Quay lại
-              </button>
+            <div class="col-md-4" style="position: relative; top: -40px">
+              <div class="col-md-12">
+                <label>QR Code:</label>
+                <img id="QrCodeImg" src="" alt="QR CODE" />
+                <input
+                  class="form-control"
+                  type="file"
+                  name="QrCode"
+                  id="QrCode"
+                />
+              </div>
             </div>
           </div>
         </fieldset>
@@ -391,9 +402,7 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const maPhongBan = localStorage.getItem("MaPhongBan");
-        document.getElementById(
-          "Ma_Khoa_Label"
-        ).innerHTML = `<b>${maPhongBan}</b>`;
+        document.getElementById("Ma_Khoa_Label").value = maPhongBan;
 
         fetch(`/getMaBoMon/${maPhongBan}`)
           .then((response) => response.json())
@@ -543,6 +552,12 @@
         .getElementById("bangTotNghiep")
         .addEventListener("change", function (event) {
           displayImage(event, "imagebang");
+        });
+
+      document
+        .getElementById("QrCode")
+        .addEventListener("change", function (event) {
+          displayImage(event, "QrCodeImg");
         });
 
       function displayImage(event, imgId) {
