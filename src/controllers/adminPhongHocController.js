@@ -27,7 +27,7 @@ const adminPhongHocController = {
     let connection;
     try {
       connection = await createConnection();
-      const phongQuery = "SELECT STT, phong as Phong, toanha as ToaNha, loaiphong as LoaiPhong FROM phonghoc ORDER BY phong ASC";
+      const phongQuery = "SELECT STT, phong as Phong, toanha as ToaNha, loaiphong as LoaiPhong, GhiChu FROM phonghoc ORDER BY phong ASC";
       const toaNhaQuery = "SELECT TenToaNha FROM toanha ORDER BY TenToaNha ASC";
       
       const [phongResults] = await connection.query(phongQuery);
@@ -46,7 +46,7 @@ const adminPhongHocController = {
   },
 
   addPhongHoc: async (req, res) => {
-    const { Phong, ToaNha, LoaiPhong } = req.body;
+    const { Phong, ToaNha, LoaiPhong, GhiChu } = req.body;
     let connection;
     try {
       connection = await createConnection();
@@ -54,8 +54,8 @@ const adminPhongHocController = {
       // Kiểm tra số tầng trước khi thêm
       await checkFloorValidity(connection, Phong, ToaNha);
       
-      const query = "INSERT INTO phonghoc (phong, toanha, loaiphong) VALUES (?, ?, ?)";
-      await connection.query(query, [Phong, ToaNha, LoaiPhong]);
+      const query = "INSERT INTO phonghoc (phong, toanha, loaiphong, GhiChu) VALUES (?, ?, ?, ?)";
+      await connection.query(query, [Phong, ToaNha, LoaiPhong, GhiChu]);
       res.json({ success: true, message: "Thêm phòng học thành công" });
     } catch (error) {
       console.error("Lỗi khi thêm phòng học:", error);
@@ -67,7 +67,7 @@ const adminPhongHocController = {
 
   updatePhongHoc: async (req, res) => {
     const { STT } = req.params;
-    const { Phong, ToaNha, LoaiPhong } = req.body;
+    const { Phong, ToaNha, LoaiPhong, GhiChu } = req.body;
     let connection;
     try {
       connection = await createConnection();
@@ -75,8 +75,8 @@ const adminPhongHocController = {
       // Kiểm tra số tầng trước khi cập nhật
       await checkFloorValidity(connection, Phong, ToaNha);
       
-      const query = "UPDATE phonghoc SET phong = ?, toanha = ?, loaiphong = ? WHERE STT = ?";
-      await connection.query(query, [Phong, ToaNha, LoaiPhong, STT]);
+      const query = "UPDATE phonghoc SET phong = ?, toanha = ?, loaiphong = ?, GhiChu = ? WHERE STT = ?";
+      await connection.query(query, [Phong, ToaNha, LoaiPhong, GhiChu, STT]);
       res.json({ success: true, message: "Cập nhật phòng học thành công" });
     } catch (error) {
       console.error("Lỗi khi cập nhật phòng học:", error);
@@ -126,7 +126,7 @@ const adminPhongHocController = {
     let connection;
     try {
       connection = await createConnection();
-      const query = "SELECT * FROM toanha ORDER BY TenToaNha ASC";
+      const query = "SELECT * FROM toanha ORDER BY STT ASC";
       const [results] = await connection.query(query);
       res.render("toaNha", { toanha: results });
     } catch (error) {
@@ -138,12 +138,12 @@ const adminPhongHocController = {
   },
 
   addToaNha: async (req, res) => {
-    const { TenToaNha, SoTang } = req.body;
+    const { TenToaNha, SoTang, GhiChu } = req.body;
     let connection;
     try {
       connection = await createConnection();
-      const query = "INSERT INTO toanha (TenToaNha, SoTang) VALUES (?, ?)";
-      await connection.query(query, [TenToaNha, SoTang]);
+      const query = "INSERT INTO toanha (TenToaNha, SoTang, GhiChu) VALUES (?, ?, ?)";
+      await connection.query(query, [TenToaNha, SoTang, GhiChu]);
       res.json({ success: true, message: "Thêm tòa nhà thành công" });
     } catch (error) {
       console.error("Lỗi khi thêm tòa nhà:", error);
@@ -154,13 +154,19 @@ const adminPhongHocController = {
   },
 
   updateToaNha: async (req, res) => {
-    const { id } = req.params;
-    const { TenToaNha, SoTang } = req.body;
+    const { STT } = req.params;
+    const { TenToaNha, SoTang, GhiChu } = req.body;
     let connection;
     try {
       connection = await createConnection();
-      const query = "UPDATE toanha SET TenToaNha = ?, SoTang = ? WHERE id = ?";
-      await connection.query(query, [TenToaNha, SoTang, id]);
+      console.log('Updating toanha:', { STT, TenToaNha, SoTang, GhiChu });
+      const query = "UPDATE toanha SET TenToaNha = ?, SoTang = ?, GhiChu = ? WHERE STT = ?";
+      const [result] = await connection.query(query, [TenToaNha, SoTang, GhiChu, STT]);
+      console.log('Update result:', result);
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Không tìm thấy tòa nhà để cập nhật" });
+      }
       res.json({ success: true, message: "Cập nhật tòa nhà thành công" });
     } catch (error) {
       console.error("Lỗi khi cập nhật tòa nhà:", error);
@@ -171,12 +177,18 @@ const adminPhongHocController = {
   },
 
   deleteToaNha: async (req, res) => {
-    const { id } = req.params;
+    const { STT } = req.params;
     let connection;
     try {
       connection = await createConnection();
-      const query = "DELETE FROM toanha WHERE id = ?";
-      await connection.query(query, [id]);
+      console.log('Deleting toanha:', { STT });
+      const query = "DELETE FROM toanha WHERE STT = ?";
+      const [result] = await connection.query(query, [STT]);
+      console.log('Delete result:', result);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Không tìm thấy tòa nhà để xóa" });
+      }
       res.json({ success: true, message: "Xóa tòa nhà thành công" });
     } catch (error) {
       console.error("Lỗi khi xóa tòa nhà:", error);
