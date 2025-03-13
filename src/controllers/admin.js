@@ -281,6 +281,8 @@ const addMessage = async (req, res) => {
   const { MaPhongBan } = req.params; // Lấy MaPhongBan từ params
   const { Title, LoiNhan, Deadline } = req.body; // Lấy LoiNhan và Deadline từ body
   let connection;
+  // console.log(Deadline)
+  const DeadlineConvert = convertToMySQLFormat(Deadline);
 
   try {
     connection = await createPoolConnection();
@@ -289,10 +291,13 @@ const addMessage = async (req, res) => {
     const query = `INSERT INTO thongbao (MaPhongBan, Title, LoiNhan, Deadline) VALUES (?, ?, ?, ?)`;
 
     // Thực hiện câu truy vấn
-    await connection.query(query, [MaPhongBan, Title, LoiNhan, Deadline]);
+    await connection.query(query, [MaPhongBan, Title, LoiNhan, DeadlineConvert]);
 
     // Redirect về trang thay đổi thông báo
-    return res.redirect(`/changeMessage/${MaPhongBan}?MessageChanged=true`);
+    return res.status(200).send({
+      success: true,
+      message: "Thêm thông báo thành công",
+    })
   } catch (error) {
     console.error("Lỗi khi thêm thông báo:", error);
     return res.status(500).send("Lỗi hệ thống. Không thể thêm thông báo.");
@@ -301,20 +306,20 @@ const addMessage = async (req, res) => {
   }
 };
 
-function convertToMySQLFormat(dateStr) {
-  // Chuyển chuỗi ISO 8601 thành đối tượng Date
-  let date = new Date(dateStr);
+function convertToMySQLFormat(isoString) {
+  const date = new Date(isoString);
 
-  // Lấy các thành phần ngày, giờ, phút, giây theo múi giờ UTC
-  let year = date.getUTCFullYear();
-  let month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  let day = String(date.getUTCDate()).padStart(2, '0');
-  // let hours = String(date.getUTCHours()).padStart(2, '0');
-  // let minutes = String(date.getUTCMinutes()).padStart(2, '0');
-  // let seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  // Hàm bổ sung số để luôn có 2 chữ số, ví dụ: "2" -> "02"
+  const pad = (num) => String(num).padStart(2, '0');
 
-  // Định dạng theo chuẩn MySQL: YYYY-MM-DD HH:MM:SS
-  return `${year}-${month}-${day}`;
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1); // Tháng trong JS tính từ 0
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 const updateMessage = async (req, res) => {

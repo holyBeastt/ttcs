@@ -2382,7 +2382,7 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
         // console.log('Tổng năm: ', tongSoTietNCKH)
 
         // 3. Tính toán số tiết vượt định mức
-        const soTietVuotDinhMuc = tongSoTietNCKH - soTietDinhMuc;
+        const soTietVuotDinhMuc = tongSoTietNCKH - soTietDinhMuc > 0 ? tongSoTietNCKH - soTietDinhMuc : 0;
         // Nếu số tiết vượt định mức > 0 thì tính, ngược lại gán là 0
         const soTietBaoLuuSangNamSau = soTietVuotDinhMuc > 0 ? (soTietVuotDinhMuc >= 85 ? 85 : soTietVuotDinhMuc) : 0;
 

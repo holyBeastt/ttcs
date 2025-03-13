@@ -217,13 +217,13 @@
             columns.push({
               title: "Khoa",
               field: "Khoa",
-              editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
             });
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Hành Động",
               field: "actions",
@@ -233,8 +233,8 @@
             });
           }
 
-          // Cấp quyền duyệt
-          if (userRole === "Duyệt") {
+          // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
+          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
@@ -269,7 +269,7 @@
             }
             // Nếu chỉnh sửa ô Duyệt thì chuyển checkbox value thành 1 hoặc 0
             if (field === "DaoTaoDuyet") {
-              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
+              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet ? 1 : 0;
             }
             await saveData(updatedData.ID, updatedData, row);
           });
@@ -334,6 +334,7 @@
 
       // Hàm cập nhật dữ liệu sau khi chỉnh sửa
       async function saveData(id, updatedData, row) {
+        console.log(updatedData);
         const MaBang = 'nckhvahuanluyendoituyen';
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
@@ -420,7 +421,8 @@
     <script>
       // giảng viên cơ hữu của trường, để gợi ý tên
       var giangVienCoHuu = [];
-
+      var role = localStorage.getItem("userRole");
+      var MaPhongBan = localStorage.getItem("MaPhongBan");
       // check thì mới cho nhập đơn vị
       document.addEventListener("DOMContentLoaded", function () {
         // Lấy các checkbox và ô nhập đơn vị
@@ -485,15 +487,15 @@
         ); // Thành viên gợi ý
 
         // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
-        chuNhiemCheckbox.addEventListener("change", function () {
-          if (this.checked) {
-            // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
-            chuNhiemSuggestions.style.display = "none";
-          } else {
-            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
-            chuNhiemSuggestions.style.display = "block";
-          }
-        });
+        // chuNhiemCheckbox.addEventListener("change", function () {
+        //   if (this.checked) {
+        //     // Nếu checkbox chủ nhiệm được đánh dấu, ẩn phần gợi ý chủ nhiệm
+        //     chuNhiemSuggestions.style.display = "none";
+        //   } else {
+        //     // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý chủ nhiệm
+        //     chuNhiemSuggestions.style.display = "block";
+        //   }
+        // });
 
         // Thêm sự kiện lắng nghe khi thanhVienCheckbox thay đổi
         thanhVienCheckbox.addEventListener("change", function () {
@@ -664,7 +666,7 @@
 
 
           // Phần quyền nhập
-          if (localStorage.getItem("userRole") == "GV" || localStorage.getItem("userRole") == "Thường") {
+          if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
             alert("Bạn không có quyền truy cấp chức năng này");
             return;
           }

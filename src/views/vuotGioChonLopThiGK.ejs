@@ -157,122 +157,122 @@
   <!-- Phần header -->
   <%- include('header') %>
 
-  <!-- Phần nội dung -->
+    <!-- Phần nội dung -->
 
-  <h1 class="d-flex justify-content-center my-3">Chọn lớp coi thi giữa kì</h1>
-  <div class="container-fluid box m-4">
-    <div class="">
-      <div class="d-flex">
-        <div class="cbb d-flex" style="margin-top: 20px;">
+    <h1 class="d-flex justify-content-center my-3">Chọn lớp coi thi giữa kì</h1>
+    <div class="container-fluid box m-4">
+      <div class="">
+        <div class="d-flex">
+          <div class="cbb d-flex" style="margin-top: 20px;">
 
-          <select class="selectop mx-1" id="combobox-dot">
-            <option value="">Đợt</option>
-          </select>
+            <select class="selectop mx-1" id="combobox-dot">
+              <option value="">Đợt</option>
+            </select>
 
-          <!-- Combo box Kỳ -->
-          <select class="selectop mx-1" id="comboboxki">
-            <option value="">Kỳ</option>
-          </select>
+            <!-- Combo box Kỳ -->
+            <select class="selectop mx-1" id="comboboxki">
+              <option value="">Kỳ</option>
+            </select>
 
-          <!-- Combo box Năm -->
-          <select class="selectop mx-1" id="NamHoc">
-            <option value="">Năm học</option>
-          </select>
+            <!-- Combo box Năm -->
+            <select class="selectop mx-1" id="NamHoc">
+              <option value="">Năm học</option>
+            </select>
 
-          <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
-          <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
+            <button id="infoGvm" class="btn text-nowrap mx-2">Hiển thị</button>
+            <button onclick="submitData()" class="btn mx-2" id="update-qc">Cập nhật</button>
+          </div>
+        </div>
+
+        <!-- Phần tìm kiếm xuống dưới -->
+        <div class="d-flex my-3" style="height: 70px;">
+          <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
+            style="width: 200px;" />
+          <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
+            style="width: 200px;" />
+        </div>
+        <script>
+          function filterTable() {
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const classFilter = document.getElementById('filterClass').value.toLowerCase();
+            const tableRows = document.querySelectorAll('#tableBody tr');
+
+            tableRows.forEach(row => {
+              const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
+              const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
+
+              const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+              const className = classCell ? classCell.textContent.toLowerCase() : '';
+
+              // Kiểm tra điều kiện lọc
+              const matchesName = name.includes(nameFilter);
+              const matchesClass = className.includes(classFilter);
+
+              // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+              if (matchesName && matchesClass) {
+                row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
+              } else {
+                row.style.display = 'none'; // Ẩn hàng nếu không khớp
+              }
+            });
+            calculateTotals();
+          }
+
+          // Gán sự kiện cho các input filter
+          document.getElementById('filterName').addEventListener('input', filterTable);
+          document.getElementById('filterClass').addEventListener('input', filterTable);
+        </script>
+
+        <div id="renderInfo">
+          <table class=" text-center" style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 200px;">Học phần</th>
+                <th style="width: 50px;">Số TC</th>
+                <th style="width: 200px;">GV giảng dạy</th>
+                <th style="width: 50px;">Mã lớp</th>
+                <th style="width: 100px;">Số SV</th>
+                <th style="width: 50px;">Hình thức thi giữa kỳ</th>
+                <th style="width: 100px;">Hệ số T7CN</th>
+                <th style="width: 50px;">Số tiết QC</th>
+                <th style="width: 50px;">Ghi chú</th>
+                <th style="width: 80px; " id="select">
+                  <div class="form-check d-flex justify-content-center" style="padding: 0px;">
+                    <input class="check" type="checkbox" id="checkAllSelect" onclick="checkAll('select')">
+                    <label class="form-check-label" for="checkAllSelect"
+                      style="margin-left: 0px; margin-right: 0px;">Chọn</label>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Label tổng số tiết tách riêng với bảng -->
+        <div class="total-label">
+          <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
         </div>
       </div>
-
-      <!-- Phần tìm kiếm xuống dưới -->
-      <div class="d-flex my-3" style="height: 70px;">
-        <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
-          style="width: 200px;" />
-        <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
-          style="width: 200px;" />
-      </div>
-      <script>
-        function filterTable() {
-          const nameFilter = document.getElementById('filterName').value.toLowerCase();
-          const classFilter = document.getElementById('filterClass').value.toLowerCase();
-          const tableRows = document.querySelectorAll('#tableBody tr');
-
-          tableRows.forEach(row => {
-            const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-            const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-
-            const name = nameCell ? nameCell.textContent.toLowerCase() : '';
-            const className = classCell ? classCell.textContent.toLowerCase() : '';
-
-            // Kiểm tra điều kiện lọc
-            const matchesName = name.includes(nameFilter);
-            const matchesClass = className.includes(classFilter);
-
-            // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-            if (matchesName && matchesClass) {
-              row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
-            } else {
-              row.style.display = 'none'; // Ẩn hàng nếu không khớp
-            }
-          });
-          calculateTotals();
-        }
-
-        // Gán sự kiện cho các input filter
-        document.getElementById('filterName').addEventListener('input', filterTable);
-        document.getElementById('filterClass').addEventListener('input', filterTable);
-      </script>
-
-      <div id="renderInfo">
-        <table class=" text-center" style="width: 100%;">
-          <thead>
-            <tr>
-              <th style="width: 200px;">Học phần</th>
-              <th style="width: 50px;">Số TC</th>
-              <th style="width: 200px;">GV giảng dạy</th>
-              <th style="width: 50px;">Mã lớp</th>
-              <th style="width: 100px;">Số SV</th>
-              <th style="width: 50px;">Hình thức thi giữa kỳ</th>
-              <th style="width: 100px;">Hệ số T7CN</th>
-              <th style="width: 50px;">Số tiết QC</th>
-              <th style="width: 50px;">Ghi chú</th>
-              <th style="width: 80px; " id="select">
-                <div class="form-check d-flex justify-content-center" style="padding: 0px;">
-                  <input class="check" type="checkbox" id="checkAllSelect" onclick="checkAll('select')">
-                  <label class="form-check-label" for="checkAllSelect"
-                    style="margin-left: 0px; margin-right: 0px;">Chọn</label>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- Dữ liệu sẽ được chèn vào đây -->
-          </tbody>
-        </table>
-      </div>
-      <!-- Label tổng số tiết tách riêng với bảng -->
-      <div class="total-label">
-        <label>Tổng số tiết Quy Chuẩn: <span class="value" id="totalQC">0</span></label>
-      </div>
     </div>
-  </div>
-  <!-- Modal form -->
-  <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
-  <div id="noteForm" style="display: none;">
-    <h3>Ghi chú</h3>
-    <label for="noteInput">Nội dung:</label>
-    <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
-    <br />
-    <!-- <label for="deadlineInput">Hạn:</label>
+    <!-- Modal form -->
+    <div id="modalBackdrop" style="display: none;"></div> <!-- Nền tối -->
+    <div id="noteForm" style="display: none;">
+      <h3>Ghi chú</h3>
+      <label for="noteInput">Nội dung:</label>
+      <textarea id="noteInput"></textarea> <!-- Sử dụng textarea cho ghi chú dài -->
+      <br />
+      <!-- <label for="deadlineInput">Hạn:</label>
     <input type="date" id="deadlineInput"
       style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px;" />
     <br /> -->
-    <div class="d-flex text-nowrap" style="text-align: right;">
-      <button onclick="saveNote()">Lưu</button>
-      <button onclick="doneNote()">Hoàn Thành</button>
-      <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+      <div class="d-flex text-nowrap" style="text-align: right;">
+        <button onclick="saveNote()">Lưu</button>
+        <button onclick="doneNote()">Hoàn Thành</button>
+        <button class="cancel" onclick="closeNoteForm()">Đóng</button>
+      </div>
     </div>
-  </div>
 </body>
 
 </html>
@@ -453,7 +453,7 @@
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
-    const filteredData = data.maBoMon.filter(row => 
+    const filteredData = data.maBoMon.filter(row =>
       row.GiangVien.trim() === TenNhanVien.trim() || row.id_Gvm !== 1
     );
 
@@ -762,23 +762,23 @@
       })
       .then(data => {
         Swal.fire({
-            title: 'Thông báo',
-            html: data.message,
-            icon: 'success',
-            confirmButtonText: 'OK',
-            width: 'auto', // Tự động điều chỉnh chiều rộng
-            padding: '20px', // Giữ khoảng cách cho nội dung
-          });
+          title: 'Thông báo',
+          html: data.message,
+          icon: 'success',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       })
       .catch(error => {
         Swal.fire({
-            title: 'Thông báo',
-            html: "Có lỗi xảy ra khi cập nhật dữ liệu",
-            icon: 'error',
-            confirmButtonText: 'OK',
-            width: 'auto', // Tự động điều chỉnh chiều rộng
-            padding: '20px', // Giữ khoảng cách cho nội dung
-          });
+          title: 'Thông báo',
+          html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+          icon: 'error',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       });
   }
 </script>
@@ -921,32 +921,46 @@
 
 
 <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const role = localStorage.getItem("userRole");
+  document.addEventListener("DOMContentLoaded", () => {
+    const role = localStorage.getItem("userRole");
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
-        //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
-          actionButton.style.display = '';
-        } else {
-          actionButton.style.display = 'none';
-        }
-      });
-    </script>
-  <script>
-      document.getElementById("changeMessage").addEventListener("click", function(event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+    // Ẩn button ngay khi trang được tải
+    const actionButton = document.getElementById('changeMessage');
+    //Ẩn site thêm thông báo
+    if (role === "Duyệt") {
+      actionButton.style.display = '';
+    } else {
+      actionButton.style.display = 'none';
+    }
+  });
+</script>
+<script>
+  document.getElementById("changeMessage").addEventListener("click", function (event) {
+    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+    const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-        if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
-    </script>
-  </body>
+    if (MaPhongBan) {
+      // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+      window.location.href = `/changeMessage/${MaPhongBan}`;
+    } else {
+      alert("Không tìm thấy MaPhongBan trong localStorage.");
+    }
+  });
+</script>
+<script>
+  const MaPhongBan = localStorage.getItem("MaPhongBan");
+  const role = localStorage.getItem("userRole");
+  // const addClassBtn = document.getElementById("createclass");
+  const updateBtn = document.getElementById("update-qc");
+  // const deleteClass = document.getElementById("select");
+
+
+  if (MaPhongBan == "TAICHINH") {
+    // addClassBtn.style.display = "none";
+    updateBtn.style.display = "none";
+    // deleteClass.style.display = "none";
+  }
+</script>
+</body>
 
 </html>
