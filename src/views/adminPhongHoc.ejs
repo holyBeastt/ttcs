@@ -237,7 +237,10 @@
             url: "/checkPhongExistence",
             method: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ Phong: Phong }),
+            data: JSON.stringify({
+              Phong: Phong,
+              ToaNha: ToaNha  // Thêm ToaNha vào data
+            }),
             success: function (response) {
               addNewPhongHoc(Phong, ToaNha, LoaiPhong);
             },
@@ -247,7 +250,7 @@
               } else {
                 alert("Có lỗi xảy ra khi kiểm tra sự tồn tại.");
               }
-            },
+            }
           });
         });
 

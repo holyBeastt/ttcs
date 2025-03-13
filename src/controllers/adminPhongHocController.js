@@ -103,12 +103,12 @@ const adminPhongHocController = {
   },
 
   checkPhongExistence: async (req, res) => {
-    const { Phong } = req.body;
+    const { Phong, ToaNha } = req.body;
     let connection;
     try {
       connection = await createConnection();
-      const query = "SELECT * FROM phonghoc WHERE phong = ?";
-      const [results] = await connection.query(query, [Phong]);
+      const query = "SELECT * FROM phonghoc WHERE phong = ? AND toanha = ?";
+      const [results] = await connection.query(query, [Phong, ToaNha]);
       if (results.length > 0) {
         res.status(409).json({ message: "Phòng học này đã tồn tại!" });
       } else {

@@ -6,8 +6,8 @@ const phongHocController = {
     try {
       connection = await createConnection();
       
-      // Lấy danh sách tòa nhà
-      const toaNhaQuery = "SELECT DISTINCT toanha FROM phonghoc ORDER BY toanha";
+      // Sửa query để lấy từ bảng toanha thay vì distinct từ phonghoc
+      const toaNhaQuery = "SELECT TenToaNha FROM toanha ORDER BY TenToaNha ASC";
       const [toaNha] = await connection.query(toaNhaQuery);
 
       // Tạo danh sách ca học cố định
@@ -38,11 +38,11 @@ const phongHocController = {
     try {
       connection = await createConnection();
       
-      // Lấy danh sách tất cả phòng của tòa nhà
+      // Sửa query để sử dụng TenToaNha
       const phongQuery = "SELECT phong FROM phonghoc WHERE toanha = ?";
       const [tatCaPhong] = await connection.query(phongQuery, [toaNha]);
 
-      // Lấy danh sách phòng đã được sử dụng và thông tin chi tiết
+      // Sửa query để sử dụng TenToaNha trong điều kiện LIKE
       const phongSuDungQuery = `
         SELECT DISTINCT 
           SUBSTRING_INDEX(classroom, '-', 1) as phong,
