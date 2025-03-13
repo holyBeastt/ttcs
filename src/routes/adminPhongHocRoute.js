@@ -12,8 +12,8 @@ router.post("/checkPhongExistence", adminPhongHocController.checkPhongExistence)
 // Routes cho tòa nhà
 router.get("/toaNha", adminPhongHocController.showToaNhaPage);
 router.post("/toaNha", adminPhongHocController.addToaNha);
-router.put("/toaNha/:id", adminPhongHocController.updateToaNha);
-router.delete("/toaNha/:id", adminPhongHocController.deleteToaNha);
+router.put("/toaNha/:STT", adminPhongHocController.updateToaNha);
+router.delete("/toaNha/:STT", adminPhongHocController.deleteToaNha);
 router.post("/checkToaNhaExistence", adminPhongHocController.checkToaNhaExistence);
 
 module.exports = router;
