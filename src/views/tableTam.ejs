@@ -470,7 +470,6 @@
           }
 
           renderData = rs.data; // Lưu dữ liệu vào biến renderData
-          console.log(renderData);
 
           // Gọi hàm renderTable để hiển thị dữ liệu
           renderTable();
@@ -532,8 +531,6 @@
           return column;
         });
 
-        console.log("role = ", MaPhongBan);
-
         if (role === "Duyệt" && MaPhongBan == "DAOTAO") {
           columns.push({
             title: "Xóa",
@@ -547,8 +544,16 @@
             },
           });
 
+          const nonEditableColumns = [
+            "Khoa",
+            "Dot",
+            "Ki",
+            "Nam",
+            "HeSoLopDong",
+          ]; // Danh sách cột không cho chỉnh sửa
+
           columns.forEach((col) => {
-            col.editor = true; // Cho phép chỉnh sửa
+            col.editor = !nonEditableColumns.includes(col.field); // Chỉ chỉnh sửa nếu không nằm trong danh sách
           });
         } else {
           columns.forEach((col) => {
@@ -596,8 +601,6 @@
         });
 
         if (changes.length > 0) {
-          console.log("Gửi dữ liệu đã thay đổi lên server:", changes);
-
           const apiUrl = "/update-qcdk";
 
           fetch(apiUrl, {
@@ -667,7 +670,6 @@
             table.replaceData(localData);
 
             // Thông báo thành công (tuỳ chọn)
-            console.log(`Xóa dòng thành công: ID ${id}`);
           } catch (error) {
             console.error("Lỗi khi xóa dòng:", error);
             alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
@@ -747,8 +749,6 @@
               Ki: Ki,
               Nam: Nam,
             };
-
-            console.log(body);
 
             // Hiển thị hộp thoại xác nhận
             const confirmation = confirm(
@@ -850,7 +850,6 @@
 
           const rs = await response.json();
           dataQC = rs.data; // Lưu dữ liệu vào dataQC
-          console.log("Dữ liệu lấy được:", dataQC);
         } catch (error) {
           console.error("Error:", error);
           alert("Lấy dữ liệu thất bại! Vui lòng kiểm tra lại kết nối.");
@@ -882,8 +881,6 @@
             });
             return;
           }
-
-          console.log("Dữ liệu sẽ được gửi:", dataQC);
 
           try {
             const response = await fetch("/ban-hanh", {
