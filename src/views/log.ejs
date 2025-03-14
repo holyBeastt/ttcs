@@ -46,33 +46,69 @@
       .loading-container {
         display: none;
         text-align: center;
-        padding: 10px;
+        padding: 20px;
         margin: 10px 0;
       }
 
-      .loading-spinner {
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        border: 3px solid #f3f3f3;
-        border-radius: 50%;
-        border-top: 3px solid #3498db;
-        animation: spin 1s linear infinite;
+      .spinner {
+        position: relative;
+        width: 80px;
+        height: 16px;
+        margin: 0 auto; /* Căn giữa spinner */
       }
 
-      @keyframes spin {
+      .spinner div {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background-color: #004dff;
+        border-radius: 50%;
+        animation: spinner-4t3wzl 2s infinite linear;
+      }
+
+      .spinner div:nth-child(1) {
+        left: 0;
+        animation-delay: 0.15s;
+        background-color: rgba(0, 77, 255, 0.9);
+      }
+
+      .spinner div:nth-child(2) {
+        left: 25%;
+        animation-delay: 0.3s;
+        background-color: rgba(0, 77, 255, 0.8);
+      }
+
+      .spinner div:nth-child(3) {
+        left: 50%;
+        animation-delay: 0.45s;
+        background-color: rgba(0, 77, 255, 0.7);
+      }
+
+      .spinner div:nth-child(4) {
+        left: 75%;
+        animation-delay: 0.6s;
+        background-color: rgba(0, 77, 255, 0.6);
+      }
+
+      .spinner div:nth-child(5) {
+        left: 100%;
+        animation-delay: 0.75s;
+        background-color: rgba(0, 77, 255, 0.5);
+      }
+
+      @keyframes spinner-4t3wzl {
         0% {
-          transform: rotate(0deg);
+          transform: rotate(0deg) translateX(-100%);
         }
         100% {
-          transform: rotate(360deg);
+          transform: rotate(360deg) translateX(-100%);
         }
       }
 
       .loading-text {
-        display: inline-block;
-        margin-left: 10px;
-        color: #3498db;
+        display: block;
+        margin-top: 15px;
+        color: #004dff;
         font-weight: bold;
       }
     </style>
@@ -122,8 +158,13 @@
 
     <!-- Thêm loading indicator -->
     <div class="loading-container" id="loadingIndicator">
-      <div class="loading-spinner"></div>
-      <span class="loading-text">Đang tải dữ liệu...</span>
+      <div class="spinner">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     </div>
 
     <table
