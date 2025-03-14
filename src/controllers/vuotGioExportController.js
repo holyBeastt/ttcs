@@ -136,7 +136,8 @@ const exportVuotGio = async (req, res) => {
         HSL,
         NgaySinh, 
         HocVi, 
-        ChucVu, 
+        ChucVu,
+        PhanTramMienGiam, 
         MonGiangDayChinh,
         ChucVu
       FROM nhanvien
@@ -149,11 +150,17 @@ const exportVuotGio = async (req, res) => {
   
   const [resultsBoMon] = await connection.query(queryBoMon);
 
-  
+  let querySoTietDinhMuc = `
+    SELECT GiangDay, NCKH, VuotGio
+    FROM sotietdinhmuc
+   
+  `;
+
+  const [resultsSoTietDinhMuc] = await connection.query(querySoTietDinhMuc);
+    
   let queryDetaiDuan = `
   SELECT 
     NamHoc, 
-    Khoa, 
     CapDeTai, 
     TenDeTai, 
     ChuNhiem, 
@@ -162,7 +169,6 @@ const exportVuotGio = async (req, res) => {
     NgayNghiemThu
   FROM detaiduan
 WHERE NamHoc = ? 
-AND (Khoa = ? OR ? IS NULL) 
 AND (
   ChuNhiem = ?
   OR ThuKy = ? 
@@ -180,7 +186,6 @@ let queryBaiBaoKhoa = `
     DanhSachThanhVien 
   FROM baibaokhoahoc
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
   AND (
     TacGia = ? 
     OR TacGiaChiuTrachNhiem = ? 
@@ -198,7 +203,6 @@ let queryBangSangCheVaGiaiThuong = `
     DanhSachThanhVien 
   FROM bangsangchevagiaithuong
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
   AND (
     TacGia = ? 
     OR DanhSachThanhVien LIKE ?
@@ -215,7 +219,6 @@ let querySachVaGiaoTrinh = `
     DongChuBien 
   FROM sachvagiaotrinh
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
   AND (
     TacGia = ? 
     OR DanhSachThanhVien LIKE ?
@@ -234,7 +237,6 @@ let queryNCKHVaHuanLuyen = `
     DanhSachThanhVien
   FROM nckhvahuanluyendoituyen
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
    AND (
      DanhSachThanhVien LIKE ?
     OR ? IS NULL
@@ -250,7 +252,6 @@ let queryXayDungCongTacDaoTao = `
     DanhSachThanhVien 
   FROM xaydungctdt
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
    AND (
      DanhSachThanhVien LIKE ?
     OR ? IS NULL
@@ -266,7 +267,6 @@ let queryBienSoanGiaoTrinhBaiGiang = `
     NgayQDGiaoNhiemVu
   FROM biensoangiaotrinhbaigiang
   WHERE NamHoc = ? 
-  AND (Khoa = ? OR ? IS NULL) 
   AND (
     TacGia = ? 
     OR DanhSachThanhVien LIKE ? 
@@ -274,13 +274,13 @@ let queryBienSoanGiaoTrinhBaiGiang = `
   )
 `;
     // Thực thi các truy vấn với tham số teacherName (giảng viên)
-    const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
+     const [resultsGiangDay] = await connection.query(queryGiangDay, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsLopNgoaiQuyChuan] = await connection.query(queryLopNgoaiQuyChuan, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsGiuaky] = await connection.query(queryGiuaky, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsExportDoAnTotNghiep] = await connection.query(queryExportDoAnTotNghiep, [namHoc, sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsNhanVien] = await connection.query(queryNhanVien, [sanitizedKhoa, sanitizedKhoa, teacherName || null, teacherName || null]);
     const [resultsDetaiDuan] = await connection.query(queryDetaiDuan, [
-      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      namHoc, 
       teacherName || null, 
       teacherName || null, 
       `%${teacherName}%`, 
@@ -288,43 +288,44 @@ let queryBienSoanGiaoTrinhBaiGiang = `
     ]);
 
     const [resultsBaiBaoKhoa] = await connection.query(queryBaiBaoKhoa, [
-      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      namHoc, 
       teacherName || null, 
       teacherName || null, 
       `%${teacherName}%`, 
       teacherName || null
     ]);
     const [resultsBangSangCheVaGiaiThuong] = await connection.query(queryBangSangCheVaGiaiThuong, [
-      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      namHoc, 
       teacherName || null, 
       `%${teacherName}%`, 
       teacherName || null
     ]);
     
     const [resultsSachVaGiaoTrinh] = await connection.query(querySachVaGiaoTrinh, [
-      namHoc, sanitizedKhoa, sanitizedKhoa, 
+      namHoc, 
       teacherName || null, 
       teacherName || null,
       `%${teacherName}%`, 
       teacherName || null
     ]);
 
-    const [resultsNCKHVaHuanLuyen] = await connection.query(queryNCKHVaHuanLuyen, [namHoc, sanitizedKhoa, sanitizedKhoa,
-            `%${teacherName}%`, 
+    const [resultsNCKHVaHuanLuyen] = await connection.query(queryNCKHVaHuanLuyen, [
+      namHoc,
+      `%${teacherName}%`, 
       teacherName || null
     ]);
-    const [resultsXayDungCongTacDaoTao] = await connection.query(queryXayDungCongTacDaoTao, [namHoc, sanitizedKhoa, sanitizedKhoa,
+    const [resultsXayDungCongTacDaoTao] = await connection.query(queryXayDungCongTacDaoTao, [
+      namHoc,
       `%${teacherName}%`, 
       teacherName || null
     ]);
     const [resultsBienSoanGiaoTrinhBaiGiang] = await connection.query(queryBienSoanGiaoTrinhBaiGiang, [
       namHoc, 
-      sanitizedKhoa, 
-      sanitizedKhoa, 
       teacherName || null, 
       `%${teacherName}%`, 
       teacherName || null
     ]);
+
     // .
         // Kiểm tra kết quả truy vấn
     if (
@@ -356,11 +357,11 @@ const giangVienList = new Set([
   ...resultsLopNgoaiQuyChuan.map(lq => lq.GiangVien.trim()), 
   ...resultsGiuaky.map(gy => gy.GiangVien.trim()), 
   ...resultsExportDoAnTotNghiep.map(ed => ed.GiangVien.trim()), 
-  ...resultsDetaiDuan.flatMap(row => [
-    row.ChuNhiem.trim(),
-    row.ThuKy.trim(),
-    ...row.DanhSachThanhVien.split(',').map(name => name.trim())
-  ])
+  // ...resultsDetaiDuan.flatMap(row => [
+  //   row.ChuNhiem.trim(),
+  //   row.ThuKy.trim(),
+  //   ...row.DanhSachThanhVien.split(',').map(name => name.trim())
+  // ])
 ]);
 console.log("abc",resultsNCKHVaHuanLuyen)
 
@@ -369,6 +370,11 @@ console.log("abc",resultsNCKHVaHuanLuyen)
 
     const workbook = new ExcelJS.Workbook();
     uniqueGiangVienList.forEach((giangVien) => {
+      // Ensure giangVien is not empty
+      if (!giangVien) {
+        return;
+      }
+
       // Lọc dữ liệu cho giảng viên này
       const giangVienInfo = resultsNhanVien.find((nv) => nv.GiangVien.trim() === giangVien.trim());
       const filteredCombinedResults = combinedResults.filter(
@@ -1206,7 +1212,7 @@ const getRoleForLecturer1 = (row, lecturerName) => {
 
 // Function to extract hours for the lecturer
 const getHoursForLecturer1 = (row, lecturerName) => {
-  const roles = ["TacGia", "TacGiaChiuTrachNhiem", "ThanhVien"];
+  const roles = ["TacGia", "TacGiaChiuTrachNhiem", "DanhSachThanhVien"];
   for (const role of roles) {
     const roleData = row[role];
     if (roleData && roleData.includes(lecturerName)) {
@@ -1306,7 +1312,7 @@ const getRoleForLecturer2 = (row, lecturerName) => {
 
 // Function to extract hours for the lecturer
 const getHoursForLecturer2 = (row, lecturerName) => {
-  const roles = ["TacGia", "ThanhVien"];
+  const roles = ["TacGia", "DanhSachThanhVien"];
   for (const role of roles) {
     const roleData = row[role];
     if (roleData && roleData.includes(lecturerName)) {
@@ -1330,7 +1336,7 @@ const getHoursForLecturer2 = (row, lecturerName) => {
             index + 1,
             row.TenBangSangCheVaGiaiThuong,
             row.SoQDCongNhan,
-            row.NgayQDCongNhan,
+            formatDateDMY(row.NgayQDCongNhan),
             row.DanhSachThanhVien.split(',').length + 1, // Total number of people
             lecturerRole,
             hours
@@ -1382,7 +1388,7 @@ const getRoleForLecturere3 = (row, lecturerName) => {
   return roles.join(", ");
 };       // Function to extract hours for the lecturer
 const getHoursForLecturer3 = (row, lecturerName) => {
-  const roles = ["TacGia", "DongChuBien", "ThanhVien"];
+  const roles = ["TacGia", "DongChuBien", "DanhSachThanhVien"];
   for (const role of roles) {
     const roleData = row[role];
     if (roleData && roleData.includes(lecturerName)) {
@@ -1477,7 +1483,7 @@ roles.push("Thành viên");
 return roles.join(", ");
 };       // Function to extract hours for the lecturer
 const getHoursForLecturer5 = (row, lecturerName) => {
-const roles = ["ThanhVien"];
+const roles = ["DanhSachThanhVien"];
 for (const role of roles) {
 const roleData = row[role];
 if (roleData && roleData.includes(lecturerName)) {
@@ -1504,7 +1510,7 @@ const rowData = [
 index + 1, // Số thứ tự (TT)
 row.TenDeTai, // Tên bài báo
 row.SoQDGiaoNhiemVu, // Loại tạp chí/Hội nghị
-row.NgayQDGiaoNhiemVu, // Chỉ số tạp chí/ hội nghị
+formatDateDMY(row.NgayQDGiaoNhiemVu), // Chỉ số tạp chí/ hội nghị
 row.KetQuaCapKhoa, // Chỉ số tạp chí/ hội nghị
 row.KetQuaCapHocVien, // Số người
 hours1 // Số giờ quy đổi for the specific lecturer
@@ -1570,7 +1576,7 @@ roles.push("Thành viên");
 return roles.join(", ");
 };       // Function to extract hours for the lecturer
 const getHoursForLecturer6 = (row, lecturerName) => {
-const roles = ["ThanhVien"];
+const roles = ["DanhSachThanhVien"];
 for (const role of roles) {
 const roleData = row[role];
 if (roleData && roleData.includes(lecturerName)) {
@@ -1592,7 +1598,7 @@ filteredXayDungCongTacDaoTao.forEach((row, index) => {
 const hours1 = getHoursForLecturer6(row, giangVien);
 totalHour4 += hours1; // Accumulate total hours
 const totalPeople =  row.DanhSachThanhVien.split(',').length; // 1 for TacGia, 1 for TacGiaChiuTrachNhiem
-const combinedColumn = `${row.SoQDGiaoNhiemVu} - ${row.NgayKyQD}`; // Combine SoQDGiaoNhiemVu and NgayKyQD
+const combinedColumn = `${row.SoQDGiaoNhiemVu} - ${formatDateDMY(row.NgayKyQD)}`; // Combine SoQDGiaoNhiemVu and NgayKyQD
 
 // Calculate the total number of people involved
 const rowData = [
@@ -1667,7 +1673,7 @@ if (normalizeGiangVienName(row.TacGia) === lecturerName) {
 return roles.join(", ");
 };       // Function to extract hours for the lecturer
 const getHoursForLecturer7 = (row, lecturerName) => {
-const roles = ["ThanhVien", "TacGia"];
+const roles = ["DanhSachThanhVien", "TacGia"];
 for (const role of roles) {
 const roleData = row[role];
 if (roleData && roleData.includes(lecturerName)) {
@@ -1689,7 +1695,7 @@ filteredBienSoanGiaoTrinhBaiGiang.forEach((row, index) => {
 const hours1 = getHoursForLecturer7(row, giangVien);
 totalHour5 += hours1; // Accumulate total hours
 const totalPeople = 1 + row.DanhSachThanhVien.split(',').length; // 1 for TacGia, 1 for TacGiaChiuTrachNhiem
-const combinedColumn = `${row.SoQDGiaoNhiemVu} - ${row.NgayQDGiaoNhiemVu}`; // Combine SoQDGiaoNhiemVu and NgayKyQD
+const combinedColumn = `${row.SoQDGiaoNhiemVu} - ${formatDateDMY(row.NgayQDGiaoNhiemVu)}`; // Combine SoQDGiaoNhiemVu and NgayKyQD
 
 // Calculate the total number of people involved
 const rowData = [
@@ -1732,7 +1738,11 @@ vertical: "middle",
 wrapText: true
 };
 
-
+const titleRow28 = worksheet.addRow(["C.8 Hướng dẫn sinh viên nghiên cứu khoa học và huấn luyện đội tuyển"]);
+titleRow28.font = { name: "Times New Roman", size: 12,  };
+titleRow28.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`A${titleRow28.number}:G${titleRow28.number}`);
+titleRow28.height = 40; // Tăng chiều cao hàng
 const headerRowExport8 = worksheet.addRow([
   "TT", 
   "Tên đề tài / đội tuyển , bài giảng ", 
@@ -1817,7 +1827,160 @@ horizontal: "center",
 vertical: "middle",
 wrapText: true
 };
+// Tính tổng C
+const totalC = totalHours + totalHours1 + totalHoursBangSangChe + totalHour2 + totalHour3 + totalHour4 + totalHour5;
 
+// Thêm dòng tổng C
+const totalRowC = worksheet.addRow([
+  "Tổng C = C.1 + C.2 + C.3 + C.4 + C.5 + C.6 + C.7 + C.8 + C.9",
+  "",
+  "",
+  "",
+  "",
+  "",
+  totalC
+]);
+
+// Gộp cột A và F cho dòng tổng
+worksheet.mergeCells(`A${totalRowC.number}:F${totalRowC.number}`);
+
+// Định dạng dòng tổng
+totalRowC.font = { name: "Times New Roman", size: 12, bold: true };
+totalRowC.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+// // Tính tổng A + B + C
+// const totalABC = totalA + totalB + totalC;
+
+// // Thêm dòng tổng A + B + C
+// const grandTotalRowABC = worksheet.addRow([
+//   "Tổng A + B + C",
+//   "",
+//   "",
+//   "",
+//   "",
+//   "",
+//   totalABC
+// ]);
+
+// // Gộp cột A và F cho dòng tổng
+// worksheet.mergeCells(`A${grandTotalRowABC.number}:F${grandTotalRowABC.number}`);
+
+// // Định dạng dòng tổng
+// grandTotalRowABC.font = { name: "Times New Roman", size: 12, bold: true };
+// grandTotalRowABC.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
+const titleRow30 = worksheet.addRow([" D. TỔNG HỢP KHỐI LƯỢNG ĐÃ THỰC HIỆN: "]);
+titleRow30.font = { name: "Times New Roman", size: 12, bold: true };
+titleRow30.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`A${titleRow30.number}:G${titleRow30.number}`);
+titleRow30.height = 40; // Tăng chiều cao hàng
+// Thêm bảng chứa các cột TT, Nội dung công việc, lí do giảm trừ
+const headerRow31 = worksheet.addRow(["TT", "Nội dung công việc", "", "", "Số tiết", "Lí do giảm trừ", ""]);
+headerRow31.font = { name: "Times New Roman", size: 12, bold: true };
+headerRow31.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+worksheet.mergeCells(`B${headerRow31.number}:D${headerRow31.number}`);
+worksheet.mergeCells(`F${headerRow31.number}:G${headerRow31.number}`);
+
+// Điều chỉnh chiều rộng cột
+worksheet.getColumn('A').width = 4.1; // Cột TT
+worksheet.getColumn('B').width = 40; // Cột Nội dung công việc
+worksheet.getColumn('E').width = 17.22; // Cột Số tiết
+worksheet.getColumn('F').width = 30; // Cột Lí do giảm trừ
+
+const romanNumerals = ["I", "II", "III", "IV", "V"];
+const content = [
+  "Tổng số tiết thực hiện (A+B)",
+  "Số tiết phải giảng",
+  "Số tiết chưa hoàn thành NCKH",
+  "Số tiết được giảm trừ",
+  "Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)"
+];
+
+const values = [
+  parseFloat(totalA + totalB).toFixed(2), // Tổng số tiết thực hiện (A+B)
+  resultsSoTietDinhMuc[0]?.GiangDay || "", // Số tiết phải giảng  
+  "", // Số tiết chưa hoàn thành NCKH
+  (resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100, // Số tiết được giảm trừ
+  "" // Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)
+];
+
+content.forEach((item, index) => {
+  const dataRow = worksheet.addRow([romanNumerals[index], item, "", "", values[index], "", ""]);
+  dataRow.font = { name: "Times New Roman", size: 12 };
+  dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  worksheet.mergeCells(`B${dataRow.number}:D${dataRow.number}`);
+  worksheet.mergeCells(`F${dataRow.number}:G${dataRow.number}`);
+});
+
+worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
+
+const titleRow31 = worksheet.addRow([" E. TỔNG SỐ TIẾT ĐỀ NGHỊ THANH TOÁN VƯỢT GIỜ"]);
+titleRow31.font = { name: "Times New Roman", size: 12, bold: true };
+titleRow31.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`A${titleRow31.number}:G${titleRow31.number}`);
+titleRow31.height = 40; // Tăng chiều cao hàng
+// Thêm bảng mới với các cột TT, Số tiết theo thời khóa biểu, Tổng quy chuẩn t.toán
+const titleRow32 = worksheet.addRow(["TT", "Số tiết theo thời khóa biểu", "", "", "", "", "Tổng quy chuẩn t.toán"]);
+titleRow32.font = { name: "Times New Roman", size: 12, bold: true };
+titleRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+worksheet.mergeCells(`B${titleRow32.number}:F${titleRow32.number}`);
+
+// Điều chỉnh chiều rộng cột
+worksheet.getColumn('A').width = 4.1; // Cột TT
+worksheet.getColumn('B').width = 30; // Cột Tổng
+
+worksheet.getColumn('G').width = 10; // Cột Tổng quy chuẩn t.toán
+
+// Thêm tiêu đề cho các cột con
+const headerRow32 = worksheet.addRow(["", "Tổng", "Chuyên ngành KTMM", "", "", "Hệ đóng học phí", ""]);
+headerRow32.font = { name: "Times New Roman", size: 12, bold: true };
+headerRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`C${headerRow32.number}:E${headerRow32.number}`);
+
+// Thêm tiêu đề cho các cột con của chuyên ngành KTMM
+const subHeaderRow32 = worksheet.addRow(["", "", "Việt Nam", "Lào", "Campuchia", "", ""]);
+subHeaderRow32.font = { name: "Times New Roman", size: 12, bold: true };
+subHeaderRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+
+
+// dataRows.forEach((data, index) => {
+//   const dataRow = worksheet.addRow(data);
+//   dataRow.font = { name: "Times New Roman", size: 12 };
+//   dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+// });
+
+// // Thêm dòng tổng cộng
+// const totalRow32 = worksheet.addRow(["Tổng cộng", 330, 105, 67, 38, 135, 670]);
+// totalRow32.font = { name: "Times New Roman", size: 12, bold: true };
+// totalRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+// worksheet.mergeCells(`A${totalRow32.number}:B${totalRow32.number}`);
+
+worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
+
+const titleRow33 = worksheet.addRow([" F. TỔNG SỐ TIẾT NGHIÊN CỨU KHOA HỌC ĐƯỢC BẢO LƯU (không thanh toán)"]);
+titleRow33.font = { name: "Times New Roman", size: 12, bold: true };
+titleRow33.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`A${titleRow33.number}:G${titleRow33.number}`);
+titleRow33.height = 40; // Tăng chiều cao hàng
+
+
+const titleRow34 = worksheet.addRow(["TT", "Nội dung bảo lưu", "Tổng số tiết NCKH vượt mức","", "Tổng số tiết NCKH được bảo lưu", "", ""]);
+titleRow34.font = { name: "Times New Roman", size: 12, bold: true };
+titleRow34.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+worksheet.mergeCells(`C${titleRow34.number}:D${titleRow34.number}`);
+
+worksheet.mergeCells(`E${titleRow34.number}:G${titleRow34.number}`);
+worksheet.getColumn('A').width = 4.1; // Cột TT
+worksheet.getColumn('B').width = 16; // Cột Nội dung 
+// công việc
+worksheet.getColumn('C').width = 17.22; // Cột Số tiết
+worksheet.getColumn('E').width = 30; // Cột Lí do giảm trừ
+
+worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
 
 
     for (let rowIndex = 15; rowIndex <= worksheet.lastRow.number; rowIndex++) {
@@ -1831,7 +1994,51 @@ wrapText: true
         };
       });
     }
+  
+
+// Thêm phần chữ ký
+    worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
+
+    const signatureRow = worksheet.addRow([
+      "P.Chủ Nhiệm Khoa",
+      "",
+      "",
+      "Chủ nhiệm bộ môn",
+      "",
+      "Người Kê Khai",
+     
+      ""
+
+    ]);
+    signatureRow.font = { name: "Times New Roman", size: 12, bold: true };
+    signatureRow.alignment = { horizontal: "center", vertical: "middle" };
+    worksheet.mergeCells(`A${signatureRow.number}:C${signatureRow.number}`);
+    worksheet.mergeCells(`D${signatureRow.number}:E${signatureRow.number}`);
+    worksheet.mergeCells(`F${signatureRow.number}:G${signatureRow.number}`);
+
+    const signatureRow2 = worksheet.addRow([
+      "(ký, ghi rõ họ tên)",
+      "",
+      "",
+      "(ký, ghi rõ họ tên)",
+      "",
+      "(ký, ghi rõ họ tên)",
+       
+      ""
+    ]);
+    signatureRow2.font = { name: "Times New Roman", size: 12, italic: true };
+    signatureRow2.alignment = { horizontal: "center", vertical: "middle" };
+    worksheet.mergeCells(`A${signatureRow2.number}:C${signatureRow2.number}`);
+    worksheet.mergeCells(`D${signatureRow2.number}:E${signatureRow2.number}`);
+    worksheet.mergeCells(`F${signatureRow2.number}:G${signatureRow2.number}`);
+
+
+
+
+
+
   });
+
     // Xuất file Excel
     const fileName = `vuotGio_nam${namHoc}.xlsx`;
 
