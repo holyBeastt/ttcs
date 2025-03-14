@@ -20,6 +20,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <style>
       .filter-container {
         display: flex; /* Sử dụng Flexbox */
@@ -37,6 +42,39 @@
       .form-select {
         margin-top: 0;
       }
+
+      .loading-container {
+        display: none;
+        text-align: center;
+        padding: 10px;
+        margin: 10px 0;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 3px solid #3498db;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        display: inline-block;
+        margin-left: 10px;
+        color: #3498db;
+        font-weight: bold;
+      }
     </style>
   </head>
 
@@ -51,11 +89,11 @@
           <option value="ki2">Kỳ 2</option>
         </select>
 
-        <select class="form-select mx-2" id="NamHoc"></select>
+        <select class="form-select" id="NamHoc"></select>
 
-        <select class="form-select mx-2" id="Khoa"></select>
+        <select class="form-select" id="Khoa"></select>
 
-        <select class="form-select mx-2" id="loaiThongTin">
+        <select class="form-select" id="loaiThongTin">
           <option value="ALL">Tất cả</option>
         </select>
 
@@ -80,6 +118,12 @@
           Lọc
         </button>
       </div>
+    </div>
+
+    <!-- Thêm loading indicator -->
+    <div class="loading-container" id="loadingIndicator">
+      <div class="loading-spinner"></div>
+      <span class="loading-text">Đang tải dữ liệu...</span>
     </div>
 
     <table
@@ -186,16 +230,58 @@
         }
       }
 
-      document.getElementById("filterButton").addEventListener("click", () => {
-        const startDate = document.getElementById("startDate").value;
-        const endDate = document.getElementById("endDate").value;
-        const ki = document.getElementById("comboboxki").value;
-        const namHoc = document.getElementById("NamHoc").value;
-        const khoa = document.getElementById("Khoa").value;
-        const loaiThongTin = document.getElementById("loaiThongTin").value;
-        fetchLogData(startDate, endDate, ki, namHoc, khoa);
-        document.getElementById("logTable").style.display = "table";
-      });
+      // Hàm hiển thị/ẩn loading
+      function toggleLoading(show) {
+        document.getElementById("loadingIndicator").style.display = show
+          ? "block"
+          : "none";
+      }
+
+      // Sửa lại event listener cho nút hiển thị
+      document
+        .getElementById("showButton")
+        .addEventListener("click", async () => {
+          try {
+            toggleLoading(true); // Hiển thị loading
+
+            const ki = document.getElementById("comboboxki").value;
+            const namHoc = document.getElementById("NamHoc").value;
+            const khoa = document.getElementById("Khoa").value;
+            const loaiThongTin = document.getElementById("loaiThongTin").value;
+
+            await fetchLogData(null, null, ki, namHoc, khoa);
+            document.getElementById("logTable").style.display = "table";
+          } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi tải dữ liệu");
+          } finally {
+            toggleLoading(false); // Ẩn loading
+          }
+        });
+
+      // Sửa lại event listener cho nút lọc
+      document
+        .getElementById("filterButton")
+        .addEventListener("click", async () => {
+          try {
+            toggleLoading(true); // Hiển thị loading
+
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+            const ki = document.getElementById("comboboxki").value;
+            const namHoc = document.getElementById("NamHoc").value;
+            const khoa = document.getElementById("Khoa").value;
+            const loaiThongTin = document.getElementById("loaiThongTin").value;
+
+            await fetchLogData(startDate, endDate, ki, namHoc, khoa);
+            document.getElementById("logTable").style.display = "table";
+          } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi lọc dữ liệu");
+          } finally {
+            toggleLoading(false); // Ẩn loading
+          }
+        });
 
       async function fetchNamHocData() {
         $('#NamHoc option[value=""]').empty();
@@ -263,15 +349,6 @@
           console.error("Lỗi khi lấy dữ liệu loại thông tin:", error);
         }
       }
-
-      document.getElementById("showButton").addEventListener("click", () => {
-        const ki = document.getElementById("comboboxki").value;
-        const namHoc = document.getElementById("NamHoc").value;
-        const khoa = document.getElementById("Khoa").value;
-        const loaiThongTin = document.getElementById("loaiThongTin").value;
-        fetchLogData(null, null, ki, namHoc, khoa);
-        document.getElementById("logTable").style.display = "table";
-      });
 
       // Gọi hàm khi trang được tải
       window.onload = async () => {
