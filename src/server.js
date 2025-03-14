@@ -36,9 +36,11 @@ const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
+const backupRoute = require("./routes/backupRoute");
 
 // Phần admin
 const adminThemFileHocPhanRoute = require("./routes/adminThemFileHocPhanRoute");
+const adminPhongHocRoute = require("./routes/adminPhongHocRoute")
 
 // Phần thời khóa biểu
 const TKBRoute = require("./routes/TKBRoute");
@@ -50,6 +52,8 @@ const vuotGioDoAnDuKienRoute = require("./routes/vuotGioDoAnDuKienRoute");
 const doAnHopDongDuKienRoute = require("./routes/doAnHopDongDuKienRoute");
 const exportPhuLucDARoute = require("./routes/exportPhuLucDARoute");
 const hopDongDARoute = require("./routes/hopDongDARoute");
+
+const phongHocRoute = require("./routes/phongHocRoute");
 
 const app = express();
 const port = process.env.port || 8888;
@@ -135,9 +139,11 @@ app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute);
 app.use("/", thongketonghopRoute);
+app.use("/", backupRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
+app.use('/', adminPhongHocRoute);
 
 // Phần thời khóa biểu
 app.use("/", TKBRoute);
@@ -148,6 +154,9 @@ app.use("/", vuotGioImportDoAnRoute);
 app.use("/", vuotGioDoAnDuKienRoute);
 app.use("/", doAnHopDongDuKienRoute);
 app.use("/", hopDongDARoute);
+
+// Thêm route mới
+app.use("/", phongHocRoute);
 
 app.listen(port, hostname, () => {
   console.log(`Server running on http://localhost:${port}`);
@@ -162,6 +171,7 @@ const infoGvm = require("./routes/infoRoute");
 const tableQc = require("./routes/gvmRoute");
 const xoaQCDK = require("./routes/qcdkRoute");
 const nckhRoute = require("./routes/nckhRoute");
+const { backupDatabase } = require("./controllers/backupController");
 
 app.use("/", importFile); // cấu hình import
 app.use("/", infoGvm); // cấu hình import

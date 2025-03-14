@@ -58,10 +58,10 @@ const getTableTam = async (req, res) => {
 
     // Xây dựng truy vấn dựa vào giá trị của Khoa
     if (Khoa !== "ALL") {
-      query = `SELECT * FROM ${tableTam} WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
+      query = `SELECT * FROM tam WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?`;
       queryParams.push(Khoa, Dot, Ki, Nam);
     } else {
-      query = `SELECT * FROM ${tableTam} WHERE Dot = ? AND Ki = ? AND Nam = ?`;
+      query = `SELECT * FROM tam WHERE Dot = ? AND Ki = ? AND Nam = ?`;
       queryParams.push(Dot, Ki, Nam);
     }
 
@@ -83,7 +83,8 @@ const getTableTam = async (req, res) => {
 const getBoMon2 = async (req, res) => {
   // Câu truy vấn lấy tất cả dữ liệu từ hai bảng
   const query1 = "SELECT HoTen, MonGiangDayChinh FROM `gvmoi`";
-  const query2 = "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien`";
+  const query2 =
+    "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien`";
 
   try {
     // Thực hiện truy vấn đầu tiên
@@ -121,7 +122,6 @@ const getBoMon2 = async (req, res) => {
     res.status(500).json(error.message);
   }
 };
-
 
 // Xuất các hàm để sử dụng
 module.exports = { getTableQC, getTableTam, getBoMon2 };

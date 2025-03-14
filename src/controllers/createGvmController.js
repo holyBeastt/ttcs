@@ -62,6 +62,7 @@ let createGvm = async (req, res) => {
     let BangTotNghiepLoai = req.body.BangTotNghiepLoai;
     let MonGiangDayChinh = req.body.monGiangDayChinh;
     const MaPhongBan = khoa;
+    let QrCode = req.body.QrCode;
     let isQuanDoi = req.body.thuocQuanDoi;
 
     // Kiểm tra HSL
@@ -131,9 +132,10 @@ let createGvm = async (req, res) => {
       let fileBoSung = req.files["fileBoSung"]
         ? req.files["fileBoSung"][0].filename
         : null;
+      let QrCode = req.files["QrCode"] ? req.files["QrCode"][0].filename : null;
 
-      const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung, QrCode)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
         await con2.query(query, [
@@ -164,6 +166,7 @@ let createGvm = async (req, res) => {
           MonGiangDayChinh,
           isQuanDoi,
           fileBoSung,
+          QrCode,
         ]);
 
         if (duplicateName.length > 0) {

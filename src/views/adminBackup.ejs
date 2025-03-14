@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Học Viện Kỹ Thuật Mật Mã</title>
+    
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        />
+        <link rel="stylesheet" href="/css/styles.css" />
+        <link rel="stylesheet" href="/css/importGvmList.css" />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="/css/table.css" />
+        <link rel="stylesheet" href="/css/admin.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <style>
+            /* Thiết lập kiểu cho tab */
+            .tab {
+                display: flex;
+                border-bottom: 2px solid #007bff;
+            }
+            .tab button {
+                background-color: transparent;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-size: 16px;
+                color: #007bff;
+            }
+            .tab button.active {
+                border-bottom: 2px solid #007bff;
+                font-weight: bold;
+            }
+            /* Nội dung tab */
+            .tab-content {
+                display: none;
+                padding: 20px;
+                /* min-height: calc(100vh - 200px); Điều chỉnh theo UI */
+            }
+            .tab-content.active {
+                display: block;
+            }
+            .contactButton {
+                background: #7079f0;
+                color: white;
+                font-family: inherit;
+                padding: 0.45em;
+                padding-left: 1em;
+                font-size: 17px;
+                font-weight: 500;
+                border-radius: 0.9em;
+                border: none;
+                cursor: pointer;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                box-shadow: inset 0 0 1.6em -0.6em #714da6;
+                overflow: hidden;
+                position: relative;
+                height: 2.8em;
+                padding-right: 3em;
+                display: flex;
+                justify-content: space-between; /* Tách text và icon về 2 bên */
+                gap: 8px; /* Khoảng cách giữa text và icon */
+                border: none;
+            }
+
+            .iconButton {
+                margin-left: 1em;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 2.2em;
+                width: 2.2em;
+                border-radius: 0.7em;
+                box-shadow: 0.1em 0.1em 0.6em 0.2em #7a8cf3;
+                right: 0.3em;
+                transition: all 0.3s;
+            }
+
+            .contactButton:hover {
+                transform: translate(-0.05em, -0.05em);
+                box-shadow: 0.15em 0.15em #5566c2;
+            }
+
+            .contactButton:active {
+                transform: translate(0.05em, 0.05em);
+                box-shadow: 0.05em 0.05em #5566c2;
+            }
+        </style>
+      </head>
+<body>
+    <%- include('adminHeader') %>
+    
+    <div class="container my-5 box" style="height: 100%;">
+        <h2 class="mb-3">🛠️ Reset Database</h2>
+
+        <div class="d-flex  justify-content-center align-items-center align-items-stretch">
+            <!-- Tabs -->
+            <div class="tab flex-column h-100">
+                <button class="contactButton tab-link active" onclick="openTab(event, 'tab1')">
+                    Tải lên file
+                    <div class="iconButton">
+                      <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path
+                          d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </div>
+                </button>
+                <button class="contactButton tab-link" onclick="openTab(event, 'tab2')">
+                    Sử dụng file có sẵn
+                    <div class="iconButton">
+                      <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path
+                          d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </div>
+                </button>
+                <button class="contactButton tab-link" onclick="openTab(event, 'tab3')">
+                    Nhập lệnh csdl
+                    <div class="iconButton">
+                      <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path
+                          d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </div>
+                </button>
+                <button class="contactButton tab-link" onclick="openTab(event, 'tab4')">
+                    Thêm vào csdl bằng file
+                    <div class="iconButton">
+                      <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path
+                          d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </div>
+                </button>
+                <button class="contactButton tab-link" onclick="window.location.href='/backup';">
+                    Tải xuống bản sao CSDL
+                    <div class="iconButton">
+                      <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"></path>
+                        <path transform="rotate(90, 12, 12)" 
+                            d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" 
+                            fill="currentColor">
+                        </path>
+                      </svg>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Nội dung của Tabs -->
+            <div style="height: max-content; width: 50%;">
+                <div id="tab1" class="tab-content box active h-100">
+                    <div class="mb-3">
+                        <label for="backup-file" class="form-label">📂 Chọn file SQL để nhập:</label>
+                        <input type="file" id="backup-file" class="form-control" accept=".sql">
+                    </div>
+                    <button id="reset-db-btn1" class="btn btn-danger">🔄 Reset Database</button>
+                    <div id="reset-status1" class="mt-3"></div>
+                </div>
+
+                <div id="tab2" class="tab-content box h-100">
+                    <div class="mb-3">
+                        <label for="backup-file" class="form-label">📂 Chọn file SQL để nhập:</label>
+                        <select id="backup-list" class="form-control" style="display: flex;"></select>
+                    </div>
+                    <button id="reset-db-btn2" class="btn btn-danger">🔄 Reset Database</button>
+                    <div id="reset-status2" class="mt-3"></div>
+                </div>
+                <div id="tab3" class="tab-content box h-100">
+                    <div class="mb-3">
+                        <label for="sqlQuery" class="form-label">✒️ Nhập câu lệnh SQL:</label>
+                        <textarea id="sqlQuery" class="form-control" rows="3" placeholder="Ví dụ: SELECT * FROM users;"></textarea>
+                    </div>
+                
+                    <button id="runSQLBtn" class="btn btn-primary">🚀 Chạy SQL</button>
+                
+                    <div class="mt-4">
+                        <h5>Kết quả:</h5>
+                        <pre id="errorMessage" class="text-danger"></pre>
+                        <table id="resultTable" class="table table-bordered table-striped d-none">
+                            <thead>
+                                <tr id="tableHeader"></tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="tab4" class="tab-content box h-100">
+                    <div class="mb-3">
+                        <label for="add-file" class="form-label">📂 Chọn file SQL để nhập:</label>
+                        <input type="file" id="add-file" class="form-control" accept=".sql">
+                    </div>
+                    <button id="add-db-btn" class="btn btn-danger">➕ Add To Database</button>
+                    <div id="add-status" class="mt-3"></div>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+    <script>
+        function openTab(event, tabId) {
+            // Ẩn tất cả tab-content
+            let contents = document.querySelectorAll(".tab-content");
+            contents.forEach(content => content.classList.remove("active"));
+
+            // Bỏ active trên tất cả tab
+            let tabs = document.querySelectorAll(".tab-link");
+            tabs.forEach(tab => tab.classList.remove("active"));
+
+            // Hiển thị tab được chọn
+            document.getElementById(tabId).classList.add("active");
+
+            // Thêm class active cho button được chọn
+            event.currentTarget.classList.add("active");
+        }
+    </script>
+
+    <script>
+        $("#reset-db-btn1").click(function () {
+            const fileInput = document.getElementById("backup-file");
+
+            // Kiểm tra nếu vẫn chưa có file nào được chọn
+            if (!fileInput) {
+                alert("⚠️ Vui lòng tải file lên!");
+                return;
+            }
+
+            console.log("📂 File được chọn:", fileInput.files[0]);
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            $("#reset-status1").text("⏳ Đang reset database...");
+
+            $.ajax({
+                url: "/reset-database",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        console.log("✅ Reset database thành công!");
+                        $("#reset-status1").html("✅ Reset database thành công!");
+                    } else {
+                        console.error("❌ Lỗi reset:", response.error);
+                        $("#reset-status1").html(`❌ Reset thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("🚨 Lỗi kết nối đến server:", textStatus, errorThrown);
+                    $("#reset-status1").text(`❌ Server lỗi ${jqXHR.status}: ${jqXHR.responseText || "Không rõ nguyên nhân."}`);
+                }
+            });
+        });
+        $("#reset-db-btn2").click(function () {
+            const backupSelect = document.getElementById("backup-list");
+
+            // Kiểm tra nếu vẫn chưa có file nào được chọn
+            if (!backupSelect) {
+                alert("⚠️ Vui lòng chọn file từ danh sách hoặc tải lên!");
+                return;
+            }
+
+            console.log("📂 File được chọn:", backupSelect.value);
+
+            const formData = new FormData();
+            formData.append("backupFileName", backupSelect.value);
+
+
+            $("#reset-status2").text("⏳ Đang reset database...");
+
+            $.ajax({
+                url: "/reset-database",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        console.log("✅ Reset database thành công!");
+                        $("#reset-status2").html("✅ Reset database thành công!");
+                    } else {
+                        console.error("❌ Lỗi reset:", response.error);
+                        $("#reset-status2").html(`❌ Reset thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("🚨 Lỗi kết nối đến server:", textStatus, errorThrown);
+                    $("#reset-status2").text(`❌ Server lỗi ${jqXHR.status}: ${jqXHR.responseText || "Không rõ nguyên nhân."}`);
+                }
+            });
+        });
+        $("#add-db-btn").click(function () {
+            const fileInput = document.getElementById("add-file");
+
+            // Kiểm tra nếu vẫn chưa có file nào được chọn
+            if (!fileInput) {
+                alert("⚠️ Vui lòng tải file lên!");
+                return;
+            }
+
+            console.log("📂 File được chọn:", fileInput.files[0]);
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            $("#add-status").text("⏳ Đang add database...");
+
+            $.ajax({
+                url: "/addtodatabase",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        console.log("✅ Reset database thành công!");
+                        $("#add-status").html("✅ add database thành công!");
+                    } else {
+                        console.error("❌ Lỗi add:", response.error);
+                        $("#add-status").html(`❌ add thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("🚨 Lỗi kết nối đến server:", textStatus, errorThrown);
+                    $("#add-status").text(`❌ Server lỗi ${jqXHR.status}: ${jqXHR.responseText || "Không rõ nguyên nhân."}`);
+                }
+            });
+        });
+
+        
+    </script>
+    <script>
+        document.getElementById("runSQLBtn").addEventListener("click", async () => {
+            const sqlQuery = document.getElementById("sqlQuery").value.trim();
+            const errorMessage = document.getElementById("errorMessage");
+            const resultTable = document.getElementById("resultTable");
+            const tableHeader = document.getElementById("tableHeader");
+            const tableBody = document.getElementById("tableBody");
+
+            errorMessage.textContent = "";
+            resultTable.classList.add("d-none");
+            tableHeader.innerHTML = "";
+            tableBody.innerHTML = "";
+
+            if (!sqlQuery) {
+                errorMessage.textContent = "⚠️ Vui lòng nhập câu lệnh SQL!";
+                return;
+            }
+
+            try {
+                const response = await fetch("/executesql", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sqlQuery })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    errorMessage.textContent = "❌ Lỗi: " + data.message;
+                    return;
+                }
+
+                if (!Array.isArray(data.results) || data.results.length === 0) {
+                    errorMessage.textContent = "ℹ️ Không có dữ liệu trả về.";
+                    return;
+                }
+
+                // Tạo tiêu đề bảng
+                const columns = Object.keys(data.results[0]);
+                columns.forEach(col => {
+                    const th = document.createElement("th");
+                    th.textContent = col;
+                    tableHeader.appendChild(th);
+                });
+
+                // Tạo dữ liệu bảng
+                data.results.forEach(row => {
+                    const tr = document.createElement("tr");
+                    columns.forEach(col => {
+                        const td = document.createElement("td");
+                        td.textContent = row[col];
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+
+                resultTable.classList.remove("d-none");
+            } catch (error) {
+                errorMessage.textContent = "❌ Lỗi kết nối!";
+                console.error(error);
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            async function loadBackupFiles() {
+                const res = await fetch("/list-backups");
+                const data = await res.json();
+                
+                if (data.success) {
+                    const select = document.getElementById("backup-list");
+                    select.innerHTML = `<option value="">-- Chọn file có sẵn --</option>` +
+                        data.files.map(file => `<option value="${file}">${file}</option>`).join("");
+                } else {
+                    alert(data.message);
+                }
+            }
+            loadBackupFiles();
+        });
+    </script>
+        
+
+</body>
+</html>

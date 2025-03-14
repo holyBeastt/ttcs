@@ -96,6 +96,10 @@ const storage = multer.diskStorage({
       fieldName = HoTen;
     }
 
+    if (fieldName === "FileLyLich") {
+      fieldName = `Lý lịch ${HoTen}`;
+    }
+
     const fileName = `${fieldName}${fileExtension}`; // Tạo tên file mới
 
     const Khoa = req.session.MaPhongBan || "unknown-dept";
@@ -158,6 +162,7 @@ router.post(
     { name: "bangTotNghiep", maxCount: 1 },
     { name: "FileLyLich", maxCount: 1 }, // Thêm dòng này để upload file PDF
     { name: "fileBoSung", maxCount: 1 },
+    { name: "QrCode", maxCount: 1 },
   ]),
   postUpdateGvm
 );
