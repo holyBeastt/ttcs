@@ -1900,9 +1900,9 @@ const content = [
 const values = [
   parseFloat(totalA + totalB).toFixed(2), // Tổng số tiết thực hiện (A+B)
   resultsSoTietDinhMuc[0]?.GiangDay || "", // Số tiết phải giảng  
-  "", // Số tiết chưa hoàn thành NCKH
+  totalC > resultsSoTietDinhMuc[0]?.NCKH ? 0 : resultsSoTietDinhMuc[0]?.NCKH - totalC, // Số tiết chưa hoàn thành NCKH
   (resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100, // Số tiết được giảm trừ
-  "" // Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)
+  parseFloat(totalA + totalB - (resultsSoTietDinhMuc[0]?.GiangDay || 0) + ((resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100)).toFixed(2) // Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)
 ];
 
 content.forEach((item, index) => {
