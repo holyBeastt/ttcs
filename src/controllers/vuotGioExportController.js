@@ -1967,18 +1967,38 @@ worksheet.mergeCells(`A${titleRow33.number}:G${titleRow33.number}`);
 titleRow33.height = 40; // Tăng chiều cao hàng
 
 
-const titleRow34 = worksheet.addRow(["TT", "Nội dung bảo lưu", "Tổng số tiết NCKH vượt mức","", "Tổng số tiết NCKH được bảo lưu", "", ""]);
+const titleRow34 = worksheet.addRow(["TT", "Nội dung bảo lưu", "Tổng số tiết NCKH vượt mức", "", "Tổng số tiết NCKH được bảo lưu", "", ""]);
 titleRow34.font = { name: "Times New Roman", size: 12, bold: true };
 titleRow34.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
 worksheet.mergeCells(`C${titleRow34.number}:D${titleRow34.number}`);
-
 worksheet.mergeCells(`E${titleRow34.number}:G${titleRow34.number}`);
+
 worksheet.getColumn('A').width = 4.1; // Cột TT
-worksheet.getColumn('B').width = 16; // Cột Nội dung 
-// công việc
+worksheet.getColumn('B').width = 16; // Cột Nội dung công việc
 worksheet.getColumn('C').width = 17.22; // Cột Số tiết
 worksheet.getColumn('E').width = 30; // Cột Lí do giảm trừ
+
+const totalNCKH = resultsSoTietDinhMuc[0]?.NCKH || 0;
+const totalNCKHVuotMuc = totalC - totalNCKH;
+const totalNCKHBaoLuu = totalNCKHVuotMuc > 0 ? totalNCKHVuotMuc : 0;
+let index = 1;
+const dataRow34 = worksheet.addRow([
+  index ++,
+  "Nghiên cứu khoa học",
+
+  totalNCKHVuotMuc.toFixed(2),
+  "",
+  totalNCKHBaoLuu.toFixed(2),
+  "",
+  ""
+]);
+
+dataRow34.font = { name: "Times New Roman", size: 12 };
+dataRow34.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+worksheet.mergeCells(`C${dataRow34.number}:D${dataRow34.number}`);
+
+worksheet.mergeCells(`E${dataRow34.number}:G${dataRow34.number}`);
 
 worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
 

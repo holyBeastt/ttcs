@@ -643,7 +643,7 @@
         });
       });
     </script>
-    <script>
+    <!-- <script>
       // Lấy danh sách từ localStorage
       const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
 
@@ -662,7 +662,7 @@
           selectElement.appendChild(option);
         });
       }
-    </script>
+    </script> -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -1457,7 +1457,7 @@
           Ki: kiValue,
           Nam: namValue,
         };
-        fetch("/kiem-tra-file", {
+        fetch("/api/TKB//kiem-tra-file", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1471,6 +1471,18 @@
             return response.json();
           })
           .then((data) => {
+            // Nếu bảng TKB ko có dữ liệu thì dừng luôn
+            if (!data.valid) {
+              Swal.fire({
+                title: "Thông báo",
+                html: data.message,
+                icon: "info",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            }
+
             if (data.exists) {
               showModal(khoaValue, dotValue, kiValue, namValue);
             } else {
@@ -1533,7 +1545,7 @@
             }
             saveData(khoaValue, dotValue, kiValue, namValue);
             // alert("Xóa thành công!");
-            location.reload();
+            //location.reload();
           })
           .catch((error) => {
             Swal.fire({
@@ -1572,10 +1584,15 @@
           })
           .then((data) => {
             if (data.success) {
+              let iconAlert = "info";
+              if (data.message === "Thêm file thành công") {
+                iconAlert = "success";
+              }
+
               Swal.fire({
                 title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
+                html: data.message,
+                icon: iconAlert,
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
@@ -1626,10 +1643,15 @@
           })
           .then((data) => {
             if (data.success) {
+              let iconAlert = "info";
+              if (data.message === "Thêm file thành công") {
+                iconAlert = "success";
+              }
+
               Swal.fire({
                 title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
+                html: data.message,
+                icon: iconAlert,
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
@@ -1675,7 +1697,7 @@
         });
     </script>
 
-    <script>
+    <!-- <script>
       function filterTable() {
         // Lấy giá trị đã chọn từ các combobox
         let dot = document.getElementById("combobox-dot").value;
@@ -1713,7 +1735,7 @@
           }
         }
       }
-    </script>
+    </script> -->
     <script>
       document
         .getElementById("changePasswordLink")
@@ -1777,7 +1799,7 @@
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
-          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          url: "/api/TKB/getKhoaList", // Đường dẫn tới API getPhongBan
           method: "GET",
           success: function (response) {
             // Kiểm tra nếu response thành công
@@ -1796,6 +1818,10 @@
                   `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                 );
               });
+              // Thêm phòng ban "Khác" vào cuối danh sách
+              $("#departmentFilter").append(
+                '<option value="Khac">Khác</option>'
+              );
 
               // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
               if (!$("#departmentFilter option:selected").length) {
