@@ -1071,21 +1071,21 @@ const importTableTam = async (jsonData) => {
     })
     .map((item) => [
       // validateKhoa(item["Khoa"]) || null, // Đảm bảo giá trị null nếu trường bị thiếu
-      item["Khoa"],
-      item["Dot"],
-      item["Ki"],
-      item["Nam"],
-      item["Số TC"] || 0 ,
-      item["Lớp học phần"],
-      item["Giáo Viên"],
+      item["Khoa"] || null,
+      item["Dot"] || null,
+      item["Ki"] || null,
+      item["Nam"] || null,
+      item["Số TC"] || 0,
+      item["Lớp học phần"] || null,
+      item["Giáo Viên"] || null,
       item["Số tiết theo CTĐT"] || 0,
       item["Số SV"] || 0,
       item["Số tiết lên lớp theo TKB"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || 0,
-      item["Hệ số lớp đông"],
-      item["QC"],
-      item["Ghi chú"],
+      item["Hệ số lớp đông"] || 0,
+      item["QC"] || 0,
+      item["Ghi chú"] || null,
 
     ]);
 
