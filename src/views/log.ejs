@@ -1,250 +1,403 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/gvmList.css" />
-  <link rel="stylesheet" href="/css/table.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <style>
-    .filter-container {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/gvmList.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+    <style>
+      .filter-container {
         display: flex; /* Sử dụng Flexbox */
         justify-content: space-between; /* Chia đều không gian giữa hai phần */
         margin-bottom: 20px; /* Khoảng cách dưới cùng */
-    }
+      }
 
-    .left-container, .right-container {
+      .left-container,
+      .right-container {
         display: flex; /* Sử dụng Flexbox cho các phần tử bên trong */
         align-items: center; /* Căn giữa theo chiều dọc */
         gap: 10px; /* Khoảng cách giữa các phần tử */
-    }
+      }
 
-    .form-select{
+      .form-select {
         margin-top: 0;
-    }
-  </style>
-</head>
+      }
 
-<body>
-  <%- include('header') %>
+      .loading-container {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        margin: 10px 0;
+      }
 
-  <!-- Bộ lọc theo thời gian -->
-  <div class="filter-container d-flex justify-content-between">
-      
+      .spinner {
+        position: relative;
+        width: 80px;
+        height: 16px;
+        margin: 0 auto; /* Căn giữa spinner */
+      }
+
+      .spinner div {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background-color: #004dff;
+        border-radius: 50%;
+        animation: spinner-4t3wzl 2s infinite linear;
+      }
+
+      .spinner div:nth-child(1) {
+        left: 0;
+        animation-delay: 0.15s;
+        background-color: rgba(0, 77, 255, 0.9);
+      }
+
+      .spinner div:nth-child(2) {
+        left: 25%;
+        animation-delay: 0.3s;
+        background-color: rgba(0, 77, 255, 0.8);
+      }
+
+      .spinner div:nth-child(3) {
+        left: 50%;
+        animation-delay: 0.45s;
+        background-color: rgba(0, 77, 255, 0.7);
+      }
+
+      .spinner div:nth-child(4) {
+        left: 75%;
+        animation-delay: 0.6s;
+        background-color: rgba(0, 77, 255, 0.6);
+      }
+
+      .spinner div:nth-child(5) {
+        left: 100%;
+        animation-delay: 0.75s;
+        background-color: rgba(0, 77, 255, 0.5);
+      }
+
+      @keyframes spinner-4t3wzl {
+        0% {
+          transform: rotate(0deg) translateX(-100%);
+        }
+        100% {
+          transform: rotate(360deg) translateX(-100%);
+        }
+      }
+
+      .loading-text {
+        display: block;
+        margin-top: 15px;
+        color: #004dff;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <%- include('header') %>
+
+    <!-- Bộ lọc theo thời gian -->
+    <div class="filter-container d-flex justify-content-between">
       <div class="left-container d-flex align-items-center">
-          <select class="form-select mx-2" id="comboboxki">
-              <option value="ki1">Kỳ 1</option>
-              <option value="ki2">Kỳ 2</option>
-            </select>
-            
-            <select class="form-select mx-2" id="NamHoc">
-            </select>
-            
-            <select class="form-select mx-2" id="Khoa">
-            </select>
+        <select class="form-select mx-2" id="comboboxki">
+          <option value="ki1">Kỳ 1</option>
+          <option value="ki2">Kỳ 2</option>
+        </select>
 
-            <select class="form-select mx-2" id="loaiThongTin">
-                <option value="ALL">Tất cả</option>
-            </select>
-            
-            <button id="showButton" class="btn btn-primary mx-2" style="margin-top: 15px;">Hiển thị</button>
-        </div>
-        <div class="right-container d-flex align-items-center">
-            <label for="startDate">Từ Ngày:</label>
-            <input type="date" id="startDate" class="mx-2">
-            <label for="endDate">Đến Ngày:</label>
-            <input type="date" id="endDate" class="mx-2">
-            <button id="filterButton" class="btn btn-primary" style="margin-top: 15px; margin-right: 10px;">Lọc</button>
-        </div>
-</div>
+        <select class="form-select" id="NamHoc"></select>
 
-  <table class="table table-bordered my-2" border="1" id="logTable" style="display: none;">
-    <thead>
+        <select class="form-select" id="Khoa"></select>
+
+        <select class="form-select" id="loaiThongTin">
+          <option value="ALL">Tất cả</option>
+        </select>
+
+        <button
+          id="showButton"
+          class="btn btn-primary"
+          style="margin-top: 15px"
+        >
+          Hiển thị
+        </button>
+      </div>
+      <div class="right-container d-flex align-items-center">
+        <label for="startDate">Từ Ngày:</label>
+        <input type="date" id="startDate" class="mx-2" />
+        <label for="endDate">Đến Ngày:</label>
+        <input type="date" id="endDate" class="mx-2" />
+        <button
+          id="filterButton"
+          class="btn btn-primary"
+          style="margin-top: 15px; margin-right: 10px"
+        >
+          Lọc
+        </button>
+      </div>
+    </div>
+
+    <!-- Thêm loading indicator -->
+    <div class="loading-container" id="loadingIndicator">
+      <div class="spinner">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+
+    <table
+      class="table table-bordered my-2"
+      border="1"
+      id="logTable"
+      style="display: none"
+    >
+      <thead>
         <tr>
-            <th>STT</th>
-            <th>ID Nhân Viên</th>
-            <th>Tên Nhân Viên</th>
-            <th>Loại Thông Tin</th>
-            <th>Nội Dung Thay Đổi</th>
-            <th>Thời Gian Thay Đổi</th>
+          <th>STT</th>
+          <th>ID Nhân Viên</th>
+          <th>Tên Nhân Viên</th>
+          <th>Loại Thông Tin</th>
+          <th>Nội Dung Thay Đổi</th>
+          <th>Thời Gian Thay Đổi</th>
         </tr>
-    </thead>
-    <tbody id="logTableBody"></tbody>
-</table>
+      </thead>
+      <tbody id="logTableBody"></tbody>
+    </table>
 
-
-
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    async function fetchLogData(startDate, endDate, ki, namHoc, khoa) {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      async function fetchLogData(startDate, endDate, ki, namHoc, khoa) {
         try {
-            const response = await fetch('/api/log'); // Gọi đến API
-            const data = await response.json(); // Chuyển đổi dữ liệu thành JSON
+          const response = await fetch("/api/log"); // Gọi đến API
+          const data = await response.json(); // Chuyển đổi dữ liệu thành JSON
 
-            const tableBody = document.getElementById('logTableBody');
-            tableBody.innerHTML = ''; // Xóa nội dung bảng trước khi thêm dữ liệu mới
+          const tableBody = document.getElementById("logTableBody");
+          tableBody.innerHTML = ""; // Xóa nội dung bảng trước khi thêm dữ liệu mới
 
-            // Lấy danh sách ID nhân viên có MaPhongBan tương ứng
-            const responseNhanVien = await fetch('/api/nhanvien');
-            const nhanVienData = await responseNhanVien.json();
-            
-            // Lọc danh sách nhân viên theo khoa nếu không phải ALL
-            const validUserIds = khoa === 'ALL' 
-                ? nhanVienData.map(nv => nv.id_User)  // Lấy tất cả ID nếu là ALL
-                : nhanVienData
-                    .filter(nv => nv.MaPhongBan === khoa)
-                    .map(nv => nv.id_User);
+          // Lấy danh sách ID nhân viên có MaPhongBan tương ứng
+          const responseNhanVien = await fetch("/api/nhanvien");
+          const nhanVienData = await responseNhanVien.json();
 
-            const filteredData = data.filter(item => {
-                const itemDate = new Date(item.ThoiGianThayDoi);
-                const year = itemDate.getFullYear();
-                const month = itemDate.getMonth() + 1;
+          // Lọc danh sách nhân viên theo khoa nếu không phải ALL
+          const validUserIds =
+            khoa === "ALL"
+              ? nhanVienData.map((nv) => nv.id_User) // Lấy tất cả ID nếu là ALL
+              : nhanVienData
+                  .filter((nv) => nv.MaPhongBan === khoa)
+                  .map((nv) => nv.id_User);
 
-                if (!namHoc || !namHoc.includes('-')) {
-                    return false;
-                }
+          const filteredData = data.filter((item) => {
+            const itemDate = new Date(item.ThoiGianThayDoi);
+            const year = itemDate.getFullYear();
+            const month = itemDate.getMonth() + 1;
 
-                // Kiểm tra ngày bắt đầu và ngày kết thúc
-                const isWithinDateRange = (!startDate || itemDate >= new Date(startDate)) &&
-                                          (!endDate || itemDate <= new Date(endDate));
+            if (!namHoc || !namHoc.includes("-")) {
+              return false;
+            }
 
-                // Xác định kỳ dựa trên năm học
-                let isInTerm = false;
-                const startYear = parseInt(namHoc.split('-')[0]);
-                if (ki === 'ki1') {
-                    isInTerm = (month >= 8 && year === startYear) || (month <= 1 && year === startYear + 1);
-                } else if (ki === 'ki2') {
-                    isInTerm = (month >= 2 && year === startYear + 1) && (year === startYear + 1);
-                }
+            // Kiểm tra ngày bắt đầu và ngày kết thúc
+            const isWithinDateRange =
+              (!startDate || itemDate >= new Date(startDate)) &&
+              (!endDate || itemDate <= new Date(endDate));
 
-                const loaiThongTin = document.getElementById('loaiThongTin').value;
-                const matchesLoaiThongTin = loaiThongTin === 'ALL' || item.LoaiThongTin === loaiThongTin;
+            // Xác định kỳ dựa trên năm học
+            let isInTerm = false;
+            const startYear = parseInt(namHoc.split("-")[0]);
+            if (ki === "ki1") {
+              isInTerm =
+                (month >= 8 && year === startYear) ||
+                (month <= 1 && year === startYear + 1);
+            } else if (ki === "ki2") {
+              isInTerm =
+                month >= 2 && year === startYear + 1 && year === startYear + 1;
+            }
 
-                return isInTerm && validUserIds.includes(item.id_User) && isWithinDateRange && matchesLoaiThongTin;
-            });
+            const loaiThongTin = document.getElementById("loaiThongTin").value;
+            const matchesLoaiThongTin =
+              loaiThongTin === "ALL" || item.LoaiThongTin === loaiThongTin;
 
-            if (filteredData.length > 0) {
-                filteredData.forEach((item, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
+            return (
+              isInTerm &&
+              validUserIds.includes(item.id_User) &&
+              isWithinDateRange &&
+              matchesLoaiThongTin
+            );
+          });
+
+          if (filteredData.length > 0) {
+            filteredData.forEach((item, index) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
                         <td>${item.MaLichSuNhap}</td>
                         <td>${item.id_User}</td>
                         <td>${item.TenNhanVien}</td>
                         <td>${item.LoaiThongTin}</td>
                         <td>${item.NoiDungThayDoi}</td>
-                        <td>${new Date(item.ThoiGianThayDoi).toLocaleString()}</td>
+                        <td>${new Date(
+                          item.ThoiGianThayDoi
+                        ).toLocaleString()}</td>
                     `;
-                    tableBody.appendChild(row);
-                });
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
-            }
+              tableBody.appendChild(row);
+            });
+          } else {
+            tableBody.innerHTML =
+              '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
+          }
         } catch (error) {
-            console.error('Lỗi khi fetch dữ liệu:', error);
+          console.error("Lỗi khi fetch dữ liệu:", error);
         }
-    }
+      }
 
-    document.getElementById('filterButton').addEventListener('click', () => {
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const ki = document.getElementById('comboboxki').value;
-        const namHoc = document.getElementById('NamHoc').value;
-        const khoa = document.getElementById('Khoa').value;
-        const loaiThongTin = document.getElementById('loaiThongTin').value;
-        fetchLogData(startDate, endDate, ki, namHoc, khoa); 
-        document.getElementById('logTable').style.display = 'table';
-    });
+      // Hàm hiển thị/ẩn loading
+      function toggleLoading(show) {
+        document.getElementById("loadingIndicator").style.display = show
+          ? "block"
+          : "none";
+      }
 
-    async function fetchNamHocData() {
+      // Sửa lại event listener cho nút hiển thị
+      document
+        .getElementById("showButton")
+        .addEventListener("click", async () => {
+          try {
+            toggleLoading(true); // Hiển thị loading
+
+            const ki = document.getElementById("comboboxki").value;
+            const namHoc = document.getElementById("NamHoc").value;
+            const khoa = document.getElementById("Khoa").value;
+            const loaiThongTin = document.getElementById("loaiThongTin").value;
+
+            await fetchLogData(null, null, ki, namHoc, khoa);
+            document.getElementById("logTable").style.display = "table";
+          } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi tải dữ liệu");
+          } finally {
+            toggleLoading(false); // Ẩn loading
+          }
+        });
+
+      // Sửa lại event listener cho nút lọc
+      document
+        .getElementById("filterButton")
+        .addEventListener("click", async () => {
+          try {
+            toggleLoading(true); // Hiển thị loading
+
+            const startDate = document.getElementById("startDate").value;
+            const endDate = document.getElementById("endDate").value;
+            const ki = document.getElementById("comboboxki").value;
+            const namHoc = document.getElementById("NamHoc").value;
+            const khoa = document.getElementById("Khoa").value;
+            const loaiThongTin = document.getElementById("loaiThongTin").value;
+
+            await fetchLogData(startDate, endDate, ki, namHoc, khoa);
+            document.getElementById("logTable").style.display = "table";
+          } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi lọc dữ liệu");
+          } finally {
+            toggleLoading(false); // Ẩn loading
+          }
+        });
+
+      async function fetchNamHocData() {
         $('#NamHoc option[value=""]').empty();
         $.ajax({
-            url: "/getNamHoc",
-            method: "GET",
-            success: function (response) {
-                if (response.success) {
-                    response.NamHoc.forEach(function (item) {
-                        console.log(item.NamHoc);
-                        $("#NamHoc").append(
-                            `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                        );
-                    });
-                } else {
-                    console.error(
-                        "Không lấy được dữ liệu năm học:",
-                        response.message
-                    );
-                }
-            },
-            error: function (error) {
-                console.error("Lỗi khi lấy dữ liệu năm học:", error);
-            },
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.NamHoc.forEach(function (item) {
+                console.log(item.NamHoc);
+                $("#NamHoc").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+            } else {
+              console.error(
+                "Không lấy được dữ liệu năm học:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu năm học:", error);
+          },
         });
-    }
+      }
 
-    async function fetchKhoaData() {
-        const response = await fetch('/api/nhanvien'); // Gọi đến API để lấy dữ liệu nhân viên
+      async function fetchKhoaData() {
+        const response = await fetch("/api/nhanvien"); // Gọi đến API để lấy dữ liệu nhân viên
         const data = await response.json();
-        const khoaSelect = document.getElementById('Khoa');
+        const khoaSelect = document.getElementById("Khoa");
         const uniqueDepartments = new Set(); // Sử dụng Set để loại bỏ trùng lặp
 
         // Thêm option "Tất cả khoa"
-        const allOption = document.createElement('option');
-        allOption.value = 'ALL';
-        allOption.textContent = 'Tất cả khoa';
+        const allOption = document.createElement("option");
+        allOption.value = "ALL";
+        allOption.textContent = "Tất cả khoa";
         khoaSelect.appendChild(allOption);
 
-        data.forEach(item => {
-            uniqueDepartments.add(item.MaPhongBan); // Thêm MaPhongBan vào Set
+        data.forEach((item) => {
+          uniqueDepartments.add(item.MaPhongBan); // Thêm MaPhongBan vào Set
         });
 
-        uniqueDepartments.forEach(department => {
-            const option = document.createElement('option');
-            option.value = department; // Giá trị là MaPhongBan
-            option.textContent = department; // Hiển thị là MaPhongBan
-            khoaSelect.appendChild(option);
+        uniqueDepartments.forEach((department) => {
+          const option = document.createElement("option");
+          option.value = department; // Giá trị là MaPhongBan
+          option.textContent = department; // Hiển thị là MaPhongBan
+          khoaSelect.appendChild(option);
         });
-    }
+      }
 
-    async function fetchLoaiThongTinData() {
+      async function fetchLoaiThongTinData() {
         try {
-            const response = await fetch('/api/loaithongtin');
-            const data = await response.json();
-            const loaiThongTinSelect = document.getElementById('loaiThongTin');
-            
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.LoaiThongTin;
-                option.textContent = item.LoaiThongTin;
-                loaiThongTinSelect.appendChild(option);
-            });
+          const response = await fetch("/api/loaithongtin");
+          const data = await response.json();
+          const loaiThongTinSelect = document.getElementById("loaiThongTin");
+
+          data.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.LoaiThongTin;
+            option.textContent = item.LoaiThongTin;
+            loaiThongTinSelect.appendChild(option);
+          });
         } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu loại thông tin:', error);
+          console.error("Lỗi khi lấy dữ liệu loại thông tin:", error);
         }
-    }
+      }
 
-    document.getElementById('showButton').addEventListener('click', () => {
-        const ki = document.getElementById('comboboxki').value;
-        const namHoc = document.getElementById('NamHoc').value;
-        const khoa = document.getElementById('Khoa').value;
-        const loaiThongTin = document.getElementById('loaiThongTin').value;
-        fetchLogData(null, null, ki, namHoc, khoa);
-        document.getElementById('logTable').style.display = 'table';
-    });
-
-    // Gọi hàm khi trang được tải
-    window.onload = async () => {
+      // Gọi hàm khi trang được tải
+      window.onload = async () => {
         await fetchNamHocData();
         await fetchKhoaData();
         await fetchLoaiThongTinData();
         fetchLogData();
-    };
-  </script>
-</body>
+      };
+    </script>
+  </body>
+</html>
