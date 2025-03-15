@@ -14,6 +14,8 @@ const {
 } = require("docx");
 const XLSX = require("xlsx");
 
+const ExcelJS = require("exceljs");
+
 let tableTam = process.env.DB_TABLE_TAM;
 
 // render bảng
@@ -203,6 +205,7 @@ const updateTableTam = async (req, res) => {
       row.SoSinhVien || null,
       row.SoTietCTDT || null,
       row.SoTinChi || null,
+      row.GhiChu || null,
     ]);
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
@@ -217,7 +220,7 @@ const updateTableTam = async (req, res) => {
 
     // Truy vấn SQL
     const insertUpdateQuery = `
-            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi) 
+            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, GhiChu) 
             VALUES ?
             ON DUPLICATE KEY UPDATE
                 Khoa = VALUES(Khoa),
@@ -232,7 +235,8 @@ const updateTableTam = async (req, res) => {
                 QuyChuan = VALUES(QuyChuan),
                 SoSinhVien = VALUES(SoSinhVien),
                 SoTietCTDT = VALUES(SoTietCTDT),
-                SoTinChi = VALUES(SoTinChi);
+                SoTinChi = VALUES(SoTinChi),
+                GhiChu = VALUES(GhiChu);
         `;
 
     // Thực thi truy vấn
@@ -288,6 +292,7 @@ const updateRow = async (req, res) => {
       data.SoSinhVien || null,
       data.SoTietCTDT || null,
       data.SoTinChi || null,
+      data.GhiChu || null,
       ID, // Điều kiện WHERE sử dụng ID
     ];
 
@@ -306,7 +311,8 @@ const updateRow = async (req, res) => {
                 QuyChuan = ?, 
                 SoSinhVien = ?, 
                 SoTietCTDT = ?, 
-                SoTinChi = ?
+                SoTinChi = ?,
+                GhiChu = ?
             WHERE ID = ?
         `;
 
@@ -544,10 +550,304 @@ const exportToWord = async (req, res) => {
   }
 };
 
+// const exportToExcel = async (req, res) => {
+//   const { renderData } = req.body;
+
+//   // console.log(renderData[0]);
+//   // Mảng tiêu đề theo thứ tự mong muốn
+//   const orderedKeys = [
+//     "STT",
+//     "SoTinChi",
+//     "LopHocPhan",
+//     "GiaoVien",
+//     "SoTietCTDT",
+//     "SoSinhVien",
+//     "LL",
+//     "HeSoT7CN",
+//     "HeSoLopDong",
+//     "QuyChuan",
+//   ];
+
+//   const titleMap = {
+//     SoTinChi: "Số TC",
+//     LopHocPhan: "Lớp học phần",
+//     GiaoVien: "Giáo viên",
+//     SoTietCTDT: "Số tiết theo CTĐT",
+//     SoSinhVien: "Số SV",
+//     LL: "Số tiết lên lớp theo TKB",
+//     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     HeSoLopDong: "Hệ số lớp đông",
+//     QuyChuan: "QC",
+//   };
+
+//   // Mảng tiêu đề dựa trên titleMap
+//   const headers = orderedKeys.map((key) =>
+//     key === "STT" ? "STT" : titleMap[key] || key
+//   );
+
+//   // Nhóm dữ liệu theo 'Khoa'
+//   const groupedData = renderData.reduce((acc, item, index) => {
+//     const department = item.Khoa || "Khac";
+//     if (!acc[department]) acc[department] = [];
+
+//     // Tạo hàng dữ liệu theo thứ tự
+//     const row = orderedKeys.map((key) =>
+//       key === "STT" ? `${acc[department].length + 1}.` : item[key] || ""
+//     );
+//     acc[department].push(row);
+
+//     return acc;
+//   }, {});
+
+//   // Tạo workbook
+//   const workbook = XLSX.utils.book_new();
+
+//   // Tạo từng sheet cho từng Khoa
+//   Object.entries(groupedData).forEach(([department, rows]) => {
+//     const headerTitle = [[`SỐ TIẾT QUY CHUẨN THEO KHOA ${department}`]];
+//     const worksheetData = [...headerTitle, [], headers, ...rows];
+
+//     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+//     // Căn chỉnh độ rộng cột
+//     worksheet["!cols"] = headers.map((header) => ({
+//       wpx: Math.min(header.length * 10, 150),
+//     }));
+
+//     XLSX.utils.book_append_sheet(workbook, worksheet, department);
+//   });
+
+//   // Tạo tên file dựa trên Ki và Nam học
+//   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+//   // Tạo file trong thư mục templates
+//   const filePath = path.join("./uploads", fileName);
+
+//   // Ghi file Excel vào filePath
+//   XLSX.writeFile(workbook, filePath);
+
+//   // Gửi file về client và xóa file sau khi gửi
+//   res.download(filePath, fileName, (err) => {
+//     if (err) {
+//       console.error("Lỗi khi gửi file:", err);
+//       res.status(500).send("Không thể tải file");
+//     } else {
+//       // Xóa file sau khi gửi thành công
+//       fs.unlink(filePath, (unlinkErr) => {
+//         if (unlinkErr) {
+//           console.error("Lỗi khi xóa file:", unlinkErr);
+//         } else {
+//           console.log("File đã được xóa thành công.");
+//         }
+//       });
+//     }
+//   });
+// };
+
+// const exportToExcel = async (req, res) => {
+//   const { renderData } = req.body;
+
+//   // Mảng tiêu đề theo thứ tự mong muốn
+//   const orderedKeys = [
+//     "STT",
+//     "SoTinChi",
+//     "LopHocPhan",
+//     "GiaoVien",
+//     "SoTietCTDT",
+//     "SoSinhVien",
+//     "LL",
+//     "HeSoT7CN",
+//     "HeSoLopDong",
+//     "QuyChuan",
+//   ];
+
+//   const titleMap = {
+//     SoTinChi: "Số TC",
+//     LopHocPhan: "Lớp học phần",
+//     GiaoVien: "Giáo viên",
+//     SoTietCTDT: "Số tiết theo CTĐT",
+//     SoSinhVien: "Số SV",
+//     LL: "Số tiết lên lớp theo TKB",
+//     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     HeSoLopDong: "Hệ số lớp đông",
+//     QuyChuan: "QC",
+//   };
+
+//   // Tạo tiêu đề hiển thị cho Excel
+//   const headers = orderedKeys.map((key) =>
+//     key === "STT" ? "STT" : titleMap[key] || key
+//   );
+
+//   // Biến đếm STT toàn cục (tăng từ 1 đến hết)
+//   let sttCounter = 1;
+
+//   // Nhóm dữ liệu theo 'Khoa', đồng thời gán STT theo sttCounter
+//   const groupedData = renderData.reduce((acc, item) => {
+//     const department = item.Khoa || "Khac";
+//     if (!acc[department]) acc[department] = [];
+//     const row = orderedKeys.map((key) =>
+//       key === "STT" ? `${sttCounter++}.` : (item[key] || "")
+//     );
+//     acc[department].push(row);
+//     return acc;
+//   }, {});
+
+//   // Hàm chuyển số sang số la mã (Roman numeral)
+//   const toRoman = (num) => {
+//     const romanNumerals = [
+//       ["M", 1000],
+//       ["CM", 900],
+//       ["D", 500],
+//       ["CD", 400],
+//       ["C", 100],
+//       ["XC", 90],
+//       ["L", 50],
+//       ["XL", 40],
+//       ["X", 10],
+//       ["IX", 9],
+//       ["V", 5],
+//       ["IV", 4],
+//       ["I", 1],
+//     ];
+//     let roman = "";
+//     for (const [letter, value] of romanNumerals) {
+//       while (num >= value) {
+//         roman += letter;
+//         num -= value;
+//       }
+//     }
+//     return roman;
+//   };
+
+//   // Tạo workbook và worksheet mới bằng ExcelJS
+//   const workbook = new ExcelJS.Workbook();
+//   const worksheet = workbook.addWorksheet("ALL", {
+//     pageSetup: {
+//       // Thiết lập in theo dạng landscape
+//       orientation: "landscape",
+//       fitToPage: true,
+//       fitToWidth: 1,
+//       fitToHeight: 0,
+//       paperSize: 9, // 9 tương ứng với A4 trong ExcelJS
+//     },
+//   });
+
+//   // Chỉ in dòng header (tiêu đề cột) 1 lần sau divider của nhóm đầu tiên
+//   let headerPrinted = false;
+//   let romanCounter = 1;
+
+//   // Duyệt qua từng nhóm khoa
+//   for (const [department, rows] of Object.entries(groupedData)) {
+//     // Thêm dòng divider cho từng khoa với số la mã
+//     const roman = toRoman(romanCounter++);
+//     const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
+//     const dividerRow = worksheet.addRow([dividerText]);
+//     // Hợp nhất các ô từ cột 1 đến cột cuối
+//     worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, headers.length);
+//     dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//     // Làm đậm dòng divider
+//     dividerRow.font = { bold: true };
+
+//     // Nếu chưa in header, in dòng header ngay sau divider của nhóm đầu tiên
+//     if (!headerPrinted) {
+//       const headerRow = worksheet.addRow(headers);
+//       headerRow.eachCell((cell) => {
+//         cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//         cell.font = { bold: true };
+//       });
+//       headerPrinted = true;
+//     }
+
+//     // Thêm các dòng dữ liệu của khoa
+//     rows.forEach((dataRow) => {
+//       worksheet.addRow(dataRow);
+//     });
+
+//     // Thêm một dòng trống giữa các nhóm (tuỳ chọn)
+//     worksheet.addRow([]);
+//   }
+
+//   // Áp dụng border và wrapText cho tất cả các ô trong worksheet
+//   worksheet.eachRow((row) => {
+//     row.eachCell({ includeEmpty: true }, (cell) => {
+//       cell.border = {
+//         top: { style: "thin", color: { argb: "FF000000" } },
+//         left: { style: "thin", color: { argb: "FF000000" } },
+//         bottom: { style: "thin", color: { argb: "FF000000" } },
+//         right: { style: "thin", color: { argb: "FF000000" } },
+//       };
+//       cell.alignment = cell.alignment || { horizontal: "left" };
+//       cell.alignment.wrapText = true;
+//       cell.font = {
+//         name: "Cambria",
+//         size: 13,
+//         bold: cell.font?.bold || false,
+//       };
+//     });
+//   });
+
+//   // Đặt độ rộng cột theo yêu cầu:
+//   // - Cột "STT" và "Số TC" (SoTinChi) có độ rộng nhỏ nhất (10 đơn vị)
+//   // - Cột "GiaoVien" và "LopHocPhan" mỗi cột chiếm 20% tổng chiều rộng (150 đơn vị)
+//   // - Các cột còn lại chia đều phần còn lại
+//   const maxTotalWidth = 160; // Tổng chiều rộng tối đa của bảng
+//   const colCount = headers.length;
+//   const sttIndex = orderedKeys.indexOf("STT");
+//   const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
+//   const teacherIndex = orderedKeys.indexOf("GiaoVien");
+//   const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
+
+//   const fixedWidthSTT = 5; // Cột STT và Số TC
+//   const fixedWidthTeacher = maxTotalWidth * 0.2; // 30 đơn vị
+//   const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 30 đơn vị
+
+//   // Tổng width cố định
+//   const fixedTotal =
+//     fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
+//   const remainingColumnsCount = colCount - 4; // trừ STT, SoTinChi, GiaoVien, LopHocPhan
+//   const remainingWidthEach =
+//     remainingColumnsCount > 0
+//       ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
+//       : 0;
+
+//   for (let i = 1; i <= colCount; i++) {
+//     if (i - 1 === sttIndex || i - 1 === soTinChiIndex) {
+//       worksheet.getColumn(i).width = fixedWidthSTT;
+//     } else if (i - 1 === teacherIndex) {
+//       worksheet.getColumn(i).width = fixedWidthTeacher;
+//     } else if (i - 1 === lopHocPhanIndex) {
+//       worksheet.getColumn(i).width = fixedWidthLopHocPhan;
+//     } else {
+//       worksheet.getColumn(i).width = remainingWidthEach;
+//     }
+//   }
+
+//   // Tạo tên file dựa trên Ki và Nam học
+//   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+//   const filePath = path.join("./uploads", fileName);
+
+//   // Ghi file Excel ra filePath
+//   await workbook.xlsx.writeFile(filePath);
+
+//   // Gửi file về client và xóa file sau khi gửi
+//   res.download(filePath, fileName, (err) => {
+//     if (err) {
+//       console.error("Lỗi khi gửi file:", err);
+//       res.status(500).send("Không thể tải file");
+//     } else {
+//       fs.unlink(filePath, (unlinkErr) => {
+//         if (unlinkErr) {
+//           console.error("Lỗi khi xóa file:", unlinkErr);
+//         } else {
+//           console.log("File đã được xóa thành công.");
+//         }
+//       });
+//     }
+//   });
+// };
+
 const exportToExcel = async (req, res) => {
   const { renderData } = req.body;
 
-  // console.log(renderData[0]);
   // Mảng tiêu đề theo thứ tự mong muốn
   const orderedKeys = [
     "STT",
@@ -560,6 +860,7 @@ const exportToExcel = async (req, res) => {
     "HeSoT7CN",
     "HeSoLopDong",
     "QuyChuan",
+    "GhiChu"
   ];
 
   const titleMap = {
@@ -572,52 +873,157 @@ const exportToExcel = async (req, res) => {
     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
+    GhiChu: "Ghi chú"
   };
 
-  // Mảng tiêu đề dựa trên titleMap
+  // Tạo tiêu đề hiển thị cho Excel
   const headers = orderedKeys.map((key) =>
     key === "STT" ? "STT" : titleMap[key] || key
   );
 
-  // Nhóm dữ liệu theo 'Khoa'
-  const groupedData = renderData.reduce((acc, item, index) => {
+  // Biến đếm STT toàn cục (tăng từ 1 đến hết)
+  let sttCounter = 1;
+
+  // Nhóm dữ liệu theo 'Khoa', đồng thời gán STT theo sttCounter
+  const groupedData = renderData.reduce((acc, item) => {
     const department = item.Khoa || "Khac";
     if (!acc[department]) acc[department] = [];
-
-    // Tạo hàng dữ liệu theo thứ tự
     const row = orderedKeys.map((key) =>
-      key === "STT" ? `${acc[department].length + 1}.` : item[key] || ""
+      key === "STT" ? `${sttCounter++}.` : (item[key] || "")
     );
     acc[department].push(row);
-
     return acc;
   }, {});
 
-  // Tạo workbook
-  const workbook = XLSX.utils.book_new();
+  // Hàm chuyển số sang số la mã (Roman numeral)
+  const toRoman = (num) => {
+    const romanNumerals = [
+      ["M", 1000],
+      ["CM", 900],
+      ["D", 500],
+      ["CD", 400],
+      ["C", 100],
+      ["XC", 90],
+      ["L", 50],
+      ["XL", 40],
+      ["X", 10],
+      ["IX", 9],
+      ["V", 5],
+      ["IV", 4],
+      ["I", 1],
+    ];
+    let roman = "";
+    for (const [letter, value] of romanNumerals) {
+      while (num >= value) {
+        roman += letter;
+        num -= value;
+      }
+    }
+    return roman;
+  };
 
-  // Tạo từng sheet cho từng Khoa
-  Object.entries(groupedData).forEach(([department, rows]) => {
-    const headerTitle = [[`SỐ TIẾT QUY CHUẨN THEO KHOA ${department}`]];
-    const worksheetData = [...headerTitle, [], headers, ...rows];
-
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-
-    // Căn chỉnh độ rộng cột
-    worksheet["!cols"] = headers.map((header) => ({
-      wpx: Math.min(header.length * 10, 150),
-    }));
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, department);
+  // Tạo workbook và worksheet mới bằng ExcelJS
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("ALL", {
+    pageSetup: {
+      orientation: "landscape",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      paperSize: 9, // 9 tương ứng với A4 trong ExcelJS
+    },
   });
+
+  // In header đầu tiên ở đầu trang
+  const headerRow = worksheet.addRow(headers);
+  headerRow.eachCell((cell) => {
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.font = { bold: true };
+  });
+
+  let romanCounter = 1;
+
+  // Duyệt qua từng nhóm khoa
+  for (const [department, rows] of Object.entries(groupedData)) {
+    // Thêm dòng divider cho từng khoa với số la mã
+    const roman = toRoman(romanCounter++);
+    const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
+    const dividerRow = worksheet.addRow([dividerText]);
+    // Hợp nhất các ô từ cột 1 đến cột cuối
+    worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, headers.length);
+    dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    dividerRow.font = { bold: true };
+
+    // Thêm các dòng dữ liệu của khoa
+    rows.forEach((dataRow) => {
+      worksheet.addRow(dataRow);
+    });
+
+    // Thêm một dòng trống giữa các nhóm (tuỳ chọn)
+    worksheet.addRow([]);
+  }
+
+  // Áp dụng border và wrapText cho tất cả các ô trong worksheet
+  worksheet.eachRow((row) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = {
+        top: { style: "thin", color: { argb: "FF000000" } },
+        left: { style: "thin", color: { argb: "FF000000" } },
+        bottom: { style: "thin", color: { argb: "FF000000" } },
+        right: { style: "thin", color: { argb: "FF000000" } },
+      };
+      cell.alignment = cell.alignment || { horizontal: "left" };
+      cell.alignment.wrapText = true;
+      cell.font = {
+        name: "Cambria",
+        size: 13,
+        bold: cell.font?.bold || false,
+      };
+    });
+  });
+
+  // Đặt độ rộng cột theo yêu cầu:
+  // - Cột "STT" và "Số TC" (SoTinChi) có độ rộng cố định
+  // - Cột "GiaoVien" và "LopHocPhan" chiếm 20% tổng chiều rộng
+  // - Các cột còn lại chia đều phần còn lại
+  const maxTotalWidth = 150; // Tổng chiều rộng tối đa của bảng
+  const colCount = headers.length;
+  const sttIndex = orderedKeys.indexOf("STT");
+  const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
+  const teacherIndex = orderedKeys.indexOf("GiaoVien");
+  const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
+
+  const fixedWidthSTT = 7; // Cột STT và Số TC
+  const fixedWidthTeacher = maxTotalWidth * 0.2; // 20% tổng width
+  const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20% tổng width
+
+  // Tổng width cố định
+  const fixedTotal =
+    fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
+  const remainingColumnsCount = colCount - 4; // trừ STT, SoTinChi, GiaoVien, LopHocPhan
+  const remainingWidthEach =
+    remainingColumnsCount > 0
+      ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
+      : 0;
+
+  for (let i = 1; i <= colCount; i++) {
+    if (i - 1 === sttIndex || i - 1 === soTinChiIndex) {
+      worksheet.getColumn(i).width = fixedWidthSTT;
+    } else if (i - 1 === teacherIndex) {
+      worksheet.getColumn(i).width = fixedWidthTeacher;
+    } else if (i - 1 === lopHocPhanIndex) {
+      worksheet.getColumn(i).width = fixedWidthLopHocPhan;
+    } else {
+      worksheet.getColumn(i).width = remainingWidthEach;
+    }
+  }
 
   // Tạo tên file dựa trên Ki và Nam học
   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
-  // Tạo file trong thư mục templates
   const filePath = path.join("./uploads", fileName);
 
-  // Ghi file Excel vào filePath
-  XLSX.writeFile(workbook, filePath);
+  // Ghi file Excel ra filePath
+  await workbook.xlsx.writeFile(filePath);
 
   // Gửi file về client và xóa file sau khi gửi
   res.download(filePath, fileName, (err) => {
@@ -625,7 +1031,6 @@ const exportToExcel = async (req, res) => {
       console.error("Lỗi khi gửi file:", err);
       res.status(500).send("Không thể tải file");
     } else {
-      // Xóa file sau khi gửi thành công
       fs.unlink(filePath, (unlinkErr) => {
         if (unlinkErr) {
           console.error("Lỗi khi xóa file:", unlinkErr);
@@ -636,6 +1041,7 @@ const exportToExcel = async (req, res) => {
     }
   });
 };
+
 
 const editStudentQuanity = async (req, res) => {
   const data = req.body; // Nhận dữ liệu từ body
@@ -703,11 +1109,11 @@ const editStudentQuanity = async (req, res) => {
       if (studentQuantity !== studentQuantityUpdate) {
         console.log(
           "Update ID: " +
-            ID +
-            " số sinh viên cũ : " +
-            studentQuantity +
-            " số sinh viên mới : " +
-            studentQuantityUpdate
+          ID +
+          " số sinh viên cũ : " +
+          studentQuantity +
+          " số sinh viên mới : " +
+          studentQuantityUpdate
         );
 
         // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
@@ -756,14 +1162,14 @@ const editStudentQuanity = async (req, res) => {
             UPDATE ?? 
             SET 
                 SoSinhVien = CASE ${updateCaseStatements.SoSinhVien.join(
-                  " "
-                )} ELSE SoSinhVien END,
+      " "
+    )} ELSE SoSinhVien END,
                 HeSoLopDong = CASE ${updateCaseStatements.HeSoLopDong.join(
-                  " "
-                )} ELSE HeSoLopDong END,
+      " "
+    )} ELSE HeSoLopDong END,
                 QuyChuan = CASE ${updateCaseStatements.QuyChuan.join(
-                  " "
-                )} ELSE QuyChuan END
+      " "
+    )} ELSE QuyChuan END
             WHERE ID IN (?);
         `;
 
