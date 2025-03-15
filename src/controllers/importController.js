@@ -66,7 +66,7 @@ function convertExcelToJSON(filePath) {
       if (isRowMerged(sheet, actualRowIndex, totalColumns)) {
         // Lấy giá trị của ô đầu tiên của dòng merge
         const cellValue = row[0] || "";
-        console.log(cellValue)
+        // console.log(cellValue)
         // Sử dụng regex để tìm chuỗi sau từ "Khoa"
         // \S+ sẽ lấy phần chữ liên tiếp không có khoảng trắng sau "Khoa"
         const regex = /Khoa\s*(\S+)/i;
@@ -1075,14 +1075,14 @@ const importTableTam = async (jsonData) => {
       item["Dot"],
       item["Ki"],
       item["Nam"],
-      item["Số TC"],
+      item["Số TC"] || 0 ,
       item["Lớp học phần"],
       item["Giáo Viên"],
-      item["Số tiết theo CTĐT"],
-      item["Số SV"],
-      item["Số tiết lên lớp theo TKB"],
+      item["Số tiết theo CTĐT"] || 0,
+      item["Số SV"] || 0,
+      item["Số tiết lên lớp theo TKB"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || 0,
       item["Hệ số lớp đông"],
       item["QC"],
       item["Ghi chú"],
