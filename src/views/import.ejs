@@ -144,6 +144,51 @@
     <script>
       let dataTam = [];
 
+      function renderTable(data) {
+        // Nếu không có dữ liệu, hiển thị thông báo
+        if (!data || data.length === 0) {
+          document.getElementById("dataTableContainer").innerHTML = "Không có dữ liệu để hiển thị.";
+          return;
+        }
+
+        // Lấy tiêu đề từ đối tượng JSON đầu tiên (bỏ qua cột "Ghi chú")
+        const headers = Object.keys(data[0]);
+
+        // Tạo phần tử <table> và thêm các class cần thiết
+        const table = document.createElement("table");
+        table.className = "table table-bordered";
+
+        // Tạo phần thead và thêm tiêu đề cột
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        headers.forEach(header => {
+          const th = document.createElement("th");
+          th.textContent = header;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Tạo phần tbody và thêm các hàng dữ liệu
+        const tbody = document.createElement("tbody");
+        data.forEach(item => {
+          const row = document.createElement("tr");
+          headers.forEach(key => {
+            const td = document.createElement("td");
+            // Kiểm tra nếu giá trị không phải là null thì hiển thị, ngược lại hiển thị chuỗi rỗng
+            td.textContent = item[key] !== null ? item[key] : "";
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        // Render bảng vào phần tử container, xóa nội dung cũ nếu có
+        const container = document.getElementById("dataTableContainer");
+        container.innerHTML = ""; // Xóa nội dung cũ
+        container.appendChild(table);
+      }
+
       document
         .getElementById("chooseFile")
         .addEventListener("click", function () {
@@ -181,36 +226,7 @@
                 }
                 console.log("Dữ liệu thô từ server:", data);
 
-                // Tạo bảng HTML từ dữ liệu JSON, bỏ qua cột "Ghi chú"
-                let tableHtml = "";
-
-
-                // Tiếp tục tạo bảng như trước
-                tableHtml += '<table class="table table-bordered"><thead><tr>';
-
-                // Lấy tiêu đề từ đối tượng JSON đầu tiên (trừ "Ghi chú")
-                const headers = Object.keys(data[0]).filter(
-                  (key) => key !== "Ghi chú"
-                );
-                headers.forEach((header) => {
-                  tableHtml += `<th>${header}</th>`;
-                });
-                tableHtml += "</tr></thead><tbody>";
-
-                // Duyệt qua từng mục trong dữ liệu
-                data.forEach((item) => {
-                  tableHtml += "<tr>";
-                  headers.forEach((key) => {
-                    tableHtml += `<td>${item[key] !== null ? item[key] : ""
-                      }</td>`;
-                  });
-                  tableHtml += "</tr>";
-                });
-                tableHtml += "</tbody></table>";
-                // Chèn bảng vào thẻ div có id="dataTableContainer"
-                document.getElementById("dataTableContainer").innerHTML =
-                  tableHtml;
-
+                renderTable(data)
                 // Lưu dữ liệu JSON để sử dụng sau
                 dataTam = data; // Lưu vào biến toàn cục
               })

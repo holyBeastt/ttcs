@@ -13,98 +13,173 @@ const mammoth = require("mammoth");
 const JSZip = require("jszip");
 const pdf = require("pdf-parse");
 
-// convert file quy chuẩn excel
+// Hàm kiểm tra một row có được merge từ cột đầu tiên đến cột cuối cùng hay không
+// kiểm tra row chứa dòng chia Khoa
+function isRowMerged(sheet, rowIndex, totalColumns) {
+  const merges = sheet["!merges"] || [];
+  return merges.some(range => {
+    return range.s.r === rowIndex &&
+      range.e.r === rowIndex &&
+      range.s.c === 0 &&
+      range.e.c === totalColumns - 1;
+  });
+}
+
+// hàm v2 có thêm xử lí 1 sheet nhiều khoakhoa
+function convertExcelToJSON(filePath) {
+  try {
+    // Đọc file Excel
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Đọc toàn bộ dữ liệu dưới dạng mảng 2D (mỗi phần tử là 1 row dưới dạng mảng)
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    if (rows.length === 0) {
+      throw new Error("File Excel rỗng!");
+    }
+
+    // Tìm dòng chứa tiêu đề thực (ví dụ: dòng có "STT", "Số TC", "Lớp học phần")
+    const headerRowIndex = rows.findIndex((row) => {
+      return row[0] === "STT" && row[1] === "Số TC" && row[2] === "Lớp học phần";
+    });
+
+    if (headerRowIndex === -1) {
+      throw new Error("Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần.");
+    }
+
+    // Xác định header và tổng số cột từ dòng tiêu đề
+    const header = rows[headerRowIndex];
+    const totalColumns = header.length;
+    // Lấy các dòng dữ liệu phía sau dòng tiêu đề
+    const dataRows = rows.slice(headerRowIndex + 1);
+
+    const jsonObjects = [];
+    const specialSubstring = "Các học phần thuộc Khoa";
+    let currentKhoa = ""; // Biến lưu nhóm Khoa hiện tại (được xác định từ row merge)
+
+    dataRows.forEach((row, i) => {
+      // Tính chỉ số row thực trong file (với 0 là dòng đầu tiên)
+      const actualRowIndex = headerRowIndex + 1 + i;
+
+      // Nếu row được merge toàn bộ từ cột 0 đến totalColumns - 1
+      if (isRowMerged(sheet, actualRowIndex, totalColumns)) {
+        // Lấy giá trị của ô đầu tiên của dòng merge
+        const cellValue = row[0] || "";
+        console.log(cellValue)
+        // Sử dụng regex để tìm chuỗi sau từ "Khoa"
+        // \S+ sẽ lấy phần chữ liên tiếp không có khoảng trắng sau "Khoa"
+        const regex = /Khoa\s*(\S+)/i;
+        const match = cellValue.match(regex);
+        if (match && match[1]) {
+          currentKhoa = match[1].trim();
+        }
+        // Dòng merge chỉ dùng để xác định nhóm, không thêm vào kết quả JSON
+        return;
+      }
+
+      // Tạo đối tượng từ row: mapping các key (header) với giá trị tương ứng của row
+      const obj = {};
+      header.forEach((colName, index) => {
+        // Loại bỏ \r\n trong key
+        const cleanKey = colName.replace(/[\r\n]+/g, "");
+        // Lấy giá trị và loại bỏ \r\n nếu là chuỗi
+        let value = row[index] !== undefined ? row[index] : "";
+        if (typeof value === "string") {
+          value = value.replace(/[\r\n]+/g, "");
+        }
+        obj[cleanKey] = value;
+      });
+
+      // Luôn thêm key "Khoa" vào đối tượng, nếu không có dòng merge thì giá trị sẽ là ""
+      obj["Khoa"] = currentKhoa.replace(/[\r\n]+/g, "");
+
+      // Kiểm tra số lượng giá trị rỗng trong đối tượng
+      const emptyCount = Object.values(obj).reduce((count, value) => {
+        return count + ((value === "" || value === null || value === undefined) ? 1 : 0);
+      }, 0);
+
+      // Kiểm tra cả key và value xem có chứa chuỗi đặc biệt không
+      const containsSpecial =
+        Object.keys(obj).some(key => key.includes(specialSubstring)) ||
+        Object.values(obj).some(val => typeof val === 'string' && val.includes(specialSubstring));
+
+      // Nếu có nhiều hơn 5 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
+      if (emptyCount > 5 && !containsSpecial) {
+        return;
+      }
+
+      jsonObjects.push(obj);
+    });
+
+    // Nếu cần xóa file sau khi xử lý, có thể mở dòng dưới
+    fs.unlinkSync(filePath);
+
+    return jsonObjects;
+  } catch (error) {
+    throw new Error("Cannot read file!: " + error.message);
+  }
+}
+
+
+
+
+// Hàm v1 có xử lí 1 sheet 1 khoa, nhiều sheet nhiều khoakhoa
 // const convertExcelToJSON = async (filePath) => {
 //   try {
-//     // console.log("Chuẩn bị convert dữ liệu quy chuẩn");
-//     // Đọc tệp Excel
 //     const workbook = XLSX.readFile(filePath);
-//     const sheetName = workbook.SheetNames[0]; // Lấy tên của bảng tính đầu tiên
-//     const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]); // Chuyển bảng tính thành JSON
+//     const sheetNames = workbook.SheetNames; // Lấy danh sách tất cả các sheet
+//     let jsonObjects = [];
+
+//     if (sheetNames.length === 1) {
+//       // === Trường hợp 1: Chỉ có 1 sheet, giữ nguyên logic cũ ===
+//       const sheetName = sheetNames[0];
+//       const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//       const data = worksheet;
+//       const header = data[0]; // Lấy tiêu đề
+//       const keys = Object.keys(header);
+//       const dataObjects = data.slice(1);
+
+//       jsonObjects = dataObjects.map((values) => {
+//         return keys.reduce((acc, key) => {
+//           acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+//           return acc;
+//         }, {});
+//       });
+//     } else {
+//       // === Trường hợp 2: Có nhiều sheet, mỗi sheet thêm key "Khoa" ===
+//       sheetNames.forEach((sheetName) => {
+//         const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//         if (worksheet.length === 0) return; // Bỏ qua sheet rỗng
+
+//         const header = worksheet[0];
+//         const keys = Object.keys(header);
+//         const dataObjects = worksheet.slice(1);
+
+//         const sheetData = dataObjects.map((values) => {
+//           const obj = keys.reduce((acc, key) => {
+//             acc[header[key]] = values[key] !== undefined ? values[key] : 0;
+//             return acc;
+//           }, {});
+//           obj.Khoa = sheetName; // Gán thêm key "Khoa"
+//           return obj;
+//         });
+
+//         jsonObjects = jsonObjects.concat(sheetData);
+//       });
+//     }
 
 //     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
-
-//     const data = worksheet;
-
-//     // Lấy tiêu đề từ đối tượng đầu tiên (dòng đầu tiên)
-//     const header = data[0];
-//     const keys = Object.keys(header);
-
-//     const dataObjects = data.slice(1); // Tách phần dữ liệu (bỏ qua dòng tiêu đề)
-
-//     // Tạo danh sách các đối tượng JSON với các khóa từ tiêu đề
-//     const jsonObjects = dataObjects.map((values) => {
-//       return keys.reduce((acc, key) => {
-//         // Nếu không có giá trị cho key, gán giá trị là 0
-//         acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-//         return acc;
-//       }, {});
-//     });
 
 //     validateFileExcelQC(jsonObjects);
 //     console.log("Convert file quy chuẩn thành công");
 //     return jsonObjects;
 //   } catch (err) {
-//     // Xử lý lỗi nếu có
 //     throw new Error("Cannot read file!: " + err.message);
 //   }
 // };
-
-const convertExcelToJSON = async (filePath) => {
-  try {
-    const workbook = XLSX.readFile(filePath);
-    const sheetNames = workbook.SheetNames; // Lấy danh sách tất cả các sheet
-    let jsonObjects = [];
-
-    if (sheetNames.length === 1) {
-      // === Trường hợp 1: Chỉ có 1 sheet, giữ nguyên logic cũ ===
-      const sheetName = sheetNames[0];
-      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-      const data = worksheet;
-      const header = data[0]; // Lấy tiêu đề
-      const keys = Object.keys(header);
-      const dataObjects = data.slice(1);
-
-      jsonObjects = dataObjects.map((values) => {
-        return keys.reduce((acc, key) => {
-          acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-          return acc;
-        }, {});
-      });
-    } else {
-      // === Trường hợp 2: Có nhiều sheet, mỗi sheet thêm key "Khoa" ===
-      sheetNames.forEach((sheetName) => {
-        const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        if (worksheet.length === 0) return; // Bỏ qua sheet rỗng
-
-        const header = worksheet[0];
-        const keys = Object.keys(header);
-        const dataObjects = worksheet.slice(1);
-
-        const sheetData = dataObjects.map((values) => {
-          const obj = keys.reduce((acc, key) => {
-            acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-            return acc;
-          }, {});
-          obj.Khoa = sheetName; // Gán thêm key "Khoa"
-          return obj;
-        });
-
-        jsonObjects = jsonObjects.concat(sheetData);
-      });
-    }
-
-    fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
-
-    validateFileExcelQC(jsonObjects);
-    console.log("Convert file quy chuẩn thành công");
-    return jsonObjects;
-  } catch (err) {
-    throw new Error("Cannot read file!: " + err.message);
-  }
-};
 
 // Hàm chuyển dữ liệu thiếu thành 0 khi import bằng file excel
 const validateFileExcelQC = (data) => {
@@ -503,7 +578,7 @@ function tachLopHocPhan(chuoi) {
 // }
 
 function processLecturerInfo(input, dataGiangVien, soGiangVien) {
-  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi input
+  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi 
   input = input.trim();
 
   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
@@ -804,7 +879,7 @@ const importTableQC = async (jsonData) => {
       ));
     }
 
-    console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
+    // console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
     // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
     let he_dao_tao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
@@ -975,7 +1050,8 @@ const importTableTam = async (jsonData) => {
       LL, 
       HeSoT7CN, 
       HeSoLopDong, 
-      QuyChuan
+      QuyChuan,
+      GhiChu 
     ) VALUES ?
   `;
 
@@ -1006,9 +1082,11 @@ const importTableTam = async (jsonData) => {
       item["Số SV"],
       item["Số tiết lên lớp theo TKB"],
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"],
       item["Hệ số lớp đông"],
       item["QC"],
+      item["Ghi chú"],
+
     ]);
 
   // Kiểm tra nếu không có đối tượng hợp lệ
@@ -1824,62 +1902,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
