@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const TKBController = require("../controllers/TKBController"); // Định nghĩa biến infoHDGvmController
+const { route } = require("./adminRoute");
 
 // Thêm file thời khóa biểu
 router.get("/getImportTKBSite", TKBController.getImportTKBSite);
@@ -44,5 +45,11 @@ router.post("/api/insert-data-TKB-again", TKBController.insertDataAgain);
 
 // Check dữ liệu bảng TKB
 router.post("/api/check-data-TKB-exist", TKBController.checkDataTKBExist);
+
+// Lấy danh sách khoa
+router.get("/api/TKB/getKhoaList", TKBController.getKhoaList);
+
+// Check dữ liệu có trong bảng TKB không -> check dữ liệu trong bảng tạm
+router.post("/api/TKB//kiem-tra-file", TKBController.checkDataQCDK);
 
 module.exports = router;

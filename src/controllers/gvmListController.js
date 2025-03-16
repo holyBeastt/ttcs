@@ -25,7 +25,7 @@ const getGvmList = async (req, res) => {
     let query;
 
     if (isKhoa == 0) {
-      query = `select * from gvmoi where CCCD != ''`;
+      query = `select * from gvmoi where CCCD != '00001'`;
     } else if (isKhoa == 1) {
       query = `SELECT * FROM gvmoi WHERE MaPhongBan LIKE '%${MaPhongBan}%'`;
     }

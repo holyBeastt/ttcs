@@ -415,15 +415,12 @@
       href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
     />
 
-    <script>
+    <!-- <script>
       $(document).ready(function () {
         const isKhoa = localStorage.getItem("isKhoa");
-        console.log('Giá trị isKhoa từ localStorage: ', isKhoa);
         hideButton();
         const Ban = localStorage.getItem("MaPhongBan");
-        console.log('Giá trị Ban từ localStorage: ', Ban);
         const role = localStorage.getItem("userRole");
-        console.log('Giá trị QUyền từ localStorage: ', role);
       });
 
       function hideButton() {
@@ -470,7 +467,7 @@
           }
         }
       }
-    </script>
+    </script> -->
 
     <!-- phần hiển thị phân theo role -->
     <script>
@@ -1907,10 +1904,15 @@
 
 
         // Nếu quyền GV ẩn nút cập nhật và chèn ngày
-        document.getElementById('update-qc').style.display = 'none';
-        document.getElementById('fillDay').style.display = 'none';
-        document.getElementById('batdau').style.display = 'none';
-        document.getElementById('ketthuc').style.display = 'none';
+        const role = localStorage.getItem("userRole");
+
+        if (role == 'GV'){
+          document.getElementById('update-qc').style.display = 'none';
+          document.getElementById('fillDay').style.display = 'none';
+          document.getElementById('batdau').style.display = 'none';
+          document.getElementById('ketthuc').style.display = 'none';
+        }
+
 
         // get all date input fields
         let dateInputs = document.querySelectorAll('[type="date"]');

@@ -672,60 +672,92 @@ END;
     console.error("Lỗi khi tạo trigger:", error.message);
   }
 };
-
-const createTriggerlopngoaiquychuanduyet = async (connection, userId, tenNhanVien) => {
+//log thông tin gv mời
+const createTriggeraddgvmoi = async (connection, userId, tenNhanVien) => {
   // Tạo câu lệnh SQL để tạo trigger
-  const dropTriggerQuery = `DROP TRIGGER IF EXISTS duyetngoai_log;`;
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS addgvmoi_log;`;
   const triggerQuery = `
-  CREATE TRIGGER duyetngoai_log
-  AFTER UPDATE ON quychuan
+CREATE TRIGGER addgvmoi_log
+AFTER INSERT ON gvmoi
+FOR EACH ROW
+BEGIN
+  DECLARE change_message VARCHAR(255);
+  SET change_message = CONCAT('Thêm giảng viên mời mới: ', NEW.HoTen, ' - ', NEW.MaGvm);
+
+  INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+  VALUES (
+    ${userId},
+    '${tenNhanVien}',
+    'Thay đổi thông tin giảng viên mời',
+    change_message,
+    NOW()
+  );
+END;
+
+
+  `;
+  try {
+    // Lấy kết nối từ pool
+    const connection = await createPoolConnection();
+    try {
+      // Tạo trigger sau khi đăng nhập thành công
+      await connection.query(dropTriggerQuery);
+      await connection.query(triggerQuery);
+    } finally {
+      if (connection) connection.release(); // Giải phóng kết nối
+    }
+  } catch (error) {
+    console.error("Lỗi khi tạo trigger:", error.message);
+  }
+};
+
+const createTriggergvmoi = async (connection, userId, tenNhanVien) => {
+  // Tạo câu lệnh SQL để tạo trigger
+  const dropTriggerQuery = `DROP TRIGGER IF EXISTS gvmoi_log;`;
+  const triggerQuery = `
+  CREATE TRIGGER gvmoi_log
+  AFTER UPDATE ON gvmoi
   FOR EACH ROW
 BEGIN
   DECLARE change_message VARCHAR(255) DEFAULT '';
-  DECLARE loai_thong_tin VARCHAR(50);
 
-  -- Xác định loại thông tin dựa trên giá trị MoiGiang
-  IF NEW.MoiGiang = 1 THEN
-      SET loai_thong_tin = 'Thay đổi thông tin lớp mời giảng';
-  ELSE
-      SET loai_thong_tin = 'Thay đổi thông tin lớp vượt giờ';
+  -- Kiểm tra cột Hoten
+  IF OLD.HoTen != NEW.HoTen THEN
+     SET change_message = CONCAT(change_message, 'Tên giảng viên mời được đổi từ "', OLD.Hoten, '" thành "', NEW.HoTen, '". ');
   END IF;
 
-  -- Kiểm tra cột GiaoVienGiangDay
-  IF OLD.GiaoVienGiangDay != NEW.GiaoVienGiangDay THEN
-     SET change_message = CONCAT(change_message, 'Giảng Viên giảng dạy cho môn "', NEW.LopHocPhan, ' - ', NEW.TenLop, '": từ "', OLD.GiaoVienGiangDay, '" thành "', NEW.GiaoVienGiangDay, '". ');
-  END IF;
-
-  -- Kiểm tra cột KhoaDuyet
-  IF OLD.KhoaDuyet != NEW.KhoaDuyet THEN
-      IF OLD.KhoaDuyet = 0 AND NEW.KhoaDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
-      ELSEIF OLD.KhoaDuyet = 1 AND NEW.KhoaDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Khoa thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Hủy duyệt. ');
+  -- Kiểm tra cột tình trạng giảng dạy
+  IF OLD.TinhTrangGiangDay != NEW.TinhTrangGiangDay THEN
+      IF OLD.TinhTrangGiangDay = 0 AND NEW.TinhTrangGiangDay = 1 THEN
+          SET change_message = CONCAT(change_message, 'Thay đổi tình trạng giảng dạy "',  NEW.HoTen, '": Đang giảng dạy ');
+      ELSEIF OLD.TinhTrangGiangDay = 1 AND NEW.TinhTrangGiangDay = 0 THEN
+          SET change_message = CONCAT(change_message, 'Thay đổi tình trạng giảng dạy "',  NEW.HoTen, '": Đã ngừng giảng dạy ');
       END IF;
   END IF;
 
-  -- Kiểm tra cột DaoTaoDuyet
-  IF OLD.DaoTaoDuyet != NEW.DaoTaoDuyet THEN
-      IF OLD.DaoTaoDuyet = 0 AND NEW.DaoTaoDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
-      ELSEIF OLD.DaoTaoDuyet = 1 AND NEW.DaoTaoDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Đào tạo thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Hủy duyệt. ');
-      END IF;
+  -- Kiểm tra cột CCCD ảnh
+  IF OLD.MatTruocCCCD != NEW.MatTruocCCCD or OLD.MatSauCCCD != NEW.MatSauCCCD THEN
+          SET change_message = CONCAT(change_message, 'Cập nhật ảnh CCCD của giảng viên "',  NEW.HoTen, ' - ', NEW.CCCD, '" .');
   END IF;
 
-  -- Kiểm tra cột TaiChinhDuyet
-  IF OLD.TaiChinhDuyet != NEW.TaiChinhDuyet THEN
-      IF OLD.TaiChinhDuyet = 0 AND NEW.TaiChinhDuyet = 1 THEN
-          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Đã duyệt. ');
-      ELSEIF OLD.TaiChinhDuyet = 1 AND NEW.TaiChinhDuyet = 0 THEN
-          SET change_message = CONCAT(change_message, 'Tài chính thay đổi duyệt môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": Hủy duyệt. ');
-      END IF;
+  -- Kiểm tra cột CCCD
+   IF OLD.CCCD != NEW.CCCD THEN
+     SET change_message = CONCAT(change_message, 'Thay đổi số CCCD của giảng viên  "', NEW.Hoten, '" thành "', NEW.CCCD, '". ');
   END IF;
 
-  -- Kiểm tra cột GiaoVien
-  IF OLD.GiaoVien != NEW.GiaoVien THEN
-      SET change_message = CONCAT(change_message, 'Giảng viên cho môn "',  NEW.LopHocPhan, ' - ', NEW.TenLop, '": từ "', OLD.GiaoVien, '" thành "', NEW.GiaoVien, '". ');
+  -- Kiểm tra cột STK
+  IF OLD.STK != NEW.STK THEN
+      SET change_message = CONCAT(change_message, 'Thay đổi STK của giảng viên mời "',  NEW.HoTen, ' - ', NEW.CCCD, '": từ "', OLD.STK, '" thành "', NEW.STK, '". ');
+  END IF;
+
+ -- Kiểm tra cột SĐT
+  IF OLD.DienThoai != NEW.DienThoai THEN
+      SET change_message = CONCAT(change_message, 'Thay đổi SĐT của giảng viên mời"',  NEW.HoTen, ' - ', NEW.CCCD, '": từ "', OLD.DienThoai, '" thành "', NEW.DienThoai, '". ');
+  END IF;
+
+   -- Kiểm tra cột Email
+  IF OLD.Email != NEW.Email THEN
+      SET change_message = CONCAT(change_message, 'Thay đổi Email của giảng viên mời"',  NEW.HoTen, ' - ', NEW.CCCD, '": từ "', OLD.Email, '" thành "', NEW.Email, '". ');
   END IF;
 
   -- Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
@@ -734,7 +766,7 @@ BEGIN
       VALUES (
         ${userId},  
           '${tenNhanVien}',
-          loai_thong_tin,  -- Loại thông tin
+          'Thay đổi thông tin giảng viên mời',
           change_message,  -- Nội dung mới với thông báo thay đổi
           NOW()  -- Thời gian thay đổi
       );
@@ -756,6 +788,7 @@ END;
     console.error("Lỗi khi tạo trigger:", error.message);
   }
 };
+
 const login = async (req, res) => {
   const { username, password } = req.body;
   let connection;
@@ -794,6 +827,8 @@ const login = async (req, res) => {
         await createTriggersachvagiaotrinh(connection, req.session.userId, TenNhanVien);
         await createTriggerxaydungctdt(connection, req.session.userId, TenNhanVien);
         await createTriggerlopngoaiquychuan(connection, req.session.userId, TenNhanVien);
+        await createTriggeraddgvmoi(connection, req.session.userId, TenNhanVien);
+        await createTriggergvmoi(connection, req.session.userId, TenNhanVien);
         
         // Phân quyền người dùng
         const [roles] = await connection.query(

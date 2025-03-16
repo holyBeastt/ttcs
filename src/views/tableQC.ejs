@@ -9,55 +9,50 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
   <style>
-    /* CSS cho bảng */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    /* fixed header nhưng chưa được */
+    .tabulator>.tabulator-header>.tabulator-col {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 10000 !important;
     }
 
-    .table th,
-    .table td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #dee2e6;
+    /* phần header */
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+      /* Ghi đè với thư viện cho đẹp */
+      padding: 10px 5px 0px 5px !important;
+
+      text-align: center !important;
+      /* Canh giữa văn bản */
+      white-space: normal !important;
+      /* Cho phép nội dung xuống dòng */
+      word-wrap: break-word !important;
+      /* Ngắt từ nếu cần */
+      overflow: visible !important;
+      /* Hiển thị hết nội dung, không cắt */
+      word-break: break-word !important;
+      /* Ngắt từ dài thành dòng mới */
     }
 
-    .table th {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
+    /* Đảm bảo bảng có chiều rộng 100% */
+    #table-container {
+      width: 100% !important;
+      font-size: 12px !important;
+      /* Thêm style cho bảng nếu cần */
     }
 
-    .table tbody tr:nth-child(even) {
-      background-color: #f8f9fa;
+    /* Thay đổi chiều rộng của tiêu đề cột nếu cần */
+    .tabulator-col .tabulator-sortable .tabulator-col-sorter-element {
+      display: flex !important;
+      flex-wrap: wrap !important;
     }
 
-    .table tbody tr:hover {
-      background-color: #e2e6ea;
+    .wrap-cell {
+      white-space: normal;
+      word-wrap: break-word;
     }
-
-    .table td {
-      vertical-align: middle;
-    }
-
-    .bg-custom {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .spinner-border {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1000;
-    }
-
-
 
     /* Đảm bảo menu con không hiển thị mặc định */
     .dropdown-submenu .dropdown-menu {
@@ -144,12 +139,7 @@
           </div>
         </div>
         <div class="overflow-auto">
-          <table class="table table-bordered">
-            <thead>
-              <tr id="table-header"></tr>
-            </thead>
-            <tbody id="data-table-body"></tbody>
-          </table>
+          <div id="table"></div>
         </div>
       </div>
     </div>
@@ -199,85 +189,36 @@
         QuyChuan: "Quy chuẩn",
       };
 
-      function exportToExcel() {
-        // Mảng tiêu đề theo thứ tự mong muốn
-        const orderedKeys = [
-          "TT",
-          "SoTinChi",
-          "LopHocPhan",
-          "GiaoVien",
-          "SoTietCTDT",
-          "SoSinhVien",
-          "LL",
-          "HeSoT7CN",
-          "HeSoLopDong",
-          "QuyChuan",
-        ];
-
-        // Map tiêu đề hiển thị
-        const titleMap = {
-          TT: "TT",
-          SoTinChi: "Số TC",
-          LopHocPhan: "Lớp học phần",
-          GiaoVien: "Giáo Viên",
-          SoTietCTDT: "Số tiết theo CTĐT",
-          SoSinhVien: "Số SV",
-          LL: "Số tiết lên lớp theo TKB",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-          HeSoLopDong: "Hệ số lớp đông",
-          QuyChuan: "QC",
+      async function exportToExcel() {
+        const requestData = {
+          renderData: renderData,
         };
 
-        // Chuyển đổi dữ liệu giống `exportToWord()`
-        const formattedData = renderData.map((item, index) => {
-          const row = { TT: index + 1 }; // Thêm số thứ tự (STT)
-
-          // Cập nhật LopHocPhan với giá trị mới từ generateGroupCode
-          row.LopHocPhan = generateGroupCode(item);
-
-          orderedKeys.forEach((key) => {
-            if (key !== "TT" && key !== "LopHocPhan") {
-              row[key] = item[key] || ""; // Gán giá trị, nếu không có thì để trống
-            }
+        try {
+          const response = await fetch("/qcdk-export-excel", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
           });
 
-          return row;
-        });
+          if (!response.ok) {
+            throw new Error(`Failed to export: ${response.statusText}`);
+          }
 
-        // Chuyển đổi dữ liệu thành dạng mảng để Excel xử lý
-        const headers = orderedKeys.map((key) => titleMap[key] || key); // Tiêu đề cột
-        const rows = formattedData.map((item) =>
-          orderedKeys.map((key) => item[key] || "") // Lấy từ formattedData thay vì item gốc
-        );
-
-        // Tạo dòng tiêu đề chính
-        const headerTitle = [
-          [`SỐ TIẾT QUY CHUẨN HỌC KỲ ${renderData[0].KiHoc} NĂM HỌC ${renderData[0].NamHoc}`]
-        ];
-
-        // Kết hợp dữ liệu
-        const worksheetData = [
-          ...headerTitle, // Dòng tiêu đề đầu tiên
-          [], // Dòng trống
-          headers, // Dòng tiêu đề cột
-          ...rows // Dữ liệu chính
-        ];
-
-        // Tạo workbook và worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-
-        // Căn chỉnh độ rộng cột
-        ws["!cols"] = headers.map((header) => ({
-          wpx: Math.min(header.length * 10, 150) // Giới hạn chiều rộng tối đa
-        }));
-
-        // Gắn sheet vào workbook và xuất file Excel
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        XLSX.writeFile(
-          wb,
-          `file_quy_chuan_chinh_thuc_hoc_ki_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`
-        );
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `file_quy_chuan_chinh_thuc_hoc_ki_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error exporting data:", error);
+        }
       }
 
       function exportToWord() {
@@ -380,10 +321,10 @@
 
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
-        unhideButton2(role);
+        unhideButton2(role, MaPhongBan);
       });
 
-      function unhideButton2(role) {
+      function unhideButton2(role, MaPhongBan) {
         if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
           const exportBtn = document.getElementById("export-file-btn");
           exportBtn.style.display = "block"; // Hiện actionButton1 nếu isKhoa khác 0
@@ -452,59 +393,42 @@
       }
 
 
-      // Hàm renderTable sẽ được sử dụng để render bảng
       function renderTable(data) {
-        // Chọn các cột bạn muốn hiển thị
-        const columnsToDisplay = ['Khoa', 'Dot', 'KiHoc', 'NamHoc', 'LopHocPhan', 'GiaoVien', 'GiaoVienGiangDay', 'MoiGiang', 'SoTinChi', 'TenLop', 'LL', 'QuyChuan'];
-        let tableHtml = '';
+        var columns = [
+          { title: "Khoa", field: "Khoa", formatter: "textarea" },
+          { title: "Đợt", field: "Dot", formatter: "textarea" },
+          { title: "Kì", field: "KiHoc", formatter: "textarea" },
+          { title: "Năm", field: "NamHoc", formatter: "textarea" },
+          { title: "Lớp học phần", field: "LopHocPhan", formatter: "textarea" },
+          { title: "Giảng viên theo TKB", field: "GiaoVien", formatter: "textarea" },
+          { title: "Giảng viên giảng dạy", field: "GiaoVienGiangDay", formatter: "textarea" },
+          {
+            title: "Mời giảng?",
+            field: "MoiGiang",
+            formatter: function (cell) {
+              return cell.getValue() == 1 ? "Có" : "Không";
+            }
+          },
+          { title: "Số tín chỉ", field: "SoTinChi", formatter: "textarea" },
+          { title: "Tên lớp", field: "TenLop", formatter: "textarea" },
+          { title: "Số tiết lên lớp theo TKB", field: "LL", formatter: "textarea" },
+          { title: "Số tiết QC", field: "QuyChuan", formatter: "textarea" }
+        ];
 
-        const headersMap = {
-          'Khoa': 'Khoa',
-          'Dot': 'Đợt',
-          'KiHoc': 'Kì',
-          'NamHoc': 'Năm',
-          'LopHocPhan': 'Lớp học phần',
-          'GiaoVien': 'Giảng viên theo TKB',
-          'GiaoVienGiangDay': 'Giảng viên giảng dạy',
-          'MoiGiang': 'Mời giảng?',
-          'SoTinChi': 'Số tín chỉ',
-          'TenLop': 'Tên lớp',
-          'LL': 'Số tiết lên lớp',
-          'QuyChuan': 'Số tiết quy chuẩn',
+        var tableOptions = {
+          data: data,
+          columns: columns,
+          layout: "fitColumns",  // Tự động căn chỉnh kích thước cột
+          height: "500px",       // Cung cấp chiều cao cố định để hỗ trợ render ảo
+          renderVertical: "virtual", // Sử dụng chế độ render dọc (virtual)
+          formatterParams: {
+            cssClass: "wrap-cell"
+          },
+          resizableRows: true,
         };
 
-        // Tạo header
-        columnsToDisplay.forEach(header => {
-          const newHeaderName = headersMap[header] || header; // Sử dụng tên cột mới nếu có
-          tableHtml += `<th>${newHeaderName}</th>`;
-        });
-
-        document.getElementById('table-header').innerHTML = tableHtml;
-
-        // Xóa dữ liệu bảng cũ nếu có trước khi thêm mới
-        document.getElementById('data-table-body').innerHTML = '';
-
-        // Duyệt qua từng mục trong dữ liệu
-        data.forEach(item => {
-          let rowHtml = columnsToDisplay.map(key => {
-            let cellValue = item[key] !== null ? item[key] : '';
-
-            // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không'
-            if (key === 'MoiGiang') {
-              cellValue = cellValue === 1 ? 'Có' : 'Không';
-            }
-
-            return `<td>${cellValue}</td>`;
-          }).join('');
-
-          document.getElementById('data-table-body').innerHTML += `<tr>${rowHtml}</tr>`;
-        });
-
-        // Xóa spinner sau khi hoàn thành (nếu có spinner)
-        const loadingSpinner = document.getElementById('loading-spinner');
-        if (loadingSpinner) {
-          loadingSpinner.remove();
-        }
+        // Khởi tạo bảng Tabulator trên phần tử có id "table"
+        var table = new Tabulator("#table", tableOptions);
       }
 
       // Thêm sự kiện cho nút lọc

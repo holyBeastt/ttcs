@@ -31,7 +31,7 @@
 
     <div class="container my-5 box">
       <form id="phongHocForm" action="/adminPhongHoc" method="POST" class="row">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="Phong">Phòng:</label>
           <input
             type="text"
@@ -41,7 +41,7 @@
             required
           />
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="ToaNha">Tòa Nhà:</label>
           <select name="ToaNha" id="ToaNha" class="form-control" required>
             <option value="">Chọn tòa nhà</option>
@@ -52,12 +52,16 @@
             <% }); %>
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="LoaiPhong">Loại Phòng:</label>
           <select name="LoaiPhong" id="LoaiPhong" class="form-control" required>
             <option value="Phòng học">Phòng học</option>
             <option value="Phòng máy">Phòng máy</option>
           </select>
+        </div>
+        <div class="col-md-3">
+          <label for="GhiChu">Ghi Chú:</label>
+          <input type="text" name="GhiChu" id="GhiChu" class="form-control" />
         </div>
         <div class="col-md-12 mt-3">
           <button type="button" class="btn btn-primary" id="addButton">
@@ -74,6 +78,7 @@
               <th>Phòng</th>
               <th>Tòa Nhà</th>
               <th>Loại Phòng</th>
+              <th>Ghi Chú</th>
               <th>Thao Tác</th>
             </tr>
           </thead>
@@ -86,6 +91,9 @@
               <td class="editable ToaNha-cell"><%= phonghoc[i].ToaNha %></td>
               <td class="editable LoaiPhong-cell">
                 <%= phonghoc[i].LoaiPhong %>
+              </td>
+              <td class="editable GhiChu-cell">
+                <%= phonghoc[i].GhiChu || '' %>
               </td>
               <td class="d-flex justify-content-center">
                 <button class="bi bi-pencil action-button edit-btn"></button>
@@ -121,17 +129,21 @@
           const row = $(this).closest("tr");
           const STT = row.data("id");
 
-          // Lưu giá trị gốc
           originalValues[STT] = {
             Phong: row.find(".Phong-cell").text().trim(),
             ToaNha: row.find(".ToaNha-cell").text().trim(),
             LoaiPhong: row.find(".LoaiPhong-cell").text().trim(),
+            GhiChu: row.find(".GhiChu-cell").text().trim()
           };
 
-          // Chuyển text thành input cho Phong
+          // Chuyển text thành input cho Phong và GhiChu
           row.find(".Phong-cell").html(`
-                    <input type="text" class="form-control" value="${originalValues[STT].Phong}">
-                `);
+            <input type="text" class="form-control" value="${originalValues[STT].Phong}">
+          `);
+
+          row.find(".GhiChu-cell").html(`
+            <input type="text" class="form-control" value="${originalValues[STT].GhiChu}">
+          `);
 
           // Chuyển text thành select cho ToaNha
           row.find(".ToaNha-cell").html(`
@@ -178,6 +190,7 @@
             Phong: row.find(".Phong-cell input").val(),
             ToaNha: row.find(".ToaNha-cell select").val(),
             LoaiPhong: row.find(".LoaiPhong-cell select").val(),
+            GhiChu: row.find(".GhiChu-cell input").val()
           };
 
           $.ajax({
@@ -189,6 +202,7 @@
               row.find(".Phong-cell").text(updatedData.Phong);
               row.find(".ToaNha-cell").text(updatedData.ToaNha);
               row.find(".LoaiPhong-cell").text(updatedData.LoaiPhong);
+              row.find(".GhiChu-cell").text(updatedData.GhiChu);
 
               const actionCell = row.find("td:last-child");
               actionCell.html(`
@@ -214,6 +228,7 @@
           row.find(".Phong-cell").text(originalValues[STT].Phong);
           row.find(".ToaNha-cell").text(originalValues[STT].ToaNha);
           row.find(".LoaiPhong-cell").text(originalValues[STT].LoaiPhong);
+          row.find(".GhiChu-cell").text(originalValues[STT].GhiChu);
 
           const actionCell = row.find("td:last-child");
           actionCell.html(`
@@ -231,6 +246,7 @@
           const Phong = $("#Phong").val();
           const ToaNha = $("#ToaNha").val();
           const LoaiPhong = $("#LoaiPhong").val();
+          const GhiChu = $("#GhiChu").val();
 
           // Kiểm tra sự tồn tại của phòng
           $.ajax({
@@ -242,7 +258,7 @@
               ToaNha: ToaNha  // Thêm ToaNha vào data
             }),
             success: function (response) {
-              addNewPhongHoc(Phong, ToaNha, LoaiPhong);
+              addNewPhongHoc(Phong, ToaNha, LoaiPhong, GhiChu);
             },
             error: function (xhr) {
               if (xhr.status === 409) {
@@ -254,12 +270,12 @@
           });
         });
 
-        function addNewPhongHoc(Phong, ToaNha, LoaiPhong) {
+        function addNewPhongHoc(Phong, ToaNha, LoaiPhong, GhiChu) {
           $.ajax({
             url: "/adminPhongHoc",
             method: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ Phong, ToaNha, LoaiPhong }),
+            data: JSON.stringify({ Phong, ToaNha, LoaiPhong, GhiChu }),
             success: function (response) {
               alert("Thêm mới thành công!");
               location.reload();
