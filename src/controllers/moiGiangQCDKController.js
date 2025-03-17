@@ -1557,13 +1557,25 @@ const exportToExcel = async (req, res) => {
     dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
     dividerRow.font = { bold: true };
 
+    // Thêm viền cho toàn bộ hàng
+    for (let col = 1; col <= totalColumns; col++) {
+      dividerRow.getCell(col).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    }
+
     // Thêm data rows
     rowsData.forEach((rData) => {
       worksheet.addRow(rData);
     });
+
     // Row trống sau mỗi nhóm
-    worksheet.addRow([]);
+    // worksheet.addRow([]);
   }
+
 
   // Lưu lại dòng kết thúc của vùng bảng (trước phần thông báo cuối)
   const tableEnd = worksheet.lastRow.number;
