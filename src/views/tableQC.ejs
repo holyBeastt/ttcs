@@ -190,9 +190,16 @@
       };
 
       async function exportToExcel() {
-        const requestData = {
-          renderData: renderData,
-        };
+        const formattedData = renderData.map((item, index) => {
+          // Cập nhật LopHocPhan với giá trị mới từ generateGroupCode
+          item.LopHocPhan = generateGroupCode(item);
+
+          // Đổi key KiHoc -> Ki, NamHoc -> Nam
+          const { KiHoc, NamHoc, ...rest } = item;
+          return { Ki: KiHoc, Nam: NamHoc, ...rest };
+        });
+
+        // console.log(formattedData)
 
         try {
           const response = await fetch("/qcdk-export-excel", {
@@ -200,7 +207,7 @@
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(requestData),
+            body: JSON.stringify({ renderData: formattedData }),
           });
 
           if (!response.ok) {
