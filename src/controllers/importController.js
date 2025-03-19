@@ -293,7 +293,7 @@ const parseDataToObjects = (lines) => {
       // Gắn giá trị tương ứng cho các số liệu. Nếu thiếu giá trị thì gắn 0
       currentItem["Số tiết theo CTĐT"] = parseFloat(numbers[0] || 0);
       currentItem["Số SV"] = parseFloat(numbers[1] || 0);
-      currentItem["Số tiết lên lớp theo TKB"] = parseFloat(numbers[2] || 0);
+      currentItem["Số tiết lên lớp được tính QC"] = parseFloat(numbers[2] || 0);
       currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] = parseFloat(
         numbers[3] || 0
       );
@@ -319,7 +319,7 @@ const splitAndCleanLines = (text) => {
     "Giáo viên", // 2 Giáo viên này khác nhau đấy, nếu còn bị key nào thừa thì log kq ra console rồi copy vào đây
     "Số tiết theo CTĐT",
     "Số SV",
-    "Số tiết lên lớp theo TKB",
+    "Số tiết lên lớp được tính QC",
     "Hệ số lên lớp ngoài giờ",
     "HC",
     "Thạc sĩ",
@@ -1080,7 +1080,7 @@ const importTableTam = async (jsonData) => {
       item["Giáo Viên"] || null,
       item["Số tiết theo CTĐT"] || 0,
       item["Số SV"] || 0,
-      item["Số tiết lên lớp theo TKB"] || 0,
+      item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || 0,
       item["Hệ số lớp đông"] || 0,

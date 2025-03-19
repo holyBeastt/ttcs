@@ -891,7 +891,7 @@ const exportMultipleWorksheets = async (req, res) => {
         "Giáo Viên",
         "Số tiết theo CTĐT",
         "Số SV",
-        "Số tiết lên lớp theo TKB",
+        "Số tiết lên lớp được tính QC",
         "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         "Hệ số lớp đông",
         "QC",

@@ -1364,7 +1364,7 @@ const exportToExcel = async (req, res) => {
     GiaoVien: "Giáo Viên",
     SoTietCTDT: "Số tiết theo CTĐT",
     SoSinhVien: "Số SV",
-    LL: "Số tiết lên lớp theo TKB",
+    LL: "Số tiết lên lớp được tính QC",
     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
