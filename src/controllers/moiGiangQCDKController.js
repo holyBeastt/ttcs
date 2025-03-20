@@ -1361,10 +1361,10 @@ const exportToExcel = async (req, res) => {
   const titleMap = {
     SoTinChi: "Số TC",
     LopHocPhan: "Lớp học phần",
-    GiaoVien: "Giáo viên",
+    GiaoVien: "Giáo Viên",
     SoTietCTDT: "Số tiết theo CTĐT",
     SoSinhVien: "Số SV",
-    LL: "Số tiết lên lớp theo TKB",
+    LL: "Số tiết lên lớp được tính QC",
     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
@@ -1397,44 +1397,42 @@ const exportToExcel = async (req, res) => {
   // Row 1: (Trái - Phải)
   // Row 1: (Trái - Phải)
   let row = worksheet.addRow([]);
-  row.getCell(1).value = "BAN CƠ YẾU CHÍNH PHỦ".toUpperCase();
-  row.getCell(6).value = "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM".toUpperCase();
-  worksheet.mergeCells(row.number, 1, row.number, 4); // A->D
-  worksheet.mergeCells(row.number, 6, row.number, 11); // F->K
+  row.getCell(2).value = "BAN CƠ YẾU CHÍNH PHỦ".toUpperCase();
+  row.getCell(5).value = "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM".toUpperCase();
+  worksheet.mergeCells(row.number, 2, row.number, 3); // B->C
+  worksheet.mergeCells(row.number, 5, row.number, 10); // E->J
 
   // Căn giữa, in đậm
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(6).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
-  row.getCell(1).font = { bold: true };
-  row.getCell(6).font = { bold: true };
+  row.getCell(2).font = { bold: true };
+  row.getCell(5).font = { bold: true };
 
 
   // Row 2: (Trái - Phải)
   row = worksheet.addRow([]);
-  row.height = 33; // Đặt chiều cao dòng
+  row.getCell(2).value = "HỌC VIỆN KỸ THUẬT MẬT MÃ".toUpperCase();
+  row.getCell(5).value = "Độc lập - Tự do - Hạnh phúc";
 
-  row.getCell(1).value = "HỌC VIỆN KỸ THUẬT MẬT MÃ".toUpperCase();
-  row.getCell(6).value = "Độc lập - Tự do - Hạnh phúc";
-
-  worksheet.mergeCells(row.number, 1, row.number, 4);
-  worksheet.mergeCells(row.number, 6, row.number, 11);
+  worksheet.mergeCells(row.number, 2, row.number, 3);
+  worksheet.mergeCells(row.number, 5, row.number, 10);
 
   // Căn giữa & in đậm
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(6).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
-  row.getCell(1).font = { bold: true };
-  row.getCell(6).font = { bold: true };
+  row.getCell(2).font = { bold: true };
+  row.getCell(5).font = { bold: true };
 
   // Row 3: (Trái - Phải)
   row = worksheet.addRow([]);
-  row.getCell(1).value = "Số:          /TB-HVM";
-  row.getCell(6).value = "Hà Nội, ngày        tháng        năm           ";
-  worksheet.mergeCells(row.number, 1, row.number, 4);
-  worksheet.mergeCells(row.number, 6, row.number, 11);
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(6).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).value = "Số:          /TB-HVM";
+  row.getCell(5).value = "Hà Nội, ngày        tháng        năm           ";
+  worksheet.mergeCells(row.number, 2, row.number, 3);
+  worksheet.mergeCells(row.number, 5, row.number, 10);
+  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
   // Row 4: dòng trống
   row = worksheet.addRow([]);
@@ -1480,7 +1478,7 @@ const exportToExcel = async (req, res) => {
     `           Học viện Kỹ thuật mật mã thông báo số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam} (Cơ sở đào tạo phía Bắc) như sau:`
   ];
 
-  const rowsWithFixedHeight = [0, 1, 5]; // Các dòng x3 chiều cao 
+  const rowsWithFixedHeight = [0, 1]; // Các dòng x3 chiều cao 
 
   canCuuList.forEach((text, index) => {
     let r = worksheet.addRow([]);
@@ -1576,6 +1574,7 @@ const exportToExcel = async (req, res) => {
     // worksheet.addRow([]);
   }
 
+  worksheet.addRow([]);
 
   // Lưu lại dòng kết thúc của vùng bảng (trước phần thông báo cuối)
   const tableEnd = worksheet.lastRow.number;
@@ -1599,10 +1598,10 @@ const exportToExcel = async (req, res) => {
 
   // 1) Dòng "Nơi nhận" (bên trái) & "KT. GIÁM ĐỐC / PHÓ GIÁM ĐỐC" (bên phải)
   row = worksheet.addRow([]);
-  row.getCell(3).value = "Nơi nhận:";
-  worksheet.mergeCells(row.number, 3, row.number, 6); // B->F
-  row.getCell(3).alignment = { horizontal: "left", vertical: "top", wrapText: true };
-  row.getCell(3).font = { bold: true };
+  row.getCell(2).value = "Nơi nhận:";
+  worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
+  row.getCell(2).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+  row.getCell(2).font = { bold: true };
 
   // Bên phải
   row.getCell(7).value = "KT. GIÁM ĐỐC\nPHÓ GIÁM ĐỐC";
@@ -1614,16 +1613,16 @@ const exportToExcel = async (req, res) => {
   const bulletLines = [
     "- Ban Giám đốc (2) (để b/c)",
     "- Phòng KH-TC;",
-    "- Các khoa: NM, ATTT, CNTT, ĐTVT, CB, LLCT, KKKQS&QĐ,...",
-    "- TTTH;",
+    "- Các khoa: NM, ATTT, CNTT, ĐTVT,",
+    "  TTTH, CB, LLCT, KQS&QĐ...;",
     "- Lưu: VT, ĐT P13."
   ];
   bulletLines.forEach((text) => {
     row = worksheet.addRow([]);
     // Bên trái
-    row.getCell(3).value = text;
-    worksheet.mergeCells(row.number, 3, row.number, 6); // B->F
-    row.getCell(3).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+    row.getCell(2).value = text;
+    worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
+    row.getCell(2).alignment = { horizontal: "left", vertical: "top", wrapText: true };
 
     // Bên phải để trống, vẫn merge để không bị border
     worksheet.mergeCells(row.number, 7, row.number, totalColumns);
@@ -1635,15 +1634,6 @@ const exportToExcel = async (req, res) => {
     worksheet.mergeCells(row.number, 1, row.number, 6);
     worksheet.mergeCells(row.number, 7, row.number, totalColumns);
   }
-
-  // 4) Dòng ký tên cuối
-  row = worksheet.addRow([]);
-  worksheet.mergeCells(row.number, 1, row.number, 6); // A->F
-  row.getCell(7).value = "Lương Thế Dũng";
-  worksheet.mergeCells(row.number, 7, row.number, totalColumns); // G->K
-  row.getCell(7).alignment = { horizontal: "center", vertical: "top", wrapText: true };
-  row.getCell(7).font = { bold: true };
-
 
 
   // ========================
@@ -1674,7 +1664,7 @@ const exportToExcel = async (req, res) => {
         };
       }
       cell.font = {
-        name: "Cambria",
+        name: "Times New Roman",
         size: 13,
         bold: cell.font?.bold || false,
       };
@@ -1693,7 +1683,7 @@ const exportToExcel = async (req, res) => {
 
   const fixedWidthSTT = 7; // Cột STT + Số TC
   const fixedWidthTeacher = maxTotalWidth * 0.2; // 20%
-  const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20%
+  const fixedWidthLopHocPhan = maxTotalWidth * 0.3; // 30%
 
   const fixedTotal = fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
   const remainingColumnsCount = colCount - 4;
