@@ -38,10 +38,10 @@ function convertExcelToJSON(filePath) {
     if (rows.length === 0) {
       throw new Error("File Excel rỗng!");
     }
-
-    // Tìm dòng chứa tiêu đề thực (ví dụ: dòng có "STT", "Số TC", "Lớp học phần")
+    
+    // Tìm dòng chứa header. key nhận biết header là STT
     const headerRowIndex = rows.findIndex((row) => {
-      return row[0] === "STT" && row[1] === "Số TC" && row[2] === "Lớp học phần";
+      return row[0] === "STT"
     });
 
     if (headerRowIndex === -1) {
