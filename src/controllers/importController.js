@@ -17,11 +17,13 @@ const pdf = require("pdf-parse");
 // kiểm tra row chứa dòng chia Khoa
 function isRowMerged(sheet, rowIndex, totalColumns) {
   const merges = sheet["!merges"] || [];
-  return merges.some(range => {
-    return range.s.r === rowIndex &&
+  return merges.some((range) => {
+    return (
+      range.s.r === rowIndex &&
       range.e.r === rowIndex &&
       range.s.c === 0 &&
-      range.e.c === totalColumns - 1;
+      range.e.c === totalColumns - 1
+    );
   });
 }
 
@@ -45,7 +47,9 @@ function convertExcelToJSON(filePath) {
     });
 
     if (headerRowIndex === -1) {
-      throw new Error("Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần.");
+      throw new Error(
+        "Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần."
+      );
     }
 
     // Xác định header và tổng số cột từ dòng tiêu đề
@@ -96,13 +100,18 @@ function convertExcelToJSON(filePath) {
 
       // Kiểm tra số lượng giá trị rỗng trong đối tượng
       const emptyCount = Object.values(obj).reduce((count, value) => {
-        return count + ((value === "" || value === null || value === undefined) ? 1 : 0);
+        return (
+          count +
+          (value === "" || value === null || value === undefined ? 1 : 0)
+        );
       }, 0);
 
       // Kiểm tra cả key và value xem có chứa chuỗi đặc biệt không
       const containsSpecial =
-        Object.keys(obj).some(key => key.includes(specialSubstring)) ||
-        Object.values(obj).some(val => typeof val === 'string' && val.includes(specialSubstring));
+        Object.keys(obj).some((key) => key.includes(specialSubstring)) ||
+        Object.values(obj).some(
+          (val) => typeof val === "string" && val.includes(specialSubstring)
+        );
 
       // Nếu có nhiều hơn 5 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
       if (emptyCount > 5 && !containsSpecial) {
@@ -120,9 +129,6 @@ function convertExcelToJSON(filePath) {
     throw new Error("Cannot read file!: " + error.message);
   }
 }
-
-
-
 
 // Hàm v1 có xử lí 1 sheet 1 khoa, nhiều sheet nhiều khoakhoa
 // const convertExcelToJSON = async (filePath) => {
@@ -578,7 +584,7 @@ function tachLopHocPhan(chuoi) {
 // }
 
 function processLecturerInfo(input, dataGiangVien, soGiangVien) {
-  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi 
+  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi
   input = input.trim();
 
   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
@@ -1082,11 +1088,11 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || 0,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
-
     ]);
 
   // Kiểm tra nếu không có đối tượng hợp lệ
@@ -1902,62 +1908,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-          .map(
-            (u) =>
-              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-          )
-          .join(" ")}
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayBatDau
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayKetThuc
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-          .map(
-            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-          )
-          .join(" ")}
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2236,7 +2242,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
         SUM(qc.QuyChuan) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
@@ -2251,7 +2257,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
     `;
 
   const value = [dot, ki, namHoc];
@@ -2309,6 +2315,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             GioiTinh,
             he_dao_tao,
             NoiCongTac,
+            MaBoMon,
           } = item;
 
           req.session.tmp++;
@@ -2320,7 +2327,6 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
 
           return [
             id_Gvm,
@@ -3121,7 +3127,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
         SUM(qc.QuyChuan * 0.3) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
@@ -3138,7 +3144,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
 `;
 
   const value = [dot, ki, namHoc];
@@ -3191,6 +3197,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             GioiTinh,
             he_dao_tao,
             NoiCongTac,
+            MaBoMon,
           } = item;
 
           req.session.tmp++;
@@ -3202,7 +3209,6 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
 
           return [
             id_Gvm,
