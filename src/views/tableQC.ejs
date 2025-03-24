@@ -185,6 +185,7 @@
             <button class="dropdown-item" onclick="exportToWord()">Word</button>
           </div>
         </div>
+        <div id="loading" style="display: none;">Loading...</div>
         <div class="overflow-auto">
           <table class="table table-bordered">
             <thead>
@@ -452,6 +453,16 @@
       }
 
       function renderTable(data) {
+        // Thêm spinner loading nếu chưa tồn tại
+        let loadingSpinner = document.getElementById('loading-spinner');
+        if (!loadingSpinner) {
+          loadingSpinner = document.createElement('div');
+          loadingSpinner.id = 'loading-spinner';
+          loadingSpinner.innerHTML = 'Loading...';
+          // Thêm spinner vào một container phù hợp, ví dụ: body hoặc container chứa bảng
+          document.body.appendChild(loadingSpinner);
+        }
+
         // Chọn các cột bạn muốn hiển thị
         const columnsToDisplay = ['Khoa', 'Dot', 'KiHoc', 'NamHoc', 'LopHocPhan', 'GiaoVien', 'GiaoVienGiangDay', 'MoiGiang', 'SoTinChi', 'TenLop', 'LL', 'QuyChuan'];
         let tableHtml = '';
@@ -476,14 +487,13 @@
           const newHeaderName = headersMap[header] || header; // Sử dụng tên cột mới nếu có
           tableHtml += `<th>${newHeaderName}</th>`;
         });
-
         document.getElementById('table-header').innerHTML = tableHtml;
 
         // Xóa dữ liệu bảng cũ nếu có trước khi thêm mới
         document.getElementById('data-table-body').innerHTML = '';
 
-        // Duyệt qua từng mục trong dữ liệu
-        data.forEach(item => {
+        // Render các dòng dữ liệu vào bảng (tối ưu: tạo chuỗi HTML rồi thêm vào một lần)
+        const tableRows = data.map(item => {
           let rowHtml = columnsToDisplay.map(key => {
             let cellValue = item[key] !== null ? item[key] : '';
 
@@ -491,18 +501,15 @@
             if (key === 'MoiGiang') {
               cellValue = cellValue === 1 ? 'Có' : 'Không';
             }
-
             return `<td>${cellValue}</td>`;
           }).join('');
+          return `<tr>${rowHtml}</tr>`;
+        }).join('');
 
-          document.getElementById('data-table-body').innerHTML += `<tr>${rowHtml}</tr>`;
-        });
+        document.getElementById('data-table-body').innerHTML = tableRows;
 
-        // Xóa spinner sau khi hoàn thành (nếu có spinner)
-        const loadingSpinner = document.getElementById('loading-spinner');
-        if (loadingSpinner) {
-          loadingSpinner.remove();
-        }
+        // Xóa spinner sau khi hoàn thành
+        loadingSpinner.remove();
       }
 
       // Thêm sự kiện cho nút lọc
