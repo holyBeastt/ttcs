@@ -40,7 +40,7 @@ async function convertExcelToJSON(filePath) {
     if (rows.length === 0) {
       throw new Error("File Excel rỗng!");
     }
-    
+
     // Tìm dòng chứa header. key nhận biết header là STT
     const headerRowIndex = rows.findIndex((row) => {
       return row[0] === "STT"
@@ -626,27 +626,26 @@ function processLecturerInfo(input, dataGiangVien, soGiangVien) {
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
   const prefixes = [
-    "PGS\\.?", // "PGS." hoặc "PGS"
-    "TS\\.?", // "TS." hoặc "TS"
-    "PGS\\.TS\\.?", // "PGS.TS." hoặc "PGS TS"
-    "\\( gvm \\)",
-    "\\(gvm\\)",
-    "GVM",
-    "GVMời",
-    "Giảng viên mời",
+    "PGS\\.?",              // Phó Giáo sư (PGS, PGS.)
+    "T(?:H)?S\\.?",         // Tiến sĩ (TS, THS, thS, ...)
+    "PGS\\.T(?:H)?S\\.?",   // PGS.TS hoặc PGS.THS.
+    "GS\\.T(?:H)?S\\.?",    // GS.TS hoặc GS.THS.
+    "\\(\\s*GVM\\s*\\)",    // (GVM) với khoảng trắng tùy ý
+    "GVMỜI",               // GVMỜI
+    "GIẢNG VIÊN MỜI"       // GIẢNG VIÊN MỜI
   ];
 
-  // Tạo regex tổng hợp để loại bỏ tất cả tiền tố
-  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")}) \\b`, "gi");
+  // Chỉnh regex để loại bỏ cả trường hợp có hoặc không có dấu cách sau học hàm/học vị
+  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")})\\.?\\s*`, "gi");
 
-  // Xóa tất cả tiền tố trong danh sách
+  // Thực hiện thay thế mà không làm thay đổi định dạng gốc của phần còn lại
   name = name.replace(combinedRegex, "").trim();
 
   // Loại bỏ dấu ngoặc và nội dung bên trong (nếu có)
   name = name.replace(/\(.*?\)/g, "").trim();
 
-  // Loại bỏ ký tự đặc biệt hoặc khoảng trắng thừa còn lại
-  name = name.replace(/[^a-zA-ZÀ-ỹ\s]/g, "").trim(); // Chỉ giữ lại chữ cái và khoảng trắng
+  // Loại bỏ ký tự đặc biệt, chỉ giữ lại chữ cái (cả in hoa lẫn in thường) và khoảng trắng
+  name = name.replace(/[^a-zA-ZÀ-Ỹà-ỹ\s]/g, "").trim();
 
   return name;
 }
@@ -1088,8 +1087,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        0,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1908,62 +1907,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
