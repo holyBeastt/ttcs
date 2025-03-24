@@ -459,12 +459,50 @@
           loadingSpinner = document.createElement('div');
           loadingSpinner.id = 'loading-spinner';
           loadingSpinner.innerHTML = 'Loading...';
-          // Thêm spinner vào một container phù hợp, ví dụ: body hoặc container chứa bảng
+          // Thêm spinner vào container phù hợp, ví dụ: body hoặc container chứa bảng
           document.body.appendChild(loadingSpinner);
         }
 
-        // Chọn các cột bạn muốn hiển thị
-        const columnsToDisplay = ['Khoa', 'Dot', 'KiHoc', 'NamHoc', 'LopHocPhan', 'GiaoVien', 'GiaoVienGiangDay', 'MoiGiang', 'SoTinChi', 'TenLop', 'LL', 'QuyChuan'];
+        // Danh sách cột cần hiển thị
+        const columnsToDisplay = [
+          'Khoa',
+          'Dot',
+          'KiHoc',
+          'NamHoc',
+          'LopHocPhan',
+          'GiaoVien',
+          'GiaoVienGiangDay',
+          'MoiGiang',
+          'SoTinChi',
+          'TenLop',
+          'LL',
+          'QuyChuan'
+        ];
+
+        // Mapping định nghĩa width theo yêu cầu:
+        // - Khoa, Dot, KiHoc: 5% mỗi cột
+        // - NamHoc: 10%
+        // - LopHocPhan: 22.5%
+        // - GiaoVien: 25%
+        // - GiaoVienGiangDay: 22.5%
+        const customWidths = {
+          'Khoa': '5%',
+          'Dot': '5%',
+          'KiHoc': '5%',
+          'NamHoc': '10%',
+          'LopHocPhan': '22.5%',
+          'GiaoVien': '25%',
+          'GiaoVienGiangDay': '22.5%'
+        };
+
+        // Tạo mảng đối tượng chứa tên cột và width (nếu có custom, nếu không sẽ lấy auto)
+        const columnsWithWidth = columnsToDisplay.map(col => ({
+          name: col,
+          width: customWidths[col] || 'auto'
+        }));
+
+        console.log("Columns with width:", columnsWithWidth);
+
         let tableHtml = '';
 
         const headersMap = {
@@ -482,22 +520,22 @@
           'QuyChuan': 'Số tiết quy chuẩn',
         };
 
-        // Tạo header
-        columnsToDisplay.forEach(header => {
-          const newHeaderName = headersMap[header] || header; // Sử dụng tên cột mới nếu có
-          tableHtml += `<th>${newHeaderName}</th>`;
+        // Tạo header với width được chỉ định
+        columnsWithWidth.forEach(col => {
+          const newHeaderName = headersMap[col.name] || col.name; // Sử dụng tên cột mới nếu có
+          tableHtml += `<th style="width: ${col.width};">${newHeaderName}</th>`;
         });
         document.getElementById('table-header').innerHTML = tableHtml;
 
         // Xóa dữ liệu bảng cũ nếu có trước khi thêm mới
         document.getElementById('data-table-body').innerHTML = '';
 
-        // Render các dòng dữ liệu vào bảng (tối ưu: tạo chuỗi HTML rồi thêm vào một lần)
+        // Render các dòng dữ liệu vào bảng (tạo chuỗi HTML rồi thêm vào một lần)
         const tableRows = data.map(item => {
           let rowHtml = columnsToDisplay.map(key => {
             let cellValue = item[key] !== null ? item[key] : '';
 
-            // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không'
+            // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
             if (key === 'MoiGiang') {
               cellValue = cellValue === 1 ? 'Có' : 'Không';
             }
