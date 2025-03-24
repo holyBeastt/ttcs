@@ -28,7 +28,7 @@ function isRowMerged(sheet, rowIndex, totalColumns) {
 }
 
 // hàm v2 có thêm xử lí 1 sheet nhiều khoakhoa
-function convertExcelToJSON(filePath) {
+async function convertExcelToJSON(filePath) {
   try {
     // Đọc file Excel
     const workbook = XLSX.readFile(filePath);
