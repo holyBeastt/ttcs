@@ -110,7 +110,7 @@
           <div class="form-group">
             <select class="selectop" id="he_dao_tao" name="he_dao_tao">
               <option value="Đóng học phí">Đóng học phí</option>
-              <option value="Đóng học phí">Mật mã</option>
+              <option value="Mật Mã">Mật mã</option>
             </select>
           </div>
         </div>
@@ -451,8 +451,8 @@
           html: "Thành công",
           icon: "success",
           confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
+          width: "auto",
+          padding: "20px",
         });
       } else if (message === "duplicateKiTu") {
         Swal.fire({
@@ -460,8 +460,17 @@
           html: "Kí tự bắt đầu đã tồn tại",
           icon: "info",
           confirmButtonText: "OK",
-          width: "auto", // Tự động điều chỉnh chiều rộng
-          padding: "20px", // Giữ khoảng cách cho nội dung
+          width: "auto",
+          padding: "20px",
+        });
+      } else if (message === "duplicateKiTuAndHeDaoTao") {
+        Swal.fire({
+          title: "Thông báo",
+          html: "Kí tự bắt đầu với hệ đào tạo này đã tồn tại",
+          icon: "info",
+          confirmButtonText: "OK",
+          width: "auto",
+          padding: "20px",
         });
       } else if (message == null) {
       } else {
@@ -486,6 +495,39 @@
           const heDaoTao = $("#he_dao_tao").val();
           const giaTriSoSanh = `${loaiDaoTao} (${heDaoTao})`;
 
+          // Kiểm tra trùng lặp trước khi thêm mới
+          $.ajax({
+            url: "/kytubatdau/check",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+              viet_tat: vietTat,
+              gia_tri_so_sanh: giaTriSoSanh,
+            }),
+            success: function (response) {
+              // Nếu không trùng, tiến hành thêm mới
+              addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh);
+            },
+            error: function (xhr) {
+              if (xhr.status === 409) {
+                Swal.fire({
+                  title: "Thông báo",
+                  html:
+                    xhr.responseJSON.message ||
+                    "Kí tự bắt đầu với hệ đào tạo này đã tồn tại",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
+                });
+              } else {
+                alert("Có lỗi xảy ra khi kiểm tra.");
+              }
+            },
+          });
+        });
+
+        function addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh) {
           $.ajax({
             url: "/kytubatdau",
             method: "POST",
@@ -497,14 +539,24 @@
               gia_tri_so_sanh: giaTriSoSanh,
             }),
             success: function (response) {
-              alert("Thêm mới thành công!");
-              location.reload();
+              Swal.fire({
+                title: "Thông báo",
+                html: "Thêm mới thành công!",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  location.reload();
+                }
+              });
             },
             error: function (error) {
               alert("Có lỗi xảy ra khi thêm mới.");
             },
           });
-        });
+        }
       });
     </script>
   </body>
