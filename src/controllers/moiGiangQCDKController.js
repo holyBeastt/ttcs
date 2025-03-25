@@ -1727,6 +1727,173 @@ const exportToExcel = async (req, res) => {
   });
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  // Sử dụng các phương thức lấy giá trị theo giờ địa phương
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
+
+
+const exportToExcel_HDDK = async (req, res) => {
+  try {
+    const { renderData } = req.body;
+
+    if (!renderData || renderData.length === 0) {
+      return res.status(400).send("Dữ liệu trống, không thể xuất file Excel");
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1', {
+      pageSetup: { orientation: 'landscape' }
+    });
+
+    // Ánh xạ tên cột theo yêu cầu
+    const headerMapping = {
+      TongTiet: "Số tiết",
+      TongSoTiet: "Tổng số tiết",
+      NgayBatDau: "Ngày kí HĐ",
+      NgayKetThuc: "Ngày thanh lí HĐ",
+      GioiTinh: "Danh xưng",
+      GiangVien: "Họ tên",
+      NgaySinh: "Ngày sinh",
+      CCCD: "CCCD",
+      NgayCapCCCD: "Ngày cấp CCCD",
+      HocVi: "Học vị",
+      ChucVu: "Chức vụ",
+      DienThoai: "Điện thoại",
+      Email: "Email",
+      STK: "Số TK",
+      NganHang: "Ngân hàng",
+      MaSoThue: "Mã số thuế",
+      DiaChi: "Địa chỉ",
+      NoiCongTac: "Nơi công tác",
+      MonGiangDayChinh: "Bộ môn"
+    };
+
+    // Tạo danh sách header từ các key của headerMapping
+    const headers = Object.keys(headerMapping);
+
+    // Tính toán độ rộng tự động cho từng cột dựa trên header và nội dung
+    const rawWidths = headers.map(key => {
+      let maxLen = headerMapping[key].length;
+      renderData.forEach(row => {
+        // Nếu là ngày thì chuyển đổi sang chuỗi dạng dd/mm/yyyy để tính độ dài
+        let cellValue;
+        if ((key === "NgayBatDau" || key === "NgayKetThuc") && row[key]) {
+          const date = new Date(row[key]);
+          cellValue = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        } else {
+          cellValue = row[key] !== null && row[key] !== undefined ? row[key].toString() : "";
+        }
+        if (cellValue.length > maxLen) {
+          maxLen = cellValue.length;
+        }
+      });
+      return maxLen;
+    });
+
+    const totalRawWidth = rawWidths.reduce((sum, w) => sum + w, 0);
+    const scale = totalRawWidth > 0 ? 500 / totalRawWidth : 1;
+
+    worksheet.columns = headers.map((key, index) => ({
+      header: headerMapping[key],
+      key: key,
+      width: Math.round(rawWidths[index] * scale * 100) / 100
+    }));
+
+    // Thiết lập style cho dòng header: font Times New Roman, in đậm, màu nền #007bff và màu chữ trắng
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { name: "Times New Roman", bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF007BFF' } // Mã ARGB cho màu #007bff
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // Chuyển đổi giá trị của ngày thành Date object và định dạng danh xưng
+    const formattedData = renderData.map(row => {
+      const formattedRow = { ...row };
+      if (row.NgayBatDau) {
+        formattedRow.NgayBatDau = formatDate(row.NgayBatDau);
+      }
+      if (row.NgayKetThuc) {
+        formattedRow.NgayKetThuc = formatDate(row.NgayKetThuc);
+      }
+      if (row.NgaySinh) {
+        formattedRow.NgaySinh = formatDate(row.NgaySinh);
+      }
+      if (row.NgayCapCCCD) {
+        formattedRow.NgayCapCCCD = formatDate(row.NgayCapCCCD);
+      }
+      formattedRow.GioiTinh = row.GioiTinh === "Nam" ? "Ông" : "Bà";
+      return formattedRow;
+    });
+
+    // Thêm dữ liệu vào sheet
+    formattedData.forEach(data => {
+      worksheet.addRow(data);
+    });
+
+    // Căn chỉnh cho tất cả các cell
+    worksheet.eachRow({ includeEmpty: true }, row => {
+      row.eachCell(cell => {
+        cell.alignment = {
+          wrapText: true,
+          vertical: 'middle',
+          horizontal: 'center'
+        };
+      });
+    });
+
+    // Định dạng cột ngày: NgayBatDau và NgayKetThuc theo định dạng "dd/mm/yyyy"
+    if (worksheet.getColumn("NgayBatDau")) {
+      worksheet.getColumn("NgayBatDau").numFmt = "dd/mm/yyyy";
+    }
+    if (worksheet.getColumn("NgayKetThuc")) {
+      worksheet.getColumn("NgayKetThuc").numFmt = "dd/mm/yyyy";
+    }
+
+    // Đặt tên file dựa trên dữ liệu mẫu (lưu ý: KiHoc và NamHoc phải có trong renderData[0])
+    const fileName = `thong_tin_hop_dong_du_kien_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+    const filePath = path.join("./uploads", fileName);
+
+    // Ghi file Excel ra file hệ thống
+    await workbook.xlsx.writeFile(filePath);
+
+    // Gửi file về client và sau đó xóa file khỏi hệ thống
+    res.download(filePath, fileName, async (err) => {
+      if (err) {
+        console.error("Lỗi khi gửi file:", err);
+        return res.status(500).send("Không thể tải file");
+      }
+      try {
+        await fs.promises.unlink(filePath);
+        console.log("File đã được xóa thành công sau khi gửi.");
+      } catch (unlinkErr) {
+        console.error("Lỗi khi xóa file:", unlinkErr);
+      }
+    });
+
+  } catch (error) {
+    console.error("Lỗi khi xuất file Excel:", error);
+    res.status(500).send("Lỗi khi xuất file Excel");
+  }
+};
+
 
 
 
@@ -1895,4 +2062,5 @@ module.exports = {
   exportToWord,
   exportToExcel,
   editStudentQuanity,
+  exportToExcel_HDDK
 };

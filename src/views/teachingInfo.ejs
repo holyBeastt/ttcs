@@ -155,15 +155,16 @@
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       font-size: 14px;
       padding: 5px;
-      width: 200px ; /* Giảm độ rộng */
+      width: 200px;
+      /* Giảm độ rộng */
       font-size: 12px !important;
-  }
-  
-  
+    }
+
+
     /* Hiển thị đẹp hơn, không cần hover */
     .ui-menu-item {
-        padding: 8px;
-        cursor: default;
+      padding: 8px;
+      cursor: default;
     }
   </style>
 </head>
@@ -205,7 +206,8 @@
           <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
             style="width: 200px;" />
           <!-- Tìm kiếm theo bộ môn -->
-          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn"  class="form-control m-2 search" style="width: 200px;" />
+          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" class="form-control m-2 search"
+            style="width: 200px;" />
 
           <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
             <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
@@ -402,18 +404,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <!-- Thêm jQuery và jQuery UI -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <!-- jQuery UI CSS -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
     <!-- <script>
       $(document).ready(function () {
@@ -481,15 +477,13 @@
         // }
 
         // Nếu role là 1 trong 3 giá trị sau thì hiển thị cột, ngược lại thì ẩn
-        if (role === 'Lãnh đạo khoa') {
-          // Hiển thị cột 'khoaColumn'
+        if (1 == 1) {
+          if (role != "Lãnh đạo khoa") {
+            document.getElementById("checkAllKhoa").disabled = true;
+          }
           document.getElementById('khoaColumn').style.display = 'table-cell';
           document.getElementById('daoTaoColumn').style.display = 'table-cell';
           document.getElementById('taiChinhColumn').style.display = 'table-cell';
-        } else {
-          // Ẩn cột 'khoaColumn'
-          document.getElementById('khoaColumn').style.display = 'none';
-          document.getElementById('ankhoa').style.display = 'none';
         }
       });
 
@@ -922,7 +916,7 @@
             boMonInput.id = `boMonInput-${row.ID}`;
             boMonTd.appendChild(boMonInput);
             tableRow.appendChild(boMonTd);
-  
+
             showSuggestionsBoMon(boMonInput);
 
             //Thẻ select hình thức thi giữa kỳ
@@ -1034,10 +1028,14 @@
             let khoaCheckboxTd, khoaCheckbox;
             khoaCheckboxTd = document.createElement('td');
             khoaCheckbox = document.createElement('input');
+            khoaCheckbox.disabled = true;
+            if (role == "Lãnh đạo khoa") {
+              khoaCheckbox.disabled = false;
+              khoaCheckbox.onchange = () => updateCheckAll('khoa');
+            }
             khoaCheckbox.type = 'checkbox';
             khoaCheckbox.name = 'khoa';
             khoaCheckbox.checked = row.KhoaDuyet;
-            khoaCheckbox.onchange = () => updateCheckAll('khoa');
             khoaCheckboxTd.appendChild(khoaCheckbox);
             tableRow.appendChild(khoaCheckboxTd);
 
@@ -1064,15 +1062,9 @@
 
             // Điều kiện ẩn checkbox Khoa nếu role không phải "CNTT_ALL"
             if (role != "Lãnh đạo khoa") {
-              // Thiết lập thuộc tính CSS để thu nhỏ checkbox và ô <td> chứa nó
-              khoaCheckbox.style.width = '10px'; // Đặt chiều rộng nhỏ nhất có thể
-              khoaCheckbox.style.height = '10px'; // Đặt chiều cao nhỏ nhất có thể
-              khoaCheckbox.style.display = 'none';
-              daoTaoCheckbox.style.display = 'none';
-              taiChinhCheckbox.style.display = 'none';
-
-              khoaCheckboxTd.style.width = '1px';
-              khoaCheckboxTd.style.padding = '0';
+              khoaCheckbox.disabled = true;
+              daoTaoCheckbox.disabled = true;
+              taiChinhCheckbox.disabled = true;
             }
 
 
@@ -1152,7 +1144,7 @@
             checkAllCheckbox.disabled = true;
             // Ngăn không cho người dùng thay đổi checkbox tổng
             //checkAllCheckbox.addEventListener('click', function (e) {
-             // e.preventDefault(); // Ngăn thay đổi trạng thái
+            // e.preventDefault(); // Ngăn thay đổi trạng thái
             //});
           }
         }
@@ -1342,188 +1334,188 @@
       $(document).ready(function () {
         // Cấu hình autocomplete
         $("#filterBoMon").autocomplete({
-            source: function (request, response) {
-                const value = request.term.toLowerCase();
+          source: function (request, response) {
+            const value = request.term.toLowerCase();
 
-                const boMon = JSON.parse(localStorage.getItem("boMon"));
+            const boMon = JSON.parse(localStorage.getItem("boMon"));
 
-                let suggestions = boMon
-                    .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
-    
-                // Nếu có giá trị nhập vào thì lọc
-                if (value) {
-                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-                }
-    
-                response(suggestions);
-            },
-            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
-            select: function (event, ui) {
-                let parts = ui.item.value.split("-");
-                let processedName = parts.slice(2).join("-").trim();
-                $("#filterBoMon").val(processedName);
-                filterTable();
-                return false;
+            let suggestions = boMon
+              .map(item => `${item.MaPhongBan} - ${item.TenBoMon} - ${item.MaBoMon}`);
+
+            // Nếu có giá trị nhập vào thì lọc
+            if (value) {
+              suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
             }
+
+            response(suggestions);
+          },
+          minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+          select: function (event, ui) {
+            let parts = ui.item.value.split("-");
+            let processedName = parts.slice(2).join("-").trim();
+            $("#filterBoMon").val(processedName);
+            filterTable();
+            return false;
+          }
         });
-    
+
         // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
         $("#filterBoMon").on("focus", function () {
-            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+          $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
         });
-    });
-    
-    let boMonTheoGiangVienCache =
-      JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
-    let nameGvmCache = JSON.parse(localStorage.getItem("nameGvm")) || [];
-    let nameGvCoHuuCache = JSON.parse(localStorage.getItem("nameGv")) || [];
-    let valuesCache;
-
-    function showSuggestionsGiangVien(input, moiGiang, id) {
-      $(input).autocomplete({
-        source: function (request, response) {
-          //const rawValue = request.term.trim();
-          const bangDuLieuCache = globalData;
-          const rawValue = input.value.trim();
-          const values = rawValue.split(",").map((val) => val.trim());
-          valuesCache = values;
-          const value = values.pop().toLowerCase();
-
-          const currentObject = bangDuLieuCache.find(
-            (item) => item.ID === id
-          );
-          if (!currentObject){
-            return;
-          } 
-
-          const he_dao_tao = currentObject.he_dao_tao;
-          const validhe_dao_tao = [
-            "Nghiên cứu sinh (Đóng học phí)",
-            "Cao học (Đóng học phí)",
-          ];
-
-          let suggestions = [];
-
-          // Nếu đã nhập 1 giảng viên và hệ đào tạo không hợp lệ => không gợi ý
-          if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
-            return;
-
-          // Gợi ý theo điều kiện
-          if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
-            if (moiGiang) {
-              suggestions = nameGvmCache
-                .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
-                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
-            } else {
-              suggestions = nameGvCoHuuCache
-                .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
-                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
-            }
-          } else if (values.length === 0) {
-            // Nếu chưa có tên nào, lấy tất cả các giảng viên, phân biệt theo moiGiang
-            if (moiGiang) {
-              suggestions = nameGvmCache
-                .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
-                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
-            } else {
-              suggestions = nameGvCoHuuCache
-                .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
-                .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
-            }
-          }
-
-          // Lọc nhanh bằng regex
-          if (value) {
-            const regex = new RegExp(value, "i");
-            suggestions = suggestions.filter((name) => regex.test(name));
-          }
-
-          response(suggestions);
-        },
-        minLength: 0,
-        delay: 0,
-        autoFocus: false, // tự động focus mục đầu tiên
-        select: function (event, ui) {
-          const selectedName = ui.item.value.split(" - ")[0];
-          const values = valuesCache;
-          const bangDuLieuCache = globalData;
-          const itemIndex = bangDuLieuCache.findIndex(
-            (item) => item.ID === id
-          );
-          if (itemIndex === -1) return;
-
-          const ID = bangDuLieuCache[itemIndex].ID;
-          input.value =
-            values.length > 0
-              ? `${values.join(", ")}, ${selectedName}`
-              : selectedName;
-
-          const lecturerFound = boMonTheoGiangVienCache.find(
-            (lecturer) => lecturer.HoTen === selectedName.trim()
-          );
-
-          if (lecturerFound) {
-            const data = {
-              GiaoVienGiangDay: input.value,
-              BoMon: lecturerFound.MonGiangDayChinh,
-              ID: ID,
-            };
-
-            const boMonInput = document.getElementById(`boMonInput-${id}`);
-
-            if (boMonInput) boMonInput.value = lecturerFound.MonGiangDayChinh;
-
-            fetch("/update-name", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data),
-            }).catch((error) => console.error("Có lỗi xảy ra:", error));
-          }
-
-          return false;
-        },
       });
 
-      // Gọi autocomplete "search" khi input được focus hoặc click
-      $(input).on("focus click", function () {
-        $(this).autocomplete("search", "");
-      });
-    }
+      let boMonTheoGiangVienCache =
+        JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
+      let nameGvmCache = JSON.parse(localStorage.getItem("nameGvm")) || [];
+      let nameGvCoHuuCache = JSON.parse(localStorage.getItem("nameGv")) || [];
+      let valuesCache;
 
-    function showSuggestionsBoMon(input) {
-      // Kiểm tra nếu autocomplete đã được khởi tạo
-      if ($(input).data("ui-autocomplete")) {
-        return;
+      function showSuggestionsGiangVien(input, moiGiang, id) {
+        $(input).autocomplete({
+          source: function (request, response) {
+            //const rawValue = request.term.trim();
+            const bangDuLieuCache = globalData;
+            const rawValue = input.value.trim();
+            const values = rawValue.split(",").map((val) => val.trim());
+            valuesCache = values;
+            const value = values.pop().toLowerCase();
+
+            const currentObject = bangDuLieuCache.find(
+              (item) => item.ID === id
+            );
+            if (!currentObject) {
+              return;
+            }
+
+            const he_dao_tao = currentObject.he_dao_tao;
+            const validhe_dao_tao = [
+              "Nghiên cứu sinh (Đóng học phí)",
+              "Cao học (Đóng học phí)",
+            ];
+
+            let suggestions = [];
+
+            // Nếu đã nhập 1 giảng viên và hệ đào tạo không hợp lệ => không gợi ý
+            if (values.length > 0 && !validhe_dao_tao.includes(he_dao_tao))
+              return;
+
+            // Gợi ý theo điều kiện
+            if (values.length > 0 && validhe_dao_tao.includes(he_dao_tao)) {
+              if (moiGiang) {
+                suggestions = nameGvmCache
+                  .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+                  .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+              } else {
+                suggestions = nameGvCoHuuCache
+                  .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
+                  .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+              }
+            } else if (values.length === 0) {
+              // Nếu chưa có tên nào, lấy tất cả các giảng viên, phân biệt theo moiGiang
+              if (moiGiang) {
+                suggestions = nameGvmCache
+                  .map(item => `${item.HoTen} - ${item.MaPhongBan}`)
+                  .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+              } else {
+                suggestions = nameGvCoHuuCache
+                  .map(item => `${item.TenNhanVien} - ${item.MaPhongBan}`)
+                  .filter(name => name.toLowerCase().includes(value)); // Lọc theo giá trị nhập vào
+              }
+            }
+
+            // Lọc nhanh bằng regex
+            if (value) {
+              const regex = new RegExp(value, "i");
+              suggestions = suggestions.filter((name) => regex.test(name));
+            }
+
+            response(suggestions);
+          },
+          minLength: 0,
+          delay: 0,
+          autoFocus: false, // tự động focus mục đầu tiên
+          select: function (event, ui) {
+            const selectedName = ui.item.value.split(" - ")[0];
+            const values = valuesCache;
+            const bangDuLieuCache = globalData;
+            const itemIndex = bangDuLieuCache.findIndex(
+              (item) => item.ID === id
+            );
+            if (itemIndex === -1) return;
+
+            const ID = bangDuLieuCache[itemIndex].ID;
+            input.value =
+              values.length > 0
+                ? `${values.join(", ")}, ${selectedName}`
+                : selectedName;
+
+            const lecturerFound = boMonTheoGiangVienCache.find(
+              (lecturer) => lecturer.HoTen === selectedName.trim()
+            );
+
+            if (lecturerFound) {
+              const data = {
+                GiaoVienGiangDay: input.value,
+                BoMon: lecturerFound.MonGiangDayChinh,
+                ID: ID,
+              };
+
+              const boMonInput = document.getElementById(`boMonInput-${id}`);
+
+              if (boMonInput) boMonInput.value = lecturerFound.MonGiangDayChinh;
+
+              fetch("/update-name", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+              }).catch((error) => console.error("Có lỗi xảy ra:", error));
+            }
+
+            return false;
+          },
+        });
+
+        // Gọi autocomplete "search" khi input được focus hoặc click
+        $(input).on("focus click", function () {
+          $(this).autocomplete("search", "");
+        });
       }
 
-      // Lấy dữ liệu từ localStorage chỉ một lần
-      let boMon = JSON.parse(localStorage.getItem("boMon")) || [];
-      let suggestions = boMon.map(
-        (item) => `${item.TenBoMon} - ${item.MaBoMon}`
-      );
+      function showSuggestionsBoMon(input) {
+        // Kiểm tra nếu autocomplete đã được khởi tạo
+        if ($(input).data("ui-autocomplete")) {
+          return;
+        }
 
-      $(input).autocomplete({
-        source: function (request, response) {
-          let value = request.term.toLowerCase();
-          let filteredSuggestions = suggestions.filter((name) =>
-            name.toLowerCase().includes(value)
-          );
-          response(filteredSuggestions);
-        },
-        minLength: 0,
-        select: function (event, ui) {
-          let parts = ui.item.value.split("-");
-          let processedName = parts[1].trim();
-          $(input).val(processedName);
-          return false;
-        },
-      });
+        // Lấy dữ liệu từ localStorage chỉ một lần
+        let boMon = JSON.parse(localStorage.getItem("boMon")) || [];
+        let suggestions = boMon.map(
+          (item) => `${item.TenBoMon} - ${item.MaBoMon}`
+        );
 
-      $(input).on("focus", function () {
-        if (!$(this).data("ui-autocomplete")) return;
-        $(this).autocomplete("search", "");
-      });
-    }
+        $(input).autocomplete({
+          source: function (request, response) {
+            let value = request.term.toLowerCase();
+            let filteredSuggestions = suggestions.filter((name) =>
+              name.toLowerCase().includes(value)
+            );
+            response(filteredSuggestions);
+          },
+          minLength: 0,
+          select: function (event, ui) {
+            let parts = ui.item.value.split("-");
+            let processedName = parts[1].trim();
+            $(input).val(processedName);
+            return false;
+          },
+        });
+
+        $(input).on("focus", function () {
+          if (!$(this).data("ui-autocomplete")) return;
+          $(this).autocomplete("search", "");
+        });
+      }
 
       // Hàm xử lý tìm kiếm theo tên bộ môn
       function filterBoMon() {
@@ -1906,7 +1898,7 @@
         // Nếu quyền GV ẩn nút cập nhật và chèn ngày
         const role = localStorage.getItem("userRole");
 
-        if (role == 'GV'){
+        if (role == 'GV') {
           document.getElementById('update-qc').style.display = 'none';
           document.getElementById('fillDay').style.display = 'none';
           document.getElementById('batdau').style.display = 'none';

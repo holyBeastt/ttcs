@@ -46,6 +46,10 @@ router.post("/qcdk-export-excel", async (req, res) => {
   qcdk.exportToExcel(req, res);
 });
 
+router.post("/hddk-export-excel", async (req, res) => {
+  qcdk.exportToExcel_HDDK(req, res);
+});
+
 // sửa số sinh viênviên
 router.post("/qcdk/edit-student-quanity", async (req, res) => {
   qcdk.editStudentQuanity(req, res);

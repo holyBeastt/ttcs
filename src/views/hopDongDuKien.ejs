@@ -1,133 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/gvmList.css" />
-    <link rel="stylesheet" href="/css/table.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
-    <style>
-      .teacher-group {
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-        border-collapse: separate;
-        margin-bottom: 10px;
-      }
 
-      .teacher-group td,
-      .teacher-group th {
-        padding: 8px;
-        text-align: left;
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/gvmList.css" />
+  <link rel="stylesheet" href="/css/table.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <style>
+    .teacher-group {
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+      border-collapse: separate;
+      margin-bottom: 10px;
+    }
 
-      /* phần css cho label tổng số tiết ki*/
-      .total-label {
-        margin-left: auto;
-        /* Căn phải cho thẻ total-label */
-        margin-right: 0;
-        font-family: Arial, sans-serif;
-        font-size: 16px;
-        background-color: #f4f4f4;
-        padding: 10px;
-        border-radius: 8px;
-        width: fit-content;
-        /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
-        display: block;
-        /* Đảm bảo thẻ div là khối để căn phải hoạt động */
-      }
+    .teacher-group td,
+    .teacher-group th {
+      padding: 8px;
+      text-align: left;
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+    }
 
-      .total-label label {
-        font-weight: bold;
-        /* Giữ chữ in đậm */
-        color: #000;
-        /* Màu chữ đen */
-        margin-right: 8px;
-        /* Thêm khoảng cách bên phải */
-        cursor: pointer;
-        /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
-        padding: 5px 10px;
-        /* Thêm padding cho label để tạo không gian */
-        border: 1px solid #ccc;
-        /* Khung cho label */
-        border-radius: 4px;
-        /* Bo góc cho khung */
-      }
+    /* phần css cho label tổng số tiết ki*/
+    .total-label {
+      margin-left: auto;
+      /* Căn phải cho thẻ total-label */
+      margin-right: 0;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 8px;
+      width: fit-content;
+      /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+      display: block;
+      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+    }
 
-      .total-label label,
-      .total-label label span {
-        background-color: #007bff;
-        /* Màu nền khi hover */
-        color: #fff;
-        /* Màu chữ trắng khi hover */
-      }
+    .total-label label {
+      font-weight: bold;
+      /* Giữ chữ in đậm */
+      color: #000;
+      /* Màu chữ đen */
+      margin-right: 8px;
+      /* Thêm khoảng cách bên phải */
+      cursor: pointer;
+      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
+      padding: 5px 10px;
+      /* Thêm padding cho label để tạo không gian */
+      border: 1px solid #ccc;
+      /* Khung cho label */
+      border-radius: 4px;
+      /* Bo góc cho khung */
+    }
 
-      .total-label span {
-        font-weight: bold;
-        /* Giữ chữ trong span cũng in đậm */
-        color: #333;
-        /* Màu chữ đậm cho giá trị */
-      }
+    .total-label label,
+    .total-label label span {
+      background-color: #007bff;
+      /* Màu nền khi hover */
+      color: #fff;
+      /* Màu chữ trắng khi hover */
+    }
 
-      .btn {
-        height: 45px !important;
-      }
+    .total-label span {
+      font-weight: bold;
+      /* Giữ chữ trong span cũng in đậm */
+      color: #333;
+      /* Màu chữ đậm cho giá trị */
+    }
 
-      /* Phần cảnh báo nếu số tiết vượt quá 300 */
-      .alert-sotiet {
-        background-color: #ffe4b5;
-        color: #333;
-        /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
-      }
+    .btn {
+      height: 45px !important;
+    }
 
-      .no-shadow-page {
-        /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
-      }
+    /* Phần cảnh báo nếu số tiết vượt quá 300 */
+    .alert-sotiet {
+      background-color: #ffe4b5;
+      color: #333;
+      /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+    }
 
-      .table {
-        border-collapse: collapse;
-        width: 100%;
-        /*border: 2px solid #333 !important; /* Viền ngoài đậm */
-      }
+    .no-shadow-page {
+      /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
+    }
 
-      .table th,
-      .table td {
-        border: 1px solid #ccc; /* Viền giữa các ô nhạt hơn */
-        padding: 8px;
-        text-align: center;
-      }
+    .table {
+      border-collapse: collapse;
+      width: 100%;
+      /*border: 2px solid #333 !important; /* Viền ngoài đậm */
+    }
 
-      .table-dark th {
-        background-color: #343a40;
-        color: white;
-      }
+    .table th,
+    .table td {
+      border: 1px solid #ccc;
+      /* Viền giữa các ô nhạt hơn */
+      padding: 8px;
+      text-align: center;
+    }
 
-      .alert-sotiet {
-        background-color: #ffcccc !important; /* Nền đỏ nhạt nếu số tiết > 300 */
-      }
+    .table-dark th {
+      background-color: #343a40;
+      color: white;
+    }
 
-      .hd_du_kien_css {
-      }
-    </style>
-  </head>
+    .alert-sotiet {
+      background-color: #ffcccc !important;
+      /* Nền đỏ nhạt nếu số tiết > 300 */
+    }
 
-  <body>
-    <!-- Phần header -->
-    <%- include('header') %>
+    .hd_du_kien_css {}
+  </style>
+</head>
+
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
 
     <!-- Phần nội dung -->
 
@@ -139,10 +132,7 @@
             <h1>THÔNG TIN HỢP ĐỒNG GIẢNG VIÊN MỜI DỰ KIẾN</h1>
 
             <div class="controls-container">
-              <select
-                class="form-select w-100px mx-2 selectop"
-                id="combobox-dot"
-              >
+              <select class="form-select w-100px mx-2 selectop" id="combobox-dot">
                 <option value="">Đợt</option>
               </select>
 
@@ -150,19 +140,11 @@
                 <option value="">Kỳ</option>
               </select>
 
-              <select
-                class="form-select mx-2 selectop"
-                style="width: max-content"
-                id="NamHoc"
-              >
+              <select class="form-select mx-2 selectop" style="width: max-content" id="NamHoc">
                 <option value="">Năm học</option>
               </select>
 
-              <select
-                class="form-select mx-1 selectop"
-                style="width: max-content"
-                id="MaPhongBan"
-              >
+              <select class="form-select mx-1 selectop" style="width: max-content" id="MaPhongBan">
                 <option value="">Chọn khoa</option>
               </select>
 
@@ -180,15 +162,15 @@
               <button id="viewDataBtnDetail" class="btn view">
                 Xem dữ liệu chi tiết
               </button>
+              <button id="exportHDDK" class="btn view">
+                Xuất thông tin HĐ dự kiến
+              </button>
             </div>
 
             <div id="tableContainer" style="display: none">
               <div class="table-responsive">
                 <div class="over-f">
-                  <table
-                    id="dataTable"
-                    class="table table-striped table-hover table-bordered table-css"
-                  >
+                  <table id="dataTable" class="table table-striped table-hover table-bordered table-css">
                     <thead class="table-dark">
                       <tr>
                         <th>Số tiết</th>
@@ -236,8 +218,58 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script>
+      // renderData là biến var
+      document
+        .getElementById("exportHDDK")
+        .addEventListener("click", function (event) {
+          // Ngăn chặn lỗi
+          console.log(renderData)
+          if (Array.isArray(renderData) && renderData.length === 0) {
+            alert("Không có dữ liệu"); // Hiển thị thông báo khi mảng rỗng
+            return;
+          }
+          exportToExcel();
+        });
+
+      async function exportToExcel() {
+        const requestData = {
+          renderData: renderData,
+        };
+
+        try {
+          const response = await fetch("/hddk-export-excel", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to export: ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `thong_tin_hop_dong_du_kien_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error exporting data:", error);
+        }
+      }
+
+
+    </script>
     <!-- phần dữ liệu để hiển thị trên bảng -->
     <script>
+      var renderData = [];
+
       document.addEventListener("DOMContentLoaded", function () {
         const viewDataBtn = document.getElementById("viewDataBtn");
         const tableContainer = document.getElementById("tableContainer");
@@ -270,6 +302,7 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
+            renderData = data;
 
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
@@ -294,27 +327,27 @@
               ).toFixed(2);
               row.insertCell(2).textContent = item.NgayBatDau
                 ? new Date(item.NgayBatDau).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(3).textContent = item.NgayKetThuc
                 ? new Date(item.NgayKetThuc).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(4).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
               row.insertCell(5).textContent = item.GiangVien;
               row.insertCell(6).textContent = item.NgaySinh
                 ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
 
               row.insertCell(7).textContent = item.CCCD;
@@ -371,7 +404,7 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
-
+            renderData = data;
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
             tbody.innerHTML = "";
@@ -395,35 +428,35 @@
               ).toFixed(2);
               row.insertCell(2).textContent = item.NgayBatDau
                 ? new Date(item.NgayBatDau).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(3).textContent = item.NgayKetThuc
                 ? new Date(item.NgayKetThuc).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(4).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
               row.insertCell(5).textContent = item.GiangVien;
               row.insertCell(6).textContent = item.NgaySinh
                 ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(7).textContent = item.CCCD;
               row.insertCell(8).textContent = item.NgayCapCCCD
                 ? new Date(item.NgayCapCCCD).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(9).textContent = item.HocVi;
               row.insertCell(10).textContent = item.ChucVu;
@@ -443,9 +476,8 @@
               const cellAction = row.insertCell(19); // Thêm cột thứ 19 (sau MonGiangDayChinh)
               cellAction.innerHTML = `
                 <td>
-                  <button class="action-button view" onclick="viewClass(this, '${
-                    parseInt(item.id_Gvm) - 1
-                  }')">👁️</button>
+                  <button class="action-button view" onclick="viewClass(this, '${parseInt(item.id_Gvm) - 1
+                }')">👁️</button>
                 </td>
               `;
 
@@ -763,5 +795,6 @@
           }
         });
     </script>
-  </body>
+</body>
+
 </html>
