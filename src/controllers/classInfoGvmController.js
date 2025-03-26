@@ -85,9 +85,15 @@ const getClassInfoGvmData = async (req, res) => {
       SELECT * FROM phuLucDH
   )
 
-  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
+  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
   `;
 
+  // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
+  if (he_dao_tao !== 'ALL') {
+    query += ` AND he_dao_tao = ?`;
+  }
+
+  // Thêm điều kiện lọc theo khoa
   if (isKhoa == 0) {
     if (department != "ALL") {
       query += ` AND Khoa LIKE '%${department}%'`;
@@ -98,12 +104,12 @@ const getClassInfoGvmData = async (req, res) => {
 
   try {
     connection = await createPoolConnection();
-    const [results, fields] = await connection.query(query, [
-      dot,
-      ki,
-      nam,
-      he_dao_tao,
-    ]);
+    const queryParams = [dot, ki, nam];
+    if (he_dao_tao !== 'ALL') {
+      queryParams.push(he_dao_tao);
+    }
+    
+    const [results, fields] = await connection.query(query, queryParams);
 
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = results.reduce((acc, current) => {
