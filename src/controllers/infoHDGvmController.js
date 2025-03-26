@@ -631,7 +631,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan * 0.3) AS SoTiet,
+        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,

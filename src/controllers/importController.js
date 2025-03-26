@@ -2916,7 +2916,7 @@ const splitTeachers = (data) => {
 
     // Giả sử trường QC là giá trị của lớp gốc (100%)
     const originalQC = item.QuyChuan || 100; // Nếu không có QC thì mặc định là 100%
-    const secondQC = parseFloat((originalQC * 0.3).toFixed(2));
+    const secondQC = parseFloat((originalQC * 0.7).toFixed(2));
     const firstQC = originalQC - secondQC;
 
     // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
@@ -3127,7 +3127,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
-        SUM(qc.QuyChuan * 0.3) AS TongSoTiet,
+        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
     FROM

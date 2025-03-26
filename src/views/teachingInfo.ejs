@@ -569,7 +569,6 @@
 
 
           // Kiểm tra lại dữ liệu sau khi cập nhật
-          console.log('Dữ liệu sau khi chèn:', globalData);
 
           // Gửi dữ liệu đã cập nhật lên server
           fetch('/updateDateAll', {
@@ -617,7 +616,6 @@
             item.NgayKetThuc = format(item.NgayKetThuc); // Định dạng ngày bắt đầu
           });
 
-          console.log('Dữ liệu khi click Cập nhật : ', globalData);
           // Gửi dữ liệu lên server
           fetch('/check-teaching', {
             method: 'POST', // Phương thức POST
@@ -726,7 +724,6 @@
 
             const data = await response.json(); // Chuyển đổi dữ liệu JSON
 
-            console.log("data = ", data);
             localStorage.setItem('boMonTheoGiangVien', JSON.stringify(data));
             const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
             // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn

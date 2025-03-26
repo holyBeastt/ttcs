@@ -137,9 +137,6 @@
                       <%= gvmLists[i].MonGiangDayChinh %>
                     </td>
                     <td>
-                      <button class="action-button edit" onclick="editClass(this, <%= parseInt(gvmLists[i].id_Gvm)%>)">
-                        ✏️
-                      </button>
                       <button class="action-button view"
                         onclick="viewClass(this, <%= parseInt(gvmLists[i].id_Gvm) - 1 %>)">
                         👁️
@@ -219,10 +216,6 @@
       }
 
       // Chỉnh sửa gvm
-      function editClass(button, index) {
-        var hre = "/updateGvm/" + index;
-        window.location.href = hre;
-      }
       function viewClass(button, index) {
         var hre = "/viewGvm/" + index;
         window.location.href = hre;
