@@ -1842,10 +1842,10 @@ const updateQC = async (req, res) => {
       "SELECT TenNhanVien AS name FROM nhanvien"
     );
 
-    const validNames = new Set([
-      ...gvmList.map((gvm) => gvm.name.trim()),
-      ...coHuuList.map((nv) => nv.name.trim()),
-    ]);
+    // const validNames = new Set([
+    //   ...gvmList.map((gvm) => gvm.name.trim()),
+    //   ...coHuuList.map((nv) => nv.name.trim()),
+    // ]);
 
     const coHuuSet = new Set(coHuuList.map((nv) => nv.name.trim()));
     const gvmListSet = new Set(gvmList.map((gvm) => gvm.name.trim()));
@@ -1874,6 +1874,14 @@ const updateQC = async (req, res) => {
 
       if (KhoaDuyet == 1) {
         // Check cú pháp
+        // Nếu chưa điền giảng viên
+        if (!GiaoVienGiangDay || GiaoVienGiangDay.trim() === "") {
+          error_gv_rows.push(
+            `${LopHocPhan} (${TenLop}) - Chưa nhập giảng viên`
+          );
+          continue;
+        }
+
         // Nếu là hệ đại học và tên chứa dấu ,
         if (
           GiaoVienGiangDay?.includes(",") &&
