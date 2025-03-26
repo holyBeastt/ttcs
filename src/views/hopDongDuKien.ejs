@@ -408,13 +408,7 @@
             const namHoc = document.getElementById("NamHoc").value;
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
-            let khoa;
-
-            if (isKhoa == 1) {
-              khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
-            } else {
-              khoa = document.getElementById("MaPhongBan").value;
-            }
+            const khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
             const he_dao_tao = document.getElementById("he_dao_tao").value;
 
             if (!namHoc || !dot || !ki || !he_dao_tao) {
