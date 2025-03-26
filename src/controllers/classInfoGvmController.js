@@ -22,17 +22,9 @@ const getClassInfoGvmData = async (req, res) => {
   WITH 
  phuLucSauDH AS (
     SELECT DISTINCT
-        CASE 
-            WHEN qc.MoiGiang = 1 THEN TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', 1))
-            ELSE TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1))
-        END AS GiangVien, 
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
         qc.TenLop AS Lop, 
-        ROUND(
-            CASE 
-                WHEN qc.MoiGiang = 1 THEN qc.QuyChuan * 0.7 
-                ELSE qc.QuyChuan * 0.3 
-            END, 
-        2) AS SoTiet,
+        ROUND( qc.QuyChuan * 0.7, 2 ) AS SoTiet,
         qc.LopHocPhan AS TenHocPhan, 
         qc.KiHoc AS HocKy,
         qc.SoTinChi,
@@ -49,11 +41,8 @@ const getClassInfoGvmData = async (req, res) => {
         qc.he_dao_tao
     FROM quychuan qc
     JOIN gvmoi gv 
-        ON CASE 
-            WHEN qc.MoiGiang = 1 THEN TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', 1))
-            ELSE TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1))
-        END = gv.HoTen
-    WHERE qc.GiaoVienGiangDay LIKE '%,%'
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+    WHERE qc.GiaoVienGiangDay LIKE '%,%' AND qc.MoiGiang = 1
 ),
   phuLucDH AS (
       SELECT DISTINCT
@@ -89,7 +78,7 @@ const getClassInfoGvmData = async (req, res) => {
   `;
 
   // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
-  if (he_dao_tao !== 'ALL') {
+  if (he_dao_tao !== "ALL") {
     query += ` AND he_dao_tao = ?`;
   }
 
@@ -105,10 +94,10 @@ const getClassInfoGvmData = async (req, res) => {
   try {
     connection = await createPoolConnection();
     const queryParams = [dot, ki, nam];
-    if (he_dao_tao !== 'ALL') {
+    if (he_dao_tao !== "ALL") {
       queryParams.push(he_dao_tao);
     }
-    
+
     const [results, fields] = await connection.query(query, queryParams);
 
     // Nhóm các môn học theo giảng viên
@@ -123,7 +112,6 @@ const getClassInfoGvmData = async (req, res) => {
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
     res.json(groupedByTeacher);
-    console.log(groupedByTeacher)
   } catch (error) {
     console.error("Error fetching class info:", error);
     res.status(500).send("Internal Server Error");

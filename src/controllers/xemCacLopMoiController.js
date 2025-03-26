@@ -194,7 +194,7 @@ const renderInfo = async (req, res) => {
     console.error("Error executing query:", error);
     return res.status(500).json({ error: "Internal server error" });
   } finally {
-    connection.release(); // Trả kết nối về pool sau khi hoàn tất
+    if (connection) connection.release(); // Trả kết nối về pool sau khi hoàn tất
   }
 };
 
