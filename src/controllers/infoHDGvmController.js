@@ -905,7 +905,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -1121,6 +1121,7 @@ ORDER BY
       );
     }
 
+    console.log(req.query);
     res.json(rows);
   } catch (error) {
     console.error("Error fetching HD Gvm data:", error);
