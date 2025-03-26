@@ -20,30 +20,41 @@ const getClassInfoGvmData = async (req, res) => {
 
   let query = `
   WITH 
-  phuLucSauDH AS (
-      SELECT DISTINCT
-          TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
-          qc.TenLop AS Lop, 
-          ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, -- Làm tròn 2 chữ số sau dấu phẩy
-          qc.LopHocPhan AS TenHocPhan, 
-          qc.KiHoc AS HocKy,
-          qc.SoTinChi,
-          gv.id_Gvm,
-          gv.HocVi, 
-          gv.HSL,
-          qc.NgayBatDau, 
-          qc.NgayKetThuc,
-          gv.DiaChi,
-          qc.Dot,
-          qc.KiHoc,
-          qc.NamHoc,
-          qc.Khoa,
-          qc.he_dao_tao
-      FROM quychuan qc
-      JOIN gvmoi gv 
-          ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen -- Bỏ khoảng trắng dư thừa
-      WHERE qc.GiaoVienGiangDay LIKE '%,%'
-  ),
+ phuLucSauDH AS (
+    SELECT DISTINCT
+        CASE 
+            WHEN qc.MoiGiang = 1 THEN TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', 1))
+            ELSE TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1))
+        END AS GiangVien, 
+        qc.TenLop AS Lop, 
+        ROUND(
+            CASE 
+                WHEN qc.MoiGiang = 1 THEN qc.QuyChuan * 0.7 
+                ELSE qc.QuyChuan * 0.3 
+            END, 
+        2) AS SoTiet,
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        qc.SoTinChi,
+        gv.id_Gvm,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON CASE 
+            WHEN qc.MoiGiang = 1 THEN TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', 1))
+            ELSE TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1))
+        END = gv.HoTen
+    WHERE qc.GiaoVienGiangDay LIKE '%,%'
+),
   phuLucDH AS (
       SELECT DISTINCT
           TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
@@ -74,9 +85,15 @@ const getClassInfoGvmData = async (req, res) => {
       SELECT * FROM phuLucDH
   )
 
-  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND he_dao_tao = ?
+  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
   `;
 
+  // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
+  if (he_dao_tao !== 'ALL') {
+    query += ` AND he_dao_tao = ?`;
+  }
+
+  // Thêm điều kiện lọc theo khoa
   if (isKhoa == 0) {
     if (department != "ALL") {
       query += ` AND Khoa LIKE '%${department}%'`;
@@ -87,12 +104,12 @@ const getClassInfoGvmData = async (req, res) => {
 
   try {
     connection = await createPoolConnection();
-    const [results, fields] = await connection.query(query, [
-      dot,
-      ki,
-      nam,
-      he_dao_tao,
-    ]);
+    const queryParams = [dot, ki, nam];
+    if (he_dao_tao !== 'ALL') {
+      queryParams.push(he_dao_tao);
+    }
+    
+    const [results, fields] = await connection.query(query, queryParams);
 
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = results.reduce((acc, current) => {
@@ -106,6 +123,7 @@ const getClassInfoGvmData = async (req, res) => {
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
     res.json(groupedByTeacher);
+    console.log(groupedByTeacher)
   } catch (error) {
     console.error("Error fetching class info:", error);
     res.status(500).send("Internal Server Error");
