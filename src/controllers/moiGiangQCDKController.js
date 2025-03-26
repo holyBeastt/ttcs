@@ -1809,19 +1809,17 @@ const exportToExcel_HDDK = async (req, res) => {
 
     // Thiết lập style cho dòng header: font Times New Roman, in đậm, màu nền #007bff và màu chữ trắng
     const headerRow = worksheet.getRow(1);
-    headerRow.font = { name: "Times New Roman", bold: true, color: { argb: 'FFFFFFFF' } };
+
     headerRow.eachCell((cell) => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF007BFF' } // Mã ARGB cho màu #007bff
-      };
       cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' }
       };
+      cell.font = {
+        bold: true,
+      }
     });
 
     // Chuyển đổi giá trị của ngày thành Date object và định dạng danh xưng
@@ -1868,7 +1866,7 @@ const exportToExcel_HDDK = async (req, res) => {
     }
 
     // Đặt tên file dựa trên dữ liệu mẫu (lưu ý: KiHoc và NamHoc phải có trong renderData[0])
-    const fileName = `thong_tin_hop_dong_du_kien_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+    const fileName = `thong_tin_hop_dong_du_kien_ki_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
     const filePath = path.join("./uploads", fileName);
 
     // Ghi file Excel ra file hệ thống

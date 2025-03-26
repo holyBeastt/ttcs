@@ -254,7 +254,7 @@
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = `thong_tin_hop_dong_du_kien_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+          a.download = `thong_tin_hop_dong_du_kien_ki_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
