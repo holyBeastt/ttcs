@@ -469,7 +469,8 @@ const getHopDongDuKienData = async (req, res) => {
     const dot = req.query.dot;
     let ki = req.query.ki;
     const he_dao_tao = req.query.he_dao_tao;
-    const khoa = req.query.khoa;
+    // const khoa = req.query.khoa;
+    const khoa = undefined;
 
     if (he_dao_tao == "Đồ án") {
       ki = 0;
@@ -952,7 +953,7 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan * 0.3) AS SoTiet,
+        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
