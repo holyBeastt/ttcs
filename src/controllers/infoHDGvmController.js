@@ -584,7 +584,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1
+        qc.MoiGiang = 1 AND qc.he_dao_tao LIKE '%Đại học%'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,

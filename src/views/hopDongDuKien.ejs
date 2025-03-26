@@ -296,6 +296,7 @@
         const tableContainer = document.getElementById("tableContainer");
         const dataTable = document.getElementById("dataTable");
         const isKhoa = localStorage.getItem("isKhoa"); //
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
         viewDataBtn.addEventListener("click", async function () {
           try {
@@ -303,7 +304,7 @@
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
             if (isKhoa == 1) {
-              khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
+              khoa = MaPhongBan;
             } else {
               khoa = document.getElementById("MaPhongBan").value;
             }
@@ -408,7 +409,11 @@
             const namHoc = document.getElementById("NamHoc").value;
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
-            const khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
+            if (isKhoa == 1) {
+              khoa = MaPhongBan;
+            } else {
+              khoa = document.getElementById("MaPhongBan").value;
+            }
             const he_dao_tao = document.getElementById("he_dao_tao").value;
 
             if (!namHoc || !dot || !ki || !he_dao_tao) {
