@@ -469,15 +469,14 @@ const getHopDongDuKienData = async (req, res) => {
     const dot = req.query.dot;
     let ki = req.query.ki;
     const he_dao_tao = req.query.he_dao_tao;
-    // const khoa = req.query.khoa;
-    const khoa = undefined;
+    const khoa = req.query.khoa;
 
     if (he_dao_tao == "Đồ án") {
       ki = 0;
     }
 
     let rows;
-    if (khoa == undefined) {
+    if (khoa == "ALL") {
       [rows] = await connection.execute(
         `WITH DoAnHopDongDuKien AS (
     SELECT
@@ -632,7 +631,12 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS SoTiet,
+        SUM(ROUND(
+            qc.QuyChuan * CASE 
+                WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                ELSE 1 
+            END, 2
+        )) AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
@@ -648,7 +652,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
+        qc.he_dao_tao NOT LIKE '%Đại học%'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -953,7 +957,12 @@ ORDER BY
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS SoTiet,
+        SUM(ROUND(
+            qc.QuyChuan * CASE 
+                WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                ELSE 1 
+            END, 2
+        )) AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
@@ -969,7 +978,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.GiaoVienGiangDay LIKE '%,%' AND qc.he_dao_tao NOT LIKE '%Đại học%'
+        qc.he_dao_tao NOT LIKE '%Đại học%'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,

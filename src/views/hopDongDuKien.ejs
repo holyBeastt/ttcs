@@ -319,10 +319,9 @@
               namHoc
             )}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(
               ki
-            )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
-            if (khoa && khoa !== "ALL") {
-              url += `&khoa=${encodeURIComponent(khoa)}`;
-            }
+            )}&he_dao_tao=${encodeURIComponent(
+              he_dao_tao
+            )}&khoa=${encodeURIComponent(khoa)}`;
 
             const response = await fetch(url);
             if (!response.ok) {
@@ -425,10 +424,9 @@
               namHoc
             )}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(
               ki
-            )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
-            if (khoa && khoa !== "ALL") {
-              url += `&khoa=${encodeURIComponent(khoa)}`;
-            }
+            )}&he_dao_tao=${encodeURIComponent(
+              he_dao_tao
+            )}&khoa=${encodeURIComponent(khoa)}`;
 
             const response = await fetch(url);
             if (!response.ok) {
