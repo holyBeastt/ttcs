@@ -274,13 +274,14 @@
         const viewDataBtn = document.getElementById("viewDataBtn");
         const tableContainer = document.getElementById("tableContainer");
         const dataTable = document.getElementById("dataTable");
+        const isKhoa = localStorage.getItem("isKhoa"); // 
 
         viewDataBtn.addEventListener("click", async function () {
           try {
             const namHoc = document.getElementById("NamHoc").value;
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
-            const khoa = document.getElementById("MaPhongBan").value;
+            const khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
             const he_dao_tao = document.getElementById("he_dao_tao").value;
 
             if (!namHoc || !dot || !ki || !he_dao_tao) {
@@ -533,14 +534,21 @@
 
     <!-- Phần phân quyền -->
     <script>
+      const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+      const role = localStorage.getItem("userRole"); // 
+      const MaPhongBan = localStorage.getItem("MaPhongBan"); // 
+      const maPhongBanBtn = document.getElementById("MaPhongBan");
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+
       document.addEventListener("DOMContentLoaded", () => {
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
+        // không phải khoa và là quyền duyệt 
+        if (role != "Duyệt" && isKhoa != 0) {
+          maPhongBanBtn.style.display = "none";
+        }
 
         ThongTinGD.addEventListener("click", function (event) {
           event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
 
           if (isKhoa == 0) {
             // Nếu là đào tạo hoặc tài chính
