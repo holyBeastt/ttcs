@@ -1087,8 +1087,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        0,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1907,62 +1907,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
