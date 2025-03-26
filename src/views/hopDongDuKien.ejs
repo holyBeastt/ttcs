@@ -247,7 +247,6 @@
         .getElementById("exportHDDK")
         .addEventListener("click", function (event) {
           // Ngăn chặn lỗi
-          console.log(renderData);
           if (Array.isArray(renderData) && renderData.length === 0) {
             alert("Không có dữ liệu"); // Hiển thị thông báo khi mảng rỗng
             return;
@@ -545,7 +544,6 @@
       // Lấy phần tử div để hiển thị thông báo
       const messageDiv = document.getElementById("message");
 
-      // console.log(message)
       // Hiển thị thông báo dựa trên giá trị của message
       if (message === "insertSuccess") {
         alert("Update Success");
@@ -634,20 +632,17 @@
           success: function (response) {
             if (response.success) {
               response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
                 $("#NamHoc").append(
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
 
               response.Ki.forEach(function (item) {
-                console.log(item.Ki);
                 $("#comboboxki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
               response.Dot.forEach(function (item) {
-                console.log(item.Dot);
                 $("#combobox-dot").append(
                   `<option value="${item.value}">${item.Dot}</option>`
                 );
@@ -668,8 +663,6 @@
 
     <script>
       function filterByDepartment() {
-        console.log("filterByDepartment đã được gọi");
-
         const departmentFilter = document
           .getElementById("filterByDepartment")
           .value.trim();
@@ -750,7 +743,6 @@
               // Lặp qua từng mục trong mảng MaPhongBan
               response.MaPhongBan.forEach(function (item) {
                 // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
                 $("#MaPhongBan").append(
                   `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                 );

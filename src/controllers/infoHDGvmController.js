@@ -1130,7 +1130,6 @@ ORDER BY
       );
     }
 
-    console.log(req.query);
     res.json(rows);
   } catch (error) {
     console.error("Error fetching HD Gvm data:", error);

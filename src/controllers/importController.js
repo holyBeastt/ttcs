@@ -1087,8 +1087,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      0,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1847,6 +1847,9 @@ const updateQC = async (req, res) => {
       ...coHuuList.map((nv) => nv.name.trim()),
     ]);
 
+    const coHuuSet = new Set(coHuuList.map((nv) => nv.name.trim()));
+    const gvmListSet = new Set(gvmList.map((gvm) => gvm.name.trim()));
+
     const error_gv_rows = [];
     const updates = [];
     const updateIDs = [];
@@ -1870,16 +1873,59 @@ const updateQC = async (req, res) => {
       } = item;
 
       if (KhoaDuyet == 1) {
-        const names = GiaoVienGiangDay.split(",").map((name) => name.trim());
-        const invalidNames = names.filter((name) => !validNames.has(name));
-
-        if (invalidNames.length > 0) {
+        // Check cú pháp
+        // Nếu là hệ đại học và tên chứa dấu ,
+        if (
+          GiaoVienGiangDay?.includes(",") &&
+          he_dao_tao?.includes("Đại học")
+        ) {
           error_gv_rows.push(
-            `${LopHocPhan} (${TenLop}) - giảng viên không hợp lệ: ${invalidNames.join(
-              ", "
-            )}`
+            `${LopHocPhan} (${TenLop}) - lớp đại học chỉ được 1 giảng viên và không có dấu ','`
           );
           continue;
+        }
+
+        // Check tên và tích mời giảng
+        if (MoiGiang == 0) {
+          // Cả tên 1 và 2 (nếu có) đều phải là cơ hữu
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+          const invalidNames = names.filter((name) => !coHuuSet.has(name));
+
+          if (invalidNames.length > 0) {
+            error_gv_rows.push(
+              `${LopHocPhan} (${TenLop}) - giảng viên cơ hữu không hợp lệ: ${invalidNames.join(
+                ", "
+              )}`
+            );
+            continue;
+          }
+        } else {
+          // Nếu mời giảng = 1
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+
+          if (names.length === 2) {
+            const invalidNames = [];
+
+            if (!coHuuSet.has(names[0])) {
+              invalidNames.push(
+                `Giảng viên cơ hữu 1 không hợp lệ: ${names[0]}`
+              );
+            }
+            if (!gvmListSet.has(names[1])) {
+              invalidNames.push(`Giảng viên mời 2 không hợp lệ: ${names[1]}`);
+            }
+
+            if (invalidNames.length > 0) {
+              error_gv_rows.push(
+                `${LopHocPhan} (${TenLop}) - ${invalidNames.join(", ")}`
+              );
+              continue;
+            }
+          }
         }
       }
 
@@ -1907,62 +1953,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-          .map(
-            (u) =>
-              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-          )
-          .join(" ")}
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayBatDau
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayKetThuc
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-          .map(
-            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-          )
-          .join(" ")}
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
