@@ -2,7 +2,7 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
+//const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 
 let tableTam = process.env.DB_TABLE_TAM;
@@ -81,12 +81,14 @@ const getTableTam = async (req, res) => {
 };
 
 const getBoMon2 = async (req, res) => {
+  let connection;
   // Câu truy vấn lấy tất cả dữ liệu từ hai bảng
   const query1 = "SELECT HoTen, MonGiangDayChinh FROM `gvmoi`";
   const query2 =
     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien`";
 
   try {
+    connection = await createPoolConnection();
     // Thực hiện truy vấn đầu tiên
     const results1 = await new Promise((resolve, reject) => {
       connection.query(query1, (err, results) => {
@@ -120,6 +122,8 @@ const getBoMon2 = async (req, res) => {
   } catch (error) {
     console.error("Error fetching lecturer data:", error);
     res.status(500).json(error.message);
+  } finally {
+    if (connection) connection.release();
   }
 };
 
