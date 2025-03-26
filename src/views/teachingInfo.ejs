@@ -725,6 +725,8 @@
             }
 
             const data = await response.json(); // Chuyển đổi dữ liệu JSON
+
+            console.log("data = ", data);
             localStorage.setItem('boMonTheoGiangVien', JSON.stringify(data));
             const boMonTheoGiangVien = JSON.parse(localStorage.getItem("boMonTheoGiangVien")) || [];
             // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
