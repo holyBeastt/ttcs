@@ -1,25 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/gvmList.css" />
-    <link rel="stylesheet" href="/css/table.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
-    <!-- <style>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/gvmList.css" />
+  <link rel="stylesheet" href="/css/table.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <!-- <style>
       .teacher-group {
         border: 2px solid black;
         /* Viền đen xung quanh nhóm giảng viên */
@@ -105,35 +97,36 @@
         color: white;
       }
     </style> -->
-    <style>
-      /* Tùy chỉnh danh sách gợi ý */
-      .ui-autocomplete {
-        background: white;
-        border: 1px solid #ccc;
-        max-height: 200px;
-        overflow-y: auto;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        font-size: 14px;
-        padding: 5px;
-        width: 200px; /* Giảm độ rộng */
-        font-size: 12px !important;
-      }
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px;
+      /* Giảm độ rộng */
+      font-size: 12px !important;
+    }
 
-      /* Hiển thị đẹp hơn, không cần hover */
-      .ui-menu-item {
-        padding: 8px;
-        cursor: default;
-      }
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+      padding: 8px;
+      cursor: default;
+    }
 
-      .ui-helper-hidden-accessible {
-        display: none !important;
-      }
-    </style>
-  </head>
+    .ui-helper-hidden-accessible {
+      display: none !important;
+    }
+  </style>
+</head>
 
-  <body>
-    <!-- Phần header -->
-    <%- include('header') %>
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
 
     <!-- Phần nội dung -->
 
@@ -145,11 +138,7 @@
             <h1>DANH SÁCH CHỜ DUYỆT</h1>
 
             <div class="controls-container">
-              <select
-                class="form-select mx-1 selectop"
-                style="width: max-content"
-                id="MaPhongBan"
-              >
+              <select class="form-select mx-1 selectop" style="width: max-content" id="MaPhongBan">
                 <option value="">Chọn khoa</option>
               </select>
 
@@ -157,18 +146,8 @@
                 Xem dữ liệu
               </button>
 
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo Tên..."
-                class="search"
-                id="searchInput"
-              />
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo Bộ môn"
-                class="search"
-                id="searchBoMon"
-              />
+              <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput" />
+              <input type="text" placeholder="Tìm kiếm theo Bộ môn" class="search" id="searchBoMon" />
 
               <button id="update-unapproved-list" class="btn mx-3 luu">
                 Cập nhật
@@ -178,10 +157,7 @@
             <div id="tableContainer" style="display: none">
               <div class="table-responsive">
                 <div class="over-f">
-                  <table
-                    id="dataTable"
-                    class="table table-striped table-hover table-bordered table-css"
-                  >
+                  <table id="dataTable" class="table table-striped table-hover table-bordered table-css">
                     <thead class="table-dark">
                       <tr>
                         <th>STT</th>
@@ -202,34 +178,22 @@
                           <div class="form-check">
                             <label for="">Khoa</label>
 
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="checkAllKhoa"
-                              onclick="checkAll('khoa')"
-                            />
+                            <input class="form-check-input" type="checkbox" id="checkAllKhoa"
+                              onclick="checkAll('khoa')" />
                           </div>
                         </th>
                         <th id="daoTaoColumn">
                           <div class="form-check">
                             Đào tạo
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="checkAllDaoTao"
-                              onclick="checkAll('daoTao')"
-                            />
+                            <input class="form-check-input" type="checkbox" id="checkAllDaoTao"
+                              onclick="checkAll('daoTao')" />
                           </div>
                         </th>
                         <th id="hocVienColumn">
                           <div class="form-check">
                             Học viện
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="checkAllHocVien"
-                              onclick="checkAll('hocVien')"
-                            />
+                            <input class="form-check-input" type="checkbox" id="checkAllHocVien"
+                              onclick="checkAll('hocVien')" />
                           </div>
                         </th>
                       </tr>
@@ -249,28 +213,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Link script Sweet alert 2 -->
     <!-- SweetAlert2 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
 
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <!-- auto complete -->
     <!-- Thêm jQuery và jQuery UI -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <!-- jQuery UI CSS -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <script>
       // Hàm lọc chung
       function filterTable() {
@@ -488,18 +443,18 @@
               row.insertCell(colIndex++).textContent = item.HoTen;
               row.insertCell(colIndex++).textContent = item.NgaySinh
                 ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
               row.insertCell(colIndex++).textContent = item.CCCD;
               row.insertCell(colIndex++).textContent = item.NgayCapCCCD
                 ? new Date(item.NgayCapCCCD).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
                 : "";
 
               row.insertCell(colIndex++).textContent = item.DiaChi;
@@ -514,11 +469,10 @@
                 <td>
                   <button class="action-button edit"
                     onclick="editClass(this, '${parseInt(item.id_Gvm)}')"
-                    ${
-                      item.khoa_duyet === 1 || isKhoa == 0
-                        ? "disabled style='cursor: not-allowed;'"
-                        : ""
-                    }>
+                    ${item.khoa_duyet === 1 || isKhoa == 0
+                  ? "disabled style='cursor: not-allowed;'"
+                  : ""
+                }>
                     ✏️
                   </button>
                 </td>
@@ -528,9 +482,8 @@
               const cellActionView = row.insertCell(colIndex++);
               cellActionView.innerHTML = `
                 <td>
-                    <button class="action-button view" onclick="viewClass(this, '${
-                      parseInt(item.id_Gvm) - 1
-                    }')">👁️</button>
+                    <button class="action-button view" onclick="viewClass(this, '${parseInt(item.id_Gvm) - 1
+                }')">👁️</button>
                 </td>
                 `;
 
@@ -776,5 +729,6 @@
         });
       });
     </script>
-  </body>
+</body>
+
 </html>
