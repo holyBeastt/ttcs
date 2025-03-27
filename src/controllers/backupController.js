@@ -218,6 +218,8 @@ for (let query of normalQueries) {
     } catch (error) {
         console.error("❌ Lỗi reset database:", error.message || error);
         res.status(500).json({ success: false, message: "Reset database thất bại!", error: error.message });
+    } finally {
+        if (connection) connection.release(); // Giải phóng kết nối
     }
 };
 const listBackupFiles = async (req, res) => {
@@ -232,6 +234,8 @@ const listBackupFiles = async (req, res) => {
         res.json({ success: true, files });
     } catch (err) {
         res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách file!", error: err.message });
+    } finally {
+        if (connection) connection.release(); // Giải phóng kết nối
     }
 };
 const addToDatabase = async (req, res) => {
@@ -373,6 +377,8 @@ for (let query of normalQueries) {
     } catch (error) {
         console.error("❌ Lỗi reset database:", error.message || error);
         res.status(500).json({ success: false, message: "Reset database thất bại!", error: error.message });
+    } finally {
+        if (connection) connection.release(); // Giải phóng kết nối
     }
 };
 const executeSQLQuery = async (req, res) => {
@@ -402,6 +408,8 @@ const executeSQLQuery = async (req, res) => {
     } catch (error) {
         console.error("❌ Lỗi khi chạy SQL:", error.message || error);
         res.status(500).json({ success: false, message: "Lỗi khi thực thi SQL!", error: error.message });
+    } finally {
+        if (connection) connection.release(); // Giải phóng kết nối
     }
 };
 
