@@ -154,6 +154,17 @@
                 <option value="">Chọn khoa</option>
               </select>
 
+              <select
+                class="form-select mx-1 selectop"
+                style="width: max-content"
+                id="checkOrder"
+              >
+                <option value="ALL">Tất cả</option>
+                <option value="khoaChecked">Khoa đã duyệt</option>
+                <option value="daoTaoChecked">Đào tạo đã duyệt</option>
+                <option value="unChecked">Khoa chưa duyệt</option>
+              </select>
+
               <button id="viewDataBtnDetail" class="btn mx-3">
                 Xem dữ liệu
               </button>
@@ -435,9 +446,12 @@
         viewDataBtnDetail.addEventListener("click", async function () {
           try {
             const khoa = document.getElementById("MaPhongBan").value;
+            const checkOrder = document.getElementById("checkOrder").value;
 
             const response = await fetch(
-              `/api/gvm/waiting-list/data?khoa=${encodeURIComponent(khoa)}`,
+              `/api/gvm/waiting-list/data?khoa=${encodeURIComponent(
+                khoa
+              )}&checkOrder=${encodeURIComponent(checkOrder)}`,
               {
                 method: "GET",
                 headers: {

@@ -96,7 +96,7 @@ const getWaitingListData = async (req, res) => {
   let connection;
   const isKhoa = req.session.isKhoa;
   const MaPhongBan = req.session.MaPhongBan;
-  const khoa = req.query.khoa;
+  const { khoa, checkOrder } = req.query;
 
   try {
     connection = await createPoolConnection();
@@ -105,6 +105,18 @@ const getWaitingListData = async (req, res) => {
     TinhTrangGiangDay = 1 AND
     (hoc_vien_duyet IS NULL OR hoc_vien_duyet != 1) 
     AND id_Gvm != 1`;
+
+    if (checkOrder != "ALL") {
+      if (checkOrder == "khoaChecked") {
+        query += ` AND khoa_duyet = 1`;
+      }
+      if (checkOrder == "daoTaoChecked") {
+        query += ` AND dao_tao_duyet = 1`;
+      }
+      if (checkOrder == "unChecked") {
+        query += ` AND khoa_duyet = 0`;
+      }
+    }
 
     // Thêm điều kiện lọc
     let params = [];
