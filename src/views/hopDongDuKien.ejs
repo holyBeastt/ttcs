@@ -247,7 +247,6 @@
         .getElementById("exportHDDK")
         .addEventListener("click", function (event) {
           // Ngăn chặn lỗi
-          console.log(renderData);
           if (Array.isArray(renderData) && renderData.length === 0) {
             alert("Không có dữ liệu"); // Hiển thị thông báo khi mảng rỗng
             return;
@@ -296,6 +295,7 @@
         const tableContainer = document.getElementById("tableContainer");
         const dataTable = document.getElementById("dataTable");
         const isKhoa = localStorage.getItem("isKhoa"); //
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
         viewDataBtn.addEventListener("click", async function () {
           try {
@@ -303,7 +303,7 @@
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
             if (isKhoa == 1) {
-              khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
+              khoa = MaPhongBan;
             } else {
               khoa = document.getElementById("MaPhongBan").value;
             }
@@ -318,10 +318,9 @@
               namHoc
             )}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(
               ki
-            )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
-            if (khoa && khoa !== "ALL") {
-              url += `&khoa=${encodeURIComponent(khoa)}`;
-            }
+            )}&he_dao_tao=${encodeURIComponent(
+              he_dao_tao
+            )}&khoa=${encodeURIComponent(khoa)}`;
 
             const response = await fetch(url);
             if (!response.ok) {
@@ -408,7 +407,11 @@
             const namHoc = document.getElementById("NamHoc").value;
             const dot = document.getElementById("combobox-dot").value;
             const ki = document.getElementById("comboboxki").value;
-            const khoa = isKhoa == "1" ? localStorage.getItem("MaPhongBan") : "ALL";
+            if (isKhoa == 1) {
+              khoa = MaPhongBan;
+            } else {
+              khoa = document.getElementById("MaPhongBan").value;
+            }
             const he_dao_tao = document.getElementById("he_dao_tao").value;
 
             if (!namHoc || !dot || !ki || !he_dao_tao) {
@@ -420,10 +423,9 @@
               namHoc
             )}&dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(
               ki
-            )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
-            if (khoa && khoa !== "ALL") {
-              url += `&khoa=${encodeURIComponent(khoa)}`;
-            }
+            )}&he_dao_tao=${encodeURIComponent(
+              he_dao_tao
+            )}&khoa=${encodeURIComponent(khoa)}`;
 
             const response = await fetch(url);
             if (!response.ok) {
@@ -542,7 +544,6 @@
       // Lấy phần tử div để hiển thị thông báo
       const messageDiv = document.getElementById("message");
 
-      // console.log(message)
       // Hiển thị thông báo dựa trên giá trị của message
       if (message === "insertSuccess") {
         alert("Update Success");
@@ -631,20 +632,17 @@
           success: function (response) {
             if (response.success) {
               response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
                 $("#NamHoc").append(
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
 
               response.Ki.forEach(function (item) {
-                console.log(item.Ki);
                 $("#comboboxki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
               response.Dot.forEach(function (item) {
-                console.log(item.Dot);
                 $("#combobox-dot").append(
                   `<option value="${item.value}">${item.Dot}</option>`
                 );
@@ -665,8 +663,6 @@
 
     <script>
       function filterByDepartment() {
-        console.log("filterByDepartment đã được gọi");
-
         const departmentFilter = document
           .getElementById("filterByDepartment")
           .value.trim();
@@ -747,7 +743,6 @@
               // Lặp qua từng mục trong mảng MaPhongBan
               response.MaPhongBan.forEach(function (item) {
                 // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
                 $("#MaPhongBan").append(
                   `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                 );

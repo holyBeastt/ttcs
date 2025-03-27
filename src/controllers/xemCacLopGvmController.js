@@ -204,7 +204,6 @@ const getNameGV = (req, res) => {
 
 const updateQCGvm = async (req, res) => {
   const isKhoa = req.session.isKhoa;
-  console.log("isKhoa = ", isKhoa);
   const tableName = process.env.DB_TABLE_QC;
   const jsonData = req.body;
 

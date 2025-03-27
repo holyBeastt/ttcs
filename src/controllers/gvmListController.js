@@ -102,18 +102,32 @@ const getWaitingListData = async (req, res) => {
     connection = await createPoolConnection();
 
     let query = `SELECT * FROM gvmoi WHERE 
-    (hoc_vien_duyet IS NULL OR hoc_vien_duyet != 1) AND id_Gvm != 1`;
+    (hoc_vien_duyet IS NULL OR hoc_vien_duyet != 1) 
+    AND id_Gvm != 1`;
+
+    // Thêm điều kiện lọc
     let params = [];
+    let displayOrder = ` ORDER BY 
+    (khoa_duyet = 1 AND dao_tao_duyet = 0) DESC, 
+    (khoa_duyet = 1 AND dao_tao_duyet = 1) DESC, 
+    khoa_duyet ASC`;
+
+    if (MaPhongBan == "HV")
+      displayOrder = ` ORDER BY dao_tao_duyet DESC, khoa_duyet DESC`;
 
     if (isKhoa == 1) {
       query += ` AND MaPhongBan = ?`;
+      displayOrder = ` ORDER BY 
+      (khoa_duyet = 0 AND dao_tao_duyet = 1) DESC, 
+      khoa_duyet ASC`;
       params.push(MaPhongBan);
-    } else if (isKhoa == 0) {
-      if (khoa !== "ALL") {
-        query += ` AND MaPhongBan = ?`;
-        params.push(khoa);
-      }
+    } else if (isKhoa == 0 && khoa !== "ALL") {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
     }
+
+    // Thêm điều kiện sắp xếp
+    query += displayOrder;
 
     const [results] = await connection.query(query, params);
 
