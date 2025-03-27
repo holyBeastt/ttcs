@@ -20,11 +20,12 @@ if (!fs.existsSync(BACKUP_DIR)) {
 }
 
 const backupAndDownload = async (req, res) => {
+    let connection;
   try {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupFile = path.join(BACKUP_DIR, `backup-${timestamp}.sql`);
 
-    const connection = await createPoolConnection();
+    connection = await createPoolConnection();
     const [tables] = await connection.query("SHOW TABLES");
 
     let sqlDump = "";
@@ -79,9 +80,12 @@ const backupAndDownload = async (req, res) => {
         message: "Backup thất bại!",
         error: error.message,
       });
-  }
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 const resetDatabase = async (req, res) => {
+    let connection;
   try {
     let filePath = "";
 
@@ -110,7 +114,7 @@ const resetDatabase = async (req, res) => {
 
     // Đảm bảo DB_CONFIG có multipleStatements: true
     // const connection = await mysql.createConnection({ ...DB_CONFIG, multipleStatements: true });
-    const connection = await createConnectionWithMultipleStatements();
+    connection = await createConnectionWithMultipleStatements();
     // 🗑️ Xóa toàn bộ database: Xóa tất cả bảng
     const [tables] = await connection.query("SHOW TABLES");
     if (tables.length > 0) {
@@ -234,8 +238,6 @@ const resetDatabase = async (req, res) => {
       }
     }
 
-    await connection.release();
-
     console.log("🎉 Database đã được reset thành công!");
     res.json({
       success: true,
@@ -250,7 +252,9 @@ const resetDatabase = async (req, res) => {
         message: "Reset database thất bại!",
         error: error.message,
       });
-  }
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 const listBackupFiles = async (req, res) => {
   try {
@@ -276,6 +280,7 @@ const listBackupFiles = async (req, res) => {
   }
 };
 const addToDatabase = async (req, res) => {
+    let connection;
   try {
     let filePath = "";
 
@@ -304,7 +309,7 @@ const addToDatabase = async (req, res) => {
 
     // Đảm bảo DB_CONFIG có multipleStatements: true
     // const connection = await mysql.createConnection({ ...DB_CONFIG, multipleStatements: true });
-    const connection = await createConnectionWithMultipleStatements();
+    connection = await createConnectionWithMultipleStatements();
     // 📥 Đọc nội dung file SQL với encoding "utf8"
     let sqlContent = fs.readFileSync(filePath, { encoding: "utf8" });
 
@@ -417,8 +422,6 @@ const addToDatabase = async (req, res) => {
       }
     }
 
-    await connection.release();
-
     console.log("🎉 Database đã được reset thành công!");
     res.json({
       success: true,
@@ -433,9 +436,12 @@ const addToDatabase = async (req, res) => {
         message: "Reset database thất bại!",
         error: error.message,
       });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
   }
 };
 const executeSQLQuery = async (req, res) => {
+    let connection;
   try {
     const { sqlQuery } = req.body;
 
@@ -459,12 +465,11 @@ const executeSQLQuery = async (req, res) => {
     }
 
     // Kết nối database
-    const connection = await createConnectionWithMultipleStatements();
+    connection = await createConnectionWithMultipleStatements();
 
     // Thực thi câu lệnh SQL
     const [results] = await connection.query(sqlQuery);
 
-    await connection.release();
 
     res.json({ success: true, message: "✅ SQL đã chạy thành công!", results });
   } catch (error) {
@@ -476,9 +481,9 @@ const executeSQLQuery = async (req, res) => {
         message: "Lỗi khi thực thi SQL!",
         error: error.message,
       });
-  } finally {
-    if (connection) connection.re;
-  }
+  }  finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 
 module.exports = {

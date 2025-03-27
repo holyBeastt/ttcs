@@ -203,11 +203,13 @@
           <!-- Tìm kiếm theo giảng viên -->
           <input type="text" id="filterName" placeholder="Tìm theo tên giảng viên" class="form-control m-2 search"
             style="width: 200px;" />
-          <input type="text" id="filterClass" placeholder="Tìm theo tên học phần" class="form-control m-2 search"
-            style="width: 200px;" />
+          <input type="text" id="filterClass" placeholder="Tìm tên học phần" class="form-control m-2 search"
+            style="width: 150px;" />
           <!-- Tìm kiếm theo bộ môn -->
-          <input type="text" id="filterBoMon" placeholder="Tìm theo tên bộ môn" class="form-control m-2 search"
-            style="width: 200px;" />
+          <input type="text" id="filterBoMon" placeholder="Tìm tên bộ môn" class="form-control m-2 search"
+            style="width: 150px;" />
+          <input type="text" id="filterName1" placeholder="Tìm gv giảng dạy" class="form-control m-2 search"
+            style="width: 150px;" />
 
           <div class="input-group my-2 mx-1" style="width: 350px;" id="batdau">
             <label for="startDate" class="input-group-text">Ngày bắt đầu</label>
@@ -255,24 +257,28 @@
               const nameFilter = document.getElementById('filterName').value.toLowerCase();
               const classFilter = document.getElementById('filterClass').value.toLowerCase();
               const boMonFilter = document.getElementById('filterBoMon').value.toLowerCase();
+              const nameFilter1 = document.getElementById('filterName1').value.toLowerCase();
               const tableRows = document.querySelectorAll('#tableBody tr');
 
               tableRows.forEach(row => {
                 const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
                 const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
                 const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
+                const nameCell1 = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Cột bộ môn
 
                 const name = nameCell ? nameCell.textContent.toLowerCase() : '';
                 const className = classCell ? classCell.textContent.toLowerCase() : '';
                 const boMon = boMonInput ? boMonInput.value.toLowerCase() : '';
+                const name1 = nameCell1 ? nameCell1.value.toLowerCase() : '';
 
                 // Kiểm tra điều kiện lọc
                 const matchesName = name.includes(nameFilter);
                 const matchesClass = className.includes(classFilter);
                 const matchesBoMon = boMon.includes(boMonFilter);
+                const matchesName1 = name1.includes(nameFilter1);
 
                 // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-                if (matchesName && matchesClass && matchesBoMon) {
+                if (matchesName && matchesClass && matchesBoMon && matchesName1) {
                   row.style.display = ''; // Hiện hàng nếu tất cả các điều kiện đều khớp
                 } else {
                   row.style.display = 'none'; // Ẩn hàng nếu không khớp
@@ -286,6 +292,7 @@
             document.getElementById('filterName').addEventListener('input', filterTable);
             document.getElementById('filterClass').addEventListener('input', filterTable);
             document.getElementById('filterBoMon').addEventListener('input', filterTable);
+            document.getElementById('filterName1').addEventListener('input', filterTable);
           </script>
           <script>
             function sortTableByColumn(columnIndex, direction) {
@@ -882,6 +889,7 @@
             giaoVienGiangDayInput.style.width = "100%";
             giaoVienGiangDayInput.style.boxSizing = "border-box";
             giaoVienGiangDayInput.type = 'text';
+            giaoVienGiangDayInput.name = 'giaovien';
             giaoVienGiangDayInput.placeholder = 'Nhập tên giảng viên';
             giaoVienGiangDayInput.value = row.GiaoVienGiangDay || '';
             // Gán id cho input
@@ -1654,6 +1662,37 @@
             row.style.display = ''; // Hiện hàng nếu khớp
           } else {
             row.style.display = 'none'; // Ẩn hàng nếu không khớp
+          }
+        });
+        calculateTotals();
+      }
+      function filterByName1() {
+        const input = document.getElementById('filterName1');
+        const filter = input.value.trim().toLowerCase(); // Bỏ khoảng trắng và chuyển chữ thường
+        const tableRows = document.querySelectorAll('#tableBody tr');
+
+        // Nếu ô tìm kiếm trống, hiển thị tất cả các dòng
+        if (!filter) {
+          tableRows.forEach(row => {
+            row.style.display = ''; // Hiện tất cả các dòng
+          });
+          return;
+        }
+
+        // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
+        tableRows.forEach(row => {
+          const nameCell = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Giả sử tên giảng viên nằm ở cột thứ 3
+          const checkbox = row.querySelector('input[type="checkbox"]');
+          if (nameInput) {
+            const name = nameInput.value.toLowerCase(); // Lấy giá trị của input có name="bomon"
+
+            if (filter === '' || name.includes(filter)) {
+              row.style.display = ''; // Hiện hàng nếu khớp hoặc filter trống
+              checkbox.disabled = false; // Kích hoạt checkbox
+            } else {
+              row.style.display = 'none'; // Ẩn hàng nếu không khớp
+              checkbox.disabled = true; // Vô hiệu hóa checkbox
+            }
           }
         });
         calculateTotals();
