@@ -1537,7 +1537,7 @@ const updateDateAll = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     }
 
-    res.status(200).json({ message: "Cập nhật thành công" });
+    res.status(200).json({ message: "Chèn ngày thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });

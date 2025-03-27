@@ -475,6 +475,8 @@ const getHopDongDuKienData = async (req, res) => {
       ki = 0;
     }
 
+    console.log("he = ", he_dao_tao);
+
     let rows;
     if (khoa == "ALL") {
       [rows] = await connection.execute(
@@ -909,7 +911,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học'
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
