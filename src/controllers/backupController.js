@@ -79,7 +79,9 @@ const backupAndDownload = async (req, res) => {
         message: "Backup thất bại!",
         error: error.message,
       });
-  }
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 const resetDatabase = async (req, res) => {
   try {
@@ -250,7 +252,9 @@ const resetDatabase = async (req, res) => {
         message: "Reset database thất bại!",
         error: error.message,
       });
-  }
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 const listBackupFiles = async (req, res) => {
   try {
@@ -273,6 +277,8 @@ const listBackupFiles = async (req, res) => {
         message: "Lỗi khi lấy danh sách file!",
         error: err.message,
       });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
   }
 };
 const addToDatabase = async (req, res) => {
@@ -433,6 +439,8 @@ const addToDatabase = async (req, res) => {
         message: "Reset database thất bại!",
         error: error.message,
       });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
   }
 };
 const executeSQLQuery = async (req, res) => {
@@ -476,9 +484,9 @@ const executeSQLQuery = async (req, res) => {
         message: "Lỗi khi thực thi SQL!",
         error: error.message,
       });
-  } finally {
-    if (connection) connection.re;
-  }
+  }  finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+}
 };
 
 module.exports = {
