@@ -28,6 +28,7 @@ const {
   deleteKyTuBD,
   postKyTuBD,
   updateKyTuBD,
+  checkKyTuBD,
   getTienLuong,
   postTienLuong,
   updateTienLuong,
@@ -144,6 +145,7 @@ router.get("/kytubatdau", getKyTuBD);
 router.post("/kytubatdau", postKyTuBD);
 router.delete("/kytubatdau/:lop_vi_du", deleteKyTuBD);
 router.put("/kytubatdau/:lop_vi_du", updateKyTuBD);
+router.post("/kytubatdau/check", checkKyTuBD);
 
 //Tiền lương
 router.get("/tienluong", getTienLuong);
@@ -176,5 +178,6 @@ router.get("/themHocPhan", (req, res) => {
   res.render("themHocPhan");
 });
 router.post("/themHocPhan", themHocPhan);
+
 
 module.exports = router;

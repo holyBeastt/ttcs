@@ -23,6 +23,11 @@
     <link rel="stylesheet" href="/css/admin.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   </head>
 
   <body>
@@ -206,16 +211,34 @@
 
               const actionCell = row.find("td:last-child");
               actionCell.html(`
-                            <button class="bi bi-pencil action-button edit-btn"></button>
-                            <button class="bi bi-trash3 action-button me-2"
-                                onclick="deletePhongHoc(this, '${STT}')">
-                            </button>
-                        `);
+                <button class="bi bi-pencil action-button edit-btn"></button>
+                <button class="bi bi-trash3 action-button me-2" onclick="deletePhongHoc(this, '${STT}')"></button>
+              `);
 
-              alert("Cập nhật thành công!");
+              Swal.fire({
+                title: "Thông báo",
+                html: "Cập nhật thành công!",
+                icon: "success",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
             },
             error: function (xhr) {
-              alert(xhr.responseJSON.message || "Có lỗi xảy ra khi cập nhật");
+              Swal.fire({
+                title: "Thông báo",
+                html: xhr.responseJSON.message || "Có lỗi xảy ra khi cập nhật",
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
             }
           });
         });
@@ -248,23 +271,42 @@
           const LoaiPhong = $("#LoaiPhong").val();
           const GhiChu = $("#GhiChu").val();
 
-          // Kiểm tra sự tồn tại của phòng
           $.ajax({
             url: "/checkPhongExistence",
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify({
               Phong: Phong,
-              ToaNha: ToaNha  // Thêm ToaNha vào data
+              ToaNha: ToaNha
             }),
             success: function (response) {
               addNewPhongHoc(Phong, ToaNha, LoaiPhong, GhiChu);
             },
             error: function (xhr) {
               if (xhr.status === 409) {
-                alert(xhr.responseJSON.message);
+                Swal.fire({
+                  title: "Thông báo",
+                  html: xhr.responseJSON.message,
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                });
               } else {
-                alert("Có lỗi xảy ra khi kiểm tra sự tồn tại.");
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Có lỗi xảy ra khi kiểm tra sự tồn tại",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                });
               }
             }
           });
@@ -277,30 +319,79 @@
             contentType: "application/json",
             data: JSON.stringify({ Phong, ToaNha, LoaiPhong, GhiChu }),
             success: function (response) {
-              alert("Thêm mới thành công!");
-              location.reload();
+              Swal.fire({
+                title: "Thông báo",
+                html: "Thêm mới thành công!",
+                icon: "success",
+                width: "auto",
+                padding: "20px",
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              }).then(() => {
+                location.reload();
+              });
             },
             error: function (xhr) {
-              alert(xhr.responseJSON.message || "Có lỗi xảy ra khi thêm mới.");
+              Swal.fire({
+                title: "Thông báo",
+                html: xhr.responseJSON.message || "Có lỗi xảy ra khi thêm mới",
+                icon: "error",
+                width: "auto",
+                padding: "20px",
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
             }
           });
         }
       });
 
       function deletePhongHoc(button, STT) {
-        if (confirm(`Bạn có chắc chắn muốn xóa phòng học này không?`)) {
-          $.ajax({
-            url: `/adminPhongHoc/${STT}`,
-            method: "DELETE",
-            success: function (response) {
-              alert("Xóa thành công!");
-              $(button).closest("tr").remove();
-            },
-            error: function (error) {
-              alert("Có lỗi xảy ra khi xóa phòng học.");
-            },
-          });
-        }
+        Swal.fire({
+          title: "Xác nhận",
+          html: "Bạn có chắc chắn muốn xóa phòng học này không?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Đồng ý",
+          cancelButtonText: "Hủy",
+          width: "auto",
+          padding: "20px"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: `/adminPhongHoc/${STT}`,
+              method: "DELETE",
+              success: function (response) {
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Xóa thành công!",
+                  icon: "success",
+                  width: "auto",
+                  padding: "20px",
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                }).then(() => {
+                  $(button).closest("tr").remove();
+                });
+              },
+              error: function (error) {
+                Swal.fire({
+                  title: "Thông báo",
+                  html: "Có lỗi xảy ra khi xóa phòng học",
+                  icon: "error",
+                  width: "auto",
+                  padding: "20px",
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                });
+              },
+            });
+          }
+        });
       }
     </script>
   </body>

@@ -87,7 +87,54 @@
       background-color: #f8f9fa;
     }
   </style>
+  <style>
+    /* CSS cho bảng */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
 
+    .table th,
+    .table td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #dee2e6;
+    }
+
+    .table th {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+
+    .table tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    .table tbody tr:hover {
+      background-color: #e2e6ea;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+
+    .bg-custom {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .spinner-border {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+    }
+  </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -138,8 +185,14 @@
             <button class="dropdown-item" onclick="exportToWord()">Word</button>
           </div>
         </div>
+        <div id="loading" style="display: none;">Loading...</div>
         <div class="overflow-auto">
-          <div id="table"></div>
+          <table class="table table-bordered">
+            <thead>
+              <tr id="table-header"></tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -399,43 +452,102 @@
         }
       }
 
-
       function renderTable(data) {
-        var columns = [
-          { title: "Khoa", field: "Khoa", formatter: "textarea" },
-          { title: "Đợt", field: "Dot", formatter: "textarea" },
-          { title: "Kì", field: "KiHoc", formatter: "textarea" },
-          { title: "Năm", field: "NamHoc", formatter: "textarea" },
-          { title: "Lớp học phần", field: "LopHocPhan", formatter: "textarea" },
-          { title: "Giảng viên theo TKB", field: "GiaoVien", formatter: "textarea" },
-          { title: "Giảng viên giảng dạy", field: "GiaoVienGiangDay", formatter: "textarea" },
-          {
-            title: "Mời giảng?",
-            field: "MoiGiang",
-            formatter: function (cell) {
-              return cell.getValue() == 1 ? "Có" : "Không";
-            }
-          },
-          { title: "Số tín chỉ", field: "SoTinChi", formatter: "textarea" },
-          { title: "Tên lớp", field: "TenLop", formatter: "textarea" },
-          { title: "Số tiết lên lớp được tính QC", field: "LL", formatter: "textarea" },
-          { title: "Số tiết QC", field: "QuyChuan", formatter: "textarea" }
+        // Thêm spinner loading nếu chưa tồn tại
+        let loadingSpinner = document.getElementById('loading-spinner');
+        if (!loadingSpinner) {
+          loadingSpinner = document.createElement('div');
+          loadingSpinner.id = 'loading-spinner';
+          loadingSpinner.innerHTML = 'Loading...';
+          // Thêm spinner vào container phù hợp, ví dụ: body hoặc container chứa bảng
+          document.body.appendChild(loadingSpinner);
+        }
+
+        // Danh sách cột cần hiển thị
+        const columnsToDisplay = [
+          'Khoa',
+          'Dot',
+          'KiHoc',
+          'NamHoc',
+          'LopHocPhan',
+          'GiaoVien',
+          'GiaoVienGiangDay',
+          'MoiGiang',
+          'SoTinChi',
+          'TenLop',
+          'LL',
+          'QuyChuan'
         ];
 
-        var tableOptions = {
-          data: data,
-          columns: columns,
-          layout: "fitColumns",  // Tự động căn chỉnh kích thước cột
-          height: "500px",       // Cung cấp chiều cao cố định để hỗ trợ render ảo
-          renderVertical: "virtual", // Sử dụng chế độ render dọc (virtual)
-          formatterParams: {
-            cssClass: "wrap-cell"
-          },
-          resizableRows: true,
+        // Mapping định nghĩa width theo yêu cầu:
+        // - Khoa, Dot, KiHoc: 5% mỗi cột
+        // - NamHoc: 10%
+        // - LopHocPhan: 22.5%
+        // - GiaoVien: 25%
+        // - GiaoVienGiangDay: 22.5%
+        const customWidths = {
+          'Khoa': '5%',
+          'Dot': '5%',
+          'KiHoc': '5%',
+          'NamHoc': '10%',
+          'LopHocPhan': '22.5%',
+          'GiaoVien': '25%',
+          'GiaoVienGiangDay': '22.5%'
         };
 
-        // Khởi tạo bảng Tabulator trên phần tử có id "table"
-        var table = new Tabulator("#table", tableOptions);
+        // Tạo mảng đối tượng chứa tên cột và width (nếu có custom, nếu không sẽ lấy auto)
+        const columnsWithWidth = columnsToDisplay.map(col => ({
+          name: col,
+          width: customWidths[col] || 'auto'
+        }));
+
+        console.log("Columns with width:", columnsWithWidth);
+
+        let tableHtml = '';
+
+        const headersMap = {
+          'Khoa': 'Khoa',
+          'Dot': 'Đợt',
+          'KiHoc': 'Kì',
+          'NamHoc': 'Năm',
+          'LopHocPhan': 'Lớp học phần',
+          'GiaoVien': 'Giảng viên theo TKB',
+          'GiaoVienGiangDay': 'Giảng viên giảng dạy',
+          'MoiGiang': 'Mời giảng?',
+          'SoTinChi': 'Số tín chỉ',
+          'TenLop': 'Tên lớp',
+          'LL': 'Số tiết lên lớp',
+          'QuyChuan': 'Số tiết quy chuẩn',
+        };
+
+        // Tạo header với width được chỉ định
+        columnsWithWidth.forEach(col => {
+          const newHeaderName = headersMap[col.name] || col.name; // Sử dụng tên cột mới nếu có
+          tableHtml += `<th style="width: ${col.width};">${newHeaderName}</th>`;
+        });
+        document.getElementById('table-header').innerHTML = tableHtml;
+
+        // Xóa dữ liệu bảng cũ nếu có trước khi thêm mới
+        document.getElementById('data-table-body').innerHTML = '';
+
+        // Render các dòng dữ liệu vào bảng (tạo chuỗi HTML rồi thêm vào một lần)
+        const tableRows = data.map(item => {
+          let rowHtml = columnsToDisplay.map(key => {
+            let cellValue = item[key] !== null ? item[key] : '';
+
+            // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
+            if (key === 'MoiGiang') {
+              cellValue = cellValue === 1 ? 'Có' : 'Không';
+            }
+            return `<td>${cellValue}</td>`;
+          }).join('');
+          return `<tr>${rowHtml}</tr>`;
+        }).join('');
+
+        document.getElementById('data-table-body').innerHTML = tableRows;
+
+        // Xóa spinner sau khi hoàn thành
+        loadingSpinner.remove();
       }
 
       // Thêm sự kiện cho nút lọc

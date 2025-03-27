@@ -921,7 +921,7 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [kyTuBD] = await connection.query("SELECT * FROM kitubatdau");
+      const [kyTuBD] = await connection.query("SELECT lop_vi_du, viet_tat, gia_tri_so_sanh FROM kitubatdau");
       res.render("vuotGioKyTuBD", {
         kyTuBD,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -935,9 +935,10 @@ const AdminController = {
   },
 
   postKyTuBD: async (req, res) => {
-    let { viet_tat, he_dao_tao } = req.body;
+    let { viet_tat, loai_dao_tao, he_dao_tao } = req.body;
     viet_tat = viet_tat.toUpperCase();
     const lop_vi_du = viet_tat + "10";
+    const gia_tri_so_sanh = `${loai_dao_tao} (${he_dao_tao})`;
     let connection;
     try {
       connection = await createPoolConnection();
@@ -946,23 +947,23 @@ const AdminController = {
         return res.redirect("/kytubatdau?success=false&message=khoaALL");
       }
 
-      // Kiểm tra trùng lặp kí tự bắt đầu
+      // Kiểm tra trùng lặp cả viết tắt và gia_tri_so_sanh
       const [rows] = await connection.query(
-        `SELECT * FROM kitubatdau WHERE viet_tat = ?`,
-        [viet_tat]
+        `SELECT * FROM kitubatdau WHERE viet_tat = ? AND gia_tri_so_sanh = ?`,
+        [viet_tat, gia_tri_so_sanh]
       );
 
       // Xử lý kết quả
       if (rows.length > 0) {
-        return res.redirect("/kytubatdau?success=false&message=duplicateKiTu");
+        return res.redirect("/kytubatdau?success=false&message=duplicateKiTuAndHeDaoTao");
       }
 
       // Thêm vào bảng kí tự bắt đầu
       const insertQuery = `
-        INSERT INTO kitubatdau (lop_vi_du, viet_tat, he_dao_tao) 
+        INSERT INTO kitubatdau (lop_vi_du, viet_tat, gia_tri_so_sanh) 
         VALUES (?, ?, ?)
       `;
-      await connection.execute(insertQuery, [lop_vi_du, viet_tat, he_dao_tao]);
+      await connection.execute(insertQuery, [lop_vi_du, viet_tat, gia_tri_so_sanh]);
 
       res.redirect("/kytubatdau?success=true&message=insertSuccess");
     } catch (error) {
@@ -998,21 +999,37 @@ const AdminController = {
   },
   updateKyTuBD: async (req, res) => {
     const oldlop_vi_du = req.params.lop_vi_du;
-    const { lop_vi_du, viet_tat } = req.body;
-    console.log("l = ", oldlop_vi_du, lop_vi_du, viet_tat);
+    const { lop_vi_du, viet_tat, loai_dao_tao, he_dao_tao } = req.body;
+    const gia_tri_so_sanh = `${loai_dao_tao} (${he_dao_tao})`;
     let connection;
 
     try {
       connection = await createPoolConnection();
+
+      // Kiểm tra trùng lặp, loại trừ bản ghi hiện tại
+      const [existingRows] = await connection.query(
+        `SELECT * FROM kitubatdau 
+         WHERE viet_tat = ? AND gia_tri_so_sanh = ? AND lop_vi_du != ?`,
+        [viet_tat, gia_tri_so_sanh, oldlop_vi_du]
+      );
+
+      if (existingRows.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: "Đã tồn tại kí tự bắt đầu với hệ đào tạo này",
+        });
+      }
+
       const query = `
-            UPDATE kitubatdau 
-            SET lop_vi_du = ?, viet_tat = ?
-            WHERE lop_vi_du = ?
-        `;
+        UPDATE kitubatdau 
+        SET lop_vi_du = ?, viet_tat = ?, gia_tri_so_sanh = ?
+        WHERE lop_vi_du = ?
+      `;
 
       const [result] = await connection.execute(query, [
         lop_vi_du,
         viet_tat,
+        gia_tri_so_sanh,
         oldlop_vi_du,
       ]);
 
@@ -1033,6 +1050,30 @@ const AdminController = {
         success: false,
         message: "Đã xảy ra lỗi khi cập nhật",
       });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  checkKyTuBD: async (req, res) => {
+    const { viet_tat, gia_tri_so_sanh } = req.body;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [rows] = await connection.query(
+        `SELECT * FROM kitubatdau WHERE viet_tat = ? AND gia_tri_so_sanh = ?`,
+        [viet_tat, gia_tri_so_sanh]
+      );
+  
+      if (rows.length > 0) {
+        return res.status(409).json({
+          message: "Kí tự bắt đầu với hệ đào tạo này đã tồn tại"
+        });
+      }
+      res.json({ exists: false });
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra:", error);
+      res.status(500).json({ message: "Lỗi khi kiểm tra" });
     } finally {
       if (connection) connection.release();
     }
