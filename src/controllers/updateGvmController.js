@@ -50,7 +50,6 @@ const getUpdateGvm = async (req, res) => {
 
 const getViewGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id) + 1;
-  console.log("id = ", id_Gvm);
   let connection;
 
   try {
@@ -65,7 +64,6 @@ const getViewGvm = async (req, res) => {
     const [phongban] = await connection.query(query1);
 
     let user = results && results.length > 0 ? results[0] : {};
-    console.log("result = ", user);
     // Render trang viewGvm.ejs với dữ liệu người dùng
     res.render("viewGvm.ejs", { value: user, phongban: phongban });
   } catch (err) {
@@ -134,7 +132,7 @@ const postUpdateGvm = async (req, res) => {
   ]);
   if (duplicateRows[0].count > 0) {
     connection.release(); // Giải phóng kết nối trước khi trả về
-    return res.redirect("/gvmList?message=duplicateCCCD");
+    return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
   }
 
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
@@ -159,7 +157,7 @@ const postUpdateGvm = async (req, res) => {
   upload(req, res, async function (err) {
     if (err) {
       console.error("Error uploading files: ", err);
-      return res.redirect("/gvmList?message=uploadError");
+      return res.redirect("/api/gvm/waiting-list/render?message=uploadError");
     }
 
     let truocCCCD = req.files["truocCCCD"]
@@ -245,10 +243,10 @@ const postUpdateGvm = async (req, res) => {
         QrCode,
         IdGvm,
       ]);
-      res.redirect("/gvmList?message=insertSuccess");
+      res.redirect("/api/gvm/waiting-list/render?message=insertSuccess");
     } catch (err) {
       console.error("Error executing query: ", err);
-      res.redirect("/gvmList?message=insertFalse");
+      res.redirect("/api/gvm/waiting-list/render?message=insertFalse");
     } finally {
       connection.release(); // Giải phóng kết nối
     }

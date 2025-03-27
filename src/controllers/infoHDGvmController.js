@@ -475,8 +475,6 @@ const getHopDongDuKienData = async (req, res) => {
       ki = 0;
     }
 
-    console.log("he = ", he_dao_tao);
-
     let rows;
     if (khoa == "ALL") {
       [rows] = await connection.execute(
@@ -544,6 +542,7 @@ const getHopDongDuKienData = async (req, res) => {
     ) AS Combined
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
+    WHERE Combined.NamHoc = ${namHoc}
     GROUP BY 
       gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
 		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
@@ -585,7 +584,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao LIKE '%Đại học%'
+        qc.MoiGiang = 1 AND qc.he_dao_tao LIKE '%Đại học%' AND qc.NamHoc = ${namHoc}
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -654,7 +653,7 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.he_dao_tao NOT LIKE '%Đại học%'
+        qc.he_dao_tao NOT LIKE '%Đại học%' qc.NamHoc = ${namHoc}
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -798,11 +797,11 @@ LEFT JOIN
     TongSoTietGV tsgv 
 ON 
     ta.GiangVien = tsgv.GiangVien
-Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ? 
+Where dot = ? AND KiHoc = ? AND he_dao_tao = ? 
 ORDER BY 
     tsgv.TongSoTiet DESC;
 `,
-        [dot, ki, namHoc, he_dao_tao]
+        [dot, ki, he_dao_tao]
       );
     } else {
       [rows] = await connection.execute(
@@ -870,6 +869,7 @@ ORDER BY
     ) AS Combined
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
+    WHERE Combined.NamHoc = '${namHoc}'
     GROUP BY 
       gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
 		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
@@ -911,7 +911,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%'
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -980,7 +980,7 @@ ORDER BY
     JOIN 
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
-        qc.he_dao_tao NOT LIKE '%Đại học%'
+        qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
     GROUP BY
         gv.id_Gvm,
         gv.HoTen,
@@ -1124,11 +1124,11 @@ LEFT JOIN
     TongSoTietGV tsgv 
 ON 
     ta.GiangVien = tsgv.GiangVien
-Where dot = ? AND KiHoc = ? AND namhoc = ? AND he_dao_tao = ? AND MaPhongBan = ?
+Where dot = ? AND KiHoc = ? AND he_dao_tao = ? AND MaPhongBan = ?
 ORDER BY 
     tsgv.TongSoTiet DESC;
 `,
-        [dot, ki, namHoc, he_dao_tao, khoa]
+        [dot, ki, he_dao_tao, khoa]
       );
     }
 

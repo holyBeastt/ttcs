@@ -111,14 +111,14 @@
                     <th style="min-width: 150px">Nơi công tác</th>
                     <th>Bộ môn</th>
                     <th>Xem</th>
-                    <th id="hocVienColumn">
+                    <th id="tinhTrangGiangDayColumn">
                       <div class="form-check">
-                        Học viện
+                        Giảng dạy
                         <input
                           class="form-check-input"
                           type="checkbox"
-                          id="checkAllHocVien"
-                          onclick="checkAll('hocVien')"
+                          id="checkAllKhoa"
+                          onclick="checkAll()"
                         />
                       </div>
                     </th>
@@ -255,13 +255,11 @@
       });
     </script>
     <script>
-      function checkAll(type) {
+      function checkAll() {
         const checkboxes = document.querySelectorAll(
-          `input[type="checkbox"][name="${type}CheckBox"]`
+          `input[type="checkbox"][name="tinhTrangGiangDay"]`
         );
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        const checkAllCheckbox = document.getElementById(`checkAllKhoa`);
 
         if (!checkAllCheckbox) return; // Kiểm tra nếu checkbox "Chọn tất cả" không tồn tại
 
@@ -275,14 +273,12 @@
       }
 
       // hàm xử lí check all
-      function updateCheckAll(type) {
+      function updateCheckAll() {
         const checkboxes = document.querySelectorAll(
-          `input[type="checkbox"][name="${type}CheckBox"]`
+          `input[type="checkbox"][name="tinhTrangGiangDay"]`
         );
 
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        const checkAllCheckbox = document.getElementById(`checkAllKhoa`);
 
         if (!checkAllCheckbox) return; // Kiểm tra nếu checkbox "Chọn tất cả" không tồn tại
         if (checkboxes.length === 0) {
@@ -307,6 +303,16 @@
       const MaPhongBan = localStorage.getItem("MaPhongBan");
       const isKhoa = localStorage.getItem("isKhoa");
       document.addEventListener("DOMContentLoaded", async function () {
+        // Ẩn cột duyệt
+
+        if (role !== "Lãnh đạo khoa" && role !== "GV_CNBM") {
+          const tinhTrangGiangDayColumn = document.getElementById(
+            "tinhTrangGiangDayColumn"
+          );
+
+          tinhTrangGiangDayColumn.style.display = "none";
+        }
+
         await fetchData();
 
         const viewDataBtnDetail = document.getElementById("viewDataBtnDetail");
@@ -320,7 +326,7 @@
         });
 
         viewDataBtnDetail.addEventListener("click", async function () {
-          await getCheckedListData();
+          await getStoppedTeachingData();
         });
       });
 
@@ -356,12 +362,14 @@
         }
       };
 
-      async function getCheckedListData() {
+      async function getStoppedTeachingData() {
         try {
           const khoa = document.getElementById("MaPhongBan").value;
 
           const response = await fetch(
-            `/api/gvm/checked-list/data?khoa=${encodeURIComponent(khoa)}`,
+            `/api/gvm/stopped-teaching-list/data?khoa=${encodeURIComponent(
+              khoa
+            )}`,
             {
               method: "GET",
               headers: { "Content-Type": "application/json" },
@@ -381,10 +389,16 @@
       const renderTable = async (data) => {
         const tableContainer = document.getElementById("tableContainer");
         const dataTable = document.getElementById("dataTable");
+        if (!dataTable) {
+          console.error("Không tìm thấy bảng dataTable!");
+          return;
+        }
 
         const tbody = dataTable.querySelector("tbody");
-
-        console.log("table = ", dataTable);
+        if (!tbody) {
+          console.error("Không tìm thấy tbody trong bảng!");
+          return;
+        }
 
         if (data.length == 0) {
           tbody.innerHTML = `
@@ -404,7 +418,7 @@
         data.forEach((item, index) => {
           // Lưu dữ liệu để so sánh khi cập nhật (chỉ gửi những dòng có thay đổi)
           globalData[`${item.id_Gvm}`] = {
-            hoc_vien_duyet: item.hoc_vien_duyet,
+            TinhTrangGiangDay: item.TinhTrangGiangDay,
           };
 
           // Hiển thị dữ liệu
@@ -452,15 +466,16 @@
             `;
 
           // Cột checkbox Học viện
-          const hocVienCheckboxTd = row.insertCell(colIndex++); // Thêm cột mới
-          const hocVienCheckbox = document.createElement("input");
-          hocVienCheckbox.type = "checkbox";
-          hocVienCheckbox.name = "hocVienCheckBox";
-          hocVienCheckbox.checked = item.hoc_vien_duyet; // Kiểm tra trạng thái duyệt
-          hocVienCheckbox.onchange = () => updateCheckAll("hocVien"); // Gọi hàm khi checkbox thay đổi
+          if (role === "Lãnh đạo khoa" || role === "GV_CNBM") {
+            const tinhTrangGiangDayTd = row.insertCell(colIndex++); // Thêm cột mới
+            const tinhTrangGiangDay = document.createElement("input");
+            tinhTrangGiangDay.type = "checkbox";
+            tinhTrangGiangDay.name = "tinhTrangGiangDay";
+            tinhTrangGiangDay.checked = item.hoc_vien_duyet; // Kiểm tra trạng thái duyệt
+            tinhTrangGiangDay.onchange = () => updateCheckAll(); // Gọi hàm khi checkbox thay đổi
 
-          hocVienCheckbox.disabled = MaPhongBan != "HV"; // Chỉ bật nếu là Học viện
-          hocVienCheckboxTd.appendChild(hocVienCheckbox);
+            tinhTrangGiangDayTd.appendChild(tinhTrangGiangDay);
+          }
         });
 
         // Hiển thị bảng
@@ -472,7 +487,7 @@
         .getElementById("update-checked-list")
         .addEventListener("click", submitData);
 
-      async function submitData() {
+      function submitData() {
         // Lấy dữ liệu để tiến hành cập nhật
         const updatedData = getUpdatedData();
 
@@ -489,7 +504,7 @@
         }
 
         // Gửi dữ liệu lên server
-        fetch("/api/gvm/checked-list/update", {
+        fetch("/api/gvm/stopped-teaching-list/update", {
           method: "PUT", // Phương thức PUT
           headers: {
             "Content-Type": "application/json", // Định dạng gửi là JSON
@@ -513,9 +528,6 @@
               confirmButtonText: "OK",
               width: "auto", // Tự động điều chỉnh chiều rộng
               padding: "20px", // Giữ khoảng cách cho nội dung
-            }).then(() => {
-              // Hiển thị lại bảng
-              getCheckedListData();
             });
           })
           .catch((error) => {
@@ -531,17 +543,17 @@
         rows.forEach((row) => {
           const id_Gvm = row.cells[0].textContent;
 
-          const hocVienChecked = row.querySelector(
-            'input[name="hocVienCheckBox"]'
+          const TinhTrangGiangDay = row.querySelector(
+            'input[name="tinhTrangGiangDay"]'
           ).checked
             ? 1
             : 0;
 
           // So sánh với trạng thái ban đầu
-          if (globalData[id_Gvm].hoc_vien_duyet !== hocVienChecked) {
+          if (globalData[id_Gvm].TinhTrangGiangDay !== TinhTrangGiangDay) {
             updatedData.push({
               id_Gvm,
-              hoc_vien_duyet: hocVienChecked,
+              TinhTrangGiangDay: TinhTrangGiangDay,
             });
           }
         });

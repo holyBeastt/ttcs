@@ -94,7 +94,7 @@ const getInfoGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM gvmoi`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi WHERE TinhTrangGiangDay = 1 AND id_Gvm != 1`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
