@@ -357,6 +357,15 @@ const getClassInfoGvmData = async (req, res) => {
       }
     });
 
+    // Đảm bảo  mỗi giảng viên có đối tượng với key soTietDoAn, không có số tiết đồ án thì = 0
+    Object.keys(groupedByTeacher).forEach(teacher => {
+      // Kiểm tra xem trong mảng đã có đối tượng nào chứa key soTietDoAn chưa
+      const hasDoAn = groupedByTeacher[teacher].some(subItem => subItem.hasOwnProperty('soTietDoAn'));
+      if (!hasDoAn) {
+        groupedByTeacher[teacher].push({ soTietDoAn: 0 });
+      }
+    });
+
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
     res.json(groupedByTeacher);
   } catch (error) {
