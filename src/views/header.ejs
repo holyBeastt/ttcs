@@ -1,3 +1,20 @@
+<style>
+  .badge {
+    background-color: red;
+    color: white;
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 50%;
+    margin-left: 5px;
+    top: -5px;
+    /* Đưa badge lên cao */
+    right: -5px;
+    /* Đưa badge sang phải */
+    display: none;
+    /* Ẩn mặc định */
+  }
+</style>
+
 <header>
   <nav class="navbar-top">
     <div class="container-fluid">
@@ -55,7 +72,7 @@
           </div>
           <!--  -->
           <div class="navbar-nav" id="nav-gvm">
-            <div class="nav-item dropdown">
+            <!-- <div class="nav-item dropdown">
               <a
                 class="nav-link dropdown-toggle"
                 href="/login"
@@ -74,6 +91,37 @@
                   style="width: 100%"
                   >Thêm giảng viên mời bằng file</a
                 >
+                <a class="nav-link" href="/api/gvm/waiting-list/render"
+                  >Danh sách chờ duyệt</a
+                >
+              </div>
+            </div> -->
+            <div class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="/login"
+                id="navbarDropdownUser"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Giảng Viên Mời
+                <span id="gvm-badge" class="badge">0</span>
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="nav-link" href="/gvmList">Danh sách giảng viên mời</a>
+                <a class="nav-link" id="addNewFileGvm" href="/importGvmList"
+                  >Thêm giảng viên mời bằng file</a
+                >
+                <a class="nav-link" href="/api/gvm/waiting-list/render">
+                  Danh sách chờ duyệt
+                  <span id="waiting-list-badge" class="badge">0</span>
+                </a>
+                <a class="nav-link" href="/api/gvm/checked-list/render">
+                  Danh sách đã duyệt
+                </a>
+                <a class="nav-link" href="/api/gvm/stopped-teaching-list/site">
+                  Danh sách đã ngừng giảng dạy
+                </a>
               </div>
             </div>
           </div>
@@ -611,4 +659,57 @@
       navLink_addFileQC.style.display = "none";
     }
   });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const cachedCount = localStorage.getItem("waiting_list_count");
+
+    if (cachedCount) updateBadge(cachedCount);
+
+    try {
+      const response = await fetch("/api/gvm/waiting-list/unapproved");
+      if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu");
+
+      const count = await response.json();
+
+      localStorage.setItem("waiting_list_count", count);
+      updateBadge(count);
+    } catch (error) {
+      console.error("Không thể cập nhật thông báo:", error);
+    }
+  });
+
+  function updateBadge(count) {
+    const gvmBadge = document.getElementById("gvm-badge");
+    const waitingBadge = document.getElementById("waiting-list-badge");
+
+    if (count > 0) {
+      gvmBadge.textContent = count;
+      gvmBadge.style.display = "inline-block";
+
+      waitingBadge.textContent = count;
+      waitingBadge.style.display = "inline-block";
+    } else {
+      gvmBadge.style.display = "none";
+      waitingBadge.style.display = "none";
+    }
+  }
+</script>
+
+<script>
+  document
+    .getElementById("changePasswordLink")
+    .addEventListener("click", function (event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+      const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+      if (tenDangNhap) {
+        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+          tenDangNhap
+        )}`;
+      } else {
+        alert("Không tìm thấy TenDangNhap trong localStorage.");
+      }
+    });
 </script>

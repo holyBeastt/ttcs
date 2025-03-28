@@ -2,7 +2,7 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
+//const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 
 let tableTam = process.env.DB_TABLE_TAM;
@@ -80,33 +80,71 @@ const getTableTam = async (req, res) => {
   }
 };
 
+// const getBoMon2 = async (req, res) => {
+//   let connection;
+//   // Câu truy vấn lấy tất cả dữ liệu từ hai bảng
+//   const query1 = "SELECT HoTen, MonGiangDayChinh FROM `gvmoi`";
+//   const query2 =
+//     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien`";
+
+//   try {
+//     connection = await createPoolConnection();
+//     // Thực hiện truy vấn đầu tiên
+//     const results1 = await new Promise((resolve, reject) => {
+//       connection.query(query1, (err, results) => {
+//         if (err) return reject(err);
+//         resolve(results);
+//       });
+//     });
+
+//     // Thực hiện truy vấn thứ hai
+//     const results2 = await new Promise((resolve, reject) => {
+//       connection.query(query2, (err, results) => {
+//         if (err) return reject(err);
+//         resolve(results);
+//       });
+//     });
+
+//     // Gộp kết quả từ hai bảng với cấu trúc khóa đồng nhất
+//     const combinedResults = [
+//       ...results1.map((item) => ({
+//         HoTen: item.HoTen.trim(), // Đảm bảo dữ liệu có định dạng nhất quán
+//         MonGiangDayChinh: item.MonGiangDayChinh,
+//       })),
+//       ...results2.map((item) => ({
+//         HoTen: item.HoTen.trim(),
+//         MonGiangDayChinh: item.MonGiangDayChinh,
+//       })),
+//     ];
+
+//     // Phản hồi lại client với dữ liệu
+//     res.status(200).json(combinedResults);
+//   } catch (error) {
+//     console.error("Error fetching lecturer data:", error);
+//     res.status(500).json(error.message);
+//   } finally {
+//     if (connection) connection.release();
+//   }
+// };
+
 const getBoMon2 = async (req, res) => {
-  // Câu truy vấn lấy tất cả dữ liệu từ hai bảng
-  const query1 = "SELECT HoTen, MonGiangDayChinh FROM `gvmoi`";
+  let connection;
+  const query1 =
+    "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` where TinhTrangGiangDay = 1 AND id_Gvm != 1";
   const query2 =
-    "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien`";
+    "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien` where id_User != 1";
 
   try {
-    // Thực hiện truy vấn đầu tiên
-    const results1 = await new Promise((resolve, reject) => {
-      connection.query(query1, (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
-    });
+    connection = await createPoolConnection();
 
-    // Thực hiện truy vấn thứ hai
-    const results2 = await new Promise((resolve, reject) => {
-      connection.query(query2, (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
-    });
+    // Thực hiện truy vấn trực tiếp không cần dùng Promise
+    const [results1] = await connection.query(query1);
+    const [results2] = await connection.query(query2);
 
-    // Gộp kết quả từ hai bảng với cấu trúc khóa đồng nhất
+    // Gộp kết quả từ hai bảng
     const combinedResults = [
       ...results1.map((item) => ({
-        HoTen: item.HoTen.trim(), // Đảm bảo dữ liệu có định dạng nhất quán
+        HoTen: item.HoTen.trim(),
         MonGiangDayChinh: item.MonGiangDayChinh,
       })),
       ...results2.map((item) => ({
@@ -115,11 +153,12 @@ const getBoMon2 = async (req, res) => {
       })),
     ];
 
-    // Phản hồi lại client với dữ liệu
     res.status(200).json(combinedResults);
   } catch (error) {
     console.error("Error fetching lecturer data:", error);
-    res.status(500).json(error.message);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (connection) connection.release();
   }
 };
 

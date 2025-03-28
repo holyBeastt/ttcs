@@ -43,7 +43,7 @@ async function convertExcelToJSON(filePath) {
 
     // Tìm dòng chứa header. key nhận biết header là STT
     const headerRowIndex = rows.findIndex((row) => {
-      return row[0] === "STT"
+      return row[0] === "STT";
     });
 
     if (headerRowIndex === -1) {
@@ -626,13 +626,13 @@ function processLecturerInfo(input, dataGiangVien, soGiangVien) {
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
   const prefixes = [
-    "PGS\\.?",              // Phó Giáo sư (PGS, PGS.)
-    "T(?:H)?S\\.?",         // Tiến sĩ (TS, THS, thS, ...)
-    "PGS\\.T(?:H)?S\\.?",   // PGS.TS hoặc PGS.THS.
-    "GS\\.T(?:H)?S\\.?",    // GS.TS hoặc GS.THS.
-    "\\(\\s*GVM\\s*\\)",    // (GVM) với khoảng trắng tùy ý
-    "GVMỜI",               // GVMỜI
-    "GIẢNG VIÊN MỜI"       // GIẢNG VIÊN MỜI
+    "PGS\\.?", // Phó Giáo sư (PGS, PGS.)
+    "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
+    "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
+    "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
+    "\\(\\s*GVM\\s*\\)", // (GVM) với khoảng trắng tùy ý
+    "GVMỜI", // GVMỜI
+    "GIẢNG VIÊN MỜI", // GIẢNG VIÊN MỜI
   ];
 
   // Chỉnh regex để loại bỏ cả trường hợp có hoặc không có dấu cách sau học hàm/học vị
@@ -1087,8 +1087,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      0,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1537,7 +1537,7 @@ const updateDateAll = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     }
 
-    res.status(200).json({ message: "Cập nhật thành công" });
+    res.status(200).json({ message: "Chèn ngày thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
@@ -1842,10 +1842,13 @@ const updateQC = async (req, res) => {
       "SELECT TenNhanVien AS name FROM nhanvien"
     );
 
-    const validNames = new Set([
-      ...gvmList.map((gvm) => gvm.name.trim()),
-      ...coHuuList.map((nv) => nv.name.trim()),
-    ]);
+    // const validNames = new Set([
+    //   ...gvmList.map((gvm) => gvm.name.trim()),
+    //   ...coHuuList.map((nv) => nv.name.trim()),
+    // ]);
+
+    const coHuuSet = new Set(coHuuList.map((nv) => nv.name.trim()));
+    const gvmListSet = new Set(gvmList.map((gvm) => gvm.name.trim()));
 
     const error_gv_rows = [];
     const updates = [];
@@ -1870,16 +1873,67 @@ const updateQC = async (req, res) => {
       } = item;
 
       if (KhoaDuyet == 1) {
-        const names = GiaoVienGiangDay.split(",").map((name) => name.trim());
-        const invalidNames = names.filter((name) => !validNames.has(name));
-
-        if (invalidNames.length > 0) {
+        // Check cú pháp
+        // Nếu chưa điền giảng viên
+        if (!GiaoVienGiangDay || GiaoVienGiangDay.trim() === "") {
           error_gv_rows.push(
-            `${LopHocPhan} (${TenLop}) - giảng viên không hợp lệ: ${invalidNames.join(
-              ", "
-            )}`
+            `${LopHocPhan} (${TenLop}) - Chưa nhập giảng viên`
           );
           continue;
+        }
+
+        // Nếu là hệ đại học và tên chứa dấu ,
+        if (
+          GiaoVienGiangDay?.includes(",") &&
+          he_dao_tao?.includes("Đại học")
+        ) {
+          error_gv_rows.push(
+            `${LopHocPhan} (${TenLop}) - lớp đại học chỉ được 1 giảng viên và không có dấu ','`
+          );
+          continue;
+        }
+
+        // Check tên và tích mời giảng
+        if (MoiGiang == 0) {
+          // Cả tên 1 và 2 (nếu có) đều phải là cơ hữu
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+          const invalidNames = names.filter((name) => !coHuuSet.has(name));
+
+          if (invalidNames.length > 0) {
+            error_gv_rows.push(
+              `${LopHocPhan} (${TenLop}) - giảng viên cơ hữu không hợp lệ: ${invalidNames.join(
+                ", "
+              )}`
+            );
+            continue;
+          }
+        } else {
+          // Nếu mời giảng = 1
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+
+          if (names.length === 2) {
+            const invalidNames = [];
+
+            if (!coHuuSet.has(names[0])) {
+              invalidNames.push(
+                `Giảng viên cơ hữu 1 không hợp lệ: ${names[0]}`
+              );
+            }
+            if (!gvmListSet.has(names[1])) {
+              invalidNames.push(`Giảng viên mời 2 không hợp lệ: ${names[1]}`);
+            }
+
+            if (invalidNames.length > 0) {
+              error_gv_rows.push(
+                `${LopHocPhan} (${TenLop}) - ${invalidNames.join(", ")}`
+              );
+              continue;
+            }
+          }
         }
       }
 
@@ -1907,62 +1961,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-          .map(
-            (u) =>
-              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-          )
-          .join(" ")}
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayBatDau
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayKetThuc
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-          .map(
-            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-          )
-          .join(" ")}
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2107,7 +2161,7 @@ const phongBanDuyet = async (req, res) => {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
   } finally {
-    connection.release(); // Trả kết nối về pool
+    if (connection) connection.release(); // Trả kết nối về pool
   }
 };
 
@@ -2388,158 +2442,158 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   }
 };
 
-const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
-  const { dot, ki, namHoc } = req.body;
-  // Lưu hệ mật mã
-  const query2 = `
-    SELECT
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
-        SUM(qc.QuyChuan) AS TongSoTiet,
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc
-    FROM
-        quychuan qc
-    JOIN
-        gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-    WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
-    GROUP BY
-        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
-    `;
+// const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
+//   const { dot, ki, namHoc } = req.body;
+//   // Lưu hệ mật mã
+//   const query2 = `
+//     SELECT
+//         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+//         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+//         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+//         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+//         SUM(qc.QuyChuan) AS TongSoTiet,
+//         MIN(qc.NgayBatDau) AS NgayBatDau,
+//         MAX(qc.NgayKetThuc) AS NgayKetThuc
+//     FROM
+//         quychuan qc
+//     JOIN
+//         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+//     WHERE
+//         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ?
+//         AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
+//     GROUP BY
+//         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+//         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+//         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+//         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+//     `;
 
-  const value = [dot, ki, namHoc];
+//   const value = [dot, ki, namHoc];
 
-  try {
-    const [dataJoin] = await pool.query(query2, value);
+//   try {
+//     const [dataJoin] = await pool.query(query2, value);
 
-    // Kiểm tra xem có dữ liệu không
-    if (!dataJoin || dataJoin.length === 0) {
-      console.log("Không có dữ liệu hợp đồng");
-      return;
-    }
+//     // Kiểm tra xem có dữ liệu không
+//     if (!dataJoin || dataJoin.length === 0) {
+//       console.log("Không có dữ liệu hợp đồng");
+//       return;
+//     }
 
-    //const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-    //const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+//     //const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+//     //const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
-    // Chuẩn bị dữ liệu để chèn từng loạt
-    //const insertValues = dataJoin.map((item) => {
-    const insertValues = await Promise.all(
-      dataJoin
-        .filter(
-          (item) =>
-            item.TaiChinhDuyet != 0 &&
-            item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
-        ) // Loại bỏ các mục có TaiChinhDuyet = 0
-        .map(async (item) => {
-          const {
-            id_Gvm,
-            DienThoai,
-            Email,
-            MaSoThue,
-            HoTen,
-            NgaySinh,
-            HocVi,
-            ChucVu,
-            HSL,
-            CCCD,
-            NgayCapCCCD,
-            NoiCapCCCD,
-            DiaChi,
-            STK,
-            NganHang,
-            NgayBatDau,
-            NgayKetThuc,
-            KiHoc,
-            TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
-            QuyChuan,
-            Dot,
-            NamHoc,
-            MaPhongBan,
-            KhoaDuyet,
-            DaoTaoDuyet,
-            TaiChinhDuyet,
-            GioiTinh,
-            he_dao_tao,
-          } = item;
+//     // Chuẩn bị dữ liệu để chèn từng loạt
+//     //const insertValues = dataJoin.map((item) => {
+//     const insertValues = await Promise.all(
+//       dataJoin
+//         .filter(
+//           (item) =>
+//             item.TaiChinhDuyet != 0 &&
+//             item.DaLuu == 0 &&
+//             daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
+//         ) // Loại bỏ các mục có TaiChinhDuyet = 0
+//         .map(async (item) => {
+//           const {
+//             id_Gvm,
+//             DienThoai,
+//             Email,
+//             MaSoThue,
+//             HoTen,
+//             NgaySinh,
+//             HocVi,
+//             ChucVu,
+//             HSL,
+//             CCCD,
+//             NgayCapCCCD,
+//             NoiCapCCCD,
+//             DiaChi,
+//             STK,
+//             NganHang,
+//             NgayBatDau,
+//             NgayKetThuc,
+//             KiHoc,
+//             TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
+//             QuyChuan,
+//             Dot,
+//             NamHoc,
+//             MaPhongBan,
+//             KhoaDuyet,
+//             DaoTaoDuyet,
+//             TaiChinhDuyet,
+//             GioiTinh,
+//             he_dao_tao,
+//           } = item;
 
-          req.session.tmp++;
+//           req.session.tmp++;
 
-          const DanhXung = getDanhXung(GioiTinh);
-          // const getDanhXung = (GioiTinh) => {
-          //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
-          // };
-          let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
-          let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
-          let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
+//           const DanhXung = getDanhXung(GioiTinh);
+//           // const getDanhXung = (GioiTinh) => {
+//           //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
+//           // };
+//           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
+//           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
+//           let TruThue = 0; // Giả định không thu thuế
+//           let MaBoMon = 0; // Giá trị mặc định là 0
 
-          return [
-            id_Gvm,
-            DienThoai,
-            Email,
-            MaSoThue,
-            DanhXung,
-            HoTen,
-            NgaySinh,
-            HocVi,
-            ChucVu,
-            HSL,
-            CCCD,
-            NgayCapCCCD,
-            NoiCapCCCD,
-            DiaChi,
-            STK,
-            NganHang,
-            NgayBatDau,
-            NgayKetThuc,
-            KiHoc,
-            SoTiet,
-            SoTien,
-            TruThue,
-            Dot,
-            NamHoc,
-            MaPhongBan,
-            MaBoMon,
-            KhoaDuyet,
-            DaoTaoDuyet,
-            TaiChinhDuyet,
-            he_dao_tao,
-          ];
-        })
-    );
+//           return [
+//             id_Gvm,
+//             DienThoai,
+//             Email,
+//             MaSoThue,
+//             DanhXung,
+//             HoTen,
+//             NgaySinh,
+//             HocVi,
+//             ChucVu,
+//             HSL,
+//             CCCD,
+//             NgayCapCCCD,
+//             NoiCapCCCD,
+//             DiaChi,
+//             STK,
+//             NganHang,
+//             NgayBatDau,
+//             NgayKetThuc,
+//             KiHoc,
+//             SoTiet,
+//             SoTien,
+//             TruThue,
+//             Dot,
+//             NamHoc,
+//             MaPhongBan,
+//             MaBoMon,
+//             KhoaDuyet,
+//             DaoTaoDuyet,
+//             TaiChinhDuyet,
+//             he_dao_tao,
+//           ];
+//         })
+//     );
 
-    // Định nghĩa câu lệnh chèn
-    const queryInsert = `
-      INSERT INTO hopdonggvmoi (
-        id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
-        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
-      ) VALUES ?;
-    `;
+//     // Định nghĩa câu lệnh chèn
+//     const queryInsert = `
+//       INSERT INTO hopdonggvmoi (
+//         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
+//         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
+//         Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
+//       ) VALUES ?;
+//     `;
 
-    // Thực hiện câu lệnh chèn
-    if (insertValues.length > 0) {
-      await pool.query(queryInsert, [insertValues]);
-    }
+//     // Thực hiện câu lệnh chèn
+//     if (insertValues.length > 0) {
+//       await pool.query(queryInsert, [insertValues]);
+//     }
 
-    // Trả về kết quả thành công
-    return { success: true, message: "Dữ liệu đã được chèn thành công!" };
-  } catch (err) {
-    console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
-    };
-  }
-};
+//     // Trả về kết quả thành công
+//     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
+//   } catch (err) {
+//     console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
+//     return {
+//       success: false,
+//       message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
+//     };
+//   }
+// };
 
 const getGvmList = async (req, res) => {
   const query = `SELECT * FROM gvmoi`;
@@ -2916,7 +2970,7 @@ const splitTeachers = (data) => {
 
     // Giả sử trường QC là giá trị của lớp gốc (100%)
     const originalQC = item.QuyChuan || 100; // Nếu không có QC thì mặc định là 100%
-    const secondQC = parseFloat((originalQC * 0.3).toFixed(2));
+    const secondQC = parseFloat((originalQC * 0.7).toFixed(2));
     const firstQC = originalQC - secondQC;
 
     // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
@@ -3127,7 +3181,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
-        SUM(qc.QuyChuan * 0.3) AS TongSoTiet,
+        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
     FROM

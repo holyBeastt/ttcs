@@ -94,7 +94,7 @@ const getInfoGiangVien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu giảng viên mời
-    let query = `SELECT HoTen, CCCD FROM gvmoi`;
+    let query = `SELECT HoTen, CCCD FROM gvmoi WHERE TinhTrangGiangDay = 1 AND id_Gvm != 1`;
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
@@ -940,7 +940,7 @@ const getDuplicateUniqueGV = async () => {
     console.error("Error in getDuplicateUniqueGV:", error);
     throw new Error("Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
   } finally {
-    if (connection) await connection.release();
+    if (connection) connection.release();
   }
 };
 
@@ -1039,7 +1039,7 @@ const getGVData = async () => {
     console.error("Error in getDuplicateUniqueGV:", error);
     throw new Error("Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
   } finally {
-    if (connection) await connection.release();
+    if (connection) connection.release();
   }
 };
 

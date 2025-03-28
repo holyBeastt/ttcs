@@ -172,39 +172,38 @@ const getNameGV = (req, res) => {
   });
 };
 
-const getKhoaAndNameGvmOfKhoa = async (req, res) => {
-  try {
-    // Truy vấn để lấy tất cả các trường HoTen và MaPhongBan từ bảng gvmoi
-    const gvmResults = await new Promise((resolve, reject) => {
-      const queryGVM = `
-        SELECT gvmoi.HoTen, gvmoi.MaPhongBan
-        FROM gvmoi;
-      `;
+// const getKhoaAndNameGvmOfKhoa = async (req, res) => {
+//   try {
+//     // Truy vấn để lấy tất cả các trường HoTen và MaPhongBan từ bảng gvmoi
+//     const gvmResults = await new Promise((resolve, reject) => {
+//       const queryGVM = `
+//         SELECT gvmoi.HoTen, gvmoi.MaPhongBan
+//         FROM gvmoi;
+//       `;
 
-      connection.query(queryGVM, (error, results) => {
-        if (error) {
-          console.error("Lỗi truy vấn cơ sở dữ liệu:", error);
-          return reject(
-            new Error("Không thể truy xuất dữ liệu từ cơ sở dữ liệu.")
-          );
-        }
-        resolve(results); // Trả về kết quả truy vấn
-      });
-    });
+//       connection.query(queryGVM, (error, results) => {
+//         if (error) {
+//           console.error("Lỗi truy vấn cơ sở dữ liệu:", error);
+//           return reject(
+//             new Error("Không thể truy xuất dữ liệu từ cơ sở dữ liệu.")
+//           );
+//         }
+//         resolve(results); // Trả về kết quả truy vấn
+//       });
+//     });
 
-    // Trả về dữ liệu lấy từ bảng gvmoi
-    return res.status(200).json(gvmResults);
-  } catch (error) {
-    console.error("Lỗi trong hàm getKhoaAndNameGvmOfKhoa:", error);
-    return res
-      .status(500)
-      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
-  }
-};
+//     // Trả về dữ liệu lấy từ bảng gvmoi
+//     return res.status(200).json(gvmResults);
+//   } catch (error) {
+//     console.error("Lỗi trong hàm getKhoaAndNameGvmOfKhoa:", error);
+//     return res
+//       .status(500)
+//       .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
+//   }
+// };
 
 const updateQCGvm = async (req, res) => {
   const isKhoa = req.session.isKhoa;
-  console.log("isKhoa = ", isKhoa);
   const tableName = process.env.DB_TABLE_QC;
   const jsonData = req.body;
 

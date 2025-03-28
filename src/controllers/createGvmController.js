@@ -14,19 +14,19 @@ const router = express.Router();
 
 const upload = multer().single("truocCCCD");
 
-const getGvmLists = async (req, res) => {
-  try {
-    const connection2 = await createPoolConnection();
-    const query = "SELECT * FROM `gvmoi`";
-    const [results] = await connection2.query(query);
+// const getGvmLists = async (req, res) => {
+//   try {
+//     const connection2 = await createPoolConnection();
+//     const query = "SELECT * FROM `gvmoi`";
+//     const [results] = await connection2.query(query);
 
-    // Gửi danh sách giảng viên dưới dạng mảng
-    return results; // Chỉ gửi kết quả mảng
-  } catch (error) {
-    console.error("Error fetching GVM lists: ", error);
-    return res.status(500).send("Internal server error"); // Trả về chuỗi thông báo lỗi
-  }
-};
+//     // Gửi danh sách giảng viên dưới dạng mảng
+//     return results; // Chỉ gửi kết quả mảng
+//   } catch (error) {
+//     console.error("Error fetching GVM lists: ", error);
+//     return res.status(500).send("Internal server error"); // Trả về chuỗi thông báo lỗi
+//   }
+// };
 
 let createGvm = async (req, res) => {
   let con2;
@@ -198,6 +198,8 @@ let createGvm = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi xử lý tải lên: ", error);
     res.status(500).send("Lỗi khi xử lý tải lên");
+  } finally {
+    if (con2) con2.release();
   }
 };
 
