@@ -159,10 +159,12 @@ function processWordData(content) {
       ) {
         currentRow.GiangVienDefault += line + "\n";
 
-        line = line.replace(
-          /^\d+\.\s*(PGS\.?\s*TS|KS|ThS|TS)\.\s*|^(PGS\.?\s*TS|KS|ThS|TS)\.\s*/i,
-          ""
-        );
+        // line = line.replace(
+        //   /^\d+\.\s*(PGS\.?\s*TS|KS|ThS|TS)\.\s*|^(PGS\.?\s*TS|KS|ThS|TS)\.\s*/i,
+        //   ""
+        // );
+
+        line = line.replace(/(PGS\.?\s*TS|KS|ThS|TS)\.\s*/gi, "");
 
         if (!currentRow.GiangVien) {
           currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
