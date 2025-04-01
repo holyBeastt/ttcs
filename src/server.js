@@ -32,6 +32,7 @@ const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
+const thongkeChiTietMGRoute = require('./routes/thongkeChiTietMGRoute');
 const backupRoute = require("./routes/backupRoute");
 
 // Phần admin
@@ -65,9 +66,9 @@ configViewEngine(app);
 // cấu hình session cho login
 //app.use(express.urlencoded({ extended: true }));
 // app.use(
-//   session({
-//     secret: "your_secret_key",
-//     resave: false,
+  //   session({
+    //     secret: "your_secret_key",
+    //     resave: false,
 //     saveUninitialized: true,
 //     cookie: { secure: false }, // set secure: true nếu bạn sử dụng HTTPS
 //   })
@@ -135,6 +136,7 @@ app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute);
 app.use("/", thongketonghopRoute);
+app.use('/', thongkeChiTietMGRoute);
 app.use("/", backupRoute);
 
 // Phần admin
