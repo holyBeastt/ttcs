@@ -1,5 +1,4 @@
 const express = require("express");
-const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const ExcelJS = require("exceljs");
 const router = express.Router();

@@ -5,10 +5,6 @@ require("dotenv").config();
 const session = require("express-session");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
-//console.log("> check env: ", process.env);
-
-// Connect to database
-const connection = require("./config/database");
 
 // config engine template
 const configViewEngine = require("./config/viewEngine");
@@ -40,7 +36,7 @@ const backupRoute = require("./routes/backupRoute");
 
 // Phần admin
 const adminThemFileHocPhanRoute = require("./routes/adminThemFileHocPhanRoute");
-const adminPhongHocRoute = require("./routes/adminPhongHocRoute")
+const adminPhongHocRoute = require("./routes/adminPhongHocRoute");
 
 // Phần thời khóa biểu
 const TKBRoute = require("./routes/TKBRoute");
@@ -143,7 +139,7 @@ app.use("/", backupRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
-app.use('/', adminPhongHocRoute);
+app.use("/", adminPhongHocRoute);
 
 // Phần thời khóa biểu
 app.use("/", TKBRoute);

@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const XLSX = require("xlsx");
 const fs = require("fs");

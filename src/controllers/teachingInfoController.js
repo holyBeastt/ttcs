@@ -3,7 +3,6 @@ const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
 const { getEnvironmentData } = require("worker_threads");
-const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 
 // Hàm tách chuỗi - giữ nguyên

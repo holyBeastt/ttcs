@@ -1,6 +1,5 @@
 require("dotenv").config();
 const path = require("path");
-const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const {
@@ -210,12 +209,9 @@ const updateTableTam = async (req, res) => {
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
     if (insertUpdateValues.length === 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Dữ liệu không hợp lệ hoặc thiếu dữ liệu hợp lệ để cập nhật.",
-        });
+      return res.status(400).json({
+        message: "Dữ liệu không hợp lệ hoặc thiếu dữ liệu hợp lệ để cập nhật.",
+      });
     }
 
     // Truy vấn SQL
@@ -846,7 +842,6 @@ const exportToWord = async (req, res) => {
 //   });
 // };
 
-
 // V2
 // const exportToExcel = async (req, res) => {
 //   const { renderData } = req.body;
@@ -1045,7 +1040,7 @@ const exportToWord = async (req, res) => {
 //   });
 // };
 
-// V3 
+// V3
 // const exportToExcel2 = async (req, res) => {
 //   const { renderData } = req.body;
 
@@ -1355,7 +1350,7 @@ const exportToExcel = async (req, res) => {
     "HeSoT7CN",
     "HeSoLopDong",
     "QuyChuan",
-    "GhiChu"
+    "GhiChu",
   ];
 
   const titleMap = {
@@ -1368,7 +1363,7 @@ const exportToExcel = async (req, res) => {
     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
-    GhiChu: "Ghi chú"
+    GhiChu: "Ghi chú",
   };
 
   // Danh sách header hiển thị
@@ -1403,12 +1398,19 @@ const exportToExcel = async (req, res) => {
   worksheet.mergeCells(row.number, 5, row.number, 10); // E->J
 
   // Căn giữa, in đậm
-  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
 
   row.getCell(2).font = { bold: true };
   row.getCell(5).font = { bold: true };
-
 
   // Row 2: (Trái - Phải)
   row = worksheet.addRow([]);
@@ -1419,8 +1421,16 @@ const exportToExcel = async (req, res) => {
   worksheet.mergeCells(row.number, 5, row.number, 10);
 
   // Căn giữa & in đậm
-  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
 
   row.getCell(2).font = { bold: true };
   row.getCell(5).font = { bold: true };
@@ -1431,8 +1441,16 @@ const exportToExcel = async (req, res) => {
   row.getCell(5).value = "Hà Nội, ngày        tháng        năm           ";
   worksheet.mergeCells(row.number, 2, row.number, 3);
   worksheet.mergeCells(row.number, 5, row.number, 10);
-  row.getCell(2).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-  row.getCell(5).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
 
   // Row 4: dòng trống
   row = worksheet.addRow([]);
@@ -1446,25 +1464,36 @@ const exportToExcel = async (req, res) => {
   row = worksheet.addRow([]);
   row.getCell(1).value = "THÔNG BÁO".toUpperCase();
   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
   row.getCell(1).font = { bold: true };
-
 
   // Row 6: Số tiết quy chuẩn...
   row = worksheet.addRow([]);
-  row.getCell(1).value = `Số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam}`;
+  row.getCell(
+    1
+  ).value = `Số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam}`;
   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
   row.getCell(1).font = { bold: true };
-
 
   // Row 7: (Cơ sở đào tạo phía Bắc)
   row = worksheet.addRow([]);
   row.getCell(1).value = "(Cơ sở đào tạo phía Bắc)";
   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
-  row.getCell(1).alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
   row.getCell(1).font = { name: "Times New Roman", italic: true };
-
 
   // ========================
   // PHẦN CÁC "CĂN CỨ..."
@@ -1475,16 +1504,20 @@ const exportToExcel = async (req, res) => {
     `           Căn cứ Thời khóa biểu học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam};`,
     `           Căn cứ kết quả đăng ký các học phần của học viên, sinh viên thuộc học kỳ ${renderData[0].Ki}, năm ${renderData[0].Nam};`,
     "           Căn cứ Đề nghị thay đổi giảng viên các lớp học phần của các Khoa.",
-    `           Học viện Kỹ thuật mật mã thông báo số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam} (Cơ sở đào tạo phía Bắc) như sau:`
+    `           Học viện Kỹ thuật mật mã thông báo số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam} (Cơ sở đào tạo phía Bắc) như sau:`,
   ];
 
-  const rowsWithFixedHeight = [0, 1]; // Các dòng x3 chiều cao 
+  const rowsWithFixedHeight = [0, 1]; // Các dòng x3 chiều cao
 
   canCuuList.forEach((text, index) => {
     let r = worksheet.addRow([]);
     r.getCell(1).value = text;
     worksheet.mergeCells(r.number, 1, r.number, totalColumns);
-    r.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+    r.getCell(1).alignment = {
+      horizontal: "left",
+      vertical: "top",
+      wrapText: true,
+    };
     if (rowsWithFixedHeight.includes(index)) {
       r.height = 45;
     }
@@ -1499,7 +1532,11 @@ const exportToExcel = async (req, res) => {
   // Thêm header bảng
   const headerRow = worksheet.addRow(headers);
   headerRow.eachCell((cell) => {
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
     cell.font = { bold: true };
   });
   // Lưu lại dòng bắt đầu của vùng bảng
@@ -1513,7 +1550,7 @@ const exportToExcel = async (req, res) => {
     const department = item.Khoa || "Khac";
     if (!acc[department]) acc[department] = [];
     const rowData = orderedKeys.map((key) =>
-      key === "STT" ? `${sttCounter++}.` : (item[key] || "")
+      key === "STT" ? `${sttCounter++}.` : item[key] || ""
     );
     acc[department].push(rowData);
     return acc;
@@ -1552,7 +1589,11 @@ const exportToExcel = async (req, res) => {
     const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
     let dividerRow = worksheet.addRow([dividerText]);
     worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, totalColumns);
-    dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    dividerRow.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
     dividerRow.font = { bold: true };
 
     // Thêm viền cho toàn bộ hàng
@@ -1586,11 +1627,14 @@ const exportToExcel = async (req, res) => {
   row.getCell(1).value =
     "        Nhận được Thông báo này các cơ quan, đơn vị có liên quan chủ động triển khai thực hiện./.";
   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
-  row.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+  row.getCell(1).alignment = {
+    horizontal: "left",
+    vertical: "top",
+    wrapText: true,
+  };
 
   row = worksheet.addRow([]); // Dòng trống
   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
-
 
   // ==============
   // PHẦN NƠI NHẬN & CHỮ KÝ
@@ -1600,13 +1644,21 @@ const exportToExcel = async (req, res) => {
   row = worksheet.addRow([]);
   row.getCell(2).value = "Nơi nhận:";
   worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
-  row.getCell(2).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+  row.getCell(2).alignment = {
+    horizontal: "left",
+    vertical: "top",
+    wrapText: true,
+  };
   row.getCell(2).font = { bold: true };
 
   // Bên phải
   row.getCell(7).value = "KT. GIÁM ĐỐC\nPHÓ GIÁM ĐỐC";
   worksheet.mergeCells(row.number, 7, row.number, totalColumns); // G->K
-  row.getCell(7).alignment = { horizontal: "center", vertical: "top", wrapText: true };
+  row.getCell(7).alignment = {
+    horizontal: "center",
+    vertical: "top",
+    wrapText: true,
+  };
   row.getCell(7).font = { bold: true };
 
   // 2) Các dòng gạch đầu dòng bên trái
@@ -1615,14 +1667,18 @@ const exportToExcel = async (req, res) => {
     "- Phòng KH-TC;",
     "- Các khoa: NM, ATTT, CNTT, ĐTVT,",
     "  TTTH, CB, LLCT, KQS&QĐ...;",
-    "- Lưu: VT, ĐT P13."
+    "- Lưu: VT, ĐT P13.",
   ];
   bulletLines.forEach((text) => {
     row = worksheet.addRow([]);
     // Bên trái
     row.getCell(2).value = text;
     worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
-    row.getCell(2).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+    row.getCell(2).alignment = {
+      horizontal: "left",
+      vertical: "top",
+      wrapText: true,
+    };
 
     // Bên phải để trống, vẫn merge để không bị border
     worksheet.mergeCells(row.number, 7, row.number, totalColumns);
@@ -1634,7 +1690,6 @@ const exportToExcel = async (req, res) => {
     worksheet.mergeCells(row.number, 1, row.number, 6);
     worksheet.mergeCells(row.number, 7, row.number, totalColumns);
   }
-
 
   // ========================
   // ĐỊNH DẠNG CHUNG (border, font, wrapText)
@@ -1685,7 +1740,8 @@ const exportToExcel = async (req, res) => {
   const fixedWidthTeacher = maxTotalWidth * 0.2; // 20%
   const fixedWidthLopHocPhan = maxTotalWidth * 0.3; // 30%
 
-  const fixedTotal = fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
+  const fixedTotal =
+    fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
   const remainingColumnsCount = colCount - 4;
   const remainingWidthEach =
     remainingColumnsCount > 0
@@ -1728,17 +1784,16 @@ const exportToExcel = async (req, res) => {
 };
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
 
   const date = new Date(dateString);
   // Sử dụng các phương thức lấy giá trị theo giờ địa phương
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
 };
-
 
 const exportToExcel_HDDK = async (req, res) => {
   try {
@@ -1749,8 +1804,8 @@ const exportToExcel_HDDK = async (req, res) => {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Sheet1', {
-      pageSetup: { orientation: 'landscape' }
+    const worksheet = workbook.addWorksheet("Sheet1", {
+      pageSetup: { orientation: "landscape" },
     });
 
     // Ánh xạ tên cột theo yêu cầu
@@ -1773,23 +1828,30 @@ const exportToExcel_HDDK = async (req, res) => {
       MaSoThue: "Mã số thuế",
       DiaChi: "Địa chỉ",
       NoiCongTac: "Nơi công tác",
-      MonGiangDayChinh: "Bộ môn"
+      MonGiangDayChinh: "Bộ môn",
     };
 
     // Tạo danh sách header từ các key của headerMapping
     const headers = Object.keys(headerMapping);
 
     // Tính toán độ rộng tự động cho từng cột dựa trên header và nội dung
-    const rawWidths = headers.map(key => {
+    const rawWidths = headers.map((key) => {
       let maxLen = headerMapping[key].length;
-      renderData.forEach(row => {
+      renderData.forEach((row) => {
         // Nếu là ngày thì chuyển đổi sang chuỗi dạng dd/mm/yyyy để tính độ dài
         let cellValue;
         if ((key === "NgayBatDau" || key === "NgayKetThuc") && row[key]) {
           const date = new Date(row[key]);
-          cellValue = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+          cellValue = `${date.getDate().toString().padStart(2, "0")}/${(
+            date.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${date.getFullYear()}`;
         } else {
-          cellValue = row[key] !== null && row[key] !== undefined ? row[key].toString() : "";
+          cellValue =
+            row[key] !== null && row[key] !== undefined
+              ? row[key].toString()
+              : "";
         }
         if (cellValue.length > maxLen) {
           maxLen = cellValue.length;
@@ -1804,7 +1866,7 @@ const exportToExcel_HDDK = async (req, res) => {
     worksheet.columns = headers.map((key, index) => ({
       header: headerMapping[key],
       key: key,
-      width: Math.round(rawWidths[index] * scale * 100) / 100
+      width: Math.round(rawWidths[index] * scale * 100) / 100,
     }));
 
     // Thiết lập style cho dòng header: font Times New Roman, in đậm, màu nền #007bff và màu chữ trắng
@@ -1812,18 +1874,18 @@ const exportToExcel_HDDK = async (req, res) => {
 
     headerRow.eachCell((cell) => {
       cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
       };
       cell.font = {
         bold: true,
-      }
+      };
     });
 
     // Chuyển đổi giá trị của ngày thành Date object và định dạng danh xưng
-    const formattedData = renderData.map(row => {
+    const formattedData = renderData.map((row) => {
       const formattedRow = { ...row };
       if (row.NgayBatDau) {
         formattedRow.NgayBatDau = formatDate(row.NgayBatDau);
@@ -1842,17 +1904,17 @@ const exportToExcel_HDDK = async (req, res) => {
     });
 
     // Thêm dữ liệu vào sheet
-    formattedData.forEach(data => {
+    formattedData.forEach((data) => {
       worksheet.addRow(data);
     });
 
     // Căn chỉnh cho tất cả các cell
-    worksheet.eachRow({ includeEmpty: true }, row => {
-      row.eachCell(cell => {
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      row.eachCell((cell) => {
         cell.alignment = {
           wrapText: true,
-          vertical: 'middle',
-          horizontal: 'center'
+          vertical: "middle",
+          horizontal: "center",
         };
       });
     });
@@ -1885,15 +1947,11 @@ const exportToExcel_HDDK = async (req, res) => {
         console.error("Lỗi khi xóa file:", unlinkErr);
       }
     });
-
   } catch (error) {
     console.error("Lỗi khi xuất file Excel:", error);
     res.status(500).send("Lỗi khi xuất file Excel");
   }
 };
-
-
-
 
 const editStudentQuanity = async (req, res) => {
   const data = req.body; // Nhận dữ liệu từ body
@@ -1961,11 +2019,11 @@ const editStudentQuanity = async (req, res) => {
       if (studentQuantity !== studentQuantityUpdate) {
         console.log(
           "Update ID: " +
-          ID +
-          " số sinh viên cũ : " +
-          studentQuantity +
-          " số sinh viên mới : " +
-          studentQuantityUpdate
+            ID +
+            " số sinh viên cũ : " +
+            studentQuantity +
+            " số sinh viên mới : " +
+            studentQuantityUpdate
         );
 
         // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
@@ -2014,14 +2072,14 @@ const editStudentQuanity = async (req, res) => {
             UPDATE ?? 
             SET 
                 SoSinhVien = CASE ${updateCaseStatements.SoSinhVien.join(
-      " "
-    )} ELSE SoSinhVien END,
+                  " "
+                )} ELSE SoSinhVien END,
                 HeSoLopDong = CASE ${updateCaseStatements.HeSoLopDong.join(
-      " "
-    )} ELSE HeSoLopDong END,
+                  " "
+                )} ELSE HeSoLopDong END,
                 QuyChuan = CASE ${updateCaseStatements.QuyChuan.join(
-      " "
-    )} ELSE QuyChuan END
+                  " "
+                )} ELSE QuyChuan END
             WHERE ID IN (?);
         `;
 
@@ -2038,12 +2096,10 @@ const editStudentQuanity = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi cập nhật số lượng sinh viên:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}`,
-      });
+    res.status(500).json({
+      success: false,
+      message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}`,
+    });
   } finally {
     if (connection) connection.release(); // Giải phóng kết nối về pool
   }
@@ -2060,5 +2116,5 @@ module.exports = {
   exportToWord,
   exportToExcel,
   editStudentQuanity,
-  exportToExcel_HDDK
+  exportToExcel_HDDK,
 };
