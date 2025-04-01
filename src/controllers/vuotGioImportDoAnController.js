@@ -153,8 +153,8 @@ function processWordData(content) {
       } else if (
         line.startsWith("1.") ||
         line.startsWith("2.") ||
-        line.startsWith("TS.") ||
-        line.startsWith("ThS") ||
+        line.toLowerCase().startsWith("ts.") ||
+        line.toLowerCase().startsWith("ths") ||
         line.toLowerCase().startsWith("pgs.ts.")
       ) {
         currentRow.GiangVienDefault += line + "\n";
