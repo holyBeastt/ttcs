@@ -80,6 +80,34 @@ async function extractFileData(req, res) {
   }
 }
 
+// Loại bỏ học hàm, học vị
+function cleanName(name) {
+  const prefixes = [
+    "PGS\\.?", // Phó Giáo sư (PGS, PGS.)
+    "CN\\.?", // Cử nhân (CN,CN.)
+    "TS\\.?", // Tiễn sĩ (TS, TS.)
+    "KS\\.?", // Kỹ sư (KS, KS.)
+    "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
+    "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
+    "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
+
+  ];
+
+  // Chỉnh regex để loại bỏ cả trường hợp có hoặc không có dấu cách sau học hàm/học vị
+  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")})\\.?\\s*`, "gi");
+
+  // Thực hiện thay thế mà không làm thay đổi định dạng gốc của phần còn lại
+  name = name.replace(combinedRegex, "").trim();
+
+  // Loại bỏ dấu ngoặc và nội dung bên trong (nếu có)
+  name = name.replace(/\(.*?\)/g, "").trim();
+
+  // Loại bỏ ký tự đặc biệt, chỉ giữ lại chữ cái (cả in hoa lẫn in thường) và khoảng trắng
+  name = name.replace(/[^a-zA-ZÀ-Ỹà-ỹ\s]/g, "").trim();
+
+  return name;
+}
+
 function processWordData(content) {
   const lines = content.split("\n");
   const tableData = []; // Mảng để lưu dữ liệu của tất cả các sinh viên
@@ -151,18 +179,41 @@ function processWordData(content) {
         currentRow.TenDeTai = line;
         count++;
       } else if (
+        /*
+    "PGS\\.?", // Phó Giáo sư (PGS, PGS.)
+    "CN\\.?", // Cử nhân (CN,CN.)
+    "TS\\.?", // Tiễn sĩ (TS, TS.)
+    "KS\\.?", // Kỹ sư (KS, KS.)
+    "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
+    "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
+    "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
+        */
+
         line.startsWith("1.") ||
         line.startsWith("2.") ||
-        line.startsWith("TS.") ||
-        line.startsWith("ThS") ||
-        line.toLowerCase().startsWith("pgs.ts.")
+        line.toLowerCase().startsWith("ts.") ||
+        line.toLowerCase().startsWith("ts") ||
+        line.toLowerCase().startsWith("ths.") ||
+        line.toLowerCase().startsWith("ths") ||
+        line.toLowerCase().startsWith("ks.") ||
+        line.toLowerCase().startsWith("ks") ||
+        line.toLowerCase().startsWith("cn.") ||
+        line.toLowerCase().startsWith("cn") ||
+        line.toLowerCase().startsWith("pgs.") ||
+        line.toLowerCase().startsWith("pgs") ||
+        line.toLowerCase().startsWith("pgs.ts.") ||
+        line.toLowerCase().startsWith("pgs.ts") ||
+        line.toLowerCase().startsWith("pgs.ths.") ||
+        line.toLowerCase().startsWith("pgs.ths") ||
+        line.toLowerCase().startsWith("gs.ts.") ||
+        line.toLowerCase().startsWith("gs.ts") ||
+        line.toLowerCase().startsWith("gs.ths.") ||
+        line.toLowerCase().startsWith("gs.ths")
       ) {
         currentRow.GiangVienDefault += line + "\n";
 
-        line = line.replace(
-          /^\d+\.\s*(PGS\.?\s*TS|KS|ThS|TS)\.\s*|^(PGS\.?\s*TS|KS|ThS|TS)\.\s*/i,
-          ""
-        );
+        line = cleanName(line);
+        // console.log("sau clean " + line)
 
         if (!currentRow.GiangVien) {
           currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
