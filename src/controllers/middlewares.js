@@ -2,10 +2,8 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-const connection = require("./connectDB");
 const { json } = require("express");
 const roleDaoTaoALL = process.env.DAOTAO_ALL;
-
 
 // Middleware kiểm tra người dùng đã đăng nhập và có quyền "daotao"
 const checkDaotaoRoleThiHanh = (req, res, next) => {

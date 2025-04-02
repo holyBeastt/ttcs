@@ -2,7 +2,6 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-//const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 
 let tableTam = process.env.DB_TABLE_TAM;

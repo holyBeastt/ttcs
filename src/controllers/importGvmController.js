@@ -1,4 +1,3 @@
-// getTableDBController.js
 require("dotenv").config();
 const createPoolConnection = require("../config/databasePool");
 

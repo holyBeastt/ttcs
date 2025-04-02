@@ -1,6 +1,5 @@
 //const { require } = require("app-root-path");
 const express = require("express");
-//const connection = require("../config/database");
 const createPoolConnection = require("../config/databasePool");
 
 const router = express.Router();
@@ -224,7 +223,7 @@ const getSoTietDoAnTongHopTheoNam = async (NamHoc, MaPhongBan) => {
         acc[teacher] = {
           HoTen: teacher,
           SoTiet: 0,
-          MaPhongBan: current.MaPhongBan // giả sử mỗi giảng viên chỉ thuộc 1 khoa
+          MaPhongBan: current.MaPhongBan, // giả sử mỗi giảng viên chỉ thuộc 1 khoa
         };
       }
       acc[teacher].SoTiet += current.SoTiet;
@@ -243,7 +242,6 @@ const getSoTietDoAnTongHopTheoNam = async (NamHoc, MaPhongBan) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
-
 
 const getClassInfoGvmData = async (req, res) => {
   const MaPhongBan = req.session.MaPhongBan;
@@ -349,7 +347,7 @@ const getClassInfoGvmData = async (req, res) => {
     // console.log(groupedByTeacher)
 
     // gôp số tiết đồ án
-    dataSoTietDoAn.forEach(item => {
+    dataSoTietDoAn.forEach((item) => {
       const teacherName = item.HoTen;
       if (groupedByTeacher.hasOwnProperty(teacherName)) {
         // Chèn thêm đối tượng vào cuối mảng của giảng viên tương ứng
@@ -375,7 +373,6 @@ const getClassInfoGvmData = async (req, res) => {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
-
 
 const getGvm = async (req, res) => {
   let connection; // Khai báo biến connection

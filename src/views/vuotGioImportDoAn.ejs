@@ -469,7 +469,10 @@
           GiangVien1Real.style.display = "none"; // Ẩn input bằng CSS
 
           // Kiểm tra nếu GiangVien1Real nằm trong duplicateGV
-          if (duplicateGV.includes(GiangVien1Real.textContent)) {
+          if (
+            duplicateGV.includes(row.GiangVien1Real) &&
+            row.GiangVien1Real.trim() != ""
+          ) {
             giaoVienHuongDan1Td.style.backgroundColor = "#FFFACD"; // Vàng nhạt
             giaoVienHuongDan1Td.style.border = "1px solid #FFD700"; // Thêm viền vàng đậm
             giaoVienHuongDan1Td.style.borderRadius = "4px"; // Góc bo tròn cho đẹ
@@ -484,7 +487,8 @@
 
           // Kiểm tra nếu GiangVien2Real nằm trong duplicateGV
           if (
-            duplicateGV.includes(GiangVien2Real.textContent) &&
+            duplicateGV.includes(row.GiangVien2Real) &&
+            row.GiangVien2Real.trim() != "" &&
             row.GiangVien2 != "không"
           ) {
             giaoVienHuongDan2Td.style.backgroundColor = "#FFFACD"; // Vàng nhạt

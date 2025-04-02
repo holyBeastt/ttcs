@@ -275,21 +275,21 @@
           <table class="text-center" style="width: 100%">
             <thead>
               <tr>
-                <th style="width: 200px">Học phần</th>
-                <th style="width: 50px">Số TC</th>
-                <th style="width: 200px">GV theo TKB</th>
+                <th style="width: 150px">Học phần</th>
+                <th style="width: 30px">Số TC</th>
+                <th style="width: 130px">GV theo TKB</th>
                 <th style="width: 50px">Mời giảng?</th>
-                <th style="width: 100px">GV giảng dạy</th>
+                <th style="width: 250px">GV giảng dạy</th>
                 <th style="width: 50px">Khoa</th>
-                <th style="width: 100px">Bộ môn</th>
+                <th style="width: 64px">Bộ môn</th>
                 <th style="width: 100px">Hệ đào tạo</th>
-                <th>Ngày bắt đầu</th>
-                <th>Ngày kết thúc</th>
+                <th style="width: 50px">Ngày bắt đầu</th>
+                <th style="width: 50px">Ngày kết thúc</th>
                 <th style="width: 50px">Số tiết LL</th>
                 <th style="width: 50px">Số tiết QC</th>
                 <th style="width: 50px">Ghi chú</th>
 
-                <th style="width: 80px" id="khoaColumn">
+                <th style="width: 50px" id="khoaColumn">
                   <div class="form-check d-flex">
                     <input
                       class="check"
@@ -807,6 +807,8 @@
 
           giaoVienGiangDayTd = document.createElement("td");
           giaoVienGiangDayInput = document.createElement("input");
+          giaoVienGiangDayInput.style.width = "100%";
+          giaoVienGiangDayInput.style.boxSizing = "border-box";
           giaoVienGiangDayInput.type = "text";
           giaoVienGiangDayInput.placeholder = "Nhập tên giảng viên";
           giaoVienGiangDayInput.value = row.GiaoVienGiangDay || "";
@@ -841,6 +843,9 @@
           let boMonInput;
           boMonTd = document.createElement("td");
           boMonInput = document.createElement("input");
+          boMonTd.style.maxWidth = "64px";
+          boMonInput.style.width = "100%";
+          boMonInput.style.boxSizing = "border-box";
           boMonInput.type = "text";
           boMonInput.name = "bomon";
           boMonInput.value = row.BoMon || "";
@@ -916,6 +921,9 @@
           // Ngày Bắt Đầu
           const NgayBatDauTd = document.createElement("td");
           const NgayBatDauInput = document.createElement("input");
+          NgayBatDauTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayBatDauInput.style.width = "100%";
+          NgayBatDauInput.style.boxSizing = "border-box";
           NgayBatDauInput.type = "date";
           NgayBatDauInput.id = `NgayBatDau_${index}`; // Thêm id
           NgayBatDauInput.value = formatDateToInput(row.NgayBatDau);
@@ -925,6 +933,9 @@
           // Ngày Kết Thúc
           const NgayKetThucTd = document.createElement("td");
           const NgayKetThucInput = document.createElement("input");
+          NgayKetThucTd.style.maxWidth = "95px"; // Hoặc kích thước mong muốn
+          NgayKetThucInput.style.width = "100%";
+          NgayKetThucInput.style.boxSizing = "border-box";
           NgayKetThucInput.type = "date";
           NgayKetThucInput.id = `NgayKetThuc_${index}`; // Thêm id
           NgayKetThucInput.value = formatDateToInput(row.NgayKetThuc);

@@ -49,7 +49,7 @@
             ></a>
           </li>
           <!--  -->
-          <div class="navbar-nav" id="tkb-nav" style="display: none">
+          <div class="navbar-nav" id="tkb-nav">
             <div class="nav-item dropdown">
               <a
                 class="nav-link dropdown-toggle"
@@ -61,10 +61,14 @@
                 Thời khóa biểu
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/getImportTKBSite"
+                <a
+                  class="nav-link"
+                  id="add-new-tkb"
+                  style="display: none"
+                  href="/getImportTKBSite"
                   >Thêm thời khóa biểu</a
                 >
-                <a class="nav-link" href="/getTKBChinhThucSite"
+                <a class="nav-link" id="main-tkb" href="/getTKBChinhThucSite"
                   >Thời khóa biểu chính thức</a
                 >
               </div>
@@ -405,6 +409,24 @@
                     >
                   </div>
                 </div>
+                <div class="dropdown-submenu">
+                  <a
+                    class="nav-link dropdown-toggle"
+                    href="#"
+                    id="navbarDropdownTeaching"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    >Thống kê chi tiết</a
+                  >
+                  <div
+                    class="dropdown-menu1"
+                    aria-labelledby="navbarDropdownTeaching"
+                  >
+                    <a class="nav-link dropdown-item" href="/thongkeChiTietMG"
+                      >Chi tiết mời giảng</a
+                    >
+                  </div>
+                </div>
                 <a class="nav-link" id="" href="/thongkedoan">Đồ Án</a>
                 <a class="nav-link" id="" href="/thongkenckh"
                   >Nghiên cứu khoa học</a
@@ -536,13 +558,14 @@
       // Ẩn button import đồ án
       const themFile = document.querySelector(".themFile");
       const suaHD = document.getElementById("suaHD");
-      const tkb = document.getElementById("tkb-nav");
+      //const tkb = document.getElementById("tkb-nav");
+      const addNewTKB = document.getElementById("add-new-tkb");
 
-      // Chỉ đào tạo (duyệt) được quyền thao tác với TKB, thêm file và sửa hợp đồng
+      // Chỉ đào tạo (duyệt) được quyền thao tác với thêm TKB, thêm file và sửa hợp đồng
       if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
         themFile.style.display = "block";
         suaHD.style.display = "block";
-        tkb.style.display = "block";
+        addNewTKB.style.display = "block";
       }
 
       if (

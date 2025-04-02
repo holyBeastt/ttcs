@@ -3,7 +3,6 @@ const Docxtemplater = require("docxtemplater");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
-//const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
