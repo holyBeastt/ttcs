@@ -246,7 +246,7 @@ const getSoTietDoAnTongHopTheoNam = async (NamHoc, MaPhongBan) => {
 // Lấy data của hợp dồng dự kiến 
 const getHopDongDuKienData = async (namHoc, dot, ki, he_dao_tao, khoa) => {
   let connection;
-  console.log("param: " + namHoc + dot + ki + he_dao_tao + khoa);
+  // console.log("param: " + namHoc + dot + ki + he_dao_tao + khoa);
   try {
     connection = await createPoolConnection();
     // const namHoc = req.query.namHoc;
@@ -771,22 +771,28 @@ const getClassInfoGvmData = async (req, res) => {
       return acc;
     }, {});
 
-    // console.log(groupedByTeacher)
-
-    // Gộp tổng tiết vào cuối 
-    // console.log("Tổng số tiết " + tongSoTietTrongNam)
-    tongSoTietTrongNam.forEach((item) => {  
+    console.log(groupedByTeacher)
+    // Duyệt qua danh sách tongSoTietTrongNam để chèn dữ liệu vào cuối mảng của từng giảng viên
+    tongSoTietTrongNam.forEach((item) => {
       const teacherName = item.GiangVien;
       if (groupedByTeacher.hasOwnProperty(teacherName)) {
-        // Chèn thêm đối tượng vào cuối mảng của giảng viên tương ứng
-        groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
+        // Kiểm tra xem trong mảng của giảng viên đã có đối tượng chứa key 'tongSoTietBaoGomDoAn' với giá trị trùng khớp chưa
+        const exists = groupedByTeacher[teacherName].some(subItem =>
+          subItem.hasOwnProperty('tongSoTietBaoGomDoAn') && subItem.tongSoTietBaoGomDoAn === item.TongSoTiet
+        );
+        // Nếu chưa có, thì mới push đối tượng mới vào mảng
+        if (!exists) {
+          groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
+        }
       }
     });
 
-    // Đảm bảo tất cả các lớp đều có tống số tiết bao gồm đồ án, nếu không có thì thêm vào
+    // Đảm bảo rằng tất cả các giảng viên đều có thông tin 'tongSoTietBaoGomDoAn'
+    // Nếu giảng viên chưa có thông tin này, thêm đối tượng với giá trị mặc định là 0
     Object.keys(groupedByTeacher).forEach(teacher => {
-      // Kiểm tra xem trong mảng đã có đối tượng nào chứa key soTietDoAn chưa
-      const hasDoAn = groupedByTeacher[teacher].some(subItem => subItem.hasOwnProperty('tongSoTietBaoGomDoAn'));
+      const hasDoAn = groupedByTeacher[teacher].some(subItem =>
+        subItem.hasOwnProperty('tongSoTietBaoGomDoAn')
+      );
       if (!hasDoAn) {
         groupedByTeacher[teacher].push({ tongSoTietBaoGomDoAn: 0 });
       }
