@@ -148,6 +148,12 @@
       padding: 5px;
       /* Giữ padding như cũ */
     }
+
+    .alert-sotiet {
+      background-color: #ffcccc !important;
+      color: #333;
+      /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+    }
   </style>
   <!-- Phân quyền -->
   <script>
@@ -339,6 +345,10 @@
               index++;
             }
 
+            if (Number.parseFloat(tongSoTietBaoGomDoAn) > 300) {
+              tr.classList.add("alert-sotiet");
+            }
+
             // Thêm các ô dữ liệu cho môn học
             tr.innerHTML += `
       <td>${course.TenHocPhan}</td>
@@ -363,7 +373,6 @@
         </td>
       `;
             }
-
             tableBody.appendChild(tr);
           });
         });
