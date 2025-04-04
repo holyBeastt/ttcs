@@ -110,8 +110,8 @@ async function convertExcelToJSON(filePath) {
           (val) => typeof val === "string" && val.includes(specialSubstring)
         );
 
-      // Nếu có nhiều hơn 5 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
-      if (emptyCount > 5 && !containsSpecial) {
+      // Nếu có nhiều hơn 6 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
+      if (emptyCount > 6 && !containsSpecial) {
         return;
       }
 
