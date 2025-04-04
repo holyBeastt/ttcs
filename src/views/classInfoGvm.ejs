@@ -317,9 +317,9 @@
             0
           );
 
-          // Lấy đối tượng cuối cùng của mảng để tính số tiết đồ án, không render nó ra bảng
+          // Lấy đối tượng cuối cùng của mảng để tính tổng tiết trong năm, không render nó ra bảng
           const lastCourse = courses[courses.length - 1];
-          const tongSoTietBaoGomDoAn = lastCourse.soTietDoAn ? lastCourse.soTietDoAn + totalSoTiet : totalSoTiet;
+          const tongSoTietBaoGomDoAn = lastCourse.tongSoTietBaoGomDoAn;
 
           // Render bảng chỉ với các phần tử từ đầu đến phần tử áp chót (bỏ qua đối tượng cuối cùng)
           courses.slice(0, -1).forEach((course, courseIndex) => {
@@ -356,7 +356,7 @@
             if (courseIndex === 0) {
               tr.innerHTML += `
         <td rowspan="${courses.length - 1}">${totalSoTiet.toFixed(2)}</td>
-        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn.toFixed(2)}</td>
+        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn}</td>
         <td rowspan="${courses.length - 1}">${course.Khoa}</td>
         <td rowspan="${courses.length - 1}">
           <button class="action-button view" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1}')">👁️</button>
