@@ -471,10 +471,11 @@ const getHopDongDuKienData = async (req, res) => {
     const khoa = req.query.khoa;
 
     if (he_dao_tao == "Đồ án") {
-      ki = 0;
+      ki = 1;
     }
 
-    let query = `WITH DoAnHopDongDuKien AS (
+    let query = `
+    WITH DoAnHopDongDuKien AS (
     SELECT
         gv.id_Gvm,
         gv.HoTen AS GiangVien,
@@ -496,7 +497,7 @@ const getHopDongDuKienData = async (req, res) => {
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
         SUM(Combined.SoTiet) AS TongTiet,
         dot,
-        0 AS KiHoc,
+        1 AS KiHoc,
         NamHoc,
         gv.NgayCapCCCD,
         gv.DiaChi,
@@ -785,12 +786,12 @@ const getHopDongDuKienData = async (req, res) => {
             GiangVien
     )
     SELECT 
-        MAX(ta.Dot) AS Dot,
-        MAX(ta.KiHoc) AS KiHoc,
+        MIN(ta.Dot) AS Dot,
+        MIN(ta.KiHoc) AS KiHoc,
         ta.NamHoc,
         ta.id_Gvm,
         ta.GiangVien,
-        ta.he_dao_tao,
+        MIN(ta.he_dao_tao) as he_dao_tao,
         MIN(ta.NgayBatDau) AS NgayBatDau,
         MAX(ta.NgayKetThuc) AS NgayKetThuc,
         SUM(ta.TongTiet) AS TongTiet,
@@ -823,21 +824,20 @@ const getHopDongDuKienData = async (req, res) => {
     Where NamHoc = ?`;
 
     let params = [namHoc];
-    let groupByQuery = "";
 
     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
-    if (ki !== "AllKi" && ki) {
+    if (ki !== "AllKi") {
       query += " AND dot = ? AND KiHoc = ?";
       params.push(dot, ki);
     }
 
     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
-    if (he_dao_tao) {
+    if (he_dao_tao !== "AllHe") {
       query += " AND he_dao_tao = ?";
       params.push(he_dao_tao);
     }
 
-    if (khoa !== "ALL" && khoa) {
+    if (khoa !== "ALL") {
       query += " AND MaPhongBan =?";
       params.push(khoa);
     }
@@ -847,7 +847,6 @@ const getHopDongDuKienData = async (req, res) => {
         ta.NamHoc,
         ta.id_Gvm,
         ta.GiangVien,
-        ta.he_dao_tao,
         ta.GioiTinh,
         ta.NgaySinh,
         ta.CCCD,
