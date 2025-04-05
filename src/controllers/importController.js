@@ -512,27 +512,13 @@ function tachLopHocPhan(chuoi) {
     };
   }
 
-  // Sử dụng biểu thức chính quy để tách chuỗi
-  const regex = /^(.*?)(?:\s*\((.*?)\))?-(\d+)-(\d+)\s*\((.*?)\)$/; // Tách các phần
+  // Biểu thức chính quy mới
+  const regex = /^(.*?)(?:\s*\((.*?)\))?-(\d+)-(\d+)\s*\((.*?)\)(.*)$/;
   const match = chuoi.match(regex);
 
   if (!match) {
-    // Trường hợp không khớp với định dạng
-    const regexFallback = /^(.*?)(?:\s*\((.*?)\))?$/; // Trường hợp không có học kỳ và năm
-    const fallbackMatch = chuoi.match(regexFallback);
-    if (fallbackMatch) {
-      const tenHP = fallbackMatch[1].trim(); // Tên học phần
-      const Lop = fallbackMatch[2] ? fallbackMatch[2].trim() : ""; // Lớp
-      return {
-        TenLop: tenHP,
-        HocKi: null, // Thay đổi giá trị mặc định
-        NamHoc: null, // Thay đổi giá trị mặc định
-        Lop,
-      };
-    }
-
     return {
-      TenLop: "",
+      TenLop: chuoi.trim(), // Nếu không khớp, giữ nguyên toàn bộ chuỗi trong TenLop
       HocKi: null,
       NamHoc: null,
       Lop: "",
@@ -542,12 +528,13 @@ function tachLopHocPhan(chuoi) {
   // Lấy các thông tin từ kết quả match
   const tenHP = match[1].trim(); // Tên học phần
   const HocKi = match[3] ? match[3].trim() : null; // Học kỳ
-  const namHoc = match[4].trim(); // Năm học kèm lớp
-  const NamHoc = "20" + namHoc; // Tạo năm học từ phần thứ ba
-  const Lop = match[5] ? match[5].trim() : ""; // Lớp
+  const namHoc = match[4].trim(); // Năm học hai chữ số
+  const NamHoc = "20" + namHoc; // Chuyển năm học thành 4 chữ số
+  const Lop = match[5] ? match[5].trim() : ""; // Lớp học phần
+  const phanThua = match[6] ? match[6].trim() : ""; // Phần dư (nếu có)
 
   return {
-    TenLop: tenHP,
+    TenLop: phanThua ? `${tenHP} ${phanThua}` : tenHP, // Ghép phần thừa vào TenLop nếu có
     HocKi,
     NamHoc,
     Lop,
@@ -1084,8 +1071,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        0,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1958,62 +1945,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;

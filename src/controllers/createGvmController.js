@@ -108,8 +108,8 @@ let createGvm = async (req, res) => {
     upload(req, res, async function (err) {
       if (req.fileValidationError) {
         return res.send(req.fileValidationError);
-      } else if (!req.files || Object.keys(req.files).length === 0) {
-        return res.send("Please select images to upload");
+        // } else if (!req.files || Object.keys(req.files).length === 0) {
+        //   return res.send("Please select images to upload");
       } else if (err) {
         return res.send(err);
       }

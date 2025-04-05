@@ -148,12 +148,21 @@
       padding: 5px;
       /* Giữ padding như cũ */
     }
+
+    .alert-sotiet {
+      background-color: #ffcccc !important;
+      color: #333;
+      /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+    }
   </style>
   <!-- Phân quyền -->
   <script>
+    var MaPhongBan = localStorage.getItem("MaPhongBan");
+    var isKhoa = localStorage.getItem("isKhoa");
+
+    //const role = localStorage.getItem("userRole");
+
     document.addEventListener("DOMContentLoaded", () => {
-      //const role = localStorage.getItem("userRole");
-      const MaPhongBan = localStorage.getItem("MaPhongBan");
       // Ẩn phần lọc khoa nếu role là Khoa
       const departmentFilter = document.getElementById("departmentFilter");
 
@@ -190,7 +199,7 @@
 
                   <!-- Combo box kì -->
                   <select class="selectop mx-1" id="combobox-ki">
-                    <option value="">Kỳ</option>
+                    <option value="ALL">Kì 1 + Kì 2</option>
                   </select>
 
                   <!-- Combo box Năm -->
@@ -271,6 +280,11 @@
           .value.trim();
         const he_dao_tao = document.getElementById("he_dao_tao").value;
 
+        // Nếu là Khoa thì gắn lại department = MaPhongBan
+        if (isKhoa == 1) {
+          department = MaPhongBan;
+        }
+
         // Tạo dữ liệu gửi đến server
         const filterData = {
           dot: dot,
@@ -319,7 +333,7 @@
 
           // Lấy đối tượng cuối cùng của mảng để tính tổng tiết trong năm, không render nó ra bảng
           const lastCourse = courses[courses.length - 1];
-          const tongSoTietBaoGomDoAn = lastCourse.tongSoTietBaoGomDoAn;
+          const tongSoTietBaoGomDoAn = lastCourse.tongSoTietBaoGomDoAn == 0 ? totalSoTiet : lastCourse.tongSoTietBaoGomDoAn;
 
           // Render bảng chỉ với các phần tử từ đầu đến phần tử áp chót (bỏ qua đối tượng cuối cùng)
           courses.slice(0, -1).forEach((course, courseIndex) => {
@@ -337,6 +351,10 @@
         <td rowspan="${courses.length - 1}">${course.GiangVien}</td>
       `;
               index++;
+            }
+
+            if (Number.parseFloat(tongSoTietBaoGomDoAn) > 300) {
+              tr.classList.add("alert-sotiet");
             }
 
             // Thêm các ô dữ liệu cho môn học
@@ -363,7 +381,6 @@
         </td>
       `;
             }
-
             tableBody.appendChild(tr);
           });
         });
