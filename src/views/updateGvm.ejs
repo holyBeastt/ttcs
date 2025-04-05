@@ -419,6 +419,15 @@
           width: 'auto', // Tự động điều chỉnh chiều rộng
           padding: '20px', // Giữ khoảng cách cho nội dung
         });
+      } else if (message === 'duplicateHoTen') {
+        Swal.fire({
+          title: 'Cảnh báo',
+          html: "Họ tên bị trùng",
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          width: 'auto', // Tự động điều chỉnh chiều rộng
+          padding: '20px', // Giữ khoảng cách cho nội dung
+        });
       } else if (message == 'HeSoLuongNotValue') {
         Swal.fire({
           title: 'Thông báo',

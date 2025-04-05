@@ -66,7 +66,7 @@ const upload = multer().single("truocCCCD");
 const postUpdateGvm = async (req, res) => {
   // Lấy các thông tin từ form
   let IdGvm = req.body.IdGvm;
-  let HoTen = req.body.HoTen;
+  let HoTen = req.body.HoTen?.trim();
   let GioiTinh = req.body.GioiTinh;
   let NgaySinh = req.body.NgaySinh;
   let CCCD = req.body.CCCD;
@@ -105,13 +105,31 @@ const postUpdateGvm = async (req, res) => {
     return res.redirect(`/updateGvm/${IdGvm}?message=HeSoLuongNotValue`);
   }
 
-  // Kiểm tra trùng lặp CCCD
-  const checkDuplicateQuery =
-    "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND HoTen != ?";
-  const [duplicateRows] = await pool.query(checkDuplicateQuery, [CCCD, HoTen]);
-  if (duplicateRows[0].count > 0) {
+  // Kiểm tra trùng CCCD
+  const [cccdRows] = await pool.query(
+    `SELECT id_Gvm FROM gvmoi WHERE CCCD = ? AND id_Gvm != ?`,
+    [CCCD, IdGvm]
+  );
+  if (cccdRows.length > 0) {
     return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
   }
+
+  // Kiểm tra trùng Họ Tên
+  const [hoTenRows] = await pool.query(
+    `SELECT id_Gvm FROM gvmoi WHERE HoTen = ? AND id_Gvm != ?`,
+    [HoTen, IdGvm]
+  );
+  if (hoTenRows.length > 0) {
+    return res.redirect(`/updateGvm/${IdGvm}?message=duplicateHoTen`);
+  }
+
+  // Kiểm tra trùng lặp CCCD
+  // const checkDuplicateQuery =
+  //   "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND id_Gvm != ?";
+  // const [duplicateRows] = await pool.query(checkDuplicateQuery, [CCCD, IdGvm]);
+  // if (duplicateRows[0].count > 0) {
+  //   return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
+  // }
 
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
     ? req.body.maPhongBan.join(",") // Nếu là mảng
