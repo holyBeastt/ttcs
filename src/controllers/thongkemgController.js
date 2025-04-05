@@ -27,7 +27,9 @@ const thongkemgController = {
       } else {
         // Query cho khoa cụ thể
         query = `
-                    SELECT hoten, SUM(sotiet) as tongsotiet 
+                    SELECT hoten, 
+                    SUM(sotiet) as tongsotiet ,
+                    he_dao_tao as hedaotao
                     FROM hopdonggvmoi 
                     WHERE MaPhongBan = ?
                 `;
@@ -79,7 +81,7 @@ const thongkemgController = {
 
       // Thêm option "Tất cả" vào đầu mỗi mảng
       const allNamHoc = [{ NamHoc: "ALL" }, ...namHoc];
-      const allKi = [{ Ki: "Tất cả kỳ", value: "ALL" }, ...ki];
+      const allKi = [{ Ki: "Tất cả kì", value: "ALL" }, ...ki];
       const allKhoa = [{ value: "ALL", Khoa: "Tất cả khoa" }, ...khoa];
 
       const data = {
