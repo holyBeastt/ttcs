@@ -673,6 +673,7 @@ const getClassInfoGvmData = async (req, res) => {
   const MaPhongBan = req.session.MaPhongBan;
   const isKhoa = req.session.isKhoa;
   const { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
+  console.log(req.body)
 
   let connection; // Khai báo biến connection
 
@@ -732,7 +733,7 @@ const getClassInfoGvmData = async (req, res) => {
       SELECT * FROM phuLucDH
   )
 
-  SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
+  SELECT * FROM table_ALL WHERE Dot = ? AND NamHoc = ?
   `;
 
   // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
@@ -740,20 +741,32 @@ const getClassInfoGvmData = async (req, res) => {
     query += ` AND he_dao_tao = ?`;
   }
 
-  // Thêm điều kiện lọc theo khoa
-  if (isKhoa == 0) {
-    if (department != "ALL") {
-      query += ` AND Khoa LIKE '%${department}%'`;
-    }
-  } else {
-    query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
+  if (ki != "ALL") {
+    query += ` AND KiHoc = ?`;
   }
+
+  // Phần comment này là phần truy vấn phân loại theo Khoa, nhưng k hiển thị được nếu có một gv dạy ở 2 Khoa
+  // console.log("derpartment " + department + " MaPhongBan " + MaPhongBan);
+  // if (isKhoa == 0) {
+  //   if (department != "ALL") {
+  //     query += ` AND Khoa LIKE '%${department}%'`;
+  //   }
+  // } else {
+  //   query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
+  // }
+  // Cách hoạt động mới sẽ như sau :
+  // Nếu department là ALL => cho hiển thị ALL data. Ngược lại chỉ hiển thị của Khoa đó.
+  // Truy vấn luôn trả về data của ALL khoa.
+  // Tìm lọc các trường hợp lớp thuộc 2 khoa mà có tên giảng viên giống nhau, gộp vào và trả cho res.
 
   try {
     connection = await createPoolConnection();
-    const queryParams = [dot, ki, nam];
+    const queryParams = [dot, nam];
     if (he_dao_tao !== "ALL") {
       queryParams.push(he_dao_tao);
+    }
+    if (ki != "ALL") {
+      queryParams.push(ki);
     }
 
     const [results, fields] = await connection.query(query, queryParams);
@@ -761,17 +774,44 @@ const getClassInfoGvmData = async (req, res) => {
     const tongSoTietTrongNam = await getHopDongDuKienData(nam, dot, ki, he_dao_tao, department)
     // console.log(dataSoTietDoAn);
 
-    // Nhóm các môn học theo giảng viên
+    // Nhóm các môn học theo giảng viên, theo Khoa 
     const groupedByTeacher = results.reduce((acc, current) => {
       const teacher = current.GiangVien;
-      if (!acc[teacher]) {
-        acc[teacher] = [];
+
+      // Nếu department là ALL thì hiển thị tất cả
+      if (department == "ALL") {
+        if (!acc[teacher]) {
+          acc[teacher] = [];
+        }
+        acc[teacher].push(current);
+      } else {
+        // Lọc theo Khoa
+        if (current.Khoa == department) {
+          if (!acc[teacher]) {
+            acc[teacher] = [];
+          }
+          acc[teacher].push(current);
+        }
       }
-      acc[teacher].push(current);
+
       return acc;
     }, {});
 
-    console.log(groupedByTeacher)
+    // Vòng lặp thứ 2, kiểm tra một giảng viên giảng dạy nhiều khoa 
+    if (department != "ALL") {
+      results.forEach(current => {
+        // Kiểm tra khoa thứ 2 
+        if (current.Khoa != department) {
+          const teacher = current.GiangVien;
+          // Trùng tên, Khoa khác thì thêm luôn
+          if (groupedByTeacher[teacher]) {
+            groupedByTeacher[teacher].push(current);
+          }
+        }
+      });
+    }
+
+    // console.log(groupedByTeacher)
     // Duyệt qua danh sách tongSoTietTrongNam để chèn dữ liệu vào cuối mảng của từng giảng viên
     tongSoTietTrongNam.forEach((item) => {
       const teacherName = item.GiangVien;
