@@ -149,6 +149,12 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 15px;
     }
+
+    .total-labels-container {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+    }
   </style>
 </head>
 
@@ -198,9 +204,17 @@
 </div>
 
   <h3>Bảng chi tiết số tiết vượt giờ</h3>
-  <div class="total-label">
-      <label>Tổng số tiết vượt giờ: <span class="value" id="total">0</span></label>
-  </div>
+  <div class="total-labels-container">
+      <div class="total-label">
+          <label>Số tiết tính vượt giờ(được thanh toán): <span class="value" id="totalSoTietGiangDay">0</span></label>
+        </div>
+        <div class="total-label" id="totalSTPHTContainer">
+            <label>Số tiết phải hoàn thành: <span class="value" id="totalSTPHT">0</span></label>
+        </div>
+        <div class="total-label">
+            <label>Tổng số tiết vượt giờ: <span class="value" id="total">0</span></label>
+        </div>
+</div>
   <table class="table table-bordered my-2" id="thongkevuotgioTable">
       <thead>
           <tr>
@@ -361,22 +375,31 @@ $(document).ready(function () {
         if (tableHeader) {
             tableHeader.innerHTML = (khoa === 'ALL') ?
                 `<th>Khoa</th>
+                <th>Số tiết tính vượt giờ(được thanh toán)</th>
                 <th>Số tiết vượt giờ</th>
                 <th>Số lượng giảng viên</th>` :
                 `<th>STT</th>
                 <th>Họ tên</th>
-                <th>Tổng số tiết</th>
+                <th>Số tiết tính vượt giờ(được thanh toán)</th>
                 <th>Số tiết phải hoàn thành</th>
                 <th>Số tiết miễn giảm</th>
                 <th>Số tiết vượt giờ</th>`;
         }
 
         if (khoa === 'ALL') {
-            data.forEach((item) => {
+            const finalResult = data.map((item) => ({
+                Khoa: item.Khoa,
+                TongSoTiet: parseFloat(item.TongSoTietall || 0).toFixed(2),
+                SoTietVuotGio: parseFloat(item.SoTietVuotGio || 0).toFixed(2),
+                SoLuongGiangVien: item.SoLuongGiangVien
+            }));
+
+            finalResult.forEach((item, index) => {
                 const row = tableBody.insertRow();
                 row.insertCell(0).textContent = item.Khoa || 'Không xác định';
-                row.insertCell(1).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-                row.insertCell(2).textContent = item.SoLuongGiangVien || 0;
+                row.insertCell(1).textContent = item.TongSoTiet;
+                row.insertCell(2).textContent = item.SoTietVuotGio;
+                row.insertCell(3).textContent = item.SoLuongGiangVien;
             });
         } else {
             data.forEach((item, index) => {
@@ -396,6 +419,24 @@ $(document).ready(function () {
         // Tính tổng số tiết vượt giờ
         const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
         document.getElementById('total').textContent = total.toFixed(2);
+
+        // Cập nhật tổng số tiết giảng dạy
+        let totalSoTietGiangDay;
+        if (khoa === 'ALL') {
+            totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
+        } else {
+            totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+        }
+        document.getElementById('totalSoTietGiangDay').textContent = totalSoTietGiangDay.toFixed(2);
+
+        // Cập nhật số tiết phải hoàn thành
+        if (khoa !== 'ALL') {
+            const totalSTPHT = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(item.STPHT) : 0), 0);
+            document.getElementById('totalSTPHT').textContent = totalSTPHT.toFixed(2);
+            document.getElementById('totalSTPHTContainer').style.display = 'block'; // Hiện phần tử
+        } else {
+            document.getElementById('totalSTPHTContainer').style.display = 'none'; // Ẩn toàn bộ khung
+        }
 
         // Cập nhật biểu đồ
         updateCharts(data, khoa);
@@ -436,7 +477,7 @@ function updateCharts(data, khoa) {
             }
 
             // Tính tổng số tiết
-            const totalHours = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
+            const totalHours = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
             console.log('Tổng số tiết:', totalHours); // Kiểm tra tổng số tiết
             window.pieChart = new Chart(ctxPie, {
                 type: 'pie',
@@ -487,7 +528,7 @@ function updateCharts(data, khoa) {
             },
             title: {
                 display: true,
-                text: 'Phân bố số tiết theo khoa'
+                text: 'Phân bố số tiết giảng dạy theo khoa'
                         }
                     }
                 }
@@ -508,7 +549,7 @@ function updateCharts(data, khoa) {
                     labels: data.map(item => item.Khoa || 'Không xác định'),
                     datasets: [{
                         label: 'Số tiết vượt giờ',
-                        data: data.map(item => parseFloat(item.SoTietVuotGio) || 0),
+                        data: data.map(item => parseFloat(item.TongSoTietall) || 0),
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -521,7 +562,7 @@ function updateCharts(data, khoa) {
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Số tiết vượt giờ theo khoa'
+                            text: 'Số tiết giảng dạy theo khoa'
                         }
                     },
                     scales: {

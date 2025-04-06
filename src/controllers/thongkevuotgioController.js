@@ -62,7 +62,9 @@ const thongkevuotgioController = {
                               SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                           FROM 
                               giuaky
-                          ${namhoc && namhoc !== 'ALL' ? 'WHERE NamHoc = ?' : ''}
+                          ${
+                            namhoc && namhoc !== "ALL" ? "WHERE NamHoc = ?" : ""
+                          }
                           GROUP BY 
                               id_User
                       ) gk 
@@ -73,7 +75,7 @@ const thongkevuotgioController = {
                   ON 
                       gd.id_User = nv.id_User
                   WHERE 
-                      ${namhoc && namhoc !== 'ALL' ? 'gd.NamHoc = ? AND' : ''} 
+                      ${namhoc && namhoc !== "ALL" ? "gd.NamHoc = ? AND" : ""} 
                       gd.Khoa = ? 
                       AND gd.id_User != 1
                   GROUP BY 
@@ -81,7 +83,7 @@ const thongkevuotgioController = {
                   ORDER BY 
                       TongSoTiet DESC;
                 `;
-        if (namhoc && namhoc !== 'ALL') {
+        if (namhoc && namhoc !== "ALL") {
           params.push(namhoc, namhoc);
         }
         params.push(khoa);
@@ -115,25 +117,28 @@ const thongkevuotgioController = {
                     LEFT JOIN 
                         (SELECT id_User, SUM(COALESCE(SoTietKT, 0)) AS TotalSoTietKT
                         FROM giuaky
-                        ${namhoc && namhoc !== 'ALL' ? 'WHERE NamHoc = ?' : ''}
+                        ${namhoc && namhoc !== "ALL" ? "WHERE NamHoc = ?" : ""}
                         GROUP BY id_User) gk 
                     ON gd.id_User = gk.id_User
                     LEFT JOIN 
                         nhanvien nv ON gd.id_User = nv.id_User
                     WHERE 
-                        ${namhoc && namhoc !== 'ALL' ? 'gd.NamHoc = ? AND' : ''} gd.id_User != 1
+                        ${
+                          namhoc && namhoc !== "ALL" ? "gd.NamHoc = ? AND" : ""
+                        } gd.id_User != 1
                     GROUP BY 
                         gd.Khoa, gd.GiangVien, nv.ChucVu
                 )
                 SELECT 
                     Khoa AS Khoa, 
+                    SUM(TongSoTiet) AS TongSoTietall,
                     SUM(SoTietVuotGio) AS SoTietVuotGio,
                     COUNT(DISTINCT GiangVien) AS SoLuongGiangVien
                 FROM final
                 GROUP BY Khoa 
                 ORDER BY SoTietVuotGio DESC;
                 `;
-        if (namhoc && namhoc !== 'ALL') {
+        if (namhoc && namhoc !== "ALL") {
           params.push(namhoc, namhoc);
         }
       }
@@ -150,9 +155,10 @@ const thongkevuotgioController = {
       const finalResult = result.map((item) => ({
         ...item,
         TongSoTiet: (
-          parseFloat(item.SoTietGiangDay || 0) + parseFloat(item.SoTietKTGK || 0)
+          parseFloat(item.SoTietGiangDay || 0) +
+          parseFloat(item.SoTietKTGK || 0)
         ).toFixed(2),
-        SoTietVuotGio: parseFloat(item.SoTietVuotGio || 0).toFixed(2)
+        SoTietVuotGio: parseFloat(item.SoTietVuotGio || 0).toFixed(2),
       }));
 
       res.json(finalResult);
@@ -175,25 +181,25 @@ const thongkevuotgioController = {
       );
 
       // Thêm option "Tất cả năm" vào đầu mảng kết quả
-      const allYearsOption = { NamHoc: 'ALL' };
+      const allYearsOption = { NamHoc: "ALL" };
       namHoc.unshift(allYearsOption);
 
       res.json({
         success: true,
-        NamHoc: namHoc
+        NamHoc: namHoc,
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
       res.status(500).json({
         success: false,
-        message: "Lỗi server"
+        message: "Lỗi server",
       });
     } finally {
       if (connection) connection.release();
     }
   },
 
-  getPhongBanVG: async (req, res)=>{
+  getPhongBanVG: async (req, res) => {
     try {
       const connection = await createConnection();
       // Lấy khoa từ các bảng giangday, giuaky
@@ -206,19 +212,19 @@ const thongkevuotgioController = {
           ) AS combined_tables 
           ORDER BY khoa
       `);
-      
+
       connection.release();
       res.json({
-          success: true,
-          MaPhongBan: phongBan
+        success: true,
+        MaPhongBan: phongBan,
       });
-  } catch (error) {
+    } catch (error) {
       console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
       res.status(500).json({
-          success: false,
-          message: "Lỗi server"
+        success: false,
+        message: "Lỗi server",
       });
-  }
+    }
   },
 };
 
