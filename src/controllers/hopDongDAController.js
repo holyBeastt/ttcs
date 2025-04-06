@@ -1759,9 +1759,138 @@ function tinhSoTien(row, soTiet, tienLuongList) {
   }
 }
 
+const getBosungDownloadSite = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    // Lấy danh sách phòng ban để lọc
+    const query = `select HoTen, MaPhongBan from gvmoi where id_Gvm != 1`;
+    const [gvmoiList] = await connection.query(query);
+
+    res.render("doan.hopdong.fileBoSungDownload.ejs", {
+      gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
+    });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const exportBoSungDownloadData = async (req, res) => {
+  let connection;
+  try {
+    const { dot, namHoc, khoa, teacherName } = req.query;
+
+    connection = await createPoolConnection();
+
+    if (!dot || !namHoc) {
+      return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
+    }
+
+    // Lấy dữ liệu phòng ban
+    const [phongBanList] = await connection.query("SELECT * FROM phongban");
+
+    // Lấy dữ liệu tiền lương
+    const tienLuongList = await getTienLuongList(connection);
+
+    if (!tienLuongList || tienLuongList.length === 0) {
+      return res.send(
+        "<script>alert('Không tìm thấy tiền lương phù hợp với giảng viên'); window.location.href='/api/do-an/hd-gvm/bosung-download-file';</script>"
+      );
+    }
+
+    const teachers = await getExportData(
+      connection,
+      dot,
+      namHoc,
+      khoa,
+      teacherName,
+      phongBanList
+    );
+
+    if (!teachers || teachers.length === 0) {
+      return res.send(
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/api/do-an/hd-gvm/bosung-download-file';</script>"
+      );
+    }
+
+    // Tạo thư mục tạm để lưu các file hợp đồng
+    const tempDir = path.join(
+      __dirname,
+      "..",
+      "public",
+      "temp",
+      Date.now().toString()
+    );
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const fileList = [];
+
+    // Tạo hợp đồng cho từng giảng viên
+    for (const teacher of teachers) {
+      // Lấy file tài liệu bổ sung
+      const filePathAdditional = await generateAdditionalFile(teacher, tempDir);
+
+      if (filePathAdditional) {
+        fileList.push(filePathAdditional);
+      }
+    }
+
+    if (fileList.length === 0) {
+      return res
+        .status(400)
+        .send(
+          `<script>alert('Không có tài liệu bổ sung nào.'); window.location.href='/api/do-an/hd-gvm/bosung-download-file';</script>`
+        );
+    }
+
+    const zipPath = path.resolve(__dirname, "TaiLieuBoSung.zip");
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    output.on("close", () => {
+      // Gửi file zip về client
+      res.download(zipPath, "TaiLieuBoSung.zip", (err) => {
+        if (err) {
+          console.error("Lỗi gửi file:", err.message);
+          res.status(500).send("Không thể tải file zip.");
+        }
+
+        // Xoá file zip sau khi tải nếu muốn
+        fs.unlinkSync(zipPath);
+      });
+    });
+
+    archive.on("error", (err) => {
+      throw err;
+    });
+
+    archive.pipe(output);
+
+    fileList.forEach((filePath) => {
+      archive.file(filePath, { name: path.basename(filePath) });
+    });
+
+    await archive.finalize();
+  } catch (error) {
+    console.error("Error in exportMultipleContracts:", error);
+    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
 module.exports = {
   exportMultipleContracts,
   gethopDongDASite,
   getExportAdditionalDoAnGvmSite,
   exportAdditionalDoAnGvm,
+  getBosungDownloadSite,
+  exportBoSungDownloadData,
 };

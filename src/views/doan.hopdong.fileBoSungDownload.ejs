@@ -124,7 +124,7 @@
       <!-- Main content -->
       <div class="gvmList">
         <div class="m-3">
-          <h1>Tổng hợp hợp đồng GVM</h1>
+          <h1>Phụ lục minh chứng GVM</h1>
           <div class="controls-container d-flex align-items-center">
             <select
               class="form-select w-100px mx-2 selectop"
@@ -147,23 +147,6 @@
               id="MaPhongBan"
             >
               <option value="">Chọn khoa</option>
-            </select>
-
-            <select
-              id="loaiHopDong"
-              name="loaiHopDong"
-              class="form-select w-200px mx-2 selectop"
-            >
-              <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
-              <option value="Đại học (Đóng học phí)">
-                Đại học (Đóng học phí)
-              </option>
-              <option value="Cao học (Đóng học phí)">
-                Cao học (Đóng học phí)
-              </option>
-              <option value="Nghiên cứu sinh (Đóng học phí)">
-                Nghiên cứu sinh (Đóng học phí)
-              </option>
             </select>
 
             <input
@@ -206,14 +189,13 @@
           const namHoc = document.getElementById("NamHoc").value;
           const khoa = document.getElementById("MaPhongBan").value;
           const teacherName = document.getElementById("search-teacher").value;
-          const loaiHopDong = document.getElementById("loaiHopDong").value;
 
           if (!dot || !ki || !namHoc) {
             alert("Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học.");
             return;
           }
 
-          let url = `/api/hd-gvm/export-additional-file?dot=${encodeURIComponent(
+          let url = `/api/do-an/hd-gvm/bosung-download-data?dot=${encodeURIComponent(
             dot
           )}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
 
@@ -223,11 +205,6 @@
 
           if (teacherName) {
             url += `&teacherName=${encodeURIComponent(teacherName)}`;
-          }
-
-          // Thêm loại hợp đồng vào URL
-          if (loaiHopDong) {
-            url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
           }
 
           window.location.href = url;
