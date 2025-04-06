@@ -639,20 +639,53 @@ const AdminController = {
       if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
   },
+  // getNamHoc: async (req, res) => {
+  //   let connection;
+  //   try {
+  //     connection = await createPoolConnection();
+  //     const query1 =
+  //       "SELECT * FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
+  //     const [result1] = await connection.query(query1);
+  //     const query2 = "SELECT * FROM `ki` ORDER BY trangthai DESC";
+  //     const [result2] = await connection.query(query2);
+  //     const query3 = "SELECT * FROM `dot` ORDER BY trangthai DESC";
+  //     const [result3] = await connection.query(query3);
+
+  //     // Đóng kết nối sau khi truy vấn hoàn thành
+  //     //connection.end();
+
+  //     res.json({
+  //       success: true,
+  //       NamHoc: result1,
+  //       Ki: result2,
+  //       Dot: result3,
+  //     });
+  //   } catch (error) {
+  //     console.error("Lỗi: ", error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+  //     });
+  //   } finally {
+  //     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  //   }
+  // },
   getNamHoc: async (req, res) => {
     let connection;
     try {
-      const connection = await createPoolConnection();
-      const query1 =
-        "SELECT *FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
-      const [result1] = await connection.query(query1);
-      const query2 = "SELECT *FROM `ki` ORDER BY trangthai DESC";
-      const [result2] = await connection.query(query2);
-      const query3 = "SELECT *FROM `dot` ORDER BY trangthai DESC";
-      const [result3] = await connection.query(query3);
+      connection = await createPoolConnection();
 
-      // Đóng kết nối sau khi truy vấn hoàn thành
-      //connection.end();
+      const [namHocPromise, kiPromise, dotPromise] = await Promise.all([
+        connection.query(
+          "SELECT * FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC"
+        ),
+        connection.query("SELECT * FROM `ki` ORDER BY trangthai DESC"),
+        connection.query("SELECT * FROM `dot` ORDER BY trangthai DESC"),
+      ]);
+
+      const [result1] = namHocPromise;
+      const [result2] = kiPromise;
+      const [result3] = dotPromise;
 
       res.json({
         success: true,
@@ -667,14 +700,15 @@ const AdminController = {
         message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
       });
     } finally {
-      if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+      if (connection) connection.release(); // luôn giải phóng kết nối
     }
   },
   getBoMonList: async (req, res) => {
     let maPhongBan = req.params.maPhongBan;
 
-    let connection = await createPoolConnection();
+    let connection;
     try {
+      connection = await createPoolConnection();
       let results;
       const query = `SELECT * FROM bomon WHERE MaPhongBan = ?`;
       [results] = await connection.query(query, [maPhongBan]);
