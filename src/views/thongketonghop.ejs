@@ -155,28 +155,33 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 15px;
       }
+
+      .table th span {
+        text-decoration: none; /* Remove underline */
+        color: white; /* Ensure the text color is white */
+        font-weight: bold; /* Make the text bold */
+      }
     </style>
   </head>
 
   <body>
-    
     <!-- Phần header -->
     <%- include('header') %>
     <div class="d-flex justify-content-start align-items-end mb-3">
-
       <!-- Combo box kì -->
       <select class="form-select mx-1 selectop" id="comboboxki">
         <option value="ALL">Cả năm</option>
       </select>
 
       <!-- Combo box Năm -->
-      <select class="form-select mx-1 selectop" style="width: 200px;" id="NamHoc">
+      <select
+        class="form-select mx-1 selectop"
+        style="width: 200px"
+        id="NamHoc"
+      >
         <option value="ALL">Tất cả năm</option>
       </select>
-
-
-
-  </div>
+    </div>
     <!-- Phần nội dung -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -209,27 +214,29 @@
     <script>
       async function fetchData1() {
         try {
-          const ki = document.getElementById('comboboxki').value;
-          const nam = document.getElementById('NamHoc').value;
+          const ki = document.getElementById("comboboxki").value;
+          const nam = document.getElementById("NamHoc").value;
 
-          const response = await fetch(`/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`);
+          const response = await fetch(
+            `/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`
+          );
           const data = await response.json();
           console.log("Dữ liệu nhận được:", data);
 
           const labels = data.map((item) => item.Khoa);
           const moiGiangData = data.map((item) => item.TongSoTietMoiGiang);
-          const vuotGioData = data.map((item) => item.TongSoTietVuotGio);
+          const vuotGioData = data.map((item) => item.TongSoTiet);
 
           // Xóa dữ liệu cũ
           if (!data || data.length === 0) {
-              console.log('Không có dữ liệu');
-              document.getElementById('chart').style.display = 'none';           
-              return;
+            console.log("Không có dữ liệu");
+            document.getElementById("chart").style.display = "none";
+            return;
           }
 
           // Destroy existing chart if it exists
           if (window.myChart) {
-              window.myChart.destroy();
+            window.myChart.destroy();
           }
 
           // Tạo biểu đồ
@@ -247,7 +254,7 @@
                   borderWidth: 1,
                 },
                 {
-                  label: "Tổng số tiết vượt giờ",
+                  label: "Tổng số tiết tính vượt giờ(được thanh toán)",
                   data: vuotGioData,
                   backgroundColor: "blue",
                   borderColor: "rgba(255, 99, 132, 1)",
@@ -302,7 +309,9 @@
           <th>Khoa</th>
           <th>Số tiết mời giảng</th>
           <th>Số tiết vượt giờ</th>
-          <th>Tổng số</th>
+          <th>
+            <span title="Mời giảng + Vượt giờ">Tổng số</span>
+          </th>
         </tr>
       </thead>
       <tbody id="detailTable">
@@ -313,24 +322,25 @@
     <script>
       async function fetchThongKeMGData() {
         try {
-          const ki = document.getElementById('comboboxki').value;
-          const nam = document.getElementById('NamHoc').value;
+          const ki = document.getElementById("comboboxki").value;
+          const nam = document.getElementById("NamHoc").value;
 
-
-          const response = await fetch(`/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`);
+          const response = await fetch(
+            `/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`
+          );
           const data = await response.json();
           console.log("Dữ liệu nhận được:", data);
           // Cập nhật bảng
           const tableBody = document.querySelector("table tbody");
           tableBody.innerHTML = ""; // Xóa nội dung cũ của bảng
           if (!data || data.length === 0) {
-              console.log('Không có dữ liệu');
-              const row = tableBody.insertRow();
-              const cell = row.insertCell(0);
-              cell.colSpan = 4;
-              cell.style.textAlign = 'center';
-              cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';           
-              return;
+            console.log("Không có dữ liệu");
+            const row = tableBody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.style.textAlign = "center";
+            cell.textContent = "Không có dữ liệu cho khoảng thời gian này";
+            return;
           }
 
           data.forEach((item) => {
@@ -354,24 +364,30 @@
     <script>
       async function fetchData2() {
         try {
-          const ki = document.getElementById('comboboxki').value;
-          const nam = document.getElementById('NamHoc').value;
+          const ki = document.getElementById("comboboxki").value;
+          const nam = document.getElementById("NamHoc").value;
 
-          const response = await fetch(`/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`);
+          const response = await fetch(
+            `/api/thongketonghop-data?kihoc=${ki}&namhoc=${nam}`
+          );
           const data = await response.json();
           console.log("Dữ liệu nhận được:", data);
 
           if (!data || data.length === 0) {
-              console.log('Không có dữ liệu');
-              document.getElementById('moiGiangPieChart').style.display = 'none';
-              document.getElementById('vuotGioPieChart').style.display = 'none';
-              document.getElementById('tongTietPieChart').style.display = 'none';
-              return;
+            console.log("Không có dữ liệu");
+            document.getElementById("moiGiangPieChart").style.display = "none";
+            document.getElementById("vuotGioPieChart").style.display = "none";
+            document.getElementById("tongTietPieChart").style.display = "none";
+            return;
           }
 
           const labels = data.map((item) => item.Khoa);
-          const moiGiangData = data.map((item) => parseFloat(item.TongSoTietMoiGiang));
-          const vuotGioData = data.map((item) => parseFloat(item.TongSoTietVuotGio));
+          const moiGiangData = data.map((item) =>
+            parseFloat(item.TongSoTietMoiGiang)
+          );
+          const vuotGioData = data.map((item) =>
+            parseFloat(item.TongSoTietVuotGio)
+          );
           const tongSoTietData = data.map((item) => parseFloat(item.Tongso));
 
           // Định nghĩa màu sắc cố định cho các khoa
@@ -386,16 +402,18 @@
           ];
           // Destroy existing pie charts if they exist
           if (window.moiGiangPieChart instanceof Chart) {
-              window.moiGiangPieChart.destroy();
+            window.moiGiangPieChart.destroy();
           }
           if (window.vuotGioPieChart instanceof Chart) {
-              window.vuotGioPieChart.destroy();
+            window.vuotGioPieChart.destroy();
           }
           if (window.tongTietPieChart instanceof Chart) {
-              window.tongTietPieChart.destroy();
+            window.tongTietPieChart.destroy();
           }
           // Biểu đồ tròn: Số tiết mời giảng
-          const moiGiangCtx = document.getElementById("moiGiangPieChart").getContext("2d");
+          const moiGiangCtx = document
+            .getElementById("moiGiangPieChart")
+            .getContext("2d");
           window.moiGiangPieChart = new Chart(moiGiangCtx, {
             type: "pie",
             data: {
@@ -417,7 +435,9 @@
           });
 
           // Biểu đồ tròn: Số tiết vượt giờ
-          const vuotGioCtx = document.getElementById("vuotGioPieChart").getContext("2d");
+          const vuotGioCtx = document
+            .getElementById("vuotGioPieChart")
+            .getContext("2d");
           window.vuotGioPieChart = new Chart(vuotGioCtx, {
             type: "pie",
             data: {
@@ -439,7 +459,9 @@
           });
 
           // Biểu đồ tròn: Tổng số tiết
-          const tongTietCtx = document.getElementById("tongTietPieChart").getContext("2d");
+          const tongTietCtx = document
+            .getElementById("tongTietPieChart")
+            .getContext("2d");
           window.tongTietPieChart = new Chart(tongTietCtx, {
             type: "pie",
             data: {
@@ -467,91 +489,90 @@
       fetchData2();
     </script>
 
-
     <script>
-        $(document).ready(function () {
-            // Khởi tạo các combobox
-            function initializeComboboxes() {
-                // Lấy dữ liệu cho combobox Năm
-                $.ajax({
-                    url: '/getNamHocTH',
-                    method: 'GET',
-                    success: function (response) {
-                        if (response.success) {
-                            response.NamHoc.forEach(function (item) {
-                                $('#NamHoc').append(
-                                    `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                                );
-                            });
-                        }
-                    }
-                });
+      $(document).ready(function () {
+          // Khởi tạo các combobox
+          function initializeComboboxes() {
+              // Lấy dữ liệu cho combobox Năm
+              $.ajax({
+                  url: '/getNamHocTH',
+                  method: 'GET',
+                  success: function (response) {
+                      if (response.success) {
+                          response.NamHoc.forEach(function (item) {
+                              $('#NamHoc').append(
+                                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                              );
+                          });
+                      }
+                  }
+              });
 
-                // Lấy dữ liệu cho combobox Kỳ
-                $.ajax({
-                    url: '/getNamHocTH', // Sử dụng cùng một API để lấy kỳ
-                    method: 'GET',
-                    success: function (response) {
-                        if (response.success) {
-                            response.Ki.forEach(function (item) {
-                                $('#comboboxki').append(
-                                    `<option value="${item.value}">${item.Ki}</option>`
-                                );
-                            });
-                        }
-                    }
-                });
-            }
+              // Lấy dữ liệu cho combobox Kỳ
+              $.ajax({
+                  url: '/getNamHocTH', // Sử dụng cùng một API để lấy kỳ
+                  method: 'GET',
+                  success: function (response) {
+                      if (response.success) {
+                          response.Ki.forEach(function (item) {
+                              $('#comboboxki').append(
+                                  `<option value="${item.value}">${item.Ki}</option>`
+                              );
+                          });
+                      }
+                  }
+              });
+          }
 
-            // Gọi hàm khởi tạo khi trang được tải
-            initializeComboboxes();
+          // Gọi hàm khởi tạo khi trang được tải
+          initializeComboboxes();
 
-            // Lắng nghe sự kiện thay đổi trên các combobox
-            $('#comboboxki, #NamHoc').on('change', function () {
-                fetchThongKeData(); // Gọi hàm để lấy dữ liệu mới
-            });
-
-            async function fetchThongKeData() {
-                const ki = $('#comboboxki').val();
-                const nam = $('#NamHoc').val();
-
-                let url = '/api/thongketonghop-data';
-                const params = new URLSearchParams();
-
-                // Chỉ thêm tham số nếu không phải là "ALL"
-                if (ki && ki !== 'ALL') params.append('kihoc', ki);
-                if (nam && nam !== 'ALL') params.append('namhoc', nam);
-
-                // Nếu có tham số, thêm vào URL
-                if (params.toString()) {
-                    url += '?' + params.toString();
-                }
-
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    // Cập nhật bảng và biểu đồ với dữ liệu mới
-                    fetchData1();
-                    fetchThongKeMGData();
-                    fetchData2();
-                } catch (error) {
-                    console.error("Lỗi khi tải dữ liệu:", error);
-                }
-            }
-         });
-         
-         <!-- Thêm event listeners cho các combo box -->
-         document.getElementById('comboboxki').addEventListener('change', () => {
-           fetchData1();
-           fetchThongKeMGData();
-           fetchData2();
+          // Lắng nghe sự kiện thay đổi trên các combobox
+          $('#comboboxki, #NamHoc').on('change', function () {
+              fetchThongKeData(); // Gọi hàm để lấy dữ liệu mới
           });
-          
-          document.getElementById('NamHoc').addEventListener('change', () => {
-            fetchData1();
-            fetchThongKeMGData();
-            fetchData2();
-          });
-          </script>
+
+          async function fetchThongKeData() {
+              const ki = $('#comboboxki').val();
+              const nam = $('#NamHoc').val();
+
+              let url = '/api/thongketonghop-data';
+              const params = new URLSearchParams();
+
+              // Chỉ thêm tham số nếu không phải là "ALL"
+              if (ki && ki !== 'ALL') params.append('kihoc', ki);
+              if (nam && nam !== 'ALL') params.append('namhoc', nam);
+
+              // Nếu có tham số, thêm vào URL
+              if (params.toString()) {
+                  url += '?' + params.toString();
+              }
+
+              try {
+                  const response = await fetch(url);
+                  const data = await response.json();
+                  // Cập nhật bảng và biểu đồ với dữ liệu mới
+                  fetchData1();
+                  fetchThongKeMGData();
+                  fetchData2();
+              } catch (error) {
+                  console.error("Lỗi khi tải dữ liệu:", error);
+              }
+          }
+       });
+
+       <!-- Thêm event listeners cho các combo box -->
+       document.getElementById('comboboxki').addEventListener('change', () => {
+         fetchData1();
+         fetchThongKeMGData();
+         fetchData2();
+        });
+
+        document.getElementById('NamHoc').addEventListener('change', () => {
+          fetchData1();
+          fetchThongKeMGData();
+          fetchData2();
+        });
+    </script>
   </body>
 </html>

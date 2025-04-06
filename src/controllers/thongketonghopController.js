@@ -1,41 +1,41 @@
 const createConnection = require("../config/databasePool");
 
 const thongketonghopController = {
-    getChartData: async (req, res) => {
-        let connection;
-        const { namhoc, kihoc } = req.query; // Get filters from query parameters
+  getChartData: async (req, res) => {
+    let connection;
+    const { namhoc, kihoc } = req.query; // Get filters from query parameters
 
-        try {
-            connection = await createConnection();
+    try {
+      connection = await createConnection();
 
-            // Base query
-            let query = `
+      // Base query
+      let query = `
                 SELECT 
                     MaPhongBan AS Khoa,
                     SUM(sotiet) AS TongSoTietMoiGiang
                 FROM hopdonggvmoi
                 WHERE 1=1
             `;
-            const params = [];
+      const params = [];
 
-            // Add filters based on the provided parameters
-            if (namhoc && namhoc !== 'ALL') {
-                query += ` AND namhoc = ?`;
-                params.push(namhoc);
-            }
-            if (kihoc && kihoc !== 'ALL') {
-                query += ` AND kihoc = ?`;
-                params.push(kihoc);
-            }
+      // Add filters based on the provided parameters
+      if (namhoc && namhoc !== "ALL") {
+        query += ` AND namhoc = ?`;
+        params.push(namhoc);
+      }
+      if (kihoc && kihoc !== "ALL") {
+        query += ` AND kihoc = ?`;
+        params.push(kihoc);
+      }
 
-            query += ` GROUP BY MaPhongBan`;
+      query += ` GROUP BY MaPhongBan`;
 
-            // Execute the query
-            const [moiGiangData] = await connection.query(query, params);
-            console.log("Dữ liệu mời giảng:", moiGiangData);
+      // Execute the query
+      const [moiGiangData] = await connection.query(query, params);
+      console.log("Dữ liệu mời giảng:", moiGiangData);
 
-            // Similar query for vượt giờ
-            let queryVuotGio = `
+      // Similar query for vượt giờ
+      let queryVuotGio = `
             WITH Final AS (
     SELECT 
         gd.Khoa,
@@ -93,6 +93,7 @@ const thongketonghopController = {
 )
 SELECT 
     Khoa AS Khoa, 
+    SUM(TongSoTiet) AS TongSoTiet,
     SUM(SoTietVuotGio) AS TongSoTietVuotGio
 FROM 
     Final
@@ -100,72 +101,84 @@ GROUP BY
     Khoa;
 
         `;
-        
-        // Xây dựng tham số
-        const paramsVuotGio = [];
-        
-        paramsVuotGio.push(namhoc || 'ALL'); // Thêm kiểm tra cho trường hợp null
-        paramsVuotGio.push(namhoc || 'ALL'); // NamHoc ở subquery giuaky
-        paramsVuotGio.push(kihoc || 'ALL'); // HocKy ở subquery giuaky
-        paramsVuotGio.push(kihoc || 'ALL'); // HocKy ở subquery giuaky
-        paramsVuotGio.push(namhoc || 'ALL'); // NamHoc ở giangday
-        paramsVuotGio.push(namhoc || 'ALL'); // NamHoc ở giangday
-        paramsVuotGio.push(kihoc || 'ALL'); // HocKy ở giangday
-        paramsVuotGio.push(kihoc || 'ALL'); // HocKy ở giangday
-        
-            // Thực thi câu truy vấn
-            const [vuotGioData] = await connection.query(queryVuotGio, paramsVuotGio);
-            console.log("Dữ liệu vượt giờ:", vuotGioData);
-            console.log("Năm " ,namhoc);
-            // Combine the data
-            const chartData = moiGiangData.map(item => {
-                const vuotGio = vuotGioData.find(v => v.Khoa === item.Khoa) || { TongSoTietVuotGio: 0 };
-                const tongSoTietMoiGiang = parseFloat(item.TongSoTietMoiGiang).toFixed(1);
-                const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(1);
-                const tongso = (parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTietVuotGio)).toFixed(1);
 
-                return {
-                    Khoa: item.Khoa,
-                    TongSoTietMoiGiang: tongSoTietMoiGiang,
-                    TongSoTietVuotGio: tongSoTietVuotGio,
-                    Tongso: tongso,
-                };
-            });
+      // Xây dựng tham số
+      const paramsVuotGio = [];
 
-            console.log("Dữ liệu biểu đồ tổng hợp:", chartData);
-            res.json(chartData);
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu biểu đồ tổng hợp:", error);
-            res.status(500).json({ success: false, message: "Lỗi máy chủ", error: error.message });
-        } finally {
-            if (connection) connection.release();
-        }
-    },
+      paramsVuotGio.push(namhoc || "ALL"); // Thêm kiểm tra cho trường hợp null
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở subquery giuaky
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở subquery giuaky
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở subquery giuaky
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở giangday
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở giangday
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở giangday
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở giangday
 
-    getNamHocData: async (req, res) => {
-        let connection;
-        try {
-            connection = await createConnection();
-            const [namHoc] = await connection.query(
-                "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
-            );
-            const [ki] = await connection.query(
-                "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
-            );
+      // Thực thi câu truy vấn
+      const [vuotGioData] = await connection.query(queryVuotGio, paramsVuotGio);
+      console.log("Dữ liệu vượt giờ:", vuotGioData);
+      console.log("Năm ", namhoc);
+      // Combine the data
+      const chartData = moiGiangData.map((item) => {
+        const vuotGio = vuotGioData.find((v) => v.Khoa === item.Khoa) || {
+          TongSoTietVuotGio: 0,
+          TongSoTiet: 0,
+        };
+        const tongSoTietMoiGiang = parseFloat(item.TongSoTietMoiGiang).toFixed(
+          1
+        );
+        const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(
+          1
+        );
+        const tongSoTiet = parseFloat(vuotGio.TongSoTiet).toFixed(1);
+        const tongso = (
+          parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTietVuotGio)
+        ).toFixed(1);
 
-            res.json({
-                success: true,
-                NamHoc: namHoc,
-                Ki: ki
-            });
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-            res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-        } finally {
-            if (connection) connection.release();
-        }
-    },
+        return {
+          Khoa: item.Khoa,
+          TongSoTietMoiGiang: tongSoTietMoiGiang,
+          TongSoTietVuotGio: tongSoTietVuotGio,
+          TongSoTiet: tongSoTiet,
+          Tongso: tongso,
+        };
+      });
 
+      console.log("Dữ liệu biểu đồ tổng hợp:", chartData);
+      res.json(chartData);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu biểu đồ tổng hợp:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Lỗi máy chủ", error: error.message });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  getNamHocData: async (req, res) => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const [namHoc] = await connection.query(
+        "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
+      );
+      const [ki] = await connection.query(
+        "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
+      );
+
+      res.json({
+        success: true,
+        NamHoc: namHoc,
+        Ki: ki,
+      });
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
 };
 
 module.exports = thongketonghopController;
