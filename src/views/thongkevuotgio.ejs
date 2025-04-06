@@ -206,13 +206,13 @@
   <h3>Bảng chi tiết số tiết vượt giờ</h3>
   <div class="total-labels-container">
       <div class="total-label">
-          <label>Số tiết tính vượt giờ(được thanh toán): <span class="value" id="totalSoTietGiangDay">0</span></label>
+          <label>Số tiết tính vượt giờ: <span class="value" id="totalSoTietGiangDay">0</span></label>
         </div>
         <div class="total-label" id="totalSTPHTContainer">
             <label>Số tiết phải hoàn thành: <span class="value" id="totalSTPHT">0</span></label>
         </div>
         <div class="total-label">
-            <label>Tổng số tiết vượt giờ: <span class="value" id="total">0</span></label>
+            <label>Tổng số tiết vượt giờ (được thanh toán): <span class="value" id="total">0</span></label>
         </div>
 </div>
   <table class="table table-bordered my-2" id="thongkevuotgioTable">
@@ -375,15 +375,15 @@ $(document).ready(function () {
         if (tableHeader) {
             tableHeader.innerHTML = (khoa === 'ALL') ?
                 `<th>Khoa</th>
-                <th>Số tiết tính vượt giờ(được thanh toán)</th>
-                <th>Số tiết vượt giờ</th>
+                <th>Số tiết tính vượt giờ</th>
+                <th>Số tiết vượt giờ(được thanh toán)</th>
                 <th>Số lượng giảng viên</th>` :
                 `<th>STT</th>
                 <th>Họ tên</th>
-                <th>Số tiết tính vượt giờ(được thanh toán)</th>
+                <th>Số tiết tính vượt giờ</th>
                 <th>Số tiết phải hoàn thành</th>
                 <th>Số tiết miễn giảm</th>
-                <th>Số tiết vượt giờ</th>`;
+                <th>Số tiết vượt giờ(được thanh toán)</th>`;
         }
 
         if (khoa === 'ALL') {
