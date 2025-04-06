@@ -10,6 +10,18 @@ router.get("/exportHD/downloadAll", exportHDController.exportMultipleContracts);
 
 // Phần xuất thông tin bổ sung giảng viên mời
 
+// Tải file bổ sung
+router.get(
+  "/api/moi-giang/hd-gvm/img-download-site",
+  exportHDController.getImageDownloadSite
+);
+
+router.get(
+  "/api/moi-giang/hd-gvm/img-download-data",
+  exportHDController.exportImageDownloadData
+);
+
+// Hợp đồng tổng hợp
 router.get(
   "/api/hd-gvm/additional-file-site",
   exportHDController.getExportAdditionalInfoGvmSite
