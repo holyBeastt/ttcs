@@ -1,6 +1,5 @@
 require("dotenv").config();
 const path = require("path");
-const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const {
@@ -210,12 +209,9 @@ const updateTableTam = async (req, res) => {
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
     if (insertUpdateValues.length === 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Dữ liệu không hợp lệ hoặc thiếu dữ liệu hợp lệ để cập nhật.",
-        });
+      return res.status(400).json({
+        message: "Dữ liệu không hợp lệ hoặc thiếu dữ liệu hợp lệ để cập nhật.",
+      });
     }
 
     // Truy vấn SQL
@@ -550,6 +546,7 @@ const exportToWord = async (req, res) => {
   }
 };
 
+// V1
 // const exportToExcel = async (req, res) => {
 //   const { renderData } = req.body;
 
@@ -845,10 +842,503 @@ const exportToWord = async (req, res) => {
 //   });
 // };
 
+// V2
+// const exportToExcel = async (req, res) => {
+//   const { renderData } = req.body;
+
+//   // Mảng tiêu đề theo thứ tự mong muốn
+//   const orderedKeys = [
+//     "STT",
+//     "SoTinChi",
+//     "LopHocPhan",
+//     "GiaoVien",
+//     "SoTietCTDT",
+//     "SoSinhVien",
+//     "LL",
+//     "HeSoT7CN",
+//     "HeSoLopDong",
+//     "QuyChuan",
+//     "GhiChu"
+//   ];
+
+//   const titleMap = {
+//     SoTinChi: "Số TC",
+//     LopHocPhan: "Lớp học phần",
+//     GiaoVien: "Giáo viên",
+//     SoTietCTDT: "Số tiết theo CTĐT",
+//     SoSinhVien: "Số SV",
+//     LL: "Số tiết lên lớp theo TKB",
+//     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     HeSoLopDong: "Hệ số lớp đông",
+//     QuyChuan: "QC",
+//     GhiChu: "Ghi chú"
+//   };
+
+//   // Tạo tiêu đề hiển thị cho Excel
+//   const headers = orderedKeys.map((key) =>
+//     key === "STT" ? "STT" : titleMap[key] || key
+//   );
+
+//   // Biến đếm STT toàn cục (tăng từ 1 đến hết)
+//   let sttCounter = 1;
+
+//   // Nhóm dữ liệu theo 'Khoa', đồng thời gán STT theo sttCounter
+//   const groupedData = renderData.reduce((acc, item) => {
+//     const department = item.Khoa || "Khac";
+//     if (!acc[department]) acc[department] = [];
+//     const row = orderedKeys.map((key) =>
+//       key === "STT" ? `${sttCounter++}.` : (item[key] || "")
+//     );
+//     acc[department].push(row);
+//     return acc;
+//   }, {});
+
+//   // Hàm chuyển số sang số la mã (Roman numeral)
+//   const toRoman = (num) => {
+//     const romanNumerals = [
+//       ["M", 1000],
+//       ["CM", 900],
+//       ["D", 500],
+//       ["CD", 400],
+//       ["C", 100],
+//       ["XC", 90],
+//       ["L", 50],
+//       ["XL", 40],
+//       ["X", 10],
+//       ["IX", 9],
+//       ["V", 5],
+//       ["IV", 4],
+//       ["I", 1],
+//     ];
+//     let roman = "";
+//     for (const [letter, value] of romanNumerals) {
+//       while (num >= value) {
+//         roman += letter;
+//         num -= value;
+//       }
+//     }
+//     return roman;
+//   };
+
+//   // Tạo workbook và worksheet mới bằng ExcelJS
+//   const workbook = new ExcelJS.Workbook();
+//   const worksheet = workbook.addWorksheet("ALL", {
+//     pageSetup: {
+//       orientation: "landscape",
+//       fitToPage: true,
+//       fitToWidth: 1,
+//       fitToHeight: 0,
+//       paperSize: 9, // 9 tương ứng với A4 trong ExcelJS
+//     },
+//   });
+
+//   // In header đầu tiên ở đầu trang
+//   const headerRow = worksheet.addRow(headers);
+//   headerRow.eachCell((cell) => {
+//     cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//     cell.font = { bold: true };
+//   });
+
+//   let romanCounter = 1;
+
+//   // Duyệt qua từng nhóm khoa
+//   for (const [department, rows] of Object.entries(groupedData)) {
+//     // Thêm dòng divider cho từng khoa với số la mã
+//     const roman = toRoman(romanCounter++);
+//     const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
+//     const dividerRow = worksheet.addRow([dividerText]);
+//     // Hợp nhất các ô từ cột 1 đến cột cuối
+//     worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, headers.length);
+//     dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//     dividerRow.font = { bold: true };
+
+//     // Thêm các dòng dữ liệu của khoa
+//     rows.forEach((dataRow) => {
+//       worksheet.addRow(dataRow);
+//     });
+
+//     // Thêm một dòng trống giữa các nhóm (tuỳ chọn)
+//     worksheet.addRow([]);
+//   }
+
+//   // Áp dụng border và wrapText cho tất cả các ô trong worksheet
+//   worksheet.eachRow((row) => {
+//     row.eachCell({ includeEmpty: true }, (cell) => {
+//       cell.border = {
+//         top: { style: "thin", color: { argb: "FF000000" } },
+//         left: { style: "thin", color: { argb: "FF000000" } },
+//         bottom: { style: "thin", color: { argb: "FF000000" } },
+//         right: { style: "thin", color: { argb: "FF000000" } },
+//       };
+//       cell.alignment = cell.alignment || { horizontal: "left" };
+//       cell.alignment.wrapText = true;
+//       cell.font = {
+//         name: "Cambria",
+//         size: 13,
+//         bold: cell.font?.bold || false,
+//       };
+//     });
+//   });
+
+//   // Đặt độ rộng cột theo yêu cầu:
+//   // - Cột "STT" và "Số TC" (SoTinChi) có độ rộng cố định
+//   // - Cột "GiaoVien" và "LopHocPhan" chiếm 20% tổng chiều rộng
+//   // - Các cột còn lại chia đều phần còn lại
+//   const maxTotalWidth = 150; // Tổng chiều rộng tối đa của bảng
+//   const colCount = headers.length;
+//   const sttIndex = orderedKeys.indexOf("STT");
+//   const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
+//   const teacherIndex = orderedKeys.indexOf("GiaoVien");
+//   const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
+
+//   const fixedWidthSTT = 7; // Cột STT và Số TC
+//   const fixedWidthTeacher = maxTotalWidth * 0.2; // 20% tổng width
+//   const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20% tổng width
+
+//   // Tổng width cố định
+//   const fixedTotal =
+//     fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
+//   const remainingColumnsCount = colCount - 4; // trừ STT, SoTinChi, GiaoVien, LopHocPhan
+//   const remainingWidthEach =
+//     remainingColumnsCount > 0
+//       ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
+//       : 0;
+
+//   for (let i = 1; i <= colCount; i++) {
+//     if (i - 1 === sttIndex || i - 1 === soTinChiIndex) {
+//       worksheet.getColumn(i).width = fixedWidthSTT;
+//     } else if (i - 1 === teacherIndex) {
+//       worksheet.getColumn(i).width = fixedWidthTeacher;
+//     } else if (i - 1 === lopHocPhanIndex) {
+//       worksheet.getColumn(i).width = fixedWidthLopHocPhan;
+//     } else {
+//       worksheet.getColumn(i).width = remainingWidthEach;
+//     }
+//   }
+
+//   // Tạo tên file dựa trên Ki và Nam học
+//   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+//   const filePath = path.join("./uploads", fileName);
+
+//   // Ghi file Excel ra filePath
+//   await workbook.xlsx.writeFile(filePath);
+
+//   // Gửi file về client và xóa file sau khi gửi
+//   res.download(filePath, fileName, (err) => {
+//     if (err) {
+//       console.error("Lỗi khi gửi file:", err);
+//       res.status(500).send("Không thể tải file");
+//     } else {
+//       fs.unlink(filePath, (unlinkErr) => {
+//         if (unlinkErr) {
+//           console.error("Lỗi khi xóa file:", unlinkErr);
+//         } else {
+//           console.log("File đã được xóa thành công.");
+//         }
+//       });
+//     }
+//   });
+// };
+
+// V3
+// const exportToExcel2 = async (req, res) => {
+//   const { renderData } = req.body;
+
+//   // 1) Chuẩn bị key và map tiêu đề
+//   const orderedKeys = [
+//     "STT",
+//     "SoTinChi",
+//     "LopHocPhan",
+//     "GiaoVien",
+//     "SoTietCTDT",
+//     "SoSinhVien",
+//     "LL",
+//     "HeSoT7CN",
+//     "HeSoLopDong",
+//     "QuyChuan",
+//     "GhiChu"
+//   ];
+
+//   const titleMap = {
+//     SoTinChi: "Số TC",
+//     LopHocPhan: "Lớp học phần",
+//     GiaoVien: "Giáo viên",
+//     SoTietCTDT: "Số tiết theo CTĐT",
+//     SoSinhVien: "Số SV",
+//     LL: "Số tiết lên lớp theo TKB",
+//     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+//     HeSoLopDong: "Hệ số lớp đông",
+//     QuyChuan: "QC",
+//     GhiChu: "Ghi chú"
+//   };
+
+//   // Danh sách header hiển thị
+//   const headers = orderedKeys.map((key) =>
+//     key === "STT" ? "STT" : titleMap[key] || key
+//   );
+//   // Tổng số cột
+//   const totalColumns = headers.length; // 11 cột
+
+//   // Tạo workbook & worksheet
+//   const workbook = new ExcelJS.Workbook();
+//   const worksheet = workbook.addWorksheet("ALL", {
+//     pageSetup: {
+//       orientation: "landscape",
+//       fitToPage: true,
+//       fitToWidth: 1,
+//       fitToHeight: 0,
+//       paperSize: 9, // A4
+//     },
+//   });
+
+//   // ========================
+//   // PHẦN HEADER NGOÀI
+//   // ========================
+
+//   // Row 1: (Trái - Phải)
+//   let row = worksheet.addRow([]);
+//   row.getCell(1).value = "BAN CƠ YẾU CHÍNH PHỦ";
+//   row.getCell(6).value = "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM";
+//   worksheet.mergeCells(row.number, 1, row.number, 4);   // A->E
+//   worksheet.mergeCells(row.number, 6, row.number, 11);  // F->K
+//   // Định dạng căn trái - phải tùy ý
+//   row.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+//   row.getCell(6).alignment = { horizontal: "right", vertical: "middle" };
+
+//   // Row 2: (Trái - Phải)
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "HỌC VIỆN KỸ THUẬT MẬT MÃ";
+//   row.getCell(6).value = "Độc lập - Tự do - Hạnh phúc";
+//   worksheet.mergeCells(row.number, 1, row.number, 4);
+//   worksheet.mergeCells(row.number, 6, row.number, 11);
+//   row.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+//   row.getCell(6).alignment = { horizontal: "right", vertical: "middle" };
+
+//   // Row 3: (Trái - Phải)
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "Số:          /TB-HVM";
+//   row.getCell(6).value = "Hà Nội, ngày        tháng 03 năm 2025";
+//   worksheet.mergeCells(row.number, 1, row.number, 4);
+//   worksheet.mergeCells(row.number, 6, row.number, 11);
+//   row.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+//   row.getCell(6).alignment = { horizontal: "right", vertical: "middle" };
+
+//   // Row 4: dòng trống
+//   row = worksheet.addRow([]);
+//   worksheet.mergeCells(row.number, 1, row.number, 11);
+
+//   // ========================
+//   // PHẦN THÔNG BÁO
+//   // ========================
+
+//   // Row 5: THÔNG BÁO
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "THÔNG BÁO";
+//   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+//   row.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
+
+//   // Row 6: Số tiết quy chuẩn...
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "Số tiết quy chuẩn các lớp học phần thuộc học kỳ 2, năm học 2024 – 2025";
+//   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+//   row.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
+
+//   // Row 7: (Cơ sở đào tạo phía Bắc)
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "(Cơ sở đào tạo phía Bắc)";
+//   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+//   row.getCell(1).alignment = { horizontal: "center", vertical: "middle" };
+
+//   // ========================
+//   // PHẦN CÁC "CĂN CỨ..."
+//   // ========================
+//   const canCuuList = [
+//     "           Căn cứ Thông tư số 20/2020/TT-BGDĐT ngày 27 tháng 7 năm 2020 của Bộ trưởng Bộ Giáo dục và đào tạo ban hành Quy định chế độ làm việc của giảng viên cơ sở giáo dục đại học;",
+//     "           Căn cứ Quyết định số 1409/QĐ-HVM ngày 30 tháng 12 năm 2021 của Giám đốc Học viện Kỹ thuật mật mã ban hành Quy định chế độ làm việc đối với giảng viên Học viện Kỹ thuật mật mã;",
+//     "           Căn cứ Thời khóa biểu học kỳ 2, năm học 2024-2025;",
+//     "           Căn cứ kết quả đăng ký các học phần của học viên, sinh viên thuộc học kỳ 2, năm 2024 - 2025;",
+//     "           Căn cứ Đề nghị thay đổi giảng viên các lớp học phần của các Khoa.",
+//     "           Học viện Kỹ thuật mật mã thông báo số tiết quy chuẩn các lớp học phần thuộc học kỳ 2, năm học 2024-2025 (Cơ sở đào tạo phía Bắc) như sau:"
+//   ];
+
+//   canCuuList.forEach((text) => {
+//     let r = worksheet.addRow([]);
+//     r.getCell(1).value = text;
+//     worksheet.mergeCells(r.number, 1, r.number, totalColumns);
+//     r.getCell(1).alignment = {
+//       horizontal: "left",
+//       vertical: "top",
+//       wrapText: true,
+//     };
+//   });
+
+//   // Thêm 1 row trống trước khi vào bảng
+//   worksheet.addRow([]);
+
+//   // ========================
+//   // PHẦN HEADER BẢNG
+//   // ========================
+
+//   // Thêm header bảng
+//   const headerRow = worksheet.addRow(headers);
+//   headerRow.eachCell((cell) => {
+//     cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//     cell.font = { bold: true };
+//   });
+
+//   // ========================
+//   // XỬ LÝ DỮ LIỆU: NHÓM THEO KHOA
+//   // ========================
+//   let sttCounter = 1;
+//   const groupedData = renderData.reduce((acc, item) => {
+//     const department = item.Khoa || "Khac";
+//     if (!acc[department]) acc[department] = [];
+//     const rowData = orderedKeys.map((key) =>
+//       key === "STT" ? `${sttCounter++}.` : (item[key] || "")
+//     );
+//     acc[department].push(rowData);
+//     return acc;
+//   }, {});
+
+//   // Hàm chuyển số sang La Mã
+//   const toRoman = (num) => {
+//     const romanNumerals = [
+//       ["M", 1000],
+//       ["CM", 900],
+//       ["D", 500],
+//       ["CD", 400],
+//       ["C", 100],
+//       ["XC", 90],
+//       ["L", 50],
+//       ["XL", 40],
+//       ["X", 10],
+//       ["IX", 9],
+//       ["V", 5],
+//       ["IV", 4],
+//       ["I", 1],
+//     ];
+//     let roman = "";
+//     for (const [letter, value] of romanNumerals) {
+//       while (num >= value) {
+//         roman += letter;
+//         num -= value;
+//       }
+//     }
+//     return roman;
+//   };
+
+//   let romanCounter = 1;
+//   for (const [department, rowsData] of Object.entries(groupedData)) {
+//     const roman = toRoman(romanCounter++);
+//     const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
+//     let dividerRow = worksheet.addRow([dividerText]);
+//     worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, totalColumns);
+//     dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+//     dividerRow.font = { bold: true };
+
+//     // Thêm data rows
+//     rowsData.forEach((rData) => {
+//       worksheet.addRow(rData);
+//     });
+//     // Row trống sau mỗi nhóm
+//     worksheet.addRow([]);
+//   }
+
+//   // ========================
+//   // PHẦN ROW CUỐI: THÔNG BÁO KẾT
+//   // ========================
+//   row = worksheet.addRow([]);
+//   row.getCell(1).value = "        Nhận được Thông báo này các cơ quan, đơn vị có liên quan chủ động triển khai thực hiện./.";
+//   worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+//   row.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+
+//   // (Tuỳ chọn) Thêm các row “Nơi nhận”, chữ ký… nếu muốn
+
+//   // ========================
+//   // ĐỊNH DẠNG CHUNG (border, font, wrapText)
+//   // ========================
+//   worksheet.eachRow((rItem) => {
+//     rItem.eachCell({ includeEmpty: true }, (cell) => {
+//       cell.border = {
+//         top: { style: "thin", color: { argb: "FF000000" } },
+//         left: { style: "thin", color: { argb: "FF000000" } },
+//         bottom: { style: "thin", color: { argb: "FF000000" } },
+//         right: { style: "thin", color: { argb: "FF000000" } },
+//       };
+//       cell.font = {
+//         name: "Cambria",
+//         size: 13,
+//         bold: cell.font?.bold || false,
+//       };
+//       if (!cell.alignment) {
+//         cell.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+//       } else {
+//         cell.alignment.wrapText = true;
+//       }
+//     });
+//   });
+
+//   // ========================
+//   // ĐỘ RỘNG CỘT
+//   // ========================
+//   const maxTotalWidth = 150;
+//   const colCount = totalColumns; // 11
+//   const sttIndex = orderedKeys.indexOf("STT");
+//   const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
+//   const teacherIndex = orderedKeys.indexOf("GiaoVien");
+//   const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
+
+//   const fixedWidthSTT = 7; // Cột STT + Số TC
+//   const fixedWidthTeacher = maxTotalWidth * 0.2; // 20%
+//   const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20%
+
+//   const fixedTotal = fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
+//   const remainingColumnsCount = colCount - 4;
+//   const remainingWidthEach =
+//     remainingColumnsCount > 0
+//       ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
+//       : 0;
+
+//   for (let i = 1; i <= colCount; i++) {
+//     if (i - 1 === sttIndex || i - 1 === soTinChiIndex) {
+//       worksheet.getColumn(i).width = fixedWidthSTT;
+//     } else if (i - 1 === teacherIndex) {
+//       worksheet.getColumn(i).width = fixedWidthTeacher;
+//     } else if (i - 1 === lopHocPhanIndex) {
+//       worksheet.getColumn(i).width = fixedWidthLopHocPhan;
+//     } else {
+//       worksheet.getColumn(i).width = remainingWidthEach;
+//     }
+//   }
+
+//   // ========================
+//   // GHI FILE VÀ TRẢ VỀ CLIENT
+//   // ========================
+//   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
+//   const filePath = path.join("./uploads", fileName);
+
+//   await workbook.xlsx.writeFile(filePath);
+
+//   res.download(filePath, fileName, (err) => {
+//     if (err) {
+//       console.error("Lỗi khi gửi file:", err);
+//       return res.status(500).send("Không thể tải file");
+//     }
+//     fs.unlink(filePath, (unlinkErr) => {
+//       if (unlinkErr) {
+//         console.error("Lỗi khi xóa file:", unlinkErr);
+//       } else {
+//         console.log("File đã được xóa thành công sau khi gửi.");
+//       }
+//     });
+//   });
+// };
+
+// V4
 const exportToExcel = async (req, res) => {
   const { renderData } = req.body;
 
-  // Mảng tiêu đề theo thứ tự mong muốn
+  // 1) Chuẩn bị key và map tiêu đề
   const orderedKeys = [
     "STT",
     "SoTinChi",
@@ -860,42 +1350,213 @@ const exportToExcel = async (req, res) => {
     "HeSoT7CN",
     "HeSoLopDong",
     "QuyChuan",
-    "GhiChu"
+    "GhiChu",
   ];
 
   const titleMap = {
     SoTinChi: "Số TC",
     LopHocPhan: "Lớp học phần",
-    GiaoVien: "Giáo viên",
+    GiaoVien: "Giáo Viên",
     SoTietCTDT: "Số tiết theo CTĐT",
     SoSinhVien: "Số SV",
-    LL: "Số tiết lên lớp theo TKB",
+    LL: "Số tiết lên lớp được tính QC",
     HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
-    GhiChu: "Ghi chú"
+    GhiChu: "Ghi chú",
   };
 
-  // Tạo tiêu đề hiển thị cho Excel
+  // Danh sách header hiển thị
   const headers = orderedKeys.map((key) =>
     key === "STT" ? "STT" : titleMap[key] || key
   );
+  // Tổng số cột
+  const totalColumns = headers.length; // 11 cột
 
-  // Biến đếm STT toàn cục (tăng từ 1 đến hết)
+  // Tạo workbook & worksheet
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("ALL", {
+    pageSetup: {
+      orientation: "landscape",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      paperSize: 9, // A4
+    },
+  });
+
+  // ========================
+  // PHẦN HEADER NGOÀI
+  // ========================
+
+  // Row 1: (Trái - Phải)
+  // Row 1: (Trái - Phải)
+  let row = worksheet.addRow([]);
+  row.getCell(2).value = "BAN CƠ YẾU CHÍNH PHỦ".toUpperCase();
+  row.getCell(5).value = "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM".toUpperCase();
+  worksheet.mergeCells(row.number, 2, row.number, 3); // B->C
+  worksheet.mergeCells(row.number, 5, row.number, 10); // E->J
+
+  // Căn giữa, in đậm
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+
+  row.getCell(2).font = { bold: true };
+  row.getCell(5).font = { bold: true };
+
+  // Row 2: (Trái - Phải)
+  row = worksheet.addRow([]);
+  row.getCell(2).value = "HỌC VIỆN KỸ THUẬT MẬT MÃ".toUpperCase();
+  row.getCell(5).value = "Độc lập - Tự do - Hạnh phúc";
+
+  worksheet.mergeCells(row.number, 2, row.number, 3);
+  worksheet.mergeCells(row.number, 5, row.number, 10);
+
+  // Căn giữa & in đậm
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+
+  row.getCell(2).font = { bold: true };
+  row.getCell(5).font = { bold: true };
+
+  // Row 3: (Trái - Phải)
+  row = worksheet.addRow([]);
+  row.getCell(2).value = "Số:          /TB-HVM";
+  row.getCell(5).value = "Hà Nội, ngày        tháng        năm           ";
+  worksheet.mergeCells(row.number, 2, row.number, 3);
+  worksheet.mergeCells(row.number, 5, row.number, 10);
+  row.getCell(2).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(5).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+
+  // Row 4: dòng trống
+  row = worksheet.addRow([]);
+  worksheet.mergeCells(row.number, 1, row.number, 11);
+
+  // ========================
+  // PHẦN THÔNG BÁO
+  // ========================
+
+  // Row 5: THÔNG BÁO
+  row = worksheet.addRow([]);
+  row.getCell(1).value = "THÔNG BÁO".toUpperCase();
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(1).font = { bold: true };
+
+  // Row 6: Số tiết quy chuẩn...
+  row = worksheet.addRow([]);
+  row.getCell(
+    1
+  ).value = `Số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam}`;
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(1).font = { bold: true };
+
+  // Row 7: (Cơ sở đào tạo phía Bắc)
+  row = worksheet.addRow([]);
+  row.getCell(1).value = "(Cơ sở đào tạo phía Bắc)";
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+  row.getCell(1).alignment = {
+    horizontal: "center",
+    vertical: "middle",
+    wrapText: true,
+  };
+  row.getCell(1).font = { name: "Times New Roman", italic: true };
+
+  // ========================
+  // PHẦN CÁC "CĂN CỨ..."
+  // ========================
+  const canCuuList = [
+    "           Căn cứ Thông tư số 20/2020/TT-BGDĐT ngày 27 tháng 7 năm 2020 của Bộ trưởng Bộ Giáo dục và đào tạo ban hành Quy định chế độ làm việc của giảng viên cơ sở giáo dục đại học;",
+    "           Căn cứ Quyết định số 1409/QĐ-HVM ngày 30 tháng 12 năm 2021 của Giám đốc Học viện Kỹ thuật mật mã ban hành Quy định chế độ làm việc đối với giảng viên Học viện Kỹ thuật mật mã;",
+    `           Căn cứ Thời khóa biểu học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam};`,
+    `           Căn cứ kết quả đăng ký các học phần của học viên, sinh viên thuộc học kỳ ${renderData[0].Ki}, năm ${renderData[0].Nam};`,
+    "           Căn cứ Đề nghị thay đổi giảng viên các lớp học phần của các Khoa.",
+    `           Học viện Kỹ thuật mật mã thông báo số tiết quy chuẩn các lớp học phần thuộc học kỳ ${renderData[0].Ki}, năm học ${renderData[0].Nam} (Cơ sở đào tạo phía Bắc) như sau:`,
+  ];
+
+  const rowsWithFixedHeight = [0, 1]; // Các dòng x3 chiều cao
+
+  canCuuList.forEach((text, index) => {
+    let r = worksheet.addRow([]);
+    r.getCell(1).value = text;
+    worksheet.mergeCells(r.number, 1, r.number, totalColumns);
+    r.getCell(1).alignment = {
+      horizontal: "left",
+      vertical: "top",
+      wrapText: true,
+    };
+    if (rowsWithFixedHeight.includes(index)) {
+      r.height = 45;
+    }
+  });
+
+  // Thêm 1 row trống trước khi vào bảng
+  worksheet.addRow([]);
+
+  // ========================
+  // PHẦN HEADER BẢNG
+  // ========================
+  // Thêm header bảng
+  const headerRow = worksheet.addRow(headers);
+  headerRow.eachCell((cell) => {
+    cell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
+    cell.font = { bold: true };
+  });
+  // Lưu lại dòng bắt đầu của vùng bảng
+  const tableStart = headerRow.number;
+
+  // ========================
+  // XỬ LÝ DỮ LIỆU: NHÓM THEO KHOA
+  // ========================
   let sttCounter = 1;
-
-  // Nhóm dữ liệu theo 'Khoa', đồng thời gán STT theo sttCounter
   const groupedData = renderData.reduce((acc, item) => {
     const department = item.Khoa || "Khac";
     if (!acc[department]) acc[department] = [];
-    const row = orderedKeys.map((key) =>
-      key === "STT" ? `${sttCounter++}.` : (item[key] || "")
+    const rowData = orderedKeys.map((key) =>
+      key === "STT" ? `${sttCounter++}.` : item[key] || ""
     );
-    acc[department].push(row);
+    acc[department].push(rowData);
     return acc;
   }, {});
 
-  // Hàm chuyển số sang số la mã (Roman numeral)
+  // Hàm chuyển số sang La Mã
   const toRoman = (num) => {
     const romanNumerals = [
       ["M", 1000],
@@ -922,85 +1583,166 @@ const exportToExcel = async (req, res) => {
     return roman;
   };
 
-  // Tạo workbook và worksheet mới bằng ExcelJS
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("ALL", {
-    pageSetup: {
-      orientation: "landscape",
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-      paperSize: 9, // 9 tương ứng với A4 trong ExcelJS
-    },
-  });
-
-  // In header đầu tiên ở đầu trang
-  const headerRow = worksheet.addRow(headers);
-  headerRow.eachCell((cell) => {
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-    cell.font = { bold: true };
-  });
-
   let romanCounter = 1;
-
-  // Duyệt qua từng nhóm khoa
-  for (const [department, rows] of Object.entries(groupedData)) {
-    // Thêm dòng divider cho từng khoa với số la mã
+  for (const [department, rowsData] of Object.entries(groupedData)) {
     const roman = toRoman(romanCounter++);
     const dividerText = `${roman}. Các học phần thuộc Khoa ${department}`;
-    const dividerRow = worksheet.addRow([dividerText]);
-    // Hợp nhất các ô từ cột 1 đến cột cuối
-    worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, headers.length);
-    dividerRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    let dividerRow = worksheet.addRow([dividerText]);
+    worksheet.mergeCells(dividerRow.number, 1, dividerRow.number, totalColumns);
+    dividerRow.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
     dividerRow.font = { bold: true };
 
-    // Thêm các dòng dữ liệu của khoa
-    rows.forEach((dataRow) => {
-      worksheet.addRow(dataRow);
+    // Thêm viền cho toàn bộ hàng
+    for (let col = 1; col <= totalColumns; col++) {
+      dividerRow.getCell(col).border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    }
+
+    // Thêm data rows
+    rowsData.forEach((rData) => {
+      worksheet.addRow(rData);
     });
 
-    // Thêm một dòng trống giữa các nhóm (tuỳ chọn)
-    worksheet.addRow([]);
+    // Row trống sau mỗi nhóm
+    // worksheet.addRow([]);
   }
 
-  // Áp dụng border và wrapText cho tất cả các ô trong worksheet
-  worksheet.eachRow((row) => {
+  worksheet.addRow([]);
+
+  // Lưu lại dòng kết thúc của vùng bảng (trước phần thông báo cuối)
+  const tableEnd = worksheet.lastRow.number;
+
+  // ========================
+  // PHẦN ROW CUỐI: THÔNG BÁO KẾT
+  // ========================
+  row = worksheet.addRow([]);
+  row.getCell(1).value =
+    "        Nhận được Thông báo này các cơ quan, đơn vị có liên quan chủ động triển khai thực hiện./.";
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+  row.getCell(1).alignment = {
+    horizontal: "left",
+    vertical: "top",
+    wrapText: true,
+  };
+
+  row = worksheet.addRow([]); // Dòng trống
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
+
+  // ==============
+  // PHẦN NƠI NHẬN & CHỮ KÝ
+  // ==============
+
+  // 1) Dòng "Nơi nhận" (bên trái) & "KT. GIÁM ĐỐC / PHÓ GIÁM ĐỐC" (bên phải)
+  row = worksheet.addRow([]);
+  row.getCell(2).value = "Nơi nhận:";
+  worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
+  row.getCell(2).alignment = {
+    horizontal: "left",
+    vertical: "top",
+    wrapText: true,
+  };
+  row.getCell(2).font = { bold: true };
+
+  // Bên phải
+  row.getCell(7).value = "KT. GIÁM ĐỐC\nPHÓ GIÁM ĐỐC";
+  worksheet.mergeCells(row.number, 7, row.number, totalColumns); // G->K
+  row.getCell(7).alignment = {
+    horizontal: "center",
+    vertical: "top",
+    wrapText: true,
+  };
+  row.getCell(7).font = { bold: true };
+
+  // 2) Các dòng gạch đầu dòng bên trái
+  const bulletLines = [
+    "- Ban Giám đốc (2) (để b/c)",
+    "- Phòng KH-TC;",
+    "- Các khoa: NM, ATTT, CNTT, ĐTVT,",
+    "  TTTH, CB, LLCT, KQS&QĐ...;",
+    "- Lưu: VT, ĐT P13.",
+  ];
+  bulletLines.forEach((text) => {
+    row = worksheet.addRow([]);
+    // Bên trái
+    row.getCell(2).value = text;
+    worksheet.mergeCells(row.number, 2, row.number, 6); // B->F
+    row.getCell(2).alignment = {
+      horizontal: "left",
+      vertical: "top",
+      wrapText: true,
+    };
+
+    // Bên phải để trống, vẫn merge để không bị border
+    worksheet.mergeCells(row.number, 7, row.number, totalColumns);
+  });
+
+  // 3) Thêm một vài dòng trống (tùy chỉnh) để tạo khoảng cho chữ ký
+  for (let i = 0; i < 2; i++) {
+    row = worksheet.addRow([]);
+    worksheet.mergeCells(row.number, 1, row.number, 6);
+    worksheet.mergeCells(row.number, 7, row.number, totalColumns);
+  }
+
+  // ========================
+  // ĐỊNH DẠNG CHUNG (border, font, wrapText)
+  // ========================
+  worksheet.eachRow((row, rowNumber) => {
     row.eachCell({ includeEmpty: true }, (cell) => {
-      cell.border = {
-        top: { style: "thin", color: { argb: "FF000000" } },
-        left: { style: "thin", color: { argb: "FF000000" } },
-        bottom: { style: "thin", color: { argb: "FF000000" } },
-        right: { style: "thin", color: { argb: "FF000000" } },
-      };
-      cell.alignment = cell.alignment || { horizontal: "left" };
-      cell.alignment.wrapText = true;
+      if (rowNumber >= tableStart && rowNumber <= tableEnd) {
+        // Vùng bảng: áp dụng border và căn giữa theo vertical
+        cell.border = {
+          top: { style: "thin", color: { argb: "FF000000" } },
+          left: { style: "thin", color: { argb: "FF000000" } },
+          bottom: { style: "thin", color: { argb: "FF000000" } },
+          right: { style: "thin", color: { argb: "FF000000" } },
+        };
+        cell.alignment = {
+          horizontal: cell.alignment?.horizontal || "left",
+          vertical: "middle",
+          wrapText: true,
+        };
+      } else {
+        // Vùng ngoài bảng: không viền, chỉ thêm wrapText: true
+        cell.border = undefined;
+        cell.alignment = {
+          horizontal: cell.alignment?.horizontal || "left",
+          vertical: "top",
+          wrapText: true,
+        };
+      }
       cell.font = {
-        name: "Cambria",
+        name: "Times New Roman",
         size: 13,
         bold: cell.font?.bold || false,
       };
     });
   });
 
-  // Đặt độ rộng cột theo yêu cầu:
-  // - Cột "STT" và "Số TC" (SoTinChi) có độ rộng cố định
-  // - Cột "GiaoVien" và "LopHocPhan" chiếm 20% tổng chiều rộng
-  // - Các cột còn lại chia đều phần còn lại
-  const maxTotalWidth = 150; // Tổng chiều rộng tối đa của bảng
-  const colCount = headers.length;
+  // ========================
+  // ĐỘ RỘNG CỘT
+  // ========================
+  const maxTotalWidth = 150;
+  const colCount = totalColumns; // 11
   const sttIndex = orderedKeys.indexOf("STT");
   const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
   const teacherIndex = orderedKeys.indexOf("GiaoVien");
   const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
 
-  const fixedWidthSTT = 7; // Cột STT và Số TC
-  const fixedWidthTeacher = maxTotalWidth * 0.2; // 20% tổng width
-  const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20% tổng width
+  const fixedWidthSTT = 7; // Cột STT + Số TC
+  const fixedWidthTeacher = maxTotalWidth * 0.2; // 20%
+  const fixedWidthLopHocPhan = maxTotalWidth * 0.3; // 30%
 
-  // Tổng width cố định
   const fixedTotal =
     fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
-  const remainingColumnsCount = colCount - 4; // trừ STT, SoTinChi, GiaoVien, LopHocPhan
+  const remainingColumnsCount = colCount - 4;
   const remainingWidthEach =
     remainingColumnsCount > 0
       ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
@@ -1018,30 +1760,198 @@ const exportToExcel = async (req, res) => {
     }
   }
 
-  // Tạo tên file dựa trên Ki và Nam học
+  // ========================
+  // GHI FILE VÀ TRẢ VỀ CLIENT
+  // ========================
   const fileName = `file_quy_chuan_du_kien_hoc_ki_${renderData[0].Ki}_nam_hoc_${renderData[0].Nam}.xlsx`;
   const filePath = path.join("./uploads", fileName);
 
-  // Ghi file Excel ra filePath
   await workbook.xlsx.writeFile(filePath);
 
-  // Gửi file về client và xóa file sau khi gửi
   res.download(filePath, fileName, (err) => {
     if (err) {
       console.error("Lỗi khi gửi file:", err);
-      res.status(500).send("Không thể tải file");
-    } else {
-      fs.unlink(filePath, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error("Lỗi khi xóa file:", unlinkErr);
-        } else {
-          console.log("File đã được xóa thành công.");
-        }
-      });
+      return res.status(500).send("Không thể tải file");
     }
+    fs.unlink(filePath, (unlinkErr) => {
+      if (unlinkErr) {
+        console.error("Lỗi khi xóa file:", unlinkErr);
+      } else {
+        console.log("File đã được xóa thành công sau khi gửi.");
+      }
+    });
   });
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  // Sử dụng các phương thức lấy giá trị theo giờ địa phương
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
+
+const exportToExcel_HDDK = async (req, res) => {
+  try {
+    const { renderData } = req.body;
+
+    if (!renderData || renderData.length === 0) {
+      return res.status(400).send("Dữ liệu trống, không thể xuất file Excel");
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Sheet1", {
+      pageSetup: { orientation: "landscape" },
+    });
+
+    // Ánh xạ tên cột theo yêu cầu
+    const headerMapping = {
+      TongTiet: "Số tiết",
+      TongSoTiet: "Tổng số tiết",
+      NgayBatDau: "Ngày kí HĐ",
+      NgayKetThuc: "Ngày thanh lí HĐ",
+      GioiTinh: "Danh xưng",
+      GiangVien: "Họ tên",
+      NgaySinh: "Ngày sinh",
+      CCCD: "CCCD",
+      NgayCapCCCD: "Ngày cấp CCCD",
+      HocVi: "Học vị",
+      ChucVu: "Chức vụ",
+      DienThoai: "Điện thoại",
+      Email: "Email",
+      STK: "Số TK",
+      NganHang: "Ngân hàng",
+      MaSoThue: "Mã số thuế",
+      DiaChi: "Địa chỉ",
+      NoiCongTac: "Nơi công tác",
+      MonGiangDayChinh: "Bộ môn",
+    };
+
+    // Tạo danh sách header từ các key của headerMapping
+    const headers = Object.keys(headerMapping);
+
+    // Tính toán độ rộng tự động cho từng cột dựa trên header và nội dung
+    const rawWidths = headers.map((key) => {
+      let maxLen = headerMapping[key].length;
+      renderData.forEach((row) => {
+        // Nếu là ngày thì chuyển đổi sang chuỗi dạng dd/mm/yyyy để tính độ dài
+        let cellValue;
+        if ((key === "NgayBatDau" || key === "NgayKetThuc") && row[key]) {
+          const date = new Date(row[key]);
+          cellValue = `${date.getDate().toString().padStart(2, "0")}/${(
+            date.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${date.getFullYear()}`;
+        } else {
+          cellValue =
+            row[key] !== null && row[key] !== undefined
+              ? row[key].toString()
+              : "";
+        }
+        if (cellValue.length > maxLen) {
+          maxLen = cellValue.length;
+        }
+      });
+      return maxLen;
+    });
+
+    const totalRawWidth = rawWidths.reduce((sum, w) => sum + w, 0);
+    const scale = totalRawWidth > 0 ? 500 / totalRawWidth : 1;
+
+    worksheet.columns = headers.map((key, index) => ({
+      header: headerMapping[key],
+      key: key,
+      width: Math.round(rawWidths[index] * scale * 100) / 100,
+    }));
+
+    // Thiết lập style cho dòng header: font Times New Roman, in đậm, màu nền #007bff và màu chữ trắng
+    const headerRow = worksheet.getRow(1);
+
+    headerRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+      cell.font = {
+        bold: true,
+      };
+    });
+
+    // Chuyển đổi giá trị của ngày thành Date object và định dạng danh xưng
+    const formattedData = renderData.map((row) => {
+      const formattedRow = { ...row };
+      if (row.NgayBatDau) {
+        formattedRow.NgayBatDau = formatDate(row.NgayBatDau);
+      }
+      if (row.NgayKetThuc) {
+        formattedRow.NgayKetThuc = formatDate(row.NgayKetThuc);
+      }
+      if (row.NgaySinh) {
+        formattedRow.NgaySinh = formatDate(row.NgaySinh);
+      }
+      if (row.NgayCapCCCD) {
+        formattedRow.NgayCapCCCD = formatDate(row.NgayCapCCCD);
+      }
+      formattedRow.GioiTinh = row.GioiTinh === "Nam" ? "Ông" : "Bà";
+      return formattedRow;
+    });
+
+    // Thêm dữ liệu vào sheet
+    formattedData.forEach((data) => {
+      worksheet.addRow(data);
+    });
+
+    // Căn chỉnh cho tất cả các cell
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      row.eachCell((cell) => {
+        cell.alignment = {
+          wrapText: true,
+          vertical: "middle",
+          horizontal: "center",
+        };
+      });
+    });
+
+    // Định dạng cột ngày: NgayBatDau và NgayKetThuc theo định dạng "dd/mm/yyyy"
+    if (worksheet.getColumn("NgayBatDau")) {
+      worksheet.getColumn("NgayBatDau").numFmt = "dd/mm/yyyy";
+    }
+    if (worksheet.getColumn("NgayKetThuc")) {
+      worksheet.getColumn("NgayKetThuc").numFmt = "dd/mm/yyyy";
+    }
+
+    // Đặt tên file dựa trên dữ liệu mẫu (lưu ý: KiHoc và NamHoc phải có trong renderData[0])
+    const fileName = `thong_tin_hop_dong_du_kien_ki_${renderData[0].KiHoc}_nam_hoc_${renderData[0].NamHoc}.xlsx`;
+    const filePath = path.join("./uploads", fileName);
+
+    // Ghi file Excel ra file hệ thống
+    await workbook.xlsx.writeFile(filePath);
+
+    // Gửi file về client và sau đó xóa file khỏi hệ thống
+    res.download(filePath, fileName, async (err) => {
+      if (err) {
+        console.error("Lỗi khi gửi file:", err);
+        return res.status(500).send("Không thể tải file");
+      }
+      try {
+        await fs.promises.unlink(filePath);
+        console.log("File đã được xóa thành công sau khi gửi.");
+      } catch (unlinkErr) {
+        console.error("Lỗi khi xóa file:", unlinkErr);
+      }
+    });
+  } catch (error) {
+    console.error("Lỗi khi xuất file Excel:", error);
+    res.status(500).send("Lỗi khi xuất file Excel");
+  }
+};
 
 const editStudentQuanity = async (req, res) => {
   const data = req.body; // Nhận dữ liệu từ body
@@ -1109,11 +2019,11 @@ const editStudentQuanity = async (req, res) => {
       if (studentQuantity !== studentQuantityUpdate) {
         console.log(
           "Update ID: " +
-          ID +
-          " số sinh viên cũ : " +
-          studentQuantity +
-          " số sinh viên mới : " +
-          studentQuantityUpdate
+            ID +
+            " số sinh viên cũ : " +
+            studentQuantity +
+            " số sinh viên mới : " +
+            studentQuantityUpdate
         );
 
         // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
@@ -1162,14 +2072,14 @@ const editStudentQuanity = async (req, res) => {
             UPDATE ?? 
             SET 
                 SoSinhVien = CASE ${updateCaseStatements.SoSinhVien.join(
-      " "
-    )} ELSE SoSinhVien END,
+                  " "
+                )} ELSE SoSinhVien END,
                 HeSoLopDong = CASE ${updateCaseStatements.HeSoLopDong.join(
-      " "
-    )} ELSE HeSoLopDong END,
+                  " "
+                )} ELSE HeSoLopDong END,
                 QuyChuan = CASE ${updateCaseStatements.QuyChuan.join(
-      " "
-    )} ELSE QuyChuan END
+                  " "
+                )} ELSE QuyChuan END
             WHERE ID IN (?);
         `;
 
@@ -1186,12 +2096,10 @@ const editStudentQuanity = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi cập nhật số lượng sinh viên:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}`,
-      });
+    res.status(500).json({
+      success: false,
+      message: `Đã xảy ra lỗi khi cập nhật dữ liệu: ${error.message}`,
+    });
   } finally {
     if (connection) connection.release(); // Giải phóng kết nối về pool
   }
@@ -1208,4 +2116,5 @@ module.exports = {
   exportToWord,
   exportToExcel,
   editStudentQuanity,
+  exportToExcel_HDDK,
 };

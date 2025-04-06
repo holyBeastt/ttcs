@@ -2,12 +2,9 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-const connection = require("../controllers/connectDB");
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
 const { json, query } = require("express");
-const gvms = require("../services/gvmServices");
-const nhanviens = require("../services/nhanvienServices");
 const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
@@ -17,16 +14,18 @@ const pdf = require("pdf-parse");
 // kiểm tra row chứa dòng chia Khoa
 function isRowMerged(sheet, rowIndex, totalColumns) {
   const merges = sheet["!merges"] || [];
-  return merges.some(range => {
-    return range.s.r === rowIndex &&
+  return merges.some((range) => {
+    return (
+      range.s.r === rowIndex &&
       range.e.r === rowIndex &&
       range.s.c === 0 &&
-      range.e.c === totalColumns - 1;
+      range.e.c === totalColumns - 1
+    );
   });
 }
 
 // hàm v2 có thêm xử lí 1 sheet nhiều khoakhoa
-function convertExcelToJSON(filePath) {
+async function convertExcelToJSON(filePath) {
   try {
     // Đọc file Excel
     const workbook = XLSX.readFile(filePath);
@@ -39,13 +38,15 @@ function convertExcelToJSON(filePath) {
       throw new Error("File Excel rỗng!");
     }
 
-    // Tìm dòng chứa tiêu đề thực (ví dụ: dòng có "STT", "Số TC", "Lớp học phần")
+    // Tìm dòng chứa header. key nhận biết header là STT
     const headerRowIndex = rows.findIndex((row) => {
-      return row[0] === "STT" && row[1] === "Số TC" && row[2] === "Lớp học phần";
+      return row[0] === "STT";
     });
 
     if (headerRowIndex === -1) {
-      throw new Error("Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần.");
+      throw new Error(
+        "Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần."
+      );
     }
 
     // Xác định header và tổng số cột từ dòng tiêu đề
@@ -96,16 +97,21 @@ function convertExcelToJSON(filePath) {
 
       // Kiểm tra số lượng giá trị rỗng trong đối tượng
       const emptyCount = Object.values(obj).reduce((count, value) => {
-        return count + ((value === "" || value === null || value === undefined) ? 1 : 0);
+        return (
+          count +
+          (value === "" || value === null || value === undefined ? 1 : 0)
+        );
       }, 0);
 
       // Kiểm tra cả key và value xem có chứa chuỗi đặc biệt không
       const containsSpecial =
-        Object.keys(obj).some(key => key.includes(specialSubstring)) ||
-        Object.values(obj).some(val => typeof val === 'string' && val.includes(specialSubstring));
+        Object.keys(obj).some((key) => key.includes(specialSubstring)) ||
+        Object.values(obj).some(
+          (val) => typeof val === "string" && val.includes(specialSubstring)
+        );
 
-      // Nếu có nhiều hơn 5 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
-      if (emptyCount > 5 && !containsSpecial) {
+      // Nếu có nhiều hơn 6 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
+      if (emptyCount > 6 && !containsSpecial) {
         return;
       }
 
@@ -120,9 +126,6 @@ function convertExcelToJSON(filePath) {
     throw new Error("Cannot read file!: " + error.message);
   }
 }
-
-
-
 
 // Hàm v1 có xử lí 1 sheet 1 khoa, nhiều sheet nhiều khoakhoa
 // const convertExcelToJSON = async (filePath) => {
@@ -293,7 +296,7 @@ const parseDataToObjects = (lines) => {
       // Gắn giá trị tương ứng cho các số liệu. Nếu thiếu giá trị thì gắn 0
       currentItem["Số tiết theo CTĐT"] = parseFloat(numbers[0] || 0);
       currentItem["Số SV"] = parseFloat(numbers[1] || 0);
-      currentItem["Số tiết lên lớp theo TKB"] = parseFloat(numbers[2] || 0);
+      currentItem["Số tiết lên lớp được tính QC"] = parseFloat(numbers[2] || 0);
       currentItem["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] = parseFloat(
         numbers[3] || 0
       );
@@ -319,7 +322,7 @@ const splitAndCleanLines = (text) => {
     "Giáo viên", // 2 Giáo viên này khác nhau đấy, nếu còn bị key nào thừa thì log kq ra console rồi copy vào đây
     "Số tiết theo CTĐT",
     "Số SV",
-    "Số tiết lên lớp theo TKB",
+    "Số tiết lên lớp được tính QC",
     "Hệ số lên lớp ngoài giờ",
     "HC",
     "Thạc sĩ",
@@ -509,27 +512,13 @@ function tachLopHocPhan(chuoi) {
     };
   }
 
-  // Sử dụng biểu thức chính quy để tách chuỗi
-  const regex = /^(.*?)(?:\s*\((.*?)\))?-(\d+)-(\d+)\s*\((.*?)\)$/; // Tách các phần
+  // Biểu thức chính quy mới
+  const regex = /^(.*?)(?:\s*\((.*?)\))?-(\d+)-(\d+)\s*\((.*?)\)(.*)$/;
   const match = chuoi.match(regex);
 
   if (!match) {
-    // Trường hợp không khớp với định dạng
-    const regexFallback = /^(.*?)(?:\s*\((.*?)\))?$/; // Trường hợp không có học kỳ và năm
-    const fallbackMatch = chuoi.match(regexFallback);
-    if (fallbackMatch) {
-      const tenHP = fallbackMatch[1].trim(); // Tên học phần
-      const Lop = fallbackMatch[2] ? fallbackMatch[2].trim() : ""; // Lớp
-      return {
-        TenLop: tenHP,
-        HocKi: null, // Thay đổi giá trị mặc định
-        NamHoc: null, // Thay đổi giá trị mặc định
-        Lop,
-      };
-    }
-
     return {
-      TenLop: "",
+      TenLop: chuoi.trim(), // Nếu không khớp, giữ nguyên toàn bộ chuỗi trong TenLop
       HocKi: null,
       NamHoc: null,
       Lop: "",
@@ -539,12 +528,13 @@ function tachLopHocPhan(chuoi) {
   // Lấy các thông tin từ kết quả match
   const tenHP = match[1].trim(); // Tên học phần
   const HocKi = match[3] ? match[3].trim() : null; // Học kỳ
-  const namHoc = match[4].trim(); // Năm học kèm lớp
-  const NamHoc = "20" + namHoc; // Tạo năm học từ phần thứ ba
-  const Lop = match[5] ? match[5].trim() : ""; // Lớp
+  const namHoc = match[4].trim(); // Năm học hai chữ số
+  const NamHoc = "20" + namHoc; // Chuyển năm học thành 4 chữ số
+  const Lop = match[5] ? match[5].trim() : ""; // Lớp học phần
+  const phanThua = match[6] ? match[6].trim() : ""; // Phần dư (nếu có)
 
   return {
-    TenLop: tenHP,
+    TenLop: phanThua ? `${tenHP} ${phanThua}` : tenHP, // Ghép phần thừa vào TenLop nếu có
     HocKi,
     NamHoc,
     Lop,
@@ -578,7 +568,7 @@ function tachLopHocPhan(chuoi) {
 // }
 
 function processLecturerInfo(input, dataGiangVien, soGiangVien) {
-  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi 
+  // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi
   input = input.trim();
 
   // Tách chuỗi input tại dấu phân cách ";" hoặc "," để tách các tên
@@ -620,27 +610,26 @@ function processLecturerInfo(input, dataGiangVien, soGiangVien) {
 // Hàm loại bỏ kí tự đặc biệt : PGS. TS ....
 function cleanName(name) {
   const prefixes = [
-    "PGS\\.?", // "PGS." hoặc "PGS"
-    "TS\\.?", // "TS." hoặc "TS"
-    "PGS\\.TS\\.?", // "PGS.TS." hoặc "PGS TS"
-    "\\( gvm \\)",
-    "\\(gvm\\)",
-    "GVM",
-    "GVMời",
-    "Giảng viên mời",
+    "PGS\\.?", // Phó Giáo sư (PGS, PGS.)
+    "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
+    "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
+    "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
+    "\\(\\s*GVM\\s*\\)", // (GVM) với khoảng trắng tùy ý
+    "GVMỜI", // GVMỜI
+    "GIẢNG VIÊN MỜI", // GIẢNG VIÊN MỜI
   ];
 
-  // Tạo regex tổng hợp để loại bỏ tất cả tiền tố
-  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")}) \\b`, "gi");
+  // Chỉnh regex để loại bỏ cả trường hợp có hoặc không có dấu cách sau học hàm/học vị
+  const combinedRegex = new RegExp(`\\b(${prefixes.join("|")})\\.?\\s*`, "gi");
 
-  // Xóa tất cả tiền tố trong danh sách
+  // Thực hiện thay thế mà không làm thay đổi định dạng gốc của phần còn lại
   name = name.replace(combinedRegex, "").trim();
 
   // Loại bỏ dấu ngoặc và nội dung bên trong (nếu có)
   name = name.replace(/\(.*?\)/g, "").trim();
 
-  // Loại bỏ ký tự đặc biệt hoặc khoảng trắng thừa còn lại
-  name = name.replace(/[^a-zA-ZÀ-ỹ\s]/g, "").trim(); // Chỉ giữ lại chữ cái và khoảng trắng
+  // Loại bỏ ký tự đặc biệt, chỉ giữ lại chữ cái (cả in hoa lẫn in thường) và khoảng trắng
+  name = name.replace(/[^a-zA-ZÀ-Ỹà-ỹ\s]/g, "").trim();
 
   return name;
 }
@@ -1080,13 +1069,13 @@ const importTableTam = async (jsonData) => {
       item["Giáo Viên"] || null,
       item["Số tiết theo CTĐT"] || 0,
       item["Số SV"] || 0,
-      item["Số tiết lên lớp theo TKB"] || 0,
+      item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] || 0,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
-
     ]);
 
   // Kiểm tra nếu không có đối tượng hợp lệ
@@ -1532,7 +1521,7 @@ const updateDateAll = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     }
 
-    res.status(200).json({ message: "Cập nhật thành công" });
+    res.status(200).json({ message: "Chèn ngày thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
@@ -1837,10 +1826,13 @@ const updateQC = async (req, res) => {
       "SELECT TenNhanVien AS name FROM nhanvien"
     );
 
-    const validNames = new Set([
-      ...gvmList.map((gvm) => gvm.name.trim()),
-      ...coHuuList.map((nv) => nv.name.trim()),
-    ]);
+    // const validNames = new Set([
+    //   ...gvmList.map((gvm) => gvm.name.trim()),
+    //   ...coHuuList.map((nv) => nv.name.trim()),
+    // ]);
+
+    const coHuuSet = new Set(coHuuList.map((nv) => nv.name.trim()));
+    const gvmListSet = new Set(gvmList.map((gvm) => gvm.name.trim()));
 
     const error_gv_rows = [];
     const updates = [];
@@ -1865,16 +1857,67 @@ const updateQC = async (req, res) => {
       } = item;
 
       if (KhoaDuyet == 1) {
-        const names = GiaoVienGiangDay.split(",").map((name) => name.trim());
-        const invalidNames = names.filter((name) => !validNames.has(name));
-
-        if (invalidNames.length > 0) {
+        // Check cú pháp
+        // Nếu chưa điền giảng viên
+        if (!GiaoVienGiangDay || GiaoVienGiangDay.trim() === "") {
           error_gv_rows.push(
-            `${LopHocPhan} (${TenLop}) - giảng viên không hợp lệ: ${invalidNames.join(
-              ", "
-            )}`
+            `${LopHocPhan} (${TenLop}) - Chưa nhập giảng viên`
           );
           continue;
+        }
+
+        // Nếu là hệ đại học và tên chứa dấu ,
+        if (
+          GiaoVienGiangDay?.includes(",") &&
+          he_dao_tao?.includes("Đại học")
+        ) {
+          error_gv_rows.push(
+            `${LopHocPhan} (${TenLop}) - lớp đại học chỉ được 1 giảng viên và không có dấu ','`
+          );
+          continue;
+        }
+
+        // Check tên và tích mời giảng
+        if (MoiGiang == 0) {
+          // Cả tên 1 và 2 (nếu có) đều phải là cơ hữu
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+          const invalidNames = names.filter((name) => !coHuuSet.has(name));
+
+          if (invalidNames.length > 0) {
+            error_gv_rows.push(
+              `${LopHocPhan} (${TenLop}) - giảng viên cơ hữu không hợp lệ: ${invalidNames.join(
+                ", "
+              )}`
+            );
+            continue;
+          }
+        } else {
+          // Nếu mời giảng = 1
+          const names = GiaoVienGiangDay
+            ? GiaoVienGiangDay.split(",").map((n) => n.trim())
+            : [];
+
+          if (names.length === 2) {
+            const invalidNames = [];
+
+            if (!coHuuSet.has(names[0])) {
+              invalidNames.push(
+                `Giảng viên cơ hữu 1 không hợp lệ: ${names[0]}`
+              );
+            }
+            if (!gvmListSet.has(names[1])) {
+              invalidNames.push(`Giảng viên mời 2 không hợp lệ: ${names[1]}`);
+            }
+
+            if (invalidNames.length > 0) {
+              error_gv_rows.push(
+                `${LopHocPhan} (${TenLop}) - ${invalidNames.join(", ")}`
+              );
+              continue;
+            }
+          }
         }
       }
 
@@ -2102,7 +2145,7 @@ const phongBanDuyet = async (req, res) => {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
   } finally {
-    connection.release(); // Trả kết nối về pool
+    if (connection) connection.release(); // Trả kết nối về pool
   }
 };
 
@@ -2236,7 +2279,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
         SUM(qc.QuyChuan) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
@@ -2251,7 +2294,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
     `;
 
   const value = [dot, ki, namHoc];
@@ -2309,6 +2352,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             GioiTinh,
             he_dao_tao,
             NoiCongTac,
+            MaBoMon,
           } = item;
 
           req.session.tmp++;
@@ -2320,7 +2364,6 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
 
           return [
             id_Gvm,
@@ -2383,158 +2426,158 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   }
 };
 
-const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
-  const { dot, ki, namHoc } = req.body;
-  // Lưu hệ mật mã
-  const query2 = `
-    SELECT
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
-        SUM(qc.QuyChuan) AS TongSoTiet,
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc
-    FROM
-        quychuan qc
-    JOIN
-        gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
-    WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
-    GROUP BY
-        qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
-    `;
+// const saveDataGvmMatMa = async (req, res, daDuyetHetArray) => {
+//   const { dot, ki, namHoc } = req.body;
+//   // Lưu hệ mật mã
+//   const query2 = `
+//     SELECT
+//         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+//         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+//         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+//         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh,
+//         SUM(qc.QuyChuan) AS TongSoTiet,
+//         MIN(qc.NgayBatDau) AS NgayBatDau,
+//         MAX(qc.NgayKetThuc) AS NgayKetThuc
+//     FROM
+//         quychuan qc
+//     JOIN
+//         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+//     WHERE
+//         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ?
+//         AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
+//     GROUP BY
+//         qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+//         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+//         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+//         gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh;
+//     `;
 
-  const value = [dot, ki, namHoc];
+//   const value = [dot, ki, namHoc];
 
-  try {
-    const [dataJoin] = await pool.query(query2, value);
+//   try {
+//     const [dataJoin] = await pool.query(query2, value);
 
-    // Kiểm tra xem có dữ liệu không
-    if (!dataJoin || dataJoin.length === 0) {
-      console.log("Không có dữ liệu hợp đồng");
-      return;
-    }
+//     // Kiểm tra xem có dữ liệu không
+//     if (!dataJoin || dataJoin.length === 0) {
+//       console.log("Không có dữ liệu hợp đồng");
+//       return;
+//     }
 
-    //const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
-    //const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
+//     //const daDuyetHet = await TaiChinhCheckAll(dot, ki, namHoc);
+//     //const daDuyetHetArray = daDuyetHet.split(","); // Chuyển đổi thành mảng
 
-    // Chuẩn bị dữ liệu để chèn từng loạt
-    //const insertValues = dataJoin.map((item) => {
-    const insertValues = await Promise.all(
-      dataJoin
-        .filter(
-          (item) =>
-            item.TaiChinhDuyet != 0 &&
-            item.DaLuu == 0 &&
-            daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
-        ) // Loại bỏ các mục có TaiChinhDuyet = 0
-        .map(async (item) => {
-          const {
-            id_Gvm,
-            DienThoai,
-            Email,
-            MaSoThue,
-            HoTen,
-            NgaySinh,
-            HocVi,
-            ChucVu,
-            HSL,
-            CCCD,
-            NgayCapCCCD,
-            NoiCapCCCD,
-            DiaChi,
-            STK,
-            NganHang,
-            NgayBatDau,
-            NgayKetThuc,
-            KiHoc,
-            TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
-            QuyChuan,
-            Dot,
-            NamHoc,
-            MaPhongBan,
-            KhoaDuyet,
-            DaoTaoDuyet,
-            TaiChinhDuyet,
-            GioiTinh,
-            he_dao_tao,
-          } = item;
+//     // Chuẩn bị dữ liệu để chèn từng loạt
+//     //const insertValues = dataJoin.map((item) => {
+//     const insertValues = await Promise.all(
+//       dataJoin
+//         .filter(
+//           (item) =>
+//             item.TaiChinhDuyet != 0 &&
+//             item.DaLuu == 0 &&
+//             daDuyetHetArray.includes(item.Khoa) // Kiểm tra sự tồn tại trong mảng
+//         ) // Loại bỏ các mục có TaiChinhDuyet = 0
+//         .map(async (item) => {
+//           const {
+//             id_Gvm,
+//             DienThoai,
+//             Email,
+//             MaSoThue,
+//             HoTen,
+//             NgaySinh,
+//             HocVi,
+//             ChucVu,
+//             HSL,
+//             CCCD,
+//             NgayCapCCCD,
+//             NoiCapCCCD,
+//             DiaChi,
+//             STK,
+//             NganHang,
+//             NgayBatDau,
+//             NgayKetThuc,
+//             KiHoc,
+//             TongSoTiet, // Lấy cột tổng số tiết đã tính từ SQL
+//             QuyChuan,
+//             Dot,
+//             NamHoc,
+//             MaPhongBan,
+//             KhoaDuyet,
+//             DaoTaoDuyet,
+//             TaiChinhDuyet,
+//             GioiTinh,
+//             he_dao_tao,
+//           } = item;
 
-          req.session.tmp++;
+//           req.session.tmp++;
 
-          const DanhXung = getDanhXung(GioiTinh);
-          // const getDanhXung = (GioiTinh) => {
-          //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
-          // };
-          let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
-          let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
-          let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
+//           const DanhXung = getDanhXung(GioiTinh);
+//           // const getDanhXung = (GioiTinh) => {
+//           //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
+//           // };
+//           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
+//           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
+//           let TruThue = 0; // Giả định không thu thuế
+//           let MaBoMon = 0; // Giá trị mặc định là 0
 
-          return [
-            id_Gvm,
-            DienThoai,
-            Email,
-            MaSoThue,
-            DanhXung,
-            HoTen,
-            NgaySinh,
-            HocVi,
-            ChucVu,
-            HSL,
-            CCCD,
-            NgayCapCCCD,
-            NoiCapCCCD,
-            DiaChi,
-            STK,
-            NganHang,
-            NgayBatDau,
-            NgayKetThuc,
-            KiHoc,
-            SoTiet,
-            SoTien,
-            TruThue,
-            Dot,
-            NamHoc,
-            MaPhongBan,
-            MaBoMon,
-            KhoaDuyet,
-            DaoTaoDuyet,
-            TaiChinhDuyet,
-            he_dao_tao,
-          ];
-        })
-    );
+//           return [
+//             id_Gvm,
+//             DienThoai,
+//             Email,
+//             MaSoThue,
+//             DanhXung,
+//             HoTen,
+//             NgaySinh,
+//             HocVi,
+//             ChucVu,
+//             HSL,
+//             CCCD,
+//             NgayCapCCCD,
+//             NoiCapCCCD,
+//             DiaChi,
+//             STK,
+//             NganHang,
+//             NgayBatDau,
+//             NgayKetThuc,
+//             KiHoc,
+//             SoTiet,
+//             SoTien,
+//             TruThue,
+//             Dot,
+//             NamHoc,
+//             MaPhongBan,
+//             MaBoMon,
+//             KhoaDuyet,
+//             DaoTaoDuyet,
+//             TaiChinhDuyet,
+//             he_dao_tao,
+//           ];
+//         })
+//     );
 
-    // Định nghĩa câu lệnh chèn
-    const queryInsert = `
-      INSERT INTO hopdonggvmoi (
-        id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
-        DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
-        Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
-      ) VALUES ?;
-    `;
+//     // Định nghĩa câu lệnh chèn
+//     const queryInsert = `
+//       INSERT INTO hopdonggvmoi (
+//         id_Gvm, DienThoai, Email, MaSoThue, DanhXung, HoTen, NgaySinh, HocVi, ChucVu, HSL, CCCD, NgayCap, NoiCapCCCD,
+//         DiaChi, STK, NganHang, NgayBatDau, NgayKetThuc, KiHoc, SoTiet, SoTien, TruThue,
+//         Dot, NamHoc, MaPhongBan, MaBoMon, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, he_dao_tao
+//       ) VALUES ?;
+//     `;
 
-    // Thực hiện câu lệnh chèn
-    if (insertValues.length > 0) {
-      await pool.query(queryInsert, [insertValues]);
-    }
+//     // Thực hiện câu lệnh chèn
+//     if (insertValues.length > 0) {
+//       await pool.query(queryInsert, [insertValues]);
+//     }
 
-    // Trả về kết quả thành công
-    return { success: true, message: "Dữ liệu đã được chèn thành công!" };
-  } catch (err) {
-    console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
-    return {
-      success: false,
-      message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
-    };
-  }
-};
+//     // Trả về kết quả thành công
+//     return { success: true, message: "Dữ liệu đã được chèn thành công!" };
+//   } catch (err) {
+//     console.error("Lỗi:", err.message); // Ghi lại lỗi để gỡ lỗi
+//     return {
+//       success: false,
+//       message: "Đã xảy ra lỗi trong quá trình lưu hợp đồng",
+//     };
+//   }
+// };
 
 const getGvmList = async (req, res) => {
   const query = `SELECT * FROM gvmoi`;
@@ -2911,7 +2954,7 @@ const splitTeachers = (data) => {
 
     // Giả sử trường QC là giá trị của lớp gốc (100%)
     const originalQC = item.QuyChuan || 100; // Nếu không có QC thì mặc định là 100%
-    const secondQC = parseFloat((originalQC * 0.3).toFixed(2));
+    const secondQC = parseFloat((originalQC * 0.7).toFixed(2));
     const firstQC = originalQC - secondQC;
 
     // Tạo đối tượng cho mỗi giảng viên, gắn dấu (1), (2) vào tên và chia tỷ lệ QC
@@ -3121,8 +3164,8 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,
-        SUM(qc.QuyChuan * 0.3) AS TongSoTiet,
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
+        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc
     FROM
@@ -3138,7 +3181,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
         gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac,;
+        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
 `;
 
   const value = [dot, ki, namHoc];
@@ -3191,6 +3234,7 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
             GioiTinh,
             he_dao_tao,
             NoiCongTac,
+            MaBoMon,
           } = item;
 
           req.session.tmp++;
@@ -3202,7 +3246,6 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
           let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
-          let MaBoMon = 0; // Giá trị mặc định là 0
 
           return [
             id_Gvm,

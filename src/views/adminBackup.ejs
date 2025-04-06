@@ -340,11 +340,11 @@
                 contentType: false,
                 success: function (response) {
                     if (response.success) {
-                        console.log("✅ Reset database thành công!");
-                        $("#add-status").html("✅ add database thành công!");
+                        console.log("✅ Add database thành công!");
+                        $("#add-status").html("✅ Add database thành công!");
                     } else {
-                        console.error("❌ Lỗi add:", response.error);
-                        $("#add-status").html(`❌ add thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
+                        console.error("❌ Lỗi Add:", response.error);
+                        $("#add-status").html(`❌ Add thất bại! Lỗi: ${response.error || "Không rõ nguyên nhân."}`);
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {

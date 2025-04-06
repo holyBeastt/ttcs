@@ -384,7 +384,7 @@
             <button
               class="btn"
               id="them-vao-qc-du-kien"
-              style="margin-bottom: 0px"
+              style="margin-bottom: 0px; display: none"
             >
               Thêm vào quy chuẩn dự kiến
             </button>
@@ -643,7 +643,7 @@
         });
       });
     </script>
-    <script>
+    <!-- <script>
       // Lấy danh sách từ localStorage
       const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
 
@@ -662,27 +662,34 @@
           selectElement.appendChild(option);
         });
       }
-    </script>
+    </script> -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
-        hideButton2(role);
+        hideButtonTKB(role);
       });
 
-      function hideButton2(role) {
+      function hideButtonTKB(role) {
         if (role != "Duyệt") {
+          const deleteTKB = document.getElementById("xoa-TKB");
           const themBtn = document.getElementById("add-row-btn");
-          const xuatFileBtn = document.getElementById("export-file-btn");
+          const addToQCDK = document.getElementById("them-vao-qc-du-kien");
+          //const xuatFileBtn = document.getElementById("export-file-btn");
 
-          // const hanhDongTh = document.querySelector('th:contains("Hành động")');
-          // const hanhDongTh = document.getElementById('action-column');
-          if (themBtn) {
-            themBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
-            xuatFileBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
+          if (deleteTKB) {
+            deleteTKB.style.display = "none"; // Ẩn ngay lập tức
+            setTimeout(() => deleteTKB.remove(), 100); // Xóa sau 100ms để tránh lag
           }
+          if (themBtn) themBtn.remove();
+          //xuatFileBtn.style.display = "none";
+
+          if (addToQCDK) addToQCDK.remove();
+        } else {
+          const addToQCDK = document.getElementById("them-vao-qc-du-kien");
+          if (addToQCDK) addToQCDK.style.display = "block";
         }
       }
     </script>
@@ -849,6 +856,12 @@
           semester: { name: "Năm học", width: 100 },
         };
 
+        let canEdit = false;
+
+        if (role == "Duyệt") {
+          canEdit = true;
+        }
+
         const columnDefs = [
           {
             headerName: "STT",
@@ -864,7 +877,7 @@
               field: key,
               headerName: headersMap[key]?.name || key,
               width: headersMap[key]?.width || 100,
-              editable: key !== "student_bonus" && key !== "id",
+              editable: canEdit && key !== "student_bonus" && key !== "id",
               hide: key === "semester" || key === "id",
               headerClass: "custom-header",
               filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
@@ -958,8 +971,6 @@
           const id = data.id;
           const field = colDef.field;
 
-          console.log(`📝 Cập nhật ${field}: ${newValue}`);
-
           try {
             const response = await fetch("/api/update-row-TKB", {
               method: "POST",
@@ -970,9 +981,6 @@
             const updatedRow = await response.json();
 
             if (response.ok) {
-              console.log("✅ Cập nhật thành công:", updatedRow);
-
-              // ✅ Cập nhật dữ liệu trực tiếp trên AG Grid
               const rowNode = gridOptions.api.getRowNode(id);
               if (rowNode) {
                 rowNode.setData(updatedRow);
@@ -1457,7 +1465,7 @@
           Ki: kiValue,
           Nam: namValue,
         };
-        fetch("/kiem-tra-file", {
+        fetch("/api/TKB//kiem-tra-file", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1471,6 +1479,18 @@
             return response.json();
           })
           .then((data) => {
+            // Nếu bảng TKB ko có dữ liệu thì dừng luôn
+            if (!data.valid) {
+              Swal.fire({
+                title: "Thông báo",
+                html: data.message,
+                icon: "info",
+                confirmButtonText: "OK",
+                width: "auto", // Tự động điều chỉnh chiều rộng
+                padding: "20px", // Giữ khoảng cách cho nội dung
+              });
+            }
+
             if (data.exists) {
               showModal(khoaValue, dotValue, kiValue, namValue);
             } else {
@@ -1533,7 +1553,7 @@
             }
             saveData(khoaValue, dotValue, kiValue, namValue);
             // alert("Xóa thành công!");
-            location.reload();
+            //location.reload();
           })
           .catch((error) => {
             Swal.fire({
@@ -1572,10 +1592,15 @@
           })
           .then((data) => {
             if (data.success) {
+              let iconAlert = "info";
+              if (data.message === "Thêm file thành công") {
+                iconAlert = "success";
+              }
+
               Swal.fire({
                 title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
+                html: data.message,
+                icon: iconAlert,
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
@@ -1626,10 +1651,15 @@
           })
           .then((data) => {
             if (data.success) {
+              let iconAlert = "info";
+              if (data.message === "Thêm file thành công") {
+                iconAlert = "success";
+              }
+
               Swal.fire({
                 title: "Thông báo",
-                html: "Thêm file thành công",
-                icon: "success",
+                html: data.message,
+                icon: iconAlert,
                 confirmButtonText: "OK",
                 width: "auto", // Tự động điều chỉnh chiều rộng
                 padding: "20px", // Giữ khoảng cách cho nội dung
@@ -1675,7 +1705,7 @@
         });
     </script>
 
-    <script>
+    <!-- <script>
       function filterTable() {
         // Lấy giá trị đã chọn từ các combobox
         let dot = document.getElementById("combobox-dot").value;
@@ -1713,7 +1743,7 @@
           }
         }
       }
-    </script>
+    </script> -->
     <script>
       document
         .getElementById("changePasswordLink")
@@ -1777,7 +1807,7 @@
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
-          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          url: "/api/TKB/getKhoaList", // Đường dẫn tới API getPhongBan
           method: "GET",
           success: function (response) {
             // Kiểm tra nếu response thành công
@@ -1796,6 +1826,10 @@
                   `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                 );
               });
+              // Thêm phòng ban "Khác" vào cuối danh sách
+              $("#departmentFilter").append(
+                '<option value="Khac">Khác</option>'
+              );
 
               // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
               if (!$("#departmentFilter option:selected").length) {

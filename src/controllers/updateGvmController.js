@@ -1,8 +1,9 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const createConnection = require("../config/databaseAsync");
+
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 
 const getUpdateGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id);
@@ -33,24 +34,8 @@ const getUpdateGvm = async (req, res) => {
   }
 };
 
-// const getViewGvm = async (req, res) => {
-//   const id_Gvm = parseInt(req.params.id) + 1;
-
-//   // lấy dữ liệu
-//   const connection2 = await createConnection();
-//   const query = "SELECT * FROM `gvmoi` WHERE id_Gvm = ?";
-//   const [results, fields] = await connection2.query(query, [id_Gvm]);
-//   //   console.log("id=", id_Gvm);
-//   //   console.log("results = ", results);
-
-//   let user = results && results.length > 0 ? results[0] : {};
-
-//   res.render("viewGvm.ejs", { value: user });
-// };
-
 const getViewGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id) + 1;
-  console.log("id = ", id_Gvm);
   let connection;
 
   try {
@@ -65,7 +50,6 @@ const getViewGvm = async (req, res) => {
     const [phongban] = await connection.query(query1);
 
     let user = results && results.length > 0 ? results[0] : {};
-    console.log("result = ", user);
     // Render trang viewGvm.ejs với dữ liệu người dùng
     res.render("viewGvm.ejs", { value: user, phongban: phongban });
   } catch (err) {
@@ -82,7 +66,7 @@ const upload = multer().single("truocCCCD");
 const postUpdateGvm = async (req, res) => {
   // Lấy các thông tin từ form
   let IdGvm = req.body.IdGvm;
-  let HoTen = req.body.HoTen;
+  let HoTen = req.body.HoTen?.trim();
   let GioiTinh = req.body.GioiTinh;
   let NgaySinh = req.body.NgaySinh;
   let CCCD = req.body.CCCD;
@@ -111,9 +95,6 @@ const postUpdateGvm = async (req, res) => {
 
   let isQuanDoi = req.body.thuocQuanDoi;
 
-  // Khởi tạo connection
-  const connection = await createPoolConnection();
-
   // Kiểm tra HSL
   // Nếu là chuỗi, thay dấu phẩy bằng dấu chấm
   if (typeof HeSoLuong === "string") {
@@ -121,21 +102,34 @@ const postUpdateGvm = async (req, res) => {
   }
 
   if (isNaN(HeSoLuong)) {
-    connection.release(); // Giải phóng kết nối trước khi trả về
     return res.redirect(`/updateGvm/${IdGvm}?message=HeSoLuongNotValue`);
   }
 
-  // Kiểm tra trùng lặp CCCD
-  const checkDuplicateQuery =
-    "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND HoTen != ?";
-  const [duplicateRows] = await connection.query(checkDuplicateQuery, [
-    CCCD,
-    HoTen,
-  ]);
-  if (duplicateRows[0].count > 0) {
-    connection.release(); // Giải phóng kết nối trước khi trả về
-    return res.redirect("/gvmList?message=duplicateCCCD");
+  // Kiểm tra trùng CCCD
+  const [cccdRows] = await pool.query(
+    `SELECT id_Gvm FROM gvmoi WHERE CCCD = ? AND id_Gvm != ?`,
+    [CCCD, IdGvm]
+  );
+  if (cccdRows.length > 0) {
+    return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
   }
+
+  // Kiểm tra trùng Họ Tên
+  const [hoTenRows] = await pool.query(
+    `SELECT id_Gvm FROM gvmoi WHERE HoTen = ? AND id_Gvm != ?`,
+    [HoTen, IdGvm]
+  );
+  if (hoTenRows.length > 0) {
+    return res.redirect(`/updateGvm/${IdGvm}?message=duplicateHoTen`);
+  }
+
+  // Kiểm tra trùng lặp CCCD
+  // const checkDuplicateQuery =
+  //   "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND id_Gvm != ?";
+  // const [duplicateRows] = await pool.query(checkDuplicateQuery, [CCCD, IdGvm]);
+  // if (duplicateRows[0].count > 0) {
+  //   return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
+  // }
 
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
     ? req.body.maPhongBan.join(",") // Nếu là mảng
@@ -159,7 +153,15 @@ const postUpdateGvm = async (req, res) => {
   upload(req, res, async function (err) {
     if (err) {
       console.error("Error uploading files: ", err);
-      return res.redirect("/gvmList?message=uploadError");
+      // Xóa các file đã upload (nếu có)
+      if (req.files) {
+        Object.values(req.files).forEach((fileArray) => {
+          fileArray.forEach((file) => {
+            fs.unlinkSync(file.path); // Xóa file khỏi hệ thống
+          });
+        });
+      }
+      return res.redirect("/api/gvm/waiting-list/render?message=uploadError");
     }
 
     let truocCCCD = req.files["truocCCCD"]
@@ -214,7 +216,7 @@ const postUpdateGvm = async (req, res) => {
     WHERE id_Gvm = ?`;
 
     try {
-      await connection.query(query, [
+      await pool.query(query, [
         MaGvm,
         HoTen,
         GioiTinh,
@@ -245,12 +247,10 @@ const postUpdateGvm = async (req, res) => {
         QrCode,
         IdGvm,
       ]);
-      res.redirect("/gvmList?message=insertSuccess");
+      res.redirect("/api/gvm/waiting-list/render?message=insertSuccess");
     } catch (err) {
       console.error("Error executing query: ", err);
-      res.redirect("/gvmList?message=insertFalse");
-    } finally {
-      connection.release(); // Giải phóng kết nối
+      res.redirect("/api/gvm/waiting-list/render?message=insertFalse");
     }
   });
 };

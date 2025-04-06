@@ -131,6 +131,55 @@
       word-wrap: break-word;
     }
   </style>
+  <style>
+    /* phần css cho label tổng số tiết ki*/
+    #total-label {
+      margin-left: auto;
+      /* Căn phải cho thẻ total-label */
+      margin-right: 0;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 8px;
+      width: fit-content;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: block;
+      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+    }
+
+    #total-label label {
+      font-weight: bold;
+      /* Giữ chữ in đậm */
+      color: #000;
+      /* Màu chữ đen */
+      margin-right: 8px;
+      /* Thêm khoảng cách bên phải */
+      cursor: pointer;
+      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
+      padding: 5px 10px;
+      /* Thêm padding cho label để tạo không gian */
+      border: 1px solid #ccc;
+      /* Khung cho label */
+      border-radius: 4px;
+      /* Bo góc cho khung */
+    }
+
+    #total-label label,
+    #total-label label span {
+      background-color: #007BFF;
+      /* Màu nền khi hover */
+      color: #fff;
+      /* Màu chữ trắng khi hover */
+    }
+
+    .total-label span {
+      font-weight: bold;
+      /* Giữ chữ trong span cũng in đậm */
+      color: #333;
+      /* Màu chữ đậm cho giá trị */
+    }
+  </style>
 </head>
 
 <body>
@@ -198,6 +247,10 @@
         </div>
         <table class="table table-bordered">
           <div id="table-container"></div>
+          <div id="total-label" style="display: none;">
+            <label>Tổng số tiết Lên Lớp (dự kiến): <span class="value" id="totalLL">0</span></label>
+            <label>Tổng số tiết Quy Chuẩn (dự kiến): <span class="value" id="totalQC">0</span></label>
+          </div>
         </table>
       </div>
     </div>
@@ -263,7 +316,7 @@
         GiaoVien: "Giáo viên",
         SoTietCTDT: "Số tiết CTĐT",
         SoSinhVien: "Số SV",
-        LL: "Số tiết lên lớp theo TKB",
+        LL: "Số tiết lên lớp được tính QC",
         HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         HeSoLopDong: "Hệ số lớp đông",
         QuyChuan: "Quy chuẩn",
@@ -326,7 +379,7 @@
           GiaoVien: "Giáo Viên",
           SoTietCTDT: "Số tiết theo CTĐT",
           SoSinhVien: "Số SV",
-          LL: "Số tiết lên lớp theo TKB",
+          LL: "Số tiết lên lớp được tính QC",
           HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
           HeSoLopDong: "Hệ số lớp đông",
           QuyChuan: "QC",
@@ -432,11 +485,29 @@
 
           // Gọi hàm renderTable để hiển thị dữ liệu
           renderTable();
+          calculateTotals();
         } catch (error) {
           console.error("Error fetching data:", error);
           alert("Có lỗi xảy ra khi gọi API: " + error.message);
         }
       }
+
+      function calculateTotals() {
+        // Tính tổng bằng reduce()
+        let totalLL = renderData.reduce((sum, item) => sum + (parseFloat(item.LL) || 0), 0);
+        let totalQC = renderData.reduce((sum, item) => sum + (parseFloat(item.QuyChuan) || 0), 0);
+
+
+        const labelTotal = document.getElementById("total-label");
+
+        // Cập nhật vào HTML
+        document.getElementById('totalLL').textContent = totalLL.toFixed(2);
+        document.getElementById('totalQC').textContent = totalQC.toFixed(2);
+
+
+        labelTotal.style.display = "block";
+      }
+
 
       // Hàm render bảng
       function renderTable() {
@@ -454,12 +525,12 @@
           GiaoVien: "Giảng viên theo TKB",
           SoTinChi: "Số TC",
           LopHocPhan: "Lớp học phần",
-          LL: "Số tiết lên lớp theo TKB",
+          LL: "Số tiết lên lớp được tính QC",
           SoTietCTDT: "Số tiết theo CTĐT",
           HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
           SoSinhVien: "Số SV",
           HeSoLopDong: "Hệ số lớp đông",
-          QuyChuan: "Số tiết QC",
+          QuyChuan: "QC",
           GhiChu: "Ghi chú"
         };
 
@@ -471,8 +542,8 @@
 
         const columns = Object.keys(headersMap).map((key) => {
           const column = {
-            headerFilterPlaceholder: "Tìm kiếm...", // Văn bản hiển thị trong ô
-            headerFilter: filterTableColumns.includes(key) ? true : false, // Bật chức năng lọc cho tiêu đề cột
+            // headerFilterPlaceholder: "Tìm kiếm...", // Văn bản hiển thị trong ô
+            // headerFilter: filterTableColumns.includes(key) ? true : false, // Bật chức năng lọc cho tiêu đề cột
             title: headersMap[key] || key,
             field: key,
             hozAlign: "center",
@@ -534,6 +605,7 @@
           layout: "fitColumns",
           movableColumns: true,
           resizableColumns: true,
+          frozen: true,
           columns: columns,
           index: "ID",
           renderVertical: "virtual", // Sử dụng render dọc Virtual DOM thay vì phân trang

@@ -1,10 +1,8 @@
 const express = require("express");
 const multer = require("multer");
-const connection = require("../config/database");
 const createPoolConnection = require("../config/databasePool");
-const mysql = require("mysql2/promise");
 
-const gvmList = require("../services/gvmServices");
+//const gvmList = require("../services/gvmServices");
 const router = express.Router();
 
 // Cấu hình multer để lưu file tạm thời trong thư mục 'uploads'
@@ -14,27 +12,26 @@ const router = express.Router();
 
 const upload = multer().single("truocCCCD");
 
-const getGvmLists = async (req, res) => {
+const getGvmLists = async (connection) => {
   try {
-    const connection2 = await createPoolConnection();
     const query = "SELECT * FROM `gvmoi`";
-    const [results] = await connection2.query(query);
+    const [results] = await connection.query(query);
 
     // Gửi danh sách giảng viên dưới dạng mảng
     return results; // Chỉ gửi kết quả mảng
   } catch (error) {
     console.error("Error fetching GVM lists: ", error);
-    return res.status(500).send("Internal server error"); // Trả về chuỗi thông báo lỗi
+    return;
   }
 };
 
 let createGvm = async (req, res) => {
-  let con2;
+  let connection;
 
   try {
-    con2 = await createPoolConnection();
+    connection = await createPoolConnection();
 
-    const gvms = await gvmList.getGvmLists(req, res, con2); // Truyền kết nối vào
+    const gvms = await getGvmLists(connection); // Truyền kết nối vào
 
     const lengthList = parseInt(gvms.length) + 1; // Đảm bảo biến này được khai báo bằng const
 
@@ -72,16 +69,16 @@ let createGvm = async (req, res) => {
     }
 
     if (isNaN(HeSoLuong)) {
-      con2.release(); // Giải phóng kết nối trước khi trả về
+      connection.release(); // Giải phóng kết nối trước khi trả về
       return res.redirect("/gvmList?message=HeSoLuongNotValue");
     }
 
     // Kiểm tra trùng lặp CCCD
     const checkDuplicateQuery =
       "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ?";
-    const [duplicateRows] = await con2.query(checkDuplicateQuery, [CCCD]);
+    const [duplicateRows] = await connection.query(checkDuplicateQuery, [CCCD]);
     if (duplicateRows[0].count > 0) {
-      con2.release(); // Giải phóng kết nối trước khi trả về
+      connection.release(); // Giải phóng kết nối trước khi trả về
       return res.redirect("/gvmList?message=duplicateCCCD");
     }
 
@@ -111,8 +108,8 @@ let createGvm = async (req, res) => {
     upload(req, res, async function (err) {
       if (req.fileValidationError) {
         return res.send(req.fileValidationError);
-      } else if (!req.files || Object.keys(req.files).length === 0) {
-        return res.send("Please select images to upload");
+        // } else if (!req.files || Object.keys(req.files).length === 0) {
+        //   return res.send("Please select images to upload");
       } else if (err) {
         return res.send(err);
       }
@@ -138,7 +135,7 @@ let createGvm = async (req, res) => {
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       try {
-        await con2.query(query, [
+        await connection.query(query, [
           MaGvm,
           HoTen,
           GioiTinh,
@@ -192,12 +189,14 @@ let createGvm = async (req, res) => {
         }
         return res.redirect("/gvmList?message=insertFalse");
       } finally {
-        con2.release();
+        connection.release();
       }
     });
   } catch (error) {
     console.error("Lỗi khi xử lý tải lên: ", error);
     res.status(500).send("Lỗi khi xử lý tải lên");
+  } finally {
+    if (connection) connection.release();
   }
 };
 
@@ -205,8 +204,9 @@ const getBoMonList = async (req, res) => {
   let maPhongBan = req.params.maPhongBan;
   let isKhoa = req.params.isKhoa === "true"; // Chuyển đổi isKhoa thành boolean
 
-  let connection = await createPoolConnection();
+  let connection;
   try {
+    connection = await createPoolConnection();
     let results;
     if (isKhoa) {
       const query = `SELECT * FROM bomon WHERE MaPhongBan = ?`;
@@ -230,7 +230,6 @@ const getBoMonList = async (req, res) => {
 
 // Xuất các hàm để sử dụng trong router
 module.exports = {
-  //  createGVM,
   createGvm,
   getBoMonList,
 };

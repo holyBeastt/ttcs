@@ -1,4 +1,3 @@
-// getTableDBController.js
 require("dotenv").config();
 const createPoolConnection = require("../config/databasePool");
 
@@ -7,7 +6,7 @@ const updateTableQC = async (data) => {
   let connection; // Khai báo biến connection
 
   try {
-    connection = await pool.getConnection(); // Lấy kết nối từ pool
+    connection = await createPoolConnection(); // Lấy kết nối từ pool
 
     const updatePromises = data.map(async (item) => {
       const query = `

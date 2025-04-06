@@ -418,7 +418,7 @@ const getDuplicateUniqueGV = async () => {
     console.error("Error in getDuplicateUniqueGV:", error);
     throw new Error("Có lỗi xảy ra khi xử lý dữ liệu: " + error.message);
   } finally {
-    if (connection) await connection.release();
+    if (connection) connection.release();
   }
 };
 

@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const XLSX = require("xlsx");
 const fs = require("fs");
@@ -29,46 +28,74 @@ const getDataTKBChinhThuc = async (req, res) => {
     const queryParams = [];
 
     // Xây dựng truy vấn dựa vào giá trị của Khoa
-    if (Khoa !== "ALL") {
+    if (Khoa == "ALL") {
       query = `SELECT 
-              id, 
-              course_id, 
-              course_name, 
-              major, 
-              lecturer, 
-              start_date, 
-              end_date, 
-              ll_code, 
-              ll_total, 
-              student_quantity, 
-              student_bonus, 
-              bonus_time, 
-              qc, 
-              semester 
-          FROM course_schedule_details 
-          WHERE major = ? AND semester = ?;
-`;
-      queryParams.push(Khoa, semester);
+          id, 
+          course_id, 
+          course_name, 
+          major, 
+          lecturer, 
+          start_date, 
+          end_date, 
+          ll_code, 
+          ll_total, 
+          student_quantity, 
+          student_bonus, 
+          bonus_time, 
+          qc, 
+          semester 
+      FROM course_schedule_details 
+      WHERE semester = ?;
+    `;
+      queryParams.push(semester);
+    } else if (Khoa == "Khac") {
+      // Lấy danh sách khoa
+      const [khoaArray] = await connection.query(
+        `SELECT MaPhongBan from phongban where isKhoa = 1;`
+      );
+
+      // Chuyển thành mảng giá trị
+      const khoaList = khoaArray.map((row) => row.MaPhongBan);
+
+      query = `SELECT 
+      id, 
+      course_id, 
+      course_name, 
+      major, 
+      lecturer, 
+      start_date, 
+      end_date, 
+      ll_code, 
+      ll_total, 
+      student_quantity, 
+      student_bonus, 
+      bonus_time, 
+      qc, 
+      semester 
+  FROM course_schedule_details 
+  WHERE semester = ? AND major NOT IN (${khoaList.map(() => "?").join(", ")});`;
+
+      queryParams.push(semester, ...khoaList);
     } else {
       query = `SELECT 
-              id, 
-              course_id, 
-              course_name, 
-              major, 
-              lecturer, 
-              start_date, 
-              end_date, 
-              ll_code, 
-              ll_total, 
-              student_quantity, 
-              student_bonus, 
-              bonus_time, 
-              qc, 
-              semester 
-          FROM course_schedule_details 
-          WHERE semester = ?;
-`;
-      queryParams.push(semester);
+          id, 
+          course_id, 
+          course_name, 
+          major, 
+          lecturer, 
+          start_date, 
+          end_date, 
+          ll_code, 
+          ll_total, 
+          student_quantity, 
+          student_bonus, 
+          bonus_time, 
+          qc, 
+          semester 
+      FROM course_schedule_details 
+      WHERE major = ? AND semester = ?;
+    `;
+      queryParams.push(Khoa, semester);
     }
 
     // Thực hiện truy vấn
@@ -577,7 +604,8 @@ const themTKBVaoQCDK = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body;
   const semester = `${Dot}, ${Ki}, ${Nam}`;
 
-  let connection;
+  let connection,
+    maPhongBanFalse = [];
 
   try {
     // Lấy kết nối từ createPoolConnection
@@ -585,7 +613,8 @@ const themTKBVaoQCDK = async (req, res) => {
 
     // Lấy dữ liệu bên bảng course_schedule_details
     let getDataTKBQuery = `
-    SELECT 
+    SELECT
+      id AS ID,
       major AS Khoa,
       ll_code AS SoTietCTDT,
       ll_total AS LL,
@@ -601,7 +630,7 @@ const themTKBVaoQCDK = async (req, res) => {
       end_date AS NgayKetThuc,
       qc AS QuyChuan
     FROM course_schedule_details
-    WHERE semester = ?
+    WHERE semester = ? AND da_luu != 1
   `;
 
     const getDataTKBParams = [semester];
@@ -615,11 +644,79 @@ const themTKBVaoQCDK = async (req, res) => {
 
     // Nếu không có dữ liệu thì không cần insert
     if (tkbData.length === 0) {
-      console.log("Không có dữ liệu để insert.");
-      return;
+      return res
+        .status(200)
+        .json({ success: true, message: "Không có dữ liệu hợp lệ để chèn" });
     }
 
-    // Thêm dữ liệu vào bảng tạm
+    let insertValues = [];
+
+    if (Khoa === "ALL") {
+      // Nếu Khoa === "ALL", chỉ lấy MaBoMon thuộc các phòng ban hợp lệ
+      const [MaPhongBanList] = await connection.query(
+        `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`
+      );
+
+      const validMaPhongBanSet = new Set(
+        MaPhongBanList.map((row) => row.MaPhongBan)
+      );
+
+      // Lọc dữ liệu hợp lệ & lưu các mã phòng ban không hợp lệ
+      tkbData.forEach((row) => {
+        if (validMaPhongBanSet.has(row.Khoa)) {
+          insertValues.push([
+            row.Khoa,
+            Dot,
+            Ki,
+            Nam,
+            row.SoTietCTDT,
+            row.LL,
+            row.SoSinhVien,
+            row.HeSoLopDong,
+            row.HeSoT7CN,
+            row.MaBoMon,
+            row.GiaoVien,
+            row.SoTinChi,
+            row.LopHocPhan,
+            row.MaHocPhan,
+            row.NgayBatDau || null,
+            row.NgayKetThuc || null,
+            row.QuyChuan,
+          ]);
+        } else {
+          maPhongBanFalse.push(row.ID);
+        }
+      });
+    } else {
+      // Chuyển dữ liệu về dạng mảng 2D cho MySQL
+      insertValues = tkbData.map((row) => [
+        row.Khoa, // major
+        Dot, // dot
+        Ki, // ki
+        Nam, // nam
+        row.SoTietCTDT, // ll_code
+        row.LL, // ll_total
+        row.SoSinhVien, // student_quantity
+        row.HeSoLopDong, // student_bonus
+        row.HeSoT7CN, // bonus_time
+        row.MaBoMon, // course_id
+        row.GiaoVien, // lecturer
+        row.SoTinChi, // credit_hours
+        row.LopHocPhan, // course_name
+        row.MaHocPhan, // course_code
+        row.NgayBatDau || null, // start_date
+        row.NgayKetThuc || null, // end_date
+        row.QuyChuan, // bonus_total
+      ]);
+    }
+
+    // Nếu không có dữ liệu hợp lệ sau khi lọc, dừng lại
+    if (insertValues.length === 0) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Không có dữ liệu hợp lệ để chèn" });
+    }
+
     // Câu lệnh INSERT
     const insertQuery = `
       INSERT INTO tam (Khoa, dot, ki, nam, SoTietCTDT, LL, SoSinhVien, HeSoLopDong, HeSoT7CN, MaBoMon, 
@@ -627,42 +724,38 @@ const themTKBVaoQCDK = async (req, res) => {
       VALUES ?
     `;
 
-    // Chuyển dữ liệu về dạng mảng 2D cho MySQL
-    const insertValues = tkbData.map((row) => [
-      row.Khoa, // major
-      Dot, // dot
-      Ki, // ki
-      Nam, // nam
-      row.SoTietCTDT, // ll_code
-      row.LL, // ll_total
-      row.SoSinhVien, // student_quantity
-      row.HeSoLopDong, // student_bonus
-      row.HeSoT7CN, // bonus_time
-      row.MaBoMon, // course_id
-      row.GiaoVien, // lecturer
-      row.SoTinChi, // credit_hours
-      row.LopHocPhan, // course_name
-      row.MaHocPhan, // course_code
-      row.NgayBatDau || null, // start_date
-      row.NgayKetThuc || null, // end_date
-      row.QuyChuan, // bonus_total
-    ]);
-
     // Thực hiện INSERT
     await connection.query(insertQuery, [insertValues]);
 
-    // Xóa dữ liệu bảng course_schedule_details
-    // let deleteQuery = `DELETE FROM course_schedule_details WHERE semester = ?`;
-    // const deleteParams = [semester];
+    // Nếu có khoa không trùng với csdl
+    if (maPhongBanFalse.length != 0) {
+      if (Khoa === "ALL") {
+        const idsToExclude = maPhongBanFalse.join(", ");
 
-    // if (Khoa !== "ALL") {
-    //   deleteQuery += " AND major = ?";
-    //   deleteParams.push(Khoa);
-    // }
+        const updateQuery = `
+        UPDATE course_schedule_details 
+        SET da_luu = 1 
+        WHERE semester = ? AND id NOT IN (${idsToExclude});
+      `;
 
-    // await connection.query(deleteQuery, deleteParams);
+        await connection.query(updateQuery, [semester]);
+      }
 
-    res.status(200).json({ success: true, message: "Cập nhật thành công" });
+      return res.status(200).json({
+        success: true,
+        message: "Những dòng không trùng khoa với CSDL sẽ không được chuyển",
+      });
+    }
+
+    const updateQuery = `
+      UPDATE course_schedule_details 
+      SET da_luu = 1 
+      WHERE semester = ? AND major = ?;
+    `;
+
+    await connection.query(updateQuery, [semester, Khoa]);
+
+    res.status(200).json({ success: true, message: "Thêm file thành công" });
   } catch (error) {
     console.error("Lỗi cập nhật:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
@@ -670,76 +763,6 @@ const themTKBVaoQCDK = async (req, res) => {
     if (connection) connection.release(); // Trả kết nối về pool
   }
 };
-
-// const addNewRowTKB = async (req, res) => {
-//   const data = req.body;
-
-//   // Ghép các thông tin kỳ học từ frontend
-//   const semester = `${data.Dot}, ${data.Ki}, ${data.Nam}`;
-
-//   let connection;
-
-//   try {
-//     // Kết nối database từ pool
-//     connection = await createPoolConnection();
-
-//     // Tạo câu truy vấn INSERT
-//     const insertQuery = `
-//       INSERT INTO course_schedule_details
-//       (course_name, course_code, student_quantity, lecturer, major, ll_total,
-//        bonus_time, ll_code, start_date, end_date, semester, qc)
-//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-
-//     let student_bonus = 1;
-
-//     switch (true) {
-//       case data.student_quantity >= 101:
-//         student_bonus = 1.5;
-//         break;
-//       case data.student_quantity >= 81:
-//         student_bonus = 1.4;
-//         break;
-//       case data.student_quantity >= 66:
-//         student_bonus = 1.3;
-//         break;
-//       case data.student_quantity >= 51:
-//         student_bonus = 1.2;
-//         break;
-//       case data.student_quantity >= 41:
-//         student_bonus = 1.1;
-//         break;
-//     }
-
-//     const qc = student_bonus * data.bonus_time * data.ll_total;
-
-//     // Giá trị cần chèn vào database
-//     const insertValues = [
-//       data.course_name,
-//       data.course_code,
-//       data.student_quantity,
-//       data.lecturer,
-//       data.major,
-//       data.ll_total,
-//       data.bonus_time,
-//       data.ll_code,
-//       data.start_date,
-//       data.end_date,
-//       semester,
-//       qc,
-//     ];
-
-//     // Thực hiện chèn dữ liệu vào database
-//     await connection.query(insertQuery, insertValues);
-
-//     res.status(200).json({ success: true, message: "Thêm dữ liệu thành công" });
-//   } catch (error) {
-//     console.error("Lỗi thêm dữ liệu:", error);
-//     res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });
-//   } finally {
-//     if (connection) connection.release(); // Trả kết nối về pool
-//   }
-// };
 
 const addNewRowTKB = async (req, res) => {
   const data = req.body;
@@ -867,7 +890,7 @@ const exportMultipleWorksheets = async (req, res) => {
         "Giáo Viên",
         "Số tiết theo CTĐT",
         "Số SV",
-        "Số tiết lên lớp theo TKB",
+        "Số tiết lên lớp được tính QC",
         "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         "Hệ số lớp đông",
         "QC",
@@ -1155,6 +1178,105 @@ const checkDataTKBExist = async (req, res) => {
   }
 };
 
+const getKhoaList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT MaPhongBan FROM phongban where isKhoa = 1";
+    const [result] = await connection.query(query);
+    res.json({
+      success: true,
+      MaPhongBan: result,
+    });
+  } catch (error) {
+    console.error("Lỗi: ", error);
+    res.status(500).send("Đã có lỗi xảy ra");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const checkDataQCDK = async (req, res) => {
+  const { Khoa, Dot, Ki, Nam } = req.body;
+
+  let connection;
+
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
+    const queryCheck = `SELECT EXISTS(SELECT 1 FROM tam WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?) AS exist;`;
+
+    // Thực hiện truy vấn
+    const [results] = await connection.query(queryCheck, [Khoa, Dot, Ki, Nam]);
+
+    // Kết quả trả về từ cơ sở dữ liệu
+    const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
+
+    // Lấy dữ liệu bên bảng course_schedule_details
+    let getDataTKBQuery = `
+        SELECT
+          id AS ID,
+          major AS Khoa,
+          ll_code AS SoTietCTDT,
+          ll_total AS LL,
+          student_quantity AS SoSinhVien,
+          student_bonus AS HeSoLopDong,
+          bonus_time AS HeSoT7CN,
+          course_id AS MaBoMon,
+          lecturer AS GiaoVien,
+          credit_hours AS SoTinChi,
+          course_name AS LopHocPhan,
+          course_code AS MaHocPhan,
+          start_date AS NgayBatDau,
+          end_date AS NgayKetThuc,
+          qc AS QuyChuan
+        FROM course_schedule_details
+        WHERE semester = ? AND da_luu != 1
+      `;
+
+    const semester = `${Dot}, ${Ki}, ${Nam}`;
+
+    const getDataTKBParams = [semester];
+
+    if (Khoa !== "ALL") {
+      getDataTKBQuery += " AND major = ?";
+      getDataTKBParams.push(Khoa);
+    }
+
+    const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
+
+    // Nếu không có dữ liệu thì không cần insert
+    if (tkbData.length === 0) {
+      return res.status(200).json({
+        message: "Không có dữ liệu hợp lệ để chèn",
+        exist: true,
+        valid: false,
+      });
+    }
+
+    if (exist) {
+      return res.status(200).json({
+        message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
+        exists: true,
+        valid: true,
+      });
+    } else {
+      return res.status(200).json({
+        message: "Dữ liệu không tồn tại trong cơ sở dữ liệu",
+        exists: false,
+        valid: true,
+      });
+    }
+  } catch (err) {
+    console.error("Lỗi khi kiểm tra file import:", err);
+    return res.status(500).json({ error: "Lỗi kiểm tra cơ sở dữ liệu" });
+  } finally {
+    if (connection) connection.release(); // Trả kết nối về pool
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getImportTKBSite,
@@ -1170,4 +1292,6 @@ module.exports = {
   exportSingleWorksheets,
   insertDataAgain,
   checkDataTKBExist,
+  getKhoaList,
+  checkDataQCDK,
 };

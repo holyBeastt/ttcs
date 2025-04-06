@@ -27,7 +27,12 @@ const adminPhongHocController = {
     let connection;
     try {
       connection = await createConnection();
-      const phongQuery = "SELECT STT, phong as Phong, toanha as ToaNha, loaiphong as LoaiPhong, GhiChu FROM phonghoc ORDER BY phong ASC";
+      // Sửa câu query để sắp xếp theo toanha trước, sau đó đến phong
+      const phongQuery = `
+        SELECT STT, phong as Phong, toanha as ToaNha, loaiphong as LoaiPhong, GhiChu 
+        FROM phonghoc 
+        ORDER BY toanha ASC, CAST(phong AS UNSIGNED) ASC
+      `;
       const toaNhaQuery = "SELECT TenToaNha FROM toanha ORDER BY TenToaNha ASC";
       
       const [phongResults] = await connection.query(phongQuery);
