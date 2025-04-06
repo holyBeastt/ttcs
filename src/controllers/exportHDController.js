@@ -216,7 +216,7 @@ const formatDateRange = (startDate, endDate) => {
   return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
 };
 async function convertWordToPdf(wordFilePath, pdfFilePath) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       // Kiểm tra file tồn tại
       if (!fs.existsSync(wordFilePath)) {
@@ -229,26 +229,25 @@ async function convertWordToPdf(wordFilePath, pdfFilePath) {
         fs.mkdirSync(pdfDir, { recursive: true });
       }
 
-      // Tạo đường dẫn tạm trên server
+      // Tạo đường dẫn tạm trên server (đảm bảo không có khoảng trắng)
       const remoteTempDir = '/tmp/word_to_pdf';
-      const remoteWordFile = `${remoteTempDir}/${path.basename(wordFilePath)}`;
+      const fileName = path.basename(wordFilePath).replace(/\s+/g, '_');
+      const remoteWordFile = `${remoteTempDir}/${fileName}`;
       const remotePdfFile = remoteWordFile.replace('.docx', '.pdf');
 
-      // Tạo lệnh SSH hoàn chỉnh
+      // SSH options để bỏ qua host key verification
+      const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+      
+      // Tạo các lệnh thực thi an toàn
       const commands = [
-        `mkdir -p ${remoteTempDir}`,
-        `echo "Uploading file..."`,
-        // Upload file lên server
-        `scp ${wordFilePath} thuanld@42.112.213.93:${remoteWordFile}`,
-        // Chuyển đổi trên server
-        `ssh thuanld@42.112.213.93 "cd ${remoteTempDir} && /usr/bin/soffice --headless --convert-to pdf ${remoteWordFile} --outdir ${remoteTempDir}"`,
-        // Download file PDF về
-        `scp thuanld@42.112.213.93:${remotePdfFile} ${pdfFilePath}`,
-        // Dọn dẹp server
-        `ssh thuanld@42.112.213.93 "rm -f ${remoteWordFile} ${remotePdfFile}"`
+        `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p '${remoteTempDir}'"`,
+        `scp ${sshOptions} "${wordFilePath}" thuanld@42.112.213.93:"${remoteWordFile}"`,
+        `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteWordFile}' --outdir '${remoteTempDir}'"`,
+        `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
+        `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteWordFile}' '${remotePdfFile}'"`
       ].join(' && ');
 
-      // Thực thi với timeout 3 phút
+      // Thực thi với timeout
       const timeout = 180000; // 3 phút
       const timer = setTimeout(() => {
         reject(new Error('Quá thời gian chuyển đổi'));
@@ -258,9 +257,13 @@ async function convertWordToPdf(wordFilePath, pdfFilePath) {
         clearTimeout(timer);
         
         if (error) {
-          console.error('Lỗi chuyển đổi:', error);
-          console.error('Chi tiết lỗi:', stderr);
-          return reject(new Error(`Không thể chuyển đổi file: ${error.message}`));
+          console.error('Lỗi chuyển đổi:', {
+            command: commands,
+            error: error.message,
+            stderr: stderr,
+            stdout: stdout
+          });
+          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
         }
 
         if (!fs.existsSync(pdfFilePath)) {

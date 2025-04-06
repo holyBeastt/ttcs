@@ -852,17 +852,20 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       }
     }
 
- // Tạo tên file Excel
-let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc}`;
+// Tạo tên file Excel
+let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc.replace(/\s+/g, '_')}`;
 if (khoa && khoa !== "ALL") {
   fileName += `_${sanitizeFileName(khoa)}`;
 }
 if (teacherName) {
   fileName += `_${sanitizeFileName(teacherName)}`;
 }
+
 const exportsDir = path.join(__dirname, "../../exports");
-const excelFilePath = path.join(exportsDir, `${fileName}.xlsx`);
-const pdfFilePath = path.join(exportsDir, `${fileName}.pdf`);
+// Đảm bảo tên file không chứa khoảng trắng
+const safeFileName = fileName.replace(/\s+/g, '_');
+const excelFilePath = path.join(exportsDir, `${safeFileName}.xlsx`);
+const pdfFilePath = path.join(exportsDir, `${safeFileName}.pdf`);
 
 // Kiểm tra và tạo thư mục exports nếu chưa tồn tại
 if (!fs.existsSync(exportsDir)) {
@@ -875,16 +878,19 @@ await workbook.xlsx.writeFile(excelFilePath);
 try {
   // Chuyển đổi Excel sang PDF bằng LibreOffice trên server
   const remoteTempDir = '/tmp/excel_to_pdf';
-  const remoteExcelFile = `${remoteTempDir}/${path.basename(excelFilePath)}`;
-  const remotePdfFile = remoteExcelFile.replace('.xlsx', '.pdf');
+  const remoteExcelFile = `${remoteTempDir}/${safeFileName}.xlsx`;
+  const remotePdfFile = `${remoteTempDir}/${safeFileName}.pdf`;
 
+  // SSH options để bỏ qua host key verification
+  const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+  
   // Tạo các lệnh thực thi
   const commands = [
-    `ssh thuanld@42.112.213.93 "mkdir -p ${remoteTempDir}"`,
-    `scp ${excelFilePath} thuanld@42.112.213.93:${remoteExcelFile}`,
-    `ssh thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf ${remoteExcelFile} --outdir ${remoteTempDir}"`,
-    `scp thuanld@42.112.213.93:${remotePdfFile} ${pdfFilePath}`,
-    `ssh thuanld@42.112.213.93 "rm -f ${remoteExcelFile} ${remotePdfFile}"`
+    `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p ${remoteTempDir}"`,
+    `scp ${sshOptions} "${excelFilePath}" thuanld@42.112.213.93:"${remoteExcelFile}"`,
+    `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteExcelFile}' --outdir '${remoteTempDir}'"`,
+    `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
+    `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteExcelFile}' '${remotePdfFile}'"`
   ].join(' && ');
 
   // Thực thi với timeout 3 phút
@@ -896,7 +902,7 @@ try {
         if (error) {
           console.error('Lỗi chuyển đổi:', error);
           console.error('Chi tiết lỗi:', stderr);
-          return reject(new Error(`Không thể chuyển đổi file: ${error.message}`));
+          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
         }
         resolve();
       });
@@ -909,7 +915,7 @@ try {
   }
 
   // Tạo file zip để gửi cả Excel và PDF
-  const zipFilePath = path.join(exportsDir, `${fileName}.zip`);
+  const zipFilePath = path.join(exportsDir, `${safeFileName}.zip`);
   const output = fs.createWriteStream(zipFilePath);
   const archive = archiver("zip", { zlib: { level: 9 } });
 
@@ -935,12 +941,16 @@ try {
   });
 
   archive.pipe(output);
-  archive.file(excelFilePath, { name: path.basename(excelFilePath) });
-  archive.file(pdfFilePath, { name: path.basename(pdfFilePath) });
+  archive.file(excelFilePath, { name: `${safeFileName}.xlsx` });
+  archive.file(pdfFilePath, { name: `${safeFileName}.pdf` });
   await archive.finalize();
 
 } catch (error) {
   console.error("Error:", error);
+  // Xóa file tạm nếu có lỗi
+  if (fs.existsSync(excelFilePath)) fs.unlinkSync(excelFilePath);
+  if (fs.existsSync(pdfFilePath)) fs.unlinkSync(pdfFilePath);
+  
   return res.status(500).json({
     success: false,
     message: error.message || "Lỗi khi xuất dữ liệu"
