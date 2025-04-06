@@ -37,6 +37,7 @@ const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
 const backupRoute = require("./routes/backupRoute");
+const tongHopGvmExportRoute = require("./routes/tongHopGvmExportRoute");
 
 // Phần admin
 const adminThemFileHocPhanRoute = require("./routes/adminThemFileHocPhanRoute");
@@ -140,6 +141,7 @@ app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute);
 app.use("/", thongketonghopRoute);
 app.use("/", backupRoute);
+app.use("/", tongHopGvmExportRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
