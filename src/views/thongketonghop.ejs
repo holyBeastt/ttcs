@@ -308,7 +308,7 @@
         <tr>
           <th>Khoa</th>
           <th>Số tiết mời giảng</th>
-          <th>Số tiết vượt giờ</th>
+          <th>Số tiết tính vượt giờ</th>
           <th>
             <span title="Mời giảng + Vượt giờ">Tổng số</span>
           </th>
@@ -348,7 +348,7 @@
             row.innerHTML = `
                 <td>${item.Khoa}</td>
                 <td>${item.TongSoTietMoiGiang}</td>
-                <td>${item.TongSoTietVuotGio}</td>
+                <td>${item.TongSoTiet}</td>
                 <td>${item.Tongso}</td>
             `;
             tableBody.appendChild(row);
@@ -385,9 +385,7 @@
           const moiGiangData = data.map((item) =>
             parseFloat(item.TongSoTietMoiGiang)
           );
-          const vuotGioData = data.map((item) =>
-            parseFloat(item.TongSoTietVuotGio)
-          );
+          const vuotGioData = data.map((item) => parseFloat(item.TongSoTiet));
           const tongSoTietData = data.map((item) => parseFloat(item.Tongso));
 
           // Định nghĩa màu sắc cố định cho các khoa
@@ -444,7 +442,7 @@
               labels: labels,
               datasets: [
                 {
-                  label: "Số tiết vượt giờ",
+                  label: "Số tiết tính vượt giờ",
                   data: vuotGioData,
                   backgroundColor: colors,
                 },

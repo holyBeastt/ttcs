@@ -132,7 +132,7 @@ GROUP BY
         );
         const tongSoTiet = parseFloat(vuotGio.TongSoTiet).toFixed(1);
         const tongso = (
-          parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTietVuotGio)
+          parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTiet)
         ).toFixed(1);
 
         return {
