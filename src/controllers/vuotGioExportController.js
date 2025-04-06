@@ -79,7 +79,8 @@ const exportVuotGio = async (req, res) => {
         HocKy, 
         NamHoc AS Nam, 
         Khoa, 
-        GiangVien 
+        GiangVien,
+       he_dao_tao
       FROM giangday
       WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) AND id_User != 1
     `;
@@ -94,7 +95,8 @@ const exportVuotGio = async (req, res) => {
         HocKy, 
         NamHoc AS Nam, 
         Khoa, 
-        GiangVien 
+        GiangVien,
+        he_dao_tao 
       FROM lopngoaiquychuan
       WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
     `;
@@ -110,7 +112,8 @@ const exportVuotGio = async (req, res) => {
         SoTietKT, 
         SoSV, 
         Lop AS LopGK,
-        HocKy
+        HocKy,
+        he_dao_tao
       FROM giuaky
       WHERE NamHoc = ? AND (Khoa = ? OR ? IS NULL) AND (GiangVien = ? OR ? IS NULL) 
     `;
@@ -469,18 +472,18 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
   const filteredGroupedResults = {
     "Kỳ 1": {
       "Đào tạo hệ đóng học phí": filteredCombinedResults.filter(
-        (row) => row.HocKy == "1" && row.Lop.startsWith("A")
+        (row) => row.HocKy == "1" && row.he_dao_tao === "Đại học (Đóng học phí)"
       ),
       "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredCombinedResults.filter(
-        (row) => row.HocKy == "1" && !row.Lop.startsWith("A")
+        (row) => row.HocKy == "1" && row.he_dao_tao === "Đại học (Mật mã)"
       ),
     },
     "Kỳ 2": {
       "Đào tạo hệ đóng học phí": filteredCombinedResults.filter(
-        (row) => row.HocKy == "2" && row.Lop.startsWith("A")
+        (row) => row.HocKy == "2" && row.he_dao_tao === "Đại học (Đóng học phí)"
       ),
       "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredCombinedResults.filter(
-        (row) => row.HocKy == "2" && !row.Lop.startsWith("A")
+        (row) => row.HocKy == "2" && row.he_dao_tao === "Đại học (Mật mã)"
       ),
     },
   };
@@ -488,18 +491,18 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
   const filteredGroupedResultsGiuaKy = {
     "Kỳ 1": {
       "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
-        (row) => row.HocKy == "1" &&  row.LopGK.startsWith("A")
+        (row) => row.HocKy == "1" && row.he_dao_tao === "Đại học (Đóng học phí)"
       ),
       "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
-        (row) => row.HocKy == "1" && !row.LopGK.startsWith("A")
+        (row) => row.HocKy == "1" && row.he_dao_tao === "Đại học (Mật mã)"
       ),
     },
     "Kỳ 2": {
       "Đào tạo hệ đóng học phí": filteredGiuaKy.filter(
-        (row) => row.HocKy == "2" &&  row.LopGK.startsWith("A")
+        (row) => row.HocKy == "2" && row.he_dao_tao === "Đại học (Đóng học phí)"
       ),
       "Đào tạo chuyên ngành Kỹ thuật mật mã": filteredGiuaKy.filter(
-        (row) => row.HocKy == "2" && !row.LopGK.startsWith("A")
+        (row) => row.HocKy == "2" && row.he_dao_tao === "Đại học (Mật mã)"
       ),
     },
   };

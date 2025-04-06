@@ -3,25 +3,19 @@ const Docxtemplater = require("docxtemplater");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
-//const createConnection = require("../config/databaseAsync");
+const { exec } = require('child_process');
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
 
+// Các hàm hỗ trợ giữ nguyên như cũ
 function deleteFolderRecursive(folderPath) {
-  if (fs.existsSync(folderPath)) {
-    fs.readdirSync(folderPath).forEach((file) => {
-      const curPath = path.join(folderPath, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        // Đệ quy xóa thư mục con
-        deleteFolderRecursive(curPath);
-      } else {
-        // Xóa file
-        fs.unlinkSync(curPath);
-      }
-    });
-    // Xóa thư mục rỗng
-    fs.rmdirSync(folderPath);
+  try {
+    if (fs.existsSync(folderPath)) {
+      fs.rmSync(folderPath, { recursive: true, force: true });
+    }
+  } catch (error) {
+    console.error("Error deleting folder:", error);
   }
 }
 const convertToRoman = (num) => {
@@ -34,6 +28,8 @@ const convertToRoman = (num) => {
     { value: 90, numeral: "XC" },
     { value: 50, numeral: "L" },
     { value: 40, numeral: "XL" },
+
+    
     { value: 10, numeral: "X" },
     { value: 9, numeral: "IX" },
     { value: 5, numeral: "V" },
@@ -219,6 +215,70 @@ const formatDateRange = (startDate, endDate) => {
 
   return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
 };
+async function convertWordToPdf(wordFilePath, pdfFilePath) {
+  return new Promise((resolve, reject) => {
+    try {
+      // Kiểm tra file tồn tại
+      if (!fs.existsSync(wordFilePath)) {
+        throw new Error('File Word không tồn tại');
+      }
+
+      // Tạo thư mục output nếu chưa có
+      const pdfDir = path.dirname(pdfFilePath);
+      if (!fs.existsSync(pdfDir)) {
+        fs.mkdirSync(pdfDir, { recursive: true });
+      }
+
+      // Tạo đường dẫn tạm trên server (đảm bảo không có khoảng trắng)
+      const remoteTempDir = '/tmp/word_to_pdf';
+      const fileName = path.basename(wordFilePath).replace(/\s+/g, '_');
+      const remoteWordFile = `${remoteTempDir}/${fileName}`;
+      const remotePdfFile = remoteWordFile.replace('.docx', '.pdf');
+
+      // SSH options để bỏ qua host key verification
+      const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+      
+      // Tạo các lệnh thực thi an toàn
+      const commands = [
+        `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p '${remoteTempDir}'"`,
+        `scp ${sshOptions} "${wordFilePath}" thuanld@42.112.213.93:"${remoteWordFile}"`,
+        `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteWordFile}' --outdir '${remoteTempDir}'"`,
+        `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
+        `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteWordFile}' '${remotePdfFile}'"`
+      ].join(' && ');
+
+      // Thực thi với timeout
+      const timeout = 180000; // 3 phút
+      const timer = setTimeout(() => {
+        reject(new Error('Quá thời gian chuyển đổi'));
+      }, timeout);
+
+      exec(commands, (error, stdout, stderr) => {
+        clearTimeout(timer);
+        
+        if (error) {
+          console.error('Lỗi chuyển đổi:', {
+            command: commands,
+            error: error.message,
+            stderr: stderr,
+            stdout: stdout
+          });
+          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
+        }
+
+        if (!fs.existsSync(pdfFilePath)) {
+          return reject(new Error('File PDF không được tạo ra'));
+        }
+
+        console.log('Chuyển đổi thành công:', pdfFilePath);
+        resolve();
+      });
+
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 // Controller xuất nhiều hợp đồng
 const exportMultipleContracts = async (req, res) => {
   let connection;
@@ -463,80 +523,71 @@ const exportMultipleContracts = async (req, res) => {
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
       }
-      const templatePath = path.resolve(
-        __dirname,
-        "../templates",
-        templateFileName
-      );
-      const content = fs.readFileSync(templatePath, "binary");
-      const zip = new PizZip(content);
+     // Tạo file Word từ template (giữ nguyên)
+     const templatePath = path.resolve(__dirname, "../templates", templateFileName);
+     const content = fs.readFileSync(templatePath, "binary");
+     const zip = new PizZip(content);
 
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        delimiters: {
-          start: "«",
-          end: "»",
-        },
-      });
+     const doc = new Docxtemplater(zip, {
+       paragraphLoop: true,
+       linebreaks: true,
+       delimiters: { start: "«", end: "»" },
+     });
 
-      doc.render(data);
+     doc.render(data);
+     const buf = doc.getZip().generate({ type: "nodebuffer", compression: "DEFLATE" });
 
-      const buf = doc.getZip().generate({
-        type: "nodebuffer",
-        compression: "DEFLATE",
-      });
+     const fileName = `HopDong_${teacher.HoTen}.docx`;
+     const wordFilePath = path.join(tempDir, fileName);
+     fs.writeFileSync(wordFilePath, buf);
 
-      const fileName = `HopDong_${teacher.HoTen}.docx`;
-      fs.writeFileSync(path.join(tempDir, fileName), buf);
-    }
+     // Chuyển đổi sang PDF bằng LibreOffice
+     const pdfFilePath = wordFilePath.replace(".docx", ".pdf");
+     await convertWordToPdf(wordFilePath, pdfFilePath);
+   }
 
-    const archive = archiver("zip", {
-      zlib: { level: 9 },
-    });
+   // Tạo file ZIP chứa tất cả hợp đồng (giữ nguyên)
+   const archive = archiver("zip", { zlib: { level: 9 } });
+   const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"}.zip`;
+   const zipPath = path.join(tempDir, zipFileName);
+   const output = fs.createWriteStream(zipPath);
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
-    const zipPath = path.join(tempDir, zipFileName);
-    const output = fs.createWriteStream(zipPath);
+   archive.pipe(output);
+   fs.readdirSync(tempDir).forEach((file) => {
+     const filePath = path.join(tempDir, file);
+     if (file.endsWith(".docx") || file.endsWith(".pdf")) {
+       archive.file(filePath, { name: file });
+     }
+   });
 
-    archive.pipe(output);
-    archive.directory(tempDir, false);
+   await new Promise((resolve, reject) => {
+     output.on("close", resolve);
+     archive.on("error", reject);
+     archive.finalize();
+   });
 
-    await new Promise((resolve, reject) => {
-      output.on("close", resolve);
-      archive.on("error", reject);
-      archive.finalize();
-    });
+   // Trả về file ZIP cho client
+   res.download(zipPath, zipFileName, (err) => {
+     if (err) {
+       console.error("Error sending zip file:", err);
+       return;
+     }
 
-    res.download(zipPath, zipFileName, (err) => {
-      if (err) {
-        console.error("Error sending zip file:", err);
-        return;
-      }
-
-      setTimeout(() => {
-        try {
-          if (fs.existsSync(tempDir)) {
-            const files = fs.readdirSync(tempDir);
-            for (const file of files) {
-              const filePath = path.join(tempDir, file);
-              fs.unlinkSync(filePath);
-            }
-            fs.rmdirSync(tempDir);
-          }
-        } catch (error) {
-          console.error("Error cleaning up temporary directory:", error);
-        }
-      }, 1000);
-    });
-  } catch (error) {
-    console.error("Error in exportMultipleContracts:", error);
-    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
-  } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-  }
+     // Xóa thư mục tạm ngay sau khi gửi file
+     try {
+       if (fs.existsSync(tempDir)) {
+         deleteFolderRecursive(tempDir);
+       }
+     } catch (error) {
+       console.error("Error cleaning up temporary directory:", error);
+     }
+   });
+ } catch (error) {
+   console.error("Error in exportMultipleContracts:", error);
+   res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+ } finally {
+   if (connection) connection.release();
+ }
 };
 
 const getExportHDSite = async (req, res) => {

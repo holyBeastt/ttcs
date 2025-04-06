@@ -173,8 +173,7 @@
 
         /* Định dạng cho biểu đồ khoa riêng lẻ */
         #khoa-chart-container {
-            width: 80%;
-            max-width: 1200px;
+            width: 100%;
             margin: 30px auto;
             padding: 20px;
             background: white;
@@ -245,6 +244,7 @@
             <tr>
                 <th>STT</th>
                 <th>Họ tên</th>
+                <th>Hệ đào tạo</th>
                 <th>Tổng số tiết</th>
             </tr>
         </thead>
@@ -323,7 +323,7 @@
                         // Thêm dữ liệu kỳ học
                         response.Ki.forEach(function (item) {
                             $('#comboboxki').append(
-                                `<option value="${item.value}">${item.Ki}</option>`
+                                `<option value="${item.value}"> ${item.Ki}</option>`
                             );
                         });
                         checkAndFetchData();
@@ -382,7 +382,6 @@
                     console.log('Không có dữ liệu');
                     const row = tableBody.insertRow();
                     const cell = row.insertCell(0);
-                    cell.colSpan = khoa === 'ALL' ? 4 : 3; // Tăng colspan lên 4 cho trường hợp ALL
                     cell.style.textAlign = 'center';
                     cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
 
@@ -399,8 +398,8 @@
                     tableHeader.innerHTML = `
                         <th>STT</th>
                         <th>${khoa === 'ALL' ? 'Khoa' : 'Họ tên'}</th>
-                        <th>Tổng số tiết</th>
-                        ${khoa === 'ALL' ? '<th>Số lượng giảng viên</th>' : ''}
+                        <th>${khoa === 'ALL' ? 'Tổng số tiết' : 'Hệ đào tạo'}</th>
+                        <th>${khoa === 'ALL' ? 'Số lượng giảng viên' : 'Tổng số tiết'}</th>
                     `;
                 }
 
@@ -417,15 +416,13 @@
                     const cellName = row.insertCell(1);
                     cellName.textContent = khoa === 'ALL' ? item.khoa : item.hoten;
 
-                    // Cột Tổng số tiết
+                    // Cột Tổng số tiết/Hệ đào tạo
                     const cellTotal = row.insertCell(2);
-                    cellTotal.textContent = item.tongsotiet;
+                    cellTotal.textContent = khoa === 'ALL' ? item.tongsotiet : item.hedaotao;
 
-                    // Thêm cột số lượng giảng viên nếu đang xem tất cả khoa
-                    if (khoa === 'ALL') {
-                        const cellGV = row.insertCell(3);
-                        cellGV.textContent = item.sogiangvien || 0;
-                    }
+                    // Thêm cột số lượng giảng viên/Tổng số tiết
+                    const cellGV = row.insertCell(3);
+                    cellGV.textContent = khoa === 'ALL' ? item.sogiangvien : item.tongsotiet;
                 });
 
                 // Cập nhật tổng số tiết
