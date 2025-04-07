@@ -25,7 +25,6 @@ const thongkevuotgioController = {
                     SUM(gd.QuyChuan) AS SoTietGiangDay,
                     SUM(COALESCE(gk.TotalSoTietKT, 0)) AS SoTietKTGK,
                     SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
-                    nv.ChucVu AS ChucVu,
                     nv.PhanTramMienGiam AS PhanTramMienGiam,
                     (300 * ((100 - COALESCE(nv.PhanTramMienGiam, 0)) / 100)) AS STPHT,
                     GREATEST(
@@ -57,7 +56,8 @@ const thongkevuotgioController = {
                     gd.Khoa = ? 
                     AND gd.id_User != 1
                 GROUP BY 
-                    gd.GiangVien, nv.ChucVu, nv.PhanTramMienGiam
+                    gd.id_User, 
+                    gd.GiangVien
                 ORDER BY 
                     TongSoTiet DESC;
             `;
