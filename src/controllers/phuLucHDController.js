@@ -3,8 +3,6 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
-const archiver = require("archiver"); // Add this to handle zip creation
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -852,110 +850,36 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       }
     }
 
-// Tạo tên file Excel
-let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc.replace(/\s+/g, '_')}`;
-if (khoa && khoa !== "ALL") {
-  fileName += `_${sanitizeFileName(khoa)}`;
-}
-if (teacherName) {
-  fileName += `_${sanitizeFileName(teacherName)}`;
-}
+    // Tạo tên file
+    let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc}`;
+    if (khoa && khoa !== "ALL") {
+      fileName += `_${sanitizeFileName(khoa)}`;
+    }
+    if (teacherName) {
+      fileName += `_${sanitizeFileName(teacherName)}`;
+    }
+    fileName += ".xlsx";
 
-const exportsDir = path.join(__dirname, "../../exports");
-// Đảm bảo tên file không chứa khoảng trắng
-const safeFileName = fileName.replace(/\s+/g, '_');
-const excelFilePath = path.join(exportsDir, `${safeFileName}.xlsx`);
-const pdfFilePath = path.join(exportsDir, `${safeFileName}.pdf`);
-
-// Kiểm tra và tạo thư mục exports nếu chưa tồn tại
-if (!fs.existsSync(exportsDir)) {
-  fs.mkdirSync(exportsDir, { recursive: true });
-}
-
-// Ghi workbook vào file Excel
-await workbook.xlsx.writeFile(excelFilePath);
-
-try {
-  // Chuyển đổi Excel sang PDF bằng LibreOffice trên server
-  const remoteTempDir = '/tmp/excel_to_pdf';
-  const remoteExcelFile = `${remoteTempDir}/${safeFileName}.xlsx`;
-  const remotePdfFile = `${remoteTempDir}/${safeFileName}.pdf`;
-
-  // SSH options để bỏ qua host key verification
-  const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-  
-  // Tạo các lệnh thực thi
-  const commands = [
-    `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p ${remoteTempDir}"`,
-    `scp ${sshOptions} "${excelFilePath}" thuanld@42.112.213.93:"${remoteExcelFile}"`,
-    `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteExcelFile}' --outdir '${remoteTempDir}'"`,
-    `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
-    `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteExcelFile}' '${remotePdfFile}'"`
-  ].join(' && ');
-
-  // Thực thi với timeout 3 phút
-  const timeout = 180000;
-  await Promise.race([
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Quá thời gian chuyển đổi')), timeout)),
-    new Promise((resolve, reject) => {
-      exec(commands, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Lỗi chuyển đổi:', error);
-          console.error('Chi tiết lỗi:', stderr);
-          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
-        }
-        resolve();
-      });
-    })
-  ]);
-
-  // Kiểm tra file PDF đã được tạo
-  if (!fs.existsSync(pdfFilePath)) {
-    throw new Error('File PDF không được tạo ra');
-  }
-
-  // Tạo file zip để gửi cả Excel và PDF
-  const zipFilePath = path.join(exportsDir, `${safeFileName}.zip`);
-  const output = fs.createWriteStream(zipFilePath);
-  const archive = archiver("zip", { zlib: { level: 9 } });
-
-  output.on("close", () => {
-    // Gửi file zip cho client
-    res.setHeader("Content-Type", "application/zip");
+    // Set headers cho response và gửi file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(path.basename(zipFilePath))}"`
+      `attachment; filename="${encodeURIComponent(fileName)}"`
     );
-    fs.createReadStream(zipFilePath)
-      .pipe(res)
-      .on("finish", () => {
-        // Xóa file tạm sau khi gửi
-        fs.unlinkSync(excelFilePath);
-        fs.unlinkSync(pdfFilePath);
-        fs.unlinkSync(zipFilePath);
-      });
-  });
 
-  archive.on("error", (err) => {
-    throw new Error(`Lỗi tạo file zip: ${err.message}`);
-  });
+    // Ghi workbook vào response
+    await workbook.xlsx.write(res);
 
-  archive.pipe(output);
-  archive.file(excelFilePath, { name: `${safeFileName}.xlsx` });
-  archive.file(pdfFilePath, { name: `${safeFileName}.pdf` });
-  await archive.finalize();
-
-} catch (error) {
-  console.error("Error:", error);
-  // Xóa file tạm nếu có lỗi
-  if (fs.existsSync(excelFilePath)) fs.unlinkSync(excelFilePath);
-  if (fs.existsSync(pdfFilePath)) fs.unlinkSync(pdfFilePath);
-  
-  return res.status(500).json({
-    success: false,
-    message: error.message || "Lỗi khi xuất dữ liệu"
-  });
-}
+    // Không cần gọi res.end() vì workbook.xlsx.write đã tự động kết thúc response
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error exporting data",
+    });
   } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }

@@ -3,19 +3,25 @@ const Docxtemplater = require("docxtemplater");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require('child_process');
+//const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
 
-// Các hàm hỗ trợ giữ nguyên như cũ
 function deleteFolderRecursive(folderPath) {
-  try {
-    if (fs.existsSync(folderPath)) {
-      fs.rmSync(folderPath, { recursive: true, force: true });
-    }
-  } catch (error) {
-    console.error("Error deleting folder:", error);
+  if (fs.existsSync(folderPath)) {
+    fs.readdirSync(folderPath).forEach((file) => {
+      const curPath = path.join(folderPath, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        // Đệ quy xóa thư mục con
+        deleteFolderRecursive(curPath);
+      } else {
+        // Xóa file
+        fs.unlinkSync(curPath);
+      }
+    });
+    // Xóa thư mục rỗng
+    fs.rmdirSync(folderPath);
   }
 }
 const convertToRoman = (num) => {
@@ -28,8 +34,6 @@ const convertToRoman = (num) => {
     { value: 90, numeral: "XC" },
     { value: 50, numeral: "L" },
     { value: 40, numeral: "XL" },
-
-    
     { value: 10, numeral: "X" },
     { value: 9, numeral: "IX" },
     { value: 5, numeral: "V" },
@@ -215,70 +219,6 @@ const formatDateRange = (startDate, endDate) => {
 
   return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
 };
-async function convertWordToPdf(wordFilePath, pdfFilePath) {
-  return new Promise((resolve, reject) => {
-    try {
-      // Kiểm tra file tồn tại
-      if (!fs.existsSync(wordFilePath)) {
-        throw new Error('File Word không tồn tại');
-      }
-
-      // Tạo thư mục output nếu chưa có
-      const pdfDir = path.dirname(pdfFilePath);
-      if (!fs.existsSync(pdfDir)) {
-        fs.mkdirSync(pdfDir, { recursive: true });
-      }
-
-      // Tạo đường dẫn tạm trên server (đảm bảo không có khoảng trắng)
-      const remoteTempDir = '/tmp/word_to_pdf';
-      const fileName = path.basename(wordFilePath).replace(/\s+/g, '_');
-      const remoteWordFile = `${remoteTempDir}/${fileName}`;
-      const remotePdfFile = remoteWordFile.replace('.docx', '.pdf');
-
-      // SSH options để bỏ qua host key verification
-      const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-      
-      // Tạo các lệnh thực thi an toàn
-      const commands = [
-        `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p '${remoteTempDir}'"`,
-        `scp ${sshOptions} "${wordFilePath}" thuanld@42.112.213.93:"${remoteWordFile}"`,
-        `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteWordFile}' --outdir '${remoteTempDir}'"`,
-        `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
-        `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteWordFile}' '${remotePdfFile}'"`
-      ].join(' && ');
-
-      // Thực thi với timeout
-      const timeout = 180000; // 3 phút
-      const timer = setTimeout(() => {
-        reject(new Error('Quá thời gian chuyển đổi'));
-      }, timeout);
-
-      exec(commands, (error, stdout, stderr) => {
-        clearTimeout(timer);
-        
-        if (error) {
-          console.error('Lỗi chuyển đổi:', {
-            command: commands,
-            error: error.message,
-            stderr: stderr,
-            stdout: stdout
-          });
-          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
-        }
-
-        if (!fs.existsSync(pdfFilePath)) {
-          return reject(new Error('File PDF không được tạo ra'));
-        }
-
-        console.log('Chuyển đổi thành công:', pdfFilePath);
-        resolve();
-      });
-
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
 // Controller xuất nhiều hợp đồng
 const exportMultipleContracts = async (req, res) => {
   let connection;
@@ -523,71 +463,80 @@ const exportMultipleContracts = async (req, res) => {
         default:
           return res.status(400).send("Loại hợp đồng không hợp lệ.");
       }
-     // Tạo file Word từ template (giữ nguyên)
-     const templatePath = path.resolve(__dirname, "../templates", templateFileName);
-     const content = fs.readFileSync(templatePath, "binary");
-     const zip = new PizZip(content);
+      const templatePath = path.resolve(
+        __dirname,
+        "../templates",
+        templateFileName
+      );
+      const content = fs.readFileSync(templatePath, "binary");
+      const zip = new PizZip(content);
 
-     const doc = new Docxtemplater(zip, {
-       paragraphLoop: true,
-       linebreaks: true,
-       delimiters: { start: "«", end: "»" },
-     });
+      const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+        delimiters: {
+          start: "«",
+          end: "»",
+        },
+      });
 
-     doc.render(data);
-     const buf = doc.getZip().generate({ type: "nodebuffer", compression: "DEFLATE" });
+      doc.render(data);
 
-     const fileName = `HopDong_${teacher.HoTen}.docx`;
-     const wordFilePath = path.join(tempDir, fileName);
-     fs.writeFileSync(wordFilePath, buf);
+      const buf = doc.getZip().generate({
+        type: "nodebuffer",
+        compression: "DEFLATE",
+      });
 
-     // Chuyển đổi sang PDF bằng LibreOffice
-     const pdfFilePath = wordFilePath.replace(".docx", ".pdf");
-     await convertWordToPdf(wordFilePath, pdfFilePath);
-   }
+      const fileName = `HopDong_${teacher.HoTen}.docx`;
+      fs.writeFileSync(path.join(tempDir, fileName), buf);
+    }
 
-   // Tạo file ZIP chứa tất cả hợp đồng (giữ nguyên)
-   const archive = archiver("zip", { zlib: { level: 9 } });
-   const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"}.zip`;
-   const zipPath = path.join(tempDir, zipFileName);
-   const output = fs.createWriteStream(zipPath);
+    const archive = archiver("zip", {
+      zlib: { level: 9 },
+    });
 
-   archive.pipe(output);
-   fs.readdirSync(tempDir).forEach((file) => {
-     const filePath = path.join(tempDir, file);
-     if (file.endsWith(".docx") || file.endsWith(".pdf")) {
-       archive.file(filePath, { name: file });
-     }
-   });
+    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
+      khoa || "all"
+    }.zip`;
+    const zipPath = path.join(tempDir, zipFileName);
+    const output = fs.createWriteStream(zipPath);
 
-   await new Promise((resolve, reject) => {
-     output.on("close", resolve);
-     archive.on("error", reject);
-     archive.finalize();
-   });
+    archive.pipe(output);
+    archive.directory(tempDir, false);
 
-   // Trả về file ZIP cho client
-   res.download(zipPath, zipFileName, (err) => {
-     if (err) {
-       console.error("Error sending zip file:", err);
-       return;
-     }
+    await new Promise((resolve, reject) => {
+      output.on("close", resolve);
+      archive.on("error", reject);
+      archive.finalize();
+    });
 
-     // Xóa thư mục tạm ngay sau khi gửi file
-     try {
-       if (fs.existsSync(tempDir)) {
-         deleteFolderRecursive(tempDir);
-       }
-     } catch (error) {
-       console.error("Error cleaning up temporary directory:", error);
-     }
-   });
- } catch (error) {
-   console.error("Error in exportMultipleContracts:", error);
-   res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
- } finally {
-   if (connection) connection.release();
- }
+    res.download(zipPath, zipFileName, (err) => {
+      if (err) {
+        console.error("Error sending zip file:", err);
+        return;
+      }
+
+      setTimeout(() => {
+        try {
+          if (fs.existsSync(tempDir)) {
+            const files = fs.readdirSync(tempDir);
+            for (const file of files) {
+              const filePath = path.join(tempDir, file);
+              fs.unlinkSync(filePath);
+            }
+            fs.rmdirSync(tempDir);
+          }
+        } catch (error) {
+          console.error("Error cleaning up temporary directory:", error);
+        }
+      }, 1000);
+    });
+  } catch (error) {
+    console.error("Error in exportMultipleContracts:", error);
+    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
 };
 
 const getExportHDSite = async (req, res) => {
@@ -1882,262 +1831,9 @@ function tinhSoTien(row, soTiet, tienLuongList) {
   }
 }
 
-// Tải danh sách file bổ sung
-const getImageDownloadSite = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-
-    // Lấy danh sách phòng ban để lọc
-    const query = `select HoTen, MaPhongBan from gvmoi`;
-    const [gvmoiList] = await connection.query(query);
-
-    res.render("hopdong.fileBoSungDownload.ejs", {
-      gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
-    });
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).send("Internal Server Error");
-  } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-  }
-};
-
-const exportImageDownloadData = async (req, res) => {
-  let connection;
-  try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
-
-    if (!dot || !ki || !namHoc) {
-      return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
-    }
-
-    connection = await createPoolConnection();
-
-    let query = `SELECT
-    hd.id_Gvm,
-    hd.DienThoai,
-    hd.Email,
-    hd.MaSoThue,
-    hd.DanhXung,
-    hd.HoTen,
-    hd.NgaySinh,
-    hd.HocVi,
-    hd.ChucVu,
-    hd.HSL,
-    hd.CCCD,
-    hd.NoiCapCCCD,
-    hd.DiaChi,
-    hd.STK,
-    hd.NganHang,
-    MIN(hd.NgayBatDau) AS NgayBatDau,
-    MAX(hd.NgayKetThuc) AS NgayKetThuc,
-    SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
-    hd.NgayCap,
-    hd.ThucNhan,
-    hd.NgayNghiemThu,
-    hd.Dot,
-    hd.KiHoc,
-    hd.NamHoc,
-    hd.MaPhongBan,
-    hd.MaBoMon,
-    hd.NoiCongTac
-  FROM
-    hopdonggvmoi hd
-  JOIN
-    gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-  WHERE
-    hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
-  GROUP BY
-    hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-
-    let params = [dot, ki, namHoc, loaiHopDong];
-
-    // Xử lý các trường hợp khác nhau
-    if (khoa && khoa !== "ALL") {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac  
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
-    WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
-    }
-    if (teacherName) {
-      query = `SELECT
-      hd.id_Gvm,
-      hd.DienThoai,
-      hd.Email,
-      hd.MaSoThue,
-      hd.DanhXung,
-      hd.HoTen,
-      hd.NgaySinh,
-      hd.HocVi,
-      hd.ChucVu,
-      hd.HSL,
-      hd.CCCD,
-      hd.NoiCapCCCD,
-      hd.DiaChi,
-      hd.STK,
-      hd.NganHang,
-      MIN(hd.NgayBatDau) AS NgayBatDau,
-      MAX(hd.NgayKetThuc) AS NgayKetThuc,
-      SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
-      hd.NgayCap,
-      hd.ThucNhan,
-      hd.NgayNghiemThu,
-      hd.Dot,
-      hd.KiHoc,
-      hd.NamHoc,
-      hd.MaPhongBan,
-      hd.MaBoMon,
-      hd.NoiCongTac
-    FROM
-      hopdonggvmoi hd
-    JOIN
-      gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
-    WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
-    GROUP BY
-      hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
-    }
-
-    const [teachers] = await connection.execute(query, params);
-
-    if (!teachers || teachers.length === 0) {
-      return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/api/moi-giang/hd-gvm/img-download-site';</script>"
-      );
-    }
-
-    // Tạo thư mục tạm để lưu các file hợp đồng
-    const tempDir = path.join(
-      __dirname,
-      "..",
-      "public",
-      "temp",
-      Date.now().toString()
-    );
-
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-
-    try {
-      const fileList = [];
-
-      for (const teacher of teachers) {
-        const filePathAdditional = await generateAdditionalFile(
-          teacher,
-          tempDir
-        );
-        if (filePathAdditional) {
-          fileList.push(filePathAdditional);
-        }
-      }
-
-      if (fileList.length === 0) {
-        return res
-          .status(400)
-          .send(
-            `<script>alert('Không có tài liệu bổ sung nào.'); window.location.href='/api/moi-giang/hd-gvm/img-download-site';</script>`
-          );
-      }
-
-      const zipPath = path.resolve(__dirname, "TaiLieuBoSung.zip");
-      const output = fs.createWriteStream(zipPath);
-      const archive = archiver("zip", { zlib: { level: 9 } });
-
-      output.on("close", () => {
-        console.log(`Đã tạo file zip: ${zipPath} (${archive.pointer()} bytes)`);
-        // Gửi file zip về client
-        res.download(zipPath, "TaiLieuBoSung.zip", (err) => {
-          if (err) {
-            console.error("Lỗi gửi file:", err.message);
-            res.status(500).send("Không thể tải file zip.");
-          }
-
-          // Xoá file zip sau khi tải nếu muốn
-          fs.unlinkSync(zipPath);
-        });
-      });
-
-      archive.on("error", (err) => {
-        throw err;
-      });
-
-      archive.pipe(output);
-
-      fileList.forEach((filePath) => {
-        archive.file(filePath, { name: path.basename(filePath) });
-      });
-
-      await archive.finalize();
-    } catch (error) {
-      console.error("Lỗi:", error.message);
-      return res
-        .status(400)
-        .send(
-          `<script>alert('${error.message}'); window.location.href='/api/moi-giang/hd-gvm/img-download-site';</script>`
-        );
-    }
-  } catch (error) {
-    console.error("Error in exportMultipleContracts:", error);
-    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
-  } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-  }
-};
-
 module.exports = {
   exportMultipleContracts,
   getExportHDSite,
   exportAdditionalInfoGvm,
   getExportAdditionalInfoGvmSite,
-  getImageDownloadSite,
-  exportImageDownloadData,
 };
