@@ -565,13 +565,6 @@ function updateCharts(data, khoa) {
                             backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
-                        },
-                        {
-                            label: 'Số tiết phải hoàn thành',
-                            data: data.map(item => parseFloat(item.STPHT) || 0),
-                            backgroundColor: 'rgba(255, 99, 132, 0.5)', // Màu cho STPHT
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
                         }
                     ]
                 },
@@ -623,9 +616,13 @@ function updateCharts(data, khoa) {
                             borderWidth: 1
                         },
                         {
-                            label: 'Số tiết phải hoàn thành',
-                            data: data.map(item => parseFloat(item.STPHT) || 0),
-                            backgroundColor: 'rgba(255, 99, 132, 0.5)', // Màu cho STPHT
+                            label: 'Số tiết đã hoàn thành',
+                            data: data.map(item => {
+                                const tongSoTiet = parseFloat(item.TongSoTiet || 0);
+                                const stpht = parseFloat(item.STPHT || 0);
+                                return stpht > tongSoTiet ? tongSoTiet : stpht;
+                            }),
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)', 
                             borderColor: 'rgba(255, 99, 132, 1)',
                             borderWidth: 1,
                         }
