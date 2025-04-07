@@ -148,7 +148,7 @@
                 <option value="">Đợt</option>
               </select>
 
-              <select class="form-select w-100px mx-2 selectop" id="comboboxki">
+              <select class="form-select mx-2 selectop" id="comboboxki">
                 <option value="">Kỳ</option>
               </select>
 
@@ -169,6 +169,7 @@
               </select>
 
               <select class="form-select mx-1 selectop" id="he_dao_tao">
+                <option value="AllHe">Tất cả hệ</option>
                 <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
                 <option value="Đại học (Mật mã)">Hệ mật mã</option>
                 <option value="Cao học (Đóng học phí)">Cao học</option>
@@ -197,7 +198,7 @@
                     <thead class="table-dark">
                       <tr>
                         <th>Số tiết</th>
-                        <th>Tổng số tiết</th>
+                        <th>Tổng số tiết cả năm</th>
                         <th>Ngày kí HĐ</th>
                         <th>Ngày thanh lý HĐ</th>
                         <th>Danh xưng</th>
@@ -636,6 +637,10 @@
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
+
+              $("#comboboxki").prepend(
+                '<option value="AllKi">Kì 1 + Kì 2</option>'
+              );
 
               response.Ki.forEach(function (item) {
                 $("#comboboxki").append(

@@ -347,15 +347,15 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     summarySheet.getColumn(3).width = 14; // Tên học phần
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
-    summarySheet.getColumn(6).width = 16; // Thời gian thực hiện
+    summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
     summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 16; // Địa chỉ
+    summarySheet.getColumn(8).width = 18; // Địa chỉ
     summarySheet.getColumn(9).width = 6; // Học vị
     summarySheet.getColumn(10).width = 7; // Hệ số lương
     summarySheet.getColumn(11).width = 12; // Mức thanh toán
-    summarySheet.getColumn(12).width = 15; // Thành tiền
-    summarySheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-    summarySheet.getColumn(14).width = 15; // Còn lại
+    summarySheet.getColumn(12).width = 14; // Thành tiền
+    summarySheet.getColumn(13).width = 14; // Trừ thuế TNCN 10%
+    summarySheet.getColumn(14).width = 14; // Còn lại
 
     // Thêm dữ liệu vào sheet tổng hợp
     let stt = 1;
@@ -395,7 +395,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
           item.DiaChi,
           hocViVietTat,
           item.HSL,
-          mucThanhToan, // Mức thanh toán
+          mucThanhToan.toLocaleString("vi-VN").replace(/\./g, ","), // Mức thanh toán
           soTien.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
           truThue.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
           thucNhan.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
@@ -432,7 +432,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 14 };
@@ -441,19 +441,19 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 15 };
               break;
             case 11: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 14: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
           cell.alignment = { horizontal: "center", vertical: "middle" }; // Căn giữa
@@ -648,15 +648,15 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.getColumn(3).width = 14; // Tên học phần
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
-      worksheet.getColumn(6).width = 16; // Thời gian thực hiện
+      worksheet.getColumn(6).width = 17; // Thời gian thực hiện
       worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 16; // Địa Chỉ
+      worksheet.getColumn(8).width = 18; // Địa Chỉ
       worksheet.getColumn(9).width = 6; // Học vị
       worksheet.getColumn(10).width = 7; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
-      worksheet.getColumn(12).width = 15; // Thành tiền
-      worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-      worksheet.getColumn(14).width = 15; // Còn lại
+      worksheet.getColumn(12).width = 14; // Thành tiền
+      worksheet.getColumn(13).width = 14; // Trừ thuế TNCN 10%
+      worksheet.getColumn(14).width = 14; // Còn lại
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
@@ -759,7 +759,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 14 };
@@ -768,19 +768,19 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 15 };
               break;
             case 11: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 14: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
         });

@@ -2,7 +2,6 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 require("dotenv").config();
 const path = require("path");
-//const connection = require("../controllers/connectDB"); // Giả định rằng bạn đã cấu hình kết nối ở đây
 const createPoolConnection = require("../config/databasePool");
 
 let tableTam = process.env.DB_TABLE_TAM;
@@ -130,7 +129,7 @@ const getTableTam = async (req, res) => {
 const getBoMon2 = async (req, res) => {
   let connection;
   const query1 =
-    "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` where id_Gvm != 1";
+    "SELECT HoTen, MonGiangDayChinh FROM `gvmoi` where TinhTrangGiangDay = 1 AND id_Gvm != 1";
   const query2 =
     "SELECT TenNhanVien AS HoTen, MonGiangDayChinh FROM `nhanvien` where id_User != 1";
 

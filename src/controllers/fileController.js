@@ -1,6 +1,5 @@
 const XLSX = require("xlsx");
 const fs = require("fs");
-const connection = require("../controllers/connectDB");
 const createPoolConnection = require("../config/databasePool");
 require("dotenv").config();
 const path = require("path");

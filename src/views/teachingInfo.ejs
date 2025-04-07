@@ -418,6 +418,13 @@
     <!-- jQuery UI CSS -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
+    <!-- Toastify  -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+
     <!-- <script>
       $(document).ready(function () {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -516,7 +523,7 @@
             Swal.fire({
               title: 'Thông báo',
               html: "Vui lòng nhập ngày bắt đầu và ngày kết thúc",
-              icon: 'success',
+              icon: 'warning',
               confirmButtonText: 'OK',
               width: 'auto', // Tự động điều chỉnh chiều rộng
               padding: '20px', // Giữ khoảng cách cho nội dung
@@ -574,9 +581,6 @@
             }
           });
 
-
-          // Kiểm tra lại dữ liệu sau khi cập nhật
-
           // Gửi dữ liệu đã cập nhật lên server
           fetch('/updateDateAll', {
             method: 'POST', // Phương thức POST
@@ -592,19 +596,16 @@
               return response.json(); // Chuyển đổi phản hồi thành JSON
             })
             .then(data => {
-              // Hiển thị thông báo từ server
-              Swal.fire({
-                title: 'Thông báo',
-                html: data.message,
-                icon: 'success',
-                confirmButtonText: 'OK',
-                width: 'auto', // Tự động điều chỉnh chiều rộng
-                padding: '20px', // Giữ khoảng cách cho nội dung
-              });
 
+              Toastify({
+                text: `✅ ${data.message}`,
+                duration: 3000, // Hiển thị trong 3 giây
+                gravity: "top", // Đưa thông báo lên trên
+                position: "right", // Căn lề bên phải
+                backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
+              }).showToast();
             })
             .catch(error => {
-              console.error('Có lỗi xảy ra:', error);
               alert('Có lỗi xảy ra khi cập nhật dữ liệu.');
             });
         });

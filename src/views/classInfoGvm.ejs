@@ -148,12 +148,21 @@
       padding: 5px;
       /* Giữ padding như cũ */
     }
+
+    .alert-sotiet {
+      background-color: #ffcccc !important;
+      color: #333;
+      /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+    }
   </style>
   <!-- Phân quyền -->
   <script>
+    var MaPhongBan = localStorage.getItem("MaPhongBan");
+    var isKhoa = localStorage.getItem("isKhoa");
+
+    //const role = localStorage.getItem("userRole");
+
     document.addEventListener("DOMContentLoaded", () => {
-      //const role = localStorage.getItem("userRole");
-      const MaPhongBan = localStorage.getItem("MaPhongBan");
       // Ẩn phần lọc khoa nếu role là Khoa
       const departmentFilter = document.getElementById("departmentFilter");
 
@@ -190,7 +199,7 @@
 
                   <!-- Combo box kì -->
                   <select class="selectop mx-1" id="combobox-ki">
-                    <option value="">Kỳ</option>
+                    <option value="ALL">Kì 1 + Kì 2</option>
                   </select>
 
                   <!-- Combo box Năm -->
@@ -271,6 +280,11 @@
           .value.trim();
         const he_dao_tao = document.getElementById("he_dao_tao").value;
 
+        // Nếu là Khoa thì gắn lại department = MaPhongBan
+        if (isKhoa == 1) {
+          department = MaPhongBan;
+        }
+
         // Tạo dữ liệu gửi đến server
         const filterData = {
           dot: dot,
@@ -306,64 +320,71 @@
         let index = 1;
 
         // Duyệt qua tất cả các giảng viên trong groupedByTeacher
+        // Giả sử biến "index" và "tableBody" đã được khai báo từ trước
+
         Object.keys(data).forEach((teacher) => {
           const courses = data[teacher];
+
+          // Tính tổng số tiết của tất cả các khóa học (bao gồm cả khóa học cuối cùng)
           const totalSoTiet = courses.reduce(
             (total, course) => total + (parseFloat(course.SoTiet) || 0),
             0
           );
 
-          // Số tiết đồ án, nếu số tiết đồ án có thì cộng tổng với tổng số tiết của giảng dạy, nếu không có thì là số tiết giảng dạy + 0
-          const tongSoTietBaoGomDoAn = courses[courses.length - 1].soTietDoAn ? courses[courses.length - 1].soTietDoAn + totalSoTiet : totalSoTiet;
+          // Lấy đối tượng cuối cùng của mảng để tính tổng tiết trong năm, không render nó ra bảng
+          const lastCourse = courses[courses.length - 1];
+          const tongSoTietBaoGomDoAn = Number.parseFloat(lastCourse.tongSoTietBaoGomDoAn == 0 ? totalSoTiet : lastCourse.tongSoTietBaoGomDoAn);
 
-          // Duyệt qua từng khóa học của giảng viên
-          courses.forEach((course, courseIndex) => {
+          // Render bảng chỉ với các phần tử từ đầu đến phần tử áp chót (bỏ qua đối tượng cuối cùng)
+          courses.slice(0, -1).forEach((course, courseIndex) => {
             const tr = document.createElement("tr");
             tr.setAttribute("data-department", course.Khoa);
             tr.setAttribute("data-dot", course.Dot);
             tr.setAttribute("data-ki", course.KiHoc);
             tr.setAttribute("data-nam", course.NamHoc);
 
-            // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
+            // Nếu là khóa học đầu tiên của giảng viên, thêm thông tin giảng viên với rowspan
             if (courseIndex === 0) {
-              tr.classList.add("teacher-group"); // Gán class "teacher-group"
+              tr.classList.add("teacher-group");
               tr.innerHTML = `
-              <td rowspan="${courses.length}">${index}</td>
-              <td rowspan="${courses.length}">${course.GiangVien}</td>
-            `;
-              index++; // Tăng index cho giảng viên tiếp theo
+        <td rowspan="${courses.length - 1}">${index}</td>
+        <td rowspan="${courses.length - 1}">${course.GiangVien}</td>
+      `;
+              index++;
             }
 
-            // Thêm các ô dữ liệu cho từng môn học
-            tr.innerHTML += `
-            <td>${course.TenHocPhan}</td>
-            <td>${course.Lop}</td>
-            <td>${course.SoTinChi}</td>
-            <td>${course.Dot}</td>
-            <td>${course.KiHoc}</td>
-            <td>${course.NamHoc}</td>
-            <td>${formatDate(course.NgayBatDau)}</td>
-            <td>${formatDate(course.NgayKetThuc)}</td>
-            <td>${course.SoTiet}</td>
-          `;
+            if (Number.parseFloat(tongSoTietBaoGomDoAn) > 300) {
+              tr.classList.add("alert-sotiet");
+            }
 
-            // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
+            // Thêm các ô dữ liệu cho môn học
+            tr.innerHTML += `
+      <td>${course.TenHocPhan}</td>
+      <td>${course.Lop}</td>
+      <td>${course.SoTinChi}</td>
+      <td>${course.Dot}</td>
+      <td>${course.KiHoc}</td>
+      <td>${course.NamHoc}</td>
+      <td>${formatDate(course.NgayBatDau)}</td>
+      <td>${formatDate(course.NgayKetThuc)}</td>
+      <td>${course.SoTiet}</td>
+    `;
+
+            // Nếu là khóa học đầu tiên của giảng viên, thêm thông tin tổng số tiết, phòng ban và nút xem chi tiết
             if (courseIndex === 0) {
               tr.innerHTML += `
-              <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
-              <td rowspan="${courses.length}">${tongSoTietBaoGomDoAn.toFixed(2)}</td>
-              <td rowspan="${courses.length}">${course.Khoa}</td>
-              <td rowspan="${courses.length}">
-                <button class="action-button view" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1
-                }')">👁️</button>
-              </td>
-            `;
+        <td rowspan="${courses.length - 1}">${totalSoTiet.toFixed(2)}</td>
+        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn.toFixed(2)}</td>
+        <td rowspan="${courses.length - 1}">${course.Khoa}</td>
+        <td rowspan="${courses.length - 1}">
+          <button class="action-button view" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1}')">👁️</button>
+        </td>
+      `;
             }
-
-            // Thêm tr vào tbody
             tableBody.appendChild(tr);
           });
         });
+
         calculateTotals();
       }
 

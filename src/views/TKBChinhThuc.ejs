@@ -17,173 +17,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <!-- <style>
-      /* CSS cho bảng */
-      .table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-
-      .table th,
-      .table td {
-        padding: 10px;
-        text-align: left;
-        border: 1px solid #dee2e6;
-        white-space: nowrap;
-        /* Ngăn chặn xuống dòng */
-      }
-      /*
-      .table th {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-      }
-*/
-      .table th {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-
-      .table tbody tr:nth-child(even) {
-        background-color: #f8f9fa;
-      }
-
-      .table tbody tr:hover {
-        background-color: #e2e6ea;
-      }
-
-      .table td {
-        vertical-align: middle;
-      }
-
-      .bg-custom {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
-      }
-
-      .spinner-border {
-        position: fixed;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
-      }
-
-      .header-actions {
-        display: flex;
-        /* Flexbox container */
-        flex-wrap: wrap;
-        /* Wrap items if they don't fit in one line */
-        align-items: center;
-        /* Vertically center items */
-        gap: 10px;
-        /* Space between the elements */
-        justify-content: space-between;
-      }
-
-      .right {
-        margin-top: 20px;
-      }
-
-      .btn {
-        height: 45px;
-        margin-left: 5px;
-      }
-
-      /* cảnh báo khi thiếu dữ liệu */
-      .warning-row {
-        background-color: #ffe6e6;
-        /* Màu nền cảnh báo nhạt */
-        color: #ff0000;
-        /* Màu chữ cảnh báo */
-      }
-
-      /* nút xuất file */
-      /* Định dạng cho dropdown */
-      #file-format-menu {
-        background-color: white;
-        border: 1px solid #ddd;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        padding: 10px;
-        transform: translateX(53%);
-        /* Thêm hiệu ứng nhấp nháy màu chéo */
-        /* animation: flashColors 2s linear infinite, diagonalMove 2s linear infinite; */
-      }
-
-      .dropdown-item {
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-
-      .dropdown-item:hover {
-        background-color: #f8f9fa;
-      }
-
-      /* Animation nháy màu liên tục */
-      @keyframes flashColors {
-        0% {
-          background-color: rgba(255, 0, 0, 0.8);
-        }
-
-        /* Màu đỏ rực */
-        10% {
-          background-color: rgba(255, 105, 180, 0.8);
-        }
-
-        /* Màu hồng đậm */
-        20% {
-          background-color: rgba(255, 215, 0, 0.8);
-        }
-
-        /* Màu vàng kim */
-        30% {
-          background-color: rgba(34, 193, 195, 0.8);
-        }
-
-        /* Màu xanh dương ngọc bích */
-        40% {
-          background-color: rgba(0, 255, 255, 0.8);
-        }
-
-        /* Màu cyan sáng */
-        50% {
-          background-color: rgba(75, 0, 130, 0.8);
-        }
-
-        /* Màu tím đậm */
-        60% {
-          background-color: rgba(255, 165, 0, 0.8);
-        }
-
-        /* Màu cam sáng */
-        70% {
-          background-color: rgba(128, 0, 128, 0.8);
-        }
-
-        /* Màu tím ngọc */
-        80% {
-          background-color: rgba(0, 255, 0, 0.8);
-        }
-
-        /* Màu xanh lá cây sáng */
-        90% {
-          background-color: rgba(255, 69, 0, 0.8);
-        }
-
-        /* Màu cam đỏ */
-        100% {
-          background-color: rgba(255, 0, 0, 0.8);
-        }
-      }
-    </style> -->
     <style>
       /* CSS cho bảng */
       .table {
@@ -341,24 +174,6 @@
         opacity: 0.8;
       }
 
-      #backToTop {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: none; /* Ẩn ban đầu */
-        background-color: green;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      #backToTop:hover {
-        background-color: darkgreen;
-      }
-
       .custom-header {
         display: flex;
         justify-content: center; /* Căn giữa nội dung */
@@ -384,7 +199,7 @@
             <button
               class="btn"
               id="them-vao-qc-du-kien"
-              style="margin-bottom: 0px"
+              style="margin-bottom: 0px; display: none"
             >
               Thêm vào quy chuẩn dự kiến
             </button>
@@ -583,11 +398,6 @@
         >
           Không có dữ liệu để hiển thị.
         </div>
-
-        <button id="backToTop">
-          <span>&#x25B2;</span>
-          <!-- Mã Unicode cho mũi tên lên -->
-        </button>
       </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -615,7 +425,9 @@
     />
 
     <!-- AG Grid Script -->
-    <script src="https://unpkg.com/ag-grid-community@29.3.2/dist/ag-grid-community.min.js"></script>
+    <!-- <script src="https://unpkg.com/ag-grid-community@29.3.2/dist/ag-grid-community.min.js"></script> -->
+
+    <script src="/js/TKB/ag-grid-community.min.js"></script>
 
     <!-- Toastify  -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -624,25 +436,6 @@
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
     />
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const backToTopBtn = document.getElementById("backToTop");
-
-        // Hiện nút khi cuộn xuống 300px
-        window.addEventListener("scroll", () => {
-          if (window.scrollY > 300) {
-            backToTopBtn.style.display = "block";
-          } else {
-            backToTopBtn.style.display = "none";
-          }
-        });
-
-        // Sự kiện click để cuộn lên đầu trang
-        backToTopBtn.addEventListener("click", () => {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-      });
-    </script>
     <!-- <script>
       // Lấy danh sách từ localStorage
       const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
@@ -669,20 +462,27 @@
         const role = localStorage.getItem("userRole");
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
-        hideButton2(role);
+        hideButtonTKB(role);
       });
 
-      function hideButton2(role) {
+      function hideButtonTKB(role) {
         if (role != "Duyệt") {
+          const deleteTKB = document.getElementById("xoa-TKB");
           const themBtn = document.getElementById("add-row-btn");
-          const xuatFileBtn = document.getElementById("export-file-btn");
+          const addToQCDK = document.getElementById("them-vao-qc-du-kien");
+          //const xuatFileBtn = document.getElementById("export-file-btn");
 
-          // const hanhDongTh = document.querySelector('th:contains("Hành động")');
-          // const hanhDongTh = document.getElementById('action-column');
-          if (themBtn) {
-            themBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
-            xuatFileBtn.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
+          if (deleteTKB) {
+            deleteTKB.style.display = "none"; // Ẩn ngay lập tức
+            setTimeout(() => deleteTKB.remove(), 100); // Xóa sau 100ms để tránh lag
           }
+          if (themBtn) themBtn.remove();
+          //xuatFileBtn.style.display = "none";
+
+          if (addToQCDK) addToQCDK.remove();
+        } else {
+          const addToQCDK = document.getElementById("them-vao-qc-du-kien");
+          if (addToQCDK) addToQCDK.style.display = "block";
         }
       }
     </script>
@@ -849,6 +649,12 @@
           semester: { name: "Năm học", width: 100 },
         };
 
+        let canEdit = false;
+
+        if (role == "Duyệt") {
+          canEdit = true;
+        }
+
         const columnDefs = [
           {
             headerName: "STT",
@@ -864,7 +670,7 @@
               field: key,
               headerName: headersMap[key]?.name || key,
               width: headersMap[key]?.width || 100,
-              editable: key !== "student_bonus" && key !== "id",
+              editable: canEdit && key !== "student_bonus" && key !== "id",
               hide: key === "semester" || key === "id",
               headerClass: "custom-header",
               filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
@@ -958,8 +764,6 @@
           const id = data.id;
           const field = colDef.field;
 
-          console.log(`📝 Cập nhật ${field}: ${newValue}`);
-
           try {
             const response = await fetch("/api/update-row-TKB", {
               method: "POST",
@@ -970,9 +774,6 @@
             const updatedRow = await response.json();
 
             if (response.ok) {
-              console.log("✅ Cập nhật thành công:", updatedRow);
-
-              // ✅ Cập nhật dữ liệu trực tiếp trên AG Grid
               const rowNode = gridOptions.api.getRowNode(id);
               if (rowNode) {
                 rowNode.setData(updatedRow);
@@ -1696,46 +1497,6 @@
           }
         });
     </script>
-
-    <!-- <script>
-      function filterTable() {
-        // Lấy giá trị đã chọn từ các combobox
-        let dot = document.getElementById("combobox-dot").value;
-        let ki = document.getElementById("comboboxki").value;
-        let nam = document.getElementById("NamHoc").value;
-        let department = document
-          .getElementById("departmentFilter")
-          .value.trim();
-
-        let tbody = document.getElementById("data-table-body");
-        let rows = tbody.getElementsByTagName("tr");
-
-        for (let i = 0; i < rows.length; i++) {
-          let row = rows[i];
-          let cells = row.getElementsByTagName("td");
-
-          // Giả sử thứ tự cột là: Khoa, Đợt, Kì, Năm
-          let rowDepartment = cells[0].textContent.trim(); // Khoa
-          let rowDot = cells[1].textContent.trim(); // Đợt
-          let rowKi = cells[2].textContent.trim(); // Kì
-          let rowNam = cells[3].textContent.trim(); // Năm
-
-          // Logic lọc
-          let matchesDepartment =
-            department === "" || rowDepartment === department;
-          let matchesDot = dot === "" || rowDot === dot;
-          let matchesKi = ki === "" || rowKi === ki;
-          let matchesNam = nam === "" || rowNam === nam; // Kiểm tra năm
-
-          // Hiển thị hoặc ẩn hàng dựa trên kết quả lọc
-          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-            row.style.display = ""; // Hiển thị hàng
-          } else {
-            row.style.display = "none"; // Ẩn hàng
-          }
-        }
-      }
-    </script> -->
     <script>
       document
         .getElementById("changePasswordLink")

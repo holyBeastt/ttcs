@@ -1,7 +1,6 @@
 const express = require("express");
 const mysql = require("mysql2/promise"); // Ensure you have mysql2 installed
 const createPoolConnection = require("../config/databasePool");
-const connection = require("../config/database"); // Adjust the path as necessary
 
 const AdminController = {
   index: (req, res) => {
@@ -103,10 +102,10 @@ const AdminController = {
       if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
         connection.release();
         return res.status(400).json({
-          message: "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
+          message:
+            "Phần trăm miễn giảm phải là số từ 0 đến 100. Vui lòng kiểm tra lại.",
         });
       }
-
 
       // Kiểm tra trùng lặp tên
       const nvQuery = "select * from nhanvien";
@@ -334,27 +333,31 @@ const AdminController = {
 
   // phần hiển thị danh sách
   getListNhanVien: async (req, res) => {
+    let connection;
     try {
-      const [rows] = await connection
-        .promise()
-        .query(
-          "SELECT id_User, MaNhanVien, TenNhanVien, MaPhongBan FROM nhanvien"
-        );
+      connection = await createPoolConnection();
+      const [rows] = await connection.query(
+        "SELECT id_User, MaNhanVien, TenNhanVien, MaPhongBan FROM nhanvien"
+      );
       res.json(rows);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách nhân viên:", error);
       res
         .status(500)
         .json({ message: "Đã xảy ra lỗi khi lấy danh sách nhân viên" });
+    } finally {
+      if (connection) connection.release();
     }
   },
 
   getListPhongBan: async (req, res) => {
+    let connection;
     try {
+      connection = await createPoolConnection();
       console.log("Đang truy vấn danh sách phòng ban...");
-      const [rows] = await connection
-        .promise()
-        .query("SELECT maPhongBan, tenPhongBan, ghiChu, isKhoa FROM phongban");
+      const [rows] = await connection.query(
+        "SELECT maPhongBan, tenPhongBan, ghiChu, isKhoa FROM phongban"
+      );
       console.log("Kết quả truy vấn:", rows);
       res.json(rows);
     } catch (error) {
@@ -363,6 +366,8 @@ const AdminController = {
         message: "Đã xảy ra lỗi khi lấy danh sách phòng ban",
         error: error.message,
       });
+    } finally {
+      if (connection) connection.release();
     }
   },
   getUpdateNV: async (req, res) => {
@@ -634,20 +639,53 @@ const AdminController = {
       if (connection) connection.release(); // Đảm bảo giải phóng kết nối
     }
   },
+  // getNamHoc: async (req, res) => {
+  //   let connection;
+  //   try {
+  //     connection = await createPoolConnection();
+  //     const query1 =
+  //       "SELECT * FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
+  //     const [result1] = await connection.query(query1);
+  //     const query2 = "SELECT * FROM `ki` ORDER BY trangthai DESC";
+  //     const [result2] = await connection.query(query2);
+  //     const query3 = "SELECT * FROM `dot` ORDER BY trangthai DESC";
+  //     const [result3] = await connection.query(query3);
+
+  //     // Đóng kết nối sau khi truy vấn hoàn thành
+  //     //connection.end();
+
+  //     res.json({
+  //       success: true,
+  //       NamHoc: result1,
+  //       Ki: result2,
+  //       Dot: result3,
+  //     });
+  //   } catch (error) {
+  //     console.error("Lỗi: ", error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+  //     });
+  //   } finally {
+  //     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  //   }
+  // },
   getNamHoc: async (req, res) => {
     let connection;
     try {
-      const connection = await createPoolConnection();
-      const query1 =
-        "SELECT *FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC";
-      const [result1] = await connection.query(query1);
-      const query2 = "SELECT *FROM `ki` ORDER BY trangthai DESC";
-      const [result2] = await connection.query(query2);
-      const query3 = "SELECT *FROM `dot` ORDER BY trangthai DESC";
-      const [result3] = await connection.query(query3);
+      connection = await createPoolConnection();
 
-      // Đóng kết nối sau khi truy vấn hoàn thành
-      //connection.end();
+      const [namHocPromise, kiPromise, dotPromise] = await Promise.all([
+        connection.query(
+          "SELECT * FROM `namhoc` ORDER BY trangthai DESC , NamHoc ASC"
+        ),
+        connection.query("SELECT * FROM `ki` ORDER BY trangthai DESC"),
+        connection.query("SELECT * FROM `dot` ORDER BY trangthai DESC"),
+      ]);
+
+      const [result1] = namHocPromise;
+      const [result2] = kiPromise;
+      const [result3] = dotPromise;
 
       res.json({
         success: true,
@@ -662,15 +700,15 @@ const AdminController = {
         message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
       });
     } finally {
-      if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+      if (connection) connection.release(); // luôn giải phóng kết nối
     }
   },
   getBoMonList: async (req, res) => {
     let maPhongBan = req.params.maPhongBan;
-    console.log(maPhongBan);
 
-    let connection = await createPoolConnection();
+    let connection;
     try {
+      connection = await createPoolConnection();
       let results;
       const query = `SELECT * FROM bomon WHERE MaPhongBan = ?`;
       [results] = await connection.query(query, [maPhongBan]);
@@ -921,7 +959,9 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [kyTuBD] = await connection.query("SELECT lop_vi_du, viet_tat, gia_tri_so_sanh FROM kitubatdau");
+      const [kyTuBD] = await connection.query(
+        "SELECT lop_vi_du, viet_tat, gia_tri_so_sanh FROM kitubatdau"
+      );
       res.render("vuotGioKyTuBD", {
         kyTuBD,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -955,7 +995,9 @@ const AdminController = {
 
       // Xử lý kết quả
       if (rows.length > 0) {
-        return res.redirect("/kytubatdau?success=false&message=duplicateKiTuAndHeDaoTao");
+        return res.redirect(
+          "/kytubatdau?success=false&message=duplicateKiTuAndHeDaoTao"
+        );
       }
 
       // Thêm vào bảng kí tự bắt đầu
@@ -963,7 +1005,11 @@ const AdminController = {
         INSERT INTO kitubatdau (lop_vi_du, viet_tat, gia_tri_so_sanh) 
         VALUES (?, ?, ?)
       `;
-      await connection.execute(insertQuery, [lop_vi_du, viet_tat, gia_tri_so_sanh]);
+      await connection.execute(insertQuery, [
+        lop_vi_du,
+        viet_tat,
+        gia_tri_so_sanh,
+      ]);
 
       res.redirect("/kytubatdau?success=true&message=insertSuccess");
     } catch (error) {
@@ -1064,10 +1110,10 @@ const AdminController = {
         `SELECT * FROM kitubatdau WHERE viet_tat = ? AND gia_tri_so_sanh = ?`,
         [viet_tat, gia_tri_so_sanh]
       );
-  
+
       if (rows.length > 0) {
         return res.status(409).json({
-          message: "Kí tự bắt đầu với hệ đào tạo này đã tồn tại"
+          message: "Kí tự bắt đầu với hệ đào tạo này đã tồn tại",
         });
       }
       res.json({ exists: false });

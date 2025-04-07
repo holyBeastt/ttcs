@@ -5,10 +5,6 @@ require("dotenv").config();
 const session = require("express-session");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
-//console.log("> check env: ", process.env);
-
-// Connect to database
-const connection = require("./config/database");
 
 // config engine template
 const configViewEngine = require("./config/viewEngine");
@@ -36,11 +32,13 @@ const thongkedoanRoute = require("./routes/thongkedoanRoute");
 const suaHDRoute = require("./routes/suaHDRoute");
 const thongkevuotgioRoute = require("./routes/thongkevuotgioRoute");
 const thongketonghopRoute = require("./routes/thongketonghopRoute");
+const thongkeChiTietMGRoute = require('./routes/thongkeChiTietMGRoute');
 const backupRoute = require("./routes/backupRoute");
+const tongHopGvmExportRoute = require("./routes/tongHopGvmExportRoute");
 
 // Phần admin
 const adminThemFileHocPhanRoute = require("./routes/adminThemFileHocPhanRoute");
-const adminPhongHocRoute = require("./routes/adminPhongHocRoute")
+const adminPhongHocRoute = require("./routes/adminPhongHocRoute");
 
 // Phần thời khóa biểu
 const TKBRoute = require("./routes/TKBRoute");
@@ -69,9 +67,9 @@ configViewEngine(app);
 // cấu hình session cho login
 //app.use(express.urlencoded({ extended: true }));
 // app.use(
-//   session({
-//     secret: "your_secret_key",
-//     resave: false,
+  //   session({
+    //     secret: "your_secret_key",
+    //     resave: false,
 //     saveUninitialized: true,
 //     cookie: { secure: false }, // set secure: true nếu bạn sử dụng HTTPS
 //   })
@@ -139,11 +137,13 @@ app.use("/", suaHDRoute);
 app.use("/", exportPhuLucDARoute);
 app.use("/", thongkevuotgioRoute);
 app.use("/", thongketonghopRoute);
+app.use('/', thongkeChiTietMGRoute);
 app.use("/", backupRoute);
+app.use("/", tongHopGvmExportRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
-app.use('/', adminPhongHocRoute);
+app.use("/", adminPhongHocRoute);
 
 // Phần thời khóa biểu
 app.use("/", TKBRoute);

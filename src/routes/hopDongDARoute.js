@@ -20,4 +20,15 @@ router.get(
   hopDongDAController.exportAdditionalDoAnGvm
 );
 
+// Xuất danh sách file bổ sung gvm
+router.get(
+  "/api/do-an/hd-gvm/bosung-download-file",
+  hopDongDAController.getBosungDownloadSite
+);
+
+router.get(
+  "/api/do-an/hd-gvm/bosung-download-data",
+  hopDongDAController.exportBoSungDownloadData
+);
+
 module.exports = router;
