@@ -155,25 +155,53 @@
       /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
     }
   </style>
-  <!-- Phân quyền -->
-  <script>
-    var MaPhongBan = localStorage.getItem("MaPhongBan");
-    var isKhoa = localStorage.getItem("isKhoa");
 
-    //const role = localStorage.getItem("userRole");
+  <style>
+    /* CSS cho chức năng sort */
+    th.sortable {
+      position: relative;
+      background-color: #f2f2f2;
+    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // Ẩn phần lọc khoa nếu role là Khoa
-      const departmentFilter = document.getElementById("departmentFilter");
+    th.sortable:hover {
+      background-color: #e0e0e0;
+    }
 
-      if (
-        !MaPhongBan.includes("DAOTAO") &&
-        !MaPhongBan.includes("TAICHINH")
-      ) {
-        departmentFilter.style.display = "none";
-      }
-    });
-  </script>
+    .sort-icon {
+      margin-left: 5px;
+      font-size: 0.8em;
+    }
+
+    /* Màu nền cho các dòng để dễ đọc */
+    tbody tr:nth-child(even) {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Highlight dòng khi hover */
+    tbody tr:hover {
+      background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    /* Styling cho bảng */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+    }
+  </style>
+
 </head>
 
 <body>
@@ -268,6 +296,136 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <tbody style="display: none" class="teacher-group" id="data-table-body"></tbody>
+
+    <!-- sort theo các số tiết -->
+    <script>
+      // Thêm chức năng sort cho cột "Tổng số tiết cả năm"
+      document.addEventListener('DOMContentLoaded', function () {
+        const headers = document.querySelectorAll('th');
+
+        // Tìm index của cột "Tổng số tiết cả năm"
+        let totalYearlyLessonsIndex = -1;
+
+        headers.forEach((header, index) => {
+          if (header.textContent.trim() === "Tổng số tiết cả năm") {
+            totalYearlyLessonsIndex = index;
+            header.classList.add('sortable');
+            header.dataset.sortDirection = 'none';
+            header.style.cursor = 'pointer';
+            header.innerHTML += ' <span class="sort-icon">&#8597;</span>';
+
+            header.addEventListener('click', function () {
+              sortTableByGroupedRows(totalYearlyLessonsIndex);
+              updateSortIcon(this);
+            });
+          }
+        });
+      });
+
+      // Hàm sort bảng theo nhóm rows (xử lý rowspan)
+      function sortTableByGroupedRows(colIndex) {
+        const table = document.querySelector('table');
+        const tbody = table.querySelector('tbody');
+        const header = table.querySelectorAll('th')[colIndex];
+
+        // Xác định hướng sort
+        const currentDirection = header.dataset.sortDirection;
+        const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        header.dataset.sortDirection = newDirection;
+
+        // Lấy tất cả các dòng đầu tiên của mỗi nhóm (dòng có rowspan)
+        const rowGroups = [];
+        const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Tìm tất cả các dòng đầu của nhóm (những dòng có rowspan ở cột Tổng số tiết cả năm)
+        let i = 0;
+        while (i < allRows.length) {
+          const row = allRows[i];
+          const cell = row.cells[colIndex];
+
+          if (cell && cell.hasAttribute('rowspan')) {
+            // Đây là dòng đầu của một nhóm
+            const rowspan = parseInt(cell.getAttribute('rowspan'));
+            const group = {
+              headRow: row,
+              value: parseFloat(cell.textContent.trim()) || 0,
+              rowspan: rowspan,
+              rows: [row]
+            };
+
+            // Thêm các dòng tiếp theo vào nhóm
+            for (let j = 1; j < rowspan && i + j < allRows.length; j++) {
+              group.rows.push(allRows[i + j]);
+            }
+
+            rowGroups.push(group);
+            i += rowspan;
+          } else {
+            // Dòng đơn lẻ hoặc một phần của nhóm đã được xử lý
+            i++;
+          }
+        }
+
+        // Sort các nhóm dòng theo giá trị của cột "Tổng số tiết cả năm"
+        rowGroups.sort((a, b) => {
+          if (newDirection === 'asc') {
+            return a.value - b.value;
+          } else {
+            return b.value - a.value;
+          }
+        });
+
+        // Xóa tất cả các dòng khỏi tbody
+        while (tbody.firstChild) {
+          tbody.removeChild(tbody.firstChild);
+        }
+
+        // Thêm lại các dòng theo thứ tự đã sort
+        let sttCounter = 1;
+        rowGroups.forEach(group => {
+          // Cập nhật STT cho nhóm
+          const firstCell = group.headRow.cells[0];
+          if (firstCell && firstCell.hasAttribute('rowspan')) {
+            firstCell.textContent = sttCounter;
+            sttCounter++;
+          }
+
+          // Thêm tất cả các dòng của nhóm vào tbody
+          group.rows.forEach(row => {
+            tbody.appendChild(row);
+          });
+        });
+      }
+
+      // Cập nhật biểu tượng sort
+      function updateSortIcon(header) {
+        const icon = header.querySelector('.sort-icon');
+        if (header.dataset.sortDirection === 'asc') {
+          icon.innerHTML = '&#9650;'; // Mũi tên lên
+        } else {
+          icon.innerHTML = '&#9660;'; // Mũi tên xuống
+        }
+      }
+    </script>
+    <!-- Phân quyền -->
+    <script>
+      var MaPhongBan = localStorage.getItem("MaPhongBan");
+      var isKhoa = localStorage.getItem("isKhoa");
+
+      //const role = localStorage.getItem("userRole");
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // Ẩn phần lọc khoa nếu role là Khoa
+        const departmentFilter = document.getElementById("departmentFilter");
+
+        if (
+          !MaPhongBan.includes("DAOTAO") &&
+          !MaPhongBan.includes("TAICHINH")
+        ) {
+          departmentFilter.style.display = "none";
+        }
+      });
+    </script>
 
     <script>
       function filterTable() {
