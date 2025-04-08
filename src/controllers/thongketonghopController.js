@@ -8,7 +8,7 @@ const thongketonghopController = {
     try {
       connection = await createConnection();
 
-      // Base query
+      // Base query for "Mời giảng"
       let query = `
                 SELECT 
                     MaPhongBan AS Khoa,
@@ -34,32 +34,21 @@ const thongketonghopController = {
       const [moiGiangData] = await connection.query(query, params);
       console.log("Dữ liệu mời giảng:", moiGiangData);
 
-      // Similar query for vượt giờ
+      // Query for "Vượt giờ"
       let queryVuotGio = `
             WITH Final AS (
     SELECT 
         gd.Khoa,
         gd.GiangVien AS GiangVien,
         SUM(gd.QuyChuan) AS SoTietGiangDay,
-        SUM(COALESCE(gk.TotalSoTietKT, 0)) AS SoTietKTGK, -- Sửa lại hàm SUM gọn hơn
+        SUM(COALESCE(gk.TotalSoTietKT, 0)) AS SoTietKTGK,
         SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) AS TongSoTiet,
         nv.ChucVu AS ChucVu,
-        COUNT(DISTINCT gd.id_User) AS SoLuongGiangVien,
+        nv.PhanTramMienGiam AS PhanTramMienGiam,
         GREATEST(
             0, 
             SUM(gd.QuyChuan + COALESCE(gk.TotalSoTietKT, 0)) - 
-            CASE 
-                WHEN nv.ChucVu = 'Giám đốc học viện' THEN 300 * 0.15
-                WHEN nv.ChucVu = 'Phó giám đốc học viện' THEN 300 * 0.20
-                WHEN nv.ChucVu = 'Trưởng phòng' THEN 300 * 0.25
-                WHEN nv.ChucVu = 'Phó phòng' THEN 300 * 0.30
-                WHEN nv.ChucVu = 'Chủ nhiệm khoa' THEN 300 * 0.70
-                WHEN nv.ChucVu = 'Phó Chủ nhiệm khoa' THEN 300 * 0.80
-                WHEN nv.ChucVu = 'Chủ nhiệm bộ môn' THEN 300 * 0.80
-                WHEN nv.ChucVu = 'Giáo vụ' THEN 300 * 0.70
-                WHEN nv.ChucVu = 'Giảng viên' THEN 300
-                ELSE 0
-            END
+            (300 * ((100 - COALESCE(nv.PhanTramMienGiam, 0)) / 100))
         ) AS SoTietVuotGio
     FROM 
         giangday gd 
@@ -87,7 +76,7 @@ const thongketonghopController = {
         AND (? = 'ALL' OR gd.HocKy = ?) 
         AND gd.id_User != 1
     GROUP BY 
-        gd.Khoa, gd.GiangVien, nv.ChucVu -- Đảm bảo các cột không aggregate được thêm vào GROUP BY
+        gd.Khoa, gd.GiangVien, nv.ChucVu, nv.PhanTramMienGiam
     ORDER BY 
         TongSoTiet DESC
 )
@@ -99,25 +88,24 @@ FROM
     Final
 GROUP BY 
     Khoa;
-
         `;
 
-      // Xây dựng tham số
+      // Build parameters for the query
       const paramsVuotGio = [];
 
-      paramsVuotGio.push(namhoc || "ALL"); // Thêm kiểm tra cho trường hợp null
-      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở subquery giuaky
-      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở subquery giuaky
-      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở subquery giuaky
-      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở giangday
-      paramsVuotGio.push(namhoc || "ALL"); // NamHoc ở giangday
-      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở giangday
-      paramsVuotGio.push(kihoc || "ALL"); // HocKy ở giangday
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc in subquery giuaky
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc in subquery giuaky
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy in subquery giuaky
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy in subquery giuaky
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc in giangday
+      paramsVuotGio.push(namhoc || "ALL"); // NamHoc in giangday
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy in giangday
+      paramsVuotGio.push(kihoc || "ALL"); // HocKy in giangday
 
-      // Thực thi câu truy vấn
+      // Execute the query
       const [vuotGioData] = await connection.query(queryVuotGio, paramsVuotGio);
       console.log("Dữ liệu vượt giờ:", vuotGioData);
-      console.log("Năm ", namhoc);
+
       // Combine the data
       const chartData = moiGiangData.map((item) => {
         const vuotGio = vuotGioData.find((v) => v.Khoa === item.Khoa) || {
