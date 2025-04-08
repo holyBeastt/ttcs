@@ -827,6 +827,7 @@ const generateAdditionalFile = async (teacher, tempDir) => {
 
   // // Đổi tên file
   // fs.renameSync(oldFilePath, newFilePath);
+  console.log("filepath = ", oldFilePath);
 
   return oldFilePath;
 };
