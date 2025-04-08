@@ -400,16 +400,16 @@ const exportMultipleContracts = async (req, res) => {
       teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
       const tienLuong = tienLuongList.find(
-      (item) =>
-        item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
+        (item) =>
+          item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
       );
 
       if (!tienLuong) {
-      return res
-        .status(404)
-        .send(
-        "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-        );
+        return res
+          .status(404)
+          .send(
+            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
+          );
       }
 
       // Tính toán số tiền
@@ -1796,6 +1796,7 @@ const generateAdditionalFile = async (teacher, tempDir) => {
 
   // Đổi tên file
   //fs.renameSync(oldFilePath, newFilePath);
+  console.log("filepath = ", oldFilePath);
 
   return oldFilePath;
 };
