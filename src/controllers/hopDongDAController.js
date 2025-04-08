@@ -222,10 +222,15 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
+    }
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
     }
 
     connection = await createPoolConnection();
@@ -595,7 +600,13 @@ const getExportAdditionalDoAnGvmSite = async (req, res) => {
 const exportAdditionalDoAnGvm = async (req, res) => {
   let connection;
   try {
+    const isKhoa = req.session.isKhoa;
+
     const { dot, namHoc, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     connection = await createPoolConnection();
 
@@ -1782,7 +1793,13 @@ const getBosungDownloadSite = async (req, res) => {
 const exportBoSungDownloadData = async (req, res) => {
   let connection;
   try {
-    const { dot, namHoc, khoa, teacherName } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, namHoc, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     connection = await createPoolConnection();
 

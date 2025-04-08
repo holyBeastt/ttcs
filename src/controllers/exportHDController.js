@@ -223,10 +223,16 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    }
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
     }
 
     connection = await createPoolConnection();
@@ -563,7 +569,12 @@ const getExportHDSite = async (req, res) => {
 const exportAdditionalInfoGvm = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
@@ -1855,7 +1866,12 @@ const getImageDownloadSite = async (req, res) => {
 const exportImageDownloadData = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");

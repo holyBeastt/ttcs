@@ -403,11 +403,19 @@ const getHDGvmData = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
+    // Lấy dữ liệu từ session
+    const isKhoa = req.session.isKhoa;
+
+    // Lấy dữ liệu từ front-end
     const namHoc = req.query.namHoc;
     const dot = req.query.dot;
     const ki = req.query.ki;
-    const khoa = req.query.khoa;
+    let khoa = req.query.khoa;
     const loaiHopDong = req.query.loaiHopDong;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     let query = `
     SELECT
@@ -464,14 +472,24 @@ const getHopDongDuKienData = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
+
+    // Lấy dữ liệu từ session
+    const isKhoa = req.session.isKhoa;
+
+    // Lấy dữ liệu từ front-end gửi
     const namHoc = req.query.namHoc;
     const dot = req.query.dot;
     let ki = req.query.ki;
     const he_dao_tao = req.query.he_dao_tao;
-    const khoa = req.query.khoa;
+    let khoa = req.query.khoa;
 
     if (he_dao_tao == "Đồ án") {
       ki = 1;
+    }
+
+    // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
     }
 
     let query = `
