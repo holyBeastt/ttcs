@@ -284,13 +284,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
-    titleRow0.font = { name: "Times New Roman", size: 17 };
+    titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
     titleRow0.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
     // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-    titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+    titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -316,7 +316,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 14 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -540,13 +540,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-      titleRow0.font = { name: "Times New Roman", size: 17 };
+      titleRow0.font = { name: "Times New Roman", size: 16,bold:true };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-      titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+      titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow1.alignment = { vertical: "middle" };
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -595,7 +595,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+      titleRow5.font = { name: "Times New Roman",  size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
