@@ -602,7 +602,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
 
-    const { dot, namHoc, khoa, teacherName } = req.query;
+    let { dot, namHoc, khoa, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -742,7 +742,12 @@ const exportAdditionalDoAnGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
+    let zipFileName = `TongHopHopDong_Dot${dot}_${namHoc}_DoAn`;
+    if (teacherName) {
+      zipFileName += `_${teacherName}.zip`;
+    } else {
+      zipFileName += `_${khoa || "all"}.zip`;
+    }
     const zipPath = path.join(tempDir, zipFileName);
     const archive = archiver("zip", { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);

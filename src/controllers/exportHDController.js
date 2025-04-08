@@ -846,9 +846,13 @@ const exportAdditionalInfoGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    let zipFileName = `TongHopHopDong_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
+
+    if (teacherName) {
+      zipFileName += `_${teacherName}.zip`;
+    } else {
+      zipFileName += `_${khoa || "all"}.zip`;
+    }
     const zipPath = path.join(tempDir, zipFileName);
     const archive = archiver("zip", { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);
