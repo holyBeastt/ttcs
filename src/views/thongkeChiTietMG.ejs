@@ -155,13 +155,21 @@
                 <th>Khoa</th>
                 <th>Năm học</th>
                 <th>Kỳ học</th>
-                <th>Mã lớp</th>
-                <th>Mã môn học</th>
+                <th>Lớp</th>
+                <th>Tên học phần</th>
+                <th>Số tín chỉ</th>
                 <th>Số tiết</th>
                 <th>Hệ đào tạo</th>
               </tr>
             </thead>
             <tbody id="dataGiangDayTable"></tbody>
+            <tfoot>
+              <tr class="table-secondary">
+                <td colspan="8" class="text-end"><strong>Tổng số tiết:</strong></td>
+                <td id="totalSoTiet" class="text-end">0</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -413,60 +421,38 @@
 
           if (data.length === 0) {
             tbody.append(`
-              <tr><td colspan="9" class="text-center">Không có dữ liệu giảng dạy phù hợp</td></tr>
+              <tr><td colspan="10" class="text-center">Không có dữ liệu giảng dạy phù hợp</td></tr>
             `);
+            $("#totalSoTiet").text("0");
             return;
           }
 
-          // Nhóm dữ liệu theo giảng viên, khoa, năm học và kỳ học
-          const groupedData = {};
-          data.forEach((item) => {
-            const key = `${item.hoten}_${item.MaPhongBan}_${item.namhoc}_${item.kihoc}`;
-            if (!groupedData[key]) {
-              groupedData[key] = {
-                info: {
-                  hoten: item.hoten,
-                  MaPhongBan: item.MaPhongBan,
-                  namhoc: item.namhoc,
-                  kihoc: item.kihoc,
-                },
-                rows: [],
-              };
-            }
-            groupedData[key].rows.push(item);
-          });
-
           let stt = 1;
-          Object.values(groupedData).forEach((group, groupIndex) => {
-            const rowCount = group.rows.length;
+          let totalSoTiet = 0;
 
-            group.rows.forEach((item, index) => {
-              const tr = $("<tr></tr>");
+          data.forEach((item) => {
+            const soTiet = parseFloat(item.sotiet || 0);
+            totalSoTiet += soTiet;
 
-              // Chỉ thêm các cột gộp ở dòng đầu tiên của mỗi nhóm
-              if (index === 0) {
-                tr.append(`
-                  <td rowspan="${rowCount}">${stt}</td>
-                  <td rowspan="${rowCount}">${item.hoten}</td>
-                  <td rowspan="${rowCount}">${item.MaPhongBan}</td>
-                  <td rowspan="${rowCount}">${item.namhoc}</td>
-                  <td rowspan="${rowCount}">${item.kihoc}</td>
-                `);
-              }
-
-              // Thêm các cột còn lại
-              tr.append(`
-                <td>${item.malop}</td>
-                <td>${item.mamonhoc}</td>
-                <td>${item.sotiet}</td>
-                <td>${item.hedaotao}</td>
-              `);
-
-              tbody.append(tr);
-            });
-
-            if (group.rows.length > 0) stt++;
+            const tr = `
+              <tr>
+                <td>${stt++}</td>
+                <td>${item.hoten || "Không xác định"}</td>
+                <td>${item.MaPhongBan || "Không xác định"}</td>
+                <td>${item.namhoc || "Không xác định"}</td>
+                <td>${item.kihoc || "Không xác định"}</td>
+                <td>${item.lop || "Không xác định"}</td>
+                <td>${item.tenhocphan || "Không xác định"}</td>
+                <td>${item.sotinchi || "0"}</td>
+                <td>${soTiet.toFixed(2)}</td>
+                <td>${item.hedaotao || "Không xác định"}</td>
+              </tr>
+            `;
+            tbody.append(tr);
           });
+
+          // Cập nhật tổng số tiết
+          $("#totalSoTiet").text(totalSoTiet.toFixed(2));
         }
 
         function updateDoAnTable(data) {
