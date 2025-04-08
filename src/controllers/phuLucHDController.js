@@ -3,8 +3,6 @@ const ExcelJS = require("exceljs");
 const createPoolConnection = require("../config/databasePool");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
-const archiver = require("archiver"); // Add this to handle zip creation
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -286,13 +284,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
-    titleRow0.font = { name: "Times New Roman", size: 17 };
+    titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
     titleRow0.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
     // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-    titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+    titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -318,7 +316,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 14 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -349,15 +347,15 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     summarySheet.getColumn(3).width = 14; // Tên học phần
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
-    summarySheet.getColumn(6).width = 16; // Thời gian thực hiện
+    summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
     summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 16; // Địa chỉ
+    summarySheet.getColumn(8).width = 18; // Địa chỉ
     summarySheet.getColumn(9).width = 6; // Học vị
     summarySheet.getColumn(10).width = 7; // Hệ số lương
     summarySheet.getColumn(11).width = 12; // Mức thanh toán
-    summarySheet.getColumn(12).width = 15; // Thành tiền
-    summarySheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-    summarySheet.getColumn(14).width = 15; // Còn lại
+    summarySheet.getColumn(12).width = 14; // Thành tiền
+    summarySheet.getColumn(13).width = 14; // Trừ thuế TNCN 10%
+    summarySheet.getColumn(14).width = 14; // Còn lại
 
     // Thêm dữ liệu vào sheet tổng hợp
     let stt = 1;
@@ -397,7 +395,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
           item.DiaChi,
           hocViVietTat,
           item.HSL,
-          mucThanhToan, // Mức thanh toán
+          mucThanhToan.toLocaleString("vi-VN").replace(/\./g, ","), // Mức thanh toán
           soTien.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
           truThue.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
           thucNhan.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
@@ -434,7 +432,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 14 };
@@ -443,19 +441,19 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 15 };
               break;
             case 11: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 14: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
           cell.alignment = { horizontal: "center", vertical: "middle" }; // Căn giữa
@@ -542,13 +540,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-      titleRow0.font = { name: "Times New Roman", size: 17 };
+      titleRow0.font = { name: "Times New Roman", size: 16,bold:true };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-      titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+      titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow1.alignment = { vertical: "middle" };
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -597,7 +595,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+      titleRow5.font = { name: "Times New Roman",  size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -650,15 +648,15 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.getColumn(3).width = 14; // Tên học phần
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
-      worksheet.getColumn(6).width = 16; // Thời gian thực hiện
+      worksheet.getColumn(6).width = 17; // Thời gian thực hiện
       worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 16; // Địa Chỉ
+      worksheet.getColumn(8).width = 18; // Địa Chỉ
       worksheet.getColumn(9).width = 6; // Học vị
       worksheet.getColumn(10).width = 7; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
-      worksheet.getColumn(12).width = 15; // Thành tiền
-      worksheet.getColumn(13).width = 15; // Trừ thuế TNCN 10%
-      worksheet.getColumn(14).width = 15; // Còn lại
+      worksheet.getColumn(12).width = 14; // Thành tiền
+      worksheet.getColumn(13).width = 14; // Trừ thuế TNCN 10%
+      worksheet.getColumn(14).width = 14; // Còn lại
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
@@ -761,7 +759,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 14 };
@@ -770,19 +768,19 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 15 };
               break;
             case 11: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 14: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
         });
@@ -852,110 +850,36 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       }
     }
 
-// Tạo tên file Excel
-let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc.replace(/\s+/g, '_')}`;
-if (khoa && khoa !== "ALL") {
-  fileName += `_${sanitizeFileName(khoa)}`;
-}
-if (teacherName) {
-  fileName += `_${sanitizeFileName(teacherName)}`;
-}
+    // Tạo tên file
+    let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc}`;
+    if (khoa && khoa !== "ALL") {
+      fileName += `_${sanitizeFileName(khoa)}`;
+    }
+    if (teacherName) {
+      fileName += `_${sanitizeFileName(teacherName)}`;
+    }
+    fileName += ".xlsx";
 
-const exportsDir = path.join(__dirname, "../../exports");
-// Đảm bảo tên file không chứa khoảng trắng
-const safeFileName = fileName.replace(/\s+/g, '_');
-const excelFilePath = path.join(exportsDir, `${safeFileName}.xlsx`);
-const pdfFilePath = path.join(exportsDir, `${safeFileName}.pdf`);
-
-// Kiểm tra và tạo thư mục exports nếu chưa tồn tại
-if (!fs.existsSync(exportsDir)) {
-  fs.mkdirSync(exportsDir, { recursive: true });
-}
-
-// Ghi workbook vào file Excel
-await workbook.xlsx.writeFile(excelFilePath);
-
-try {
-  // Chuyển đổi Excel sang PDF bằng LibreOffice trên server
-  const remoteTempDir = '/tmp/excel_to_pdf';
-  const remoteExcelFile = `${remoteTempDir}/${safeFileName}.xlsx`;
-  const remotePdfFile = `${remoteTempDir}/${safeFileName}.pdf`;
-
-  // SSH options để bỏ qua host key verification
-  const sshOptions = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-  
-  // Tạo các lệnh thực thi
-  const commands = [
-    `ssh ${sshOptions} thuanld@42.112.213.93 "mkdir -p ${remoteTempDir}"`,
-    `scp ${sshOptions} "${excelFilePath}" thuanld@42.112.213.93:"${remoteExcelFile}"`,
-    `ssh ${sshOptions} thuanld@42.112.213.93 "/usr/bin/soffice --headless --convert-to pdf '${remoteExcelFile}' --outdir '${remoteTempDir}'"`,
-    `scp ${sshOptions} thuanld@42.112.213.93:"${remotePdfFile}" "${pdfFilePath}"`,
-    `ssh ${sshOptions} thuanld@42.112.213.93 "rm -f '${remoteExcelFile}' '${remotePdfFile}'"`
-  ].join(' && ');
-
-  // Thực thi với timeout 3 phút
-  const timeout = 180000;
-  await Promise.race([
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Quá thời gian chuyển đổi')), timeout)),
-    new Promise((resolve, reject) => {
-      exec(commands, (error, stdout, stderr) => {
-        if (error) {
-          console.error('Lỗi chuyển đổi:', error);
-          console.error('Chi tiết lỗi:', stderr);
-          return reject(new Error(`Không thể chuyển đổi file: ${stderr || error.message}`));
-        }
-        resolve();
-      });
-    })
-  ]);
-
-  // Kiểm tra file PDF đã được tạo
-  if (!fs.existsSync(pdfFilePath)) {
-    throw new Error('File PDF không được tạo ra');
-  }
-
-  // Tạo file zip để gửi cả Excel và PDF
-  const zipFilePath = path.join(exportsDir, `${safeFileName}.zip`);
-  const output = fs.createWriteStream(zipFilePath);
-  const archive = archiver("zip", { zlib: { level: 9 } });
-
-  output.on("close", () => {
-    // Gửi file zip cho client
-    res.setHeader("Content-Type", "application/zip");
+    // Set headers cho response và gửi file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(path.basename(zipFilePath))}"`
+      `attachment; filename="${encodeURIComponent(fileName)}"`
     );
-    fs.createReadStream(zipFilePath)
-      .pipe(res)
-      .on("finish", () => {
-        // Xóa file tạm sau khi gửi
-        fs.unlinkSync(excelFilePath);
-        fs.unlinkSync(pdfFilePath);
-        fs.unlinkSync(zipFilePath);
-      });
-  });
 
-  archive.on("error", (err) => {
-    throw new Error(`Lỗi tạo file zip: ${err.message}`);
-  });
+    // Ghi workbook vào response
+    await workbook.xlsx.write(res);
 
-  archive.pipe(output);
-  archive.file(excelFilePath, { name: `${safeFileName}.xlsx` });
-  archive.file(pdfFilePath, { name: `${safeFileName}.pdf` });
-  await archive.finalize();
-
-} catch (error) {
-  console.error("Error:", error);
-  // Xóa file tạm nếu có lỗi
-  if (fs.existsSync(excelFilePath)) fs.unlinkSync(excelFilePath);
-  if (fs.existsSync(pdfFilePath)) fs.unlinkSync(pdfFilePath);
-  
-  return res.status(500).json({
-    success: false,
-    message: error.message || "Lỗi khi xuất dữ liệu"
-  });
-}
+    // Không cần gọi res.end() vì workbook.xlsx.write đã tự động kết thúc response
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error exporting data",
+    });
   } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
