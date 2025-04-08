@@ -1855,8 +1855,17 @@ const exportBoSungDownloadData = async (req, res) => {
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => {
+      let fileName = `file_bo_sung_dot${dot}_${namHoc}`;
+
+      if (teacherName) {
+        fileName += "_" + teacherName + ".zip";
+      } else if (khoa != "ALL") {
+        fileName += "_" + khoa + ".zip";
+      } else {
+        fileName += "_ALL" + ".zip";
+      }
       // Gửi file zip về client
-      res.download(zipPath, "TaiLieuBoSung.zip", (err) => {
+      res.download(zipPath, `${fileName}`, (err) => {
         if (err) {
           console.error("Lỗi gửi file:", err.message);
           res.status(500).send("Không thể tải file zip.");
