@@ -396,17 +396,20 @@ const exportMultipleContracts = async (req, res) => {
     for (const teacher of teachers) {
       const soTiet = teacher.SoTiet || 0;
 
+      // Gán giá trị mặc định "Thạc sĩ" nếu cột học vị trống
+      teacher.HocVi = teacher.HocVi || "Thạc sĩ";
+
       const tienLuong = tienLuongList.find(
-        (item) =>
-          item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
+      (item) =>
+        item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
       );
 
       if (!tienLuong) {
-        return res
-          .status(404)
-          .send(
-            "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
-          );
+      return res
+        .status(404)
+        .send(
+        "<script>alert('Không tìm thấy mức tiền phù hợp cho giảng viên(Hãy nhập đầy đủ)'); window.location.href='/exportHD';</script>"
+        );
       }
 
       // Tính toán số tiền
@@ -909,6 +912,9 @@ const generateContractForTeacher = async (
   tempDir
 ) => {
   const soTiet = teacher.SoTiet || 0;
+
+  // Assign default value "Thạc sĩ" if HocVi is empty
+  teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
   const tienLuong = tienLuongList.find(
     (item) => item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong

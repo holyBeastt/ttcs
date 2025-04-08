@@ -50,7 +50,7 @@ const thongkemgController = {
       if (khoa === "ALL") {
         query += ` GROUP BY MaPhongBan ORDER BY tongsotiet DESC`;
       } else {
-        query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
+        query += ` GROUP BY hoten, he_dao_tao ORDER BY tongsotiet DESC`;
       }
 
       const [result] = await connection.query(query, params);
