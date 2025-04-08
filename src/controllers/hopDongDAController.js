@@ -222,10 +222,15 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
+    }
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
     }
 
     connection = await createPoolConnection();
@@ -595,7 +600,13 @@ const getExportAdditionalDoAnGvmSite = async (req, res) => {
 const exportAdditionalDoAnGvm = async (req, res) => {
   let connection;
   try {
-    const { dot, namHoc, khoa, teacherName } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, namHoc, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     connection = await createPoolConnection();
 
@@ -731,7 +742,12 @@ const exportAdditionalDoAnGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
+    let zipFileName = `TongHopHopDong_Dot${dot}_${namHoc}_DoAn`;
+    if (teacherName) {
+      zipFileName += `_${teacherName}.zip`;
+    } else {
+      zipFileName += `_${khoa || "all"}.zip`;
+    }
     const zipPath = path.join(tempDir, zipFileName);
     const archive = archiver("zip", { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);
@@ -1782,7 +1798,13 @@ const getBosungDownloadSite = async (req, res) => {
 const exportBoSungDownloadData = async (req, res) => {
   let connection;
   try {
-    const { dot, namHoc, khoa, teacherName } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, namHoc, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     connection = await createPoolConnection();
 
@@ -1855,8 +1877,17 @@ const exportBoSungDownloadData = async (req, res) => {
     const archive = archiver("zip", { zlib: { level: 9 } });
 
     output.on("close", () => {
+      let fileName = `file_bo_sung_dot${dot}_${namHoc}`;
+
+      if (teacherName) {
+        fileName += "_" + teacherName + ".zip";
+      } else if (khoa != "ALL") {
+        fileName += "_" + khoa + ".zip";
+      } else {
+        fileName += "_ALL" + ".zip";
+      }
       // Gửi file zip về client
-      res.download(zipPath, "TaiLieuBoSung.zip", (err) => {
+      res.download(zipPath, `${fileName}`, (err) => {
         if (err) {
           console.error("Lỗi gửi file:", err.message);
           res.status(500).send("Không thể tải file zip.");

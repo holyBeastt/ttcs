@@ -223,10 +223,16 @@ const formatDateRange = (startDate, endDate) => {
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    }
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
     }
 
     connection = await createPoolConnection();
@@ -566,7 +572,12 @@ const getExportHDSite = async (req, res) => {
 const exportAdditionalInfoGvm = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
@@ -838,9 +849,13 @@ const exportAdditionalInfoGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    let zipFileName = `TongHopHopDong_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
+
+    if (teacherName) {
+      zipFileName += `_${teacherName}.zip`;
+    } else {
+      zipFileName += `_${khoa || "all"}.zip`;
+    }
     const zipPath = path.join(tempDir, zipFileName);
     const archive = archiver("zip", { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);
@@ -1861,7 +1876,12 @@ const getImageDownloadSite = async (req, res) => {
 const exportImageDownloadData = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    const isKhoa = req.session.isKhoa;
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
@@ -2049,8 +2069,18 @@ const exportImageDownloadData = async (req, res) => {
 
       output.on("close", () => {
         console.log(`Đã tạo file zip: ${zipPath} (${archive.pointer()} bytes)`);
+
+        let fileName = `file_bo_sung_dot${dot}_ki${ki}_${namHoc}`;
+
+        if (teacherName) {
+          fileName += "_" + teacherName + ".zip";
+        } else if (khoa != "ALL") {
+          fileName += "_" + khoa + ".zip";
+        } else {
+          fileName += "_ALL" + ".zip";
+        }
         // Gửi file zip về client
-        res.download(zipPath, "TaiLieuBoSung.zip", (err) => {
+        res.download(zipPath, `${fileName}`, (err) => {
           if (err) {
             console.error("Lỗi gửi file:", err.message);
             res.status(500).send("Không thể tải file zip.");

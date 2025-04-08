@@ -162,9 +162,16 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
+    // Lấy dữ liệu từ session
+    const isKhoa = req.session.isKhoa;
+
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -541,7 +548,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-      titleRow0.font = { name: "Times New Roman", size: 16,bold:true };
+      titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
@@ -596,7 +603,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman",  size: 14 };
+      titleRow5.font = { name: "Times New Roman", size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 

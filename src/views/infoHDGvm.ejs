@@ -469,6 +469,14 @@
       </script>
       <script>
         $(document).ready(function () {
+          const isKhoa = localStorage.getItem("isKhoa");
+          
+          // Nếu không phải phòng ban thì ẩn 
+          if (isKhoa == 1) {
+            $('#MaPhongBan').hide(); // ẩn cả label và select nếu bọc trong form-group
+            return; // không cần gọi AJAX nữa
+          }
+
           $('#MaPhongBan option[value=""]').remove();
           // Gọi AJAX để lấy dữ liệu JSON từ API
           $.ajax({
