@@ -367,11 +367,12 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
+        const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
@@ -685,11 +686,12 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
+        const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const thoiGianThucHien = `${formatDateDMY(
@@ -700,11 +702,11 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         const hocKyLaMa = convertToRoman(item.HocKy);
         // Viết tắt Học vị
         const hocViVietTat =
-          item.HocVi === "Tiến sĩ"
+          hocVi === "Tiến sĩ"
             ? "TS"
-            : item.HocVi === "Thạc sĩ"
+            : hocVi === "Thạc sĩ"
             ? "ThS"
-            : item.HocVi;
+            : hocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -823,8 +825,6 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number}`);
       // Thêm hai dòng trống
       worksheet.addRow([]);
-
-      // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
       // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
       const bangChuRow = worksheet.addRow([
         `Bằng chữ: ${numberToWords(totalSoTien)}`,
