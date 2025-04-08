@@ -822,13 +822,14 @@ const generateAdditionalFile = async (teacher, tempDir) => {
   if (!documentFile) return null; // Không tìm thấy file hợp lệ
 
   const oldFilePath = path.join(teacherFolderPath, documentFile);
-  const newFileName = `BoSung_${teacher.HoTen}${path.extname(documentFile)}`;
-  const newFilePath = path.join(teacherFolderPath, newFileName);
+  // const newFileName = `BoSung_${teacher.HoTen}${path.extname(documentFile)}`;
+  // const newFilePath = path.join(teacherFolderPath, newFileName);
 
-  // Đổi tên file
-  fs.renameSync(oldFilePath, newFilePath);
+  // // Đổi tên file
+  // fs.renameSync(oldFilePath, newFilePath);
+  console.log("filepath = ", oldFilePath);
 
-  return newFilePath;
+  return oldFilePath;
 };
 
 const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
