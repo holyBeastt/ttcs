@@ -2,6 +2,8 @@ const express = require("express");
 const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
 require("dotenv").config();
+const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, AlignmentType, PageOrientation, VerticalAlign } = require("docx");
+
 
 // Tạo biến chung để lưu dữ liệu
 let tableData;
@@ -1475,6 +1477,229 @@ const getDataDoAnChinhThuc = async (req, res) => {
   }
 };
 
+const exportToWord = async (req, res) => {
+  const data = req.body;
+  const NamHoc = data[0].NamHoc;
+  const Khoa = data[0].Khoa;
+
+  try {
+    // Lấy dữ liệu từ client
+
+    if (!data || !Array.isArray(data)) {
+      return res.status(400).json({ message: "Dữ liệu không hợp lệ. Cần mảng các đối tượng sinh viên." });
+    }
+
+    // Tạo style cho font chữ Times New Roman, cỡ 13, căn giữa
+    const defaultStyle = {
+      font: "Times New Roman",
+      size: 26, // 13pt = 26 half-points
+      alignment: AlignmentType.CENTER
+    };
+
+    // Tạo header cho bảng
+    const headerRow = new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({
+            text: "STT",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            text: "Sinh viên",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            text: "Mã SV",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            text: "Tên đề tài",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            text: "Họ tên Cán bộ giảng viên hướng dẫn",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+        new TableCell({
+          children: [new Paragraph({
+            text: "Đơn vị công tác",
+            bold: true,
+            ...defaultStyle
+          })],
+          verticalAlign: VerticalAlign.CENTER
+        }),
+      ],
+    });
+
+    // Tạo các dòng dữ liệu
+    const dataRows = data.map((item, index) => {
+      return new TableRow({
+        children: [
+          // STT
+          new TableCell({
+            children: [new Paragraph({
+              text: String(index + 1),
+              ...defaultStyle
+            })],
+            verticalAlign: VerticalAlign.CENTER
+          }),
+          // Sinh viên
+          new TableCell({
+            children: [new Paragraph({
+              text: item.SinhVien || "",
+              ...defaultStyle
+            })],
+            verticalAlign: VerticalAlign.CENTER
+          }),
+          // Mã SV
+          new TableCell({
+            children: [new Paragraph({
+              text: item.MaSV || "",
+              ...defaultStyle
+            })],
+            verticalAlign: VerticalAlign.CENTER
+          }),
+          // Tên đề tài
+          new TableCell({
+            children: [new Paragraph({
+              text: item.TenDeTai || "",
+              ...defaultStyle
+            })],
+            verticalAlign: VerticalAlign.CENTER
+          }),
+          // Giảng viên hướng dẫn
+          new TableCell({
+            children: createGiangVienParagraphs(item.GiangVienHuongDan, defaultStyle),
+            verticalAlign: VerticalAlign.CENTER
+          }),
+          // Đơn vị công tác - sử dụng trường Khoa
+          new TableCell({
+            children: [new Paragraph({
+              text: "",
+              ...defaultStyle
+            })],
+            verticalAlign: VerticalAlign.CENTER
+          }),
+        ],
+      });
+    });
+
+    // Hàm tạo đoạn văn bản cho giảng viên hướng dẫn (có thể có nhiều giảng viên)
+    function createGiangVienParagraphs(giangVien, style) {
+      if (!giangVien) return [new Paragraph({ text: "", ...style })];
+
+      // Nếu là chuỗi, kiểm tra xem có nhiều dòng không
+      if (typeof giangVien === 'string') {
+        // Nếu chuỗi có định dạng "1. TS. Nguyễn Văn A\n2. ThS. Trần Văn B"
+        if (giangVien.includes('\n')) {
+          return giangVien.split('\n').map(gv => new Paragraph({
+            text: gv.trim(),
+            ...style
+          }));
+        }
+        return [new Paragraph({ text: giangVien, ...style })];
+      }
+
+      return [new Paragraph({ text: "", ...style })];
+    }
+
+    // Thiết lập chiều rộng cột
+    const table = new Table({
+      rows: [headerRow, ...dataRows],
+      width: {
+        size: 100,
+        type: WidthType.PERCENTAGE,
+      },
+      columnWidths: [5, 15, 10, 35, 25, 10], // Phần trăm chiều rộng cho mỗi cột
+    });
+
+    // Tạo tài liệu Word với bảng vừa tạo
+    const doc = new Document({
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Times New Roman",
+              size: 26, // 13pt = 26 half-points
+            },
+            paragraph: {
+              alignment: AlignmentType.CENTER
+            }
+          }
+        }
+      },
+      sections: [
+        {
+          properties: {
+            page: {
+              size: {
+                orientation: PageOrientation.LANDSCAPE,
+              },
+              margin: {
+                top: 1000,
+                right: 1000,
+                bottom: 1000,
+                left: 1000,
+              },
+            },
+          },
+          children: [
+            new Paragraph({
+              text: `ĐỒ ÁN CHÍNH THỨC KHOA ${Khoa} NĂM HỌC ${NamHoc}`,
+              bold: true,
+              alignment: AlignmentType.CENTER,
+              font: "Times New Roman",
+              size: 26 // 13pt = 26 half-points
+            }),
+            new Paragraph({
+              text: "",
+              font: "Times New Roman",
+              size: 26 // 13pt = 26 half-points
+            }),
+            table,
+          ],
+        },
+      ],
+    });
+
+    // Chuyển tài liệu sang buffer
+    const buffer = await Packer.toBuffer(doc);
+
+    // Đặt tên file
+    const fileName = `do_an_chinh_thuc_khoa_${Khoa}_nam_${NamHoc}.docx`;
+
+    // Thiết lập header và gửi file về client
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    res.send(buffer);
+  } catch (error) {
+    console.error("Lỗi khi xuất file docx:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi khi xuất file docx." });
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getDoAnChinhThuc,
@@ -1489,4 +1714,5 @@ module.exports = {
   updateDoAnDateAll,
   SaveNote,
   DoneNote,
+  exportToWord,
 };

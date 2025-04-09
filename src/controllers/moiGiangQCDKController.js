@@ -497,7 +497,7 @@ const exportToWord = async (req, res) => {
             new TableRow({
               children: filteredKeys.map((key) => {
                 // Nếu là "TT", tạo số thứ tự
-                const cellValue = key === "STT" ? `${index + 1}.` : row[key];
+                const cellValue = key === "STT" ? `${index + 1}` : row[key];
                 return new TableCell({
                   children: [
                     new Paragraph({
@@ -1550,7 +1550,7 @@ const exportToExcel = async (req, res) => {
     const department = item.Khoa || "Khac";
     if (!acc[department]) acc[department] = [];
     const rowData = orderedKeys.map((key) =>
-      key === "STT" ? `${sttCounter++}.` : item[key] || ""
+      key === "STT" ? `${sttCounter++}` : item[key] || ""
     );
     acc[department].push(rowData);
     return acc;

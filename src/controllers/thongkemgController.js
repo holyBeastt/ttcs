@@ -66,41 +66,35 @@ const thongkemgController = {
   getNamHocData: async (req, res) => {
     let connection;
     try {
-      connection = await createConnection();
+        connection = await createConnection();
 
-      // Lấy dữ liệu từ database
-      const [namHoc] = await connection.query(
-        "SELECT DISTINCT NamHoc as NamHoc FROM giangday ORDER BY NamHoc DESC"
-      );
-      const [ki] = await connection.query(
-        "SELECT DISTINCT HocKy as Ki, HocKy as value FROM giangday ORDER BY HocKy"
-      );
-      const [khoa] = await connection.query(
-        "SELECT DISTINCT Khoa as value, Khoa as Khoa FROM giangday ORDER BY Khoa"
-      );
+        // Lấy danh sách năm học
+        const [namHoc] = await connection.query(
+            "SELECT DISTINCT NamHoc as NamHoc FROM giangday ORDER BY NamHoc DESC"
+        );
 
-      // Thêm option "Tất cả" vào đầu mỗi mảng
-      const allNamHoc = [{ NamHoc: "ALL" }, ...namHoc];
-      const allKi = [{ Ki: "Tất cả kì", value: "ALL" }, ...ki];
-      const allKhoa = [{ value: "ALL", Khoa: "Tất cả khoa" }, ...khoa];
+        // Lấy danh sách kỳ học
+        const [hocKy] = await connection.query(
+            "SELECT DISTINCT HocKy as Ki FROM giangday ORDER BY HocKy"
+        );
 
-      const data = {
-        success: true,
-        NamHoc: allNamHoc,
-        Ki: allKi,
-        Khoa: allKhoa,
-      };
+        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
 
-      connection.release();
-      res.json(data);
+        // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
+        namHoc.unshift({ NamHoc: "ALL" });
+        hocKy.unshift({ Ki: "ALL" });
+
+        res.json({
+            success: true,
+            NamHoc: namHoc,
+            Ki: hocKy,
+            MaxNamHoc: maxNamHoc, // Trả về năm học lớn nhất
+        });
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu:", error);
-      res.status(500).json({
-        success: false,
-        message: "Lỗi server",
-      });
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-      if (connection) connection.release();
+        if (connection) connection.release();
     }
   },
 
