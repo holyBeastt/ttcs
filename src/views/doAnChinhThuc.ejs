@@ -105,8 +105,7 @@
           <button class="btn mx-1" id="render" style="margin-bottom: 0px; height: 45px;">Hiển thị</button>
 
           <button class="btn mx-1" id="export" onclick="exportDoAnChinhThuc()"
-            style="margin-bottom: 0px; height: 45px;">Xuất file</button>
-
+            style="margin-bottom: 0px; height: 45px; display: none;">Xuất file</button>
 
         </div>
         <div class="overflow-auto">
@@ -129,8 +128,25 @@
 
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+    <!-- ẩn hiện các chức năng -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const isKhoa = localStorage.getItem("isKhoa");
+        const role = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
+        // hideButton2 ẩn các chức năng thêm sửa xóa
+        unhideButton2(role, MaPhongBan);
+      });
 
+      function unhideButton2(role, MaPhongBan) {
+        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+          const exportBtn = document.getElementById("export");
+
+          exportBtn.style.display = "block";
+        }
+      }
+    </script>
     <script>
       async function exportDoAnChinhThuc() {
         const tableBody = document.getElementById("data-table-body");
