@@ -261,7 +261,7 @@
             function checkAndFetchData() {
                 initializedComboboxes++;
                 if (initializedComboboxes === totalComboboxes) {
-                    fetchThongkemgData();
+                    fetchThongkemgData(); // Gọi hàm lấy dữ liệu sau khi tất cả combobox đã được khởi tạo
                 }
             }
 
@@ -270,7 +270,7 @@
             $('#comboboxki option').remove();
             $('#Khoa option').remove();
 
-            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            // Khởi tạo combobox Khoa
             $.ajax({
                 url: '/getPhongBanmg',
                 method: 'GET',
@@ -306,7 +306,7 @@
                 }
             });
 
-            // Khởi tạo các combobox khác
+            // Khởi tạo combobox Năm và Kỳ
             $.ajax({
                 url: '/getNamHocmg',
                 method: 'GET',
@@ -336,6 +336,8 @@
                                 }</option>`
                             );
                         });
+                        checkAndFetchData();
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
