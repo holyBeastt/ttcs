@@ -140,7 +140,9 @@
       });
 
       function unhideButton2(role, MaPhongBan) {
-        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+        if (role == "Duyệt" && MaPhongBan == "DAOTAO"
+          || role == "Lãnh đạo khoa" || role == "GV_CNBM"
+        ) {
           const exportBtn = document.getElementById("export");
 
           exportBtn.style.display = "block";
