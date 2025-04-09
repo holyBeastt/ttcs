@@ -60,21 +60,28 @@ const thongkedoanController = {
   getFilterOptions: async (req, res) => {
     let connection;
     try {
-      connection = await createConnection();
-      const [namHoc] = await connection.query(`
-        SELECT DISTINCT namhoc AS NamHoc 
-        FROM exportdoantotnghiep 
-        ORDER BY namhoc DESC
-      `);
-      res.json({
-        success: true,
-        NamHoc: [{ NamHoc: "ALL" }, ...namHoc],
-      });
+        connection = await createConnection();
+        const [namHoc] = await connection.query(`
+            SELECT DISTINCT namhoc AS NamHoc 
+            FROM exportdoantotnghiep 
+            ORDER BY namhoc DESC
+        `);
+
+        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
+
+        // Chỉ thêm "Tất cả năm" một lần
+        namHoc.unshift({ NamHoc: "ALL" });
+
+        res.json({
+            success: true,
+            NamHoc: namHoc,
+            MaxNamHoc: maxNamHoc,
+        });
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu filter:", error);
-      res.status(500).json({ success: false, message: "Lỗi server" });
+        console.error("Lỗi khi lấy dữ liệu filter:", error);
+        res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
-      if (connection) connection.release();
+        if (connection) connection.release();
     }
   },
 
