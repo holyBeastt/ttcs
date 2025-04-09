@@ -10,9 +10,15 @@ const getDoAnHopDongDuKienSite = (req, res) => {
 const getInfoDoAnHopDongDuKien = async (req, res) => {
   const Dot = req.body.Dot;
   const NamHoc = req.body.Nam;
-  const MaPhongBan = req.body.Khoa;
+  let MaPhongBan = req.body.Khoa;
   let connection;
   try {
+    const isKhoa = req.session.isKhoa;
+
+    if (isKhoa == 1) {
+      MaPhongBan = req.session.MaPhongBan;
+    }
+
     connection = await createPoolConnection();
 
     let query, values;

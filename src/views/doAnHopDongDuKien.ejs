@@ -170,6 +170,13 @@
               >
                 Hiển thị
               </button>
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo Tên..."
+                class="search"
+                id="searchInput"
+                onkeyup="searchClass()"
+              />
             </div>
           </div>
         </div>
@@ -291,6 +298,7 @@
 
             // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
             if (courseIndex === 0) {
+              tr.classList.add("teacher-group");
               tr.innerHTML = `
               <td rowspan="${courses.length}">${index}</td>
               <td rowspan="${courses.length}">${
@@ -353,7 +361,6 @@
               if (!isNaN(qcValue)) {
                 //console.log(totalQC)
                 totalQC += qcValue;
-                console.log("qc = ", totalQC);
               }
             }
           }
@@ -377,6 +384,65 @@
       function viewClass(button, index) {
         var hre = "/viewGvm/" + index;
         window.location.href = hre;
+      }
+
+      // Tìm kiếm giảng viên mời theo tên
+
+      function searchClass() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let table = document.getElementById("data-table-body");
+        let rows = table.getElementsByTagName("tr");
+
+        let currentGroup = [];
+        let groupVisible = false;
+
+        for (let i = 0; i < rows.length; i++) {
+          // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+          let row = rows[i];
+
+          if (row.classList.contains("teacher-group")) {
+            // Đây là hàng đầu tiên của một nhóm giảng viên mới
+            if (currentGroup) {
+              // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+
+            currentGroup = [];
+            groupVisible = false;
+          }
+
+          currentGroup.push(row);
+          /*
+          let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
+          if (teacherNameCell) {
+            let teacherName = teacherNameCell.textContent.toLowerCase();
+            if (teacherName.includes(input)) {
+              groupVisible = true;
+            }
+          }*/
+
+          if (row.classList.contains("teacher-group")) {
+            let teacherNameCell = row.cells[1]; // cột thứ 2
+            if (teacherNameCell) {
+              let teacherName = teacherNameCell.textContent.toLowerCase();
+              if (teacherName.includes(input)) {
+                groupVisible = true;
+              }
+            }
+          }
+        }
+
+        // Xử lý nhóm cuối cùng
+        if (currentGroup) {
+          setGroupVisibility(currentGroup, groupVisible);
+        }
+        calculateTotals();
+      }
+
+      function setGroupVisibility(group, isVisible) {
+        for (let row of group) {
+          row.style.display = isVisible ? "" : "none";
+        }
       }
     </script>
 
@@ -524,6 +590,13 @@
     </script>
     <script>
       $(document).ready(function () {
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 1) {
+          $("#departmentFilter").hide(); // ẩn cả label và select nếu bọc trong form-group
+          return; // không cần gọi AJAX nữa
+        }
+
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
