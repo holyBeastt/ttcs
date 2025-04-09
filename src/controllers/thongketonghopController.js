@@ -107,24 +107,29 @@ GROUP BY
       console.log("Dữ liệu vượt giờ:", vuotGioData);
 
       // Combine the data
-      const chartData = moiGiangData.map((item) => {
-        const vuotGio = vuotGioData.find((v) => v.Khoa === item.Khoa) || {
-          TongSoTietVuotGio: 0,
-          TongSoTiet: 0,
+      const allKhoa = new Set([
+        ...moiGiangData.map(item => item.Khoa),
+        ...vuotGioData.map(item => item.Khoa)
+      ]);
+
+      const chartData = Array.from(allKhoa).map(khoa => {
+        const moiGiang = moiGiangData.find(item => item.Khoa === khoa) || {
+          TongSoTietMoiGiang: 0
         };
-        const tongSoTietMoiGiang = parseFloat(item.TongSoTietMoiGiang).toFixed(
-          1
-        );
-        const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(
-          1
-        );
+        const vuotGio = vuotGioData.find(item => item.Khoa === khoa) || {
+          TongSoTietVuotGio: 0,
+          TongSoTiet: 0
+        };
+
+        const tongSoTietMoiGiang = parseFloat(moiGiang.TongSoTietMoiGiang).toFixed(1);
+        const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(1);
         const tongSoTiet = parseFloat(vuotGio.TongSoTiet).toFixed(1);
         const tongso = (
           parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTiet)
         ).toFixed(1);
 
         return {
-          Khoa: item.Khoa,
+          Khoa: khoa,
           TongSoTietMoiGiang: tongSoTietMoiGiang,
           TongSoTietVuotGio: tongSoTietVuotGio,
           TongSoTiet: tongSoTiet,

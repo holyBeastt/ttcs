@@ -1,6 +1,9 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
+const fs = require("fs");
+const path = require("path");
+const appRoot = require("app-root-path");
 
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
@@ -86,6 +89,8 @@ const postUpdateGvm = async (req, res) => {
   let MonGiangDayChinh = req.body.monGiangDayChinh;
   let QrCode = req.body.QrCode;
 
+  let oldMaPhongBan = req.body.oldMaPhongBan;
+  let oldMonGiangDayChinh = req.body.oldMonGiangDayChinh;
   let oldTruocCCCD = req.body.oldTruocCCCD;
   let oldSauCCCD = req.body.oldSauCCCD;
   let oldFileLyLich = req.body.oldFileLyLich;
@@ -122,14 +127,6 @@ const postUpdateGvm = async (req, res) => {
   if (hoTenRows.length > 0) {
     return res.redirect(`/updateGvm/${IdGvm}?message=duplicateHoTen`);
   }
-
-  // Kiểm tra trùng lặp CCCD
-  // const checkDuplicateQuery =
-  //   "SELECT COUNT(*) as count FROM gvmoi WHERE CCCD = ? AND id_Gvm != ?";
-  // const [duplicateRows] = await pool.query(checkDuplicateQuery, [CCCD, IdGvm]);
-  // if (duplicateRows[0].count > 0) {
-  //   return res.redirect(`/updateGvm/${IdGvm}?message=duplicateCCCD`);
-  // }
 
   const MaPhongBan = Array.isArray(req.body.maPhongBan)
     ? req.body.maPhongBan.join(",") // Nếu là mảng
@@ -182,6 +179,60 @@ const postUpdateGvm = async (req, res) => {
     let QrCode = req.files["QrCode"]
       ? req.files["QrCode"][0].filename
       : oldQrCode;
+
+    // Di chuyển file cũ nếu bộ môn hoặc khoa thay đổi
+    const fields = {
+      truocCCCD: oldTruocCCCD,
+      sauCCCD: oldSauCCCD,
+      bangTotNghiep: oldbangTotNghiep,
+      FileLyLich: oldFileLyLich,
+      fileBoSung: oldFileBoSung,
+      QrCode: oldQrCode,
+    };
+
+    for (const field in fields) {
+      if (!req.files[field] && fields[field]) {
+        const oldPath = path.join(
+          appRoot.path,
+          "Giang_Vien_Moi",
+          oldMaPhongBan,
+          oldMonGiangDayChinh,
+          HoTen,
+          fields[field]
+        );
+        const newPath = path.join(
+          appRoot.path,
+          "Giang_Vien_Moi",
+          MaPhongBan,
+          MonGiangDayChinh,
+          HoTen,
+          fields[field]
+        );
+        fs.mkdirSync(path.dirname(newPath), { recursive: true });
+
+        if (fs.existsSync(oldPath)) {
+          fs.renameSync(oldPath, newPath);
+        }
+      }
+    }
+
+    // Sau khi đã di chuyển xong các file
+    const oldFolderPath = path.join(
+      appRoot.path,
+      "Giang_Vien_Moi",
+      oldMaPhongBan,
+      oldMonGiangDayChinh,
+      HoTen
+    );
+
+    // Kiểm tra nếu thư mục cũ trống thì xóa
+    if (
+      fs.existsSync(oldFolderPath) &&
+      fs.readdirSync(oldFolderPath).length === 0
+    ) {
+      fs.rmdirSync(oldFolderPath); // Xóa thư mục nếu rỗng
+      console.log("Đã xóa thư mục cũ:", oldFolderPath);
+    }
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
     const query = `UPDATE gvmoi SET 

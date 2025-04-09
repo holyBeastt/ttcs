@@ -73,29 +73,19 @@
               </select>
             </div>
 
-            <div style="padding: 0px; width: 30%;">
-              <label for="monGiangDayChinh">Bộ môn:</label>
-              <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
-                <option value="">---</option>
+            <!-- Mã phòng ban -->
+            <div class="col-md-2">
+              <label>Mã phòng ban:</label>
+              <select class="form-control" name="maPhongBan" id="maPhongBan" data-selected="<%= value.MaPhongBan %>">
               </select>
             </div>
 
-            <div class="col-md-2">
-              <label for="HocVi">Bằng cấp cao nhất:</label>
-              <select class="form-control" name="HocVi" id="HocVi">
-                <option value="">---</option>
-                <option value="Cử nhân" <%=value.HocVi==="Cử nhân" ? "selected" : "" %>>Cử nhân</option>
-                <option value="Kỹ sư" <%=value.HocVi==="Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
-                <option value="Thạc sĩ" <%=value.HocVi==="Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
-                <option value="Tiến sĩ" <%=value.HocVi==="Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
-                <option value="Phó giáo sư. Tiến sĩ" <%=value.HocVi==="Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó
-                  giáo
-                  sư. Tiến sĩ</option>
-                <option value="Giáo sư. Tiến sĩ" <%=value.HocVi==="Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến
-                  sĩ
-                </option>
+            <div style="padding: 0px; width: 30%;">
+              <label for="monGiangDayChinh">Bộ môn:</label>
+              <select class="form-control" type="text" name="monGiangDayChinh" id="monGiangDayChinh">
               </select>
             </div>
+
           </div>
 
           <div class="row mb-3">
@@ -170,18 +160,30 @@
           </div>
 
           <div class="row mb-3">
-            <div class="col-md-1">
-              <label for="hsl">Hệ số lương:</label>
-              <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
-            </div>
             <div class="col-md-3">
               <label for="stk">Số tài khoản:</label>
               <input required class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>">
             </div>
-            <div class="col-md-8">
+            <div class="col-md-7">
               <label for="nganHang">Ngân hàng:</label>
               <input required class="form-control" type="text" name="NganHang" id="nganHang"
                 value="<%= value.NganHang %>">
+            </div>
+            <div class="col-md-2">
+              <label for="HocVi">Bằng cấp cao nhất:</label>
+              <select class="form-control" name="HocVi" id="HocVi">
+                <option value="">---</option>
+                <option value="Cử nhân" <%=value.HocVi==="Cử nhân" ? "selected" : "" %>>Cử nhân</option>
+                <option value="Kỹ sư" <%=value.HocVi==="Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
+                <option value="Thạc sĩ" <%=value.HocVi==="Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
+                <option value="Tiến sĩ" <%=value.HocVi==="Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
+                <option value="Phó giáo sư. Tiến sĩ" <%=value.HocVi==="Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó
+                  giáo
+                  sư. Tiến sĩ</option>
+                <option value="Giáo sư. Tiến sĩ" <%=value.HocVi==="Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến
+                  sĩ
+                </option>
+              </select>
             </div>
           </div>
 
@@ -225,12 +227,11 @@
               <!-- Dòng 3 -->
               <div class="row">
                 <p></p>
-                <!-- Mã phòng ban -->
                 <div style="width: 20%; padding-right: 0px">
-                  <label>Mã phòng ban:</label>
-                  <input required class="form-control" type="text" name="maPhongBan" id="maPhongBan"
-                    value="<%= value.MaPhongBan %>" readonly>
+                  <label for="hsl">Hệ số lương:</label>
+                  <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>">
                 </div>
+
                 <!-- Bằng loại -->
                 <div style="width: 20%; padding-right: 0px">
                   <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
@@ -292,6 +293,7 @@
                 </div>
               </div>
             </div>
+           
             <div class="col-md-4" style="position: relative; top: -40px;">
               <div class="col-md-12">
                 <label>QR CODE:</label>
@@ -308,6 +310,9 @@
                 <input type="hidden" name="oldQrCode" value="<%= value.QrCode %>">
               </div>
             </div>
+            <input type="hidden" name="oldMaPhongBan" value="<%= value.MaPhongBan %>" />
+            <input type="hidden" name="oldMonGiangDayChinh" value="<%= value.MonGiangDayChinh %>" />            
+
           </div>
         </fieldset>
       </form>
@@ -323,66 +328,89 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script>
+      function loadBoMonTheoPhongBan(maPhongBan, selectedBoMon = null) {
+        const maBoMonSelect = document.getElementById('monGiangDayChinh');
+        maBoMonSelect.innerHTML = "";
+    
+        const boMonData = JSON.parse(localStorage.getItem('dsBoMon')) || [];
+    
+        let foundMatch = false;
+    
+        boMonData.forEach(item => {
+          if (item.MaPhongBan === maPhongBan) {
+            const option = document.createElement('option');
+            option.value = item.MaBoMon;
+            option.textContent = `${item.TenBoMon} - ${item.MaBoMon}`;
+    
+            if (selectedBoMon && item.MaBoMon === selectedBoMon) {
+              option.selected = true;
+              foundMatch = true;
+            }
+    
+            maBoMonSelect.appendChild(option);
+          }
+        });
+    
+        if (!foundMatch && selectedBoMon) {
+          Swal.fire({
+            title: 'Thông báo',
+            html: "Không tồn tại mã bộ môn, vui lòng sửa lại",
+            icon: 'info',
+            confirmButtonText: 'OK',
+          });
+        }
+      }
+    
       document.addEventListener("DOMContentLoaded", function () {
-        const maPhongBan = localStorage.getItem("MaPhongBan");
-        const isKhoa = localStorage.getItem("isKhoa");
-        const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
-
-        fetch(`/getMaBoMon/${maPhongBan}/${isKhoa}`)
-          .then(response => response.json())
-          .then(data => {
-            console.log(data); // In ra phản hồi để kiểm tra
-            const maBoMonSelect = document.getElementById('monGiangDayChinh');
-
-            if (!maBoMonSelect) {
-              console.error("Không tìm thấy phần tử với ID 'monGiangDayChinh'");
-              return;
-            }
-
-            let foundMatch = false;
-
-            // Kiểm tra success và dữ liệu maBoMon
-            if (data.success && data.maBoMon) {
-              data.maBoMon.forEach(item => {
-                if (maPhongBan === item.MaPhongBan) {
-                  const option = document.createElement('option');
-                  option.value = item.MaBoMon; // Giả sử MaBoMon là thuộc tính cần làm value
-                  option.textContent = `${item.TenBoMon} - ${item.MaBoMon}`; // Giả sử TenBoMon là tên bộ môn cần hiển thị
-
-                  // Kiểm tra nếu giá trị trùng với monGiangDayChinh
-                  if (item.MaBoMon === monGiangDayChinh) {
-                    option.selected = true; // Đặt option thành selected nếu trùng
-                    foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
-                  }
-
-                  maBoMonSelect.appendChild(option); // Thêm option vào select
-                }
-
-
-
-              });
-            } else {
-              console.error("Dữ liệu maBoMon không tồn tại hoặc không thành công");
-            }
-
-            // Nếu không tìm thấy giá trị nào trùng, hiển thị cảnh báo
-            if (!foundMatch) {
-              Swal.fire({
-                title: 'Thông báo',
-                html: "Không tồn tại mã bộ môn, vui lòng sửa lại",
-                icon: 'info',
-                confirmButtonText: 'OK',
-                width: 'auto', // Tự động điều chỉnh chiều rộng
-                padding: '20px', // Giữ khoảng cách cho nội dung
+        const maPhongBanSelect = document.getElementById("maPhongBan");
+        const selectedMaPhongBan = maPhongBanSelect.dataset.selected;
+        const selectedBoMon = document.getElementById("boMon").value;
+    
+        // Gọi API để lấy bộ môn và lưu localStorage nếu chưa có
+        if (!localStorage.getItem('dsBoMon')) {
+          fetch(`/api/shared/bo-mon`)
+            .then(res => res.json())
+            .then(data => {
+              localStorage.setItem('dsBoMon', JSON.stringify(data));
+              if (selectedMaPhongBan) {
+                loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
+              }
+            })
+            .catch(err => console.error("Lỗi khi fetch bo-mon:", err));
+        } else {
+          // Nếu đã có sẵn dữ liệu bộ môn
+          if (selectedMaPhongBan) {
+            loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
+          }
+        }
+    
+        // Khi chọn lại phòng ban
+        maPhongBanSelect.addEventListener("change", function () {
+          loadBoMonTheoPhongBan(this.value);
+        });
+      });
+    
+      // Load danh sách phòng ban như cũ
+      $(document).ready(function () {
+        const selectedMaPhongBan = $("#maPhongBan").data("selected");
+    
+        $.ajax({
+          url: "/api/TKB/getKhoaList",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.MaPhongBan.forEach(function (item) {
+                const isSelected = item.MaPhongBan === selectedMaPhongBan ? "selected" : "";
+                $("#maPhongBan").append(
+                  `<option value="${item.MaPhongBan}" ${isSelected}>${item.MaPhongBan}</option>`
+                );
               });
             }
-
-          })
-          .catch(error => console.error('Error:', error));
+          }
+        });
       });
     </script>
-
-
+    
 
     <script>
       // Lấy query string từ URL
