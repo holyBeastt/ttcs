@@ -104,6 +104,10 @@
 
           <button class="btn mx-1" id="render" style="margin-bottom: 0px; height: 45px;">Hiển thị</button>
 
+          <button class="btn mx-1" id="export" onclick="exportDoAnChinhThuc()"
+            style="margin-bottom: 0px; height: 45px;">Xuất file</button>
+
+
         </div>
         <div class="overflow-auto">
           <table class="table table-bordered">
@@ -128,7 +132,74 @@
 
 
     <script>
+      async function exportDoAnChinhThuc() {
+        const tableBody = document.getElementById("data-table-body");
+        let NamValue = document.getElementById('NamHoc').value;
+        let KhoaValue = document.getElementById('MaPhongBan').value;
 
+
+
+        // Khởi tạo mảng chứa dữ liệu
+        const tableData = [];
+
+        // Lặp qua từng hàng trong tbody
+        Array.from(tableBody.querySelectorAll("tr")).forEach(row => {
+          const cells = row.querySelectorAll("td");
+
+          // Đưa dữ liệu từng ô vào một đối tượng
+          const rowData = {
+            SinhVien: cells[0]?.innerText.trim(),
+            MaSV: cells[1]?.innerText.trim(),
+            Khoa: cells[2]?.innerText.trim(),
+            TenDeTai: cells[3]?.innerText.trim(),
+            GiangVienHuongDan: cells[4]?.innerText.trim(),
+            NamHoc: NamValue,
+          };
+
+          tableData.push(rowData);
+        });
+
+        console.log(tableData)
+        try {
+          const response = await fetch('/doan-export-word', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(tableData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Lỗi khi xuất file Word');
+          }
+
+          // Tạo blob từ phản hồi
+          const blob = await response.blob();
+
+          // Tạo URL cho blob
+          const url = window.URL.createObjectURL(blob);
+
+          // Tạo phần tử tải xuống
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `do_an_chinh_thuc_khoa_${KhoaValue}_nam_${NamValue}.docx`;
+          document.body.appendChild(a);
+
+          // Kích hoạt tải xuống
+          a.click();
+
+          // Dọn dẹp
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } catch (error) {
+          console.error('Lỗi:', error);
+          alert('Đã xảy ra lỗi khi xuất file Word: ' + error.message);
+        }
+      };
+    </script>
+
+    <script>
       // Lắng nghe sự kiện click vào button
       document.getElementById('render').addEventListener('click', function () {
         loadData(); // Gọi hàm loadData khi button được click

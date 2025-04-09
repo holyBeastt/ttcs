@@ -42,4 +42,8 @@ router.post("/saveNoteDoAn", doAnChinhThuc.SaveNote);
 // Done note
 router.post("/doneNoteDoAn", doAnChinhThuc.DoneNote);
 
+router.post("/doan-export-word", async (req, res) => {
+  doAnChinhThuc.exportToWord(req, res);
+});
+
 module.exports = router;
