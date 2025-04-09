@@ -80,9 +80,7 @@
     <div class="mx-5 flex-grow-1">
       <div class="d-flex justify-content-start align-items-end mb-3">
         <!-- Combo box Năm -->
-        <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;">
-            <option value="">Tất cả năm</option>
-        </select>
+        <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;"></select>
         <!-- Combo box Khoa -->
         <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
 
@@ -607,9 +605,13 @@
             if (response.success) {
                 // Cập nhật danh sách năm học
                 response.NamHoc.forEach(function (item) {
-                    $('#NamHoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`);
+                    $('#NamHoc').append(`<option value="${item.NamHoc}">${
+                        item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                    }</option>`);
                 });
-                
+                if (response.MaxNamHoc) {
+                    $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                }
                 // Cập nhật danh sách khoa, loại bỏ trùng lặp
                 let uniqueKhoa = [...new Set(response.Khoa.map(k => k.Khoa))]; 
                 $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
