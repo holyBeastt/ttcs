@@ -300,10 +300,17 @@ $(document).ready(function () {
                         // Thêm dữ liệu năm học
                         
                         response.NamHoc.forEach(function (item) {
-                            $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
-                            );
-                        });
+                $('#NamHoc').append(
+                    `<option value="${item.NamHoc}">${
+                        item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                    }</option>`
+                );
+            });
+
+            // Đặt giá trị mặc định là năm lớn nhất
+            if (response.MaxNamHoc) {
+                $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+            }
                         checkAndFetchData();
                     }
                 },
@@ -367,6 +374,9 @@ $(document).ready(function () {
             cell.colSpan = khoa === 'ALL' ? 3 : 6; // Điều chỉnh colspan dựa vào chế độ hiển thị
             cell.style.textAlign = 'center';
             cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
+            document.getElementById('totalSoTietGiangDay').textContent = '0';
+            document.getElementById('totalSTPHT').textContent = '0';
+            document.getElementById('totalSTMG').textContent = '0';
             document.getElementById('total').textContent = '0';
             document.getElementById('khoa-chart-container').style.display = 'none';
             document.getElementById('all-khoa-charts').style.display = 'none';

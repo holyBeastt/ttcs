@@ -312,30 +312,34 @@
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
-                        // Thêm dữ liệu năm học
+                        // Populate combobox NamHoc
+                        $('#NamHoc').empty();
                         response.NamHoc.forEach(function (item) {
                             $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
+                                `<option value="${item.NamHoc}">${
+                                    item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                                }</option>`
                             );
                         });
-                        checkAndFetchData();
 
-                        // Thêm dữ liệu kỳ học
+                        // Đặt giá trị mặc định là năm lớn nhất
+                        if (response.MaxNamHoc) {
+                            $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                        }
+
+                        // Populate combobox Ki
+                        $('#comboboxki').empty();
                         response.Ki.forEach(function (item) {
                             $('#comboboxki').append(
-                                `<option value="${item.value}"> ${item.Ki}</option>`
+                                `<option value="${item.Ki}">${
+                                    item.Ki === "ALL" ? "Cả năm" : item.Ki
+                                }</option>`
                             );
                         });
-                        checkAndFetchData();
-
                     }
                 },
                 error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu:", error);
-                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
-                    checkAndFetchData();
-                    checkAndFetchData();
-                    checkAndFetchData();
+                    console.error("Lỗi khi lấy dữ liệu năm học:", error);
                 }
             });
         });

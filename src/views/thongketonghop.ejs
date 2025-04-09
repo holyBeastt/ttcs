@@ -174,11 +174,7 @@
       </select>
 
       <!-- Combo box Năm -->
-      <select
-        class="form-select mx-1 selectop"
-        style="width: 200px"
-        id="NamHoc"
-      >
+      <select class="form-select mx-1 selectop" id="NamHoc">
         <option value="ALL">Tất cả năm</option>
       </select>
     </div>
@@ -491,33 +487,40 @@
       $(document).ready(function () {
           // Khởi tạo các combobox
           function initializeComboboxes() {
-              // Lấy dữ liệu cho combobox Năm
+              // Lấy dữ liệu cho combobox Năm và Kỳ
               $.ajax({
                   url: '/getNamHocTH',
                   method: 'GET',
                   success: function (response) {
                       if (response.success) {
+                          // Populate combobox NamHoc
+                          $('#NamHoc').empty();
                           response.NamHoc.forEach(function (item) {
                               $('#NamHoc').append(
-                                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                                  `<option value="${item.NamHoc}">${
+                                      item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                                  }</option>`
                               );
                           });
-                      }
-                  }
-              });
 
-              // Lấy dữ liệu cho combobox Kỳ
-              $.ajax({
-                  url: '/getNamHocTH', // Sử dụng cùng một API để lấy kỳ
-                  method: 'GET',
-                  success: function (response) {
-                      if (response.success) {
+                          // Đặt giá trị mặc định là năm lớn nhất
+                          if (response.MaxNamHoc) {
+                              $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                          }
+
+                          // Populate combobox Ki
+                          $('#comboboxki').empty();
                           response.Ki.forEach(function (item) {
                               $('#comboboxki').append(
-                                  `<option value="${item.value}">${item.Ki}</option>`
+                                  `<option value="${item.Ki}">${
+                                      item.Ki === "ALL" ? "Cả năm" : item.Ki
+                                  }</option>`
                               );
                           });
                       }
+                  },
+                  error: function (xhr, status, error) {
+                      console.error("Lỗi khi tải dữ liệu:", error);
                   }
               });
           }
@@ -574,3 +577,4 @@
     </script>
   </body>
 </html>
+``` 

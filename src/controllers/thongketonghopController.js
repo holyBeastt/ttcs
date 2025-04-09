@@ -11,24 +11,24 @@ const thongketonghopController = {
       // Base query for "Mời giảng"
       let query = `
                 SELECT 
-                    MaPhongBan AS Khoa,
-                    SUM(sotiet) AS TongSoTietMoiGiang
-                FROM hopdonggvmoi
-                WHERE 1=1
+                    Khoa AS Khoa,
+                    SUM(quychuan) AS TongSoTietMoiGiang
+                FROM giangday
+                WHERE id_Gvm != 1
             `;
       const params = [];
 
       // Add filters based on the provided parameters
       if (namhoc && namhoc !== "ALL") {
-        query += ` AND namhoc = ?`;
+        query += ` AND NamHoc = ?`;
         params.push(namhoc);
       }
       if (kihoc && kihoc !== "ALL") {
-        query += ` AND kihoc = ?`;
+        query += ` AND HocKy = ?`;
         params.push(kihoc);
       }
 
-      query += ` GROUP BY MaPhongBan`;
+      query += ` GROUP BY Khoa`;
 
       // Execute the query
       const [moiGiangData] = await connection.query(query, params);
@@ -147,24 +147,35 @@ GROUP BY
   getNamHocData: async (req, res) => {
     let connection;
     try {
-      connection = await createConnection();
-      const [namHoc] = await connection.query(
-        "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
-      );
-      const [ki] = await connection.query(
-        "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
-      );
+        connection = await createConnection();
 
-      res.json({
-        success: true,
-        NamHoc: namHoc,
-        Ki: ki,
-      });
+        // Lấy danh sách năm học
+        const [namHoc] = await connection.query(
+            "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
+        );
+
+        // Lấy danh sách kỳ
+        const [ki] = await connection.query(
+            "SELECT DISTINCT kihoc as Ki FROM hopdonggvmoi ORDER BY kihoc"
+        );
+
+        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
+
+        // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
+        namHoc.unshift({ NamHoc: "ALL" });
+        ki.unshift({ Ki: "ALL" });
+
+        res.json({
+            success: true,
+            NamHoc: namHoc,
+            Ki: ki,
+            MaxNamHoc: maxNamHoc, // Trả về năm học lớn nhất
+        });
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu năm học:", error);
-      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-      if (connection) connection.release();
+        if (connection) connection.release();
     }
   },
 };
