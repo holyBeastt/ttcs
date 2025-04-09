@@ -673,7 +673,7 @@ const getClassInfoGvmData = async (req, res) => {
   const MaPhongBan = req.session.MaPhongBan;
   const isKhoa = req.session.isKhoa;
   const { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
-  console.log(req.body)
+  // console.log(req.body)
 
   let connection; // Khai báo biến connection
 
@@ -837,9 +837,10 @@ const getClassInfoGvmData = async (req, res) => {
         groupedByTeacher[teacher].push({ tongSoTietBaoGomDoAn: 0 });
       }
     });
+    const result = sortDataByTotalSoTiet(groupedByTeacher);
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
-    res.json(groupedByTeacher);
+    res.json(result);
   } catch (error) {
     console.error("Error fetching class info:", error);
     res.status(500).send("Internal Server Error");
@@ -847,6 +848,21 @@ const getClassInfoGvmData = async (req, res) => {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
+
+function sortDataByTotalSoTiet(data) {
+  // Lấy các cặp [key, value] từ đối tượng
+  const entries = Object.entries(data);
+
+  // Sắp xếp mảng entries dựa vào tổng số tiết của phần tử cuối trong mảng value
+  entries.sort((a, b) => {
+    const totalA = parseFloat(a[1][a[1].length - 1].tongSoTietBaoGomDoAn);
+    const totalB = parseFloat(b[1][b[1].length - 1].tongSoTietBaoGomDoAn);
+    return totalB - totalA; // giảm dần
+  });
+
+  // Chuyển đổi mảng đã sắp xếp về đối tượng với cùng cấu trúc ban đầu
+  return Object.fromEntries(entries);
+}
 
 const getGvm = async (req, res) => {
   let connection; // Khai báo biến connection
