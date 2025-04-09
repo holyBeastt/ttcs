@@ -560,50 +560,6 @@
       }
     </script>
 
-    <!-- Phần phân quyền -->
-    <script>
-      const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-      const role = localStorage.getItem("userRole"); //
-      const MaPhongBan = localStorage.getItem("MaPhongBan"); //
-      const maPhongBanBtn = document.getElementById("MaPhongBan");
-      const ThongTinGD = document.getElementById("ThongTinGD");
-
-      document.addEventListener("DOMContentLoaded", () => {
-        // không phải khoa và là quyền duyệt
-        if (role != "Duyệt" && isKhoa != 0) {
-          maPhongBanBtn.style.display = "none";
-        }
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
-    </script>
-
     <script>
       document
         .getElementById("changePasswordLink")
@@ -733,6 +689,15 @@
     </script>
     <script>
       $(document).ready(function () {
+        // Nếu là khoa thì ẩn
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 1) {
+          $("#MaPhongBan").remove(); // ẩn cả label và select nếu bọc trong form-group
+          return; // không cần gọi AJAX nữa
+        }
+
+        // Nếu là phòng ban thì hiển thị option chọn khoa
         $('#MaPhongBan option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
