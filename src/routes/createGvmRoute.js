@@ -49,13 +49,15 @@ const storage = multer.diskStorage({
 const imageFilter = function (req, file, cb) {
   if (file == undefined) return;
   // Accept images only
-  if (
-    !file.originalname.match(
-      /\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|jfif|pdf|doc|docx)$/
-    )
-  ) {
-    req.fileValidationError = "Only image or PDF files are allowed!";
-    return cb(new Error("Only image or PDF files are allowed!"), false);
+  const allowedExtensions = process.env.ALLOWED_FILE_EXTENSIONS.split(",")
+    .map((ext) => ext.trim()) // bỏ khoảng trắng nếu có
+    .join("|"); // nối thành regex pattern
+
+  const extensionRegex = new RegExp(`\\.(${allowedExtensions})$`, "i");
+
+  // Dùng trong middleware hoặc hàm kiểm tra
+  if (!file.originalname.match(extensionRegex)) {
+    return cb(new Error("Chỉ cho phép các định dạng file hợp lệ!"), false);
   }
 
   cb(null, true);
