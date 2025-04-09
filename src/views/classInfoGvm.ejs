@@ -1,212 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/table.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/gvmList.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="/css/table.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/gvmList.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <style>
+      /* nmsvbmbvsmnvds */
+      .teacher-group {
+        border-top: 2px solid black;
 
-  <style>
-    /* nmsvbmbvsmnvds */
-    .teacher-group {
-      border-top: 2px solid black;
+        /* Viền đen xung quanh nhóm giảng viên */
+        border-collapse: separate;
+        margin-bottom: 10px;
+      }
 
-      /* Viền đen xung quanh nhóm giảng viên */
-      border-collapse: separate;
-      margin-bottom: 10px;
-    }
+      .teacher-group td,
+      .teacher-group th {
+        padding: 8px;
+        text-align: left;
+        border: 2px solid black;
+        /* Viền đen xung quanh nhóm giảng viên */
+      }
+    </style>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
 
-    .teacher-group td,
-    .teacher-group th {
-      padding: 8px;
-      text-align: left;
-      border: 2px solid black;
-      /* Viền đen xung quanh nhóm giảng viên */
-    }
-  </style>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
+      .class-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        table-layout: auto;
+        /* Cho phép bảng tự điều chỉnh kích thước cột */
+      }
 
-    .class-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      table-layout: auto;
-      /* Cho phép bảng tự điều chỉnh kích thước cột */
-    }
+      .class-table th,
+      .class-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        white-space: normal;
+        /* Cho phép xuống dòng */
+        word-wrap: break-word;
+        /* Chia từ và xuống dòng khi cần */
+      }
 
-    .class-table th,
-    .class-table td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-      white-space: normal;
-      /* Cho phép xuống dòng */
-      word-wrap: break-word;
-      /* Chia từ và xuống dòng khi cần */
-    }
+      .class-table th {
+        background-color: #007bff;
+        /* Đổi màu nền tiêu đề thành xanh dương */
+        color: white;
+        font-weight: bold;
+      }
 
-    .class-table th {
-      background-color: #007bff;
-      /* Đổi màu nền tiêu đề thành xanh dương */
-      color: white;
-      font-weight: bold;
-    }
+      .class-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
 
-    .class-table tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
+      .class-table tbody tr:hover {
+        background-color: #ddd;
+      }
 
-    .class-table tbody tr:hover {
-      background-color: #ddd;
-    }
+      .action-button {
+        background-color: #4caf50;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+      }
 
-    .action-button {
-      background-color: #4caf50;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
+      .action-button:hover {
+        background-color: #45a049;
+      }
 
-    .action-button:hover {
-      background-color: #45a049;
-    }
+      /* Điều chỉnh kích thước các cột */
+      .class-table th,
+      .class-table td {
+        min-width: 50px;
+        /* Đặt kích thước tối thiểu cho cột để không bị quá hẹp */
+      }
+    </style>
 
-    /* Điều chỉnh kích thước các cột */
-    .class-table th,
-    .class-table td {
-      min-width: 50px;
-      /* Đặt kích thước tối thiểu cho cột để không bị quá hẹp */
-    }
-  </style>
+    <style>
+      /* phần css cho label tổng số tiết ki*/
+      .total-label {
+        margin-left: auto;
+        /* Căn phải cho thẻ total-label */
+        margin-right: 0;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 8px;
+        width: fit-content;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: block;
+        /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+      }
 
-  <style>
-    /* phần css cho label tổng số tiết ki*/
-    .total-label {
-      margin-left: auto;
-      /* Căn phải cho thẻ total-label */
-      margin-right: 0;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      background-color: #f4f4f4;
-      padding: 10px;
-      border-radius: 8px;
-      width: fit-content;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      display: block;
-      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
-    }
+      .total-label label {
+        font-weight: bold;
+        /* Giữ chữ in đậm */
+        color: #000;
+        /* Màu chữ đen */
+        margin-right: 8px;
+        /* Thêm khoảng cách bên phải */
+        cursor: pointer;
+        /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
+        padding: 5px 10px;
+        /* Thêm padding cho label để tạo không gian */
+        border: 1px solid #ccc;
+        /* Khung cho label */
+        border-radius: 4px;
+        /* Bo góc cho khung */
+      }
 
-    .total-label label {
-      font-weight: bold;
-      /* Giữ chữ in đậm */
-      color: #000;
-      /* Màu chữ đen */
-      margin-right: 8px;
-      /* Thêm khoảng cách bên phải */
-      cursor: pointer;
-      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
-      padding: 5px 10px;
-      /* Thêm padding cho label để tạo không gian */
-      border: 1px solid #ccc;
-      /* Khung cho label */
-      border-radius: 4px;
-      /* Bo góc cho khung */
-    }
+      .total-label label,
+      .total-label label span {
+        background-color: #007bff;
+        /* Màu nền khi hover */
+        color: #fff;
+        /* Màu chữ trắng khi hover */
+      }
 
-    .total-label label,
-    .total-label label span {
-      background-color: #007bff;
-      /* Màu nền khi hover */
-      color: #fff;
-      /* Màu chữ trắng khi hover */
-    }
+      .total-label span {
+        font-weight: bold;
+        /* Giữ chữ trong span cũng in đậm */
+        color: #333;
+        /* Màu chữ đậm cho giá trị */
+      }
 
-    .total-label span {
-      font-weight: bold;
-      /* Giữ chữ trong span cũng in đậm */
-      color: #333;
-      /* Màu chữ đậm cho giá trị */
-    }
+      /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
+      input[type="date"],
+      input[type="text"] {
+        width: 120px;
+        /* Điều chỉnh giá trị này theo mong muốn */
+        box-sizing: border-box;
+        padding: 5px;
+        /* Giữ padding như cũ */
+      }
 
-    /* Đặt chiều rộng cố định cho cả input[type="date"] và input[type="text"] */
-    input[type="date"],
-    input[type="text"] {
-      width: 120px;
-      /* Điều chỉnh giá trị này theo mong muốn */
-      box-sizing: border-box;
-      padding: 5px;
-      /* Giữ padding như cũ */
-    }
+      .alert-sotiet {
+        background-color: #ffcccc !important;
+        color: #333;
+        /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+      }
+    </style>
 
-    .alert-sotiet {
-      background-color: #ffcccc !important;
-      color: #333;
-      /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
-    }
-  </style>
+    <style>
+      /* CSS cho chức năng sort */
+      th.sortable {
+        position: relative;
+        background-color: #f2f2f2;
+      }
 
-  <style>
-    /* CSS cho chức năng sort */
-    th.sortable {
-      position: relative;
-      background-color: #f2f2f2;
-    }
+      th.sortable:hover {
+        background-color: #e0e0e0;
+      }
 
-    th.sortable:hover {
-      background-color: #e0e0e0;
-    }
+      .sort-icon {
+        margin-left: 5px;
+        font-size: 0.8em;
+      }
 
-    .sort-icon {
-      margin-left: 5px;
-      font-size: 0.8em;
-    }
+      /* Màu nền cho các dòng để dễ đọc */
+      tbody tr:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
 
-    /* Màu nền cho các dòng để dễ đọc */
-    tbody tr:nth-child(even) {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
+      /* Highlight dòng khi hover */
+      tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+      }
 
-    /* Highlight dòng khi hover */
-    tbody tr:hover {
-      background-color: rgba(0, 123, 255, 0.1);
-    }
+      /* Styling cho bảng */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
 
-    /* Styling cho bảng */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
+      th,
+      td {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
 
-    th,
-    td {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
+      th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+      }
+    </style>
+  </head>
 
-    th {
-      background-color: #f8f9fa;
-      font-weight: bold;
-    }
-  </style>
-
-</head>
-
-<body>
-  <!-- Phần header -->
-  <%- include('header') %>
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <div class="container-fluid m-4 box">
       <div class="d-flex justify-content-center">
@@ -217,8 +224,13 @@
               <h1>THÔNG TIN CÁC LỚP GIẢNG VIÊN MỜI</h1>
               <div class="header-actions" style="height: 45px">
                 <!-- <button class="add-class" onclick="addClass()">+ Thêm giảng viên mời</button> -->
-                <input type="text" placeholder="Tìm kiếm theo Tên..." class="search" id="searchInput"
-                  onkeyup="searchClass()" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo Tên..."
+                  class="search"
+                  id="searchInput"
+                  onkeyup="searchClass()"
+                />
 
                 <div class="loc d-flex">
                   <select class="selectop mx-1" id="combobox-dot">
@@ -238,7 +250,11 @@
                     <option value="">Chọn khoa</option>
                   </select>
 
-                  <select id="he_dao_tao" name="he_dao_tao" class="w-200px mx-2 selectop">
+                  <select
+                    id="he_dao_tao"
+                    name="he_dao_tao"
+                    class="w-200px mx-2 selectop"
+                  >
                     <option value="ALL">Tất cả hệ</option>
                     <option value="Đại học (Đóng học phí)">
                       Đại học (Đóng học phí)
@@ -250,7 +266,12 @@
                     </option>
                   </select>
 
-                  <button class="btn text-nowrap mx-2" id="render" style="height: 45px" onclick="filterTable()">
+                  <button
+                    class="btn text-nowrap mx-2"
+                    id="render"
+                    style="height: 45px"
+                    onclick="filterTable()"
+                  >
                     Hiển thị
                   </button>
                 </div>
@@ -284,8 +305,10 @@
               <!-- Label tổng số tiết tách riêng với bảng -->
               <div class="total-label">
                 <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-                <label>Tổng số tiết Quy Chuẩn:
-                  <span class="value" id="totalQC">0</span></label>
+                <label
+                  >Tổng số tiết Quy Chuẩn:
+                  <span class="value" id="totalQC">0</span></label
+                >
               </div>
             </div>
           </div>
@@ -295,13 +318,17 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <tbody style="display: none" class="teacher-group" id="data-table-body"></tbody>
+    <tbody
+      style="display: none"
+      class="teacher-group"
+      id="data-table-body"
+    ></tbody>
 
     <!-- sort theo các số tiết -->
     <script>
       // Thêm chức năng sort cho cột "Tổng số tiết cả năm"
-      document.addEventListener('DOMContentLoaded', function () {
-        const headers = document.querySelectorAll('th');
+      document.addEventListener("DOMContentLoaded", function () {
+        const headers = document.querySelectorAll("th");
 
         // Tìm index của cột "Tổng số tiết cả năm"
         let totalYearlyLessonsIndex = -1;
@@ -309,12 +336,12 @@
         headers.forEach((header, index) => {
           if (header.textContent.trim() === "Tổng số tiết cả năm") {
             totalYearlyLessonsIndex = index;
-            header.classList.add('sortable');
-            header.dataset.sortDirection = 'none';
-            header.style.cursor = 'pointer';
+            header.classList.add("sortable");
+            header.dataset.sortDirection = "none";
+            header.style.cursor = "pointer";
             header.innerHTML += ' <span class="sort-icon">&#8597;</span>';
 
-            header.addEventListener('click', function () {
+            header.addEventListener("click", function () {
               sortTableByGroupedRows(totalYearlyLessonsIndex);
               updateSortIcon(this);
             });
@@ -324,18 +351,18 @@
 
       // Hàm sort bảng theo nhóm rows (xử lý rowspan)
       function sortTableByGroupedRows(colIndex) {
-        const table = document.querySelector('table');
-        const tbody = table.querySelector('tbody');
-        const header = table.querySelectorAll('th')[colIndex];
+        const table = document.querySelector("table");
+        const tbody = table.querySelector("tbody");
+        const header = table.querySelectorAll("th")[colIndex];
 
         // Xác định hướng sort
         const currentDirection = header.dataset.sortDirection;
-        const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        const newDirection = currentDirection === "asc" ? "desc" : "asc";
         header.dataset.sortDirection = newDirection;
 
         // Lấy tất cả các dòng đầu tiên của mỗi nhóm (dòng có rowspan)
         const rowGroups = [];
-        const allRows = Array.from(tbody.querySelectorAll('tr'));
+        const allRows = Array.from(tbody.querySelectorAll("tr"));
 
         // Tìm tất cả các dòng đầu của nhóm (những dòng có rowspan ở cột Tổng số tiết cả năm)
         let i = 0;
@@ -343,14 +370,14 @@
           const row = allRows[i];
           const cell = row.cells[colIndex];
 
-          if (cell && cell.hasAttribute('rowspan')) {
+          if (cell && cell.hasAttribute("rowspan")) {
             // Đây là dòng đầu của một nhóm
-            const rowspan = parseInt(cell.getAttribute('rowspan'));
+            const rowspan = parseInt(cell.getAttribute("rowspan"));
             const group = {
               headRow: row,
               value: parseFloat(cell.textContent.trim()) || 0,
               rowspan: rowspan,
-              rows: [row]
+              rows: [row],
             };
 
             // Thêm các dòng tiếp theo vào nhóm
@@ -368,7 +395,7 @@
 
         // Sort các nhóm dòng theo giá trị của cột "Tổng số tiết cả năm"
         rowGroups.sort((a, b) => {
-          if (newDirection === 'asc') {
+          if (newDirection === "asc") {
             return a.value - b.value;
           } else {
             return b.value - a.value;
@@ -382,16 +409,16 @@
 
         // Thêm lại các dòng theo thứ tự đã sort
         let sttCounter = 1;
-        rowGroups.forEach(group => {
+        rowGroups.forEach((group) => {
           // Cập nhật STT cho nhóm
           const firstCell = group.headRow.cells[0];
-          if (firstCell && firstCell.hasAttribute('rowspan')) {
+          if (firstCell && firstCell.hasAttribute("rowspan")) {
             firstCell.textContent = sttCounter;
             sttCounter++;
           }
 
           // Thêm tất cả các dòng của nhóm vào tbody
-          group.rows.forEach(row => {
+          group.rows.forEach((row) => {
             tbody.appendChild(row);
           });
         });
@@ -399,11 +426,11 @@
 
       // Cập nhật biểu tượng sort
       function updateSortIcon(header) {
-        const icon = header.querySelector('.sort-icon');
-        if (header.dataset.sortDirection === 'asc') {
-          icon.innerHTML = '&#9650;'; // Mũi tên lên
+        const icon = header.querySelector(".sort-icon");
+        if (header.dataset.sortDirection === "asc") {
+          icon.innerHTML = "&#9650;"; // Mũi tên lên
         } else {
-          icon.innerHTML = '&#9660;'; // Mũi tên xuống
+          icon.innerHTML = "&#9660;"; // Mũi tên xuống
         }
       }
     </script>
@@ -491,7 +518,11 @@
 
           // Lấy đối tượng cuối cùng của mảng để tính tổng tiết trong năm, không render nó ra bảng
           const lastCourse = courses[courses.length - 1];
-          const tongSoTietBaoGomDoAn = Number.parseFloat(lastCourse.tongSoTietBaoGomDoAn == 0 ? totalSoTiet : lastCourse.tongSoTietBaoGomDoAn);
+          const tongSoTietBaoGomDoAn = Number.parseFloat(
+            lastCourse.tongSoTietBaoGomDoAn == 0
+              ? totalSoTiet
+              : lastCourse.tongSoTietBaoGomDoAn
+          );
 
           // Render bảng chỉ với các phần tử từ đầu đến phần tử áp chót (bỏ qua đối tượng cuối cùng)
           courses.slice(0, -1).forEach((course, courseIndex) => {
@@ -532,10 +563,14 @@
             if (courseIndex === 0) {
               tr.innerHTML += `
         <td rowspan="${courses.length - 1}">${totalSoTiet.toFixed(2)}</td>
-        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn.toFixed(2)}</td>
+        <td rowspan="${courses.length - 1}">${tongSoTietBaoGomDoAn.toFixed(
+                2
+              )}</td>
         <td rowspan="${courses.length - 1}">${course.Khoa}</td>
         <td rowspan="${courses.length - 1}">
-          <button class="action-button view" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1}')">👁️</button>
+          <button class="action-button view" onclick="viewClass(this, '${
+            parseInt(course.id_Gvm) - 1
+          }')">👁️</button>
         </td>
       `;
             }
@@ -880,73 +915,6 @@
       });
     </script>
 
-    <!-- <script>
-    function filterTable() {
-      // Lấy giá trị lọc
-      let dot = document.getElementById("combobox-dot").value;
-      let ki = document.getElementById("combobox-ki").value;
-      let nam = document.getElementById("NamHoc").value;
-      let department = document.getElementById("departmentFilter").value.trim();
-  
-      let tbody = document.getElementById("data-table-body");
-      let teacherGroups = tbody.querySelectorAll("tr.teacher-group"); // Chỉ lấy các dòng nhóm giảng viên
-  
-      // Duyệt qua từng nhóm giảng viên
-      teacherGroups.forEach((teacherGroupRow) => {
-        let courses = teacherGroupRow.nextElementSibling; // Lấy dòng môn học kế tiếp
-        let showGroup = false; // Đặt mặc định là ẩn
-  
-        // Duyệt qua từng dòng môn học thuộc nhóm giảng viên
-        while (courses && !courses.classList.contains("teacher-group")) {
-          let rowDepartment = courses.getAttribute("data-department");
-          let rowDot = courses.getAttribute("data-dot");
-          let rowKi = courses.getAttribute("data-ki");
-          let rowNam = courses.getAttribute("data-nam");
-  
-          // Kiểm tra các điều kiện lọc
-          let matchesDepartment = department === "ALL" || rowDepartment === department;
-          let matchesDot = rowDot === dot;
-          let matchesKi = rowKi === ki;
-          let matchesNam = rowNam === nam;
-
-          console.log("stt");
-          console.log("nam = ", nam);
-          console.log("row nam = ", rowNam);
-          console.log("matchesNam = ", matchesNam);
-  
-          // Nếu có môn học nào khớp với điều kiện lọc, hiển thị cả nhóm
-          if (matchesDepartment && matchesDot && matchesKi && matchesNam) {
-            showGroup = true;
-            break; // Thoát vòng lặp vì chỉ cần một môn học khớp
-          }
-  
-          courses = courses.nextElementSibling; // Tiếp tục sang dòng môn học tiếp theo
-        }
-  
-        // Hiển thị hoặc ẩn dòng nhóm giảng viên và các dòng môn học của nhóm
-        if (showGroup) {
-          teacherGroupRow.style.display = ""; // Hiển thị dòng nhóm giảng viên
-          let courseRow = teacherGroupRow.nextElementSibling;
-          while (courseRow && !courseRow.classList.contains("teacher-group")) {
-            courseRow.style.display = ""; // Hiển thị các dòng môn học
-            courseRow = courseRow.nextElementSibling;
-          }
-        } else {
-          teacherGroupRow.style.display = "none"; // Ẩn dòng nhóm giảng viên
-          let courseRow = teacherGroupRow.nextElementSibling;
-          while (courseRow && !courseRow.classList.contains("teacher-group")) {
-            courseRow.style.display = "none"; // Ẩn các dòng môn học
-            courseRow = courseRow.nextElementSibling;
-          }
-        }
-      });
-      // Hiển thị lại tbody sau khi lọc
-      tbody.style.display = "table-row-group";  // Hiển thị lại tbody
-  
-      calculateTotals(); // Cập nhật lại tổng số sau khi lọc
-    }
-  </script> -->
-
     <script>
       $(document).ready(function () {
         $('#departmentFilter option[value=""]').remove();
@@ -1003,6 +971,5 @@
           }
         });
     </script>
-</body>
-
+  </body>
 </html>
