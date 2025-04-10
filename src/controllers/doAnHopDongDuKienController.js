@@ -164,6 +164,12 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     UNION ALL
     SELECT * FROM two_gv
   ),
+  -- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
+  gvs_lien_quan AS (
+      SELECT DISTINCT GiangVien
+      FROM gv_doan
+      WHERE gv_doan.MaPhongBan like ?
+  ),
   final AS (
     SELECT 
         gv_doan.GiangVien,
@@ -179,17 +185,17 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         gvmoi.*
     FROM gv_doan
     JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
+    JOIN gvs_lien_quan ON gv_doan.GiangVien = gvs_lien_quan.GiangVien
   )
 
   SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
   FROM final
-  WHERE dot = ? AND namhoc = ? AND MaKhoa = ?
+  WHERE dot = ? AND namhoc = ?
     `;
-      values = [Dot, NamHoc, MaPhongBan];
+      values = [MaPhongBan, Dot, NamHoc];
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
 
-    console.log("rs = ", result);
     // Nhóm các môn học theo giảng viên
     const groupedByTeacher = result.reduce((acc, current) => {
       const teacher = current.HoTen;
@@ -199,7 +205,6 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
       acc[teacher].push(current);
       return acc;
     }, {});
-    console.log(groupedByTeacher);
     // Trả dữ liệu về client dưới dạng JSON
     res.status(200).json(groupedByTeacher);
   } catch (error) {
