@@ -2,8 +2,18 @@ const express = require("express");
 const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
 require("dotenv").config();
-const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, AlignmentType, PageOrientation, VerticalAlign } = require("docx");
-
+const {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  PageOrientation,
+  VerticalAlign,
+} = require("docx");
 
 // Tạo biến chung để lưu dữ liệu
 let tableData;
@@ -695,6 +705,7 @@ const getthongTinDoAnTotNghiep = (req, res) => {
 
 const getInfoDoAn = async (req, res) => {
   const Dot = req.body.Dot;
+  const ki = req.body.ki;
   const NamHoc = req.body.NamHoc;
   const MaPhongBan = req.body.MaPhongBan;
 
@@ -704,15 +715,16 @@ const getInfoDoAn = async (req, res) => {
 
     let query, values, SoQDList;
 
-    const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND NamHoc = ? AND MaPhongBan = ?`;
+    const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
 
     if (MaPhongBan == "ALL") {
-      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
-      values = [Dot, NamHoc];
+      query =
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ?";
+      values = [Dot, ki, NamHoc];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
-      values = [Dot, NamHoc, MaPhongBan];
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?";
+      values = [Dot, ki, NamHoc, MaPhongBan];
 
       [SoQDList] = await connection.query(SoQDquery, values);
     }
@@ -730,7 +742,7 @@ const getInfoDoAn = async (req, res) => {
   }
 };
 
-const KhoaCheckAll = async (req, Dot, NamHoc) => {
+const KhoaCheckAll = async (req, Dot, ki, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
   let connection;
 
@@ -743,11 +755,12 @@ const KhoaCheckAll = async (req, Dot, NamHoc) => {
     for (let i = 0; i < results.length; i++) {
       const MaPhongBan = results[i].MaPhongBan;
 
-      const innerQuery = `SELECT KhoaDuyet FROM doantotnghiep WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?`;
+      const innerQuery = `SELECT KhoaDuyet FROM doantotnghiep WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?`;
       const [check, innerFields] = await connection.query(innerQuery, [
         MaPhongBan,
         NamHoc,
         Dot,
+        ki,
       ]);
 
       let checkAll = true;
@@ -772,7 +785,7 @@ const KhoaCheckAll = async (req, Dot, NamHoc) => {
   return kq;
 };
 
-const DaoTaoCheckAll = async (req, Dot, NamHoc) => {
+const DaoTaoCheckAll = async (req, Dot, ki, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
 
   const queryPhongBan = `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`;
@@ -788,7 +801,7 @@ const DaoTaoCheckAll = async (req, Dot, NamHoc) => {
       const queryDuyet = `
         SELECT DaoTaoDuyet 
         FROM doantotnghiep 
-        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?
+        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
       `;
       const connection = await createPoolConnection();
 
@@ -797,6 +810,7 @@ const DaoTaoCheckAll = async (req, Dot, NamHoc) => {
           MaPhongBan,
           NamHoc,
           Dot,
+          ki,
         ]);
 
         let checkAll = true;
@@ -821,7 +835,7 @@ const DaoTaoCheckAll = async (req, Dot, NamHoc) => {
 };
 
 // Mới
-const TaiChinhCheckAll = async (req, Dot, NamHoc) => {
+const TaiChinhCheckAll = async (req, Dot, ki, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
 
   const connection = await createPoolConnection();
@@ -836,11 +850,12 @@ const TaiChinhCheckAll = async (req, Dot, NamHoc) => {
 
       const checkQuery = `
         SELECT TaiChinhDuyet FROM doantotnghiep 
-        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?`;
+        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?`;
       const [check, checkFields] = await connection.query(checkQuery, [
         MaPhongBan,
         NamHoc,
         Dot,
+        ki,
       ]);
 
       let checkAll = true;
@@ -863,10 +878,11 @@ const TaiChinhCheckAll = async (req, Dot, NamHoc) => {
 
 const getCheckAllDoantotnghiep = async (req, res) => {
   const NamHoc = req.body.NamHoc;
+  const ki = req.body.ki;
   const Dot = req.body.Dot;
-  const KhoaCheck = await KhoaCheckAll(req, Dot, NamHoc);
-  const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, NamHoc);
-  const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, NamHoc);
+  const KhoaCheck = await KhoaCheckAll(req, Dot, ki, NamHoc);
+  const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, ki, NamHoc);
+  const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, ki, NamHoc);
 
   return res.status(200).json({
     KhoaCheck: KhoaCheck,
@@ -1047,6 +1063,7 @@ const getGVData = async () => {
 
 const saveToExportDoAn = async (req, res) => {
   const Dot = req.body.Dot;
+  const ki = req.body.ki;
   const NamHoc = req.body.NamHoc;
   const MaKhoa = req.body.MaPhongBan;
 
@@ -1066,14 +1083,15 @@ const saveToExportDoAn = async (req, res) => {
     let queryData, data;
 
     if (MaKhoa == "ALL") {
-      queryData = "select * from doantotnghiep where Dot = ? AND NamHoc = ?";
+      queryData =
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ?";
 
-      [data] = await connection.query(queryData, [Dot, NamHoc]);
+      [data] = await connection.query(queryData, [Dot, ki, NamHoc]);
     } else {
       queryData =
-        "select * from doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?";
 
-      [data] = await connection.query(queryData, [Dot, NamHoc, MaKhoa]);
+      [data] = await connection.query(queryData, [Dot, ki, NamHoc, MaKhoa]);
     }
 
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
@@ -1149,6 +1167,7 @@ const saveToExportDoAn = async (req, res) => {
             item.NgayKetThuc || null,
             item.MaPhongBan || null,
             NamHoc || null,
+            item.ki || null,
             item.Dot || null,
             item.TT || null,
             matchedItem1.GioiTinh || null,
@@ -1215,6 +1234,7 @@ const saveToExportDoAn = async (req, res) => {
               item.NgayKetThuc || null,
               item.MaPhongBan || null,
               NamHoc || null,
+              item.ki || null,
               item.Dot || null,
               item.TT || null,
               matchedItem2.GioiTinh || null,
@@ -1253,7 +1273,7 @@ const saveToExportDoAn = async (req, res) => {
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
-    isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, Dot, TT,
+    isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, ki, Dot, TT,
     GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
     ChucVu, STK, NganHang, MonGiangDayChinh, HSL)
                  VALUES ?`;
@@ -1486,66 +1506,80 @@ const exportToWord = async (req, res) => {
     // Lấy dữ liệu từ client
 
     if (!data || !Array.isArray(data)) {
-      return res.status(400).json({ message: "Dữ liệu không hợp lệ. Cần mảng các đối tượng sinh viên." });
+      return res.status(400).json({
+        message: "Dữ liệu không hợp lệ. Cần mảng các đối tượng sinh viên.",
+      });
     }
 
     // Tạo style cho font chữ Times New Roman, cỡ 13, căn giữa
     const defaultStyle = {
       font: "Times New Roman",
       size: 26, // 13pt = 26 half-points
-      alignment: AlignmentType.CENTER
+      alignment: AlignmentType.CENTER,
     };
 
     // Tạo header cho bảng
     const headerRow = new TableRow({
       children: [
         new TableCell({
-          children: [new Paragraph({
-            text: "STT",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "STT",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
         new TableCell({
-          children: [new Paragraph({
-            text: "Sinh viên",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "Sinh viên",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
         new TableCell({
-          children: [new Paragraph({
-            text: "Mã SV",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "Mã SV",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
         new TableCell({
-          children: [new Paragraph({
-            text: "Tên đề tài",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "Tên đề tài",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
         new TableCell({
-          children: [new Paragraph({
-            text: "Họ tên Cán bộ giảng viên hướng dẫn",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "Họ tên Cán bộ giảng viên hướng dẫn",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
         new TableCell({
-          children: [new Paragraph({
-            text: "Đơn vị công tác",
-            bold: true,
-            ...defaultStyle
-          })],
-          verticalAlign: VerticalAlign.CENTER
+          children: [
+            new Paragraph({
+              text: "Đơn vị công tác",
+              bold: true,
+              ...defaultStyle,
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
         }),
       ],
     });
@@ -1556,48 +1590,61 @@ const exportToWord = async (req, res) => {
         children: [
           // STT
           new TableCell({
-            children: [new Paragraph({
-              text: String(index + 1),
-              ...defaultStyle
-            })],
-            verticalAlign: VerticalAlign.CENTER
+            children: [
+              new Paragraph({
+                text: String(index + 1),
+                ...defaultStyle,
+              }),
+            ],
+            verticalAlign: VerticalAlign.CENTER,
           }),
           // Sinh viên
           new TableCell({
-            children: [new Paragraph({
-              text: item.SinhVien || "",
-              ...defaultStyle
-            })],
-            verticalAlign: VerticalAlign.CENTER
+            children: [
+              new Paragraph({
+                text: item.SinhVien || "",
+                ...defaultStyle,
+              }),
+            ],
+            verticalAlign: VerticalAlign.CENTER,
           }),
           // Mã SV
           new TableCell({
-            children: [new Paragraph({
-              text: item.MaSV || "",
-              ...defaultStyle
-            })],
-            verticalAlign: VerticalAlign.CENTER
+            children: [
+              new Paragraph({
+                text: item.MaSV || "",
+                ...defaultStyle,
+              }),
+            ],
+            verticalAlign: VerticalAlign.CENTER,
           }),
           // Tên đề tài
           new TableCell({
-            children: [new Paragraph({
-              text: item.TenDeTai || "",
-              ...defaultStyle
-            })],
-            verticalAlign: VerticalAlign.CENTER
+            children: [
+              new Paragraph({
+                text: item.TenDeTai || "",
+                ...defaultStyle,
+              }),
+            ],
+            verticalAlign: VerticalAlign.CENTER,
           }),
           // Giảng viên hướng dẫn
           new TableCell({
-            children: createGiangVienParagraphs(item.GiangVienHuongDan, defaultStyle),
-            verticalAlign: VerticalAlign.CENTER
+            children: createGiangVienParagraphs(
+              item.GiangVienHuongDan,
+              defaultStyle
+            ),
+            verticalAlign: VerticalAlign.CENTER,
           }),
           // Đơn vị công tác - sử dụng trường Khoa
           new TableCell({
-            children: [new Paragraph({
-              text: "",
-              ...defaultStyle
-            })],
-            verticalAlign: VerticalAlign.CENTER
+            children: [
+              new Paragraph({
+                text: "",
+                ...defaultStyle,
+              }),
+            ],
+            verticalAlign: VerticalAlign.CENTER,
           }),
         ],
       });
@@ -1608,13 +1655,16 @@ const exportToWord = async (req, res) => {
       if (!giangVien) return [new Paragraph({ text: "", ...style })];
 
       // Nếu là chuỗi, kiểm tra xem có nhiều dòng không
-      if (typeof giangVien === 'string') {
+      if (typeof giangVien === "string") {
         // Nếu chuỗi có định dạng "1. TS. Nguyễn Văn A\n2. ThS. Trần Văn B"
-        if (giangVien.includes('\n')) {
-          return giangVien.split('\n').map(gv => new Paragraph({
-            text: gv.trim(),
-            ...style
-          }));
+        if (giangVien.includes("\n")) {
+          return giangVien.split("\n").map(
+            (gv) =>
+              new Paragraph({
+                text: gv.trim(),
+                ...style,
+              })
+          );
         }
         return [new Paragraph({ text: giangVien, ...style })];
       }
@@ -1642,10 +1692,10 @@ const exportToWord = async (req, res) => {
               size: 26, // 13pt = 26 half-points
             },
             paragraph: {
-              alignment: AlignmentType.CENTER
-            }
-          }
-        }
+              alignment: AlignmentType.CENTER,
+            },
+          },
+        },
       },
       sections: [
         {
@@ -1668,12 +1718,12 @@ const exportToWord = async (req, res) => {
               bold: true,
               alignment: AlignmentType.CENTER,
               font: "Times New Roman",
-              size: 26 // 13pt = 26 half-points
+              size: 26, // 13pt = 26 half-points
             }),
             new Paragraph({
               text: "",
               font: "Times New Roman",
-              size: 26 // 13pt = 26 half-points
+              size: 26, // 13pt = 26 half-points
             }),
             table,
           ],
