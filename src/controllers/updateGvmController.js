@@ -89,6 +89,7 @@ const postUpdateGvm = async (req, res) => {
   let MonGiangDayChinh = req.body.monGiangDayChinh;
   let QrCode = req.body.QrCode;
 
+  let oldHoTen = req.body.oldHoTen;
   let oldMaPhongBan = req.body.oldMaPhongBan;
   let oldMonGiangDayChinh = req.body.oldMonGiangDayChinh;
   let oldTruocCCCD = req.body.oldTruocCCCD;
@@ -180,58 +181,68 @@ const postUpdateGvm = async (req, res) => {
       ? req.files["QrCode"][0].filename
       : oldQrCode;
 
-    // Di chuyển file cũ nếu bộ môn hoặc khoa thay đổi
-    const fields = {
-      truocCCCD: oldTruocCCCD,
-      sauCCCD: oldSauCCCD,
-      bangTotNghiep: oldbangTotNghiep,
-      FileLyLich: oldFileLyLich,
-      fileBoSung: oldFileBoSung,
-      QrCode: oldQrCode,
-    };
+    if (
+      oldHoTen !== HoTen ||
+      oldMaPhongBan !== MaPhongBan ||
+      oldMonGiangDayChinh !== MonGiangDayChinh
+    ) {
+      // Chỉ chạy khi Họ tên hoặc khoa hoặc bộ môn thay đổi
+      const fields = {
+        truocCCCD: oldTruocCCCD,
+        sauCCCD: oldSauCCCD,
+        bangTotNghiep: oldbangTotNghiep,
+        FileLyLich: oldFileLyLich,
+        fileBoSung: oldFileBoSung,
+        QrCode: oldQrCode,
+      };
 
-    for (const field in fields) {
-      if (!req.files[field] && fields[field]) {
-        const oldPath = path.join(
-          appRoot.path,
-          "Giang_Vien_Moi",
-          oldMaPhongBan,
-          oldMonGiangDayChinh,
-          HoTen,
-          fields[field]
-        );
-        const newPath = path.join(
-          appRoot.path,
-          "Giang_Vien_Moi",
-          MaPhongBan,
-          MonGiangDayChinh,
-          HoTen,
-          fields[field]
-        );
-        fs.mkdirSync(path.dirname(newPath), { recursive: true });
+      for (const field in fields) {
+        if (!req.files[field] && fields[field]) {
+          const oldPath = path.join(
+            appRoot.path,
+            "Giang_Vien_Moi",
+            oldMaPhongBan,
+            oldMonGiangDayChinh,
+            oldHoTen,
+            fields[field]
+          );
+          const newPath = path.join(
+            appRoot.path,
+            "Giang_Vien_Moi",
+            MaPhongBan,
+            MonGiangDayChinh,
+            HoTen,
+            fields[field]
+          );
+          fs.mkdirSync(path.dirname(newPath), { recursive: true });
 
-        if (fs.existsSync(oldPath)) {
-          fs.renameSync(oldPath, newPath);
+          if (fs.existsSync(oldPath)) {
+            fs.renameSync(oldPath, newPath);
+
+            console.log(
+              `Đã di chuyển file '${field}' từ:\n  ${oldPath}\n  => ${newPath}`
+            );
+          } else {
+            console.log(`Không tìm thấy file '${field}' tại: ${oldPath}`);
+          }
         }
       }
-    }
 
-    // Sau khi đã di chuyển xong các file
-    const oldFolderPath = path.join(
-      appRoot.path,
-      "Giang_Vien_Moi",
-      oldMaPhongBan,
-      oldMonGiangDayChinh,
-      HoTen
-    );
+      const oldFolderPath = path.join(
+        appRoot.path,
+        "Giang_Vien_Moi",
+        oldMaPhongBan,
+        oldMonGiangDayChinh,
+        oldHoTen
+      );
 
-    // Kiểm tra nếu thư mục cũ trống thì xóa
-    if (
-      fs.existsSync(oldFolderPath) &&
-      fs.readdirSync(oldFolderPath).length === 0
-    ) {
-      fs.rmdirSync(oldFolderPath); // Xóa thư mục nếu rỗng
-      console.log("Đã xóa thư mục cũ:", oldFolderPath);
+      if (
+        fs.existsSync(oldFolderPath) &&
+        fs.readdirSync(oldFolderPath).length === 0
+      ) {
+        fs.rmdirSync(oldFolderPath);
+        console.log("Đã xóa thư mục cũ:", oldFolderPath);
+      }
     }
 
     // Truy vấn để update dữ liệu vào cơ sở dữ liệu
