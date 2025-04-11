@@ -769,10 +769,10 @@ const getClassInfoGvmData = async (req, res) => {
       queryParams.push(ki);
     }
 
+    // Thống kê theo từng lớp 
     const [results, fields] = await connection.query(query, queryParams);
-    // const dataSoTietDoAn = await getSoTietDoAnTongHopTheoNam(nam, MaPhongBan);
+    // Lấy tổng tiết dự kiến 
     const tongSoTietTrongNam = await getHopDongDuKienData(nam, dot, ki, he_dao_tao, department)
-    // console.log(dataSoTietDoAn);
 
     // Nhóm các môn học theo giảng viên, theo Khoa 
     const groupedByTeacher = results.reduce((acc, current) => {
@@ -837,15 +837,61 @@ const getClassInfoGvmData = async (req, res) => {
         groupedByTeacher[teacher].push({ tongSoTietBaoGomDoAn: 0 });
       }
     });
-    const result = sortDataByTotalSoTiet(groupedByTeacher);
+
+    // Sort giảm dần 
+    const result1 = sortDataByTotalSoTiet(groupedByTeacher);
+
+    // Lấy MaPhongBan của giảng viên 
+    const result2 = await getMaPhongBanAndUpdateData(result1);
+
+    console.log(result2)
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
-    res.json(result);
+    res.json(result2);
   } catch (error) {
     console.error("Error fetching class info:", error);
     res.status(500).send("Internal Server Error");
   } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const getMaPhongBanAndUpdateData = async (data) => {
+  let connection;
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+    
+    // Lặp qua từng giảng viên trong data
+    for (const tenGiangVien in data) {
+      if (Object.hasOwnProperty.call(data, tenGiangVien)) {
+        // Truy vấn MaPhongBan từ bảng gvmoi dựa trên tên giảng viên
+        const query = `SELECT MaPhongBan FROM gvmoi WHERE HoTen = ?`;
+        const [results] = await connection.query(query, [tenGiangVien]);
+        
+        if (results.length > 0) {
+          const maPhongBan = results[0].MaPhongBan;
+          
+          // Gắn MaPhongBan vào từng đối tượng trong mảng của giảng viên đó
+          data[tenGiangVien].forEach(item => {
+            // Chỉ thêm MaPhongBan vào đối tượng có thông tin giảng viên
+            if (item.GiangVien) {
+              item.MaPhongBan = maPhongBan;
+            }
+          });
+        } else {
+          console.log(`Không tìm thấy thông tin phòng ban cho giảng viên: ${tenGiangVien}`);
+        }
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi truy vấn MaPhongBan:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
   }
 };
 
