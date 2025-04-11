@@ -28,7 +28,7 @@ router.post(
 );
 
 // Cập nhật table đồ án tốt nghiệp
-router.post("/updateDoAn", doAnChinhThuc.updateDoAn);
+router.post("/api/doan/quy-chuan/update-do-an", doAnChinhThuc.updateDoAn);
 
 // Lưu dữ liệu vào table export đồ án tốt nghiệp
 router.post("/saveToExportDoAn", doAnChinhThuc.saveToExportDoAn);

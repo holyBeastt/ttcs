@@ -197,6 +197,7 @@ const updateDoAn = async (req, res) => {
   const isKhoa = req.session.isKhoa;
   const jsonData = req.body;
   const Dot = req.query.Dot;
+  const ki = req.query.ki;
   const NamHoc = req.query.NamHoc;
   const MaPhongBan = req.query.MaPhongBan;
 
@@ -211,69 +212,29 @@ const updateDoAn = async (req, res) => {
     const uniqueGV = gvData.uniqueGV;
     const allGV = gvData.allGV;
 
-    // Duyệt qua từng phần tử trong jsonData
-    for (let item of jsonData) {
-      const {
-        ID,
-        TT,
-        GiangVien1,
-        GiangVien2,
-        NamHoc,
-        MaPhongBan,
-        GhiChu,
-        KhoaDuyet,
-        DaoTaoDuyet,
-        TaiChinhDuyet,
-        NgayBatDau,
-        NgayKetThuc,
-      } = item;
+    const updates = [];
+    const updateIDs = [];
 
-      if (KhoaDuyet == 1) {
-        // Xử lý giảng viên 1
-        if (item.GiangVien1.includes("-")) {
-          GiangVien = item.GiangVien1.split("-")[0].trim();
-          BienChe = item.GiangVien1.split("-")[1].trim();
-          CCCD = item.GiangVien1.split("-")[2].trim();
+    // Nếu là khoa
+    if (isKhoa == 1) {
+      for (let item of jsonData) {
+        const {
+          ID,
+          TT,
+          GiangVien1,
+          GiangVien2,
+          GhiChu,
+          KhoaDuyet,
+          NgayBatDau,
+          NgayKetThuc,
+        } = item;
 
-          const matchedItem = allGV.find(
-            (arr) =>
-              arr.HoTen?.trim() === GiangVien?.trim() &&
-              arr.BienChe?.trim().toLowerCase() === BienChe?.toLowerCase() &&
-              arr.CCCD?.trim() === CCCD?.trim()
-          );
-
-          if (!matchedItem) {
-            errors.push(
-              `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
-            );
-            continue;
-          }
-        } else {
-          const matchedItem = uniqueGV.find(
-            (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
-          );
-
-          if (!matchedItem) {
-            errors.push(
-              `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
-            );
-            continue;
-          }
-        }
-
-        if (!GiangVien1 || GiangVien1.length === 0) {
-          errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
-          continue;
-        }
-
-        if (GiangVien2 == "" || GiangVien2 == null) {
-          errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
-          continue;
-        } else if (item.GiangVien2.toLowerCase().trim() != "không") {
-          if (item.GiangVien2.includes("-")) {
-            GiangVien = item.GiangVien2.split("-")[0].trim();
-            BienChe = item.GiangVien2.split("-")[1].trim();
-            CCCD = item.GiangVien2.split("-")[2].trim();
+        if (KhoaDuyet == 1) {
+          // Xử lý giảng viên 1
+          if (item.GiangVien1.includes("-")) {
+            GiangVien = item.GiangVien1.split("-")[0].trim();
+            BienChe = item.GiangVien1.split("-")[1].trim();
+            CCCD = item.GiangVien1.split("-")[2].trim();
 
             const matchedItem = allGV.find(
               (arr) =>
@@ -284,68 +245,185 @@ const updateDoAn = async (req, res) => {
 
             if (!matchedItem) {
               errors.push(
-                `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+                `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
               );
               continue;
             }
           } else {
             const matchedItem = uniqueGV.find(
-              (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
+              (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
             );
 
             if (!matchedItem) {
               errors.push(
-                `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+                `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien} ở dòng ${TT}`
               );
               continue;
             }
           }
+
+          if (!GiangVien1 || GiangVien1.length === 0) {
+            errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
+            continue;
+          }
+
+          if (GiangVien2 == "" || GiangVien2 == null) {
+            errors.push(`\nDòng thứ ${TT} chưa được điền giảng viên hướng dẫn`);
+            continue;
+          } else if (item.GiangVien2.toLowerCase().trim() != "không") {
+            if (item.GiangVien2.includes("-")) {
+              GiangVien = item.GiangVien2.split("-")[0].trim();
+              BienChe = item.GiangVien2.split("-")[1].trim();
+              CCCD = item.GiangVien2.split("-")[2].trim();
+
+              const matchedItem = allGV.find(
+                (arr) =>
+                  arr.HoTen?.trim() === GiangVien?.trim() &&
+                  arr.BienChe?.trim().toLowerCase() ===
+                    BienChe?.toLowerCase() &&
+                  arr.CCCD?.trim() === CCCD?.trim()
+              );
+
+              if (!matchedItem) {
+                errors.push(
+                  `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+                );
+                continue;
+              }
+            } else {
+              const matchedItem = uniqueGV.find(
+                (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
+              );
+
+              if (!matchedItem) {
+                errors.push(
+                  `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien} ở dòng ${TT}`
+                );
+                continue;
+              }
+            }
+          }
         }
-      }
 
-      let updateQuery, updateValues;
-      if (isKhoa == 1) {
-        // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-        updateQuery = `
-      UPDATE doantotnghiep
-      SET 
-        GiangVien1 = ?,
-        GiangVien2 = ?,
-        GhiChu = ?,
-        KhoaDuyet = ?,
-        DaoTaoDuyet = ?,
-        TaiChinhDuyet = ?,
-        NgayBatDau = ?,
-        NgayKetThuc = ?
-      WHERE ID = ?
-    `;
-
-        updateValues = [
+        updateIDs.push(ID);
+        updates.push({
+          ID,
           GiangVien1,
           GiangVien2,
           GhiChu,
           KhoaDuyet,
-          DaoTaoDuyet,
-          TaiChinhDuyet,
-          isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-          isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-          ID,
-        ];
-      } else {
-        // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-        updateQuery = `
-        UPDATE doantotnghiep
-        SET 
-          KhoaDuyet = ?,
-          DaoTaoDuyet = ?,
-          TaiChinhDuyet = ?
-        WHERE ID = ?
-      `;
-
-        updateValues = [KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet, ID];
+          NgayBatDau: isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
+          NgayKetThuc: isNaN(new Date(NgayKetThuc).getTime())
+            ? null
+            : NgayKetThuc,
+        });
+      }
+    } else {
+      // Giới hạn số lượng bản ghi mỗi batch (tránh quá tải)
+      const batchSize = 100;
+      const batches = [];
+      for (let i = 0; i < jsonData.length; i += batchSize) {
+        batches.push(jsonData.slice(i, i + batchSize));
       }
 
-      await connection.query(updateQuery, updateValues);
+      // Xử lý từng batch
+      for (const batch of batches) {
+        let updateQuery = `
+      UPDATE doantotnghiep
+      SET
+        KhoaDuyet = CASE
+    `;
+        const updateValues = [];
+        const ids = [];
+
+        batch.forEach(({ ID, KhoaDuyet }) => {
+          // Thêm logic cập nhật cho NgayBatDau
+          updateQuery += ` WHEN ID = ? THEN ? `;
+          updateValues.push(ID, KhoaDuyet);
+
+          // Thêm logic cập nhật cho NgayKetThuc
+          if (!ids.includes(ID)) ids.push(ID);
+        });
+
+        // Phần đào tạo duyệt
+        updateQuery += `
+          END, 
+          DaoTaoDuyet = CASE
+        `;
+
+        batch.forEach(({ ID, DaoTaoDuyet }) => {
+          updateQuery += ` WHEN ID = ? THEN ? `;
+          updateValues.push(ID, DaoTaoDuyet);
+        });
+
+        // Phần tài chính duyệt
+        updateQuery += `
+        END, 
+        TaiChinhDuyet = CASE
+      `;
+
+        batch.forEach(({ ID, TaiChinhDuyet }) => {
+          updateQuery += ` WHEN ID = ? THEN ? `;
+          updateValues.push(ID, TaiChinhDuyet);
+        });
+
+        // Hoàn thiện truy vấn
+        updateQuery += ` END WHERE ID IN (${ids.map(() => "?").join(", ")})`;
+        updateValues.push(...ids);
+
+        // Thực hiện truy vấn cập nhật
+        await connection.query(updateQuery, updateValues);
+      }
+    }
+
+    if (updates.length > 0) {
+      const updateQuery = `
+        UPDATE doantotnghiep
+        SET
+          GiangVien1 = CASE ID
+            ${updates
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien1)}`
+              )
+              .join(" ")}
+          END,
+          GiangVien2 = CASE ID
+            ${updates
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien2)}`
+              )
+              .join(" ")}
+          END,
+          GhiChu = CASE ID
+            ${updates
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
+          END,
+          KhoaDuyet = CASE ID
+            ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
+          END,
+          NgayBatDau = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END,
+          NgayKetThuc = CASE ID
+            ${updates
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
+          END
+        WHERE ID IN (${updateIDs.join(", ")});
+      `;
+
+      await connection.query(updateQuery);
     }
 
     // Nếu có lỗi, trả về thông báo lỗi
