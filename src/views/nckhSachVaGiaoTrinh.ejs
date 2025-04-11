@@ -204,22 +204,22 @@
           // Cấp quyền sửa
           if (userRole === "GV" || userRole === "Thường") {
             columns = [
-              { title: "Phân loại", field: "PhanLoai", editor: "false" },
-              { title: "Tên sách và giáo trình", field: "TenSachVaGiaoTrinh", editor: "false" },
-              { title: "Số xuất bản", field: "SoXuatBan", editor: "false" },
-              { title: "Số trang", field: "SoTrang", editor: "false" },
-              { title: "Tác giả", field: "TacGia", editor: "false" },
-              { title: "Đồng chủ biên", field: "DongChuBien", editor: "false" },
-              { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
+              { title: "Phân loại", field: "PhanLoai", editor: "false", width: "10%" },
+              { title: "Tên sách và giáo trình", field: "TenSachVaGiaoTrinh", editor: "false", },
+              { title: "Số xuất bản", field: "SoXuatBan", editor: "false", width: "7%" },
+              { title: "Số trang", field: "SoTrang", editor: "false", width: "5%" },
+              { title: "Tác giả", field: "TacGia", editor: "false", width: "10%" },
+              { title: "Đồng chủ biên", field: "DongChuBien", editor: "false", width: "10%" },
+              { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false", }
             ];
           } else {
             columns = [
-              { title: "Phân loại", field: "PhanLoai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
+              { title: "Phân loại", field: "PhanLoai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Tên sách và giáo trình", field: "TenSachVaGiaoTrinh", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              { title: "Số xuất bản", field: "SoXuatBan", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              { title: "Số trang", field: "SoTrang", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              { title: "Tác giả", field: "TacGia", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              { title: "Đồng chủ biên", field: "DongChuBien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
+              { title: "Số xuất bản", field: "SoXuatBan", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "7%" },
+              { title: "Số trang", field: "SoTrang", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "5%" },
+              { title: "Tác giả", field: "TacGia", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
+              { title: "Đồng chủ biên", field: "DongChuBien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
             ];
           }
@@ -230,18 +230,20 @@
               title: "Khoa",
               field: "Khoa",
               editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              width: "10%"
             });
           }
 
           // Cấp quyền xóa
           if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
-              title: "Hành Động",
+              title: "Xóa",
               field: "actions",
               formatter: actionFormatter,
               hozAlign: "center",
-              headerSort: false
+              headerSort: false,
+              width: "5%"
             });
           }
 
@@ -250,12 +252,14 @@
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
-              formatter: checkboxFormatter,
+              // formatter: checkboxFormatter,
+              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
               editor: "tickCross",
               cellClick: function (e, cell) {
                 // Cho phép chỉnh sửa nếu dòng chưa được duyệt
                 cell.edit();
               },
+              width: "7%"
             });
           }
 

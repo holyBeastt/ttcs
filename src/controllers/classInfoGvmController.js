@@ -243,6 +243,248 @@ const getSoTietDoAnTongHopTheoNam = async (NamHoc, MaPhongBan) => {
   }
 };
 
+
+const getClassInfoGvmData = async (req, res) => {
+  const MaPhongBan = req.session.MaPhongBan;
+  const isKhoa = req.session.isKhoa;
+  const { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
+  // console.log(req.body)
+
+  let connection; // Khai báo biến connection
+
+  let query = `
+  WITH 
+ phuLucSauDH AS (
+    SELECT DISTINCT
+        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
+        qc.TenLop AS Lop, 
+        ROUND( qc.QuyChuan * 0.7, 2 ) AS SoTiet,
+        qc.LopHocPhan AS TenHocPhan, 
+        qc.KiHoc AS HocKy,
+        qc.SoTinChi,
+        gv.id_Gvm,
+        gv.HocVi, 
+        gv.HSL,
+        qc.NgayBatDau, 
+        qc.NgayKetThuc,
+        gv.DiaChi,
+        qc.Dot,
+        qc.KiHoc,
+        qc.NamHoc,
+        qc.Khoa,
+        qc.he_dao_tao
+    FROM quychuan qc
+    JOIN gvmoi gv 
+        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+    WHERE qc.GiaoVienGiangDay LIKE '%,%' AND qc.MoiGiang = 1
+),
+  phuLucDH AS (
+      SELECT DISTINCT
+          TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
+          qc.TenLop AS Lop, 
+          qc.QuyChuan AS SoTiet, 
+          qc.LopHocPhan AS TenHocPhan, 
+          qc.KiHoc AS HocKy,
+          qc.SoTinChi,
+          gv.id_Gvm,
+          gv.HocVi, 
+          gv.HSL,
+          qc.NgayBatDau, 
+          qc.NgayKetThuc,
+          gv.DiaChi,
+          qc.Dot,
+          qc.KiHoc,
+          qc.NamHoc,
+          qc.Khoa,   
+          qc.he_dao_tao
+      FROM quychuan qc
+      JOIN gvmoi gv 
+          ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+      WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
+  ),
+  table_ALL AS (
+      SELECT * FROM phuLucSauDH
+      UNION
+      SELECT * FROM phuLucDH
+  )
+
+  SELECT * FROM table_ALL WHERE Dot = ? AND NamHoc = ?
+  `;
+
+  // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
+  if (he_dao_tao !== "ALL") {
+    query += ` AND he_dao_tao = ?`;
+  }
+
+  if (ki != "ALL") {
+    query += ` AND KiHoc = ?`;
+  }
+
+  // Phần comment này là phần truy vấn phân loại theo Khoa, nhưng k hiển thị được nếu có một gv dạy ở 2 Khoa
+  // console.log("derpartment " + department + " MaPhongBan " + MaPhongBan);
+  // if (isKhoa == 0) {
+  //   if (department != "ALL") {
+  //     query += ` AND Khoa LIKE '%${department}%'`;
+  //   }
+  // } else {
+  //   query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
+  // }
+  // Cách hoạt động mới sẽ như sau :
+  // Nếu department là ALL => cho hiển thị ALL data. Ngược lại chỉ hiển thị của Khoa đó.
+  // Truy vấn luôn trả về data của ALL khoa.
+  // Tìm lọc các trường hợp lớp thuộc 2 khoa mà có tên giảng viên giống nhau, gộp vào và trả cho res.
+
+  try {
+    connection = await createPoolConnection();
+    const queryParams = [dot, nam];
+    if (he_dao_tao !== "ALL") {
+      queryParams.push(he_dao_tao);
+    }
+    if (ki != "ALL") {
+      queryParams.push(ki);
+    }
+
+    // Thống kê theo từng lớp 
+    const [results, fields] = await connection.query(query, queryParams);
+    // Lấy tổng tiết dự kiến 
+    const tongSoTietTrongNam = await getHopDongDuKienData(nam, dot, ki, he_dao_tao, department)
+
+    // Nhóm các môn học theo giảng viên, theo Khoa 
+    const groupedByTeacher = results.reduce((acc, current) => {
+      const teacher = current.GiangVien;
+
+      // Nếu department là ALL thì hiển thị tất cả
+      if (department == "ALL") {
+        if (!acc[teacher]) {
+          acc[teacher] = [];
+        }
+        acc[teacher].push(current);
+      } else {
+        // Lọc theo Khoa
+        if (current.Khoa == department) {
+          if (!acc[teacher]) {
+            acc[teacher] = [];
+          }
+          acc[teacher].push(current);
+        }
+      }
+
+      return acc;
+    }, {});
+
+    // Vòng lặp thứ 2, kiểm tra một giảng viên giảng dạy nhiều khoa 
+    if (department != "ALL") {
+      results.forEach(current => {
+        // Kiểm tra khoa thứ 2 
+        if (current.Khoa != department) {
+          const teacher = current.GiangVien;
+          // Trùng tên, Khoa khác thì thêm luôn
+          if (groupedByTeacher[teacher]) {
+            groupedByTeacher[teacher].push(current);
+          }
+        }
+      });
+    }
+
+    // console.log(groupedByTeacher)
+    // Duyệt qua danh sách tongSoTietTrongNam để chèn dữ liệu vào cuối mảng của từng giảng viên
+    tongSoTietTrongNam.forEach((item) => {
+      const teacherName = item.GiangVien;
+      if (groupedByTeacher.hasOwnProperty(teacherName)) {
+        // Kiểm tra xem trong mảng của giảng viên đã có đối tượng chứa key 'tongSoTietBaoGomDoAn' với giá trị trùng khớp chưa
+        const exists = groupedByTeacher[teacherName].some(subItem =>
+          subItem.hasOwnProperty('tongSoTietBaoGomDoAn') && subItem.tongSoTietBaoGomDoAn === item.TongSoTiet
+        );
+        // Nếu chưa có, thì mới push đối tượng mới vào mảng
+        if (!exists) {
+          groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
+        }
+      }
+    });
+
+    // Đảm bảo rằng tất cả các giảng viên đều có thông tin 'tongSoTietBaoGomDoAn'
+    // Nếu giảng viên chưa có thông tin này, thêm đối tượng với giá trị mặc định là 0
+    Object.keys(groupedByTeacher).forEach(teacher => {
+      const hasDoAn = groupedByTeacher[teacher].some(subItem =>
+        subItem.hasOwnProperty('tongSoTietBaoGomDoAn')
+      );
+      if (!hasDoAn) {
+        groupedByTeacher[teacher].push({ tongSoTietBaoGomDoAn: 0 });
+      }
+    });
+
+    // Sort giảm dần 
+    const result1 = sortDataByTotalSoTiet(groupedByTeacher);
+
+    // Lấy MaPhongBan của giảng viên 
+    const result2 = await getMaPhongBanAndUpdateData(result1);
+
+    console.log(result2)
+
+    // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
+    res.json(result2);
+  } catch (error) {
+    console.error("Error fetching class info:", error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const getMaPhongBanAndUpdateData = async (data) => {
+  let connection;
+  try {
+    // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+
+
+    // Lặp qua từng giảng viên trong data
+    for (const tenGiangVien in data) {
+      if (Object.hasOwnProperty.call(data, tenGiangVien)) {
+        // Truy vấn MaPhongBan từ bảng gvmoi dựa trên tên giảng viên
+        const query = `SELECT MaPhongBan FROM gvmoi WHERE HoTen = ?`;
+        const [results] = await connection.query(query, [tenGiangVien]);
+
+        if (results.length > 0) {
+          const maPhongBan = results[0].MaPhongBan;
+
+          // Gắn MaPhongBan vào từng đối tượng trong mảng của giảng viên đó
+          data[tenGiangVien].forEach(item => {
+            // Chỉ thêm MaPhongBan vào đối tượng có thông tin giảng viên
+            if (item.GiangVien) {
+              item.MaPhongBan = maPhongBan;
+            }
+          });
+        } else {
+          console.log(`Không tìm thấy thông tin phòng ban cho giảng viên: ${tenGiangVien}`);
+        }
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi truy vấn MaPhongBan:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối
+  }
+};
+
+function sortDataByTotalSoTiet(data) {
+  // Lấy các cặp [key, value] từ đối tượng
+  const entries = Object.entries(data);
+
+  // Sắp xếp mảng entries dựa vào tổng số tiết của phần tử cuối trong mảng value
+  entries.sort((a, b) => {
+    const totalA = parseFloat(a[1][a[1].length - 1].tongSoTietBaoGomDoAn);
+    const totalB = parseFloat(b[1][b[1].length - 1].tongSoTietBaoGomDoAn);
+    return totalB - totalA; // giảm dần
+  });
+
+  // Chuyển đổi mảng đã sắp xếp về đối tượng với cùng cấu trúc ban đầu
+  return Object.fromEntries(entries);
+}
+
 // Lấy data của hợp dồng dự kiến 
 const getHopDongDuKienData = async (namHoc, dot, ki, he_dao_tao, khoa) => {
   let connection;
@@ -667,202 +909,6 @@ const getHopDongDuKienData = async (namHoc, dot, ki, he_dao_tao, khoa) => {
     if (connection) connection.release(); // Trả lại connection cho pool
   }
 };
-
-
-const getClassInfoGvmData = async (req, res) => {
-  const MaPhongBan = req.session.MaPhongBan;
-  const isKhoa = req.session.isKhoa;
-  const { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
-  // console.log(req.body)
-
-  let connection; // Khai báo biến connection
-
-  let query = `
-  WITH 
- phuLucSauDH AS (
-    SELECT DISTINCT
-        TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
-        qc.TenLop AS Lop, 
-        ROUND( qc.QuyChuan * 0.7, 2 ) AS SoTiet,
-        qc.LopHocPhan AS TenHocPhan, 
-        qc.KiHoc AS HocKy,
-        qc.SoTinChi,
-        gv.id_Gvm,
-        gv.HocVi, 
-        gv.HSL,
-        qc.NgayBatDau, 
-        qc.NgayKetThuc,
-        gv.DiaChi,
-        qc.Dot,
-        qc.KiHoc,
-        qc.NamHoc,
-        qc.Khoa,
-        qc.he_dao_tao
-    FROM quychuan qc
-    JOIN gvmoi gv 
-        ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
-    WHERE qc.GiaoVienGiangDay LIKE '%,%' AND qc.MoiGiang = 1
-),
-  phuLucDH AS (
-      SELECT DISTINCT
-          TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS GiangVien, 
-          qc.TenLop AS Lop, 
-          qc.QuyChuan AS SoTiet, 
-          qc.LopHocPhan AS TenHocPhan, 
-          qc.KiHoc AS HocKy,
-          qc.SoTinChi,
-          gv.id_Gvm,
-          gv.HocVi, 
-          gv.HSL,
-          qc.NgayBatDau, 
-          qc.NgayKetThuc,
-          gv.DiaChi,
-          qc.Dot,
-          qc.KiHoc,
-          qc.NamHoc,
-          qc.Khoa,   
-          qc.he_dao_tao
-      FROM quychuan qc
-      JOIN gvmoi gv 
-          ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
-      WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
-  ),
-  table_ALL AS (
-      SELECT * FROM phuLucSauDH
-      UNION
-      SELECT * FROM phuLucDH
-  )
-
-  SELECT * FROM table_ALL WHERE Dot = ? AND NamHoc = ?
-  `;
-
-  // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
-  if (he_dao_tao !== "ALL") {
-    query += ` AND he_dao_tao = ?`;
-  }
-
-  if (ki != "ALL") {
-    query += ` AND KiHoc = ?`;
-  }
-
-  // Phần comment này là phần truy vấn phân loại theo Khoa, nhưng k hiển thị được nếu có một gv dạy ở 2 Khoa
-  // console.log("derpartment " + department + " MaPhongBan " + MaPhongBan);
-  // if (isKhoa == 0) {
-  //   if (department != "ALL") {
-  //     query += ` AND Khoa LIKE '%${department}%'`;
-  //   }
-  // } else {
-  //   query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
-  // }
-  // Cách hoạt động mới sẽ như sau :
-  // Nếu department là ALL => cho hiển thị ALL data. Ngược lại chỉ hiển thị của Khoa đó.
-  // Truy vấn luôn trả về data của ALL khoa.
-  // Tìm lọc các trường hợp lớp thuộc 2 khoa mà có tên giảng viên giống nhau, gộp vào và trả cho res.
-
-  try {
-    connection = await createPoolConnection();
-    const queryParams = [dot, nam];
-    if (he_dao_tao !== "ALL") {
-      queryParams.push(he_dao_tao);
-    }
-    if (ki != "ALL") {
-      queryParams.push(ki);
-    }
-
-    const [results, fields] = await connection.query(query, queryParams);
-    // const dataSoTietDoAn = await getSoTietDoAnTongHopTheoNam(nam, MaPhongBan);
-    const tongSoTietTrongNam = await getHopDongDuKienData(nam, dot, ki, he_dao_tao, department)
-    // console.log(dataSoTietDoAn);
-
-    // Nhóm các môn học theo giảng viên, theo Khoa 
-    const groupedByTeacher = results.reduce((acc, current) => {
-      const teacher = current.GiangVien;
-
-      // Nếu department là ALL thì hiển thị tất cả
-      if (department == "ALL") {
-        if (!acc[teacher]) {
-          acc[teacher] = [];
-        }
-        acc[teacher].push(current);
-      } else {
-        // Lọc theo Khoa
-        if (current.Khoa == department) {
-          if (!acc[teacher]) {
-            acc[teacher] = [];
-          }
-          acc[teacher].push(current);
-        }
-      }
-
-      return acc;
-    }, {});
-
-    // Vòng lặp thứ 2, kiểm tra một giảng viên giảng dạy nhiều khoa 
-    if (department != "ALL") {
-      results.forEach(current => {
-        // Kiểm tra khoa thứ 2 
-        if (current.Khoa != department) {
-          const teacher = current.GiangVien;
-          // Trùng tên, Khoa khác thì thêm luôn
-          if (groupedByTeacher[teacher]) {
-            groupedByTeacher[teacher].push(current);
-          }
-        }
-      });
-    }
-
-    // console.log(groupedByTeacher)
-    // Duyệt qua danh sách tongSoTietTrongNam để chèn dữ liệu vào cuối mảng của từng giảng viên
-    tongSoTietTrongNam.forEach((item) => {
-      const teacherName = item.GiangVien;
-      if (groupedByTeacher.hasOwnProperty(teacherName)) {
-        // Kiểm tra xem trong mảng của giảng viên đã có đối tượng chứa key 'tongSoTietBaoGomDoAn' với giá trị trùng khớp chưa
-        const exists = groupedByTeacher[teacherName].some(subItem =>
-          subItem.hasOwnProperty('tongSoTietBaoGomDoAn') && subItem.tongSoTietBaoGomDoAn === item.TongSoTiet
-        );
-        // Nếu chưa có, thì mới push đối tượng mới vào mảng
-        if (!exists) {
-          groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
-        }
-      }
-    });
-
-    // Đảm bảo rằng tất cả các giảng viên đều có thông tin 'tongSoTietBaoGomDoAn'
-    // Nếu giảng viên chưa có thông tin này, thêm đối tượng với giá trị mặc định là 0
-    Object.keys(groupedByTeacher).forEach(teacher => {
-      const hasDoAn = groupedByTeacher[teacher].some(subItem =>
-        subItem.hasOwnProperty('tongSoTietBaoGomDoAn')
-      );
-      if (!hasDoAn) {
-        groupedByTeacher[teacher].push({ tongSoTietBaoGomDoAn: 0 });
-      }
-    });
-    const result = sortDataByTotalSoTiet(groupedByTeacher);
-
-    // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
-    res.json(result);
-  } catch (error) {
-    console.error("Error fetching class info:", error);
-    res.status(500).send("Internal Server Error");
-  } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
-  }
-};
-
-function sortDataByTotalSoTiet(data) {
-  // Lấy các cặp [key, value] từ đối tượng
-  const entries = Object.entries(data);
-
-  // Sắp xếp mảng entries dựa vào tổng số tiết của phần tử cuối trong mảng value
-  entries.sort((a, b) => {
-    const totalA = parseFloat(a[1][a[1].length - 1].tongSoTietBaoGomDoAn);
-    const totalB = parseFloat(b[1][b[1].length - 1].tongSoTietBaoGomDoAn);
-    return totalB - totalA; // giảm dần
-  });
-
-  // Chuyển đổi mảng đã sắp xếp về đối tượng với cùng cấu trúc ban đầu
-  return Object.fromEntries(entries);
-}
 
 const getGvm = async (req, res) => {
   let connection; // Khai báo biến connection

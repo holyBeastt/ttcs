@@ -128,6 +128,23 @@
     </div>
     <h3>Thống kê số đồ án tốt nghiệp theo giảng viên</h3>
     <div style="margin-top: 20px">
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="alert alert-success text-center">
+            <strong>Tổng số tiết cơ hữu:</strong> <span id="totalCoHuu">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="alert alert-warning text-center">
+            <strong>Tổng số tiết mời giảng:</strong> <span id="totalMoiGiang">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="alert alert-primary text-center">
+            <strong>Tổng số tiết:</strong> <span id="totalSoTiet">0</span>
+          </div>
+        </div>
+      </div>
       <canvas
         id="chartCoHuu"
         style="width: 60%; height: 200px; margin-bottom: 20px"
@@ -313,6 +330,9 @@
               if (response.success) {
                 const coHuu = response.coHuu;
                 const moiGiang = response.moiGiang;
+                $("#totalSoTiet").text(response.totalSoTiet || 0);
+                $("#totalCoHuu").text(response.totalCoHuu || 0);
+                $("#totalMoiGiang").text(response.totalMoiGiang || 0);
 
                 // Labels và values cho biểu đồ Cơ hữu
                 const coHuuLabels = coHuu.map(
@@ -502,4 +522,3 @@
     </script>
   </body>
 </html>
-``` 
