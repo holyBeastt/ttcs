@@ -52,6 +52,10 @@ const getTongHopSoTietNCKH = (req, res) => {
   res.render("nckhTongHopSoTiet.ejs");
 };
 
+const getTongHopSoTietNCKHDuKien = (req, res) => {
+  res.render("nckhTongHopSoTietDuKien.ejs");
+};
+
 // lấy bảng đề tài dự án
 // const getTableDeTaiDuAn = async (req, res) => {
 
@@ -2326,6 +2330,124 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
   }
 };
 
+const tongHopSoTietNckhCuaMotGiangVienDuKien = async (req, res) => {
+  // Nhận NamHoc và TenGiangVien từ req.params và req.body
+  const { NamHoc } = req.params;
+  const TenGiangVien = req.body.TenGiangVien;
+
+  let connection;
+
+  try {
+    // Tạo kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Chuẩn bị các truy vấn cho 7 bảng, mỗi truy vấn được gắn kèm tên bảng
+    const tableQueries = [
+      {
+        table: "Đề tài, dự án",
+        promise: connection.execute(
+          "SELECT ChuNhiem, ThuKy, DanhSachThanhVien FROM detaiduan WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Bài báo khoa học",
+        promise: connection.execute(
+          "SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien FROM baibaokhoahoc WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Bằng sáng chế và giải thưởng",
+        promise: connection.execute(
+          "SELECT TacGia, DanhSachThanhVien FROM bangsangchevagiaithuong WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển",
+        promise: connection.execute(
+          "SELECT DanhSachThanhVien FROM nckhvahuanluyendoituyen WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Sách và giáo trình xuất bản trong nước",
+        promise: connection.execute(
+          "SELECT TacGia, DongChuBien, DanhSachThanhVien FROM sachvagiaotrinh WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Xấy dựng chương trình đào tạo phục vụ học viện",
+        promise: connection.execute(
+          "SELECT DanhSachThanhVien FROM xaydungctdt WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+      {
+        table: "Biên soạn giáo trình bài giảng",
+        promise: connection.execute(
+          "SELECT TacGia, DanhSachThanhVien FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
+    ];
+
+    // Thực hiện các truy vấn đồng thời
+    const queryResults = await Promise.all(
+      tableQueries.map((item) => item.promise)
+    );
+
+    // Lọc các bảng chưa tên giảng viên
+    const filteredResults = tableQueries
+      .map((item, index) => {
+        // Lấy các bản ghi của bảng hiện tại
+        const rows = queryResults[index][0];
+
+        // Lọc các bản ghi có chứa TenGiangVien trong bất kỳ cột nào
+        const filteredRows = rows.filter((row) => {
+          return Object.values(row).some(
+            (value) =>
+              value &&
+              typeof value === "string" &&
+              value
+                .trim()
+                .toLowerCase()
+                .includes(TenGiangVien.trim().toLowerCase())
+          );
+        });
+
+        // Nếu không có bản ghi nào phù hợp thì trả về null
+        if (filteredRows.length === 0) return null;
+
+        // Trả về tất cả các dòng khớp với tên giảng viên
+        return {
+          Table: item.table,
+          rows: filteredRows,
+        };
+      })
+      .filter((item) => item !== null);
+
+    // In ra console kết quả với tên bảng
+    // console.log(JSON.stringify(filteredResults, null, 2));
+
+    const result = congTongSoTiet(filteredResults, TenGiangVien);
+
+    console.log(result);
+
+    // Trả về kết quả cho client
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error in tongHopSoTietNckhCuaMotGiangVien:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Không thể truy xuất dữ liệu" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 function congTongSoTiet(filteredResults, TenGiangVien) {
   // Hàm nội bộ: trích xuất số tiết từ chuỗi, hỗ trợ số nguyên và số thập phân
   function extractHours(text) {
@@ -2638,7 +2760,9 @@ module.exports = {
   saveNhiemVuKhoaHocCongNghe,
   getTableNhiemVuKhoaHocCongNghe,
   getTongHopSoTietNCKH,
+  getTongHopSoTietNCKHDuKien,
   tongHopSoTietNckhCuaMotGiangVien,
+  tongHopSoTietNckhCuaMotGiangVienDuKien,
   getData,
   editNckh,
   deleteNckh,

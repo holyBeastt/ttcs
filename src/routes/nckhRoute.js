@@ -50,6 +50,9 @@ router.get("/nhiemvukhoahoccongnghe/:NamHoc/:Khoa", nckh.getTableNhiemVuKhoaHocC
 router.get("/tonghopsotietnckh", nckh.getTongHopSoTietNCKH);
 router.post("/tonghopsotietnckh/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVien);
 
+router.get("/tonghopsotietnckh/dukien", nckh.getTongHopSoTietNCKHDuKien);
+router.post("/tonghopsotietnckh/dukien/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVienDuKien);
+
 
 // =================================================================
 // lấy data đổ vào các thẻ select

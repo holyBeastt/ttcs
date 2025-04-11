@@ -39,7 +39,7 @@
   <%- include('header') %>
 
     <div class="my-3 box formNckh">
-      <h2 class="titleNckh">Tổng hợp số tiết NCKH theo từng giảng viên</h2>
+      <h2 class="titleNckh">Dự kiến số tiết NCKH theo từng giảng viên</h2>
 
       <!-- view tab  -->
       <div id="viewTab" class="tab-content py-4">
@@ -81,7 +81,7 @@
       document.getElementById("render").addEventListener("click", async function () {
         const year = document.getElementById("namHocXem").value;
         const teacher = document.getElementById("TenGiangVien").value.trim();
-        const url = `/tonghopsotietnckh/${year}`;
+        const url = `/tonghopsotietnckh/dukien/${year}`;
         if (teacher == "") {
           alert("Vui lòng nhập tên giảng viên");
           return;

@@ -192,6 +192,7 @@
                 title: "Phân loại",
                 field: "PhanLoai",
                 editor: "false",
+                width: "15%"
               },
               {
                 title: "Tên giáo trình bài giảng",
@@ -202,11 +203,14 @@
                 title: "Số TC",
                 field: "SoTC",
                 editor: "false",
+                width: "7%"
               },
               {
                 title: "Số QĐ Giao Nhiệm Vụ",
                 field: "SoQDGiaoNhiemVu",
                 editor: "false",
+                width: "10%"
+
               },
               {
                 title: "Ngày QĐ Giao Nhiệm Vụ",
@@ -217,11 +221,14 @@
                   inputFormat: "iso",
                   outputFormat: "dd/MM/yyyy"
                 },
+                width: "10%"
               },
               {
                 title: "Tác Giả",
                 field: "TacGia",
                 editor: "false",
+                width: "10%"
+
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -237,6 +244,8 @@
                 field: "PhanLoai",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "15%"
+
               },
               {
                 title: "Tên giáo trình bài giảng",
@@ -249,12 +258,16 @@
                 field: "SoTC",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "7%"
+
               },
               {
                 title: "Số QĐ Giao Nhiệm Vụ",
                 field: "SoQDGiaoNhiemVu",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
+
               },
               {
                 title: "Ngày QĐ Giao Nhiệm Vụ",
@@ -266,12 +279,14 @@
                   outputFormat: "MM/dd/yyyy"
                 },
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Tác Giả",
                 field: "TacGia",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -290,17 +305,19 @@
               field: "Khoa",
               editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
               editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              width: "10%"
             });
           }
 
           // Cột Hành Động: chỉ thêm nếu người dùng có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
           if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
-              title: "Hành Động",
+              title: "Xóa",
               field: "actions",
               formatter: actionFormatter,
               hozAlign: "center",
               headerSort: false,
+              width: "5%"
             });
           }
 
@@ -309,12 +326,14 @@
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
-              formatter: checkboxFormatter,
+              // formatter: checkboxFormatter,
+              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
               editor: "tickCross",
               cellClick: function (e, cell) {
                 // Cho phép chỉnh sửa nếu dòng chưa được duyệt
                 cell.edit();
               },
+              width: "7%"
             });
           }
 
