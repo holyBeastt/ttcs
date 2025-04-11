@@ -281,6 +281,7 @@ const saveDeTaiDuAn = async (req, res) => {
     ngayNghiemThu,
     khoa,
     thanhVien, // Đây là một mảng từ client
+    ketQua,
   } = data;
 
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
@@ -290,9 +291,9 @@ const saveDeTaiDuAn = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO detaiduan (
-CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, ThuKy, NgayNghiemThu, Khoa, DanhSachThanhVien
+CapDeTai, NamHoc, TenDeTai, MaSoDeTai, ChuNhiem, ThuKy, NgayNghiemThu, Khoa, DanhSachThanhVien, KetQua 
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         capDeTai,
@@ -304,6 +305,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ngayNghiemThu,
         khoa,
         thanhVien,
+        ketQua
       ]
     );
 
@@ -1130,6 +1132,7 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
     ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
     thanhVien, // Đây là một mảng từ client
     khoa,
+    ketQua,
   } = req.body;
 
   // Gọi hàm quy đổi
@@ -1153,9 +1156,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO nckhvahuanluyendoituyen (
-PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa
+PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQua 
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai, // Phân loại
@@ -1165,6 +1168,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
         ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
         thanhVienFormatted, // Danh sách thành viên đã được format
         khoa,
+        ketQua
       ]
     );
 
@@ -1453,7 +1457,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
 
     // Kiểm tra nếu có dữ liệu trả về
     if (rows.length > 0) {
-      // Chuyển đổi giá trị SoGio sang chuỗi, thay thế dấu phẩy thành dấu chấm, sau đó parseFloat
+      // Chuyển đổi giá trị SoGio sang số, thay thế dấu phẩy thành dấu chấm
       totalHours = parseFloat(String(rows[0].SoGio).replace(/,/g, ".")) || 0;
     } else {
       throw new Error(
@@ -1461,9 +1465,9 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
       );
     }
 
-    // Nếu loại công việc có số tín chỉ, nhân với số giờ quy đổi
+    // Nếu loại công việc có số tín chỉ hợp lệ, nhân với số giờ quy đổi (không làm tròn)
     if (validSoTC > 0) {
-      totalHours = parseFloat((totalHours * validSoTC).toFixed(2));
+      totalHours = totalHours * validSoTC;
     }
 
     // Tổng số người tham gia
@@ -1472,18 +1476,15 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
         ? danhSachThanhVien
         : [];
 
-    // Tính số giờ chia đều cho các thành viên
+    // Tính số giờ chia đều cho các thành viên (không làm tròn)
     const hoursPerMember =
-      participants.length > 0
-        ? parseFloat((totalHours / participants.length).toFixed(2))
-        : 0;
+      participants.length > 0 ? parseFloat((totalHours / participants.length).toFixed(2)) : 0;
+
 
     // Xử lý format đầu ra cho từng thành viên
     participants.forEach((participant) => {
       const { name, unit } = extractNameAndUnit(participant);
-      // Đảm bảo định dạng số giờ luôn dùng dấu chấm thay vì dấu phẩy
-      const hoursFormatted = hoursPerMember.toFixed(2).replace(/,/g, ".");
-      const formatted = `${name} (${unit} - ${hoursFormatted} giờ)`;
+      const formatted = `${name} (${unit} - ${hoursPerMember} giờ)`;
       thanhVienResult += (thanhVienResult ? ", " : "") + formatted;
     });
 
@@ -1491,15 +1492,13 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
       thanhVien: thanhVienResult || null,
     };
   } catch (error) {
-    console.error(
-      "Lỗi khi quy đổi số giờ xây dựng chương trình đào tạo:",
-      error
-    );
+    console.error("Lỗi khi quy đổi số giờ xây dựng chương trình đào tạo:", error);
     throw error;
   } finally {
     if (connection) connection.release();
   }
 };
+
 
 // Lấy bảng xaydungctdt
 const getTableXayDungCTDT = async (req, res) => {
@@ -1877,11 +1876,12 @@ const editNckh = async (req, res) => {
         NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
+        KetQua: req.body.KetQua
       };
 
       updateQuery = `
                 UPDATE detaiduan 
-                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?
+                SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
                 WHERE ID = ?`;
 
       queryParams = [
@@ -1894,6 +1894,7 @@ const editNckh = async (req, res) => {
         data.NgayNghiemThu,
         data.DaoTaoDuyet,
         data.Khoa,
+        data.KetQua,
         ID,
       ];
       break;
@@ -1996,11 +1997,12 @@ const editNckh = async (req, res) => {
         DanhSachThanhVien: req.body.DanhSachThanhVien,
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
+        KetQua: req.body.KetQua
       };
 
       updateQuery = `
         UPDATE nckhvahuanluyendoituyen 
-        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+        SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ? 
         WHERE ID = ?`;
 
       queryParams = [
@@ -2011,6 +2013,7 @@ const editNckh = async (req, res) => {
         data.DanhSachThanhVien,
         data.DaoTaoDuyet,
         data.Khoa,
+        data.KetQua,
         ID,
       ];
       break;
