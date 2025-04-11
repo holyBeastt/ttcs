@@ -6,56 +6,69 @@ const thongkedoanController = {
     let connection;
     let query;
     const params = [];
-  
+
     try {
-      connection = await createConnection();
-  
-      // Truy vấn dữ liệu cho cả cơ hữu và mời giảng với số đồ án (soDoAn) và số tiết (soTiet)
-      query = `
-        SELECT 
-          GiangVien, 
-          SUM(SoTiet) AS soTiet, 
-          COUNT(ID) AS soDoAn, 
-          MaPhongBan,
-          isMoiGiang
-        FROM exportdoantotnghiep
-        WHERE 1=1
-      `;
-  
-      if (khoa && khoa !== "ALL") {
-        query += " AND MaPhongBan = ?";
-        params.push(khoa);
-      }
-  
-      if (namhoc && namhoc !== "ALL") {
-        query += " AND NamHoc = ?";
-        params.push(namhoc);
-      }
-  
-      if (dot && dot !== "ALL") {
-        query += " AND Dot = ?";
-        params.push(dot);
-      }
-  
-      query += `
-        GROUP BY GiangVien, isMoiGiang, MaPhongBan
-        ORDER BY soDoAn DESC
-      `;
-  
-      const [result] = await connection.query(query, params);
-  
-      // Phân loại dữ liệu theo Cơ hữu và Mời giảng
-      const coHuu = result.filter((item) => item.isMoiGiang === 0);
-      const moiGiang = result.filter((item) => item.isMoiGiang === 1);
-  
-      res.json({ success: true, coHuu, moiGiang });
+        connection = await createConnection();
+
+        // Truy vấn dữ liệu cho cả cơ hữu và mời giảng
+        query = `
+            SELECT 
+                GiangVien, 
+                SUM(SoTiet) AS soTiet, 
+                COUNT(ID) AS soDoAn, 
+                MaPhongBan,
+                isMoiGiang
+            FROM exportdoantotnghiep
+            WHERE 1=1
+        `;
+
+        if (khoa && khoa !== "ALL") {
+            query += " AND MaPhongBan = ?";
+            params.push(khoa);
+        }
+
+        if (namhoc && namhoc !== "ALL") {
+            query += " AND NamHoc = ?";
+            params.push(namhoc);
+        }
+
+        if (dot && dot !== "ALL") {
+            query += " AND Dot = ?";
+            params.push(dot);
+        }
+
+        query += `
+            GROUP BY GiangVien, isMoiGiang, MaPhongBan
+            ORDER BY soDoAn DESC
+        `;
+
+        const [result] = await connection.query(query, params);
+
+        // Phân loại dữ liệu theo Cơ hữu và Mời giảng
+        const coHuu = result.filter((item) => item.isMoiGiang === 0);
+        const moiGiang = result.filter((item) => item.isMoiGiang === 1);
+
+        // Tính tổng số tiết
+        const totalCoHuu = coHuu.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
+        const totalMoiGiang = moiGiang.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
+        const totalSoTiet = totalCoHuu + totalMoiGiang;
+
+        // Trả về dữ liệu
+        res.json({
+            success: true,
+            coHuu,
+            moiGiang,
+            totalCoHuu,
+            totalMoiGiang,
+            totalSoTiet,
+        });
     } catch (err) {
-      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+        console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-      if (connection) connection.release();
+        if (connection) connection.release();
     }
-  },
+},
   
   getFilterOptions: async (req, res) => {
     let connection;
