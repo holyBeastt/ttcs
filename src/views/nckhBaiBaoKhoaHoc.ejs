@@ -277,7 +277,7 @@
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Hành Động",
               field: "actions",
@@ -288,7 +288,7 @@
           }
 
           // Cấp quyền duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
@@ -313,11 +313,15 @@
             const field = cell.getField();
             const row = cell.getRow();
             let updatedData = row.getData();
+            console.log("trước" + updatedData.DaoTaoDuyet)
+
 
             if (field === "DaoTaoDuyet") {
               // Nếu checkbox được chỉnh sửa, chuyển sang 1 nếu chưa duyệt, ngược lại 0
               updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
             }
+            console.log("sau" + updatedData.DaoTaoDuyet)
+
             await saveData(updatedData.ID, updatedData, row);
           });
         } catch (error) {
@@ -328,6 +332,8 @@
       // Formatter cho cột "Duyệt" hiển thị input checkbox
       function checkboxFormatter(cell, formatterParams, onRendered) {
         let value = cell.getValue();
+        console.log("value" + value)
+
         // Nếu giá trị là 1 hoặc true thì checkbox được đánh dấu
         let checked = (value == 1 || value == true) ? "checked" : "";
         return `<input type="checkbox" ${checked}/>`;

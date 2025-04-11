@@ -307,7 +307,7 @@
           }
 
           // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Hành Động",
               field: "actions",
@@ -318,7 +318,7 @@
           }
 
           // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
