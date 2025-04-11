@@ -154,6 +154,10 @@
                 <option value="">Đợt</option>
               </select>
 
+              <select class="selectop w-100px mx-1" id="comboboxki">
+                <option value="">Kỳ</option>
+              </select>
+
               <!-- Combo box Năm -->
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
@@ -200,6 +204,7 @@
                 <th>Ngày kết thúc</th>
                 <th>Số tiết</th>
                 <th>Tổng số tiết</th>
+                <th>Tổng số tiết cả năm</th>
                 <th>Khoa</th>
                 <!-- Cột Khoa -->
                 <th>Chi tiết giảng viên mời</th>
@@ -231,12 +236,14 @@
     <script>
       document.getElementById("render").addEventListener("click", function () {
         let Dot = document.getElementById("combobox-dot").value;
+        let ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("departmentFilter").value;
 
         const body = {
           Khoa: Khoa,
           Dot: Dot,
+          ki: ki,
           Nam: Nam,
         };
 
@@ -325,6 +332,13 @@
             if (courseIndex === 0) {
               tr.innerHTML += `
               <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
+              <td rowspan="${courses.length}">
+                ${
+                  course.TongSoTietCaNam
+                    ? parseFloat(course.TongSoTietCaNam).toFixed(2)
+                    : "0.00"
+                }
+              </td>
               <td rowspan="${courses.length}">${course.MaPhongBan}</td>
               <td rowspan="${courses.length}">
                 <button class="action-button view" onclick="viewClass(this, '${

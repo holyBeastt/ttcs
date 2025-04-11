@@ -160,11 +160,12 @@
           </div>
 
           <div class="row mb-3">
-            <div class="col-md-3">
-              <label for="stk">Số tài khoản:</label>
-              <input required class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>">
+            <div class="col-md-2">
+              <label for="dienThoai">Điện thoại:</label>
+              <input required class="form-control" type="text" name="DienThoai" id="dienThoai"
+                value="<%= value.DienThoai %>">
             </div>
-            <div class="col-md-7">
+            <div class="col-md-8">
               <label for="nganHang">Ngân hàng:</label>
               <input required class="form-control" type="text" name="NganHang" id="nganHang"
                 value="<%= value.NganHang %>">
@@ -191,15 +192,14 @@
             <div class="col-md-8">
               <!-- Dòng 1 -->
               <div class="row">
-                <div style="width: 20%; padding-right: 0px">
-                  <label for="dienThoai">Điện thoại:</label>
-                  <input required class="form-control" type="text" name="DienThoai" id="dienThoai"
-                    value="<%= value.DienThoai %>">
-                </div>
-                <div style="width: 80%;">
+                <div style="width: 75%;">
                   <label for="NoiCongTac">Nơi công tác:</label>
                   <input required class="form-control" type="text" name="NoiCongTac" id="NoiCongTac"
                     value="<%= value.NoiCongTac %>">
+                </div>
+                <div style="width: 25%; padding-right: 0px">
+                  <label for="stk">Số tài khoản:</label>
+                  <input required class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>">
                 </div>
               </div>
               <!-- Dòng 2 -->

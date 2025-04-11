@@ -483,10 +483,6 @@ const getHopDongDuKienData = async (req, res) => {
     const he_dao_tao = req.query.he_dao_tao;
     let khoa = req.query.khoa;
 
-    if (he_dao_tao == "Đồ án") {
-      ki = 1;
-    }
-
     // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -510,25 +506,28 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
+        Combined.MaPhongBan AS MaKhoaMonHoc,
         'Đồ án' AS he_dao_tao,
-        MIN(Combined.NgayBatDau) AS NgayBatDau,
-        MAX(Combined.NgayKetThuc) AS NgayKetThuc,
-        SUM(Combined.SoTiet) AS TongTiet,
+        NgayBatDau,
+        NgayKetThuc,
+        Combined.SoTiet AS SoTiet,
         dot,
-        1 AS KiHoc,
+        ki AS KiHoc,
         NamHoc,
         gv.NgayCapCCCD,
         gv.DiaChi,
         gv.BangTotNghiep, 
-		    gv.NoiCongTac,
-		    gv.BangTotNghiepLoai,
-		    gv.MonGiangDayChinh
+		  gv.NoiCongTac,
+		  gv.BangTotNghiepLoai,
+		  gv.MonGiangDayChinh
     FROM (
         SELECT
             NgayBatDau,
             NgayKetThuc,
+            MaPhongBan,
             TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
             Dot,
+            ki,
             NamHoc,
             CASE 
                 WHEN GiangVien2 = 'không' THEN 25
@@ -544,8 +543,10 @@ const getHopDongDuKienData = async (req, res) => {
         SELECT
             NgayBatDau,
             NgayKetThuc,
+            MaPhongBan,
             TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
             Dot,
+            ki,
             NamHoc,
             10 AS SoTiet
         FROM 
@@ -558,16 +559,12 @@ const getHopDongDuKienData = async (req, res) => {
     JOIN 
         gvmoi gv ON Combined.GiangVien = gv.HoTen
     WHERE Combined.NamHoc = '${namHoc}'
-    GROUP BY 
-      gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
-      gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
     ), 
     
    DaiHocHopDongDuKien AS (
     SELECT
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        NgayBatDau,
+        NgayKetThuc,
         gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
@@ -583,7 +580,8 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(qc.QuyChuan) AS SoTiet,
+        qc.Khoa AS MaKhoaMonHoc,
+        qc.QuyChuan AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
@@ -600,38 +598,11 @@ const getHopDongDuKienData = async (req, res) => {
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
         qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}'
-    GROUP BY
-        gv.id_Gvm,
-        gv.HoTen,
-        qc.KiHoc,
-        gv.GioiTinh,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        qc.he_dao_tao,
-        qc.NamHoc,
-        qc.KiHoc,
-        qc.Dot,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep, 
-		    gv.NoiCongTac,
-		    gv.BangTotNghiepLoai,
-		    gv.MonGiangDayChinh
     ),
    SauDaiHocHopDongDuKien AS (
     SELECT
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        NgayBatDau,
+        NgayKetThuc,
         gv.id_Gvm,
         gv.GioiTinh,
         gv.HoTen,
@@ -647,12 +618,13 @@ const getHopDongDuKienData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        SUM(ROUND(
+        qc.Khoa AS MaKhoaMonHoc,
+        ROUND(
             qc.QuyChuan * CASE 
                 WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
                 ELSE 1 
             END, 2
-        )) AS SoTiet,
+        ) AS SoTiet,
         qc.he_dao_tao,
         qc.NamHoc,
         qc.KiHoc,
@@ -669,32 +641,6 @@ const getHopDongDuKienData = async (req, res) => {
         gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
     WHERE
         qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
-    GROUP BY
-        gv.id_Gvm,
-        gv.HoTen,
-        gv.GioiTinh,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        qc.he_dao_tao,
-        qc.NamHoc,
-        qc.KiHoc,
-        qc.Dot,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep, 
-		    gv.NoiCongTac,
-		    gv.BangTotNghiepLoai,
-		    gv.MonGiangDayChinh
     ),
     tableALL AS (SELECT
         Dot,
@@ -706,7 +652,7 @@ const getHopDongDuKienData = async (req, res) => {
         he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
-        TongTiet,
+        SoTiet,
         GioiTinh,
         NgaySinh,
         CCCD,
@@ -720,6 +666,7 @@ const getHopDongDuKienData = async (req, res) => {
         STK,
         NganHang,
         MaPhongBan,
+        MaKhoaMonHoc,
         NgayCapCCCD,
         DiaChi,
         BangTotNghiep, 
@@ -739,7 +686,7 @@ const getHopDongDuKienData = async (req, res) => {
         he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
-        SoTiet AS TongTiet,
+        SoTiet,
         GioiTinh,
         NgaySinh,
         CCCD,
@@ -753,6 +700,7 @@ const getHopDongDuKienData = async (req, res) => {
         STK,
         NganHang,
         MaPhongBan,
+        MaKhoaMonHoc,
         NgayCapCCCD,
         DiaChi,
         BangTotNghiep, 
@@ -772,7 +720,7 @@ const getHopDongDuKienData = async (req, res) => {
         he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
-        SoTiet AS TongTiet,
+        SoTiet,
         GioiTinh,
         NgaySinh,
         CCCD,
@@ -786,6 +734,7 @@ const getHopDongDuKienData = async (req, res) => {
         STK,
         NganHang,
         MaPhongBan,
+        MaKhoaMonHoc,
         NgayCapCCCD,
         DiaChi,
         BangTotNghiep, 
@@ -797,11 +746,17 @@ const getHopDongDuKienData = async (req, res) => {
     TongSoTietGV AS (
         SELECT 
             GiangVien, 
-            SUM(TongTiet) AS TongSoTiet
+            SUM(SoTiet) AS TongSoTiet
         FROM 
             tableALL
         GROUP BY 
             GiangVien
+    ),
+    -- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
+    gv_lien_quan AS (
+        SELECT DISTINCT GiangVien
+        FROM tableALL
+        WHERE tableALL.MaKhoaMonHoc LIKE ?
     )
     SELECT 
         MIN(ta.Dot) AS Dot,
@@ -812,7 +767,7 @@ const getHopDongDuKienData = async (req, res) => {
         MIN(ta.he_dao_tao) as he_dao_tao,
         MIN(ta.NgayBatDau) AS NgayBatDau,
         MAX(ta.NgayKetThuc) AS NgayKetThuc,
-        SUM(ta.TongTiet) AS TongTiet,
+        SUM(ta.SoTiet) AS TongTiet,
         ta.GioiTinh,
         ta.NgaySinh,
         ta.CCCD,
@@ -826,6 +781,7 @@ const getHopDongDuKienData = async (req, res) => {
         ta.STK,
         ta.NganHang,
         ta.MaPhongBan,
+        ta.MaKhoaMonHoc,
         ta.NgayCapCCCD,
         ta.DiaChi,
         ta.BangTotNghiep, 
@@ -839,9 +795,16 @@ const getHopDongDuKienData = async (req, res) => {
         TongSoTietGV tsgv 
     ON 
         ta.GiangVien = tsgv.GiangVien
-    Where NamHoc = ?`;
+    `;
 
-    let params = [namHoc];
+    let params = [khoa, namHoc];
+
+    if (khoa !== "ALL") {
+      query += " JOIN gv_lien_quan ON gv_lien_quan.GiangVien = ta.GiangVien";
+    }
+
+    query += `
+    where namhoc = ?`;
 
     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
     if (ki !== "AllKi") {
@@ -855,10 +818,10 @@ const getHopDongDuKienData = async (req, res) => {
       params.push(he_dao_tao);
     }
 
-    if (khoa !== "ALL") {
-      query += " AND MaPhongBan =?";
-      params.push(khoa);
-    }
+    // if (khoa !== "ALL") {
+    //   query += " AND MaPhongBan =?";
+    //   params.push(khoa);
+    // }
 
     query += `
     GROUP BY 
