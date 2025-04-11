@@ -9,8 +9,10 @@ const getDoAnHopDongDuKienSite = (req, res) => {
 
 const getInfoDoAnHopDongDuKien = async (req, res) => {
   const Dot = req.body.Dot;
+  const ki = req.body.ki;
   const NamHoc = req.body.Nam;
   let MaPhongBan = req.body.Khoa;
+
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
@@ -32,6 +34,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
             NgayBatDau,
             NgayKetThuc,
             dot,
+            ki,
             namhoc,
             MaPhongBan,
             15 AS SoTiet
@@ -48,6 +51,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
             NgayBatDau,
             NgayKetThuc,
             dot,
+            ki,
             namhoc,
             MaPhongBan,
             10 AS SoTiet
@@ -71,6 +75,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
             NgayBatDau,
             NgayKetThuc,
             dot,
+            ki,
             namhoc,
             MaPhongBan,
             25 AS SoTiet 
@@ -92,6 +97,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           gv_doan.NgayBatDau,
           gv_doan.NgayKetThuc,
           gv_doan.Dot,
+          gv_doan.ki,
           gv_doan.NamHoc,
           gv_doan.MaPhongBan as MaKhoa,
           gvmoi.*
@@ -99,14 +105,326 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
       JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
     )
 
-    SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
+    SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, ki, NamHoc, MaPhongBan
     FROM final
-    WHERE dot = ? AND namhoc = ?
+    WHERE dot = ? AND ki = ? AND namhoc = ?
         `;
-      values = [Dot, NamHoc];
+      values = [Dot, ki, NamHoc];
     } else {
       query = `
-        WITH gv1 AS (
+       WITH DoAnHopDongDuKien AS (
+    SELECT
+        gv.id_Gvm,
+        gv.HoTen AS GiangVien,
+        gv.GioiTinh,
+        gv.Email,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        'Đồ án' AS he_dao_tao,
+        MIN(Combined.NgayBatDau) AS NgayBatDau,
+        MAX(Combined.NgayKetThuc) AS NgayKetThuc,
+        SUM(Combined.SoTiet) AS TongTiet,
+        dot,
+        ki AS KiHoc,
+        NamHoc,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
+    FROM (
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+            Dot,
+            ki,
+            NamHoc,
+            CASE 
+                WHEN GiangVien2 = 'không' THEN 25
+                ELSE 15
+            END AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien1 IS NOT NULL
+            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+        UNION ALL
+
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+            Dot,
+            ki,
+            NamHoc,
+            10 AS SoTiet
+        FROM 
+            doantotnghiep
+        WHERE 
+            GiangVien2 IS NOT NULL 
+            AND GiangVien2 != 'không'
+            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+    ) AS Combined
+    JOIN 
+        gvmoi gv ON Combined.GiangVien = gv.HoTen
+    WHERE Combined.NamHoc = '${NamHoc}'
+    GROUP BY 
+      gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.Email, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+		  gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, he_dao_tao, dot, KiHoc, NamHoc, gv.NgayCapCCCD,
+      gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh
+    ), 
+    
+   DaiHocHopDongDuKien AS (
+    SELECT
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(qc.QuyChuan) AS SoTiet,
+        qc.he_dao_tao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    WHERE
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${NamHoc}'
+    GROUP BY
+        gv.id_Gvm,
+        gv.HoTen,
+        qc.KiHoc,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        qc.he_dao_tao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
+    ),
+   SauDaiHocHopDongDuKien AS (
+    SELECT
+        MIN(qc.NgayBatDau) AS NgayBatDau,
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        gv.id_Gvm,
+        gv.GioiTinh,
+        gv.HoTen,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        SUM(ROUND(
+            qc.QuyChuan * CASE 
+                WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                ELSE 1 
+            END, 2
+        )) AS SoTiet,
+        qc.he_dao_tao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
+    FROM 
+        quychuan qc
+    JOIN 
+        gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+    WHERE
+        qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${NamHoc}'
+    GROUP BY
+        gv.id_Gvm,
+        gv.HoTen,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        qc.he_dao_tao,
+        qc.NamHoc,
+        qc.KiHoc,
+        qc.Dot,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep, 
+		    gv.NoiCongTac,
+		    gv.BangTotNghiepLoai,
+		    gv.MonGiangDayChinh
+    ),
+    tableALL AS (SELECT
+        Dot,
+        KiHoc,
+        NamHoc,
+        'DoAn' AS LoaiHopDong,
+        id_Gvm,
+        GiangVien,
+        he_dao_tao,
+        NgayBatDau,
+        NgayKetThuc,
+        TongTiet,
+        GioiTinh,
+        NgaySinh,
+        CCCD,
+        NoiCapCCCD,
+        Email,
+        MaSoThue,
+        HocVi,
+        ChucVu,
+        HSL,
+        DienThoai,
+        STK,
+        NganHang,
+        MaPhongBan,
+        NgayCapCCCD,
+        DiaChi,
+        BangTotNghiep, 
+        NoiCongTac,
+        BangTotNghiepLoai,
+        MonGiangDayChinh
+    FROM 
+        DoAnHopDongDuKien
+    UNION ALL
+    SELECT 
+        Dot,
+        KiHoc,
+        NamHoc,
+        'DaiHoc' AS LoaiHopDong,
+        id_Gvm,
+        HoTen AS GiangVien,
+        he_dao_tao,
+        NgayBatDau,
+        NgayKetThuc,
+        SoTiet AS TongTiet,
+        GioiTinh,
+        NgaySinh,
+        CCCD,
+        NoiCapCCCD,
+        Email,
+        MaSoThue,
+        HocVi,
+        ChucVu,
+        HSL,
+        DienThoai,
+        STK,
+        NganHang,
+        MaPhongBan,
+        NgayCapCCCD,
+        DiaChi,
+        BangTotNghiep, 
+        NoiCongTac,
+        BangTotNghiepLoai,
+        MonGiangDayChinh
+    FROM 
+        DaiHocHopDongDuKien
+    UNION ALL
+    SELECT 
+        Dot,
+        KiHoc,
+        NamHoc,
+        'SauDaiHoc' AS LoaiHopDong,
+        id_Gvm,
+        HoTen AS GiangVien,
+        he_dao_tao,
+        NgayBatDau,
+        NgayKetThuc,
+        SoTiet AS TongTiet,
+        GioiTinh,
+        NgaySinh,
+        CCCD,
+        NoiCapCCCD,
+        Email,
+        MaSoThue,
+        HocVi,
+        ChucVu,
+        HSL,
+        DienThoai,
+        STK,
+        NganHang,
+        MaPhongBan,
+        NgayCapCCCD,
+        DiaChi,
+        BangTotNghiep, 
+        NoiCongTac,
+        BangTotNghiepLoai,
+        MonGiangDayChinh
+    FROM 
+        SauDaiHocHopDongDuKien),
+    TongSoTietGV AS (
+        SELECT 
+            GiangVien, 
+            SUM(TongTiet) AS TongSoTiet
+        FROM 
+            tableALL
+        GROUP BY 
+            GiangVien
+    ),
+	gv1 AS (
       SELECT 
           SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
           TenDeTai, 
@@ -114,6 +432,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           MaSV,
           NgayBatDau,
           NgayKetThuc,
+          ki,
           dot,
           namhoc,
           MaPhongBan,
@@ -131,6 +450,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           NgayBatDau,
           NgayKetThuc,
           dot,
+          ki,
           namhoc,
           MaPhongBan,
           10 AS SoTiet
@@ -153,6 +473,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           NgayBatDau,
           NgayKetThuc,
           dot,
+          ki,
           namhoc,
           MaPhongBan,
           25 AS SoTiet 
@@ -164,12 +485,6 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     UNION ALL
     SELECT * FROM two_gv
   ),
-  -- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
-  gvs_lien_quan AS (
-      SELECT DISTINCT GiangVien
-      FROM gv_doan
-      WHERE gv_doan.MaPhongBan like ?
-  ),
   final AS (
     SELECT 
         gv_doan.GiangVien,
@@ -180,19 +495,22 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         gv_doan.NgayBatDau,
         gv_doan.NgayKetThuc,
         gv_doan.Dot,
+        gv_doan.ki,
         gv_doan.NamHoc,
         gv_doan.MaPhongBan AS MaKhoa,
-        gvmoi.*
+        gvmoi.*,
+        tsgv.TongSoTiet AS TongSoTietCaNam
     FROM gv_doan
     JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-    JOIN gvs_lien_quan ON gv_doan.GiangVien = gvs_lien_quan.GiangVien
+    LEFT JOIN TongSoTietGV tsgv
+    ON gv_doan.GiangVien = tsgv.GiangVien
   )
 
-  SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, NamHoc, MaPhongBan
+  SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, ki, NamHoc, MaPhongBan, TongSoTietCaNam
   FROM final
-  WHERE dot = ? AND namhoc = ?
+  WHERE dot = ? AND ki = ? AND namhoc = ? AND MaKhoa = ?
     `;
-      values = [MaPhongBan, Dot, NamHoc];
+      values = [Dot, ki, NamHoc, MaPhongBan];
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
 
