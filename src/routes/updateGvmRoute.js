@@ -13,54 +13,10 @@ const {
   postUpdateGvm,
 } = require("../controllers/updateGvmController");
 
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user"; // Sử dụng Họ tên làm định danh
-//     let Khoa = req.session.MaPhongBan; // Lấy thông tin Khoa từ session
-//     let BoMon = req.body.monGiangDayChinh; // Lấy thông tin Bộ môn từ body
-
-//     // Tạo đường dẫn thư mục chứa các folder con: Khoa/BoMon/HoTen
-//     const userFolderPath =
-//       appRoot + `/Giang_Vien_Moi/${Khoa}/${BoMon}/${HoTen}`;
-
-//     // Kiểm tra và tạo thư mục con nếu chưa tồn tại
-//     if (!fs.existsSync(userFolderPath)) {
-//       fs.mkdirSync(userFolderPath, { recursive: true });
-//     }
-
-//     // Trả về đường dẫn để lưu file
-//     cb(null, userFolderPath);
-//   },
-//   filename: function (req, file, cb) {
-//     let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user";
-//     let fieldName = file.fieldname; // Tên trường (fieldname) để phân loại file
-
-//     // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
-//     let fileName = `${fieldName}${path.extname(file.originalname)}`;
-//     cb(null, fileName); // Đặt tên file theo định dạng: HoTen_fieldname.extension
-//   },
-// });
-
-// const imageFilter = function (req, file, cb) {
-//   console.log("filename: ", file.fieldname);
-//   if (file == undefined) return;
-//   // Accept images only
-//   if (
-//     !file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|jfif|pdf)$/)
-//   ) {
-//     req.fileValidationError = "Only image or PDF files are allowed!";
-//     return cb(new Error("Only image or PDF files are allowed!"), false);
-//   }
-
-//   cb(null, true);
-// };
-
-// let upload = multer({ storage: storage, fileFilter: imageFilter });
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const HoTen = req.body.HoTen || "unknown-user"; // Đảm bảo có giá trị
-    const Khoa = req.session.MaPhongBan || "unknown-dept"; // Lấy thông tin Khoa từ session
+    const Khoa = req.body.maPhongBan || "unknown-dept"; // Lấy thông tin Khoa từ session
     const BoMon = req.body.monGiangDayChinh || "unknown-subject"; // Lấy thông tin Bộ môn từ body
 
     // Tạo đường dẫn thư mục chứa các folder con: Khoa/BoMon/HoTen
@@ -102,7 +58,7 @@ const storage = multer.diskStorage({
 
     const fileName = `${fieldName}${fileExtension}`; // Tạo tên file mới
 
-    const Khoa = req.session.MaPhongBan || "unknown-dept";
+    const Khoa = req.body.maPhongBan || "unknown-dept"; // Lấy thông tin Khoa từ session
     const BoMon = req.body.monGiangDayChinh || "unknown-subject";
     const userFolderPath = path.join(
       appRoot.path,
@@ -137,13 +93,15 @@ const storage = multer.diskStorage({
 const imageFilter = function (req, file, cb) {
   if (file == undefined) return;
   // Accept images only
-  if (
-    !file.originalname.match(
-      /\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|jfif|pdf|doc|docx)$/
-    )
-  ) {
-    req.fileValidationError = "Only image or PDF files are allowed!";
-    return cb(new Error("Only image or PDF files are allowed!"), false);
+  const allowedExtensions = process.env.ALLOWED_FILE_EXTENSIONS.split(",")
+    .map((ext) => ext.trim()) // bỏ khoảng trắng nếu có
+    .join("|"); // nối thành regex pattern
+
+  const extensionRegex = new RegExp(`\\.(${allowedExtensions})$`, "i");
+
+  // Dùng trong middleware hoặc hàm kiểm tra
+  if (!file.originalname.match(extensionRegex)) {
+    return cb(new Error("Chỉ cho phép các định dạng file hợp lệ!"), false);
   }
 
   cb(null, true);

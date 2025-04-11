@@ -300,10 +300,17 @@ $(document).ready(function () {
                         // Thêm dữ liệu năm học
                         
                         response.NamHoc.forEach(function (item) {
-                            $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
-                            );
-                        });
+                $('#NamHoc').append(
+                    `<option value="${item.NamHoc}">${
+                        item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                    }</option>`
+                );
+            });
+
+            // Đặt giá trị mặc định là năm lớn nhất
+            if (response.MaxNamHoc) {
+                $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+            }
                         checkAndFetchData();
                     }
                 },
@@ -367,6 +374,9 @@ $(document).ready(function () {
             cell.colSpan = khoa === 'ALL' ? 3 : 6; // Điều chỉnh colspan dựa vào chế độ hiển thị
             cell.style.textAlign = 'center';
             cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
+            document.getElementById('totalSoTietGiangDay').textContent = '0';
+            document.getElementById('totalSTPHT').textContent = '0';
+            document.getElementById('totalSTMG').textContent = '0';
             document.getElementById('total').textContent = '0';
             document.getElementById('khoa-chart-container').style.display = 'none';
             document.getElementById('all-khoa-charts').style.display = 'none';
@@ -704,14 +714,6 @@ document.addEventListener("DOMContentLoaded", () => {
         actionButton.style.display = '';
     } else {
         actionButton.style.display = 'none';
-    }
-    // Kiểm tra giá trị isKhoa
-    if (isKhoa == 1) {
-         // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
-            document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-    } else if(isKhoa == 0){
-        // Nếu isKhoa = 0, hiển thị combobox Khoa
-        document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
     }
 });
 </script>

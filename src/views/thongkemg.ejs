@@ -261,7 +261,7 @@
             function checkAndFetchData() {
                 initializedComboboxes++;
                 if (initializedComboboxes === totalComboboxes) {
-                    fetchThongkemgData();
+                    fetchThongkemgData(); // Gọi hàm lấy dữ liệu sau khi tất cả combobox đã được khởi tạo
                 }
             }
 
@@ -270,7 +270,7 @@
             $('#comboboxki option').remove();
             $('#Khoa option').remove();
 
-            // Chỉ gọi một lần để khởi tạo combobox Khoa
+            // Khởi tạo combobox Khoa
             $.ajax({
                 url: '/getPhongBanmg',
                 method: 'GET',
@@ -306,36 +306,42 @@
                 }
             });
 
-            // Khởi tạo các combobox khác
+            // Khởi tạo combobox Năm và Kỳ
             $.ajax({
                 url: '/getNamHocmg',
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
-                        // Thêm dữ liệu năm học
+                        // Populate combobox NamHoc
+                        $('#NamHoc').empty();
                         response.NamHoc.forEach(function (item) {
                             $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
+                                `<option value="${item.NamHoc}">${
+                                    item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                                }</option>`
                             );
                         });
-                        checkAndFetchData();
 
-                        // Thêm dữ liệu kỳ học
+                        // Đặt giá trị mặc định là năm lớn nhất
+                        if (response.MaxNamHoc) {
+                            $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                        }
+
+                        // Populate combobox Ki
+                        $('#comboboxki').empty();
                         response.Ki.forEach(function (item) {
                             $('#comboboxki').append(
-                                `<option value="${item.value}"> ${item.Ki}</option>`
+                                `<option value="${item.Ki}">${
+                                    item.Ki === "ALL" ? "Cả năm" : item.Ki
+                                }</option>`
                             );
                         });
                         checkAndFetchData();
-
+                        checkAndFetchData();
                     }
                 },
                 error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu:", error);
-                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
-                    checkAndFetchData();
-                    checkAndFetchData();
-                    checkAndFetchData();
+                    console.error("Lỗi khi lấy dữ liệu năm học:", error);
                 }
             });
         });
@@ -662,14 +668,7 @@
                 suaHD.style.display = 'block';
             }
 
-            // Kiểm tra giá trị isKhoa
-            if (isKhoa == 1) {
-                // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
-                document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-            } else {
-                // Nếu isKhoa = 0, hiển thị combobox Khoa
-                document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
-            }
+            
 
             // Ẩn button ngay khi trang được tải
             const actionButton = document.getElementById('changeMessage');

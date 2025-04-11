@@ -140,7 +140,7 @@
           <div class="m-3 reCss">
             <h1>THÔNG TIN HỢP ĐỒNG GIẢNG VIÊN MỜI DỰ KIẾN</h1>
 
-            <div class="controls-container">
+            <div class="controls-container" style="width: 100%">
               <select
                 class="form-select w-100px mx-2 selectop"
                 id="combobox-dot"
@@ -183,6 +183,27 @@
               <button id="viewDataBtnDetail" class="btn view">
                 Xem dữ liệu chi tiết
               </button>
+              <br />
+              <!-- <input
+                type="text"
+                id="searchGiangVien"
+                placeholder="Tìm gv giảng dạy"
+                class="form-control m-2 search"
+                style="width: 150px"
+              />
+              <button id="exportHDDK" class="btn view">
+                Xuất thông tin HĐ dự kiến
+              </button> -->
+            </div>
+
+            <div class="controls-container">
+              <input
+                type="text"
+                id="searchGiangVien"
+                placeholder="Tìm gv giảng dạy"
+                class="form-control m-2 search"
+                style="width: 300px"
+              />
               <button id="exportHDDK" class="btn view">
                 Xuất thông tin HĐ dự kiến
               </button>
@@ -223,7 +244,7 @@
                         <th class="d_none">Xem</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                       <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
                     </tbody>
                   </table>
@@ -558,6 +579,40 @@
         const newUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
       }
+    </script>
+
+    <script>
+      // Hàm kiểm tra và lọc hàng trong bảng
+      function filterTable() {
+        const nameFilter = document
+          .getElementById("searchGiangVien")
+          .value.toLowerCase();
+
+        const tableRows = document.querySelectorAll("#tableBody tr");
+
+        tableRows.forEach((row) => {
+          const nameCell = row.querySelector("td:nth-child(6)"); // Cột tên giảng viên
+
+          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+
+          // Kiểm tra điều kiện lọc
+          const matchesName = name.includes(nameFilter);
+
+          // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+          if (matchesName) {
+            row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
+          } else {
+            row.style.display = "none"; // Ẩn hàng nếu không khớp
+          }
+        });
+
+        calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
+      }
+
+      // Gán sự kiện cho các input filter
+      document
+        .getElementById("searchGiangVien")
+        .addEventListener("input", filterTable);
     </script>
 
     <script>
