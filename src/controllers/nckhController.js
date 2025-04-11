@@ -2514,49 +2514,49 @@ const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
       {
         table: "Đề tài, dự án",
         promise: connection.execute(
-          "SELECT ChuNhiem, ThuKy, DanhSachThanhVien FROM detaiduan WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT ChuNhiem, ThuKy, DanhSachThanhVien FROM detaiduan WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Bài báo khoa học",
         promise: connection.execute(
-          "SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien FROM baibaokhoahoc WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien FROM baibaokhoahoc WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Bằng sáng chế và giải thưởng",
         promise: connection.execute(
-          "SELECT TacGia, DanhSachThanhVien FROM bangsangchevagiaithuong WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT TacGia, DanhSachThanhVien FROM bangsangchevagiaithuong WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển",
         promise: connection.execute(
-          "SELECT DanhSachThanhVien FROM nckhvahuanluyendoituyen WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT DanhSachThanhVien FROM nckhvahuanluyendoituyen WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Sách và giáo trình xuất bản trong nước",
         promise: connection.execute(
-          "SELECT TacGia, DongChuBien, DanhSachThanhVien FROM sachvagiaotrinh WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT TacGia, DongChuBien, DanhSachThanhVien FROM sachvagiaotrinh WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Xấy dựng chương trình đào tạo phục vụ học viện",
         promise: connection.execute(
-          "SELECT DanhSachThanhVien FROM xaydungctdt WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT DanhSachThanhVien FROM xaydungctdt WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
       {
         table: "Biên soạn giáo trình bài giảng",
         promise: connection.execute(
-          "SELECT TacGia, DanhSachThanhVien FROM biensoangiaotrinhbaigiang WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          "SELECT TacGia, DanhSachThanhVien FROM biensoangiaotrinhbaigiang WHERE NamHoc = ?",
           [NamHoc]
         ),
       },
@@ -2697,6 +2697,75 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
   }
 };
 
+const getDataNhiemVuKhoaHocCongNghe = async (req, res) => {
+  // Lấy dữ liệu từ body
+  const { tenNhiemVu, namHoc, giangVien, khoa } = req.body;
+
+  // Kiểm tra dữ liệu đầu vào
+  if (!tenNhiemVu || !namHoc || !giangVien || !khoa) {
+    return res
+      .status(400)
+      .json({ message: "Vui lòng cung cấp đầy đủ thông tin!" });
+  }
+
+  // Tạo kết nối từ pool
+  const connection = await createPoolConnection();
+
+  try {
+    // 1. Query đến bảng sotietdinhmuc để lấy ra SoTietNCKH
+    // Chú ý: Tên cột được chọn phải khớp với tên cột trong bảng
+    const [rowsSoTietDinhMuc] = await connection.execute(
+      `SELECT NCKH FROM sotietdinhmuc LIMIT 1`
+    );
+    if (rowsSoTietDinhMuc.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy dữ liệu trong bảng sotietdinhmuc" });
+    }
+    const soTietDinhMuc = rowsSoTietDinhMuc[0].NCKH;
+    console.log('Định mức: ', soTietDinhMuc)
+
+    // 2. Gọi hàm tổng hợp số tiết NCKH của giảng viên
+    const dataTongHop = await tongHopSoTietNckhCuaMotGiangVien2(
+      namHoc,
+      giangVien
+    );
+    // Kiểm tra dữ liệu trả về có hợp lệ không
+
+    const tongSoTietNCKH = dataTongHop.total;
+    // console.log('Tổng năm: ', tongSoTietNCKH)
+
+    // 3. Tính toán số tiết vượt định mức
+    const soTietVuotDinhMuc =
+      tongSoTietNCKH - soTietDinhMuc > 0 ? tongSoTietNCKH - soTietDinhMuc : 0;
+    // Nếu số tiết vượt định mức > 0 thì tính, ngược lại gán là 0
+    const soTietBaoLuuSangNamSau =
+      soTietVuotDinhMuc > 0
+        ? soTietVuotDinhMuc >= 85
+          ? 85
+          : soTietVuotDinhMuc
+        : 0;
+
+    const result = {
+      name: req.body.giangVien,
+      tongSoTietNCKH: tongSoTietNCKH,
+      soTietVuotDinhMuc: soTietVuotDinhMuc,
+      soTietBaoLuuSangNamSau
+    }
+
+    console.log("lấy data nhiệm vụ khoa học công nghệ của " + req.body.giangVien);
+    res.json(result);
+  } catch (error) {
+    console.error("Lỗi khi lưu nhiệm vụ khoa học công nghệ:", error);
+    res.status(500).json({
+      message: "Có lỗi xảy ra khi thêm nhiệm vụ khoa học công nghệ.",
+      error: error.message,
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 const getTableNhiemVuKhoaHocCongNghe = async (req, res) => {
   const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
@@ -2759,6 +2828,7 @@ module.exports = {
   getNhiemVuKhoaHocCongNghe,
   saveNhiemVuKhoaHocCongNghe,
   getTableNhiemVuKhoaHocCongNghe,
+  getDataNhiemVuKhoaHocCongNghe,
   getTongHopSoTietNCKH,
   getTongHopSoTietNCKHDuKien,
   tongHopSoTietNckhCuaMotGiangVien,
