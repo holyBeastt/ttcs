@@ -437,6 +437,7 @@
       // Chỉ hiển thị 4 mục đầu
       for (let i = 4; i < links.length; i++) {
         links[i].style.display = "none";
+        links[links.length - 1].style.display = "block";
       }
       links[8].style.display = "block";
     } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
