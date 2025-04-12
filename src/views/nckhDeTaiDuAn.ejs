@@ -68,6 +68,14 @@
               <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required />
             </div>
             <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
+            <div class="flex-item">
               <label for="ngayNghiemThu">Ngày nghiệm thu</label>
               <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
             </div>
@@ -206,6 +214,7 @@
                 title: "Cấp Đề Tài",
                 field: "CapDeTai",
                 editor: "false",
+                width: "10%"
               },
               {
                 title: "Tên Đề Tài",
@@ -216,16 +225,19 @@
                 title: "Mã Số Đề Tài",
                 field: "MaSoDeTai",
                 editor: "false",
+                width: "7%"
               },
               {
                 title: "Chủ Nhiệm",
                 field: "ChuNhiem",
                 editor: "false",
+                width: "10%"
               },
               {
                 title: "Thư Ký",
                 field: "ThuKy",
                 editor: "false",
+                width: "10%"
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -240,8 +252,15 @@
                 formatterParams: {
                   inputFormat: "iso",
                   outputFormat: "dd/MM/yyyy"
-                }
-              }
+                },
+                width: "7%"
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "false",
+                width: "7%"
+              },
             ];
           } else {
             // Nếu tài khoản có quyền chỉnh sửa
@@ -251,6 +270,7 @@
                 field: "CapDeTai",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Tên Đề Tài",
@@ -263,18 +283,21 @@
                 field: "MaSoDeTai",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "7%"
               },
               {
                 title: "Chủ Nhiệm",
                 field: "ChuNhiem",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Thư Ký",
                 field: "ThuKy",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -292,7 +315,15 @@
                   outputFormat: "MM/dd/yyyy"
                 },
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              }
+                width: "7%"
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "input",
+                width: "7%",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
             ];
           }
 
@@ -303,31 +334,35 @@
               field: "Khoa",
               editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
               editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              width: "10%"
             });
           }
 
           // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
-              title: "Hành Động",
+              title: "Xóa",
               field: "actions",
               formatter: actionFormatter,
               hozAlign: "center",
               headerSort: false,
+              width: "5%"
             });
           }
 
           // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
-              formatter: checkboxFormatter,
+              // formatter: checkboxFormatter,
+              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
               editor: "tickCross",
               cellClick: function (e, cell) {
                 // Cho phép chỉnh sửa nếu dòng chưa được duyệt
                 cell.edit();
               },
+              width: "7%"
             });
           }
 
@@ -760,6 +795,7 @@
             thanhVien: Array.from(
               document.querySelectorAll("#memberListDisplay span")
             ).map((member) => member.textContent),
+            ketQua: document.getElementById("ketQua").value
           };
 
           // Phần quyền nhập

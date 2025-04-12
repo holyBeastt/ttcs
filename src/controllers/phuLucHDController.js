@@ -162,9 +162,16 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
+    // Lấy dữ liệu từ session
+    const isKhoa = req.session.isKhoa;
+
     const tienLuongList = await getTienLuongList(connection);
 
-    const { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).json({
@@ -284,13 +291,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
-    titleRow0.font = { name: "Times New Roman", size: 17 };
+    titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
     titleRow0.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
     // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-    titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+    titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -316,7 +323,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 14 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -367,11 +374,12 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
+        const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const hocViVietTat =
@@ -540,13 +548,13 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-      titleRow0.font = { name: "Times New Roman", size: 17 };
+      titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-      titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+      titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow1.alignment = { vertical: "middle" };
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -595,7 +603,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+      titleRow5.font = { name: "Times New Roman", size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -685,11 +693,12 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
 
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
+        const hocVi = item.HocVi || "Thạc sĩ"; // Default to "Thạc sĩ" if HocVi is empty
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
         const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi
+          (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === hocVi
         );
         const mucThanhToan = tienLuong ? tienLuong.SoTien : 0;
         const thoiGianThucHien = `${formatDateDMY(
@@ -700,11 +709,11 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         const hocKyLaMa = convertToRoman(item.HocKy);
         // Viết tắt Học vị
         const hocViVietTat =
-          item.HocVi === "Tiến sĩ"
+          hocVi === "Tiến sĩ"
             ? "TS"
-            : item.HocVi === "Thạc sĩ"
+            : hocVi === "Thạc sĩ"
             ? "ThS"
-            : item.HocVi;
+            : hocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -823,8 +832,6 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.mergeCells(`A${totalRow.number}:C${totalRow.number}`);
       // Thêm hai dòng trống
       worksheet.addRow([]);
-
-      // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
       // Thêm dòng "Bằng chữ" không có viền và tăng cỡ chữ
       const bangChuRow = worksheet.addRow([
         `Bằng chữ: ${numberToWords(totalSoTien)}`,

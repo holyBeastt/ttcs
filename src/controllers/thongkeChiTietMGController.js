@@ -84,72 +84,47 @@ const thongkeChiTietMGController = {
         const { namhoc, khoa, giangvien } = req.query;
         try {
             connection = await createConnection();
-            
-            // Query cho thông tin giảng dạy
+
+            // Query chỉ lấy dữ liệu từ bảng quychuan
             let queryGiangDay = `
                 SELECT 
-                    HoTen as hoten,
-                    MaPhongBan,
-                    NamHoc as namhoc,
-                    KiHoc as kihoc,
-                    MaLop as malop,
-                    MaBoMon as mamonhoc,
-                    SoTiet as sotiet,
-                    he_dao_tao as hedaotao
-                FROM hopdonggvmoi
-                WHERE 1=1
+                    TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) AS hoten,
+                    qc.Khoa AS MaPhongBan,
+                    qc.NamHoc AS namhoc,
+                    qc.KiHoc AS kihoc,
+                    qc.TenLop AS lop,
+                    qc.LopHocPhan AS tenhocphan,
+                    qc.SoTinChi AS sotinchi,
+                    qc.QuyChuan AS sotiet,
+                    qc.he_dao_tao AS hedaotao
+                FROM quychuan qc
+                WHERE qc.MoiGiang = 1
             `;
-            
-            // Query cho thông tin đồ án
-            let queryDoAn = `
-                SELECT 
-                    GiangVien as hoten,
-                    MaPhongBan,
-                    NamHoc as namhoc,
-                    Dot as kihoc,
-                    TenDeTai as detai,
-                    SoTiet as sotiet
-                FROM exportdoantotnghiep
-                WHERE isMoiGiang
-            `;
-            
+
             const paramsGiangDay = [];
-            const paramsDoAn = [];
 
             if (namhoc && namhoc !== 'ALL') {
-                queryGiangDay += " AND NamHoc = ?";
+                queryGiangDay += " AND qc.NamHoc = ?";
                 paramsGiangDay.push(namhoc);
-                
-                queryDoAn += " AND NamHoc = ?";
-                paramsDoAn.push(namhoc);
-            }
-            
-            if (khoa && khoa !== 'ALL') {
-                queryGiangDay += " AND MaPhongBan = ?";
-                paramsGiangDay.push(khoa);
-                
-                queryDoAn += " AND MaPhongBan = ?";
-                paramsDoAn.push(khoa);
-            }
-            
-            if (giangvien && giangvien !== 'ALL') {
-                queryGiangDay += " AND HoTen LIKE ?";
-                paramsGiangDay.push(`%${giangvien}%`);
-                
-                queryDoAn += " AND GiangVien LIKE ?";
-                paramsDoAn.push(`%${giangvien}%`);
             }
 
-            queryGiangDay += " ORDER BY HoTen, KiHoc, MaLop";
-            queryDoAn += " ORDER BY GiangVien, Dot, MaSV";
+            if (khoa && khoa !== 'ALL') {
+                queryGiangDay += " AND qc.Khoa = ?";
+                paramsGiangDay.push(khoa);
+            }
+
+            if (giangvien && giangvien !== 'ALL') {
+                queryGiangDay += " AND qc.GiaoVienGiangDay LIKE ?";
+                paramsGiangDay.push(`%${giangvien}%`);
+            }
+
+            queryGiangDay += " ORDER BY qc.GiaoVienGiangDay, qc.KiHoc, qc.TenLop";
 
             const [giangDayResult] = await connection.query(queryGiangDay, paramsGiangDay);
-            const [doAnResult] = await connection.query(queryDoAn, paramsDoAn);
 
             res.json({
                 success: true,
                 dataGiangDay: giangDayResult,
-                dataDoAn: doAnResult
             });
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu:", error);

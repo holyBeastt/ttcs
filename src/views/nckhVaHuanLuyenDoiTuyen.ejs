@@ -81,6 +81,14 @@
               <label for="ngayQuyetDinh">Ngày quyết định giao nhiệm vụ</label>
               <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required />
             </div>
+            <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group flex-container">
@@ -149,6 +157,7 @@
     <!-- nckh view -->
     <script>
       var table;
+      var daoTaoDuyet;
 
       document.getElementById("render").addEventListener("click", async function () {
         const year = document.getElementById("namHocXem").value;
@@ -177,9 +186,9 @@
           // Cấp quyền sửa
           if (userRole === "GV" || userRole === "Thường") {
             columns = [
-              { title: "Phân loại", field: "PhanLoai", editor: "false" },
+              { title: "Phân loại", field: "PhanLoai", editor: "false", width: "10%" },
               { title: "Tên đề tài", field: "TenDeTai", editor: "false" },
-              { title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "false" },
+              { title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "false", width: "7%" },
               {
                 title: "Ngày QĐ Giao NV",
                 field: "NgayQDGiaoNhiemVu",
@@ -188,15 +197,23 @@
                 formatterParams: {
                   inputFormat: "iso",
                   outputFormat: "dd/MM/yyyy"
-                }
+                },
+                width: "7%"
               },
+              { title: "KQ", field: "KetQua", editor: "false", width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
             ];
           } else {
             columns = [
-              { title: "Phân loại", field: "PhanLoai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
+              {
+                title: "Phân loại", field: "PhanLoai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
+              },
               { title: "Tên đề tài", field: "TenDeTai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              { title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
+              {
+                title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "7%"
+              },
               {
                 title: "Ngày QĐ giao nhiệm vụ",
                 field: "NgayQDGiaoNhiemVu",
@@ -206,8 +223,10 @@
                   inputFormat: "iso",
                   outputFormat: "MM/dd/yyyy"
                 },
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "7%"
               },
+              { title: "KQ", field: "KetQua", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
             ];
           }
@@ -219,31 +238,36 @@
               field: "Khoa",
               editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
               editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              width: "10%"
             });
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
-              title: "Hành Động",
+              title: "Xóa",
               field: "actions",
               formatter: actionFormatter,
               hozAlign: "center",
-              headerSort: false
+              headerSort: false,
+              width: "5%"
             });
           }
 
           // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
-              formatter: checkboxFormatter,
-              editor: "tickCross",
+              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
+              editor: "tickCross",    // Cho phép chỉnh sửa checkbox theo mặc định
+              // Khi click vào ô checkbox, chuyển sang chế độ chỉnh sửa ngay lập tức
               cellClick: function (e, cell) {
-                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                const rowData = cell.getRow().getData();
+                daoTaoDuyet = rowData.DaoTaoDuyet;
                 cell.edit();
               },
+              width: "7%"
             });
           }
 
@@ -267,9 +291,16 @@
               const isoDate = convertDMYtoISO(updatedData.NgayQDGiaoNhiemVu);
               if (isoDate) updatedData.NgayQDGiaoNhiemVu = isoDate;
             }
-            // Nếu chỉnh sửa ô Duyệt thì chuyển checkbox value thành 1 hoặc 0
+            // Riêng site này bị bug ngầm với hàm edit check box Duyệt
+            // Khi Duyệt = 1, ta bỏ duyệt nhưng hàm edit bị vấn đề gì đó nên vẫn trả về 1 ( đúng ra là trả về 0)
+            // Tương tự với Duyệt = 0.
+
+            // Cách fix : thêm biến var daoTaoDuyet mỗi lần checkbox thay đổi lưu lại. 
+            //            Nên mình viết thêm xử lí như sau :
+            //            Là daoTaoDuyet == 1 thì mình gửi 0, == 0 thì mình gửi 1
+
             if (field === "DaoTaoDuyet") {
-              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet ? 1 : 0;
+              updatedData.DaoTaoDuyet = daoTaoDuyet == 1 ? 0 : 1;
             }
             await saveData(updatedData.ID, updatedData, row);
           });
@@ -662,6 +693,7 @@
             ),
             // khoa: document.getElementById("MaPhongBanForm").value,
             khoa: localStorage.getItem("MaPhongBan"),
+            ketQua: document.getElementById("ketQua").value,
           };
 
 

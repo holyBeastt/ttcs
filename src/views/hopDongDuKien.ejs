@@ -140,7 +140,7 @@
           <div class="m-3 reCss">
             <h1>THÔNG TIN HỢP ĐỒNG GIẢNG VIÊN MỜI DỰ KIẾN</h1>
 
-            <div class="controls-container">
+            <div class="controls-container" style="width: 100%">
               <select
                 class="form-select w-100px mx-2 selectop"
                 id="combobox-dot"
@@ -183,6 +183,27 @@
               <button id="viewDataBtnDetail" class="btn view">
                 Xem dữ liệu chi tiết
               </button>
+              <br />
+              <!-- <input
+                type="text"
+                id="searchGiangVien"
+                placeholder="Tìm gv giảng dạy"
+                class="form-control m-2 search"
+                style="width: 150px"
+              />
+              <button id="exportHDDK" class="btn view">
+                Xuất thông tin HĐ dự kiến
+              </button> -->
+            </div>
+
+            <div class="controls-container">
+              <input
+                type="text"
+                id="searchGiangVien"
+                placeholder="Tìm gv giảng dạy"
+                class="form-control m-2 search"
+                style="width: 300px"
+              />
               <button id="exportHDDK" class="btn view">
                 Xuất thông tin HĐ dự kiến
               </button>
@@ -223,7 +244,7 @@
                         <th class="d_none">Xem</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableBody">
                       <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
                     </tbody>
                   </table>
@@ -290,6 +311,7 @@
     <!-- phần dữ liệu để hiển thị trên bảng -->
     <script>
       var renderData = [];
+      let SoTietDinhMuc = 0;
 
       document.addEventListener("DOMContentLoaded", function () {
         const viewDataBtn = document.getElementById("viewDataBtn");
@@ -328,7 +350,8 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
-            renderData = data;
+            renderData = data.dataDuKien;
+            SoTietDinhMuc = data.SoTietDinhMuc;
 
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
@@ -343,7 +366,7 @@
             });
 
             // Thêm dữ liệu mới vào bảng
-            data.forEach((item) => {
+            renderData.forEach((item) => {
               const row = tbody.insertRow();
               row.insertCell(0).textContent = Number.parseFloat(
                 item.TongTiet
@@ -386,7 +409,7 @@
               row.insertCell(14).textContent = item.MaSoThue;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
-              if (item.TongSoTiet > 300) {
+              if (item.TongSoTiet > SoTietDinhMuc) {
                 row.classList.add("alert-sotiet");
               }
             });
@@ -433,7 +456,8 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
-            renderData = data;
+            renderData = data.dataDuKien;
+            SoTietDinhMuc = data.SoTietDinhMuc;
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
             tbody.innerHTML = "";
@@ -447,7 +471,7 @@
             });
 
             // Thêm dữ liệu mới vào bảng
-            data.forEach((item) => {
+            renderData.forEach((item) => {
               const row = tbody.insertRow();
               row.insertCell(0).textContent = Number.parseFloat(
                 item.TongTiet
@@ -512,7 +536,7 @@
               `;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
-              if (item.TongSoTiet > 300) {
+              if (item.TongSoTiet > SoTietDinhMuc) {
                 row.classList.add("alert-sotiet");
               }
             });
@@ -560,48 +584,38 @@
       }
     </script>
 
-    <!-- Phần phân quyền -->
     <script>
-      const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-      const role = localStorage.getItem("userRole"); //
-      const MaPhongBan = localStorage.getItem("MaPhongBan"); //
-      const maPhongBanBtn = document.getElementById("MaPhongBan");
-      const ThongTinGD = document.getElementById("ThongTinGD");
+      // Hàm kiểm tra và lọc hàng trong bảng
+      function filterTable() {
+        const nameFilter = document
+          .getElementById("searchGiangVien")
+          .value.toLowerCase();
 
-      document.addEventListener("DOMContentLoaded", () => {
-        // không phải khoa và là quyền duyệt
-        if (role != "Duyệt" && isKhoa != 0) {
-          maPhongBanBtn.style.display = "none";
-        }
+        const tableRows = document.querySelectorAll("#tableBody tr");
 
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+        tableRows.forEach((row) => {
+          const nameCell = row.querySelector("td:nth-child(6)"); // Cột tên giảng viên
 
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
+          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+
+          // Kiểm tra điều kiện lọc
+          const matchesName = name.includes(nameFilter);
+
+          // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
+          if (matchesName) {
+            row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
-            window.location.href = "/info";
+            row.style.display = "none"; // Ẩn hàng nếu không khớp
           }
         });
 
-        // Thêm sự kiện click cho phần tử có id="Home"
+        calculateTotals(); // Cập nhật tổng số tiết sau khi lọc
+      }
 
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
+      // Gán sự kiện cho các input filter
+      document
+        .getElementById("searchGiangVien")
+        .addEventListener("input", filterTable);
     </script>
 
     <script>
@@ -733,6 +747,15 @@
     </script>
     <script>
       $(document).ready(function () {
+        // Nếu là khoa thì ẩn
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 1) {
+          $("#MaPhongBan").remove(); // ẩn cả label và select nếu bọc trong form-group
+          return; // không cần gọi AJAX nữa
+        }
+
+        // Nếu là phòng ban thì hiển thị option chọn khoa
         $('#MaPhongBan option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({

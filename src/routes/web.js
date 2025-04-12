@@ -22,6 +22,7 @@ const {
   getthongkemg,
   getthongkenckh,
   getthongkedoan,
+  getBoMonShared,
 } = require("../controllers/homeController");
 
 // const { createGVM } = require("../controllers/DaoTaoController");
@@ -56,4 +57,9 @@ router.get("/log", getlog);
 router.get("/thongkemg", getthongkemg);
 router.get("/thongkenckh", getthongkenckh);
 router.get("/thongkedoan", getthongkedoan);
+
+// router dùng chung
+
+// Lấy danh sách all mã bộ môn (không có điều kiện)
+router.get("/api/shared/bo-mon", getBoMonShared);
 module.exports = router;

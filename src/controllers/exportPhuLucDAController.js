@@ -148,7 +148,13 @@ const exportPhuLucDA = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    const { dot, namHoc, khoa, teacherName } = req.query;
+    const isKhoa = req.session.isKhoa;
+
+    let { dot, namHoc, khoa, teacherName } = req.query;
+
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
 
     if (!dot || !namHoc) {
       return res.status(400).json({
@@ -291,13 +297,13 @@ const exportPhuLucDA = async (req, res) => {
     summarySheet.getColumn(4).width = 14; // Sinh viên thực hiện
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
-      summarySheet.getColumn(7).width = 18; // Địa chỉ
-      summarySheet.getColumn(8).width = 6; // Học vị
-      summarySheet.getColumn(9).width = 7; // Hệ số lương
-      summarySheet.getColumn(10).width = 12; // Mức thanh toán
-      summarySheet.getColumn(11).width = 15; // Thành tiền
-      summarySheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
-      summarySheet.getColumn(13).width = 15; // Còn lại
+    summarySheet.getColumn(7).width = 18; // Địa chỉ
+    summarySheet.getColumn(8).width = 6; // Học vị
+    summarySheet.getColumn(9).width = 7; // Hệ số lương
+    summarySheet.getColumn(10).width = 12; // Mức thanh toán
+    summarySheet.getColumn(11).width = 15; // Thành tiền
+    summarySheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
+    summarySheet.getColumn(13).width = 15; // Còn lại
 
     // Thêm dữ liệu vào sheet tổng hợp
     let stt = 1;
@@ -387,7 +393,7 @@ const exportPhuLucDA = async (req, res) => {
             case 13: // Trừ thuế TNCN 10%
               cell.font = { name: "Times New Roman", size: 15 };
               break;
-          
+
             default:
               cell.font = { name: "Times New Roman", size: 15 };
               break;
@@ -576,13 +582,13 @@ const exportPhuLucDA = async (req, res) => {
       };
 
       // Căn chỉnh độ rộng cột
-    // Định dạng cột
-    worksheet.getColumn(1).width = 5; // STT
-    worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-    worksheet.getColumn(3).width = 20; // Tên đồ án
-    worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
-    worksheet.getColumn(5).width = 10; // Số tiết
-    worksheet.getColumn(6).width = 18; // Thời gian thực hiện
+      // Định dạng cột
+      worksheet.getColumn(1).width = 5; // STT
+      worksheet.getColumn(2).width = 18; // Họ tên giảng viên
+      worksheet.getColumn(3).width = 20; // Tên đồ án
+      worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
+      worksheet.getColumn(5).width = 10; // Số tiết
+      worksheet.getColumn(6).width = 18; // Thời gian thực hiện
       worksheet.getColumn(7).width = 18; // Địa chỉ
       worksheet.getColumn(8).width = 6; // Học vị
       worksheet.getColumn(9).width = 7; // Hệ số lương

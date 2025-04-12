@@ -519,13 +519,16 @@ const thongkenckhController = {
                 `SELECT MaPhongBan as Khoa, TenPhongBan FROM phongban WHERE isKhoa=1`
             );
 
-            const data = {
+            const maxNamHoc = namHoc.length > 0 ? namHoc[0].namHoc : "ALL"; // Lấy năm học lớn nhất
+            namHoc.unshift({ NamHoc: "ALL" });
+
+            res.json({
                 success: true,
                 NamHoc: namHoc,
-                Khoa: khoa
-            };
+                Khoa: khoa,
+                MaxNamHoc: maxNamHoc,
+            });
 
-            res.json(data);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu năm học và khoa:", error);
             res.status(500).json({

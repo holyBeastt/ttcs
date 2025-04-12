@@ -28,7 +28,7 @@ router.post(
 );
 
 // Cập nhật table đồ án tốt nghiệp
-router.post("/updateDoAn", doAnChinhThuc.updateDoAn);
+router.post("/api/doan/quy-chuan/update-do-an", doAnChinhThuc.updateDoAn);
 
 // Lưu dữ liệu vào table export đồ án tốt nghiệp
 router.post("/saveToExportDoAn", doAnChinhThuc.saveToExportDoAn);
@@ -41,5 +41,9 @@ router.post("/saveNoteDoAn", doAnChinhThuc.SaveNote);
 
 // Done note
 router.post("/doneNoteDoAn", doAnChinhThuc.DoneNote);
+
+router.post("/doan-export-word", async (req, res) => {
+  doAnChinhThuc.exportToWord(req, res);
+});
 
 module.exports = router;

@@ -71,13 +71,14 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        border: 2px solid black;
       }
 
       .table th,
       .table td {
         padding: 10px;
         text-align: left;
-        border: 1px solid #dee2e6;
+        border: 1px solid black;
       }
 
       .table th {
@@ -133,6 +134,13 @@
         height: 45px;
         margin-left: 5px;
       }
+
+      /* Phần cảnh báo nếu số tiết vượt quá 300 */
+      .alert-sotiet {
+        background-color: #ffe4b5 !important;
+        color: #333;
+        /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
+      }
     </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -154,6 +162,10 @@
                 <option value="">Đợt</option>
               </select>
 
+              <select class="selectop w-100px mx-1" id="comboboxki">
+                <option value="">Kỳ</option>
+              </select>
+
               <!-- Combo box Năm -->
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
@@ -170,15 +182,20 @@
               >
                 Hiển thị
               </button>
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo Tên..."
+                class="m-2 search"
+                style="margin-left: 10px; height: 50px"
+                id="searchInput"
+                onkeyup="searchClass()"
+              />
             </div>
           </div>
         </div>
 
         <div>
           <table class="table table-bordered">
-            <!-- <thead>
-            <tr id="table-header"></tr>
-          </thead> -->
             <thead>
               <tr>
                 <th>STT</th>
@@ -192,6 +209,7 @@
                 <th>Ngày kết thúc</th>
                 <th>Số tiết</th>
                 <th>Tổng số tiết</th>
+                <th>Tổng số tiết cả năm</th>
                 <th>Khoa</th>
                 <!-- Cột Khoa -->
                 <th>Chi tiết giảng viên mời</th>
@@ -221,14 +239,17 @@
 
     <!-- render ra bảng k cần ấn gì cả -->
     <script>
+      let SoTietDinhMuc = 300;
       document.getElementById("render").addEventListener("click", function () {
         let Dot = document.getElementById("combobox-dot").value;
+        let ki = document.getElementById("comboboxki").value;
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("departmentFilter").value;
 
         const body = {
           Khoa: Khoa,
           Dot: Dot,
+          ki: ki,
           Nam: Nam,
         };
 
@@ -256,9 +277,8 @@
                 "block"; // Hiển thị thông báo nếu không có dữ liệu
             } else {
               document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
-
-              console.log(data);
-              renderTable(data);
+              SoTietDinhMuc = data.SoTietDinhMuc;
+              renderTable(data.groupedByTeacher);
             }
           })
           .catch((error) => {
@@ -291,6 +311,7 @@
 
             // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
             if (courseIndex === 0) {
+              tr.classList.add("teacher-group");
               tr.innerHTML = `
               <td rowspan="${courses.length}">${index}</td>
               <td rowspan="${courses.length}">${
@@ -312,10 +333,21 @@
             <td>${course.SoTiet}</td>
           `;
 
+            if (course.TongSoTietCaNam > 300) {
+              tr.classList.add("alert-sotiet");
+            }
+
             // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
             if (courseIndex === 0) {
               tr.innerHTML += `
               <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
+              <td rowspan="${courses.length}">
+                ${
+                  course.TongSoTietCaNam
+                    ? parseFloat(course.TongSoTietCaNam).toFixed(2)
+                    : "0.00"
+                }
+              </td>
               <td rowspan="${courses.length}">${course.MaPhongBan}</td>
               <td rowspan="${courses.length}">
                 <button class="action-button view" onclick="viewClass(this, '${
@@ -353,7 +385,6 @@
               if (!isNaN(qcValue)) {
                 //console.log(totalQC)
                 totalQC += qcValue;
-                console.log("qc = ", totalQC);
               }
             }
           }
@@ -377,6 +408,65 @@
       function viewClass(button, index) {
         var hre = "/viewGvm/" + index;
         window.location.href = hre;
+      }
+
+      // Tìm kiếm giảng viên mời theo tên
+
+      function searchClass() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let table = document.getElementById("data-table-body");
+        let rows = table.getElementsByTagName("tr");
+
+        let currentGroup = [];
+        let groupVisible = false;
+
+        for (let i = 0; i < rows.length; i++) {
+          // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
+          let row = rows[i];
+
+          if (row.classList.contains("teacher-group")) {
+            // Đây là hàng đầu tiên của một nhóm giảng viên mới
+            if (currentGroup) {
+              // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
+              setGroupVisibility(currentGroup, groupVisible);
+            }
+
+            currentGroup = [];
+            groupVisible = false;
+          }
+
+          currentGroup.push(row);
+          /*
+          let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
+          if (teacherNameCell) {
+            let teacherName = teacherNameCell.textContent.toLowerCase();
+            if (teacherName.includes(input)) {
+              groupVisible = true;
+            }
+          }*/
+
+          if (row.classList.contains("teacher-group")) {
+            let teacherNameCell = row.cells[1]; // cột thứ 2
+            if (teacherNameCell) {
+              let teacherName = teacherNameCell.textContent.toLowerCase();
+              if (teacherName.includes(input)) {
+                groupVisible = true;
+              }
+            }
+          }
+        }
+
+        // Xử lý nhóm cuối cùng
+        if (currentGroup) {
+          setGroupVisibility(currentGroup, groupVisible);
+        }
+        calculateTotals();
+      }
+
+      function setGroupVisibility(group, isVisible) {
+        for (let row of group) {
+          row.style.display = isVisible ? "" : "none";
+        }
       }
     </script>
 
@@ -524,6 +614,13 @@
     </script>
     <script>
       $(document).ready(function () {
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        if (isKhoa == 1) {
+          $("#departmentFilter").hide(); // ẩn cả label và select nếu bọc trong form-group
+          return; // không cần gọi AJAX nữa
+        }
+
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({

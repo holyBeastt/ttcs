@@ -70,24 +70,24 @@
       }
       /* Định dạng cho tiêu đề */
       h3 {
-            color: #009879;
-            text-align: center;
-            margin: 30px 0;
-            font-weight: 600;
-            position: relative;
-            padding-bottom: 10px;
-        }
+        color: #009879;
+        text-align: center;
+        margin: 30px 0;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+      }
 
-        h3:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: #009879;
-        }
+      h3:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: #009879;
+      }
 
       /* Định dạng cho biểu đồ */
       canvas {
@@ -98,294 +98,366 @@
   </head>
 
   <body>
-     <!-- Phần header -->
- <%- include('header') %>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <!-- Phần nội dung -->
- 
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <div class="d-flex justify-content-start align-items-end mb-3">
-     
-      <select class="form-select  mx-1 selectop" id="dot" style="width: 150px;">
-      </select>
-    <!-- Combo box Năm -->
-    <select class="form-select  mx-1 selectop" style="width: 200px;" id="NamHoc">
-    </select>
-    
-    <!-- Combo box Khoa -->
-    <select class="form-select  mx-1 selectop" id="Khoa" style="width: 150px;">
-    </select>
-    
-  </div>
-  <h3>
-    Thống kê số đồ án tốt nghiệp theo giảng viên
-</h3>
-  <div style="margin-top: 20px;">
-      <canvas id="chartCoHuu" style="width: 60%; height: 200px; margin-bottom: 20px;"></canvas>
-  </div>
-  <div id="coHuuTable">
-    <h3>Bảng chi tiết Cơ hữu</h3>
-    <table table class="table table-bordered my-2" border="1" id="coHuuTable">
+      <select
+        class="form-select mx-1 selectop"
+        id="dot"
+        style="width: 150px"
+      ></select>
+      <!-- Combo box Năm -->
+      <select
+        class="form-select mx-1 selectop"
+        style="width: 200px"
+        id="NamHoc"
+      ></select>
+
+      <!-- Combo box Khoa -->
+      <select
+        class="form-select mx-1 selectop"
+        id="Khoa"
+        style="width: 150px"
+      ></select>
+    </div>
+    <h3>Thống kê số đồ án tốt nghiệp theo giảng viên</h3>
+    <div style="margin-top: 20px">
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="alert alert-success text-center">
+            <strong>Tổng số tiết cơ hữu:</strong> <span id="totalCoHuu">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="alert alert-warning text-center">
+            <strong>Tổng số tiết mời giảng:</strong> <span id="totalMoiGiang">0</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="alert alert-primary text-center">
+            <strong>Tổng số tiết:</strong> <span id="totalSoTiet">0</span>
+          </div>
+        </div>
+      </div>
+      <canvas
+        id="chartCoHuu"
+        style="width: 60%; height: 200px; margin-bottom: 20px"
+      ></canvas>
+    </div>
+    <div id="coHuuTable">
+      <h3>Bảng chi tiết Cơ hữu</h3>
+      <table table class="table table-bordered my-2" border="1" id="coHuuTable">
         <thead>
-            <tr>
-                <th>STT</th>
-                <th>Tên Giảng Viên</th>
-                <th>Khoa</th>
-                <th>Số đồ án</th>
-                <th>Số tiết quy đổi</th>
-                
-            </tr>
+          <tr>
+            <th>STT</th>
+            <th>Tên Giảng Viên</th>
+            <th>Khoa</th>
+            <th>Số đồ án</th>
+            <th>Số tiết quy đổi</th>
+          </tr>
         </thead>
         <tbody>
-            <!-- Dữ liệu sẽ được hiển thị ở đây -->
+          <!-- Dữ liệu sẽ được hiển thị ở đây -->
         </tbody>
-    </table>
-</div>
-  <div>
-      <canvas id="chartMoiGiang" style="width: 60%; height: 200px;"></canvas>
-  </div>
-  
-  <!-- Bảng chi tiết Cơ hữu -->
-
-  
-  <!-- Bảng chi tiết Mời giảng -->
-  <div id="moiGiangTable">
-      <h3>Bảng chi tiết Mời giảng</h3>
-      <table table class="table table-bordered my-2" border="1" id="moiGiangTable">
-          <thead>
-              <tr>
-                  <th>STT</th>
-                  <th>Tên Giảng Viên</th>
-                  <th>Khoa</th>
-                  <th>Số đồ án</th>
-                  <th>Số tiết quy đổi</th>
-              </tr>
-          </thead>
-          <tbody>
-              <!-- Dữ liệu sẽ được hiển thị ở đây -->
-          </tbody>
       </table>
-  </div>
-  
-  <script>
-    $(document).ready(function () {
-            // Biến để theo dõi số lượng combobox đã được khởi tạo
-            let initializedComboboxes = 0;
-            const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
+    </div>
+    <div>
+      <canvas id="chartMoiGiang" style="width: 60%; height: 200px"></canvas>
+    </div>
 
-            function checkAndFetchData() {
-                initializedComboboxes++;
-                if (initializedComboboxes === totalComboboxes) {
-                    fetchThongkeData();
-                }
-            }
+    <!-- Bảng chi tiết Cơ hữu -->
 
-            // Xóa các option mặc định
-            $('#NamHoc option').remove();
-            $('#Dot option').remove();
-            $('#Khoa option').remove();
+    <!-- Bảng chi tiết Mời giảng -->
+    <div id="moiGiangTable">
+      <h3>Bảng chi tiết Mời giảng</h3>
+      <table
+        table
+        class="table table-bordered my-2"
+        border="1"
+        id="moiGiangTable"
+      >
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên Giảng Viên</th>
+            <th>Khoa</th>
+            <th>Số đồ án</th>
+            <th>Số tiết quy đổi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dữ liệu sẽ được hiển thị ở đây -->
+        </tbody>
+      </table>
+    </div>
 
-            // Chỉ gọi một lần để khởi tạo combobox Khoa
-            $.ajax({
-                url: '/getPhongBanDoAn',
-                method: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        // Thêm option "Tất cả khoa"
-                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+    <script>
+      $(document).ready(function () {
+        // Biến để theo dõi số lượng combobox đã được khởi tạo
+        let initializedComboboxes = 0;
+        const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
 
-                        // Thêm các option khoa không trùng lặp
-                        response.MaPhongBan.forEach(function (item) {
-                            $('#Khoa').append(
-                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                            );
-                        });
-                        // Kiểm tra nếu người dùng có MaPhongBan cụ thể
-                        const MaPhongBan = localStorage.getItem("MaPhongBan");
-                        const isKhoa = localStorage.getItem("isKhoa");
+        function checkAndFetchData() {
+          initializedComboboxes++;
+          if (initializedComboboxes === totalComboboxes) {
+            fetchThongkeData();
+          }
+        }
 
-                        if (isKhoa == 0) {
-                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
-                        } else if (isKhoa == 1) {
-                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
-                            $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
-                        }
-                        checkAndFetchData();
-                    }
-                },
-                error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
-                    checkAndFetchData();
-                }
-            });
+        // Xóa các option mặc định
+        $("#NamHoc option").remove();
+        $("#Dot option").remove();
+        $("#Khoa option").remove();
 
-            // Khởi tạo các combobox khác
-            $.ajax({
-                url: '/getNamHocDoAn',
-                method: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        // Thêm dữ liệu năm học
-                        response.NamHoc.forEach(function (item) {
-                            $('#NamHoc').append(
-                                `<option value="${item.NamHoc}">${item.NamHoc === 'ALL' ? 'Tất cả năm' : item.NamHoc}</option>`
-                            );
-                        });
-                        checkAndFetchData();
-
-                    }
-                },
-                error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu:", error);
-                    // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
-                    checkAndFetchData();
-                    checkAndFetchData();
-                }
-            });
-        
-        // Khởi tạo combobox Dot
+        // Chỉ gọi một lần để khởi tạo combobox Khoa
         $.ajax({
-            url: '/getDot',
-            method: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    response.Dot.forEach(function (item) {
-                        $('#dot').append(
-                            `<option value="${item.Dot}">${item.Dot === 'ALL' ? 'Tất cả đợt' : item.Dot}</option>`
-                            );
-                        });
-                        // Thêm option "Tất cả năm" vào đầu
-                        $('#dot').prepend('<option value="ALL" selected>Tất cả đợt</option>');
-                        checkAndFetchData();
+          url: "/getPhongBanDoAn",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              $("#Khoa").empty(); // Xóa các option cũ
+              $("#Khoa").append('<option value="ALL">Tất cả khoa</option>'); // Thêm tùy chọn mặc định
+
+              response.MaPhongBan.forEach(function (item) {
+                $("#Khoa").append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
+              });
+
+              // Đặt giá trị mặc định nếu cần
+              const MaPhongBan = localStorage.getItem("MaPhongBan");
+              const isKhoa = localStorage.getItem("isKhoa");
+              console.log("Khoa", MaPhongBan);
+
+              // Kiểm tra nếu MaPhongBan không nằm trong danh sách option
+              if (isKhoa == 1 && MaPhongBan) {
+                const exists = $("#Khoa option").filter(function () {
+                  return $(this).val() === MaPhongBan;
+                }).length;
+
+                if (!exists) {
+                  // Thêm MaPhongBan vào combobox nếu không tồn tại
+                  $("#Khoa").append(
+                    `<option value="${MaPhongBan}">${MaPhongBan}</option>`
+                  );
                 }
-            },
-            error: function (error) {
-                console.error("Lỗi khi lấy dữ liệu đợt:", error);
+
+                // Gán giá trị MaPhongBan vào combobox
+                $("#Khoa").val(MaPhongBan);
+                $("#Khoa").prop("disabled", true); // Vô hiệu hóa combobox nếu cần
+              } else if (isKhoa == 0) {
+                $("#Khoa").val("ALL");
+              }
+
+              fetchThongkeData(); // Gọi hàm để lấy dữ liệu ngay sau khi khởi tạo combobox Khoa
             }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+          },
         });
 
-      
-          function fetchThongkeData() {
-              const namhoc = $("#NamHoc").val();
-              const khoa = $("#Khoa").val();
-              const dot = $("#dot").val();
-  
-              console.log("NamHoc:", namhoc, "Khoa:", khoa, "Dot:", dot); // Debugging
-  
-              $.ajax({
-                  url: "/data",
-                  method: "GET",
-                  data: { namhoc, khoa, dot },
-                  success: function (response) {
-                      if (response.success) {
-                          const coHuu = response.coHuu;
-                          const moiGiang = response.moiGiang;
-  
-                          // Labels và values cho biểu đồ Cơ hữu
-                          const coHuuLabels = coHuu.map((item) => item.GiangVien || "Không rõ");
-                          const coHuuValues = coHuu.map((item) => item.soDoAn); // Số đồ án
-  
-                          // Labels và values cho biểu đồ Mời giảng
-                          const moiGiangLabels = moiGiang.map((item) => item.GiangVien || "Không rõ");
-                          const moiGiangValues = moiGiang.map((item) => item.soDoAn); // Số đồ án
-  
-                          // Hủy biểu đồ cũ nếu tồn tại
-                          if (window.chartCoHuu instanceof Chart) window.chartCoHuu.destroy();
-                          if (window.chartMoiGiang instanceof Chart) window.chartMoiGiang.destroy();
-  
-                          // Tạo biểu đồ Cơ hữu
-                          const ctxCoHuu = document.getElementById("chartCoHuu").getContext("2d");
-                          window.chartCoHuu = new Chart(ctxCoHuu, {
-                              type: "bar",
-                              data: {
-                                  labels: coHuuLabels,
-                                  datasets: [{
-                                      label: "Số đồ án (Cơ hữu)",
-                                      data: coHuuValues,
-                                      backgroundColor: "blue",
-                                      borderColor: "yellow",
-                                      borderWidth: 3,
-                                  }],
-                              },
-                              options: {
-                                  responsive: true,
-                                  plugins: {
-                                      title: { display: true, text: "Cơ hữu", font: { size: 18 } },
-                                  },
-                                  scales: { y: { beginAtZero: true } },
-                              },
-                          });
-  
-                          // Tạo biểu đồ Mời giảng
-                          const ctxMoiGiang = document.getElementById("chartMoiGiang").getContext("2d");
-                          window.chartMoiGiang = new Chart(ctxMoiGiang, {
-                              type: "bar",
-                              data: {
-                                  labels: moiGiangLabels,
-                                  datasets: [{
-                                      label: "Số đồ án (Mời giảng)",
-                                      data: moiGiangValues,
-                                      backgroundColor: "green",
-                                      borderColor: "orange",
-                                      borderWidth: 3,
-                                  }],
-                              },
-                              options: {
-                                  responsive: true,
-                                  plugins: {
-                                      title: { display: true, text: "Mời giảng", font: { size: 18 } },
-                                  },
-                                  scales: { y: { beginAtZero: true } },
-                              },
-                          });
-  
-                          // Hiển thị bảng chi tiết Cơ hữu
-                          const coHuuTableBody = $("#coHuuTable tbody");
-                          coHuuTableBody.empty(); // Xóa dữ liệu cũ
-                          coHuu.forEach((item, index) => {
-                              coHuuTableBody.append(`
-                                  <tr>
-                                      <td>${index + 1}</td>
-                                      <td>${item.GiangVien || "Không rõ"}</td>
-                                      <td>${item.MaPhongBan || "Không rõ"}</td>
-                                      <td>${item.soDoAn}</td>
-                                      <td>${item.soTiet}</td>
-                                  </tr>
-                              `);
-                          });
-  
-                          // Hiển thị bảng chi tiết Mời giảng
-                          const moiGiangTableBody = $("#moiGiangTable tbody");
-                          moiGiangTableBody.empty(); // Xóa dữ liệu cũ
-                          moiGiang.forEach((item, index) => {
-                              moiGiangTableBody.append(`
-                                  <tr>
-                                      <td>${index + 1}</td>
-                                      <td>${item.GiangVien || "Không rõ"}</td>
-                                      <td>${item.MaPhongBan || "Không rõ"}</td>
-                                      <td>${item.soDoAn}</td>
-                                      <td>${item.soTiet}</td>
-                                  </tr>
-                              `);
-                          });
-                      } else {
-                          alert("Không thể tải dữ liệu từ server.");
-                      }
-                  },
-                  error: function (error) {
-                      console.error("Lỗi:", error);
-                  },
+        // Khởi tạo các combobox khác
+        $.ajax({
+          url: "/getNamHocDoAn",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              // Thêm dữ liệu năm học
+              response.NamHoc.forEach(function (item) {
+                $("#NamHoc").append(
+                  `<option value="${item.NamHoc}">${
+                    item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                  }</option>`
+                );
               });
-          }
-  
-          $("#NamHoc, #Khoa, #dot").on("change", fetchThongkeData);
-          fetchThongkeData(); // Gọi ngay khi trang được tải
+              if (response.MaxNamHoc) {
+                $("#NamHoc").val(response.MaxNamHoc).trigger("change");
+              }
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu:", error);
+            // Đảm bảo fetchThongkemgData vẫn được gọi ngay cả khi có lỗi
+            fetchThongkeData();
+          },
+        });
+
+        // Khởi tạo combobox Dot
+        $.ajax({
+          url: "/getDot",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.Dot.forEach(function (item) {
+                $("#dot").append(
+                  `<option value="${item.Dot}">${
+                    item.Dot === "ALL" ? "Tất cả đợt" : item.Dot
+                  }</option>`
+                );
+              });
+              // Thêm option "Tất cả đợt" vào đầu
+              $("#dot").prepend(
+                '<option value="ALL" selected>Tất cả đợt</option>'
+              );
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu đợt:", error);
+          },
+        });
+
+        function fetchThongkeData() {
+          const namhoc = $("#NamHoc").val();
+          const khoa = $("#Khoa").val();
+          const dot = $("#dot").val();
+
+          console.log("NamHoc:", namhoc, "Khoa:", khoa, "Dot:", dot); // Debugging
+
+          $.ajax({
+            url: "/data",
+            method: "GET",
+            data: { namhoc, khoa, dot },
+            success: function (response) {
+              if (response.success) {
+                const coHuu = response.coHuu;
+                const moiGiang = response.moiGiang;
+                $("#totalSoTiet").text(response.totalSoTiet || 0);
+                $("#totalCoHuu").text(response.totalCoHuu || 0);
+                $("#totalMoiGiang").text(response.totalMoiGiang || 0);
+
+                // Labels và values cho biểu đồ Cơ hữu
+                const coHuuLabels = coHuu.map(
+                  (item) => item.GiangVien || "Không rõ"
+                );
+                const coHuuValues = coHuu.map((item) => item.soDoAn); // Số đồ án
+
+                // Labels và values cho biểu đồ Mời giảng
+                const moiGiangLabels = moiGiang.map(
+                  (item) => item.GiangVien || "Không rõ"
+                );
+                const moiGiangValues = moiGiang.map((item) => item.soDoAn); // Số đồ án
+
+                // Hủy biểu đồ cũ nếu tồn tại
+                if (window.chartCoHuu instanceof Chart)
+                  window.chartCoHuu.destroy();
+                if (window.chartMoiGiang instanceof Chart)
+                  window.chartMoiGiang.destroy();
+
+                // Tạo biểu đồ Cơ hữu
+                const ctxCoHuu = document
+                  .getElementById("chartCoHuu")
+                  .getContext("2d");
+                window.chartCoHuu = new Chart(ctxCoHuu, {
+                  type: "bar",
+                  data: {
+                    labels: coHuuLabels,
+                    datasets: [
+                      {
+                        label: "Số đồ án (Cơ hữu)",
+                        data: coHuuValues,
+                        backgroundColor: "blue",
+                        borderColor: "yellow",
+                        borderWidth: 3,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    plugins: {
+                      title: {
+                        display: true,
+                        text: "Cơ hữu",
+                        font: { size: 18 },
+                      },
+                    },
+                    scales: { y: { beginAtZero: true } },
+                  },
+                });
+
+                // Tạo biểu đồ Mời giảng
+                const ctxMoiGiang = document
+                  .getElementById("chartMoiGiang")
+                  .getContext("2d");
+                window.chartMoiGiang = new Chart(ctxMoiGiang, {
+                  type: "bar",
+                  data: {
+                    labels: moiGiangLabels,
+                    datasets: [
+                      {
+                        label: "Số đồ án (Mời giảng)",
+                        data: moiGiangValues,
+                        backgroundColor: "green",
+                        borderColor: "orange",
+                        borderWidth: 3,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    plugins: {
+                      title: {
+                        display: true,
+                        text: "Mời giảng",
+                        font: { size: 18 },
+                      },
+                    },
+                    scales: { y: { beginAtZero: true } },
+                  },
+                });
+
+                // Hiển thị bảng chi tiết Cơ hữu
+                const coHuuTableBody = $("#coHuuTable tbody");
+                coHuuTableBody.empty(); // Xóa dữ liệu cũ
+                coHuu.forEach((item, index) => {
+                  coHuuTableBody.append(`
+                                  <tr>
+                                      <td>${index + 1}</td>
+                                      <td>${item.GiangVien || "Không rõ"}</td>
+                                      <td>${item.MaPhongBan || "Không rõ"}</td>
+                                      <td>${item.soDoAn}</td>
+                                      <td>${item.soTiet}</td>
+                                  </tr>
+                              `);
+                });
+
+                // Hiển thị bảng chi tiết Mời giảng
+                const moiGiangTableBody = $("#moiGiangTable tbody");
+                moiGiangTableBody.empty(); // Xóa dữ liệu cũ
+                moiGiang.forEach((item, index) => {
+                  moiGiangTableBody.append(`
+                                  <tr>
+                                      <td>${index + 1}</td>
+                                      <td>${item.GiangVien || "Không rõ"}</td>
+                                      <td>${item.MaPhongBan || "Không rõ"}</td>
+                                      <td>${item.soDoAn}</td>
+                                      <td>${item.soTiet}</td>
+                                  </tr>
+                              `);
+                });
+              } else {
+                alert("Không thể tải dữ liệu từ server.");
+              }
+            },
+            error: function (error) {
+              console.error("Lỗi:", error);
+            },
+          });
+        }
+
+        $("#NamHoc, #Khoa, #dot").on("change", fetchThongkeData);
+        fetchThongkeData(); // Gọi ngay khi trang được tải
       });
-  </script>
-  
-      
+    </script>
+
     <script>
       document
         .getElementById("changeMessage")
@@ -419,29 +491,21 @@
           }
         });
     </script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-      const role = localStorage.getItem("userRole");
-      const isKhoa = localStorage.getItem("isKhoa");
-      
-      // Ẩn button ngay khi trang được tải
-      const actionButton = document.getElementById('changeMessage');
-      //Ẩn site thêm thông báo
-      if (role === "Duyệt") {
-          actionButton.style.display = '';
-      } else {
-          actionButton.style.display = 'none';
-      }
-      // Kiểm tra giá trị isKhoa
-      if (isKhoa == 1) {
-           // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
-              document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-      } else {
-          // Nếu isKhoa = 0, hiển thị combobox Khoa
-          document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
-      }
-  });
-  </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        // Ẩn button ngay khi trang được tải
+        const actionButton = document.getElementById("changeMessage");
+        //Ẩn site thêm thông báo
+        if (role === "Duyệt") {
+          actionButton.style.display = "";
+        } else {
+          actionButton.style.display = "none";
+        }
+      });
+    </script>
     <script>
       document
         .getElementById("infome")
@@ -456,6 +520,5 @@
           }
         });
     </script>
-
   </body>
 </html>

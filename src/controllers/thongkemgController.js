@@ -18,39 +18,39 @@ const thongkemgController = {
         // Query khi chọn tất cả khoa
         query = `
                     SELECT 
-                        MaPhongBan as khoa,
-                        COUNT(DISTINCT hoten) as sogiangvien,
-                        SUM(sotiet) as tongsotiet
-                    FROM hopdonggvmoi 
-                    WHERE 1=1
+                        Khoa as khoa,
+                        COUNT(DISTINCT GiangVien) as sogiangvien,
+                        SUM(quychuan) as tongsotiet
+                    FROM giangday 
+                    WHERE id_Gvm != 1
                 `;
       } else {
         // Query cho khoa cụ thể
         query = `
-                    SELECT hoten, 
-                    SUM(sotiet) as tongsotiet ,
+                    SELECT GiangVien as hoten, 
+                    SUM(quychuan) as tongsotiet,
                     he_dao_tao as hedaotao
-                    FROM hopdonggvmoi 
-                    WHERE MaPhongBan = ?
+                    FROM giangday 
+                    WHERE Khoa = ? AND id_Gvm != 1
                 `;
         params.push(khoa);
       }
 
       // Thêm các điều kiện lọc khác
       if (kihoc && kihoc !== "ALL") {
-        query += ` AND kihoc = ?`;
+        query += ` AND HocKy = ?`;
         params.push(kihoc);
       }
       if (namhoc && namhoc !== "ALL") {
-        query += ` AND namhoc = ?`;
+        query += ` AND NamHoc = ?`;
         params.push(namhoc);
       }
 
       // Thêm GROUP BY
       if (khoa === "ALL") {
-        query += ` GROUP BY MaPhongBan ORDER BY tongsotiet DESC`;
+        query += ` GROUP BY Khoa ORDER BY tongsotiet DESC`;
       } else {
-        query += ` GROUP BY hoten ORDER BY tongsotiet DESC`;
+        query += ` GROUP BY hoten, he_dao_tao ORDER BY tongsotiet DESC`;
       }
 
       const [result] = await connection.query(query, params);
@@ -66,41 +66,35 @@ const thongkemgController = {
   getNamHocData: async (req, res) => {
     let connection;
     try {
-      connection = await createConnection();
+        connection = await createConnection();
 
-      // Lấy dữ liệu từ database
-      const [namHoc] = await connection.query(
-        "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
-      );
-      const [ki] = await connection.query(
-        "SELECT DISTINCT kihoc as Ki, kihoc as value FROM hopdonggvmoi ORDER BY kihoc"
-      );
-      const [khoa] = await connection.query(
-        "SELECT DISTINCT MaPhongBan as value, MaPhongBan as Khoa FROM hopdonggvmoi ORDER BY MaPhongBan"
-      );
+        // Lấy danh sách năm học
+        const [namHoc] = await connection.query(
+            "SELECT DISTINCT NamHoc as NamHoc FROM giangday ORDER BY NamHoc DESC"
+        );
 
-      // Thêm option "Tất cả" vào đầu mỗi mảng
-      const allNamHoc = [{ NamHoc: "ALL" }, ...namHoc];
-      const allKi = [{ Ki: "Tất cả kì", value: "ALL" }, ...ki];
-      const allKhoa = [{ value: "ALL", Khoa: "Tất cả khoa" }, ...khoa];
+        // Lấy danh sách kỳ học
+        const [hocKy] = await connection.query(
+            "SELECT DISTINCT HocKy as Ki FROM giangday ORDER BY HocKy"
+        );
 
-      const data = {
-        success: true,
-        NamHoc: allNamHoc,
-        Ki: allKi,
-        Khoa: allKhoa,
-      };
+        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
 
-      connection.release();
-      res.json(data);
+        // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
+        namHoc.unshift({ NamHoc: "ALL" });
+        hocKy.unshift({ Ki: "ALL" });
+
+        res.json({
+            success: true,
+            NamHoc: namHoc,
+            Ki: hocKy,
+            MaxNamHoc: maxNamHoc, // Trả về năm học lớn nhất
+        });
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu:", error);
-      res.status(500).json({
-        success: false,
-        message: "Lỗi server",
-      });
+        console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-      if (connection) connection.release();
+        if (connection) connection.release();
     }
   },
 
@@ -110,7 +104,7 @@ const thongkemgController = {
       connection = await createConnection();
       // Thêm DISTINCT để loại bỏ các giá trị trùng lặp
       const [phongBan] = await connection.query(
-        "SELECT DISTINCT MaPhongBan FROM hopdonggvmoi ORDER BY MaPhongBan"
+        "SELECT DISTINCT Khoa as MaPhongBan FROM giangday ORDER BY Khoa"
       );
 
       // Tạo mảng mới không có giá trị trùng lặp

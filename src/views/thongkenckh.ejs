@@ -80,9 +80,7 @@
     <div class="mx-5 flex-grow-1">
       <div class="d-flex justify-content-start align-items-end mb-3">
         <!-- Combo box Năm -->
-        <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;">
-            <option value="">Tất cả năm</option>
-        </select>
+        <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;"></select>
         <!-- Combo box Khoa -->
         <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
 
@@ -531,14 +529,6 @@
     } else {
       actionButton.style.display = 'none';
     }
-
-    if (isKhoa == 1) {
-         // Nếu isKhoa = 1, ẩn combobox Khoa và chỉ hiển thị dữ liệu của khoa đó
-            document.getElementById('Khoa').style.display = 'none'; // Ẩn combobox Khoa
-    } else if(isKhoa == 0){
-        // Nếu isKhoa = 0, hiển thị combobox Khoa
-        document.getElementById('Khoa').style.display = 'block'; // Hiện combobox Khoa
-    }
   });
 
   document.getElementById("infome").addEventListener("click", function (event) {
@@ -607,14 +597,18 @@
             if (response.success) {
                 // Cập nhật danh sách năm học
                 response.NamHoc.forEach(function (item) {
-                    $('#NamHoc').append(`<option value="${item.NamHoc}">${item.NamHoc}</option>`);
+                    $('#NamHoc').append(`<option value="${item.NamHoc}">${
+                        item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                    }</option>`);
                 });
-                
+                if (response.MaxNamHoc) {
+                    $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                }
                 // Cập nhật danh sách khoa, loại bỏ trùng lặp
-                let uniqueKhoa = [...new Set(response.Khoa.map(k => k.Khoa))]; 
+                let uniqueKhoa = [...new Set(response.Khoa.map(k => k.MaPhongBan))]; 
                 $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
                 uniqueKhoa.forEach(function (item) {
-                    $('#Khoa').append(`<option value="${item}">${item}</option>`);
+                    $('#Khoa').append(`<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`);
                 });
                 // Kiểm tra nếu người dùng có MaPhongBan cụ thể
                 const MaPhongBan = localStorage.getItem("MaPhongBan");

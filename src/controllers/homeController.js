@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const createPoolConnection = require("../config/databasePool");
 
 const router = express.Router();
 
@@ -78,6 +79,39 @@ const postFile = (req, res) => {
   });
 };
 
+// Controller dùng chung
+const getBoMonShared = async (req, res) => {
+  let connection;
+
+  try {
+    // Tạo kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Xác định truy vấn dựa vào MaPhongBan
+    let query = `
+      SELECT 
+        bomon.MaPhongBan, 
+        bomon.MaBoMon, 
+        bomon.TenBoMon
+      FROM 
+        bomon
+  `;
+
+    // Thực hiện truy vấn với kết nối
+    const [results] = await connection.query(query);
+
+    // Trả về kết quả truy vấn
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Lỗi trong hàm getBoMon:", error);
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   gethomePage,
@@ -101,4 +135,7 @@ module.exports = {
   getthongkenckh,
   getthongkedoan,
   getthongtonghop,
+
+  // Controller chung
+  getBoMonShared,
 };

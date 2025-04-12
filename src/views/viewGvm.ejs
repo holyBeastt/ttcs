@@ -69,6 +69,10 @@
               <option value="Nu" <%=value.GioiTinh==='Nữ' ? 'selected' : '' %>>Nữ</option>
             </select>
           </div>
+          <div class="col-md-2">
+            <label>Mã phòng ban:</label>
+            <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
+          </div>
           <div style="padding: 0px; width: 30%;">
             <label for="monGiangDayChinh">Bộ môn:</label>
             <select type="text" class="form-control" name="monGiangDayChinh" id="monGiangDayChinh" disabled>
@@ -76,11 +80,6 @@
             </select>
           </div>
           <input type="text" id="boMon" value="<%= value.MonGiangDayChinh %>" hidden>
-
-          <div class="col-md-2">
-            <label for="hocVi">Bằng cấp cao nhất:</label>
-            <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
-          </div>
         </div>
 
         <div class="row mb-3">
@@ -167,19 +166,19 @@
         </div>
 
         <div class="row mb-3">
-          <div class="col-md-1">
-            <label for="hsl">Hệ số lương:</label>
-            <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>" disabled>
-          </div>
-
-          <div class="col-md-3">
-            <label for="stk">Số tài khoản:</label>
-            <input class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>" disabled>
+          <div class="col-md-2">
+            <label for="dienThoai">Điện thoại:</label>
+            <input class="form-control" type="text" name="DienThoai" id="dienThoai" value="<%= value.DienThoai %>"
+              disabled>
           </div>
           <div class="col-md-8">
             <label for="nganHang">Ngân hàng:</label>
             <input class="form-control" type="text" name="NganHang" id="nganHang" value="<%= value.NganHang %>"
               disabled>
+          </div>
+          <div class="col-md-2">
+            <label for="hocVi">Bằng cấp cao nhất:</label>
+            <input class="form-control" type="text" name="HocVi" id="hocVi" value="<%= value.HocVi %>" disabled>
           </div>
         </div>
 
@@ -187,15 +186,14 @@
           <div class="col-md-8">
             <!-- Dòng 1 -->
             <div class="row">
-              <div style="width: 20%; padding-right: 0px">
-                <label for="dienThoai">Điện thoại:</label>
-                <input class="form-control" type="text" name="DienThoai" id="dienThoai" value="<%= value.DienThoai %>"
-                  disabled>
-              </div>
-              <div style="width: 80%;">
+              <div style="width: 75%;">
                 <label for="NoiCongTac">Nơi công tác:</label>
                 <input class="form-control" type="text" name="NoiCongTac" id="NoiCongTac" value="<%= value.NoiCongTac %>"
                   disabled>
+              </div>
+              <div style="width: 25%; padding-right: 0px">
+                <label for="stk">Số tài khoản:</label>
+                <input class="form-control" type="text" name="STK" id="stk" value="<%= value.STK %>" disabled>
               </div>
             </div>
 
@@ -219,8 +217,8 @@
              <div class="row">
               <p></p>
               <div style="width: 20%; padding-right: 0px">
-                <label>Mã phòng ban:</label>
-                <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
+                <label for="hsl">Hệ số lương:</label>
+                <input class="form-control" type="text" name="HeSoLuong" id="hsl" value="<%= value.HSL %>" disabled>
               </div>
               <div style="width: 20%; padding-right: 0px">
                 <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>

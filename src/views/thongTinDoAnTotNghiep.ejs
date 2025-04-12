@@ -192,6 +192,11 @@
             <option value="">Đợt</option>
           </select>
 
+          <!-- Combobox chọn kì -->
+          <select class="selectop w-100px mx-1" id="combobox-ki">
+            <option value="">Kì</option>
+          </select>
+
           <!-- Combo box Năm -->
           <select class="selectop mx-1" id="NamHoc">
             <option value="">Chọn năm học</option>
@@ -426,6 +431,7 @@
 
           try {
             let Dot = document.getElementById("combobox-dot").value;
+            let ki = document.getElementById("combobox-ki").value;
             let NamHoc = document.getElementById("NamHoc").value;
             let MaPhongBan = document.getElementById("MaPhongBan").value;
 
@@ -435,6 +441,7 @@
             // Tạo đối tượng dữ liệu để gửi
             const requestData = {
               Dot: Dot,
+              ki: ki,
               NamHoc: NamHoc,
               MaPhongBan: MaPhongBan,
             };
@@ -1105,16 +1112,17 @@
           const NamHoc = document.getElementById("NamHoc").value;
           const MaPhongBan = document.getElementById("MaPhongBan").value;
           const Dot = document.getElementById("combobox-dot").value;
+          const ki = document.getElementById("combobox-ki").value;
 
           let data = getDataToStored();
 
           // Gửi dữ liệu qua API
           fetch(
-            `/updateDoAn?NamHoc=${encodeURIComponent(
+            `/api/doan/quy-chuan/update-do-an?NamHoc=${encodeURIComponent(
               NamHoc
             )}&MaPhongBan=${encodeURIComponent(
               MaPhongBan
-            )}&Dot=${encodeURIComponent(Dot)}`,
+            )}&Dot=${encodeURIComponent(Dot)}&ki=${encodeURIComponent(ki)}`,
             {
               method: "POST",
               headers: {
@@ -1166,9 +1174,11 @@
           const NamHoc = document.getElementById("NamHoc").value;
           const MaPhongBan = document.getElementById("MaPhongBan").value;
           const Dot = document.getElementById("combobox-dot").value;
+          const ki = document.getElementById("combobox-ki").value;
 
           const requestData = {
             Dot: Dot,
+            ki: ki,
             NamHoc: NamHoc,
             MaPhongBan: MaPhongBan,
           };
@@ -1709,7 +1719,7 @@
     <script>
       $(document).ready(function () {
         $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
+        $('#combobox-ki option[value=""]').remove();
         $('#combobox-dot option[value=""]').remove();
 
         $.ajax({
@@ -1724,7 +1734,7 @@
               });
 
               response.Ki.forEach(function (item) {
-                $("#comboboxki").append(
+                $("#combobox-ki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });

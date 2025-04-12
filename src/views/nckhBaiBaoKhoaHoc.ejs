@@ -207,6 +207,7 @@
                 title: "Loại Tạp Chí",
                 field: "LoaiTapChi",
                 editor: "false",
+                width: "10%"
               },
               {
                 title: "Tên Bài Báo",
@@ -217,11 +218,15 @@
                 title: "Tác Giả",
                 field: "TacGia",
                 editor: "false",
+                width: "10%"
+
               },
               {
                 title: "Tác Giả Chịu Trách Nhiệm",
                 field: "TacGiaChiuTrachNhiem",
                 editor: "false",
+                width: "10%"
+
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -229,14 +234,14 @@
                 editor: "false",
               }
             ];
-
           } else {
             columns = [
               {
                 title: "Loại Tạp Chí",
                 field: "LoaiTapChi",
                 editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Tên Bài Báo",
@@ -248,19 +253,21 @@
                 title: "Tác Giả",
                 field: "TacGia",
                 editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Tác Giả Chịu Trách Nhiệm",
                 field: "TacGiaChiuTrachNhiem",
                 editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Danh Sách Thành Viên",
                 field: "DanhSachThanhVien",
                 editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
               }
             ];
 
@@ -272,32 +279,35 @@
               title: "Khoa",
               field: "Khoa",
               editor: "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1
+              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              width: "8%"
             });
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
-              title: "Hành Động",
+              title: "Xóa",
               field: "actions",
               formatter: actionFormatter,
               hozAlign: "center",
-              headerSort: false
+              headerSort: false,
+              width: "5%"
             });
           }
 
           // Cấp quyền duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
-              formatter: checkboxFormatter,
-              editor: "tickCross",
+              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
+              editor: "tickCross",    // Cho phép chỉnh sửa checkbox theo mặc định
               cellClick: function (e, cell) {
                 // Cho phép chỉnh sửa nếu dòng chưa được duyệt
                 cell.edit();
               },
+              width: "7%"
             });
           }
 

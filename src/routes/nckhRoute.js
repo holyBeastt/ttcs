@@ -43,12 +43,16 @@ router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
 router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
 router.get("/nhiemvukhoahoccongnghe", nckh.getNhiemVuKhoaHocCongNghe);
-router.post("/nhiemvukhoahoccongnghe", nckh.saveNhiemVuKhoaHocCongNghe);
+router.post("/nhiemvukhoahoccongnghe", nckh.getDataNhiemVuKhoaHocCongNghe);
+router.post("/nhiemvukhoahoccongnghe/save", nckh.saveNhiemVuKhoaHocCongNghe);
 router.get("/nhiemvukhoahoccongnghe/:NamHoc/:Khoa", nckh.getTableNhiemVuKhoaHocCongNghe);
 
 
 router.get("/tonghopsotietnckh", nckh.getTongHopSoTietNCKH);
 router.post("/tonghopsotietnckh/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVien);
+
+router.get("/tonghopsotietnckh/dukien", nckh.getTongHopSoTietNCKHDuKien);
+router.post("/tonghopsotietnckh/dukien/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVienDuKien);
 
 
 // =================================================================

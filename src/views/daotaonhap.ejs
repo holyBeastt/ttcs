@@ -97,6 +97,16 @@
                 <option value="Nu">Nữ</option>
               </select>
             </div>
+            <div class="col-md-2">
+              <label>Mã phòng ban:</label>
+              <input
+                class="form-control"
+                id="Ma_Khoa_Label"
+                type="text"
+                disabled
+              />
+              <!-- <label id="Ma_Khoa_Label"></label> -->
+            </div>
             <div style="padding: 0px; width: 30%">
               <label for="monGiangDayChinh">Bộ môn:</label>
               <select
@@ -105,20 +115,6 @@
                 name="monGiangDayChinh"
                 id="monGiangDayChinh"
               ></select>
-            </div>
-
-            <div class="col-md-2">
-              <label for="hocVi">Bằng cấp cao nhất:</label>
-              <select class="form-control" name="hocVi" id="hocVi">
-                <option value="Cử nhân">Cử nhân</option>
-                <option value="Kỹ sư">Kỹ sư</option>
-                <option value="Thạc sĩ">Thạc sĩ</option>
-                <option value="Tiến sĩ">Tiến sĩ</option>
-                <option value="Phó giáo sư. Tiến sĩ">
-                  Phó giáo sư. Tiến sĩ
-                </option>
-                <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
-              </select>
             </div>
           </div>
 
@@ -189,24 +185,14 @@
             </div>
           </div>
           <div class="row mb-3">
-            <div class="col-md-1">
-              <label for="hsl">Hệ số lương:</label>
+            <div class="col-md-2">
+              <label for="dienThoai">Điện thoại:</label>
               <input
                 required
                 class="form-control"
                 type="text"
-                name="HeSoLuong"
-                id="hsl"
-              />
-            </div>
-            <div class="col-md-3">
-              <label for="stk">Số tài khoản:</label>
-              <input
-                required
-                class="form-control"
-                type="text"
-                name="STK"
-                id="stk"
+                name="DienThoai"
+                id="dienThoai"
               />
             </div>
             <div class="col-md-8">
@@ -219,23 +205,24 @@
                 id="nganHang"
               />
             </div>
+            <div class="col-md-2">
+              <label for="hocVi">Bằng cấp cao nhất:</label>
+              <select class="form-control" name="hocVi" id="hocVi">
+                <option value="Thạc sĩ">Thạc sĩ</option>
+                <option value="Tiến sĩ">Tiến sĩ</option>
+                <option value="Phó giáo sư. Tiến sĩ">
+                  Phó giáo sư. Tiến sĩ
+                </option>
+                <option value="Giáo sư. Tiến sĩ">Giáo sư. Tiến sĩ</option>
+              </select>
+            </div>
           </div>
 
           <div class="row">
             <div class="col-md-8">
               <!-- Dòng 1 -->
               <div class="row">
-                <div style="width: 20%; padding-right: 0px">
-                  <label for="dienThoai">Điện thoại:</label>
-                  <input
-                    required
-                    class="form-control"
-                    type="text"
-                    name="DienThoai"
-                    id="dienThoai"
-                  />
-                </div>
-                <div style="width: 80%">
+                <div style="width: 75%">
                   <label for="NoiCongTac">Nơi công tác:</label>
                   <input
                     required
@@ -243,6 +230,16 @@
                     type="text"
                     name="NoiCongTac"
                     id="NoiCongTac"
+                  />
+                </div>
+                <div style="width: 25%; padding-right: 0px">
+                  <label for="stk">Số tài khoản:</label>
+                  <input
+                    required
+                    class="form-control"
+                    type="text"
+                    name="STK"
+                    id="stk"
                   />
                 </div>
               </div>
@@ -282,14 +279,14 @@
               <div class="row">
                 <p></p>
                 <div style="width: 20%; padding-right: 0px">
-                  <label>Mã phòng ban:</label>
+                  <label for="hsl">Hệ số lương:</label>
                   <input
+                    required
                     class="form-control"
-                    id="Ma_Khoa_Label"
                     type="text"
-                    disabled
+                    name="HeSoLuong"
+                    id="hsl"
                   />
-                  <!-- <label id="Ma_Khoa_Label"></label> -->
                 </div>
                 <div style="width: 20%; padding-right: 0px">
                   <label for="BangTotNghiepLoai">Bằng tốt nghiệp loại:</label>
