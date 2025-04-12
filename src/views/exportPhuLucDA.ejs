@@ -76,9 +76,9 @@
      
         </select>
 
-        <!-- <select class="form-select w-100px mx-2 selectop" id="comboboxki">
+        <select class="form-select w-100px mx-2 selectop" id="comboboxki">
         
-        </select> -->
+        </select> 
 
         <select style="width: 170px !important;" class="form-select w-100px mx-2 selectop" id="NamHoc">
           <option value="">Năm học</option>
@@ -110,13 +110,13 @@
             const khoa = document.getElementById("MaPhongBan").value;
             const teacherName = document.getElementById("search-teacher").value;
 
-            if (!dot || !namHoc) {
+            if (!dot || !ki || !namHoc) {
               alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
               return;
             }
 
             // Tạo URL với các tham số
-            let url = `/api/export-phu-luc-DA?dot=${encodeURIComponent(dot)}&namHoc=${encodeURIComponent(namHoc)}`;
+            let url = `/api/export-phu-luc-DA?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
 
             if (khoa) {
               url += `&khoa=${encodeURIComponent(khoa)}`;

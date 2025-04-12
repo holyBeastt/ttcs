@@ -150,13 +150,13 @@ const exportPhuLucDA = async (req, res) => {
 
     const isKhoa = req.session.isKhoa;
 
-    let { dot, namHoc, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
     }
 
-    if (!dot || !namHoc) {
+    if (!dot || !ki || !namHoc) {
       return res.status(400).json({
         success: false,
         message: "Thiếu thông tin đợt ,năm học",
@@ -176,10 +176,10 @@ const exportPhuLucDA = async (req, res) => {
           gv.DiaChi
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE edt.Dot = ? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
+      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
     `;
 
-    let params = [dot, namHoc];
+    let params = [dot,ki, namHoc];
 
     if (khoa && khoa !== "ALL") {
       query += `AND edt.MaPhongBan = ?`;
@@ -229,13 +229,13 @@ const exportPhuLucDA = async (req, res) => {
     // Thêm tiêu đề
     // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
     const titleRow0 = summarySheet.addRow(["Ban Cơ yếu Chính phủ"]);
-    titleRow0.font = { name: "Times New Roman", size: 17 };
+    titleRow0.font = { name: "Times New Roman", size: 16,bold:true };
     titleRow0.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
     // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-    titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+    titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -260,7 +260,7 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 14 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -301,9 +301,9 @@ const exportPhuLucDA = async (req, res) => {
     summarySheet.getColumn(8).width = 6; // Học vị
     summarySheet.getColumn(9).width = 7; // Hệ số lương
     summarySheet.getColumn(10).width = 12; // Mức thanh toán
-    summarySheet.getColumn(11).width = 15; // Thành tiền
-    summarySheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
-    summarySheet.getColumn(13).width = 15; // Còn lại
+    summarySheet.getColumn(11).width = 13; // Thành tiền
+    summarySheet.getColumn(12).width = 13; // Trừ thuế TNCN 10%
+    summarySheet.getColumn(13).width = 13; // Còn lại
 
     // Thêm dữ liệu vào sheet tổng hợp
     let stt = 1;
@@ -481,13 +481,13 @@ const exportPhuLucDA = async (req, res) => {
 
       // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
       const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-      titleRow0.font = { name: "Times New Roman", size: 17 };
+      titleRow0.font = { name: "Times New Roman", size: 16 ,bold:true };
       titleRow0.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
 
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
-      titleRow1.font = { name: "Times New Roman", bold: true, size: 22 };
+      titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow1.alignment = { vertical: "middle" };
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
@@ -535,7 +535,7 @@ const exportPhuLucDA = async (req, res) => {
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", bold: true, size: 14 };
+      titleRow5.font = { name: "Times New Roman", size: 14 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -593,9 +593,9 @@ const exportPhuLucDA = async (req, res) => {
       worksheet.getColumn(8).width = 6; // Học vị
       worksheet.getColumn(9).width = 7; // Hệ số lương
       worksheet.getColumn(10).width = 12; // Mức thanh toán
-      worksheet.getColumn(11).width = 15; // Thành tiền
-      worksheet.getColumn(12).width = 15; // Trừ thuế TNCN 10%
-      worksheet.getColumn(13).width = 15; // Còn lại
+      worksheet.getColumn(11).width = 13; // Thành tiền
+      worksheet.getColumn(12).width = 13; // Trừ thuế TNCN 10%
+      worksheet.getColumn(13).width = 13; // Còn lại
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
