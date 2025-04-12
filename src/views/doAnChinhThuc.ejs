@@ -92,6 +92,10 @@
             <option value="">Đợt</option>
           </select>
 
+          <select class="form-select w-100px mx-1 selectop" id="combobox-ki">
+            <option value="">Kì</option>
+          </select>
+
           <!-- Combo box Năm -->
           <select class="form-select mx-1 selectop" id="NamHoc" style="width: max-content">
             <option value="">Chọn năm học</option>
@@ -228,16 +232,18 @@
         try {
           // Biến để lưu trữ giá trị mặc định
           let dotValue = document.getElementById('combobox-dot').value;
+          let kiValue = document.getElementById('combobox-ki').value;
           let namValue = document.getElementById('NamHoc').value;
           let khoaValue = document.getElementById('MaPhongBan').value;
 
           // Hàm cập nhật giá trị từ comboboxes
           const updateValues = () => {
             dotValue = document.getElementById('combobox-dot').value;
+            kiValue = document.getElementById('combobox-ki').value;
             namValue = document.getElementById('NamHoc').value;
             khoaValue = document.getElementById('MaPhongBan').value;
 
-            console.log({ dotValue, namValue, khoaValue }); // In ra giá trị hiện tại
+            console.log({ dotValue, namValue, kiValue, khoaValue }); // In ra giá trị hiện tại
           };
 
           // Hàm xử lý sự thay đổi ở bất kỳ combobox nào
@@ -248,6 +254,7 @@
             const requestData = {
               Khoa: khoaValue,
               Dot: dotValue,
+              Ki: kiValue,
               Nam: namValue,
             };
 
@@ -286,6 +293,7 @@
 
           // Thêm trình lắng nghe sự kiện cho từng combobox
           document.getElementById('combobox-dot').addEventListener('change', handleComboboxChange);
+          document.getElementById('combobox-ki').addEventListener('change', handleComboboxChange);
           document.getElementById('NamHoc').addEventListener('change', handleComboboxChange);
           document.getElementById('MaPhongBan').addEventListener('change', handleComboboxChange);
 
@@ -296,6 +304,7 @@
           const requestData = {
             Khoa: khoaValue,
             Dot: dotValue,
+            Ki: kiValue,
             Nam: namValue,
           };
 
@@ -408,6 +417,8 @@
       $(document).ready(function () {
         $('#NamHoc option[value=""]').remove();
         $('#combobox-dot option[value=""]').remove();
+        $('#combobox-ki option[value=""]').remove();
+
 
         $.ajax({
           url: '/getNamHoc',
@@ -426,6 +437,13 @@
                 console.log(item.Dot);
                 $('#combobox-dot').append(
                   `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+
+              response.Ki.forEach(function (item) {
+                console.log(item.Dot);
+                $('#combobox-ki').append(
+                  `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
             } else {
