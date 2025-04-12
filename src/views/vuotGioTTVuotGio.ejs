@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       const data = await response.json(); // Lấy dữ liệu từ server
       if (data.success) {
-        // console.log(data)
+        console.log(data);
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
           'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowC9'
@@ -1394,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tableRow.appendChild(ngayNghiemThuTd);
         //
         const ketQuaXepLoaiTd = document.createElement('td');
-        ketQuaXepLoaiTd.textContent = row.KetQuaXepLoai;
+        ketQuaXepLoaiTd.textContent = row.XepLoai;
         tableRow.appendChild(ketQuaXepLoaiTd);
         //
         const gioKT = document.createElement('td');
@@ -1430,10 +1430,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const gio = str.split("-")[1].split("giờ")[0].trim();
         let SoNguoi = 0;
-        if (row.TacGiaChiuTrachNhiem == "null") {
-          SoNguoi = row.DanhSachThanhVien.split(",").length + 1 ;
+        if (row.TacGiaChiuTrachNhiem == null) {
+          SoNguoi = row.DanhSachThanhVien.split(",").length ;
         } else {
-          SoNguoi = row.DanhSachThanhVien.split(",").length + 2;
+          SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
         }
         
         const ttTd = document.createElement('td');
@@ -1487,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', function () {
           str = row.DanhSachThanhVien.trim()
         }
         const gio = str.split("-")[1].split("giờ")[0].trim();
-        const SoNguoi = row.DanhSachThanhVien.split(",").length + 1;
+        const SoNguoi = row.DanhSachThanhVien.split(",").length;
         const ttTd = document.createElement('td');
         ttTd.textContent = index +1;
         tableRow.appendChild(ttTd);
