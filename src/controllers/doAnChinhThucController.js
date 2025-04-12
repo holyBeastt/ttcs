@@ -280,7 +280,7 @@ const updateDoAn = async (req, res) => {
                 (arr) =>
                   arr.HoTen?.trim() === GiangVien?.trim() &&
                   arr.BienChe?.trim().toLowerCase() ===
-                    BienChe?.toLowerCase() &&
+                  BienChe?.toLowerCase() &&
                   arr.CCCD?.trim() === CCCD?.trim()
               );
 
@@ -382,43 +382,43 @@ const updateDoAn = async (req, res) => {
         SET
           GiangVien1 = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien1)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien1)}`
+          )
+          .join(" ")}
           END,
           GiangVien2 = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien2)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien2)}`
+          )
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -1545,6 +1545,7 @@ const getDoAnChinhThuc = async (req, res) => {
 // Lấy dữ liệu để hiển thị site đồ án chính thức
 const getDataDoAnChinhThuc = async (req, res) => {
   const Dot = req.body.Dot;
+  const Ki = req.body.Ki;
   const NamHoc = req.body.Nam;
   const MaPhongBan = req.body.Khoa;
 
@@ -1554,12 +1555,12 @@ const getDataDoAnChinhThuc = async (req, res) => {
 
     let query, values;
     if (MaPhongBan == "ALL") {
-      query = "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ?";
-      values = [Dot, NamHoc];
+      query = "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ?";
+      values = [Dot, Ki, NamHoc];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND NamHoc = ? AND MaPhongBan = ?";
-      values = [Dot, NamHoc, MaPhongBan];
+        "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ? AND MaPhongBan = ?";
+      values = [Dot, Ki, NamHoc, MaPhongBan];
     }
     const [result] = await connection.query(query, values);
 

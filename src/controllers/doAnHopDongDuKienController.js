@@ -535,6 +535,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
   }
 };
 
+
 const KhoaCheckAll = async (req, Dot, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
   let connection;
@@ -756,4 +757,5 @@ module.exports = {
   getInfoDoAnHopDongDuKien,
   getCheckAllDoantotnghiep,
   getDoAnHopDongDuKienSite,
+  getInfoDoAnHopDongDuKien2
 };
