@@ -81,6 +81,14 @@
               <label for="ngayQuyetDinh">Ngày quyết định giao nhiệm vụ</label>
               <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required />
             </div>
+            <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group flex-container">
@@ -192,6 +200,7 @@
                 },
                 width: "7%"
               },
+              { title: "KQ", field: "KetQua", editor: "false", width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
             ];
           } else {
@@ -217,6 +226,7 @@
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "7%"
               },
+              { title: "KQ", field: "KetQua", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
             ];
           }
@@ -683,6 +693,7 @@
             ),
             // khoa: document.getElementById("MaPhongBanForm").value,
             khoa: localStorage.getItem("MaPhongBan"),
+            ketQua: document.getElementById("ketQua").value,
           };
 
 

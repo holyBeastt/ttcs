@@ -68,6 +68,14 @@
               <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required />
             </div>
             <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
+            <div class="flex-item">
               <label for="ngayNghiemThu">Ngày nghiệm thu</label>
               <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
             </div>
@@ -246,7 +254,13 @@
                   outputFormat: "dd/MM/yyyy"
                 },
                 width: "7%"
-              }
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "false",
+                width: "7%"
+              },
             ];
           } else {
             // Nếu tài khoản có quyền chỉnh sửa
@@ -302,7 +316,14 @@
                 },
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "7%"
-              }
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "input",
+                width: "7%",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+              },
             ];
           }
 
@@ -774,6 +795,7 @@
             thanhVien: Array.from(
               document.querySelectorAll("#memberListDisplay span")
             ).map((member) => member.textContent),
+            ketQua: document.getElementById("ketQua").value
           };
 
           // Phần quyền nhập
