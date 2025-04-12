@@ -36,6 +36,13 @@ const {
   suggestPb,
   checkExistence,
   themHocPhan,
+  getPhanTramMienGiam,
+  postPhanTramMienGiam,
+  updatePhanTramMienGiam,
+  deletePhanTramMienGiam,
+  checkExistence2,
+  getLyDoGiamTru,
+  getPhanTram,
 } = require("../controllers/adminController");
 const {
   getaccountList,
@@ -178,6 +185,14 @@ router.get("/themHocPhan", (req, res) => {
   res.render("themHocPhan");
 });
 router.post("/themHocPhan", themHocPhan);
+router.get("/phantrammiengiam", getPhanTramMienGiam);
+router.post("/lyDoGiamTru", postPhanTramMienGiam);
+router.post("/updatePhanTramMienGiam/:Id", updatePhanTramMienGiam);
+router.delete("/deletePhanTramMienGiam/:Id", deletePhanTramMienGiam);
+router.post("/checkExistence2", checkExistence2);
+router.get("/getmiengiam", getLyDoGiamTru);
+router.get("/getphantram/:LyDo", getPhanTram);
+
 
 
 module.exports = router;

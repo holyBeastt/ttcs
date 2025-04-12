@@ -28,10 +28,17 @@
           <input type="text" class="form-control" id="TenNhanVien" name="TenNhanVien" value="<%= user.TenNhanVien %> "
             readonly>
         </div>
-        <div class="col-md-4 input-wrapper">
-          <label for="NgaySinh" class="form-label">Ngày Sinh</label>
-          <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(user.NgaySinh.getTime() - (new Date().getTimezoneOffset() * 60000))
-           .toISOString().split('T')[0] %>">
+        <div class="col-md-4 input-wrapper d-flex justify-content-between">
+          <div style="width: 50%;">
+            <label for="NgaySinh" class="form-label">Ngày Sinh</label>
+            <input type="date" class="form-control" id="NgaySinh" name="NgaySinh" value="<%= new Date(user.NgaySinh.getTime() - (new Date().getTimezoneOffset() * 60000))
+            .toISOString().split('T')[0] %>"> 
+          </div>
+          <div>
+            <label for="Luong" class="form-label">Lương</label>
+            <input type="text" class="form-control" id="Luong" name="Luong"
+              value="<%= user.Luong %>">
+          </div>
         </div>
         <div class="col-md-4 input-wrapper">
           <label for="HocVi" class="form-label">Học Hàm/Học Vị</label>
@@ -100,7 +107,7 @@
           </div> -->
           <div class="">
             <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-            <input type="text" class="form-control text-center" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= user.PhanTramMienGiam %>" required>
+            <input type="text" class="form-control text-center" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= user.PhanTramMienGiam %>" readonly>
           </div>
           <div class="">
             <label for="HSL" class="form-label">Hệ số lương*</label>
@@ -108,9 +115,8 @@
           </div>
         </div>
         <div class="col-md-4 input-wrapper">
-          <label for="Luong" class="form-label">Lương</label>
-          <input type="text" class="form-control" id="Luong" name="Luong"
-            value="<%= user.Luong %>">
+          <label class="form-label" for="LyDo">Lý do miễn giảm:</label>
+          <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
         </div>
         <!-- <div class="col-md-4 input-wrapper">
           <label for="DiaChiHienNay" class="form-label">Địa Chỉ Hiện Nay*</label>
@@ -312,6 +318,7 @@
         } else {
           actionButton.style.display = 'none';
         }
+        fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
       });
     </script>
   <script>
@@ -327,6 +334,51 @@
         }
       });
     </script>
+    <script>
+      function fetchLyDo() {
+        const LyDo = "<%= user.LyDoMienGiam %>";
+        fetch(`/getmiengiam`)
+          .then(response => response.json())
+          .then(data => {
+            const lyDoSelect = document.getElementById('LyDo');
+            lyDoSelect.innerHTML = ''; // Xóa các option cũ  
+            data.lydo.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
+              option.textContent = item.LyDo;
+              // Nếu trùng với giá trị hiện tại => đặt selected
+              if (item.LyDo === LyDo) {
+                option.selected = true;
+              }
+              lyDoSelect.appendChild(option);
+            });
+            layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
+              
+            }
+          )
+          .catch(error => console.error('Error:', error));
+  
+        }
+    </script>
+    <script>
+      function layPhanTramTuLyDo() {
+        const lyDoValue = document.getElementById('LyDo').value;    
+        if (!lyDoValue) {
+          document.getElementById('PhanTramMienGiam').value = '';
+          return;
+        }
+    
+        fetch(`/getphantram/${lyDoValue}`)
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('PhanTramMienGiam').value = data.phanTram[0].PhanTramMienGiam + ' %';
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
+            document.getElementById('PhanTramMienGiam').value = '';
+          });
+      }
+    </script>  
   </body>
 
 </html>

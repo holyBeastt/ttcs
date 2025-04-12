@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Học Viện Kỹ Thuật Mật Mã</title>
-
+    <link rel="stylesheet" href="/css/table.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
@@ -14,13 +15,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/importGvmList.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="/css/table.css" />
-    <link rel="stylesheet" href="/css/admin.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link
@@ -31,36 +25,33 @@
   </head>
 
   <body>
-    <!-- Phần header -->
     <%- include('adminHeader') %>
 
     <div class="container my-5 box">
-      <form id="toaNhaForm" class="row">
-        <div class="col-md-4">
-          <label for="TenToaNha">Tên Tòa Nhà:</label>
-          <input
-            type="text"
-            name="TenToaNha"
-            id="TenToaNha"
-            class="form-control"
-            required
-          />
+      <form id="lyDoForm" action="/lyDoGiamTru" method="POST" class="row">
+        <div class="col-md-4 mb-3">
+          <label for="lydo">Lý do</label>
+            <input
+                type="text"
+                name="lydo"
+                id="lydo"
+                class="form-control"
+                placeholder="Nhập lý do"
+                required
+            />
+        </div>
+        <div class="col-md-4 mb-3" id="phanTramContainer">
+          <label for="phanTram">Phần trăm</label>:</label>
+            <input
+                type="number"
+                name="phanTram"
+                id="phanTram"
+                class="form-control"
+                placeholder="Nhập phần trăm"
+                required
+            />
         </div>
         <div class="col-md-4">
-          <label for="SoTang">Số Tầng:</label>
-          <input
-            type="number"
-            name="SoTang"
-            id="SoTang"
-            class="form-control"
-            required
-          />
-        </div>
-        <div class="col-md-4">
-          <label for="GhiChu">Ghi Chú:</label>
-          <input type="text" name="GhiChu" id="GhiChu" class="form-control" />
-        </div>
-        <div class="col-md-12 mt-3">
           <button type="button" class="btn btn-primary" id="addButton">
             Thêm
           </button>
@@ -68,33 +59,29 @@
       </form>
 
       <div class="pb-3">
-        <table id="ToaNhaTable" class="table table-bordered">
+        <table id="NamHocTable" class="table table-bordered">
           <thead>
             <tr>
               <th>STT</th>
-              <th>Tên Tòa Nhà</th>
-              <th>Số Tầng</th>
-              <th>Ghi chú</th>
+              <th>Lý do</th>
+              <th>Phần trăm miễn giảm</th>
               <th>Thao Tác</th>
             </tr>
           </thead>
           <tbody id="data-table-body">
-            <% if (toanha && toanha.length > 0) { %> <% for (var i = 0; i <
-            toanha.length; i++) { %>
-            <tr data-stt="<%= toanha[i].STT %>">
+            <% if (phanTramMienGiam && phanTramMienGiam.length > 0) { %> <% for (var i = 0; i
+            < phanTramMienGiam.length; i++) { %>
+            <tr data-id="<%= phanTramMienGiam[i].Id %>">
               <td><%= i + 1 %></td>
-              <td class="editable TenToaNha-cell">
-                <%= toanha[i].TenToaNha %>
+              <td class="editable lydo-cell">
+                <%= phanTramMienGiam[i].LyDo %>
               </td>
-              <td class="editable SoTang-cell"><%= toanha[i].SoTang %></td>
-              <td class="editable GhiChu-cell">
-                <%= toanha[i].GhiChu || '' %>
-              </td>
+              <td class="editable phanTramMienGiam-cell"><%= phanTramMienGiam[i].PhanTramMienGiam %></td>
               <td class="d-flex justify-content-center" style="border: none;">
                 <button class="bi bi-pencil action-button edit-btn"></button>
                 <button
                   class="bi bi-trash3 action-button me-2"
-                  onclick="deleteToaNha(this, '<%= toanha[i].STT %>')"
+                  onclick="deletephanTramMienGiam(this, '<%= phanTramMienGiam[i].Id %>')"
                 ></button>
               </td>
             </tr>
@@ -108,68 +95,63 @@
       $(document).ready(function () {
         let originalValues = {};
 
-        // Thêm xử lý sự kiện Enter
-        $("#toaNhaForm").on("keypress", function (e) {
-          if (e.which === 13) {
-            e.preventDefault();
-            $("#addButton").click();
-          }
-        });
-
-        // Xử lý nút Edit
+        // Gán sự kiện cho nút Edit
         $(document).on("click", ".edit-btn", function () {
           const row = $(this).closest("tr");
-          const STT = row.data("stt");
+          const STT = row.data("id");
+          const lydoText = row.find(".lydo-cell").text().trim();
+            const phanTramText = row.find(".phanTramMienGiam-cell").text().trim();
 
+          // Lưu giá trị gốc
           originalValues[STT] = {
-            TenToaNha: row.find(".TenToaNha-cell").text().trim(),
-            SoTang: row.find(".SoTang-cell").text().trim(),
-            GhiChu: row.find(".GhiChu-cell").text().trim(),
+            lydo: lydoText,
+            phanTram: phanTramText,
           };
 
-          row.find(".TenToaNha-cell").html(`
-                    <input type="text" class="form-control" value="${originalValues[STT].TenToaNha}">
-                `);
+          // Thay thế các ô bằng input
+        row.find(".lydo-cell").html(`
+            <input type="text" class="form-control form-control-sm lydo-input" value="${lydoText}">
+        `);
 
-          row.find(".SoTang-cell").html(`
-                    <input type="number" class="form-control" value="${originalValues[STT].SoTang}">
-                `);
+        row.find(".phanTramMienGiam-cell").html(`
+            <input type="number" class="form-control form-control-sm phanTram-input" value="${phanTramText}">
+        `);
 
-          row.find(".GhiChu-cell").html(`
-          <input type="text" class="form-control" value="${originalValues[STT].GhiChu}">
-          `);
+          // Thêm nút Save và Cancel vào cell cuối
           const actionCell = row.find("td:last-child");
           actionCell.html(`
-                    <button class="save-btn btn btn-success btn-sm">Lưu</button>
-                    <button class="cancel-btn btn btn-danger btn-sm ms-2">Hủy</button>
-                `);
+                <button class="save-btn btn btn-success btn-sm">Lưu</button>
+                <button class="cancel-btn btn btn-danger btn-sm ms-2">Hủy</button>
+            `);
+
+          // Ẩn nút Edit
+          $(this).hide();
         });
 
-        // Xử lý nút Save
+        // Xử lý khi nhấn nút Save
         $(document).on("click", ".save-btn", function () {
           const row = $(this).closest("tr");
-          const STT = row.data("stt");
+          const Id = row.data("id");
           const updatedData = {
-            TenToaNha: row.find(".TenToaNha-cell input").val(),
-            SoTang: row.find(".SoTang-cell input").val(),
-            GhiChu: row.find(".GhiChu-cell input").val(),
+            lydo: row.find(".lydo-cell input").val().trim(),
+            phanTram: row.find(".phanTramMienGiam-cell input").val().trim(),
           };
 
           $.ajax({
-            url: `/toaNha/${STT}`,
-            method: "PUT",
+            url: `/updatePhanTramMienGiam/${Id}`,
+            method: "POST",
             contentType: "application/json",
             data: JSON.stringify(updatedData),
             success: function (response) {
-              row.find(".TenToaNha-cell").text(updatedData.TenToaNha);
-              row.find(".SoTang-cell").text(updatedData.SoTang);
-              row.find(".GhiChu-cell").text(updatedData.GhiChu);
+              // Cập nhật giao diện
+              row.find(".lydo-cell").text(updatedData.lydo);
+              row.find(".phanTramMienGiam-cell").text(updatedData.phanTram);
 
               const actionCell = row.find("td:last-child");
               actionCell.html(`
-                <button class="bi bi-pencil action-button edit-btn"></button>
-                <button class="bi bi-trash3 action-button me-2" onclick="deleteToaNha(this, '${STT}')"></button>
-              `);
+                        <button class="bi bi-pencil action-button edit-btn"></button>
+                        <button class="bi bi-trash3 action-button me-2" onclick="deletePhanTramMienGiam(this, '${Id}')"></button>
+                    `);
 
               Swal.fire({
                 title: "Thông báo",
@@ -182,10 +164,10 @@
                 showConfirmButton: false,
               });
             },
-            error: function (xhr) {
+            error: function (error) {
               Swal.fire({
                 title: "Thông báo",
-                html: xhr.responseJSON?.message || "Có lỗi xảy ra khi cập nhật",
+                html: "Có lỗi xảy ra khi cập nhật",
                 icon: "error",
                 width: "auto",
                 padding: "20px",
@@ -197,39 +179,41 @@
           });
         });
 
-        // Xử lý nút Cancel
+        // Xử lý khi nhấn nút Cancel
         $(document).on("click", ".cancel-btn", function () {
           const row = $(this).closest("tr");
-          const STT = row.data("stt");
+          const STT = row.data("id");
 
-          row.find(".TenToaNha-cell").text(originalValues[STT].TenToaNha);
-          row.find(".SoTang-cell").text(originalValues[STT].SoTang);
-          row.find(".GhiChu-cell").text(originalValues[STT].GhiChu);
+          // Khôi phục giá trị gốc
+          row.find(".lydo-cell").text(originalValues[STT].lydo);
+          row.find(".phanTramMienGiam-cell").text(originalValues[STT].phanTram);
 
+          // Khôi phục nút Edit
           const actionCell = row.find("td:last-child");
           actionCell.html(`
-                    <button class="bi bi-pencil action-button edit-btn"></button>
-                    <button class="bi bi-trash3 action-button me-2" 
-                        onclick="deleteToaNha(this, '${STT}')">
-                    </button>
-                `);
+                <button class="bi bi-pencil action-button edit-btn"></button>
+                <button class="bi bi-trash3 action-button me-2" 
+                    onclick="deleteTienLuong(this, '${STT}')">
+                </button>
+            `);
         });
 
-        // Xử lý nút Thêm
         $("#addButton").click(function (event) {
-          event.preventDefault();
+          event.preventDefault(); // Ngăn chặn hành động mặc định của nút
 
-          const TenToaNha = $("#TenToaNha").val();
-          const SoTang = $("#SoTang").val();
-          const GhiChu = $("#GhiChu").val();
+          const lydo = $("#lydo").val().trim();
+          const phanTram = $("#phanTram").val().trim();
 
+          // Kiểm tra sự tồn tại
+          console.log(lydo, phanTram);
           $.ajax({
-            url: "/checkToaNhaExistence",
+            url: "/checkExistence2",
             method: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ TenToaNha: TenToaNha }),
+            data: JSON.stringify({ lydo: lydo, phanTram: phanTram }),
             success: function (response) {
-              addNewToaNha(TenToaNha, SoTang, GhiChu);
+              // Nếu không tồn tại, tiếp tục thêm mới
+              addNewEntry(lydo, phanTram);
             },
             error: function (xhr) {
               if (xhr.status === 409) {
@@ -259,12 +243,15 @@
           });
         });
 
-        function addNewToaNha(TenToaNha, SoTang, GhiChu) {
+        function addNewEntry(lydo, phanTram) {
           $.ajax({
-            url: "/toaNha",
+            url: "/lyDoGiamTru",
             method: "POST",
             contentType: "application/json",
-            data: JSON.stringify({ TenToaNha, SoTang, GhiChu }),
+            data: JSON.stringify({
+              lydo: lydo,
+              phanTram: phanTram,
+            }),
             success: function (response) {
               Swal.fire({
                 title: "Thông báo",
@@ -279,10 +266,10 @@
                 location.reload();
               });
             },
-            error: function (xhr) {
+            error: function (error) {
               Swal.fire({
                 title: "Thông báo",
-                html: xhr.responseJSON?.message || "Có lỗi xảy ra khi thêm mới",
+                html: "Có lỗi xảy ra khi thêm mới",
                 icon: "error",
                 width: "auto",
                 padding: "20px",
@@ -295,10 +282,10 @@
         }
       });
 
-      function deleteToaNha(button, STT) {
+      function deletephanTramMienGiam(button, Id) {
         Swal.fire({
           title: "Xác nhận",
-          html: "Bạn có chắc chắn muốn xóa tòa nhà này không?",
+          html: "Bạn có chắc chắn muốn xóa không?",
           icon: "warning",
           showCancelButton: true,
           confirmButtonText: "Đồng ý",
@@ -307,29 +294,45 @@
           padding: "20px",
         }).then((result) => {
           if (result.isConfirmed) {
-            $.ajax({
-              url: `/toaNha/${STT}`,
+            fetch(`/deletePhanTramMienGiam/${Id}`, {
               method: "DELETE",
-              success: function (response) {
-                Swal.fire({
-                  title: "Thông báo",
-                  html: "Xóa thành công!",
-                  icon: "success",
-                  width: "auto",
-                  padding: "20px",
-                  timer: 2000,
-                  timerProgressBar: true,
-                  showConfirmButton: false,
-                }).then(() => {
-                  $(button).closest("tr").remove();
-                });
+              headers: {
+                "Content-Type": "application/json",
               },
-              error: function (xhr) {
+            })
+              .then((response) => {
+                if (response.ok) {
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: "Xóa thành công!",
+                    icon: "success",
+                    width: "auto",
+                    padding: "20px",
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                  }).then(() => {
+                    button.closest("tr").remove();
+                  });
+                } else {
+                  return response.text().then((text) => {
+                    Swal.fire({
+                      title: "Thông báo",
+                      html: "Có lỗi xảy ra khi xóa",
+                      icon: "error",
+                      width: "auto",
+                      padding: "20px",
+                      timer: 2000,
+                      timerProgressBar: true,
+                      showConfirmButton: false,
+                    });
+                  });
+                }
+              })
+              .catch((error) => {
                 Swal.fire({
                   title: "Thông báo",
-                  html:
-                    xhr.responseJSON?.message ||
-                    "Có lỗi xảy ra khi xóa tòa nhà",
+                  html: "Có lỗi xảy ra: " + error.message,
                   icon: "error",
                   width: "auto",
                   padding: "20px",
@@ -337,8 +340,7 @@
                   timerProgressBar: true,
                   showConfirmButton: false,
                 });
-              },
-            });
+              });
           }
         });
       }

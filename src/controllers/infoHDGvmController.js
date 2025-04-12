@@ -853,7 +853,14 @@ const getHopDongDuKienData = async (req, res) => {
 
     const [rows] = await connection.execute(query, params);
 
-    res.json(rows);
+    // Lấy số tiết định mức
+    query = `select GiangDay from sotietdinhmuc`;
+    const [SoTietDinhMucRow] = await connection.query(query);
+
+    const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
+
+    // Trả dữ liệu về client dưới dạng JSON
+    res.status(200).json({ dataDuKien: rows, SoTietDinhMuc });
   } catch (error) {
     console.error("Error fetching HD Gvm data:", error);
     res.status(500).json({ message: "Internal Server Error" });

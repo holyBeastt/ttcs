@@ -71,13 +71,14 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        border: 2px solid black;
       }
 
       .table th,
       .table td {
         padding: 10px;
         text-align: left;
-        border: 1px solid #dee2e6;
+        border: 1px solid black;
       }
 
       .table th {
@@ -132,6 +133,13 @@
       .btn {
         height: 45px;
         margin-left: 5px;
+      }
+
+      /* Phần cảnh báo nếu số tiết vượt quá 300 */
+      .alert-sotiet {
+        background-color: #ffe4b5 !important;
+        color: #333;
+        /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
       }
     </style>
 
@@ -188,9 +196,6 @@
 
         <div>
           <table class="table table-bordered">
-            <!-- <thead>
-            <tr id="table-header"></tr>
-          </thead> -->
             <thead>
               <tr>
                 <th>STT</th>
@@ -234,6 +239,7 @@
 
     <!-- render ra bảng k cần ấn gì cả -->
     <script>
+      let SoTietDinhMuc = 300;
       document.getElementById("render").addEventListener("click", function () {
         let Dot = document.getElementById("combobox-dot").value;
         let ki = document.getElementById("comboboxki").value;
@@ -271,9 +277,8 @@
                 "block"; // Hiển thị thông báo nếu không có dữ liệu
             } else {
               document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
-
-              console.log(data);
-              renderTable(data);
+              SoTietDinhMuc = data.SoTietDinhMuc;
+              renderTable(data.groupedByTeacher);
             }
           })
           .catch((error) => {
@@ -327,6 +332,10 @@
             <td>${formatDate(course.NgayKetThuc)}</td>
             <td>${course.SoTiet}</td>
           `;
+
+            if (course.TongSoTietCaNam > 300) {
+              tr.classList.add("alert-sotiet");
+            }
 
             // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
             if (courseIndex === 0) {

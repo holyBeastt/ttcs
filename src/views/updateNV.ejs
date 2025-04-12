@@ -44,9 +44,18 @@
             </div>
         </div>
         <div class="row mb-3">
-            <div class="col-md-4 input-wrapper">
+            <div class="col-md-4 input-wrapper d-flex justify-content-between">
+              <div>
+                <label for="gioitinh" class="form-label">Giới tính:</label>
+                <select class="form-control" name="GioiTinh" id="gioitinh" style="width: auto;">
+                    <option value="Nam" <%= value.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
+                    <option value="Nữ" <%= value.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
+                </select>
+              </div>
+              <div>
                 <label for="CCCD" class="form-label">CCCD*</label>
-                <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= value.CCCD %>">
+                <input type="text" class="form-control" id="CCCD" name="CCCD" value="<%= value.CCCD %>" style="width: 300px;" required>
+              </div>
             </div>
             <div class="col-md-4 input-wrapper">
                 <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
@@ -59,11 +68,8 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-4 input-wrapper">
-                <label for="gioitinh">Giới tính:</label>
-                <select class="form-control" name="GioiTinh" id="gioitinh" >
-                    <option value="Nam" <%= value.GioiTinh === 'Nam' ? 'selected' : '' %>>Nam</option>
-                    <option value="Nữ" <%= value.GioiTinh === 'Nữ' ? 'selected' : '' %>>Nữ</option>
-                </select>
+                <label for="LyDo">Lý do miễn giảm:</label>
+                <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
             </div>
             <div class="col-md-4 input-wrapper">
                 <label for="DienThoai" class="form-label">Điện Thoại</label>
@@ -82,7 +88,7 @@
               </div>
               <div>
                 <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-                <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>"/>
+                <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>" style="text-align: center;" readonly/>
               </div>
             </div>
             <div class="col-md-4 input-wrapper">
@@ -204,6 +210,7 @@
     if (optionToSelect) {
       optionToSelect.selected = true;
     }
+    fetchLyDo();
         })
   </script>
   <script>
@@ -440,6 +447,53 @@ fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
         .catch(error => console.error('Error:', error));
     };
   </script>
+  <script>
+    function fetchLyDo() {
+      const LyDo = "<%= value.LyDoMienGiam %>";
+      fetch(`/getmiengiam`)
+        .then(response => response.json())
+        .then(data => {
+          const lyDoSelect = document.getElementById('LyDo');
+          lyDoSelect.innerHTML = ''; // Xóa các option cũ
+
+          data.lydo.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
+            option.textContent = item.LyDo;
+            // Nếu trùng với giá trị hiện tại => đặt selected
+            if (item.LyDo === LyDo) {
+              option.selected = true;
+            }
+            lyDoSelect.appendChild(option);
+          });
+          layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
+            
+          }
+        )
+        .catch(error => console.error('Error:', error));
+
+      }
+  </script>
+  <script>
+    function layPhanTramTuLyDo() {
+      const lyDoValue = document.getElementById('LyDo').value;
+  
+      if (!lyDoValue) {
+        document.getElementById('PhanTramMienGiam').value = '';
+        return;
+      }
+  
+      fetch(`/getphantram/${lyDoValue}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('PhanTramMienGiam').value = data.phanTram[0].PhanTramMienGiam + ' %';
+        })
+        .catch(error => {
+          console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
+          document.getElementById('PhanTramMienGiam').value = '';
+        });
+    }
+  </script>  
 
 </body>
 </html>

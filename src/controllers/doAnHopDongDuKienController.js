@@ -24,94 +24,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     connection = await createPoolConnection();
 
     let query, values;
-    if (MaPhongBan == "ALL") {
-      query = `WITH gv1 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien, 
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            ki,
-            namhoc,
-            MaPhongBan,
-            15 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien1 IS NOT NULL
-            AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != ''  AND GiangVien1 NOT LIKE '%Cơ hữu%'
-    ),
-    gv2 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            ki,
-            namhoc,
-            MaPhongBan,
-            10 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien2 IS NOT NULL
-            AND GiangVien2 != 'không' 
-            AND GiangVien2 != ''
-            AND GiangVien2 NOT LIKE '%Cơ hữu%'
-    ),
-    two_gv AS (
-        SELECT * FROM gv1 
-        UNION all
-        SELECT * FROM gv2
-    ),
-    one_gv AS (
-        SELECT         
-            SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            ki,
-            namhoc,
-            MaPhongBan,
-            25 AS SoTiet 
-        FROM doantotnghiep 
-        WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
-    ), 
-    gv_doan AS (
-      SELECT * FROM one_gv
-      UNION ALL
-      SELECT * FROM two_gv
-    ),
-    final AS (
-      SELECT 
-          gv_doan.GiangVien,
-          gv_doan.TenDeTai,
-          gv_doan.SinhVien,
-          gv_doan.MaSV,
-          gv_doan.SoTiet,
-          gv_doan.NgayBatDau,
-          gv_doan.NgayKetThuc,
-          gv_doan.Dot,
-          gv_doan.ki,
-          gv_doan.NamHoc,
-          gv_doan.MaPhongBan as MaKhoa,
-          gvmoi.*
-      FROM gv_doan
-      JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-    )
-
-    SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, ki, NamHoc, MaPhongBan
-    FROM final
-    WHERE dot = ? AND ki = ? AND namhoc = ?
-        `;
-      values = [Dot, ki, NamHoc];
-    } else {
-      query = `
+    query = `
        WITH DoAnHopDongDuKien AS (
     SELECT
         gv.id_Gvm,
@@ -508,10 +421,17 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
 
   SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, ki, NamHoc, MaPhongBan, TongSoTietCaNam
   FROM final
-  WHERE dot = ? AND ki = ? AND namhoc = ? AND MaKhoa = ?
+  WHERE dot = ? AND ki = ? AND namhoc = ?
     `;
-      values = [Dot, ki, NamHoc, MaPhongBan];
+    values = [Dot, ki, NamHoc];
+
+    if (MaPhongBan != "ALL") {
+      query += ` AND MaKhoa = ? `;
+      values.push(MaPhongBan);
     }
+
+    query += `ORDER BY TongSoTietCaNam DESC`;
+
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
 
     // Nhóm các môn học theo giảng viên
@@ -523,8 +443,15 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
       acc[teacher].push(current);
       return acc;
     }, {});
+
+    // Lấy số tiết định mức
+    query = `select GiangDay from sotietdinhmuc`;
+    const [SoTietDinhMucRow] = await connection.query(query);
+
+    const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
+
     // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json(groupedByTeacher);
+    res.status(200).json({ groupedByTeacher: groupedByTeacher, SoTietDinhMuc });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ database:", error);
 
