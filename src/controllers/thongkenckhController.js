@@ -5,16 +5,16 @@ const thongkenckhController = {
     showThongkePage: (req, res) => {
         res.render("thongkenckh");
     },
-    
+
 
     // Lấy dữ liệu thống kê
     getStatisticsData: async (req, res) => {
         let connection;
         const { namhoc, khoa } = req.query;
-    
+
         try {
             connection = await createConnection();
-    
+
             const baseQuery = `
                 SELECT COUNT(*) AS total 
                 FROM ?? t
@@ -29,12 +29,12 @@ const thongkenckhController = {
                 "nckhvahuanluyendoituyen",
                 "sachvagiaotrinh"
             ];
-    
+
             const results = await Promise.all(
                 tables.map(async (table) => {
                     let conditions = [];
                     let params = [table];
-    
+
                     if (khoa && khoa !== 'ALL') {
                         conditions.push(`
                             EXISTS (
@@ -46,22 +46,22 @@ const thongkenckhController = {
                         `);
                         params.push(khoa);
                     }
-    
+
                     if (namhoc) {
                         conditions.push("t.NamHoc = ?");
                         params.push(namhoc);
                     }
-    
+
                     let finalQuery = baseQuery;
                     if (conditions.length > 0) {
                         finalQuery += ` AND ${conditions.join(" AND ")}`;
                     }
-    
+
                     const [rows] = await connection.query(finalQuery, params);
                     return rows[0].total;
                 })
             );
-    
+
             res.json({
                 success: true,
                 data: results
@@ -73,7 +73,7 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
-    
+
 
     // đề tài dự án
     getDetail1Data: async (req, res) => {
@@ -185,10 +185,10 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
-    
+
     // WHERE (? IS NULL OR FIND_IN_SET(?, REPLACE(khoathanhvien, ' ', ''))
     // TH nếu sau dấu phẩy có khoảng trắng
-    
+
 
     // bằng sáng chế và giải thưởng
     getDetailDataBangsangche: async (req, res) => {
@@ -299,30 +299,7 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
-///Nhiệm vụ kh&cn
-    // getDetailDatanhiemvu: async (req, res) => {
-    //     let connection;
-    //     try {
-    //         connection = await createConnection();
-    //         let query = `
-    //             SELECT 
-    //             MaNhiemVu,
-    //             NamHoc,
-    //             TenNhiemVu,
-    //             SoQDGiaoNhiemVu,
-    //             NgayQDGiaoNhiemVu
-    //             FROM nhiemvukhoahocvacongnghe
-    //             ORDER BY NamHoc DESC;
-    //         `;
-    //         const [rows] = await connection.query(query);
-    //         res.json({ success: true, data: rows });
-    //     } catch (err) {
-    //         console.error("Lỗi khi lấy dữ liệu chi tiết từ bảng Nhiệm vụ khoa học và công nghệ:", err);
-    //         res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-    //     } finally {
-    //         if (connection) connection.release();
-    //     }
-    // },
+
     // Xây dựng CTĐT
     getDetailDataxaydung: async (req, res) => {
         let connection;
@@ -454,10 +431,10 @@ const thongkenckhController = {
                 FROM sachvagiaotrinh t
                 WHERE t.daotaoduyet = 1
             `;
-    
+
             let conditions = [];
             let params = [];
-    
+
             // Nếu không phải 'ALL', lọc theo khoa nhưng chỉ dựa vào thành viên không nằm trong dấu ()
             if (khoa && khoa !== 'ALL') {
                 conditions.push(`
@@ -473,19 +450,19 @@ const thongkenckhController = {
                 console.log("Generated Query:", query, params);
 
             }
-            
-    
+
+
             // Nếu có NamHoc, thêm điều kiện lọc theo NamHoc
             if (namhoc) {
                 conditions.push("t.NamHoc = ?");
                 params.push(namhoc);
             }
-    
+
             // Gộp các điều kiện vào câu query
             if (conditions.length > 0) {
                 query += ` AND ${conditions.join(" AND ")}`;
             }
-    
+
             const [rows] = await connection.query(query, params);
             res.json({ success: true, data: rows });
         } catch (err) {
@@ -495,13 +472,13 @@ const thongkenckhController = {
             if (connection) connection.release();
         }
     },
-    
+
 
     getNamHocAndKhoaData: async (req, res) => {
         let connection;
         try {
             connection = await createConnection();
-            
+
             // Lấy dữ liệu năm học
             const [namHoc] = await connection.query(
                 `SELECT DISTINCT NamHoc FROM detaiduan 

@@ -44,8 +44,8 @@ const getBienSoanGiaoTrinhBaiGiang = (req, res) => {
   res.render("nckhBienSoanGiaoTrinhBaiGiang.ejs");
 };
 
-const getNhiemVuKhoaHocCongNghe = (req, res) => {
-  res.render("nckhNhiemVuKhoaHocCongNghe.ejs");
+const getSoTietNCKHBaoLuuSangNam = (req, res) => {
+  res.render("nckhSoTietNCKHBaoLuuSangNam.ejs");
 };
 
 const getTongHopSoTietNCKH = (req, res) => {
@@ -1825,8 +1825,8 @@ const getData = async (req, res) => {
       query = `SELECT XayDungCTDT FROM quydinhsogionckh WHERE MaBang = ?`;
     } else if (MaBang == "biensoangiaotrinhbaigiang") {
       query = `SELECT BienSoanGiaoTrinhBaiGiang FROM quydinhsogionckh WHERE MaBang = ?`;
-    } else if (MaBang == "nhiemvukhoahoccongnghe") {
-      query = `SELECT NhiemVuKhoaHocCongNghe FROM quydinhsogionckh WHERE MaBang = ?`;
+    } else if (MaBang == "sotietnckhbaoluusangnam") {
+      query = `SELECT SoTietNCKHBaoLuuSangNam FROM quydinhsogionckh WHERE MaBang = ?`;
     }
     const queryParams = [MaBang];
 
@@ -2092,8 +2092,8 @@ const editNckh = async (req, res) => {
         ID,
       ];
       break;
-    case "nhiemvukhoahocvacongnghe":
-      // Code cập nhật cho bảng nhiemvukhoahocvacongnghe
+    case "sotietnckhbaoluusangnam":
+      // Code cập nhật cho bảng sotietnckhbaoluusangnam
       data = {
         TenNhiemVu: req.body.TenNhiemVu,
         GiangVien: req.body.GiangVien,
@@ -2105,7 +2105,7 @@ const editNckh = async (req, res) => {
       };
 
       updateQuery = `
-                  UPDATE nhiemvukhoahocvacongnghe
+                  UPDATE sotietnckhbaoluusangnam
                   SET TenNhiemVu = ?, GiangVien = ?, TongSoTietNCKHTrongNam = ?, SoTietVuotDinhMuc = ?, SoTietBaoLuuSangNamSau = ?, DaoTaoDuyet = ?, Khoa = ?
                   WHERE ID = ?`;
 
@@ -2191,8 +2191,8 @@ const deleteNckh = async (req, res) => {
       deleteQuery = `DELETE FROM xaydungctdt WHERE ID = ?`;
       queryParams = [ID];
       break;
-    case "nhiemvukhoahocvacongnghe":
-      deleteQuery = `DELETE FROM nhiemvukhoahocvacongnghe WHERE ID = ?`;
+    case "sotietnckhbaoluusangnam":
+      deleteQuery = `DELETE FROM sotietnckhbaoluusangnam WHERE ID = ?`;
       queryParams = [ID];
       break;
     default:
@@ -2631,7 +2631,7 @@ const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
   }
 };
 
-const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
+const saveSoTietNCKHBaoLuuSangNam = async (req, res) => {
   // Lấy dữ liệu từ body
   const { tenNhiemVu, namHoc, giangVien, khoa } = req.body;
 
@@ -2680,9 +2680,9 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
           : soTietVuotDinhMuc
         : 0;
 
-    // 4. Lưu dữ liệu vào bảng nhiemvukhoahoccongnghe
+    // 4. Lưu dữ liệu vào bảng sotietnckhbaoluusangnam
     await connection.execute(
-      `INSERT INTO nhiemvukhoahocvacongnghe 
+      `INSERT INTO sotietnckhbaoluusangnam 
          (TenNhiemVu, NamHoc, GiangVien, Khoa, SoTietBaoLuuSangNamSau, TongSoTietNCKHTrongNam, SoTietVuotDinhMuc)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -2696,15 +2696,15 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
       ]
     );
 
-    console.log("Thêm nhiệm vụ khoa học công nghệ thành công");
+    console.log("Thêm số tiết bảo lưu thành công");
     res.status(200).json({
       success: true,
-      message: "Thêm nhiệm vụ khoa học công nghệ thành công!",
+      message: "Thêm số tiết bảo lưu thành công!",
     });
   } catch (error) {
-    console.error("Lỗi khi lưu nhiệm vụ khoa học công nghệ:", error);
+    console.error("Lỗi khi lưu số tiết bảo lưu:", error);
     res.status(500).json({
-      message: "Có lỗi xảy ra khi thêm nhiệm vụ khoa học công nghệ.",
+      message: "Có lỗi xảy ra thêm khi số tiết bảo lưu.",
       error: error.message,
     });
   } finally {
@@ -2712,7 +2712,7 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
   }
 };
 
-const getDataNhiemVuKhoaHocCongNghe = async (req, res) => {
+const getDataSoTietNCKHBaoLuuSangNam = async (req, res) => {
   // Lấy dữ liệu từ body
   const { tenNhiemVu, namHoc, giangVien, khoa } = req.body;
 
@@ -2768,12 +2768,12 @@ const getDataNhiemVuKhoaHocCongNghe = async (req, res) => {
       soTietBaoLuuSangNamSau
     }
 
-    console.log("lấy data nhiệm vụ khoa học công nghệ của " + req.body.giangVien);
+    console.log("lấy data số tiết bảo lưu của " + req.body.giangVien);
     res.json(result);
   } catch (error) {
-    console.error("Lỗi khi lưu nhiệm vụ khoa học công nghệ:", error);
+    console.error("Lỗi khi lưu số tiết bảo lưu:", error);
     res.status(500).json({
-      message: "Có lỗi xảy ra khi thêm nhiệm vụ khoa học công nghệ.",
+      message: "Có lỗi xảy ra khi thêm số tiết bảo lưu.",
       error: error.message,
     });
   } finally {
@@ -2781,10 +2781,10 @@ const getDataNhiemVuKhoaHocCongNghe = async (req, res) => {
   }
 };
 
-const getTableNhiemVuKhoaHocCongNghe = async (req, res) => {
+const getTableSoTietNCKHBaoLuuSangNam = async (req, res) => {
   const { NamHoc, Khoa } = req.params; // Lấy năm học từ URL parameter
 
-  console.log("Lấy dữ liệu bảng nhiemvukhoahoccongnghe Năm:", NamHoc);
+  console.log("Lấy dữ liệu bảng sotietnckhbaoluusangnam Năm:", NamHoc);
 
   let connection;
   let query;
@@ -2794,10 +2794,10 @@ const getTableNhiemVuKhoaHocCongNghe = async (req, res) => {
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
     if (Khoa == "ALL") {
-      query = `SELECT * FROM nhiemvukhoahocvacongnghe WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+      query = `SELECT * FROM sotietnckhbaoluusangnam WHERE NamHoc = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
       queryParams = [NamHoc];
     } else {
-      query = `SELECT * FROM nhiemvukhoahocvacongnghe WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
+      query = `SELECT * FROM sotietnckhbaoluusangnam WHERE NamHoc = ? AND Khoa = ?`; // Truy vấn dữ liệu từ bảng biensoangiaotrinhbaigiang
       queryParams = [NamHoc, Khoa];
     }
 
@@ -2807,7 +2807,7 @@ const getTableNhiemVuKhoaHocCongNghe = async (req, res) => {
     // Trả về kết quả dưới dạng JSON
     res.json(results); // results chứa dữ liệu trả về
   } catch (error) {
-    console.error("Lỗi trong hàm getTableNhiemVuKhoaHocCongNghe :", error);
+    console.error("Lỗi trong hàm getTableSoTietNCKHBaoLuuSangNam :", error);
     res
       .status(500)
       .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
@@ -2840,10 +2840,10 @@ module.exports = {
   getBienSoanGiaoTrinhBaiGiang,
   saveBienSoanGiaoTrinhBaiGiang,
   getTableBienSoanGiaoTrinhBaiGiang,
-  getNhiemVuKhoaHocCongNghe,
-  saveNhiemVuKhoaHocCongNghe,
-  getTableNhiemVuKhoaHocCongNghe,
-  getDataNhiemVuKhoaHocCongNghe,
+  getSoTietNCKHBaoLuuSangNam,
+  saveSoTietNCKHBaoLuuSangNam,
+  getTableSoTietNCKHBaoLuuSangNam,
+  getDataSoTietNCKHBaoLuuSangNam,
   getTongHopSoTietNCKH,
   getTongHopSoTietNCKHDuKien,
   tongHopSoTietNckhCuaMotGiangVien,
