@@ -2,7 +2,7 @@ const createConnection = require("../config/databasePool");
 
 const thongkedoanController = {
   getData: async (req, res) => {
-    const { namhoc, khoa, dot } = req.query;
+    const { namhoc, khoa, dot, ki } = req.query;
     let connection;
     let query;
     const params = [];
@@ -36,6 +36,11 @@ const thongkedoanController = {
             query += " AND Dot = ?";
             params.push(dot);
         }
+
+        if (ki && ki !== "ALL") {
+          query += " AND ki = ?";
+          params.push(ki);
+      }
 
         query += `
             GROUP BY GiangVien, isMoiGiang, MaPhongBan
@@ -139,6 +144,28 @@ const thongkedoanController = {
       res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
       if (connection) connection.release();
+    }
+  },
+
+  getKiOptions: async (req, res) => {
+    let connection;
+    try {
+        connection = await createConnection();
+        const [ki] = await connection.query(`
+            SELECT DISTINCT Ki 
+            FROM exportdoantotnghiep 
+            ORDER BY Ki
+        `);
+
+        res.json({
+            success: true,
+            Ki: ki,
+        });
+    } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu Kì:", error);
+        res.status(500).json({ success: false, message: "Lỗi server" });
+    } finally {
+        if (connection) connection.release();
     }
   },
 };

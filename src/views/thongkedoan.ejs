@@ -112,6 +112,13 @@
         id="dot"
         style="width: 150px"
       ></select>
+
+      <select
+        class="form-select mx-1 selectop"
+        id="ki"
+        style="width: 150px"
+      ></select>
+
       <!-- Combo box Năm -->
       <select
         class="form-select mx-1 selectop"
@@ -201,7 +208,7 @@
       $(document).ready(function () {
         // Biến để theo dõi số lượng combobox đã được khởi tạo
         let initializedComboboxes = 0;
-        const totalComboboxes = 3; // Tổng số combobox cần khởi tạo
+        const totalComboboxes = 4; // Tổng số combobox cần khởi tạo
 
         function checkAndFetchData() {
           initializedComboboxes++;
@@ -214,6 +221,7 @@
         $("#NamHoc option").remove();
         $("#Dot option").remove();
         $("#Khoa option").remove();
+        $("#ki option").remove();
 
         // Chỉ gọi một lần để khởi tạo combobox Khoa
         $.ajax({
@@ -315,17 +323,42 @@
           },
         });
 
+        $.ajax({
+          url: "/getKiDoAn",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.Ki.forEach(function (item) {
+                $("#ki").append(
+                  `<option value="${item.Ki}">${
+                    item.Ki === "ALL" ? "Tất cả kì" : item.Ki
+                  }</option>`
+                );
+              });
+              // Thêm option "Tất cả Kì" vào đầu
+              $("#ki").prepend(
+                '<option value="ALL" selected>Tất cả kì</option>'
+              );
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu kì đồ án:", error);
+          },
+        });
+
         function fetchThongkeData() {
           const namhoc = $("#NamHoc").val();
           const khoa = $("#Khoa").val();
           const dot = $("#dot").val();
+          const ki = $("#ki").val();
 
-          console.log("NamHoc:", namhoc, "Khoa:", khoa, "Dot:", dot); // Debugging
+          console.log("NamHoc:", namhoc, "Khoa:", khoa, "Dot:", dot, "Kì:", ki); // Debugging
 
           $.ajax({
             url: "/data",
             method: "GET",
-            data: { namhoc, khoa, dot },
+            data: { namhoc, khoa, dot, ki },
             success: function (response) {
               if (response.success) {
                 const coHuu = response.coHuu;
@@ -453,7 +486,7 @@
           });
         }
 
-        $("#NamHoc, #Khoa, #dot").on("change", fetchThongkeData);
+        $("#NamHoc, #Khoa, #dot, #ki").on("change", fetchThongkeData);
         fetchThongkeData(); // Gọi ngay khi trang được tải
       });
     </script>
