@@ -28,6 +28,7 @@ const postUpdateNV = async (req, res) => {
     HSL,
     PhanTramMienGiam,
     Luong,
+    LyDo,
   } = req.body;
 
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
@@ -35,9 +36,6 @@ const postUpdateNV = async (req, res) => {
     // Kiểm tra giá trị của HSL và PhanTramMienGiam
     // Chuẩn hóa giá trị của HSL
     const validHSL = HSL === "" ? 0 : Number(HSL.toString().replace(",", "."));
-
-    const validPhanTramMienGiam =
-      PhanTramMienGiam === "" ? 0 : Number(PhanTramMienGiam);
 
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
@@ -85,7 +83,8 @@ const postUpdateNV = async (req, res) => {
         message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
       });
     }
-    const phanTram = parseFloat(PhanTramMienGiam); // Chuyển thành số thực
+    const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+    const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
     if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
       connection.release();
       return res.status(400).json({
@@ -118,10 +117,11 @@ const postUpdateNV = async (req, res) => {
       MaNhanVien = ?,
       HSL = ?,
       PhanTramMienGiam = ?,
-      Luong = ?
+      Luong = ?,
+      LyDoMienGiam = ?
       WHERE id_User = ?`;
 
-    await connection.execute(query, [
+    const params = [
       TenNhanVien,
       GioiTinh,
       NgaySinh,
@@ -137,16 +137,19 @@ const postUpdateNV = async (req, res) => {
       NganHang,
       ChiNhanh,
       MaPhongBan,
-      req.body.NoiCongTac, // Lấy từ req.body
-      req.body.DiaChiCCCD, // Lấy từ req.body
-      req.body.MonGiangDayChinh, // Lấy từ req.body
-      req.body.CacMonLienQuan, // Lấy từ req.body
+      req.body.NoiCongTac,
+      req.body.DiaChiCCCD,
+      req.body.MonGiangDayChinh,
+      req.body.CacMonLienQuan,
       MaNhanVien,
       validHSL,
-      validPhanTramMienGiam,
+      phanTram,
       Luong,
+      LyDo,
       Id_User,
-    ]);
+    ];
+        
+    await connection.execute(query, params);      
 
     await connection.execute(
       "UPDATE taikhoannguoidung SET TenDangNhap = ? WHERE id_User = ?",

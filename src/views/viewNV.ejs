@@ -18,6 +18,11 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
+    <style>
+      input[readonly] {
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
     <%- include('adminHeader') %>
@@ -62,16 +67,27 @@
           </div>
         </div>
         <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="CCCD" class="form-label">CCCD</label>
-            <input
-              type="text"
-              class="form-control"
-              id="CCCD"
-              name="CCCD"
-              value="<%= value.CCCD %>"
-              readonly
-            />
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label class="form-label" for="gioitinh">Giới tính:</label>
+              <input
+                type="text"
+                class="form-control"
+                value="<%= value.GioiTinh %>"
+                readonly
+              />
+            </div>
+            <div>
+              <label for="CCCD" class="form-label">CCCD</label>
+              <input
+                type="text"
+                class="form-control"
+                id="CCCD"
+                name="CCCD"
+                value="<%= value.CCCD %>"
+                readonly
+              />
+            </div>
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
@@ -98,11 +114,13 @@
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
-            <label for="gioitinh">Giới tính:</label>
+            <label for="LyDo">Lý do miễn giảm:</label>
             <input
-              type="text"
+              type="tel"
               class="form-control"
-              value="<%= value.GioiTinh %>"
+              id="LyDo"
+              name="LyDo"
+              value="<%= value.LyDoMienGiam %>"
               readonly
             />
           </div>
@@ -139,7 +157,7 @@
             </div>
             <div>
               <label for="PhanTramMienGiam" class="form-label">Phần trăm miễn giảm</label>
-              <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %>" readonly/>
+              <input type="text" class="form-control" id="PhanTramMienGiam" name="PhanTramMienGiam" value="<%= value.PhanTramMienGiam %> %" readonly/>
             </div>
           </div>
           <div class="col-md-4 input-wrapper">

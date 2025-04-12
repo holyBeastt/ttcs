@@ -91,7 +91,8 @@
                 class="form-control"
                 id="PhanTramMienGiam"
                 name="PhanTramMienGiam"
-                value="0"
+                style="text-align: center;"
+                readonly
               />
             </div>
           </div>
@@ -123,11 +124,8 @@
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
-            <label for="gioitinh">Giới tính:</label>
-            <select class="form-control" name="GioiTinh" id="gioitinh">
-              <option value="Nam">Nam</option>
-              <option value="Nữ">Nữ</option>
-            </select>
+            <label for="LyDo">Lý do miễn giảm:</label>
+            <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
@@ -169,15 +167,18 @@
           </div>
         </div>
         <div class="row mb-3">
-          <div class="col-md-4 input-wrapper">
-            <label for="CCCD" class="form-label">CCCD*</label>
-            <input
-              type="text"
-              class="form-control"
-              id="CCCD"
-              name="CCCD"
-              required
-            />
+          <div class="col-md-4 input-wrapper d-flex justify-content-between">
+            <div>
+              <label for="gioitinh" class="form-label">Giới tính:</label>
+              <select class="form-control" name="GioiTinh" id="gioitinh" style="width: auto;">
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+              </select>
+            </div>
+            <div>
+              <label for="CCCD" class="form-label">CCCD*</label>
+              <input type="text" class="form-control" id="CCCD" name="CCCD" style="width: 300px;" required>
+            </div>
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="NgayCapCCCD" class="form-label">Ngày Cấp CCCD</label>
@@ -440,6 +441,7 @@
             }
           })
           .catch((error) => console.error("Error:", error));
+          fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
       });
     </script>
     <script>
@@ -476,5 +478,47 @@
           .catch((error) => console.error("Error:", error));
       }
     </script>
+    <script>
+      function fetchLyDo() {
+        fetch(`/getmiengiam`)
+          .then(response => response.json())
+          .then(data => {
+            const lyDoSelect = document.getElementById('LyDo');
+            lyDoSelect.innerHTML = ''; // Xóa các option cũ
+  
+            data.lydo.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
+              option.textContent = item.LyDo;
+              lyDoSelect.appendChild(option);
+            });
+            layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
+              
+            }
+          )
+          .catch(error => console.error('Error:', error));
+  
+        }
+    </script>
+    <script>
+      function layPhanTramTuLyDo() {
+        const lyDoValue = document.getElementById('LyDo').value;
+    
+        if (!lyDoValue) {
+          document.getElementById('PhanTramMienGiam').value = '';
+          return;
+        }
+    
+        fetch(`/getphantram/${lyDoValue}`)
+          .then(response => response.json())
+          .then(data => {
+            document.getElementById('PhanTramMienGiam').value = data.phanTram[0].PhanTramMienGiam + ' %';
+          })
+          .catch(error => {
+            console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
+            document.getElementById('PhanTramMienGiam').value = '';
+          });
+      }
+    </script>  
   </body>
 </html>

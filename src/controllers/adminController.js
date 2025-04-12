@@ -50,6 +50,7 @@ const AdminController = {
       HSL,
       Luong,
       PhanTramMienGiam,
+      LyDo,
     } = req.body;
     let TenDangNhap = req.body.TenDangNhap;
 
@@ -98,7 +99,9 @@ const AdminController = {
           message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
         });
       }
-      const phanTram = parseFloat(PhanTramMienGiam); // Chuyển thành số thực
+      const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+      const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
+
       if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
         connection.release();
         return res.status(400).json({
@@ -140,8 +143,8 @@ const AdminController = {
             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
-            MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam, LyDoMienGiam
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const valuesInsert = [
@@ -166,7 +169,8 @@ const AdminController = {
         CacMonLienQuan,
         HSL,
         Luong,
-        PhanTramMienGiam,
+        phanTram,
+        LyDo,
       ];
 
       console.log("value = ", valuesInsert);
@@ -917,12 +921,15 @@ const AdminController = {
       Quyen,
       HSL,
       PhanTramMienGiam,
+      LyDo,
     } = req.body;
 
     try {
       connection = await createPoolConnection(); // Lấy kết nối từ pool
 
       // Truy vấn để update dữ liệu vào cơ sở dữ liệu
+      const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+      const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
         NgaySinh = ?,
@@ -930,7 +937,8 @@ const AdminController = {
         ChucVu = ?,
         HSL = ?,
         Luong = ?,
-        PhanTramMienGiam = ?
+        PhanTramMienGiam = ?,
+        LyDoMienGiam = ?
         WHERE id_User = ?`;
 
       const [updateResult] = await connection.query(query, [
@@ -940,7 +948,8 @@ const AdminController = {
         ChucVu,
         HSL,
         Luong,
-        PhanTramMienGiam,
+        phanTram,
+        LyDo,
         Id_User,
       ]);
 
@@ -1276,6 +1285,178 @@ const AdminController = {
       res.status(500).send("Đã xảy ra lỗi khi thêm học phần");
     } finally {
       if (connection) connection.release();
+    }
+  },
+  getPhanTramMienGiam: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [phanTramMienGiam] = await connection.query("SELECT * FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC");
+      res.render("adminPhanTramMienGiam", {
+        phanTramMienGiam: phanTramMienGiam,
+        message: req.query.success ? "Thêm mới thành công!" : null,
+      });
+    } catch (error) {
+      console.error("Lỗi:", error);
+      res.status(500).send("Đã xảy ra lỗi");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+  postPhanTramMienGiam: async (req, res) => {
+    let { lydo, phanTram } = req.body;
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      // Thêm vào bảng phantrammiengiam
+      const insertQuery = `
+        INSERT INTO phantrammiengiam (LyDo, PhanTramMienGiam) 
+        VALUES (?, ?)
+      `;
+      await connection.execute(insertQuery, [lydo, phanTram]);
+
+      res.redirect("/phantrammiengiam?success=true&message=insertSuccess");
+    } catch (error) {
+      console.error("Lỗi khi thêm tiền lương:", error);
+      res.status(500).send("Có lỗi xảy ra khi thêm mới!");
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  updatePhanTramMienGiam: async (req, res) => {
+    const Id = req.params.Id; // Sử dụng Id từ params
+    const { lydo, phanTram } = req.body; // Lấy dữ liệu từ body
+    console.log("body", req.body);
+    console.log("Id", Id); 
+    console.log("lydo", lydo);
+    console.log("phanTram", phanTram);
+    let connection;
+
+    try {
+      connection = await createPoolConnection();
+      const query = `
+            UPDATE phantrammiengiam 
+            SET LyDo = ?, PhanTramMienGiam = ?
+            WHERE Id = ?
+        `;
+
+      const [result] = await connection.execute(query, [
+        lydo,
+        phanTram,
+        Id, // Sử dụng STT ở đây
+      ]);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy bản ghi để cập nhật",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thành công",
+      });
+    } catch (error) {
+      console.error("Lỗi khi cập nhật:", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã xảy ra lỗi khi cập nhật",
+      });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  deletePhanTramMienGiam: async (req, res) => {
+    const Id = req.params.Id; // ID của bản ghi cần xóa
+    const connection = await createPoolConnection();
+    try {
+      const query = `DELETE FROM phantrammiengiam WHERE Id = ?`;
+      const [results] = await connection.query(query, [Id]);
+
+      if (results.affectedRows > 0) {
+        res.status(200).json({ message: "Xóa thành công!" });
+      } else {
+        res.status(404).json({ message: "Không tìm thấy bản ghi để xóa." });
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa dữ liệu: ", error);
+      res.status(500).json({ message: "Lỗi server, không thể xóa dữ liệu" });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+  checkExistence2: async (req, res) => {
+    const { lydo, phanTram } = req.body;
+    let connection;
+    console.log("body", req.body);
+    console.log("lydo", lydo);
+    console.log("phanTram", phanTram);
+
+    try {
+      connection = await createPoolConnection();
+      const query = `
+            SELECT COUNT(*) as count FROM phantrammiengiam 
+            WHERE LyDo = ? AND PhanTramMienGiam = ?
+        `;
+      const [result] = await connection.execute(query, [lydo, phanTram]);
+
+      if (result[0].count > 0) {
+        return res.status(409).json({
+          message: ` ${lydo} và ${phanTram} đã tồn tại.`,
+        });
+      }
+
+      res.status(200).json({ message: "Kết hợp chưa tồn tại." });
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra sự tồn tại:", error);
+      res.status(500).json({ message: "Đã xảy ra lỗi." });
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+  getLyDoGiamTru: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [lyDoMienGiam] = await connection.query("SELECT *FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC");
+      res.json({
+        success: true,
+        lydo: lyDoMienGiam,
+      });
+    } catch (error) {
+      console.error("Lỗi: ", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+      });
+    } finally {
+      if (connection) connection.release(); // luôn giải phóng kết nối
+    }
+  },
+  getPhanTram: async (req, res) => {
+    let connection;
+    try {
+      const lyDo = req.params.LyDo;
+      console.log("lyDo", lyDo);
+      connection = await createPoolConnection();
+      const [phanTram] = await connection.query("SELECT PhanTramMienGiam FROM phantrammiengiam WHERE LyDo = ?"  , [lyDo]);
+      console.log("Phan Tram", phanTram);
+      
+      res.json({
+        success: true,
+        phanTram: phanTram,
+      });
+    } catch (error) {
+      console.error("Lỗi: ", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+      });
+    } finally {
+      if (connection) connection.release(); // luôn giải phóng kết nối
     }
   },
 };
