@@ -78,13 +78,21 @@
               <label for="ngayQuyetDinh">Ngày quyết định</label>
               <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required>
             </div>
+            <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-group flex-container">
             <div class="flex-item">
               <label for="tacGia">Tác giả
                 <input type="checkbox" id="tacGiaCheckbox" name="tacGiaCheckbox">
-                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
+                <span class="faded-text">(Check nếu là giảng viên ngoài học viện và điền đơn vị công tác)</span>
               </label>
               <div id="tacGia-suggestions" class="suggestions-container"></div>
               <input type="text" id="tacGia" name="tacGia" placeholder="Nhập tên tác giả" required>
@@ -213,6 +221,12 @@
 
               },
               {
+                title: "KQ",
+                field: "KetQua",
+                editor: "false",
+                width: "10%"
+              },
+              {
                 title: "Ngày QĐ Giao Nhiệm Vụ",
                 field: "NgayQDGiaoNhiemVu",
                 editor: "false",
@@ -278,6 +292,13 @@
                   inputFormat: "iso",
                   outputFormat: "MM/dd/yyyy"
                 },
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "10%"
               },
@@ -714,6 +735,7 @@
           ),
           // khoa: document.getElementById("MaPhongBanForm").value,
           khoa: localStorage.getItem("MaPhongBan"),
+          ketQua: document.getElementById("ketQua").value,  // Tên bằng sáng chế / giải thưởng
         };
 
 

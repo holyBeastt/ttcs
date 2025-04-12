@@ -44,20 +44,6 @@
             <div class="flex-item">
               <label for="phanLoai">Phân loại</label>
               <select id="phanLoai" name="phanLoai" required>
-                <option
-                  value="Xây dựng mới chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
-                  Xây dựng mới chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
-                </option>
-                <option
-                  value="Xây dựng mới chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
-                  Xây dựng mới chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
-                </option>
-                <option value="Tu chỉnh chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
-                  Tu chỉnh chương trình khung được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
-                </option>
-                <option value="Tu chỉnh chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên">
-                  Tu chỉnh chương trình chi tiết được hội đồng nghiệm thu đánh giá từ Đạt yêu cầu trở lên
-                </option>
               </select>
             </div>
             <div class="flex-item">
@@ -91,6 +77,14 @@
             <div class="flex-item">
               <label for="ngayQuyetDinh">Ngày quyết định giao nhiệm vụ</label>
               <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required>
+            </div>
+            <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
             </div>
           </div>
 
@@ -221,6 +215,12 @@
                 width: "10%"
               },
               {
+                title: "KQ",
+                field: "KetQua",
+                editor: "false",
+                width: "10%"
+              },
+              {
                 title: "Danh Sách Thành Viên",
                 field: "DanhSachThanhVien",
                 editor: "false",
@@ -266,6 +266,13 @@
                 },
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "7%"
+              },
+              {
+                title: "KQ",
+                field: "KetQua",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
               },
               {
                 title: "Danh Sách Thành Viên",
@@ -685,6 +692,7 @@
           ),
           // khoa: document.getElementById("MaPhongBanForm").value,
           khoa: localStorage.getItem("MaPhongBan"),
+          ketQua: document.getElementById("ketQua").value,  // Phân loại
         };
 
 
