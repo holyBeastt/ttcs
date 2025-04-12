@@ -537,7 +537,7 @@
               tr.classList.add("teacher-group");
               tr.innerHTML = `
         <td rowspan="${courses.length - 1}">${index}</td>
-        <td rowspan="${courses.length - 1}">${course.GiangVien + ` (GVM khoa ${course.MaPhongBan})`}</td>
+        <td rowspan="${courses.length - 1}">${course.GiangVien + `<br>(GVM ${course.MaPhongBan})`}</td>
       `;
               index++;
             }

@@ -1,247 +1,70 @@
 //const { require } = require("app-root-path");
 const express = require("express");
 const createPoolConnection = require("../config/databasePool");
+const HDDK = require("../controllers/infoHDGvmController");
+const { query } = require("../config/Pool");
 
 const router = express.Router();
 
 //Lấy danh sách giảng viên mời để show chi tiết
-
 const getClassInfoGvm = async (req, res) => {
   res.render("classInfoGvm.ejs");
 };
 
-const getSoTietDoAnTongHopTheoNam = async (NamHoc, MaPhongBan) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
+// fake req, res và gọi hàm getHopDongDuKienData bên infoHDGvmController 
+async function callGetHopDongDuKienData(req, res) {
 
-    let query, values;
-    if (MaPhongBan === "ALL") {
-      query = `
-      WITH gv1 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien1, ' -', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien, 
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            15 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien1 IS NOT NULL
-            AND GiangVien1 != 'không' 
-            AND GiangVien2 != 'không' 
-            AND GiangVien2 != ''  
-            AND GiangVien1 NOT LIKE '%Cơ hữu%'
-      ),
-      gv2 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien2, ' -', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            10 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien2 IS NOT NULL
-            AND GiangVien2 != 'không' 
-            AND GiangVien2 != ''
-            AND GiangVien2 NOT LIKE '%Cơ hữu%'
-      ),
-      two_gv AS (
-        SELECT * FROM gv1 
-        UNION ALL
-        SELECT * FROM gv2
-      ),
-      one_gv AS (
-        SELECT         
-            SUBSTRING_INDEX(GiangVien1, ' - ', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            25 AS SoTiet 
-        FROM doantotnghiep 
-        WHERE (GiangVien2 = '' OR GiangVien2 = 'không') 
-          AND GiangVien1 != ''
-      ), 
-      gv_doan AS (
-        SELECT * FROM one_gv
-        UNION ALL
-        SELECT * FROM two_gv
-      ),
-      final AS (
-        SELECT 
-            gv_doan.GiangVien,
-            gv_doan.TenDeTai,
-            gv_doan.SinhVien,
-            gv_doan.MaSV,
-            gv_doan.SoTiet,
-            gv_doan.NgayBatDau,
-            gv_doan.NgayKetThuc,
-            gv_doan.Dot,
-            gv_doan.NamHoc,
-            gv_doan.MaPhongBan AS MaKhoa,
-            gvmoi.*
-        FROM gv_doan
-        JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-      )
-      SELECT 
-        id_Gvm, 
-        HoTen, 
-        TenDeTai, 
-        SinhVien, 
-        MaSV, 
-        NoiCongTac, 
-        HocVi, 
-        SoTiet, 
-        HSL, 
-        NgayBatDau, 
-        NgayKetThuc, 
-        dot, 
-        NamHoc, 
-        MaPhongBan
-      FROM final
-      WHERE dot = ? AND namhoc = ?`;
-      values = [Dot, NamHoc];
-    } else {
-      query = `
-      WITH gv1 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien1, ' - ', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien, 
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            15 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien1 IS NOT NULL
-            AND GiangVien1 != 'không' 
-            AND GiangVien2 != 'không' 
-            AND GiangVien2 != ''
-      ),
-      gv2 AS (
-        SELECT 
-            SUBSTRING_INDEX(GiangVien2, ' - ', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            10 AS SoTiet
-        FROM doantotnghiep
-        WHERE GiangVien2 IS NOT NULL
-            AND GiangVien2 != 'không' 
-            AND GiangVien2 != ''
-      ),
-      two_gv AS (
-        SELECT * FROM gv1 
-        UNION ALL
-        SELECT * FROM gv2
-      ),
-      one_gv AS (
-        SELECT         
-            SUBSTRING_INDEX(GiangVien1, ' - ', 1) AS GiangVien, 
-            TenDeTai, 
-            SinhVien,
-            MaSV,
-            NgayBatDau,
-            NgayKetThuc,
-            dot,
-            namhoc,
-            MaPhongBan,
-            25 AS SoTiet 
-        FROM doantotnghiep 
-        WHERE (GiangVien2 = '' OR GiangVien2 = 'không') 
-          AND GiangVien1 != ''
-      ), 
-      gv_doan AS (
-        SELECT * FROM one_gv
-        UNION ALL
-        SELECT * FROM two_gv
-      ),
-      final AS (
-        SELECT 
-            gv_doan.GiangVien,
-            gv_doan.TenDeTai,
-            gv_doan.SinhVien,
-            gv_doan.MaSV,
-            gv_doan.SoTiet,
-            gv_doan.NgayBatDau,
-            gv_doan.NgayKetThuc,
-            gv_doan.Dot,
-            gv_doan.NamHoc,
-            gv_doan.MaPhongBan AS MaKhoa,
-            gvmoi.*
-        FROM gv_doan
-        JOIN gvmoi ON gv_doan.GiangVien = gvmoi.HoTen
-      )
-      SELECT 
-        id_Gvm, 
-        HoTen, 
-        TenDeTai, 
-        SinhVien, 
-        MaSV, 
-        NoiCongTac, 
-        HocVi, 
-        SoTiet, 
-        HSL, 
-        NgayBatDau, 
-        NgayKetThuc, 
-        dot, 
-        NamHoc, 
-        MaPhongBan
-      FROM final
-      WHERE namhoc = ? AND MaKhoa = ?`;
-      values = [NamHoc, MaPhongBan];
-    }
+  let { dot, ki, nam, department, he_dao_tao } = req.body; // Nhận dữ liệu lọc từ client
+  const MaPhongBan = req.session.MaPhongBan;
+  const isKhoa = req.session.isKhoa;
 
-    const [result] = await connection.query(query, values);
-
-    // Nhóm dữ liệu theo giảng viên và tính tổng số tiết
-    const grouped = result.reduce((acc, current) => {
-      const teacher = current.HoTen;
-      if (!acc[teacher]) {
-        acc[teacher] = {
-          HoTen: teacher,
-          SoTiet: 0,
-          MaPhongBan: current.MaPhongBan, // giả sử mỗi giảng viên chỉ thuộc 1 khoa
-        };
-      }
-      acc[teacher].SoTiet += current.SoTiet;
-      return acc;
-    }, {});
-
-    // Chuyển kết quả thành mảng các đối tượng
-    const finalResult = Object.values(grouped);
-
-    // Trả về mảng kết quả
-    return finalResult;
-  } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu từ database:", error);
-    throw error;
-  } finally {
-    if (connection) connection.release(); // Giải phóng kết nối
+  if (ki == "ALL") {
+    ki = "AllKi";
   }
-};
+  if (he_dao_tao == "ALL") {
+    he_dao_tao = "AllHe";
+
+  }
+  // console.log({ dot, ki, nam, department, he_dao_tao })
+
+  // Tạo đối tượng req với các dữ liệu cần thiết
+  const reqMock = {
+    query: {
+      dot: dot,
+      ki: ki,
+      namHoc: nam,
+      khoa: department,
+      he_dao_tao
+    },
+    session: {
+      // Giả sử session có các thông tin cần thiết
+      isKhoa: isKhoa,
+      MaPhongBan: MaPhongBan
+    }
+  };
+  // console.log(khoa, dot, ki, namHoc, MaPhongBan, isKhoa, he_dao_tao);
+  // ALL 1 AllKi 2024 - 2025 DAOTAO 0 AllHe
+
+  // Tạo đối tượng res giả để bắt được kết quả
+  let responseData; // biến để lưu dữ liệu trả về
+  const resMock = {
+    // Ghi đè hàm json để lưu kết quả trả về
+    json: function (data) {
+      responseData = data;
+      return this;
+    },
+    status: function (code) {
+      this.statusCode = code;
+      return this;
+    }
+  };
+
+  // Gọi trực tiếp controller với reqMock và resMock
+  await HDDK.getHopDongDuKienData(reqMock, resMock);
+
+  // Sau khi controller xử lý xong, trả về dữ liệu đã được json trả ra
+  return responseData;
+}
 
 
 const getClassInfoGvmData = async (req, res) => {
@@ -347,8 +170,8 @@ const getClassInfoGvmData = async (req, res) => {
     // Thống kê theo từng lớp 
     const [results, fields] = await connection.query(query, queryParams);
     // Lấy tổng tiết dự kiến 
-    const tongSoTietTrongNam = await getHopDongDuKienData(nam, dot, ki, he_dao_tao, department)
-
+    const tongSoTietTrongNam = await callGetHopDongDuKienData(req, res);
+    // console.log("data khi gọi : " + JSON.stringify(tongSoTietTrongNam, null, 2))
     // Nhóm các môn học theo giảng viên, theo Khoa 
     const groupedByTeacher = results.reduce((acc, current) => {
       const teacher = current.GiangVien;
@@ -388,17 +211,23 @@ const getClassInfoGvmData = async (req, res) => {
 
     // console.log(groupedByTeacher)
     // Duyệt qua danh sách tongSoTietTrongNam để chèn dữ liệu vào cuối mảng của từng giảng viên
-    tongSoTietTrongNam.forEach((item) => {
+    tongSoTietTrongNam.dataDuKien.forEach((item) => {
       const teacherName = item.GiangVien;
-      if (groupedByTeacher.hasOwnProperty(teacherName)) {
-        // Kiểm tra xem trong mảng của giảng viên đã có đối tượng chứa key 'tongSoTietBaoGomDoAn' với giá trị trùng khớp chưa
-        const exists = groupedByTeacher[teacherName].some(subItem =>
-          subItem.hasOwnProperty('tongSoTietBaoGomDoAn') && subItem.tongSoTietBaoGomDoAn === item.TongSoTiet
-        );
-        // Nếu chưa có, thì mới push đối tượng mới vào mảng
-        if (!exists) {
-          groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
-        }
+
+      // Nếu chưa có key của giảng viên trong groupedByTeacher, khởi tạo mảng rỗng.
+      if (!groupedByTeacher.hasOwnProperty(teacherName)) {
+        groupedByTeacher[teacherName] = [];
+      }
+
+      // Kiểm tra xem trong mảng đã có đối tượng với key 'tongSoTietBaoGomDoAn'
+      // và giá trị trùng khớp với item.TongSoTiet chưa
+      const exists = groupedByTeacher[teacherName].some(subItem =>
+        subItem.hasOwnProperty('tongSoTietBaoGomDoAn') && subItem.tongSoTietBaoGomDoAn === item.TongSoTiet
+      );
+
+      // Nếu chưa có, mới push đối tượng mới
+      if (!exists) {
+        groupedByTeacher[teacherName].push({ tongSoTietBaoGomDoAn: item.TongSoTiet });
       }
     });
 
@@ -419,7 +248,7 @@ const getClassInfoGvmData = async (req, res) => {
     // Lấy MaPhongBan của giảng viên 
     const result2 = await getMaPhongBanAndUpdateData(result1);
 
-    console.log(result2)
+    // console.log(result2)
 
     // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
     res.json(result2);

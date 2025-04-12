@@ -467,12 +467,12 @@ const getHDGvmData = async (req, res) => {
   }
 };
 
-// P
+// classInfoGVMController lấy hàm này 
 const getHopDongDuKienData = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-
+    const MaPhongBan = req.session.MaPhongBan;
     // Lấy dữ liệu từ session
     const isKhoa = req.session.isKhoa;
 
@@ -487,6 +487,8 @@ const getHopDongDuKienData = async (req, res) => {
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
     }
+    console.log(khoa, dot, ki, namHoc, MaPhongBan, isKhoa, he_dao_tao);
+
 
     let query = `
     WITH DoAnHopDongDuKien AS (
@@ -858,9 +860,10 @@ const getHopDongDuKienData = async (req, res) => {
     const [SoTietDinhMucRow] = await connection.query(query);
 
     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
-
+    const result = { dataDuKien: rows, SoTietDinhMuc };
+    // console.log(result)
     // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json({ dataDuKien: rows, SoTietDinhMuc });
+    res.status(200).json(result);
   } catch (error) {
     console.error("Error fetching HD Gvm data:", error);
     res.status(500).json({ message: "Internal Server Error" });

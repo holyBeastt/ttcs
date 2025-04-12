@@ -684,5 +684,4 @@ module.exports = {
   getInfoDoAnHopDongDuKien,
   getCheckAllDoantotnghiep,
   getDoAnHopDongDuKienSite,
-  getInfoDoAnHopDongDuKien2
 };
