@@ -923,6 +923,10 @@ const saveToTableDoantotnghiep = async (req, res) => {
         DaLuu = 0,
         DaBanHanh = 0;
 
+      // Chuyển đổi giá trị ngày: nếu NgayBatDau hoặc NgayKetThuc là chuỗi rỗng thì chuyển về null
+      const startDate = row.NgayBatDau === '' ? null : row.NgayBatDau;
+      const endDate = row.NgayKetThuc === '' ? null : row.NgayKetThuc;
+
       return [
         row.TT,
         row.SinhVien,
@@ -933,8 +937,8 @@ const saveToTableDoantotnghiep = async (req, res) => {
         row.GiangVien1,
         row.GiangVien2,
         namHoc,
-        row.NgayBatDau,
-        row.NgayKetThuc,
+        startDate,     // Sử dụng giá trị đã chuyển đổi cho NgayBatDau
+        endDate,       // Sử dụng giá trị đã chuyển đổi cho NgayKetThuc
         MaPhongBan,
         row.SoQD || null,
         KhoaDuyet,
@@ -946,8 +950,9 @@ const saveToTableDoantotnghiep = async (req, res) => {
         DaBanHanh,
         Dot,
         Ki
-      ]; // Thêm NamHoc vào mảng
+      ];
     });
+
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
