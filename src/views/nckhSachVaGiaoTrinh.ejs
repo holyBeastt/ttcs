@@ -82,6 +82,14 @@
               <label for="soTrang">Số trang</label>
               <input type="number" id="soTrang" name="soTrang" placeholder="Nhập số trang" required />
             </div>
+            <div class="flex-item">
+              <label for="ketQua">Kết quả</label>
+              <select id="ketQua" style="width: 100% !important;" required>
+                <option value="Đạt">Đạt</option>
+                <option value="Giỏi">Giỏi</option>
+                <option value="Xuất sắc">Xuất sắc</option>
+              </select>
+            </div>
           </div>
 
           <!-- Tác giả và Đơn vị -->
@@ -208,6 +216,7 @@
               { title: "Tên sách và giáo trình", field: "TenSachVaGiaoTrinh", editor: "false", },
               { title: "Số xuất bản", field: "SoXuatBan", editor: "false", width: "7%" },
               { title: "Số trang", field: "SoTrang", editor: "false", width: "5%" },
+              { title: "KQ", field: "KetQua", editor: "false", width: "10%" },
               { title: "Tác giả", field: "TacGia", editor: "false", width: "10%" },
               { title: "Đồng chủ biên", field: "DongChuBien", editor: "false", width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false", }
@@ -218,6 +227,7 @@
               { title: "Tên sách và giáo trình", field: "TenSachVaGiaoTrinh", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
               { title: "Số xuất bản", field: "SoXuatBan", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "7%" },
               { title: "Số trang", field: "SoTrang", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "5%" },
+              { title: "KQ", field: "KetQua", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
               { title: "Tác giả", field: "TacGia", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Đồng chủ biên", field: "DongChuBien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
@@ -642,6 +652,7 @@
             ),
             // khoa: document.getElementById("MaPhongBanForm").value,
             khoa: localStorage.getItem("MaPhongBan"),
+            ketQua: document.getElementById("ketQua").value, // Phân loại
           };
 
 

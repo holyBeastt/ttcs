@@ -827,6 +827,7 @@ const saveSachVaGiaoTrinh = async (req, res) => {
     dongChuBien,
     thanhVien, // Đây là một mảng từ client
     khoa,
+    ketQua,
   } = req.body;
   console.log(req.body);
 
@@ -860,9 +861,9 @@ const saveSachVaGiaoTrinh = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO sachvagiaotrinh (
-PhanLoai, NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DongChuBien, DanhSachThanhVien, Khoa
+PhanLoai, NamHoc, TenSachVaGiaoTrinh, SoXuatBan, SoTrang, TacGia, DongChuBien, DanhSachThanhVien, Khoa, KetQua
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai,
@@ -874,6 +875,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         dongChuBienFormatted, // Tác giả chịu trách nhiệm đã format sau quy đổi
         thanhVienFormatted, // Danh sách thành viên đã format sau quy đổi
         khoa,
+        ketQua,
       ]
     );
 
@@ -1378,6 +1380,7 @@ const saveXayDungCTDT = async (req, res) => {
     soTC,
     thanhVien, // Đây là một mảng từ client
     khoa,
+    ketQua
   } = req.body;
 
   // Gọi hàm quy đổi
@@ -1400,9 +1403,9 @@ const saveXayDungCTDT = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO xaydungctdt (
-HinhThucXayDung, NamHoc, TenChuongTrinh, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa
+HinhThucXayDung, NamHoc, TenChuongTrinh, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQua
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai, // Phân loại
@@ -1413,6 +1416,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ngayQDGiaoNhiemVu, // Ngày quyết định giao nhiệm vụ
         thanhVienFormatted, // Danh sách thành viên đã được format
         khoa,
+        ketQua
       ]
     );
 
@@ -1548,6 +1552,7 @@ const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     tacGia,
     thanhVien, // Đây là một mảng từ client
     khoa,
+    ketQua,
   } = req.body;
 
   // Gọi hàm quy đổi
@@ -1572,9 +1577,9 @@ const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO biensoangiaotrinhbaigiang (
-PhanLoai, NamHoc, TenGiaoTrinhBaiGiang, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, TacGia, DanhSachThanhVien, Khoa
+PhanLoai, NamHoc, TenGiaoTrinhBaiGiang, SoTC, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, TacGia, DanhSachThanhVien, Khoa, KetQua
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai, // Phân loại
@@ -1586,6 +1591,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         tacGiaFormatted, // Tác giả
         thanhVienFormatted, // Danh sách thành viên đã được format
         khoa,
+        ketQua,
       ]
     );
 
@@ -1968,11 +1974,12 @@ const editNckh = async (req, res) => {
         DanhSachThanhVien: req.body.DanhSachThanhVien,
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
+        KetQua: req.body.KetQua,
       };
 
       updateQuery = `
                 UPDATE biensoangiaotrinhbaigiang 
-                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+                SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
                 WHERE ID = ?`;
 
       queryParams = [
@@ -1985,6 +1992,7 @@ const editNckh = async (req, res) => {
         data.DanhSachThanhVien,
         data.DaoTaoDuyet,
         data.Khoa,
+        data.KetQua,
         ID,
       ];
       break;
@@ -2030,11 +2038,12 @@ const editNckh = async (req, res) => {
         DanhSachThanhVien: req.body.DanhSachThanhVien,
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
+        KetQua: req.body.KetQua,
       };
 
       updateQuery = `
                   UPDATE sachvagiaotrinh
-                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+                  SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
                   WHERE ID = ?`;
 
       queryParams = [
@@ -2047,6 +2056,7 @@ const editNckh = async (req, res) => {
         data.DanhSachThanhVien,
         data.DaoTaoDuyet,
         data.Khoa,
+        data.KetQua,
         ID,
       ];
       break;
@@ -2061,11 +2071,12 @@ const editNckh = async (req, res) => {
         DanhSachThanhVien: req.body.DanhSachThanhVien,
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
+        KetQua: req.body.KetQua,
       };
 
       updateQuery = `
                   UPDATE xaydungctdt
-                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+                  SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
                   WHERE ID = ?`;
 
       queryParams = [
@@ -2077,6 +2088,7 @@ const editNckh = async (req, res) => {
         data.DanhSachThanhVien,
         data.DaoTaoDuyet,
         data.Khoa,
+        data.KetQua,
         ID,
       ];
       break;
