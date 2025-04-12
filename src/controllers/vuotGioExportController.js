@@ -1905,7 +1905,7 @@ const values = [
   resultsSoTietDinhMuc[0]?.GiangDay || "", // Số tiết phải giảng  
   totalC > resultsSoTietDinhMuc[0]?.NCKH ? 0 : resultsSoTietDinhMuc[0]?.NCKH - totalC, // Số tiết chưa hoàn thành NCKH
   (resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100, // Số tiết được giảm trừ
-  parseFloat(totalA + totalB - (resultsSoTietDinhMuc[0]?.GiangDay || 0) + ((resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100)).toFixed(2) // Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)
+  Math.max(0, parseFloat(totalA + totalB - (resultsSoTietDinhMuc[0]?.GiangDay || 0) + ((resultsSoTietDinhMuc[0]?.GiangDay || 0) * (giangVienInfo?.PhanTramMienGiam || 0) / 100)).toFixed(2)) // Tổng số tiết đề nghị thanh toán vượt giờ (I - II - III + IV)
 ];
 
 content.forEach((item, index) => {
@@ -1983,13 +1983,12 @@ worksheet.getColumn('C').width = 17.22; // Cột Số tiết
 worksheet.getColumn('E').width = 30; // Cột Lí do giảm trừ
 
 const totalNCKH = resultsSoTietDinhMuc[0]?.NCKH || 0;
-const totalNCKHVuotMuc = totalC - totalNCKH;
+const totalNCKHVuotMuc = Math.max(0, totalC - totalNCKH); // Nếu âm sẽ nhận giá trị 0
 const totalNCKHBaoLuu = totalNCKHVuotMuc > 0 ? totalNCKHVuotMuc : 0;
 let index = 1;
 const dataRow34 = worksheet.addRow([
-  index ++,
+  index++,
   "Nghiên cứu khoa học",
-
   totalNCKHVuotMuc.toFixed(2),
   "",
   totalNCKHBaoLuu.toFixed(2),

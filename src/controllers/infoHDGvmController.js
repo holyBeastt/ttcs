@@ -467,7 +467,7 @@ const getHDGvmData = async (req, res) => {
   }
 };
 
-// classInfoGVMController lấy hàm này 
+// classInfoGVMController lấy hàm này
 const getHopDongDuKienData = async (req, res) => {
   let connection;
   try {
@@ -488,7 +488,6 @@ const getHopDongDuKienData = async (req, res) => {
       khoa = req.session.MaPhongBan;
     }
     console.log(khoa, dot, ki, namHoc, MaPhongBan, isKhoa, he_dao_tao);
-
 
     let query = `
     WITH DoAnHopDongDuKien AS (
@@ -783,7 +782,7 @@ const getHopDongDuKienData = async (req, res) => {
         ta.STK,
         ta.NganHang,
         ta.MaPhongBan,
-        ta.MaKhoaMonHoc,
+        MIN(ta.MaKhoaMonHoc) AS MaKhoaMonHoc,
         ta.NgayCapCCCD,
         ta.DiaChi,
         ta.BangTotNghiep, 
@@ -848,7 +847,8 @@ const getHopDongDuKienData = async (req, res) => {
         ta.BangTotNghiep, 
         ta.NoiCongTac,
         ta.BangTotNghiepLoai,
-        ta.MonGiangDayChinh`;
+        ta.MonGiangDayChinh,
+        tsgv.TongSoTiet`;
 
     query += ` ORDER BY 
       tsgv.TongSoTiet DESC;`;
