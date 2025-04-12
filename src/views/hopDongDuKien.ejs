@@ -311,6 +311,7 @@
     <!-- phần dữ liệu để hiển thị trên bảng -->
     <script>
       var renderData = [];
+      let SoTietDinhMuc = 0;
 
       document.addEventListener("DOMContentLoaded", function () {
         const viewDataBtn = document.getElementById("viewDataBtn");
@@ -349,7 +350,8 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
-            renderData = data;
+            renderData = data.dataDuKien;
+            SoTietDinhMuc = data.SoTietDinhMuc;
 
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
@@ -364,7 +366,7 @@
             });
 
             // Thêm dữ liệu mới vào bảng
-            data.forEach((item) => {
+            renderData.forEach((item) => {
               const row = tbody.insertRow();
               row.insertCell(0).textContent = Number.parseFloat(
                 item.TongTiet
@@ -407,7 +409,7 @@
               row.insertCell(14).textContent = item.MaSoThue;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
-              if (item.TongSoTiet > 300) {
+              if (item.TongSoTiet > SoTietDinhMuc) {
                 row.classList.add("alert-sotiet");
               }
             });
@@ -454,7 +456,8 @@
               throw new Error("Network response was not ok");
             }
             const data = await response.json();
-            renderData = data;
+            renderData = data.dataDuKien;
+            SoTietDinhMuc = data.SoTietDinhMuc;
             // Xóa dữ liệu cũ trong bảng
             const tbody = dataTable.querySelector("tbody");
             tbody.innerHTML = "";
@@ -468,7 +471,7 @@
             });
 
             // Thêm dữ liệu mới vào bảng
-            data.forEach((item) => {
+            renderData.forEach((item) => {
               const row = tbody.insertRow();
               row.insertCell(0).textContent = Number.parseFloat(
                 item.TongTiet
@@ -533,7 +536,7 @@
               `;
 
               // Bôi đỏ nếu số tiết > 300 bằng cách thêm class
-              if (item.TongSoTiet > 300) {
+              if (item.TongSoTiet > SoTietDinhMuc) {
                 row.classList.add("alert-sotiet");
               }
             });
