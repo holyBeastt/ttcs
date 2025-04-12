@@ -223,9 +223,9 @@ const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    let { dot, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    let { dot,ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
-    if (!dot || !namHoc) {
+    if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
     }
 
@@ -264,14 +264,14 @@ FROM
 JOIN 
   exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
 WHERE 
-  ed.Dot = ?  AND ed.NamHoc = ?
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
 `;
 
-    let params = [dot, namHoc];
+    let params = [dot,ki, namHoc];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -305,13 +305,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, namHoc, `%${khoa}%`];
+      params = [dot,ki, namHoc, `%${khoa}%`];
     }
 
     // Xử lý trường hợp có teacherName
@@ -346,13 +346,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, namHoc, `%${teacherName}%`];
+      params = [dot,ki, namHoc, `%${teacherName}%`];
     }
     const [teachers] = await connection.execute(query, params);
 
