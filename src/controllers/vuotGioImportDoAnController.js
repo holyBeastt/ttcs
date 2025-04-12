@@ -907,6 +907,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
   const Dot = req.query.Dot;
   const Ki = req.query.Ki;
   const data = req.body;
+  const defaultDate = '2000-01-01'; // hoặc ngày nào bạn muốn làm mặc định
 
   let connection;
   try {
@@ -923,9 +924,8 @@ const saveToTableDoantotnghiep = async (req, res) => {
         DaLuu = 0,
         DaBanHanh = 0;
 
-      // Chuyển đổi giá trị ngày: nếu NgayBatDau hoặc NgayKetThuc là chuỗi rỗng thì chuyển về null
-      const startDate = row.NgayBatDau === '' ? null : row.NgayBatDau;
-      const endDate = row.NgayKetThuc === '' ? null : row.NgayKetThuc;
+      const startDate = !row.NgayBatDau || row.NgayBatDau.trim() === '' ? defaultDate : row.NgayBatDau;
+      const endDate = !row.NgayKetThuc || row.NgayKetThuc.trim() === '' ? defaultDate : row.NgayKetThuc;
 
       return [
         row.TT,
