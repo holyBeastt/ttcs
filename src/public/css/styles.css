@@ -142,7 +142,6 @@ body {
   /* Xóa mọi padding không cần thiết */
   width: max-content;
   display: none;
-  display: none;
 }
 
 .dropdown-item {
