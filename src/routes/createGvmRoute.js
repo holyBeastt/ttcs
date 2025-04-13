@@ -30,14 +30,15 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user";
+    let Khoa = req.session.MaPhongBan; // Lấy thông tin Khoa từ session
     let fieldName = file.fieldname; // Tên trường (fieldname) để phân loại file
 
     if (fieldName === "fileBoSung") {
-      fieldName = HoTen;
+      fieldName = `${Khoa}_${HoTen}`;
     }
 
     if (fieldName === "FileLyLich") {
-      fieldName = `Lý lịch ${HoTen}`;
+      fieldName = `${Khoa}_Lý lịch_${HoTen}`;
     }
 
     // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
