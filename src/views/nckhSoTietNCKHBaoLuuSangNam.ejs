@@ -18,7 +18,7 @@
   <%- include('header') %>
 
     <div class="my-3 box formNckh">
-      <h2 class="titleNckh">Nhiệm vụ khoa học và công nghệ</h2>
+      <h2 class="titleNckh">Số tiết NCKH bảo lưu sang năm</h2>
 
       <div class="tabs">
         <ul class="tabs-nav">
@@ -118,7 +118,7 @@
         } else {
           department = localStorage.getItem("MaPhongBan");
         };
-        const url = `/nhiemvukhoahoccongnghe/${year}/${department}`;
+        const url = `/sotietnckhbaoluusangnam/${year}/${department}`;
 
         try {
           const response = await fetch(url);
@@ -211,7 +211,7 @@
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Xóa",
               field: "actions",
@@ -223,7 +223,7 @@
           }
 
           // Cấp quyền duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",
@@ -285,7 +285,7 @@
       }
 
       async function saveData(id, updatedData, row) {
-        const MaBang = 'nhiemvukhoahocvacongnghe';
+        const MaBang = 'sotietnckhbaoluusangnam';
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
             method: "POST",
@@ -324,7 +324,7 @@
 
       async function deleteRow(id, row) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/nhiemvukhoahocvacongnghe`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/sotietnckhbaoluusangnam`, { method: "POST" });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
@@ -396,7 +396,7 @@
       // lấy data tên nhiệm vụ cho vào thẻ select
       async function getTenNhiemVu() {
         try {
-          const response = await fetch("/data/nhiemvukhoahoccongnghe"); // Gọi API
+          const response = await fetch("/data/sotietnckhbaoluusangnam"); // Gọi API
           if (!response.ok) {
             throw new Error("Không thể lấy dữ liệu từ API.");
           }
@@ -415,8 +415,8 @@
           // Thêm option mới từ dữ liệu API
           data.forEach(item => {
             const option = document.createElement("option");
-            option.value = item.NhiemVuKhoaHocCongNghe; // Giá trị option
-            option.textContent = item.NhiemVuKhoaHocCongNghe; // Nội dung hiển thị
+            option.value = item.SoTietNCKHBaoLuuSangNam; // Giá trị option
+            option.textContent = item.SoTietNCKHBaoLuuSangNam; // Nội dung hiển thị
             selectElement.appendChild(option);
           });
 
@@ -428,7 +428,6 @@
       // hiển thị 3 số tiết vào bảng
       window.onload = async () => {
         try {
-          // Đợi lấy dữ liệu tên đề tài nhiệm vụ khoa học hoàn thành
           await getTenNhiemVu();
 
           // Đảm bảo DOM đã được cập nhật hoàn toàn sau khi getTenNhiemVu() thực thi
@@ -457,7 +456,7 @@
 
           // Gửi dữ liệu lên server
           try {
-            const response = await fetch("/nhiemvukhoahoccongnghe", {
+            const response = await fetch("/sotietnckhbaoluusangnam", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -489,7 +488,7 @@
 
         // Kiểm tra nếu không có dữ liệu hoặc dữ liệu không hợp lệ
         if (!data || typeof data !== 'object') {
-          tableContainer.innerHTML = "<p>Không có dữ liệu nhiệm vụ khoa học công nghệ.</p>";
+          tableContainer.innerHTML = "<p>Không có dữ liệu.</p>";
           return;
         }
 
@@ -533,7 +532,7 @@
           };
 
           // Gửi dữ liệu lên server
-          fetch("/nhiemvukhoahoccongnghe/save", {
+          fetch("/sotietnckhbaoluusangnam/save", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

@@ -42,10 +42,10 @@ router.get("/biensoangiaotrinhbaigiang", nckh.getBienSoanGiaoTrinhBaiGiang);
 router.post("/biensoangiaotrinhbaigiang", nckh.saveBienSoanGiaoTrinhBaiGiang);
 router.get("/biensoangiaotrinhbaigiang/:NamHoc/:Khoa", nckh.getTableBienSoanGiaoTrinhBaiGiang);
 
-router.get("/nhiemvukhoahoccongnghe", nckh.getNhiemVuKhoaHocCongNghe);
-router.post("/nhiemvukhoahoccongnghe", nckh.getDataNhiemVuKhoaHocCongNghe);
-router.post("/nhiemvukhoahoccongnghe/save", nckh.saveNhiemVuKhoaHocCongNghe);
-router.get("/nhiemvukhoahoccongnghe/:NamHoc/:Khoa", nckh.getTableNhiemVuKhoaHocCongNghe);
+router.get("/sotietnckhbaoluusangnam", nckh.getSoTietNCKHBaoLuuSangNam);
+router.post("/sotietnckhbaoluusangnam", nckh.getDataSoTietNCKHBaoLuuSangNam);
+router.post("/sotietnckhbaoluusangnam/save", nckh.saveSoTietNCKHBaoLuuSangNam);
+router.get("/sotietnckhbaoluusangnam/:NamHoc/:Khoa", nckh.getTableSoTietNCKHBaoLuuSangNam);
 
 
 router.get("/tonghopsotietnckh", nckh.getTongHopSoTietNCKH);
