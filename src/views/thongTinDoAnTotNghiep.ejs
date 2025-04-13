@@ -135,14 +135,13 @@
     #SoQD-list {
       font-style: italic;
       /* Chữ nghiêng */
-      font-size: 0.9em;
-      /* Nhỏ hơn bình thường một chút */
-      color: #666;
+      font-weight: bold;
       /* Màu xám nhạt hơn */
       list-style-type: none;
       /* Bỏ dấu chấm đầu dòng */
       margin-left: 10px;
       /* Dịch sang trái một chút */
+      margin-bottom: 3px;
     }
 
     #SoQD-list li::before {
@@ -419,10 +418,12 @@
         button.addEventListener("click", async function () {
           await loadData();
 
-          const listContainer = document.getElementById("SoQD-list");
-          listContainer.innerHTML = SoQDList.map(
-            (item) => `<li>${item.SoQD}</li>`
-          ).join("");
+          if (SoQDList) {
+            const listContainer = document.getElementById("SoQD-list");
+            listContainer.innerHTML = SoQDList.map(
+              (item) => `<li>Theo QĐ số: ${item.SoQD}</li>`
+            ).join("");
+          }
         });
 
         async function loadData() {

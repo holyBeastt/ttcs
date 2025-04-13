@@ -9,5 +9,6 @@ router.get("/data", thongkedoanController.getData);
 router.get("/getNamHocDoAn", thongkedoanController.getFilterOptions);
 router.get("/getPhongBanDoAn", thongkedoanController.getPhongBanOptions);
 router.get("/getDot", thongkedoanController.getDotOptions);
+router.get("/getKiDoAn", thongkedoanController.getKiOptions);
 
 module.exports = router;
