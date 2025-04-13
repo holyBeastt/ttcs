@@ -141,6 +141,23 @@
         color: #333;
         /* Tùy chọn: Thay đổi màu chữ để dễ đọc hơn */
       }
+
+      #SoQD-list {
+        font-style: italic;
+        /* Chữ nghiêng */
+        font-weight: bold;
+        /* Màu xám nhạt hơn */
+        list-style-type: none;
+        /* Bỏ dấu chấm đầu dòng */
+        margin-left: 10px;
+        /* Dịch sang trái một chút */
+        margin-bottom: 0px;
+        margin-top: 20px;
+      }
+
+      #SoQD-list li::before {
+        content: "* ";
+      }
     </style>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -194,8 +211,10 @@
           </div>
         </div>
 
+        <ul id="SoQD-list"></ul>
+
         <div>
-          <table class="table table-bordered">
+          <table style="margin-top: 3px" class="table table-bordered">
             <thead>
               <tr>
                 <th>STT</th>
@@ -240,6 +259,8 @@
     <!-- render ra bảng k cần ấn gì cả -->
     <script>
       let SoTietDinhMuc = 300;
+      let SoQDList;
+
       document.getElementById("render").addEventListener("click", function () {
         let Dot = document.getElementById("combobox-dot").value;
         let ki = document.getElementById("comboboxki").value;
@@ -278,6 +299,14 @@
             } else {
               document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
               SoTietDinhMuc = data.SoTietDinhMuc;
+              SoQDList = data.SoQDList;
+
+              if (SoQDList) {
+                const listContainer = document.getElementById("SoQD-list");
+                listContainer.innerHTML = SoQDList.map(
+                  (item) => `<li>Theo QĐ số: ${item.SoQD}</li>`
+                ).join("");
+              }
               renderTable(data.groupedByTeacher);
             }
           })
@@ -316,7 +345,8 @@
               <td rowspan="${courses.length}">${index}</td>
               <td rowspan="${courses.length}">${
                 course.HoTen.split(" - ")[0]
-              }</td>
+              }<br /> (GVM ${course.MaPhongBan})
+              </td>
             `;
               index++; // Tăng index cho giảng viên tiếp theo
             }
@@ -468,48 +498,6 @@
           row.style.display = isVisible ? "" : "none";
         }
       }
-    </script>
-
-    <!-- Phần phân quyền -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const importQuyChuan = document.getElementById("doAnDuKien");
-        const MaPhongBan = localStorage.getItem("MaPhongBan");
-        const role = localStorage.getItem("userRole");
-
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
-      });
     </script>
 
     <script>

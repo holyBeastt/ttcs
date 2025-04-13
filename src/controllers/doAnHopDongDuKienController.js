@@ -425,9 +425,19 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     `;
     values = [Dot, ki, NamHoc];
 
+    let SoQDList;
     if (MaPhongBan != "ALL") {
       query += ` AND MaKhoa = ? `;
       values.push(MaPhongBan);
+
+      // Lấy số quyết định
+      const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
+      [SoQDList] = await connection.query(SoQDquery, [
+        Dot,
+        ki,
+        NamHoc,
+        MaPhongBan,
+      ]);
     }
 
     query += `ORDER BY TongSoTietCaNam DESC`;
@@ -451,7 +461,9 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
 
     // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json({ groupedByTeacher: groupedByTeacher, SoTietDinhMuc });
+    res
+      .status(200)
+      .json({ groupedByTeacher: groupedByTeacher, SoTietDinhMuc, SoQDList });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ database:", error);
 
@@ -461,7 +473,6 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
-
 
 const KhoaCheckAll = async (req, Dot, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả

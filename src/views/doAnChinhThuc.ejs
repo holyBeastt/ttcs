@@ -71,6 +71,24 @@
     .dropdown-submenu:hover .dropdown-menu {
       display: block;
     }
+
+    /* CSS Số QĐ */
+    #SoQD-list {
+      font-style: italic;
+      /* Chữ nghiêng */
+      font-weight: bold;
+      /* Màu xám nhạt hơn */
+      list-style-type: none;
+      /* Bỏ dấu chấm đầu dòng */
+      margin-left: 10px;
+      /* Dịch sang trái một chút */
+      margin-bottom: 0px;
+      margin-top: 30px;
+    }
+
+    #SoQD-list li::before {
+      content: "* ";
+    }
   </style>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -112,8 +130,11 @@
             style="margin-bottom: 0px; height: 45px; display: none;">Xuất file</button>
 
         </div>
-        <div class="overflow-auto">
-          <table class="table table-bordered">
+
+        <ul id="SoQD-list"></ul>
+
+        <div style="margin-top: 0px;" class="overflow-auto">
+          <table style="margin-top: 3px;" class="table table-bordered">
             <thead>
               <tr id="table-header"></tr>
             </thead>
@@ -280,15 +301,20 @@
               });
               return;
             }
-
-
-
             // Xử lý dữ liệu giảng dạy
             const globalData = await teachingResponse.json();
-            console.log('Tổng hợp bảng dữ liệu:', globalData.results);
+
+            const SoQDList = globalData.SoQDList;
+
+            if (SoQDList) {
+              const listContainer = document.getElementById("SoQD-list");
+              listContainer.innerHTML = SoQDList.map(
+                (item) => `<li>Theo QĐ số: ${item.SoQD}</li>`
+              ).join("");
+            }
 
             // Sau khi có dữ liệu thành công, thực hiện render bảng
-            renderTable(globalData.results); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
+            renderTable(globalData.result); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
           };
 
           // Thêm trình lắng nghe sự kiện cho từng combobox
@@ -337,8 +363,17 @@
           // Xử lý dữ liệu giảng dạy ngay khi tải trang
           const globalData = await teachingResponse.json();
 
+          const SoQDList = globalData.SoQDList;
+
+          if (SoQDList) {
+            const listContainer = document.getElementById("SoQD-list");
+            listContainer.innerHTML = SoQDList.map(
+              (item) => `<li>${item.SoQD}</li>`
+            ).join("");
+          }
+
           // Sau khi có dữ liệu thành công, thực hiện render bảng
-          renderTable(globalData); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
+          renderTable(globalData.result); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
 
         } catch (error) {
           console.error('Đã có lỗi xảy ra:', error);
@@ -347,7 +382,6 @@
 
       // Hàm renderTable sẽ được sử dụng để render bảng
       function renderTable(data) {
-        console.log(data);
         const columnsToDisplay = ['SinhVien', 'MaSV', 'MaPhongBan', 'TenDeTai', 'GiangVienDefault', 'GiangVien1', 'GiangVien2', 'NgayBatDau', 'NgayKetThuc'];
 
         const headersMap = {
