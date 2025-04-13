@@ -557,7 +557,7 @@ const deleteNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
     }
 };
 
-const addXayDungCTDT= async (req, res) => {
+const addXayDungCTDT = async (req, res) => {
     const { MaBang, XayDungCTDT, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
 
     console.log("Thêm mới dữ liệu vào bảng quydinhsogionckh:", { MaBang, XayDungCTDT, SoGio });
@@ -668,7 +668,7 @@ const deleteXayDungCTDT = async (req, res) => {
     }
 };
 
-const addBienSoanGiaoTrinhBaiGiang= async (req, res) => {
+const addBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     const { MaBang, BienSoanGiaoTrinhBaiGiang, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
 
     console.log("Thêm mới dữ liệu vào bảng quydinhsogionckh:", { MaBang, BienSoanGiaoTrinhBaiGiang, SoGio });
@@ -745,10 +745,154 @@ const editBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     }
 };
 
-const deleteBienSoanGiaoTrinhBaiGiang= async (req, res) => {
+const deleteBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     const { id } = req.body; // Lấy dữ liệu từ form (req.body)
 
     console.log("Xóa bài biên soạn giáo trình bài giảng id: ", id);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `
+            DELETE FROM quydinhsogionckh WHERE ID = ?
+        `;
+
+        const queryParams = [id];
+
+        // Thực hiện truy vấn
+        const [result] = await connection.execute(query, queryParams);
+
+        console.log("Xóa thành công:", result);
+
+        // Trả về kết quả cho client
+        res.status(200).json({
+            message: "Xóa thành công!",
+            data: { id }
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi xóa dữ liệu:", error);
+        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+const addNhiemVuKhoaHocCongNghe = async (req, res) => {
+    const { MaBang, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
+
+    console.log("Thêm mới dữ liệu vào bảng quydinhsogionckh:", { MaBang, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio });
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `
+            INSERT INTO quydinhsogionckh (MaBang, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        const queryParams = [MaBang, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio];
+
+        // Thực hiện truy vấn
+        const [result] = await connection.execute(query, queryParams);
+
+        console.log("Dữ liệu đã được thêm thành công:", result);
+
+        // Trả về kết quả cho client
+        res.status(200).json({
+            message: "Thêm mới thành công!",
+            data: { NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio }
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi thêm mới dữ liệu:", error);
+        res.status(500).json({ message: "Không thể thêm dữ liệu vào cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+const edtiNhiemVuKhoaHocCongNghe = async (req, res) => {
+    const { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
+
+    console.log("Cập nhật dữ liệu vào bảng quydinhsogionckh:", { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio });
+    NhiemVuKhoaHocCongNghe
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `
+            UPDATE quydinhsogionckh
+            SET NhiemVuKhoaHocCongNghe = ?, ChuNhiem = ?, ThuKy = ?, SoGio = ?
+            WHERE ID = ?
+        `;
+
+        const queryParams = [NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, id];
+
+        // Thực hiện truy vấn UPDATE
+        const [result] = await connection.execute(query, queryParams);
+
+        // Kiểm tra nếu không có bản ghi nào được cập nhật
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Không tìm thấy đề tài/dự án để cập nhật." });
+        }
+
+        console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Trả về kết quả cho client
+        res.status(200).json({
+            message: "Cập nhật thành công!",
+            data: { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio }
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi cập nhật dữ liệu:", error);
+        res.status(500).json({ message: "Không thể cập nhật dữ liệu vào cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+const deleteNhiemVuKhoaHocCongNghe = async (req, res) => {
+    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
+
+    console.log("Xóa đề nhiệm vụ khoa học công nghệ id: ", id);
+
+    let connection;
+    try {
+        connection = await createPoolConnection(); // Lấy kết nối từ pool
+
+        const query = `
+            DELETE FROM quydinhsogionckh WHERE ID = ?
+        `;
+
+        const queryParams = [id];
+
+        // Thực hiện truy vấn
+        const [result] = await connection.execute(query, queryParams);
+
+        console.log("Xóa thành công:", result);
+
+        // Trả về kết quả cho client
+        res.status(200).json({
+            message: "Xóa thành công!",
+            data: { id }
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi xóa dữ liệu:", error);
+        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
+    } finally {
+        if (connection) connection.release(); // Trả lại kết nối cho pool
+    }
+};
+
+const deleteRowQuyDinhSoGioNCKH = async (req, res) => {
+    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
+
+    console.log("Xóa id bảng quydinhsogionckh: ", id);
 
     let connection;
     try {
@@ -801,4 +945,8 @@ module.exports = {
     addBienSoanGiaoTrinhBaiGiang,
     editBienSoanGiaoTrinhBaiGiang,
     deleteBienSoanGiaoTrinhBaiGiang,
+    addNhiemVuKhoaHocCongNghe,
+    edtiNhiemVuKhoaHocCongNghe,
+    deleteNhiemVuKhoaHocCongNghe,
+    deleteRowQuyDinhSoGioNCKH
 };
