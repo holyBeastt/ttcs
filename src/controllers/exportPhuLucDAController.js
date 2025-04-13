@@ -240,7 +240,7 @@ const exportPhuLucDA = async (req, res) => {
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
     const titleRow2 = summarySheet.addRow(["Phụ lục"]);
-    titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
@@ -260,7 +260,7 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 13 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -297,7 +297,7 @@ const exportPhuLucDA = async (req, res) => {
     summarySheet.getColumn(4).width = 14; // Sinh viên thực hiện
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
-    summarySheet.getColumn(7).width = 18; // Địa chỉ
+    summarySheet.getColumn(7).width = 20; // Địa chỉ
     summarySheet.getColumn(8).width = 6; // Học vị
     summarySheet.getColumn(9).width = 7; // Hệ số lương
     summarySheet.getColumn(10).width = 12; // Mức thanh toán
@@ -358,7 +358,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13, bold: true };
               break;
             case 2: // Họ tên giảng viên
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
               cell.font = { name: "Times New Roman", size: 13 };
@@ -367,7 +367,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 5: // Số tiết
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 6: // Thời gian thực hiện
               cell.font = { name: "Times New Roman", size: 13 };
@@ -376,26 +376,26 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 10: // Hệ số lương
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 11: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
 
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
           cell.alignment = { horizontal: "center", vertical: "middle" }; // Căn giữa
@@ -423,7 +423,7 @@ const exportPhuLucDA = async (req, res) => {
       totalThucNhan,
     ]);
 
-    totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
+    totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
     totalRow.eachCell((cell) => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.border = {
@@ -492,7 +492,7 @@ const exportPhuLucDA = async (req, res) => {
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
-      titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
+      titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
@@ -535,7 +535,7 @@ const exportPhuLucDA = async (req, res) => {
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", size: 14 };
+      titleRow5.font = { name: "Times New Roman", size: 13 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -675,7 +675,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13, bold: true };
               break;
             case 2: // Họ tên giảng viên
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
               cell.font = { name: "Times New Roman", size: 13 };
@@ -684,7 +684,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 5: // Số tiết
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 6: // Thời gian thực hiện
               cell.font = { name: "Times New Roman", size: 13 };
@@ -693,28 +693,28 @@ const exportPhuLucDA = async (req, res) => {
             //   cell.font = { name: "Times New Roman", size: 13 };
             //   break;
             case 7: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Học vị
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Hệ số lương
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 10: // Mức thanh toán
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 11: // Thành tiền
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 12: // Trừ thuế TNCN 10%
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 13: // Còn lại
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             default:
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
           }
         });
@@ -742,7 +742,7 @@ const exportPhuLucDA = async (req, res) => {
         totalTruThue,
         totalThucNhan,
       ]);
-      totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
+      totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
       totalRow.eachCell((cell) => {
         cell.alignment = { horizontal: "center", vertical: "middle" };
         cell.border = {
@@ -763,7 +763,7 @@ const exportPhuLucDA = async (req, res) => {
       const bangChuRow = worksheet.addRow([
         `Bằng chữ: ${numberToWords(totalSoTien)}`,
       ]);
-      bangChuRow.font = { name: "Times New Roman", italic: true, size: 17 };
+      bangChuRow.font = { name: "Times New Roman", italic: true, size: 15 };
       worksheet.mergeCells(`A${bangChuRow.number}:${bangChuRow.number}`);
       bangChuRow.alignment = { horizontal: "left", vertical: "middle" };
 

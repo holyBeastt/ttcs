@@ -302,7 +302,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     summarySheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
     const titleRow2 = summarySheet.addRow(["Phụ lục"]);
-    titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
@@ -323,7 +323,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", size: 14 };
+    titleRow5.font = { name: "Times New Roman", size: 13 };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -346,7 +346,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     ];
 
     const headerRow = summarySheet.addRow(summaryHeader);
-    headerRow.font = { name: "Times New Roman", bold: true };
+    headerRow.font = { name: "Times New Roman", bold: true  };
 
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
@@ -355,8 +355,8 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
-    summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 18; // Địa chỉ
+    summarySheet.getColumn(7).width = 5; // Học kỳ
+    summarySheet.getColumn(8).width = 20; // Địa chỉ
     summarySheet.getColumn(9).width = 6; // Học vị
     summarySheet.getColumn(10).width = 7; // Hệ số lương
     summarySheet.getColumn(11).width = 12; // Mức thanh toán
@@ -422,7 +422,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13, bold: true };
               break;
             case 2: // Họ tên giảng viên
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
               cell.font = { name: "Times New Roman", size: 13 };
@@ -431,7 +431,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 5: // Số tiết
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 6: // Thời gian thực hiện
               cell.font = { name: "Times New Roman", size: 13 };
@@ -443,10 +443,10 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 10: // Hệ số lương
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 11: // Mức thanh toán
               cell.font = { name: "Times New Roman", size: 13 };
@@ -490,7 +490,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ","),
     ]);
 
-    totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
+    totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
     totalRow.eachCell((cell) => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
       cell.border = {
@@ -559,7 +559,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.mergeCells(`A${titleRow1.number}:F${titleRow1.number}`);
 
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
-      titleRow2.font = { name: "Times New Roman", bold: true, size: 16 };
+      titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
@@ -603,7 +603,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", size: 14 };
+      titleRow5.font = { name: "Times New Roman", size: 13 };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -657,8 +657,8 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 17; // Thời gian thực hiện
-      worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 18; // Địa Chỉ
+      worksheet.getColumn(7).width = 5; // Học kỳ
+      worksheet.getColumn(8).width = 20; // Địa Chỉ
       worksheet.getColumn(9).width = 6; // Học vị
       worksheet.getColumn(10).width = 7; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
@@ -750,7 +750,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13, bold: true };
               break;
             case 2: // Họ tên giảng viên
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
               cell.font = { name: "Times New Roman", size: 13 };
@@ -759,7 +759,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 5: // Số tiết
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 6: // Thời gian thực hiện
               cell.font = { name: "Times New Roman", size: 13 };
@@ -771,10 +771,10 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 9: // Học vị
-              cell.font = { name: "Times New Roman", size: 14 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 10: // Hệ số lương
-              cell.font = { name: "Times New Roman", size: 15 };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 11: // Mức thanh toán
               cell.font = { name: "Times New Roman", size: 13 };
@@ -817,7 +817,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
         totalTruThue,
         totalThucNhan,
       ]);
-      totalRow.font = { name: "Times New Roman", bold: true, size: 14 };
+      totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
       totalRow.eachCell((cell) => {
         cell.alignment = { horizontal: "center", vertical: "middle" };
         cell.border = {
@@ -836,7 +836,7 @@ SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_t
       const bangChuRow = worksheet.addRow([
         `Bằng chữ: ${numberToWords(totalSoTien)}`,
       ]);
-      bangChuRow.font = { name: "Times New Roman", italic: true, size: 17 };
+      bangChuRow.font = { name: "Times New Roman", italic: true, size: 14 };
       worksheet.mergeCells(`A${bangChuRow.number}:${bangChuRow.number}`);
       bangChuRow.alignment = { horizontal: "left", vertical: "middle" };
 
