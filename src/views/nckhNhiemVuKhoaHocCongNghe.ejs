@@ -1201,7 +1201,7 @@
         const suggestUyVien = document.getElementById("uyVienListDisplay");
 
         if (selectedIndex >= totalOptions - 5) {
-          thanhVien.style.display = "block";
+          thanhVien.style.display = "flex";
           phanBien.style.display = "none";
           uyVien.style.display = "none";
           chuNhiem.style.display = "none";
@@ -1211,10 +1211,10 @@
           suggestUyVien.hidden = true;
         } else {
           thanhVien.style.display = "none";
-          phanBien.style.display = "block";
-          uyVien.style.display = "block";
-          chuNhiem.style.display = "block";
-          thuKy.style.display = "block";
+          phanBien.style.display = "flex";
+          uyVien.style.display = "flex";
+          chuNhiem.style.display = "flex";
+          thuKy.style.display = "flex";
           suggestThanhVien.hidden = true;
           suggestPhanBien.hidden = false;
           suggestUyVien.hidden = false;
