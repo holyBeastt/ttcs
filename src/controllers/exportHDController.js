@@ -1792,7 +1792,10 @@ const generateAdditionalFile = async (teacher, tempDir) => {
     const baseName = path.parse(f).name; // Lấy tên file không có phần mở rộng
     const ext = path.extname(f).toLowerCase().slice(1); // Lấy phần mở rộng không có dấu chấm
 
-    return baseName === teacher.HoTen && allowedExtensions.includes(ext);
+    return (
+      baseName === `${teacher.MaPhongBan}_${teacher.HoTen}` &&
+      allowedExtensions.includes(ext)
+    );
   });
 
   if (!documentFile) return null; // Không tìm thấy file hợp lệ

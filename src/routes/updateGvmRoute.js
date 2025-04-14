@@ -45,21 +45,22 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const HoTen = req.body.HoTen || "unknown-user"; // Đảm bảo có giá trị
+    const Khoa = req.body.maPhongBan || "unknown-dept"; // Lấy thông tin Khoa từ session
+    const BoMon = req.body.monGiangDayChinh || "unknown-subject";
+
     let fieldName = file.fieldname; // Tên trường để phân loại file
     const fileExtension = path.extname(file.originalname); // Lấy phần mở rộng của file
 
     if (fieldName === "fileBoSung") {
-      fieldName = HoTen;
+      fieldName = `${Khoa}_${HoTen}`;
     }
 
     if (fieldName === "FileLyLich") {
-      fieldName = `Lý lịch ${HoTen}`;
+      fieldName = `${Khoa}_Lý lịch_${HoTen}`;
     }
 
     const fileName = `${fieldName}${fileExtension}`; // Tạo tên file mới
 
-    const Khoa = req.body.maPhongBan || "unknown-dept"; // Lấy thông tin Khoa từ session
-    const BoMon = req.body.monGiangDayChinh || "unknown-subject";
     const userFolderPath = path.join(
       appRoot.path,
       "Giang_Vien_Moi",
