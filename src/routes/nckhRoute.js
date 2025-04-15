@@ -54,6 +54,12 @@ router.post("/tonghopsotietnckh/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVien)
 router.get("/tonghopsotietnckh/dukien", nckh.getTongHopSoTietNCKHDuKien);
 router.post("/tonghopsotietnckh/dukien/:NamHoc", nckh.tongHopSoTietNckhCuaMotGiangVienDuKien);
 
+router.get("/nhiemvukhoahoccongnghe", nckh.getNhiemVuKhoaHocCongNghe);
+router.post("/nhiemvukhoahoccongnghe", nckh.saveNhiemVuKhoaHocCongNghe);
+router.get("/nhiemvukhoahoccongnghe/:NamHoc/:Khoa", nckh.getTableNhiemVuKhoaHocCongNghe);
+
+
+
 
 // =================================================================
 // lấy data đổ vào các thẻ select
@@ -63,35 +69,35 @@ router.get("/data/:MaBang", nckh.getData);
 // thêm, sửa số giờ quy đổi nckh cho admin
 router.post("/add-detaiduan", nckhAdmin.addDeTaiDuAn);
 router.post("/edit-detaiduan", nckhAdmin.editDeTaiDuAn);
-router.post("/delete-detaiduan", nckhAdmin.deleteDeTaiDuAn);
+router.post("/delete-detaiduan", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-baibaokhoahoc", nckhAdmin.addBaiBaoKhoaHoc);
 router.post("/edit-baibaokhoahoc", nckhAdmin.editBaiBaoKhoaHoc);
-router.post("/delete-baibaokhoahoc", nckhAdmin.deleteBaiBaoKhoaHoc);
+router.post("/delete-baibaokhoahoc", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-bangsangchevagiaithuong", nckhAdmin.addBangSangCheVaGiaiThuong);
 router.post("/edit-bangsangchevagiaithuong", nckhAdmin.editBangSangCheVaGiaiThuong);
-router.post("/delete-bangsangchevagiaithuong", nckhAdmin.deleteBangSangCheVaGiaiThuong);
+router.post("/delete-bangsangchevagiaithuong", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-sachvagiaotrinh", nckhAdmin.addSachVaGiaoTrinh);
 router.post("/edit-sachvagiaotrinh", nckhAdmin.editSachVaGiaoTrinh);
-router.post("/delete-sachvagiaotrinh", nckhAdmin.deleteSachVaGiaoTrinh);
+router.post("/delete-sachvagiaotrinh", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-nckhvahuanluyendoituyen", nckhAdmin.addNCKHVaHuanLuyenDoiTuyen);
 router.post("/edit-nckhvahuanluyendoituyen", nckhAdmin.editNCKHVaHuanLuyenDoiTuyen);
-router.post("/delete-nckhvahuanluyendoituyen", nckhAdmin.deleteNCKHVaHuanLuyenDoiTuyen);
+router.post("/delete-nckhvahuanluyendoituyen", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-xaydungctdt", nckhAdmin.addXayDungCTDT);
 router.post("/edit-xaydungctdt", nckhAdmin.editXayDungCTDT);
-router.post("/delete-xaydungctdt", nckhAdmin.deleteXayDungCTDT);
+router.post("/delete-xaydungctdt", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 router.post("/add-biensoangiaotrinhbaigiang", nckhAdmin.addBienSoanGiaoTrinhBaiGiang);
 router.post("/edit-biensoangiaotrinhbaigiang", nckhAdmin.editBienSoanGiaoTrinhBaiGiang);
-router.post("/delete-biensoangiaotrinhbaigiang", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
+router.post("/delete-biensoangiaotrinhbaigiang", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
-// router.post("/add-nhiemvukhoahoccongnghe", nckhAdmin.addBienSoanGiaoTrinhBaiGiang);
-// router.post("/edit-nhiemvukhoahoccongnghe", nckhAdmin.editBienSoanGiaoTrinhBaiGiang);
-// router.post("/delete-nhiemvukhoahoccongnghe", nckhAdmin.deleteBienSoanGiaoTrinhBaiGiang);
+router.post("/add-nhiemvukhoahoccongnghe", nckhAdmin.addNhiemVuKhoaHocCongNghe);
+router.post("/edit-nhiemvukhoahoccongnghe", nckhAdmin.edtiNhiemVuKhoaHocCongNghe);
+router.post("/delete-nhiemvukhoahoccongnghe", nckhAdmin.deleteRowQuyDinhSoGioNCKH);
 
 // =================================================================
 // sửa xóa 

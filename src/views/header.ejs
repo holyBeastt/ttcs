@@ -198,6 +198,7 @@
                 <a class="nav-link" id="" href="/sachvagiaotrinh">Sách và giáo trình xuất bản trong nước</a>
                 <a class="nav-link" id="" href="/xaydungctdt">Xây dựng chương trình đào tạo</a>
                 <a class="nav-link" id="" href="/biensoangiaotrinhbaigiang">Biên soạn giáo trình, bài giảng</a>
+                <a class="nav-link" id="" href="/nhiemvukhoahoccongnghe">Nhiệm vụ khoa học công nghệ</a>
                 <a class="nav-link" id="" href="/sotietnckhbaoluusangnam">Số tiết NCKH bảo lưu sang năm</a>
                 <a class="nav-link" id="" href="/tonghopsotietnckh/dukien">Dự kiến số tiết NCKH trong năm</a>
                 <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
@@ -433,22 +434,29 @@
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
     if (maPhongBan === "KHCN&HTPT" && userRole === "Duyệt") {
-      // Chỉ hiển thị 4 mục đầu
-      for (let i = 4; i < links.length; i++) {
-        links[i].style.display = "none";
-        // site cuối
-        links[links.length - 1].style.display = "block";
-      }
-      // site dự kiến
-      links[8].style.display = "block";
+      links[0].style.display = "block";
+      links[1].style.display = "block";
+      links[2].style.display = "none";
+      links[3].style.display = "block";
+      links[4].style.display = "none";
+      links[5].style.display = "none";
+      links[6].style.display = "none";
       links[7].style.display = "block";
+      links[8].style.display = "block";
+      links[9].style.display = "block";
+      links[10].style.display = "block";
     } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
-      // Chỉ hiển thị 5 mục cuối
-      for (let i = 0; i < links.length - 6; i++) {
-        links[i].style.display = "none";
-      }
+      links[0].style.display = "none";
+      links[1].style.display = "none";
+      links[2].style.display = "block";
+      links[3].style.display = "none";
+      links[4].style.display = "block";
+      links[5].style.display = "block";
+      links[6].style.display = "block";
       links[7].style.display = "none";
       links[8].style.display = "block";
+      links[9].style.display = "block";
+      links[10].style.display = "block";
     }
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê

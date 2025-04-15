@@ -487,7 +487,7 @@ const getHopDongDuKienData = async (req, res) => {
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
     }
-    console.log(khoa, dot, ki, namHoc, MaPhongBan, isKhoa, he_dao_tao);
+    let params = [];
 
     let query = `
     WITH DoAnHopDongDuKien AS (
@@ -752,13 +752,22 @@ const getHopDongDuKienData = async (req, res) => {
             tableALL
         GROUP BY 
             GiangVien
-    ),
-    -- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
+    ),`;
+
+    query += `-- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
     gv_lien_quan AS (
         SELECT DISTINCT GiangVien
         FROM tableALL
-        WHERE tableALL.MaKhoaMonHoc LIKE ?
-    )
+        WHERE tableALL.MaKhoaMonHoc LIKE ?  `;
+
+    params.push(khoa);
+    // Nếu không phải là cả năm
+    if (ki !== "AllKi") {
+      query += " AND dot = ? AND KiHoc = ?";
+      params.push(dot, ki);
+    }
+
+    query += `)
     SELECT 
         MIN(ta.Dot) AS Dot,
         MIN(ta.KiHoc) AS KiHoc,
@@ -798,14 +807,13 @@ const getHopDongDuKienData = async (req, res) => {
         ta.GiangVien = tsgv.GiangVien
     `;
 
-    let params = [khoa, namHoc];
-
     if (khoa !== "ALL") {
       query += " JOIN gv_lien_quan ON gv_lien_quan.GiangVien = ta.GiangVien";
     }
 
     query += `
     where namhoc = ?`;
+    params.push(namHoc);
 
     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
     if (ki !== "AllKi") {

@@ -223,7 +223,7 @@ const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    let { dot,ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
@@ -271,7 +271,7 @@ GROUP BY
   ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
 `;
 
-    let params = [dot,ki, namHoc];
+    let params = [dot, ki, namHoc];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -311,7 +311,7 @@ GROUP BY
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot,ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`];
     }
 
     // Xử lý trường hợp có teacherName
@@ -352,7 +352,7 @@ GROUP BY
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot,ki, namHoc, `%${teacherName}%`];
+      params = [dot, ki, namHoc, `%${teacherName}%`];
     }
     const [teachers] = await connection.execute(query, params);
 
@@ -824,8 +824,10 @@ const generateAdditionalFile = async (teacher, tempDir) => {
   const documentFile = files.find((f) => {
     const baseName = path.parse(f).name; // Lấy tên file không có phần mở rộng
     const ext = path.extname(f).toLowerCase().slice(1); // Lấy phần mở rộng không có dấu chấm
-
-    return baseName === teacher.HoTen && allowedExtensions.includes(ext);
+    return (
+      baseName === `${teacher.MaPhongBan}_${teacher.HoTen}` &&
+      allowedExtensions.includes(ext)
+    );
   });
 
   if (!documentFile) return null; // Không tìm thấy file hợp lệ

@@ -131,7 +131,9 @@ select {
     /* Màu xanh khi ô input được focus */
 }
 
-#memberListDisplay {
+#memberListDisplay,
+#uyVienListDisplay,
+#phanBienListDisplay {
     padding: 10px;
     margin-top: 10px;
     border: 1px solid #ccc;
@@ -428,6 +430,8 @@ input[type="text"]::placeholder {
 
 /* check boxx */
 label[for="chuNhiem"],
+label[for="phanBien"],
+label[for="uyVien"],
 label[for="thuKy"],
 label[for="thanhVien"],
 label[for="tacGia"],
@@ -439,6 +443,8 @@ label[for="tacGiaCtn"] {
 }
 
 label[for="chuNhiem"] input[type="checkbox"],
+label[for="phanBien"] input[type="checkbox"],
+label[for="uyVien"] input[type="checkbox"],
 label[for="thuKy"] input[type="checkbox"],
 label[for="thanhVien"] input[type="checkbox"],
 label[for="tacGia"] input[type="checkbox"],
