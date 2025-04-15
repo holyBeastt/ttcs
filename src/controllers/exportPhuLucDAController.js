@@ -294,11 +294,11 @@ const exportPhuLucDA = async (req, res) => {
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 22; // Tên đồ án
+    summarySheet.getColumn(3).width = 24; // Tên đồ án
     summarySheet.getColumn(4).width = 14; // Sinh viên thực hiệns
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
-    summarySheet.getColumn(7).width = 20; // Địa chỉ
+    summarySheet.getColumn(7).width = 24; // Địa chỉ
     summarySheet.getColumn(8).width = 6; // Học vị
     summarySheet.getColumn(9).width = 6; // Hệ số lương
     summarySheet.getColumn(10).width = 12; // Mức thanh toán
@@ -588,11 +588,11 @@ const exportPhuLucDA = async (req, res) => {
       // Định dạng cột
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 22; // Tên đồ án
+      worksheet.getColumn(3).width = 24; // Tên đồ án
       worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 18; // Thời gian thực hiện
-      worksheet.getColumn(7).width = 20; // Địa chỉ
+      worksheet.getColumn(7).width = 24; // Địa chỉ
       worksheet.getColumn(8).width = 6; // Học vị
       worksheet.getColumn(9).width = 6; // Hệ số lương
       worksheet.getColumn(10).width = 12; // Mức thanh toán

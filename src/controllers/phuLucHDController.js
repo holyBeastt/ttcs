@@ -351,12 +351,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 18; // Tên học phần
+    summarySheet.getColumn(3).width = 20; // Tên học phần
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
     summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 20; // Địa chỉ
+    summarySheet.getColumn(8).width = 24; // Địa chỉ
     summarySheet.getColumn(9).width = 6; // Học vị
     summarySheet.getColumn(10).width = 6; // Hệ số lương
     summarySheet.getColumn(11).width = 12; // Mức thanh toán
@@ -651,12 +651,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       // Định dạng độ rộng cột, bao gồm cột STT
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 18; // Tên học phần
+      worksheet.getColumn(3).width = 20; // Tên học phần
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 17; // Thời gian thực hiện
       worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 20; // Địa Chỉ
+      worksheet.getColumn(8).width = 24; // Địa Chỉ
       worksheet.getColumn(9).width = 6; // Học vị
       worksheet.getColumn(10).width = 6; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
