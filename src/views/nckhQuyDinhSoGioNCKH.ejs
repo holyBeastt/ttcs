@@ -1531,7 +1531,9 @@
           id: document.getElementById('nhiemVuKhoaHocCongNgheId').value,
           NhiemVuKhoaHocCongNghe: document.getElementById('NhiemVuKhoaHocCongNghe').value,
           ChuNhiem: document.getElementById('ChuNhiem-nvkhcn').value,
+          PhanBien: document.getElementById('ChuNhiem-nvkhcn').value, // Phản biện = chủ nhiệm
           ThuKy: document.getElementById('ThuKy-nvkhcn').value,
+          UyVien: document.getElementById('ThuKy-nvkhcn').value, // Ủy viên = Thư ký
           SoGio: document.getElementById('SoGioNhiemVuKhoaHocCongNghe').value
         };
         fetch(data.id ? '/edit-nhiemvukhoahoccongnghe' : '/add-nhiemvukhoahoccongnghe', {

@@ -2255,6 +2255,13 @@ const tongHopSoTietNckhCuaMotGiangVien = async (req, res) => {
           [NamHoc]
         ),
       },
+      {
+        table: "Nhiệm vụ khoa học công nghệ",
+        promise: connection.execute(
+          "SELECT ChuNhiem, PhanBien, ThuKy, UyVien, DanhSachThanhVien FROM nhiemvukhoahoccongnghe WHERE NamHoc = ? AND DaoTaoDuyet = 1",
+          [NamHoc]
+        ),
+      },
     ];
 
     // Thực hiện các truy vấn đồng thời
@@ -2373,6 +2380,13 @@ const tongHopSoTietNckhCuaMotGiangVienDuKien = async (req, res) => {
           [NamHoc]
         ),
       },
+      {
+        table: "Nhiệm vụ khoa học công nghệ",
+        promise: connection.execute(
+          "SELECT ChuNhiem, PhanBien, ThuKy, UyVien, DanhSachThanhVien FROM nhiemvukhoahoccongnghe WHERE NamHoc = ?",
+          [NamHoc]
+        ),
+      },
     ];
 
     // Thực hiện các truy vấn đồng thời
@@ -2455,7 +2469,7 @@ function congTongSoTiet(filteredResults, TenGiangVien) {
           if (typeof row[key] === "string" && row[key].trim() !== "") {
             const value = row[key];
 
-            if (key === "DanhSachThanhVien") {
+            if (key === "DanhSachThanhVien" || key == "PhanBien" || key == "UyVien") {
               // Tách chuỗi theo dấu phẩy, duyệt từng phần tử
               const members = value.split(",").map((item) => item.trim());
               members.forEach((member) => {
@@ -2795,6 +2809,8 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
     ngayNghiemThu,
     khoa,
     thanhVien, // Đây là một mảng từ client
+    phanBien, // Đây là một mảng từ client
+    uyVien, // Đây là một mảng từ client
     ketQua,
   } = data;
 
@@ -2806,9 +2822,9 @@ const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO nhiemvukhoahoccongnghe (
-PhanLoai, NamHoc, TenNhiemVu, MaNhiemVu, ChuNhiem, ThuKy, NgayNghiemThu, Khoa, DanhSachThanhVien, KetQua 
+PhanLoai, NamHoc, TenNhiemVu, MaNhiemVu, ChuNhiem, ThuKy, NgayNghiemThu, Khoa, DanhSachThanhVien, KetQua, PhanBien, UyVien 
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai,
@@ -2820,7 +2836,9 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ngayNghiemThu,
         khoa,
         thanhVien,
-        ketQua
+        ketQua,
+        phanBien,
+        uyVien,
       ]
     );
 
@@ -2843,11 +2861,11 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 };
 
 const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
-  const { phanLoai, chuNhiem, thuKy, thanhVien } = body;
+  const { phanLoai, chuNhiem, thuKy, thanhVien, phanBien, uyVien } = body;
 
   let soGioChuNhiem = 0;
   let soGioThuKy = 0;
-  // Sử dụng biến string cho số giờ thành viên thay vì mảng
+  // Sử dụng biến string cho số giờ của thanhVien (và dùng chung cho phanBien, uyVien)
   let soGioThanhVienStr = "";
 
   try {
@@ -2862,30 +2880,10 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
     }
     const data = rows[0];
 
-    // Nếu có dữ liệu cho thành viên (thanhVien là mảng có phần tử)
+    // Nếu có dữ liệu cho thanhVien (mảng có phần tử)
     if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
       const soGioValue = parseFloat(data.SoGio) || 0;
-      // Nếu có đúng 1 thành viên => người đó nhận 100% số giờ
-      if (thanhVien.length === 1) {
-        soGioThanhVienStr = soGioValue.toFixed(2).replace(",", ".");
-      } else {
-        // Nếu có nhiều thành viên, chia đều số giờ cho tất cả
-        soGioThanhVienStr = (soGioValue / thanhVien.length).toFixed(2).replace(",", ".");
-      }
-    } else {
-      // Nếu không có thành viên, tính số giờ cho chủ nhiệm và thư ký
-      if (chuNhiem) {
-        soGioChuNhiem = parseFloat(data.ChuNhiem) || 0;
-      }
-      if (thuKy) {
-        soGioThuKy = parseFloat(data.ThuKy) || 0;
-      }
-    }
-
-    connection.release();
-
-    // Cập nhật lại đối tượng body dựa trên các trường hợp:
-    if (thanhVien && Array.isArray(thanhVien) && thanhVien.length > 0) {
+      soGioThanhVienStr = soGioValue.toFixed(2).replace(",", ".");
       // Với thành viên, tạo chuỗi gồm các thành viên được nối với nhau
       body.thanhVien = thanhVien
         .map(member => {
@@ -2894,23 +2892,58 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
         })
         .join(", ");
     } else {
+      // Nếu không có dữ liệu cho thanhVien, xử lý cho các vai trò còn lại:
+
       if (chuNhiem) {
         const { name, unit } = extractNameAndUnit(chuNhiem);
+        soGioChuNhiem = parseFloat(data.ChuNhiem) || 0;
         body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2).replace(",", ".")} giờ)`.trim();
       }
       if (thuKy) {
         const { name, unit } = extractNameAndUnit(thuKy);
+        soGioThuKy = parseFloat(data.ThuKy) || 0;
         body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2).replace(",", ".")} giờ)`.trim();
       }
       body.thanhVien = "";
+
+      // Xử lý phanBien, nếu tồn tại và là mảng có phần tử, theo cùng cách xử lý như thanhVien
+      if (phanBien && Array.isArray(phanBien) && phanBien.length > 0) {
+        const soGioValue = parseFloat(data.PhanBien) || 0;
+        const soGioStr = soGioValue.toFixed(2).replace(",", ".");
+        body.phanBien = phanBien
+          .map(member => {
+            const { name, unit } = extractNameAndUnit(member);
+            return `${name} (${unit} - ${soGioStr} giờ)`.trim();
+          })
+          .join(", ");
+      } else {
+        body.phanBien = "";
+      }
+
+      // Xử lý uyVien, nếu tồn tại và là mảng có phần tử, theo cùng cách xử lý như thanhVien
+      if (uyVien && Array.isArray(uyVien) && uyVien.length > 0) {
+        const soGioValue = parseFloat(data.UyVien) || 0;
+        const soGioStr = soGioValue.toFixed(2).replace(",", ".");
+        body.uyVien = uyVien
+          .map(member => {
+            const { name, unit } = extractNameAndUnit(member);
+            return `${name} (${unit} - ${soGioStr} giờ)`.trim();
+          })
+          .join(", ");
+      } else {
+        body.uyVien = "";
+      }
     }
 
+    connection.release();
     return body;
   } catch (error) {
     console.error("Lỗi khi quy đổi số giờ:", error);
     throw error;
   }
 };
+
+
 
 const getTableNhiemVuKhoaHocCongNghe = async (req, res) => {
   const { NamHoc, Khoa } = req.params;

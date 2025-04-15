@@ -95,6 +95,50 @@
       .table td {
         vertical-align: middle;
       }
+      /* Định dạng cho combobox */
+      .form-select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background-color: white;
+        transition: all 0.3s ease;
+        margin: 5px;
+        min-width: 150px;
+      }
+
+      .form-select:focus {
+        border-color: #009879;
+        box-shadow: 0 0 0 0.2rem rgba(0, 152, 121, 0.25);
+      }
+
+      /* Định dạng cho container của các ô */
+      .filter-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-start;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Định dạng cho input giảng viên */
+      #giangVien {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background-color: white;
+        transition: all 0.3s ease;
+        min-width: 150px;
+      }
+
+      #giangVien:focus {
+        border-color: #009879;
+        box-shadow: 0 0 0 0.2rem rgba(0, 152, 121, 0.25);
+      }
     </style>
   </head>
   <body>
@@ -102,27 +146,34 @@
 
     <div class="container mt-4">
       <div class="filter-section">
-        <div class="row">
-          <div class="col-md-4">
-            <label for="ki">Kì:</label>
-            <select class="form-select" id="ki">
-              <option value="ALL">Tất cả kì</option>
+        <div class="row align-items-center">
+          <!-- Combo box Kỳ -->
+          <div class="col-md-3">
+            <label for="ki" class="form-label">Kỳ:</label>
+            <select class="form-select mx-1 selectop" id="ki">
+              <option value="ALL">Tất cả kỳ</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="namHoc">Năm học:</label>
-            <select class="form-select" id="namHoc">
-              <option value="ALL">Tất cả năm học</option>
+
+          <!-- Combo box Năm học -->
+          <div class="col-md-3">
+            <label for="namHoc" class="form-label">Năm học:</label>
+            <select class="form-select mx-1 selectop" id="namHoc">
+              <option value="ALL">Tất cả năm</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="khoa">Khoa:</label>
-            <select class="form-select" id="khoa">
+
+          <!-- Combo box Khoa -->
+          <div class="col-md-3">
+            <label for="khoa" class="form-label">Khoa:</label>
+            <select class="form-select mx-1 selectop" id="khoa">
               <option value="ALL">Tất cả khoa</option>
             </select>
           </div>
-          <div class="col-md-4">
-            <label for="giangVien">Giảng viên:</label>
+
+          <!-- Input Giảng viên -->
+          <div class="col-md-3">
+            <label for="giangVien" class="form-label">Giảng viên:</label>
             <div class="position-relative">
               <input
                 type="text"
@@ -300,7 +351,7 @@
                 response.namHoc.forEach(function (item) {
                     $("#namHoc").append(
                         `<option value="${item.namhoc}">${
-                            item.namhoc === "ALL" ? "Tất cả năm học" : item.namhoc
+                            item.namhoc === "ALL" ? "Tất cả năm" : item.namhoc
                         }</option>`
                     );
                 });
