@@ -362,7 +362,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 4: // Tên lớp
               cell.font = { name: "Times New Roman", size: 13 };
@@ -456,6 +456,8 @@ const exportPhuLucDA = async (req, res) => {
 
     // Định dạng cho tiêu đề cột
     headerRow.eachCell((cell) => {
+      cell.font = { name: "Times New Roman", bold: true,size :11 }; // Chỉnh cỡ chữ và kiểu chữ
+
       cell.fill = {
         type: "pattern",
         pattern: "none", // Không màu nền
@@ -600,6 +602,8 @@ const exportPhuLucDA = async (req, res) => {
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
+        cell.font = { name: "Times New Roman", bold: true,size :11 }; // Chỉnh cỡ chữ và kiểu chữ
+
         cell.fill = {
           type: "pattern",
           pattern: "none", // Không màu nền
@@ -678,7 +682,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 4: // Tên lớp
               cell.font = { name: "Times New Roman", size: 13 };
