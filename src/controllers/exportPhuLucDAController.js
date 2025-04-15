@@ -294,11 +294,11 @@ const exportPhuLucDA = async (req, res) => {
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 24; // Tên đồ án
+    summarySheet.getColumn(3).width = 30; // Tên đồ án
     summarySheet.getColumn(4).width = 14; // Sinh viên thực hiệns
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
-    summarySheet.getColumn(7).width = 24; // Địa chỉ
+    summarySheet.getColumn(7).width = 29; // Địa chỉ
     summarySheet.getColumn(8).width = 6; // Học vị
     summarySheet.getColumn(9).width = 6; // Hệ số lương
     summarySheet.getColumn(10).width = 12; // Mức thanh toán
@@ -332,18 +332,18 @@ const exportPhuLucDA = async (req, res) => {
           item.GiangVien,
           item.TenDeTai,
           item.SinhVien,
-          item.SoTiet,
+          item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
           `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(
             item.NgayKetThuc
           )}`,
           //   convertToRoman(item.HocKy),
           item.DiaChi,
           hocViVietTat,
-          item.HSL,
-          (100000).toLocaleString("vi-VN").replace(/\./g, ","), // Mức thanh toán
-          soTien.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
-          conLai.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
+          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          (100000).toLocaleString("vi-VN"), // Mức thanh toán
+          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN"), // Định dạng số tiền
+          conLai.toLocaleString("vi-VN"), // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
@@ -377,7 +377,7 @@ const exportPhuLucDA = async (req, res) => {
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 13 };
@@ -413,15 +413,15 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
       "",
-      totalSoTiet,
+      totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
       "",
       "",
       "",
       "",
       "",
-      totalSoTien.toLocaleString("vi-VN").replace(/\./g, ","),
-      totalTruThue.toLocaleString("vi-VN").replace(/\./g, ","),
-      totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalSoTien.toLocaleString("vi-VN"),
+      totalTruThue.toLocaleString("vi-VN"),
+      totalThucNhan.toLocaleString("vi-VN"),
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
@@ -562,11 +562,11 @@ const exportPhuLucDA = async (req, res) => {
       // Thêm tiêu đề cột
       const headerRow = worksheet.addRow(header);
       headerRow.font = { name: "Times New Roman", bold: true };
-      worksheet.getColumn(10).numFmt = "#,##0"; // Thành tiền
+      // worksheet.getColumn(10).numFmt = "#,##0"; // Thành tiền
 
-      worksheet.getColumn(11).numFmt = "#,##0"; // Thành tiền
-      worksheet.getColumn(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
-      worksheet.getColumn(13).numFmt = "#,##0"; // Còn lại
+      // worksheet.getColumn(11).numFmt = "#,##0"; // Thành tiền
+      // worksheet.getColumn(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
+      // worksheet.getColumn(13).numFmt = "#,##0"; // Còn lại
 
       worksheet.pageSetup = {
         paperSize: 9, // Kích thước giấy A4
@@ -588,11 +588,11 @@ const exportPhuLucDA = async (req, res) => {
       // Định dạng cột
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 24; // Tên đồ án
+      worksheet.getColumn(3).width = 30; // Tên đồ án
       worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 18; // Thời gian thực hiện
-      worksheet.getColumn(7).width = 24; // Địa chỉ
+      worksheet.getColumn(7).width = 29; // Địa chỉ
       worksheet.getColumn(8).width = 6; // Học vị
       worksheet.getColumn(9).width = 6; // Hệ số lương
       worksheet.getColumn(10).width = 12; // Mức thanh toán
@@ -649,21 +649,21 @@ const exportPhuLucDA = async (req, res) => {
           item.GiangVien,
           item.TenDeTai,
           item.SinhVien,
-          item.SoTiet,
+          item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
           thoiGianThucHien,
           item.DiaChi,
           hocViVietTat, // Sử dụng viết tắt cho Học vị
-          item.HSL,
-          mucThanhToan,
-          soTien,
-          truThue,
-          thucNhan,
+          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
+          soTien.toLocaleString("vi-VN"), // Thành tiền
+          truThue.toLocaleString("vi-VN"), // Trừ thuế TNCN 10%
+          thucNhan.toLocaleString("vi-VN"), // Còn lại
         ]);
         row.font = { name: "Times New Roman", size: 13 };
-        row.getCell(11).numFmt = "#,##0"; // Còn lại
+        // row.getCell(11).numFmt = "#,##0"; // Còn lại
 
-        row.getCell(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
-        row.getCell(13).numFmt = "#,##0"; // Còn lại
+        // row.getCell(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
+        // row.getCell(13).numFmt = "#,##0"; // Còn lại
 
         // Bật wrapText cho các ô dữ liệu và căn giữa
         row.eachCell((cell, colNumber) => {
@@ -697,7 +697,7 @@ const exportPhuLucDA = async (req, res) => {
             //   cell.font = { name: "Times New Roman", size: 13 };
             //   break;
             case 7: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 8: // Học vị
               cell.font = { name: "Times New Roman", size: 13 };
@@ -735,16 +735,16 @@ const exportPhuLucDA = async (req, res) => {
         "",
         "",
         "",
-        totalSoTiet,
+        totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
         "",
         // "",
         "",
         "",
         "",
         "",
-        totalSoTien,
-        totalTruThue,
-        totalThucNhan,
+        totalSoTien.toLocaleString("vi-VN"),
+        totalTruThue.toLocaleString("vi-VN"),
+        totalThucNhan.toLocaleString("vi-VN"),
       ]);
       totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
       totalRow.eachCell((cell) => {
