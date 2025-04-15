@@ -323,7 +323,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", size: 13 };
+    titleRow5.font = { name: "Times New Roman", size: 13 ,italic: true };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -351,7 +351,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 14; // Tên học phần
+    summarySheet.getColumn(3).width = 18; // Tên học phần
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
@@ -419,7 +419,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
         summaryRow.eachCell((cell, colNumber) => {
           switch (colNumber) {
             case 1: // STT
-              cell.font = { name: "Times New Roman", size: 13, bold: true };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 2: // Họ tên giảng viên
               cell.font = { name: "Times New Roman", size: 13 };
@@ -601,7 +601,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", size: 13 };
+      titleRow5.font = { name: "Times New Roman", size: 13,italic: true };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`L${titleRow5.number}:N${titleRow5.number}`);
 
@@ -651,7 +651,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       // Định dạng độ rộng cột, bao gồm cột STT
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 14; // Tên học phần
+      worksheet.getColumn(3).width = 18; // Tên học phần
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 17; // Thời gian thực hiện
@@ -744,7 +744,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
           // Chỉnh cỡ chữ cho từng cột
           switch (colNumber) {
             case 1: // STT
-              cell.font = { name: "Times New Roman", size: 13, bold: true };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 2: // Họ tên giảng viên
               cell.font = { name: "Times New Roman", size: 13 };

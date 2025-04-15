@@ -261,7 +261,7 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", size: 13 };
+    titleRow5.font = { name: "Times New Roman", size: 13,italic: true };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -294,8 +294,8 @@ const exportPhuLucDA = async (req, res) => {
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 20; // Tên đồ án
-    summarySheet.getColumn(4).width = 14; // Sinh viên thực hiện
+    summarySheet.getColumn(3).width = 22; // Tên đồ án
+    summarySheet.getColumn(4).width = 14; // Sinh viên thực hiệns
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
     summarySheet.getColumn(7).width = 20; // Địa chỉ
@@ -356,7 +356,7 @@ const exportPhuLucDA = async (req, res) => {
         summaryRow.eachCell((cell, colNumber) => {
           switch (colNumber) {
             case 1: // STT
-              cell.font = { name: "Times New Roman", size: 13, bold: true };
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 2: // Họ tên giảng viên
               cell.font = { name: "Times New Roman", size: 13 };
@@ -538,7 +538,7 @@ const exportPhuLucDA = async (req, res) => {
         "",
         "",
       ]);
-      titleRow5.font = { name: "Times New Roman", size: 13 };
+      titleRow5.font = { name: "Times New Roman", size: 13, italic: true };
       titleRow5.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -588,7 +588,7 @@ const exportPhuLucDA = async (req, res) => {
       // Định dạng cột
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 20; // Tên đồ án
+      worksheet.getColumn(3).width = 22; // Tên đồ án
       worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 18; // Thời gian thực hiện
@@ -676,7 +676,7 @@ const exportPhuLucDA = async (req, res) => {
           // Chỉnh cỡ chữ cho từng cột
           switch (colNumber) {
             case 1: // STT
-              cell.font = { name: "Times New Roman", size: 13, bold: true };
+              cell.font = { name: "Times New Roman", size: 13};
               break;
             case 2: // Họ tên giảng viên
               cell.font = { name: "Times New Roman", size: 13 };
