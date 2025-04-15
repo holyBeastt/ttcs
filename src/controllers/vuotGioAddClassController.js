@@ -1236,14 +1236,14 @@ const getTTVuotGio = async (req, res) => {
     //     `%${cleanTenNhanVien}%`,
     //     Nam
     // ]);
-    const queryC9 = `SELECT *FROM nhiemvukhoahocvacongnghe 
+    const queryC10 = `SELECT *FROM sotietnckhbaoluusangnam 
                       WHERE TRIM(GiangVien) LIKE ? AND NamHoc = ?`;
 
-    const [rowsC9] = await connection.query(queryC9, [
+    const [rowsC10] = await connection.query(queryC10, [
         `%${cleanTenNhanVien}%`,
         previousNam
     ]);
-    const [rowsF] = await connection.query(queryC9, [
+    const [rowsF] = await connection.query(queryC10, [
         `%${cleanTenNhanVien}%`,
         Nam
     ]);
@@ -1266,7 +1266,7 @@ const getTTVuotGio = async (req, res) => {
       rowsC5: rowsC5,
       rowsC6: rowsC6,
       rowsC7: rowsC7,
-      rowsC9: rowsC9,
+      rowsC10: rowsC10,
       rowsF: rowsF,
     });
   } catch (error) {
