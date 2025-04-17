@@ -306,6 +306,19 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
+    const titleRow3 = summarySheet.addRow([
+      `Hợp đồng số:    /HĐ-ĐT `,
+    ]);
+    titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow3.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
+
+    const titleRow4 = summarySheet.addRow([
+      `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT `,
+    ]);
+    titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow4.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
     // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
     const titleRow5 = summarySheet.addRow([
       "",

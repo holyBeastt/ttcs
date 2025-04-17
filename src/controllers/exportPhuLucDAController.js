@@ -244,7 +244,20 @@ const exportPhuLucDA = async (req, res) => {
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
+    
+    const titleRow3 = summarySheet.addRow([
+      `Hợp đồng số:    /HĐ-ĐT `,
+    ]);
+    titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow3.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
+    const titleRow4 = summarySheet.addRow([
+      `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT `,
+    ]);
+    titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow4.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
     // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
     const titleRow5 = summarySheet.addRow([
       "",
@@ -294,11 +307,11 @@ const exportPhuLucDA = async (req, res) => {
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 30; // Tên đồ án
+    summarySheet.getColumn(3).width = 29; // Tên đồ án
     summarySheet.getColumn(4).width = 14; // Sinh viên thực hiệns
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 18; // Thời gian thực hiện
-    summarySheet.getColumn(7).width = 29; // Địa chỉ
+    summarySheet.getColumn(7).width = 28; // Địa chỉ
     summarySheet.getColumn(8).width = 6; // Học vị
     summarySheet.getColumn(9).width = 6; // Hệ số lương
     summarySheet.getColumn(10).width = 12; // Mức thanh toán
@@ -588,11 +601,11 @@ const exportPhuLucDA = async (req, res) => {
       // Định dạng cột
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 30; // Tên đồ án
+      worksheet.getColumn(3).width = 29; // Tên đồ án
       worksheet.getColumn(4).width = 14; // Sinh viên thực hiện
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 18; // Thời gian thực hiện
-      worksheet.getColumn(7).width = 29; // Địa chỉ
+      worksheet.getColumn(7).width = 28; // Địa chỉ
       worksheet.getColumn(8).width = 6; // Học vị
       worksheet.getColumn(9).width = 6; // Hệ số lương
       worksheet.getColumn(10).width = 12; // Mức thanh toán
