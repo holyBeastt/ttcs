@@ -131,7 +131,8 @@
                               'Biên soạn giáo trình/bài giảng',
                               'Xây dựng CTĐT',
                               'NCKH và Huấn luyện đội tuyển',
-                              'Sách và Giáo trình'
+                              'Sách và Giáo trình',
+                              'Nhiệm vụ khoa học và CN'
                           ],
                           datasets: [{
                               label: 'Số lượng',
@@ -143,7 +144,8 @@
                                   'rgba(75, 192, 192, 0.2)',
                                   'rgba(255, 159, 64, 0.2)',
                                   'rgba(199, 199, 199, 0.2)',
-                                  'rgba(255, 99, 71, 0.2)'
+                                  'rgba(255, 99, 71, 0.2)',
+                                  'rgba(153, 102, 255, 0.2)'
                               ],
                               borderColor: [
                                   'rgba(255, 99, 132, 1)',
@@ -152,7 +154,8 @@
                                   'rgba(75, 192, 192, 1)',
                                   'rgba(255, 159, 64, 1)',
                                   'rgba(199, 199, 199, 1)',
-                                  'rgba(255, 99, 71, 1)'
+                                  'rgba(255, 99, 71, 1)',
+                                   'rgba(153, 102, 255, 1)'
                               ],
                               borderWidth: 4
                           }]
@@ -210,6 +213,7 @@
               { id: 'detailTable6', endpoint: '/detail-data/xaydung' },
               { id: 'detailTable7', endpoint: '/detail-data/nckh' },
               { id: 'detailTable8', endpoint: '/detail-data/sachvagiaotrinh' },
+              { id: 'detailTable5', endpoint: '/detail-data/nhiemvu' },
           ];
 
           for (const table of detailTables) {
@@ -319,6 +323,24 @@
                                     <td>${item.Khoa}</td>
                                   `;
                                   break;
+                                  // Trong switch case, thêm case cho detailTable5
+                                case 'detailTable5':
+                                     row.innerHTML = `
+                                        <td>${item.ID}</td>
+                                        <td>${item.PhanLoai}</td>
+                                         <td>${item.NamHoc}</td>
+                                         <td>${item.Khoa}</td>
+                                        <td>${item.TenNhiemVu}</td>
+                                       <td>${item.MaNhiemVu}</td>
+                                         <td>${item.ChuNhiem}</td>
+                                          <td>${item.PhanBien}</td>
+                                         <td>${item.ThuKy}</td>
+                                         <td>${item.UyVien}</td>
+                                         <td>${item.DanhSachThanhVien}</td>
+                                        <td>${formatDate(item.NgayNghiemThu)}</td>
+                                         <td>${item.KetQua}</td>
+                                 `;
+                                  break;
                           }
                           detailTable.appendChild(row);
                       });
@@ -342,7 +364,7 @@
             <table class="table table-bordered my-2" border="1" id="thongkemgTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>STT</th>
                         <th>Cấp đề tài</th>
                         <th>Năm học</th>
                         <th>Tên đề tài</th>
@@ -367,7 +389,7 @@
        <thead>
            <tr>
                <th>Năm học</th>
-               <th>Mã bài báo</th>
+               <th>STT</th>
                <th>Tên bài báo</th>
                <th>Loại tạp chí</th>
                <th>Chỉ số tạp chí</th>
@@ -385,7 +407,7 @@
    <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Năm học</th>
             <th>Tên bằng sáng chế/giải thưởng</th>
             <th>Phân loại</th>
@@ -404,7 +426,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên giáo trình bài giảng</th>
@@ -420,28 +442,12 @@
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
 </table>
-<!--Nhiệm vụ kh&cn  -->
-<!-- <h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
-<table class="table table-bordered my-2" border="1" id="thongkemgTable">
-    <thead>
-        <tr>
-            <th>Mã nhiệm vụ</th>
-            <th>Năm học</th>
-            <th>Tên nhiệm vụ</th>
-            <th>Số QĐ giao nhiệm vụ</th>
-            <th>Ngày QĐ giao nhiệm vụ</th>
-        </tr>
-    </thead>
-    <tbody id="detailTable5">
-        <!-- Dữ liệu sẽ được thêm vào đây -->
-    </tbody>
-</table> 
 <!-- Xây dựng CTĐT -->
 <h2 style="margin-top: 30px; text-align: center;">Chi tiết Xây dựng chương trình đào tạo</h2>
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Năm học</th>
             <th>Tên chương trình</th>
             <th>Số tín chỉ</th>
@@ -462,7 +468,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên đề tài</th>
@@ -483,7 +489,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên sách và giáo trình</th>
@@ -496,6 +502,31 @@
         </tr>
     </thead>
     <tbody id="detailTable8">
+        <!-- Dữ liệu sẽ được thêm vào đây -->
+    </tbody>
+</table>
+
+<!-- Nhiệm vụ KH&CN -->
+<h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
+<table class="table table-bordered my-2" border="1" id="thongkemgTable">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Phân loại</th>
+            <th>Năm học</th>
+            <th>Khoa</th>
+            <th>Tên nhiệm vụ</th>
+            <th>Mã nhiệm vụ</th>
+            <th>Chủ nhiệm</th>
+            <th>Phản biện</th>
+            <th>Thư ký</th>
+            <th>Ủy viên</th>
+            <th>Danh sách thành viên</th>
+            <th>Ngày nghiệm thu</th>
+            <th>Kết quả</th>
+        </tr>
+    </thead>
+    <tbody id="detailTable5">
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
 </table>

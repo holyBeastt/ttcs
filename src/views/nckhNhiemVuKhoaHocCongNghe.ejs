@@ -87,7 +87,7 @@
           <div class="form-group flex-container" id="div-chunhiem">
             <div class="flex-item">
               <label for="chuNhiem">
-                Chủ tịch, phản biện
+                Chủ tịch
                 <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox" />
                 <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
               </label>
@@ -95,28 +95,70 @@
               <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required />
             </div>
             <div class="flex-item combo-box-wrapper">
-              <label for="chuNhiemComboBox">Đơn vị</label>
+              <label for="chuNhiemComboBox">Đơn vị công tác (Chủ tịch)</label>
               <input type="text" id="chuNhiemComboBox" name="chuNhiemComboBox" class="combo-box"
                 placeholder="Nhập đơn vị" required />
             </div>
           </div>
 
+          <!-- Phản biện -->
+          <div class="form-group flex-container" id="div-phanBien">
+            <div class="flex-item">
+              <label for="phanBien">
+                Phản biện
+                <input type="checkbox" id="phanBienCheckbox" name="phanBienCheckbox" />
+              </label>
+              <div id="phanBien-suggestions" class="suggestions-container"></div>
+              <input type="text" id="phanBien" name="phanBien" placeholder="Nhập tên phản biện" class="input-field"
+                required />
+            </div>
+            <div class="flex-item combo-box-wrapper">
+              <label for="phanBienComboBox">Đơn vị công tác (Phản biện)</label>
+              <input type="text" id="phanBienComboBox" name="phanBienComboBox" class="combo-box"
+                placeholder="Nhập đơn vị" required />
+            </div>
+          </div>
+
+          <div id="phanBienListDisplay" class="member-list-display form-group"></div>
+
+
           <!-- Thư ký -->
           <div class="form-group flex-container" id="div-thuky">
             <div class="flex-item">
               <label for="thuKy">
-                Thư ký khoa học, ủy viên
+                Thư ký khoa học
                 <input type="checkbox" id="thuKyCheckbox" name="thuKyCheckbox" />
               </label>
               <div id="thuKy-suggestions" class="suggestions-container"></div>
               <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký" required />
             </div>
             <div class="flex-item combo-box-wrapper">
-              <label for="thuKyComboBox">Đơn vị</label>
+              <label for="thuKyComboBox">Đơn vị công tác (Thư ký)</label>
               <input type="text" id="thuKyComboBox" name="thuKyComboBox" class="combo-box" placeholder="Nhập đơn vị"
                 required />
             </div>
           </div>
+
+
+          <!-- Ủy viên -->
+          <div class="form-group flex-container" id="div-uyVien">
+            <div class="flex-item">
+              <label for="uyVien">
+                Ủy viên
+                <input type="checkbox" id="uyVienCheckbox" name="uyVienCheckbox" />
+              </label>
+              <div id="uyVien-suggestions" class="suggestions-container"></div>
+              <input type="text" id="uyVien" name="uyVien" placeholder="Nhập tên ủy viên" class="input-field"
+                required />
+            </div>
+            <div class="flex-item combo-box-wrapper">
+              <label for="uyVienComboBox">Đơn vị công tác (Ủy viên)</label>
+              <input type="text" id="uyVienComboBox" name="uyVienComboBox" class="combo-box" placeholder="Nhập đơn vị"
+                required />
+            </div>
+          </div>
+
+          <div id="uyVienListDisplay" class="member-list-display form-group"></div>
 
           <!-- Thành viên -->
           <div class="form-group flex-container" id="div-thanhvien">
@@ -130,7 +172,7 @@
                 required />
             </div>
             <div class="flex-item combo-box-wrapper">
-              <label for="thanhVienComboBox">Đơn vị</label>
+              <label for="thanhVienComboBox">Đơn vị công tác (Thành viên)</label>
               <input type="text" id="thanhVienComboBox" name="thanhVienComboBox" class="combo-box"
                 placeholder="Nhập đơn vị" required />
             </div>
@@ -235,8 +277,20 @@
                 width: "10%"
               },
               {
+                title: "Phản Biện",
+                field: "PhanBien",
+                editor: "false",
+                width: "10%"
+              },
+              {
                 title: "Thư Ký",
                 field: "ThuKy",
+                editor: "false",
+                width: "10%"
+              },
+              {
+                title: "Ủy Viên",
+                field: "UyVien",
                 editor: "false",
                 width: "10%"
               },
@@ -293,8 +347,22 @@
                 width: "10%"
               },
               {
+                title: "Phản Biện",
+                field: "PhanBien",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
+              },
+              {
                 title: "Thư Ký",
                 field: "ThuKy",
+                editor: "input",
+                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%"
+              },
+              {
+                title: "Ủy Viên",
+                field: "UyVien",
                 editor: "input",
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "10%"
@@ -540,10 +608,14 @@
         const chuNhiemCheckbox = document.getElementById("chuNhiemCheckbox");
         const thuKyCheckbox = document.getElementById("thuKyCheckbox");
         const thanhVienCheckbox = document.getElementById("thanhVienCheckbox");
+        const phanBienCheckbox = document.getElementById("phanBienCheckbox"); // Phản biện
+        const uyVienCheckbox = document.getElementById("uyVienCheckbox"); // Ủy viên
 
         const chuNhiemComboBox = document.getElementById("chuNhiemComboBox");
         const thuKyComboBox = document.getElementById("thuKyComboBox");
         const thanhVienComboBox = document.getElementById("thanhVienComboBox");
+        const phanBienComboBox = document.getElementById("phanBienComboBox"); // Phản biện
+        const uyVienComboBox = document.getElementById("uyVienComboBox"); // Ủy viên
 
         // Hàm disable hoặc enable ô nhập đơn vị
         function toggleComboBoxDisabled() {
@@ -570,6 +642,22 @@
             thanhVienComboBox.disabled = true;
             thanhVienComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
           }
+
+          // Phản biện
+          if (phanBienCheckbox.checked) {
+            phanBienComboBox.disabled = false;
+          } else {
+            phanBienComboBox.disabled = true;
+            phanBienComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
+          }
+
+          // Ủy viên
+          if (uyVienCheckbox.checked) {
+            uyVienComboBox.disabled = false;
+          } else {
+            uyVienComboBox.disabled = true;
+            uyVienComboBox.value = ""; // Xóa giá trị đã nhập trong ô nhập đơn vị
+          }
         }
 
         // Disable các ô nhập đơn vị khi tải trang
@@ -579,26 +667,31 @@
         chuNhiemCheckbox.addEventListener("change", toggleComboBoxDisabled);
         thuKyCheckbox.addEventListener("change", toggleComboBoxDisabled);
         thanhVienCheckbox.addEventListener("change", toggleComboBoxDisabled);
+        phanBienCheckbox.addEventListener("change", toggleComboBoxDisabled); // Phản biện
+        uyVienCheckbox.addEventListener("change", toggleComboBoxDisabled); // Ủy viên
       });
-
       // =================================================================
 
       // check thì tắt gợi ý
       document.addEventListener("DOMContentLoaded", function () {
         // Lấy các phần tử
         const chuNhiemInput = document.getElementById("chuNhiem");
-        const chuNhiemSuggestions = document.getElementById(
-          "chuNhiem-suggestions"
-        );
+        const chuNhiemSuggestions = document.getElementById("chuNhiem-suggestions");
         const chuNhiemCheckbox = document.getElementById("chuNhiemCheckbox");
         const thuKyCheckbox = document.getElementById("thuKyCheckbox");
         const thuKyInput = document.getElementById("thuKy");
         const thuKySuggestions = document.getElementById("thuKy-suggestions");
-        const thanhVienCheckbox = document.getElementById("thanhVienCheckbox"); // Thành viên checkbox
-        const thanhVienInput = document.getElementById("thanhVien"); // Thành viên input text
-        const thanhVienSuggestions = document.getElementById(
-          "themThanhVien-suggestions"
-        ); // Thành viên gợi ý
+        const thanhVienCheckbox = document.getElementById("thanhVienCheckbox");
+        const thanhVienInput = document.getElementById("thanhVien");
+        const thanhVienSuggestions = document.getElementById("themThanhVien-suggestions");
+        // Phản biện
+        const phanBienCheckbox = document.getElementById("phanBienCheckbox");
+        const phanBienInput = document.getElementById("phanBien");
+        const phanBienSuggestions = document.getElementById("phanBien-suggestions");
+        // Ủy viên
+        const uyVienCheckbox = document.getElementById("uyVienCheckbox");
+        const uyVienInput = document.getElementById("uyVien");
+        const uyVienSuggestions = document.getElementById("uyVien-suggestions");
 
         // Thêm sự kiện lắng nghe khi chuNhiemCheckbox thay đổi
         chuNhiemCheckbox.addEventListener("change", function () {
@@ -630,6 +723,28 @@
           } else {
             // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý thành viên
             thanhVienSuggestions.style.display = "block";
+          }
+        });
+
+        // Thêm sự kiện lắng nghe khi phanBienCheckbox thay đổi
+        phanBienCheckbox.addEventListener("change", function () {
+          if (this.checked) {
+            // Nếu checkbox phản biện được đánh dấu, ẩn phần gợi ý phản biện
+            phanBienSuggestions.style.display = "none";
+          } else {
+            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý phản biện
+            phanBienSuggestions.style.display = "block";
+          }
+        });
+
+        // Thêm sự kiện lắng nghe khi uyVienCheckbox thay đổi
+        uyVienCheckbox.addEventListener("change", function () {
+          if (this.checked) {
+            // Nếu checkbox ủy viên được đánh dấu, ẩn phần gợi ý ủy viên
+            uyVienSuggestions.style.display = "none";
+          } else {
+            // Nếu checkbox không được đánh dấu, hiển thị phần gợi ý ủy viên
+            uyVienSuggestions.style.display = "block";
           }
         });
       });
@@ -672,6 +787,10 @@
                   isSuggestionSelected = true; // Đánh dấu là gợi ý đã được chọn
                   if (inputId == "thanhVien") {
                     addMember(inputElement.value);
+                  } else if (inputId == "phanBien") {
+                    addPhanBien(inputElement.value);
+                  } else if (inputId == "uyVien") {
+                    addUyVien(inputElement.value);
                   }
                 });
 
@@ -714,6 +833,10 @@
 
                   if (inputId == "thanhVien") {
                     addMember(inputElement.value);
+                  } else if (inputId == "phanBien") {
+                    addPhanBien(inputElement.value);
+                  } else if (inputId == "uyVien") {
+                    addUyVien(inputElement.value);
                   }
                 }
               }
@@ -752,6 +875,18 @@
           "thanhVienComboBox",
           "thanhVienCheckbox"
         );
+        handleInput(
+          "phanBien",
+          "phanBien-suggestions",
+          "phanBienComboBox",
+          "phanBienCheckbox"
+        );
+        handleInput(
+          "uyVien",
+          "uyVien-suggestions",
+          "uyVienComboBox",
+          "uyVienCheckbox"
+        );
       });
       // =================================================================
 
@@ -778,97 +913,108 @@
       });
 
       // gửi form lên sv
-      document
-        .getElementById("submitBtn")
-        .addEventListener("click", function () {
-          // Lấy dữ liệu từ form
-          const formData = {
-            phanLoai: document.getElementById("phanLoai").value,
-            namHoc: document.getElementById("namHocForm").value,
-            tenNhiemVu: document.getElementById("tenNhiemVu").value,
-            maNhiemVu: document.getElementById("maNhiemVu").value,
-            chuNhiem: document.getElementById("chuNhiem").value,
-            thuKy: document.getElementById("thuKy").value,
-            ngayNghiemThu: document.getElementById("ngayNghiemThu").value,
-            // khoa: document.getElementById("MaPhongBanForm").value,
-            khoa: localStorage.getItem("MaPhongBan"),
-            thanhVien: Array.from(
-              document.querySelectorAll("#memberListDisplay span")
-            ).map((member) => member.textContent),
-            ketQua: document.getElementById("ketQua").value
-          };
+      document.getElementById("submitBtn").addEventListener("click", function () {
+        // Lấy dữ liệu từ form
+        const formData = {
+          phanLoai: document.getElementById("phanLoai").value,
+          namHoc: document.getElementById("namHocForm").value,
+          tenNhiemVu: document.getElementById("tenNhiemVu").value,
+          maNhiemVu: document.getElementById("maNhiemVu").value,
+          chuNhiem: document.getElementById("chuNhiem").value,
+          thuKy: document.getElementById("thuKy").value,
+          ngayNghiemThu: document.getElementById("ngayNghiemThu").value,
+          // khoa: document.getElementById("MaPhongBanForm").value,
+          khoa: localStorage.getItem("MaPhongBan"),
+          thanhVien: Array.from(
+            document.querySelectorAll("#memberListDisplay span")
+          ).map((member) => member.textContent),
+          phanBien: Array.from(
+            document.querySelectorAll("#phanBienListDisplay span")
+          ).map((phanBien) => phanBien.textContent),
+          uyVien: Array.from(
+            document.querySelectorAll("#uyVienListDisplay span")
+          ).map((uyVien) => uyVien.textContent),
+          ketQua: document.getElementById("ketQua").value
+        };
 
-          // Phần quyền nhập
-          if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
-            alert("Bạn không có quyền truy cấp chức năng này");
-            return;
-          }
+        // Phần quyền nhập
+        if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
+          alert("Bạn không có quyền truy cấp chức năng này");
+          return;
+        }
 
-          // Validate form
-          let missing = 0;
+        // // Validate form
+        // let missing = 0;
 
-          for (let key of Object.keys(formData)) {
-            // Skip the 'thuKy' key
-            if (key === "thuKy") {
-              continue;
+        // for (let key of Object.keys(formData)) {
+        //   // Skip the 'thuKy', 'phanBien', and 'uyVien' keys
+        //   if (key === "thuKy" || key === "phanBien" || key === "uyVien") {
+        //     continue;
+        //   }
+        //   // Check if the key is missing a value
+        //   if (!formData[key]) {
+        //     missing++;
+        //   }
+        // }
+
+        // if (missing > 2) {
+        //   alert("Vui lòng nhập đủ thông tin");
+        //   return;
+        // }
+
+        console.log(formData)
+
+        // Gửi dữ liệu lên server
+        fetch("/nhiemvukhoahoccongnghe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Gửi dữ liệu thất bại!");
             }
-            // Check if the key is missing a value
-            if (!formData[key]) {
-              missing++;
-            }
-          }
-
-
-          if (missing > 2) {
-            alert("Vui lòng nhập đủ thông tin");
-            return;
-          }
-
-          console.log(formData)
-
-          // Gửi dữ liệu lên server
-          fetch("/nhiemvukhoahoccongnghe", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
+            return response.json();
           })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Gửi dữ liệu thất bại!");
-              }
-              return response.json();
-            })
-            .then((data) => {
-              if (data.success) {
-                Swal.fire({
-                  title: 'Thông báo',
-                  html: `${data.message}`,
-                  icon: 'success',
-                  confirmButtonText: 'OK',
-                  width: 'auto',
-                  padding: '20px',
-                  timer: 3000, // Tự động đóng sau 3 giây
-                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
-                  didClose: () => {
-                    document.getElementById("formData").reset();
-                    document.getElementById("memberListDisplay").innerHTML = "";
-                    members = [];
-                    location.reload();
-                  }
-                })
-              }
-            })
-            .catch((error) => {
-              console.error("Lỗi:", error);
-              alert("Có lỗi xảy ra: " + error.message);
-            });
-        });
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thông báo',
+                html: `${data.message}`,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                width: 'auto',
+                padding: '20px',
+                timer: 3000, // Tự động đóng sau 3 giây
+                timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                didClose: () => {
+                  document.getElementById("formData").reset();
+                  document.getElementById("memberListDisplay").innerHTML = "";
+                  document.getElementById("phanBienListDisplay").innerHTML = "";
+                  document.getElementById("uyVienListDisplay").innerHTML = "";
+                  members = [];
+                  phanBiens = [];
+                  uyViens = [];
+                  location.reload();
+                }
+              })
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra: " + error.message);
+          });
+      });
 
 
       // =================================================================
+      // Thêm vào phần script sau phần khai báo mảng members
       let members = [];
+      let phanBiens = [];  // Mảng cho phản biện
+      let uyViens = [];    // Mảng cho ủy viên
+
       // Hàm thêm thành viên vào mảng member để hiển thị
       function addMember(memberName) {
         if (memberName) {
@@ -881,7 +1027,34 @@
           document.getElementById("thanhVien").value = "";
         }
       }
-      // Hàm cập nhật danh sách thành viên và hiển thị lên form
+
+      // Hàm thêm phản biện vào mảng phanBiens để hiển thị
+      function addPhanBien(phanBienName) {
+        if (phanBienName) {
+          // Thêm phản biện vào mảng phanBiens
+          console.log(phanBienName);
+          phanBiens.push(phanBienName);
+          // Cập nhật danh sách phản biện hiển thị trên form
+          updateFormPhanBienList();
+          // Xóa nội dung ô input sau khi thêm phản biện
+          document.getElementById("phanBien").value = "";
+        }
+      }
+
+      // Hàm thêm ủy viên vào mảng uyViens để hiển thị
+      function addUyVien(uyVienName) {
+        if (uyVienName) {
+          // Thêm ủy viên vào mảng uyViens
+          console.log(uyVienName);
+          uyViens.push(uyVienName);
+          // Cập nhật danh sách ủy viên hiển thị trên form
+          updateFormUyVienList();
+          // Xóa nội dung ô input sau khi thêm ủy viên
+          document.getElementById("uyVien").value = "";
+        }
+      }
+
+      // Hàm cập nhật danh sách thành viên và hiển thị lên form (giữ nguyên)
       function updateFormMemberList() {
         const memberListDisplay = document.getElementById("memberListDisplay");
         memberListDisplay.innerHTML = ""; // Xóa danh sách cũ
@@ -906,11 +1079,77 @@
           memberListDisplay.appendChild(memberContainer);
         });
       }
-      // Hàm xóa thành viên
+
+      // Hàm cập nhật danh sách phản biện và hiển thị lên form
+      function updateFormPhanBienList() {
+        const phanBienListDisplay = document.getElementById("phanBienListDisplay");
+        phanBienListDisplay.innerHTML = ""; // Xóa danh sách cũ
+        // Duyệt qua mảng phanBiens để hiển thị từng phản biện
+        phanBiens.forEach((phanBien, index) => {
+          const phanBienContainer = document.createElement("div");
+          phanBienContainer.style.display = "flex"; // Đảm bảo các phần tử được hiển thị trên cùng một dòng
+          phanBienContainer.style.alignItems = "center"; // Căn giữa tên và nút xóa
+          phanBienContainer.style.justifyContent = "space-between"; // Đảm bảo tên phản biện và nút xóa được căn lề
+          // Tạo phần tử hiển thị tên phản biện
+          const span = document.createElement("span");
+          span.textContent = phanBien;
+          span.style.flexGrow = 1; // Cho phép tên phản biện chiếm hết không gian còn lại trong div
+          // Thêm nút xóa cho từng phản biện
+          const removeButton = document.createElement("button");
+          removeButton.innerHTML = '<i class="fa fa-times"></i>';
+          removeButton.onclick = () => removePhanBien(index); // Gắn sự kiện xóa
+          // Thêm tên phản biện và nút xóa vào giao diện
+          phanBienContainer.appendChild(span);
+          phanBienContainer.appendChild(removeButton);
+          // Thêm container chứa phản biện vào danh sách hiển thị
+          phanBienListDisplay.appendChild(phanBienContainer);
+        });
+      }
+
+      // Hàm cập nhật danh sách ủy viên và hiển thị lên form
+      function updateFormUyVienList() {
+        const uyVienListDisplay = document.getElementById("uyVienListDisplay");
+        uyVienListDisplay.innerHTML = ""; // Xóa danh sách cũ
+        // Duyệt qua mảng uyViens để hiển thị từng ủy viên
+        uyViens.forEach((uyVien, index) => {
+          const uyVienContainer = document.createElement("div");
+          uyVienContainer.style.display = "flex"; // Đảm bảo các phần tử được hiển thị trên cùng một dòng
+          uyVienContainer.style.alignItems = "center"; // Căn giữa tên và nút xóa
+          uyVienContainer.style.justifyContent = "space-between"; // Đảm bảo tên ủy viên và nút xóa được căn lề
+          // Tạo phần tử hiển thị tên ủy viên
+          const span = document.createElement("span");
+          span.textContent = uyVien;
+          span.style.flexGrow = 1; // Cho phép tên ủy viên chiếm hết không gian còn lại trong div
+          // Thêm nút xóa cho từng ủy viên
+          const removeButton = document.createElement("button");
+          removeButton.innerHTML = '<i class="fa fa-times"></i>';
+          removeButton.onclick = () => removeUyVien(index); // Gắn sự kiện xóa
+          // Thêm tên ủy viên và nút xóa vào giao diện
+          uyVienContainer.appendChild(span);
+          uyVienContainer.appendChild(removeButton);
+          // Thêm container chứa ủy viên vào danh sách hiển thị
+          uyVienListDisplay.appendChild(uyVienContainer);
+        });
+      }
+
+      // Hàm xóa thành viên (giữ nguyên)
       function removeMember(index) {
         members.splice(index, 1); // Xóa thành viên khỏi mảng
         updateFormMemberList(); // Cập nhật lại danh sách hiển thị
       }
+
+      // Hàm xóa phản biện
+      function removePhanBien(index) {
+        phanBiens.splice(index, 1); // Xóa phản biện khỏi mảng
+        updateFormPhanBienList(); // Cập nhật lại danh sách hiển thị
+      }
+
+      // Hàm xóa ủy viên
+      function removeUyVien(index) {
+        uyViens.splice(index, 1); // Xóa ủy viên khỏi mảng
+        updateFormUyVienList(); // Cập nhật lại danh sách hiển thị
+      }
+
       // =================================================================
     </script>
     <!-- lấy dữ liệu vào thẻ cấp đề tài dự án và ẩn các div -->
@@ -955,19 +1194,30 @@
         const chuNhiem = document.getElementById("div-chunhiem");
         const thuKy = document.getElementById("div-thuky");
         const thanhVien = document.getElementById("div-thanhvien");
+        const phanBien = document.getElementById("div-phanBien");
+        const uyVien = document.getElementById("div-uyVien");
         const suggestThanhVien = document.getElementById("memberListDisplay");
-
+        const suggestPhanBien = document.getElementById("phanBienListDisplay");
+        const suggestUyVien = document.getElementById("uyVienListDisplay");
 
         if (selectedIndex >= totalOptions - 5) {
-          thanhVien.style.display = "block";
+          thanhVien.style.display = "flex";
+          phanBien.style.display = "none";
+          uyVien.style.display = "none";
           chuNhiem.style.display = "none";
           thuKy.style.display = "none";
-          suggestThanhVien.disabled = false;
+          suggestThanhVien.hidden = false;
+          suggestPhanBien.hidden = true;
+          suggestUyVien.hidden = true;
         } else {
           thanhVien.style.display = "none";
-          chuNhiem.style.display = "block";
-          thuKy.style.display = "block";
-          suggestThanhVien.disabled = true;
+          phanBien.style.display = "flex";
+          uyVien.style.display = "flex";
+          chuNhiem.style.display = "flex";
+          thuKy.style.display = "flex";
+          suggestThanhVien.hidden = true;
+          suggestPhanBien.hidden = false;
+          suggestUyVien.hidden = false;
         }
       }
 

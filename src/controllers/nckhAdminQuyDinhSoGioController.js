@@ -78,40 +78,6 @@ const editDeTaiDuAn = async (req, res) => {
     }
 };
 
-const deleteDeTaiDuAn = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa đề tài dự án id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
-
 const addBaiBaoKhoaHoc = async (req, res) => {
     const { MaBang, LoaiTapChi, ChiSoTapChi, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
 
@@ -189,39 +155,6 @@ const editBaiBaoKhoaHoc = async (req, res) => {
     }
 };
 
-const deleteBaiBaoKhoaHoc = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài báo khoa học id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
 
 
 const addBangSangCheVaGiaiThuong = async (req, res) => {
@@ -296,40 +229,6 @@ const editBangSangCheVaGiaiThuong = async (req, res) => {
     } catch (error) {
         console.error("Lỗi khi cập nhật dữ liệu:", error);
         res.status(500).json({ message: "Không thể cập nhật dữ liệu vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
-
-const deleteBangSangCheVaGiaiThuong = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài báo khoa học id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
@@ -412,40 +311,6 @@ const editSachVaGiaoTrinh = async (req, res) => {
     }
 };
 
-const deleteSachVaGiaoTrinh = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài sách và giáo trình id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
-
 const addNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
     const { MaBang, NCKHHuanLuyenDoiTuyen, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
 
@@ -523,39 +388,6 @@ const editNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
     }
 };
 
-const deleteNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài nckh và huấn luyện đội tuyển id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
 
 const addXayDungCTDT = async (req, res) => {
     const { MaBang, XayDungCTDT, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
@@ -634,39 +466,6 @@ const editXayDungCTDT = async (req, res) => {
     }
 };
 
-const deleteXayDungCTDT = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài xây dựng ctdt id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
 
 const addBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     const { MaBang, BienSoanGiaoTrinhBaiGiang, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
@@ -745,39 +544,6 @@ const editBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     }
 };
 
-const deleteBienSoanGiaoTrinhBaiGiang = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa bài biên soạn giáo trình bài giảng id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
 
 const addNhiemVuKhoaHocCongNghe = async (req, res) => {
     const { MaBang, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
@@ -815,21 +581,21 @@ const addNhiemVuKhoaHocCongNghe = async (req, res) => {
 };
 
 const edtiNhiemVuKhoaHocCongNghe = async (req, res) => {
-    const { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio } = req.body; // Lấy dữ liệu từ form (req.body)
+    const { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, PhanBien, UyVien } = req.body; // Lấy dữ liệu từ form (req.body)
 
-    console.log("Cập nhật dữ liệu vào bảng quydinhsogionckh:", { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio });
-    NhiemVuKhoaHocCongNghe
+    console.log("Cập nhật dữ liệu vào bảng quydinhsogionckh:", { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, PhanBien, UyVien });
+    // 
     let connection;
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
         const query = `
             UPDATE quydinhsogionckh
-            SET NhiemVuKhoaHocCongNghe = ?, ChuNhiem = ?, ThuKy = ?, SoGio = ?
+            SET NhiemVuKhoaHocCongNghe = ?, ChuNhiem = ?, ThuKy = ?, SoGio = ?, PhanBien = ?, UyVien = ?
             WHERE ID = ?
         `;
 
-        const queryParams = [NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, id];
+        const queryParams = [NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, PhanBien, UyVien, id];
 
         // Thực hiện truy vấn UPDATE
         const [result] = await connection.execute(query, queryParams);
@@ -844,46 +610,12 @@ const edtiNhiemVuKhoaHocCongNghe = async (req, res) => {
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Cập nhật thành công!",
-            data: { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio }
+            data: { id, NhiemVuKhoaHocCongNghe, ChuNhiem, ThuKy, SoGio, PhanBien, UyVien }
         });
 
     } catch (error) {
         console.error("Lỗi khi cập nhật dữ liệu:", error);
         res.status(500).json({ message: "Không thể cập nhật dữ liệu vào cơ sở dữ liệu." });
-    } finally {
-        if (connection) connection.release(); // Trả lại kết nối cho pool
-    }
-};
-
-const deleteNhiemVuKhoaHocCongNghe = async (req, res) => {
-    const { id } = req.body; // Lấy dữ liệu từ form (req.body)
-
-    console.log("Xóa đề nhiệm vụ khoa học công nghệ id: ", id);
-
-    let connection;
-    try {
-        connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-        const query = `
-            DELETE FROM quydinhsogionckh WHERE ID = ?
-        `;
-
-        const queryParams = [id];
-
-        // Thực hiện truy vấn
-        const [result] = await connection.execute(query, queryParams);
-
-        console.log("Xóa thành công:", result);
-
-        // Trả về kết quả cho client
-        res.status(200).json({
-            message: "Xóa thành công!",
-            data: { id }
-        });
-
-    } catch (error) {
-        console.error("Lỗi khi xóa dữ liệu:", error);
-        res.status(500).json({ message: "Không thể xóa vào cơ sở dữ liệu." });
     } finally {
         if (connection) connection.release(); // Trả lại kết nối cho pool
     }
@@ -926,27 +658,19 @@ const deleteRowQuyDinhSoGioNCKH = async (req, res) => {
 module.exports = {
     addDeTaiDuAn,
     editDeTaiDuAn,
-    deleteDeTaiDuAn,
     addBaiBaoKhoaHoc,
     editBaiBaoKhoaHoc,
-    deleteBaiBaoKhoaHoc,
     addBangSangCheVaGiaiThuong,
     editBangSangCheVaGiaiThuong,
-    deleteBangSangCheVaGiaiThuong,
     addSachVaGiaoTrinh,
     editSachVaGiaoTrinh,
-    deleteSachVaGiaoTrinh,
     addNCKHVaHuanLuyenDoiTuyen,
     editNCKHVaHuanLuyenDoiTuyen,
-    deleteNCKHVaHuanLuyenDoiTuyen,
     addXayDungCTDT,
     editXayDungCTDT,
-    deleteXayDungCTDT,
     addBienSoanGiaoTrinhBaiGiang,
     editBienSoanGiaoTrinhBaiGiang,
-    deleteBienSoanGiaoTrinhBaiGiang,
     addNhiemVuKhoaHocCongNghe,
     edtiNhiemVuKhoaHocCongNghe,
-    deleteNhiemVuKhoaHocCongNghe,
     deleteRowQuyDinhSoGioNCKH
 };

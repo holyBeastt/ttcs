@@ -639,7 +639,7 @@
                 </td>
               </tr>
               <tr>
-                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.9 Số tiết NCKH bảo lưu sang năm</th>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.9 Nhiệm vụ nghiên cứu khoa học khác</th>
               </tr>
               <tr style="background-color: #007BFF;">
                 <th style="width: 5% !important;">TT</th>
@@ -657,6 +657,27 @@
                 </td>
                 <td>
                     <span id="totalSoTietC9">0</span>
+                </td>
+              </tr>
+              <tr>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.10 Số tiết NCKH bảo lưu sang năm</th>
+              </tr>
+              <tr style="background-color: #007BFF;">
+                <th style="width: 5% !important;">TT</th>
+                <th>Tên nhiệm vụ</th>
+                <th colspan="2" >Số QĐ giao nhiệm vụ, ngày ký</th>
+                <th colspan="2" style="width: 50px !important;">Nhiệm vụ được phân công theo quyết định</th>
+                <th>Số giờ quy đổi</th>
+              </tr>
+            <tbody id="tableBodyC10" class="teacher-group">
+              <!-- Dữ liệu sẽ được chèn vào đây -->
+            </tbody>
+              <tr style="color: #F95700; font-weight: bold;">
+                <td colspan="6">
+                  <strong>Tổng C.10: </strong>
+                </td>
+                <td>
+                    <span id="totalSoTietC10">0</span>
                 </td>
               </tr>
               <tr style="color: #990011FF; font-weight: 900;">
@@ -848,7 +869,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // console.log(data)
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
-          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowC9'
+          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowC10'
         ];
 
         // Áp dụng filter cho tất cả các bảng
@@ -919,6 +940,8 @@ document.addEventListener('DOMContentLoaded', function () {
     tableBodyC8.innerHTML = ''; // Xóa nội dung cũ
     const tableBodyC9 = document.getElementById('tableBodyC9');
     tableBodyC9.innerHTML = ''; // Xóa nội dung cũ
+    const tableBodyC10 = document.getElementById('tableBodyC10');
+    tableBodyC10.innerHTML = ''; // Xóa nội dung cũ
     const tableBodyF = document.getElementById('tableBodyF');
     tableBodyF.innerHTML = ''; // Xóa nội dung cũ
     //let index = -1;
@@ -1751,7 +1774,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tableBodyC7.appendChild(tableRow);
       });
-      data.rowsC9.forEach((row, index) => {
+      data.rowsC10.forEach((row, index) => {
 
         const tableRow = document.createElement('tr');
 
@@ -1788,7 +1811,7 @@ document.addEventListener('DOMContentLoaded', function () {
         SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
         tableRow.appendChild(SoTietBaoLuuSangNamSauTd);
 
-        tableBodyC9.appendChild(tableRow);
+        tableBodyC10.appendChild(tableRow);
       });
       data.rowsF.forEach((row, index) => {
 
@@ -1841,6 +1864,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let totalGiangDay = 0, totalSoTietB = 0, totalSoTietAB = 0, totalSoTietC1 = 0,
       totalSoTietC2 = 0, totalSoTietC3 = 0, totalSoTietC4 = 0, totalSoTietC5 = 0,
       totalSoTietC6 = 0, totalSoTietC7 = 0, totalSoTietC8 = 0, totalSoTietC9 = 0,
+      totalSoTietC10 = 0,
       totalSoTietC = 0;
   let totalSoTietKT = 0;
   let totalA11 = 0, totalA12 = 0, totalA13 = 0, totalA14 = 0, 
@@ -1848,6 +1872,7 @@ document.addEventListener('DOMContentLoaded', function () {
       totalB = 0, totalAB = 0, totalC1 = 0, totalA = 0,
       totalC2 = 0, totalC3 = 0, totalC4 = 0, totalC5 = 0,
       totalC6 = 0, totalC7 = 0, totalC8 = 0, totalC9 = 0,
+      totalC10 = 0,
       totalC = 0;
 
 
@@ -1870,6 +1895,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const rowsC7 = document.querySelectorAll('#tableBodyC7 tr');
   const rowsC8 = document.querySelectorAll('#tableBodyC8 tr');
   const rowsC9 = document.querySelectorAll('#tableBodyC9 tr');
+  const rowsC10 = document.querySelectorAll('#tableBodyC10 tr');
 
   rows11.forEach(row => {
     // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
@@ -2182,14 +2208,30 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
-
   // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC9Td`
   const totalC9Element = document.getElementById('totalSoTietC9');
   if (totalC9Element) {
     totalC9Element.textContent = totalC9.toFixed(2); // Định dạng 2 chữ số thập phân
   }
+  // Tính tổng C10
+  rowsC10.forEach(row => {
+    // Kiểm tra nếu dòng có chứa giá trị `totalGiangDay`
+    const totalC10Td = row.querySelector('td:nth-last-child(1)'); // Lấy ô cột số tiết kiểm tra (vị trí trước 2 ô cuối)
+    if (totalC10Td) {
+      const totalC10Value = parseFloat(totalC10Td.textContent.trim());
+      if (!isNaN(totalC10Value)) {
+        totalC10 += totalC10Value;
+      }
+    }
+  });
+
+  // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalC10Td`
+  const totalC10Element = document.getElementById('totalSoTietC10');
+  if (totalC10Element) {
+    totalC10Element.textContent = totalC10.toFixed(2); // Định dạng 2 chữ số thập phân
+  }
   // Tính tổng C
-  totalC = totalC1 + totalC2 + totalC3 + totalC4 + totalC5 + totalC6 + totalC7 + totalC8 + totalC9
+  totalC = totalC1 + totalC2 + totalC3 + totalC4 + totalC5 + totalC6 + totalC7 + totalC8 + totalC9 + totalC10
   // Hiển thị tổng số tiết kiểm tra trong một phần tử có id `totalCTd`
   const totalCElement = document.getElementById('totalSoTietC');
   if (totalCElement) {
@@ -2277,7 +2319,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (data.success) {
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
-          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowsC9'
+          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8', 'rowsC9', 'rowsC10'
         ];
 
         // Kiểm tra xem tất cả các bảng đều là mảng rỗng

@@ -27,7 +27,8 @@ const thongkenckhController = {
                 "biensoangiaotrinhbaigiang",
                 "xaydungctdt",
                 "nckhvahuanluyendoituyen",
-                "sachvagiaotrinh"
+                "sachvagiaotrinh",
+                "nhiemvukhoahoccongnghe"
             ];
 
             const results = await Promise.all(
@@ -473,6 +474,64 @@ const thongkenckhController = {
         }
     },
 
+    // nhiệm vụ khoa học công nghệ
+getDetailDatanhiemvu: async (req, res) => {
+    let connection;
+    const { namhoc, khoa } = req.query;
+    try {
+        connection = await createConnection();
+        let query = `
+            SELECT
+                t.ID,
+                t.PhanLoai,
+                t.NamHoc,
+                t.Khoa,
+                t.TenNhiemVu,
+                t.MaNhiemVu,
+                t.ChuNhiem,
+                t.PhanBien,
+                t.ThuKy,
+                t.UyVien,
+                t.DanhSachThanhVien,
+                t.NgayNghiemThu,
+                t.KetQua
+            FROM nhiemvukhoahoccongnghe t
+            WHERE t.daotaoduyet = 1
+        `;
+
+        let conditions = [];
+        let params = [];
+
+        if (khoa && khoa !== 'ALL') {
+            conditions.push(`
+                EXISTS (
+                    SELECT 1 FROM nhanvien nv 
+                    WHERE TRIM(BOTH ' ' FROM t.DanhSachThanhVien) COLLATE utf8mb4_general_ci
+                        LIKE CONCAT('%', TRIM(BOTH ' ' FROM nv.TenNhanVien) COLLATE utf8mb4_general_ci, '%')
+                    AND nv.MaPhongBan = ?
+                )
+            `);
+            params.push(khoa);
+        }
+
+        if (namhoc) {
+            conditions.push("t.NamHoc = ?");
+            params.push(namhoc);
+        }
+
+        if (conditions.length > 0) {
+            query += ` AND ${conditions.join(" AND ")}`;
+        }
+
+        const [rows] = await connection.query(query, params);
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error("Lỗi khi lấy dữ liệu từ bảng nhiệm vụ khoa học công nghệ:", err);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+    } finally {
+        if (connection) connection.release();
+    }
+},
 
     getNamHocAndKhoaData: async (req, res) => {
         let connection;
