@@ -306,6 +306,19 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
+    const titleRow3 = summarySheet.addRow([
+      `Hợp đồng số:    /HĐ-ĐT `,
+    ]);
+    titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow3.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
+
+    const titleRow4 = summarySheet.addRow([
+      `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT `,
+    ]);
+    titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
+    titleRow4.alignment = { horizontal: "center", vertical: "middle" };
+    summarySheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
     // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
     const titleRow5 = summarySheet.addRow([
       "",
@@ -351,12 +364,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
     // Định dạng cột
     summarySheet.getColumn(1).width = 5; // STT
     summarySheet.getColumn(2).width = 18; // Họ tên giảng viên
-    summarySheet.getColumn(3).width = 20; // Tên học phần
+    summarySheet.getColumn(3).width = 30; // Tên học phần
     summarySheet.getColumn(4).width = 14; // Tên lớp
     summarySheet.getColumn(5).width = 10; // Số tiết
     summarySheet.getColumn(6).width = 17; // Thời gian thực hiện
     summarySheet.getColumn(7).width = 6; // Học kỳ
-    summarySheet.getColumn(8).width = 24; // Địa chỉ
+    summarySheet.getColumn(8).width = 29; // Địa chỉ
     summarySheet.getColumn(9).width = 6; // Học vị
     summarySheet.getColumn(10).width = 6; // Hệ số lương
     summarySheet.getColumn(11).width = 12; // Mức thanh toán
@@ -395,18 +408,18 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          item.SoTiet,
+          item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
           `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(
             item.NgayKetThuc
           )}`,
           convertToRoman(item.HocKy),
           item.DiaChi,
           hocViVietTat,
-          item.HSL,
-          mucThanhToan.toLocaleString("vi-VN").replace(/\./g, ","), // Mức thanh toán
-          soTien.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
-          thucNhan.toLocaleString("vi-VN").replace(/\./g, ","), // Định dạng số tiền
+          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
+          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN"), // Định dạng số tiền
+          thucNhan.toLocaleString("vi-VN"), // Định dạng số tiền
         ]);
 
         // Cập nhật các tổng cộng
@@ -425,7 +438,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 4: // Tên lớp
               cell.font = { name: "Times New Roman", size: 13 };
@@ -440,7 +453,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 13 };
@@ -478,16 +491,16 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       "",
       "",
       "",
-      totalSoTiet,
+      totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
       "",
       "",
       "",
       "",
       "",
       "",
-      totalSoTien.toLocaleString("vi-VN").replace(/\./g, ","),
-      totalTruThue.toLocaleString("vi-VN").replace(/\./g, ","),
-      totalThucNhan.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalSoTien.toLocaleString("vi-VN"),
+      totalTruThue.toLocaleString("vi-VN"),
+      totalThucNhan.toLocaleString("vi-VN"),
     ]);
 
     totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
@@ -626,10 +639,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       // Thêm tiêu đề cột
       const headerRow = worksheet.addRow(header);
       headerRow.font = { name: "Times New Roman", bold: true };
-      worksheet.getColumn(11).numFmt = "#,##0"; // Thành tiền
-      worksheet.getColumn(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
-      worksheet.getColumn(13).numFmt = "#,##0"; // Còn lại
-      worksheet.getColumn(14).numFmt = "#,##0"; // Còn lại
+    
 
       worksheet.pageSetup = {
         paperSize: 9, // A4 paper size
@@ -651,12 +661,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       // Định dạng độ rộng cột, bao gồm cột STT
       worksheet.getColumn(1).width = 5; // STT
       worksheet.getColumn(2).width = 18; // Họ tên giảng viên
-      worksheet.getColumn(3).width = 20; // Tên học phần
+      worksheet.getColumn(3).width = 30; // Tên học phần
       worksheet.getColumn(4).width = 14; // Tên lớp
       worksheet.getColumn(5).width = 10; // Số tiết
       worksheet.getColumn(6).width = 17; // Thời gian thực hiện
       worksheet.getColumn(7).width = 6; // Học kỳ
-      worksheet.getColumn(8).width = 24; // Địa Chỉ
+      worksheet.getColumn(8).width = 29; // Địa Chỉ
       worksheet.getColumn(9).width = 6; // Học vị
       worksheet.getColumn(10).width = 6; // Hệ số lương
       worksheet.getColumn(11).width = 12; // Mức thanh toán
@@ -716,22 +726,20 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          item.SoTiet,
+          item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
           thoiGianThucHien,
           hocKyLaMa, // Sử dụng số La Mã cho Học kỳ
           item.DiaChi,
           hocViVietTat, // Sử dụng viết tắt cho Học vị
-          item.HSL,
-          mucThanhToan,
-          soTien,
-          truThue,
-          thucNhan,
+          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
+          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
+          truThue.toLocaleString("vi-VN"),
+          thucNhan.toLocaleString("vi-VN"),
         ]);
         row.font = { name: "Times New Roman", size: 13 };
 
-        row.getCell(12).numFmt = "#,##0"; // Trừ thuế TNCN 10%
-        row.getCell(13).numFmt = "#,##0"; // Còn lại
-        row.getCell(14).numFmt = "#,##0"; // Còn lại
+   
 
         // Bật wrapText cho các ô dữ liệu và căn giữa
         row.eachCell((cell, colNumber) => {
@@ -750,7 +758,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 3: // Tên học phần
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 4: // Tên lớp
               cell.font = { name: "Times New Roman", size: 13 };
@@ -765,7 +773,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
               cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 8: // Địa Chỉ
-              cell.font = { name: "Times New Roman", size: 13 };
+              cell.font = { name: "Times New Roman", size: 12 };
               break;
             case 9: // Học vị
               cell.font = { name: "Times New Roman", size: 13 };
@@ -803,16 +811,16 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
         "",
         "",
         "",
-        totalSoTiet,
+        totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
         "",
         "",
         "",
         "",
         "",
         "",
-        totalSoTien,
-        totalTruThue,
-        totalThucNhan,
+        totalSoTien.toLocaleString("vi-VN"),
+        totalTruThue.toLocaleString("vi-VN"),
+        totalThucNhan.toLocaleString("vi-VN")
       ]);
       totalRow.font = { name: "Times New Roman", bold: true, size: 13 };
       totalRow.eachCell((cell) => {
