@@ -89,6 +89,10 @@
               <button id="update-checked-list" class="btn mx-3 luu">
                 Cập nhật
               </button>
+
+              <button id="export-checked-list" class="btn mx-3 luu">
+                Xuất thông tin giảng viên
+              </button>
             </div>
 
             <div id="tableContainer" style="display: none">
@@ -466,6 +470,67 @@
         // Hiển thị bảng
         tableContainer.style.display = "block";
       };
+
+      const exportData = async () => {
+        const MaPhongBan = document.getElementById("MaPhongBan").value;
+
+        const updatedData = {
+          MaPhongBan,
+          exportType: "checkedList",
+        };
+
+        try {
+          const response = await fetch("/api/gvm/checked-list/export", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi gửi dữ liệu");
+          }
+
+          // Lấy tên file từ header (nếu server có set), không có thì dùng tên mặc định
+          const contentDisposition = response.headers.get(
+            "Content-Disposition"
+          );
+          let fileName = "DanhSachGiangVienMoi.xlsx";
+          if (contentDisposition && contentDisposition.includes("filename=")) {
+            fileName = contentDisposition
+              .split("filename=")[1]
+              .replace(/"/g, "")
+              .trim();
+          }
+
+          // Nhận dữ liệu dạng blob
+          const blob = await response.blob();
+
+          // Tạo link download và click tự động
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Có lỗi xảy ra:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: "Có lỗi xảy ra khi xuất file.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      };
+
+      // Gắn sự kiện click cho nút
+      document
+        .getElementById("export-checked-list")
+        .addEventListener("click", exportData);
 
       // Gắn sự kiện click cho nút
       document
