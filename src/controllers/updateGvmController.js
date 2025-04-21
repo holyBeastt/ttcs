@@ -22,6 +22,8 @@ const getUpdateGvm = async (req, res) => {
 
     let user = results && results.length > 0 ? results[0] : {};
 
+    formatDateFields(user, ["NgayCapCCCD", "NgaySinh"]);
+
     // Lấy dữ liệu phòng ban
     const query1 = "SELECT MaPhongBan FROM phongban where isKhoa = 1";
     const [phongBanList] = await connection.query(query1);
@@ -36,6 +38,20 @@ const getUpdateGvm = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
+
+function formatDateFields(obj, fields) {
+  for (const field of fields) {
+    if (obj[field]) {
+      const date = new Date(obj[field]);
+      if (!isNaN(date)) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        obj[field] = `${y}-${m}-${d}`;
+      }
+    }
+  }
+}
 
 const getViewGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id) + 1;
@@ -53,6 +69,9 @@ const getViewGvm = async (req, res) => {
     const [phongban] = await connection.query(query1);
 
     let user = results && results.length > 0 ? results[0] : {};
+
+    formatDateFields(user, ["NgayCapCCCD", "NgaySinh"]);
+
     // Render trang viewGvm.ejs với dữ liệu người dùng
     res.render("viewGvm.ejs", { value: user, phongban: phongban });
   } catch (err) {
