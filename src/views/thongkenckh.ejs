@@ -283,127 +283,125 @@ async function fetchData() {
                   if (detailData.success) {
                       const detailTable = document.getElementById(table.id);
                       detailTable.innerHTML = ''; // Clear existing rows
-                      detailData.data.forEach(item => {
-                          const row = document.createElement('tr');
-                          // Adjust the row creation logic based on the specific table's data structure
-                          switch (table.id) {
-                              case 'detailTable':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.CapDeTai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenDeTai}</td>
-                                    <td>${item.MaSoDeTai}</td>
-                                    <td>${item.Khoa}</td>
-                                    <td>${item.ChuNhiem}</td>
-                                    <td>${item.ThuKy}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${formatDate(item.NgayNghiemThu)}</td>
-                                  `;
-                                  break;
-                              case 'detailTable2':
-                                  row.innerHTML = `
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.ID}</td>
-                                    <td>${item.TenBaiBao}</td>
-                                    <td>${item.LoaiTapChi}</td>
-                                    <td>${item.ChiSoTapChi}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.TacGiaChiuTrachNhiem}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable3':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenBangSangCheVaGiaiThuong}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.SoQDCongNhan}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                    <td>${formatDate(item.NgayQDCongNhan)}</td>
-                                  `;
-                                  break;
-                              case 'detailTable4':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.Phanloai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenGiaoTrinhBaiGiang}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.SoTC}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable6':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenChuongTrinh}</td>
-                                    <td>${item.SoTC}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.HinhThucXayDung}</td>\
-                                    <td>${item.KetQua}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable7':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenDeTai}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.KetQuaCapKhoa}</td>
-                                    <td>${item.KetQuaCapHocVien}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable8':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenSachVaGiaoTrinh}</td>
-                                    <td>${item.SoTrang}</td>
-                                    <td>${item.SoXuatBan}</td>
-                                    <td>${item.TacGia}</td>\
-                                    <td>${item.DongChuBien}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                                  // Trong switch case, thêm case cho detailTable5
-                                case 'detailTable5':
-                                     row.innerHTML = `
-                                        <td>${item.ID}</td>
-                                        <td>${item.PhanLoai}</td>
-                                         <td>${item.NamHoc}</td>
-                                         <td>${item.Khoa}</td>
-                                        <td>${item.TenNhiemVu}</td>
-                                       <td>${item.MaNhiemVu}</td>
-                                         <td>${item.ChuNhiem}</td>
-                                          <td>${item.PhanBien}</td>
-                                         <td>${item.ThuKy}</td>
-                                         <td>${item.UyVien}</td>
-                                         <td>${item.DanhSachThanhVien}</td>
-                                        <td>${formatDate(item.NgayNghiemThu)}</td>
-                                         <td>${item.KetQua}</td>
-                                 `;
-                                  break;
-                          }
-                          detailTable.appendChild(row);
-                      });
+                      detailData.data.forEach((item, index) => {
+    const row = document.createElement('tr');
+    switch (table.id) {
+        case 'detailTable':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.CapDeTai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenDeTai}</td>
+                <td>${item.MaSoDeTai}</td>
+                <td>${item.Khoa}</td>
+                <td>${item.ChuNhiem}</td>
+                <td>${item.ThuKy}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${formatDate(item.NgayNghiemThu)}</td>
+            `;
+            break;
+        case 'detailTable2':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenBaiBao}</td>
+                <td>${item.LoaiTapChi}</td>
+                <td>${item.ChiSoTapChi}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.TacGiaChiuTrachNhiem}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable3':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenBangSangCheVaGiaiThuong}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.SoQDCongNhan}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+                <td>${formatDate(item.NgayQDCongNhan)}</td>
+            `;
+            break;
+        case 'detailTable4':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.Phanloai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenGiaoTrinhBaiGiang}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.SoTC}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable6':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenChuongTrinh}</td>
+                <td>${item.SoTC}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.HinhThucXayDung}</td>
+                <td>${item.KetQua}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable7':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenDeTai}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.KetQuaCapKhoa}</td>
+                <td>${item.KetQuaCapHocVien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable8':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenSachVaGiaoTrinh}</td>
+                <td>${item.SoTrang}</td>
+                <td>${item.SoXuatBan}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.DongChuBien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable5':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.Khoa}</td>
+                <td>${item.TenNhiemVu}</td>
+                <td>${item.MaNhiemVu}</td>
+                <td>${item.ChuNhiem}</td>
+                <td>${item.PhanBien}</td>
+                <td>${item.ThuKy}</td>
+                <td>${item.UyVien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${formatDate(item.NgayNghiemThu)}</td>
+                <td>${item.KetQua}</td>
+            `;
+            break;
+    }
+    detailTable.appendChild(row);
+});
                   } else {
                       alert('Không thể tải dữ liệu chi tiết.');
                   }
