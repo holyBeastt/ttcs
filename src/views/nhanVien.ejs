@@ -44,7 +44,6 @@
           class="search mx-3"
           id="searchInput"
           style="height: 40px; width: 300px"
-          onkeyup="searchClass()"
         />
         <input
           type="text"
@@ -52,95 +51,31 @@
           class="search mx-3"
           id="searchPB"
           style="height: 40px; width: 300px"
-          onkeyup="searchPB()"
         />
         <script>
-          function searchClass() {
-            let input = document
-              .getElementById("searchInput")
-              .value.toLowerCase();
-            let table = document.getElementById("nhanVienTable");
-            let rows = table.getElementsByTagName("tr");
-
-            let currentGroup = null;
-            let groupVisible = false;
+          function filterNhanVien() {
+            const nameInput = document.getElementById("searchInput").value.toLowerCase();
+            const pbInput = document.getElementById("searchPB").value.toLowerCase();
+            const table = document.getElementById("nhanVienTable");
+            const rows = table.getElementsByTagName("tr");
 
             for (let i = 1; i < rows.length; i++) {
-              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-              let row = rows[i];
+              // Bỏ qua hàng tiêu đề
+              const row = rows[i];
+              const nameCell = row.cells[2]; // Cột tên nhân viên
+              const pbCell = row.cells[4]; // Cột mã phòng ban
 
-              if (row.classList.contains("nhanVien")) {
-                // Đây là hàng đầu tiên của một nhóm giảng viên mới
-                if (currentGroup) {
-                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
-                  setGroupVisibility(currentGroup, groupVisible);
-                }
+              const nameMatch = nameCell && nameCell.textContent.toLowerCase().includes(nameInput);
+              const pbMatch = pbCell && pbCell.textContent.toLowerCase().includes(pbInput);
 
-                currentGroup = [];
-                groupVisible = false;
-              }
-
-              currentGroup.push(row);
-
-              let teacherNameCell = row.cells[2]; // Giả sử tên giảng viên ở cột thứ 2
-              if (teacherNameCell) {
-                let teacherName = teacherNameCell.textContent.toLowerCase();
-                if (teacherName.includes(input)) {
-                  groupVisible = true;
-                }
-              }
-            }
-
-            // Xử lý nhóm cuối cùng
-            if (currentGroup) {
-              setGroupVisibility(currentGroup, groupVisible);
-            }
-          }
-          function searchPB() {
-            let input = document.getElementById("searchPB").value.toLowerCase();
-            let table = document.getElementById("nhanVienTable");
-            let rows = table.getElementsByTagName("tr");
-
-            let currentGroup = null;
-            let groupVisible = false;
-
-            for (let i = 1; i < rows.length; i++) {
-              // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-              let row = rows[i];
-
-              if (row.classList.contains("nhanVien")) {
-                // Đây là hàng đầu tiên của một nhóm giảng viên mới
-                if (currentGroup) {
-                  // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
-                  setGroupVisibility(currentGroup, groupVisible);
-                }
-
-                currentGroup = [];
-                groupVisible = false;
-              }
-
-              currentGroup.push(row);
-
-              let teacherNameCell = row.cells[4]; // Giả sử tên giảng viên ở cột thứ 2
-              if (teacherNameCell) {
-                let teacherName = teacherNameCell.textContent.toLowerCase();
-                if (teacherName.includes(input)) {
-                  groupVisible = true;
-                }
-              }
-            }
-
-            // Xử lý nhóm cuối cùng
-            if (currentGroup) {
-              setGroupVisibility(currentGroup, groupVisible);
+              // Hiển thị hàng nếu cả hai điều kiện đều khớp
+              row.style.display = nameMatch && pbMatch ? "" : "none";
             }
           }
 
-          function setGroupVisibility(group, visible) {
-            group.forEach((row) => {
-              row.style.display = visible ? "" : "none";
-            });
-          }
+          // Gắn sự kiện `keyup` cho cả hai ô input
+          document.getElementById("searchInput").addEventListener("keyup", filterNhanVien);
+          document.getElementById("searchPB").addEventListener("keyup", filterNhanVien);
         </script>
       </div>
       <div class="pb-3">

@@ -33,7 +33,10 @@ router.get(
 );
 
 // API lấy data của danh sách chờ duyệt
-router.get("/api/gvm/waiting-list/data", gvmListController.getWaitingListData);
+router.get(
+  "/api/gvm/waiting-list/data",
+  gvmListController.getWaitingListToRender
+);
 
 // API lấy số lượng giảng viên mời chưa duyêt
 router.get(
@@ -44,7 +47,12 @@ router.get(
 // Cập nhật duyệt
 router.put("/api/gvm/waiting-list/update", gvmListController.updateWaitingList);
 
-// Danh sách đã duyệt
+// Export danh sách giảng viên mời
+router.post(
+  "/api/gvm/waiting-list/export",
+  gvmListController.exportWaitingList
+);
+
 // Danh sách đã duyệt
 router.get(
   "/api/gvm/checked-list/render",
@@ -52,12 +60,20 @@ router.get(
 );
 
 // API lấy data của danh sách đã duyệt
-router.get("/api/gvm/checked-list/data", gvmListController.getCheckedListData);
+router.get(
+  "/api/gvm/checked-list/data",
+  gvmListController.getCheckedListToRender
+);
 
 // API cập nhật bản đã duyệt
 router.put(
   "/api/gvm/checked-list/update",
   gvmListController.unCheckedLecturers
+);
+
+router.post(
+  "/api/gvm/checked-list/export",
+  gvmListController.exportCheckedList
 );
 
 module.exports = router;
