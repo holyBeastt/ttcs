@@ -660,14 +660,12 @@
                 </td>
               </tr>
               <tr>
-                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.10 Số tiết NCKH bảo lưu sang năm</th>
+                <th colspan="7" style="text-align: left; background-color: white !important; color: #000; font-size: 18px;">C.10 Số tiết NCKH bảo lưu từ năm trước</th>
               </tr>
               <tr style="background-color: #007BFF;">
                 <th style="width: 5% !important;">TT</th>
-                <th>Tên nhiệm vụ</th>
-                <th colspan="2" >Số QĐ giao nhiệm vụ, ngày ký</th>
-                <th colspan="2" style="width: 50px !important;">Nhiệm vụ được phân công theo quyết định</th>
-                <th>Số giờ quy đổi</th>
+                <th colspan="5">Nội dung</th>
+                <th>Số tiết bảo lưu</th>
               </tr>
             <tbody id="tableBodyC10" class="teacher-group">
               <!-- Dữ liệu sẽ được chèn vào đây -->
@@ -869,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // console.log(data)
         // Danh sách các bảng cần lọc
         const rowsKeys = ['rows11', 'rows12', 'rows13', 'rows14', 'rows21', 'rows22', 'rows23', 'rows24', 'rowsB',
-          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowC10'
+          'rowsC1','rowsC2','rowsC3','rowsC4','rowsC5','rowsC6','rowsC7','rowsC8','rowsC10'
         ];
 
         // Áp dụng filter cho tất cả các bảng
@@ -1794,18 +1792,19 @@ document.addEventListener('DOMContentLoaded', function () {
         //
         const TenNhiemVuTd = document.createElement('td');
         TenNhiemVuTd.textContent = row.TenNhiemVu;
+        TenNhiemVuTd.colSpan = 5; // Gộp 2 cột
         tableRow.appendChild(TenNhiemVuTd);
         //
-        const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
-        const SoQDGiaoNhiemVuTd = document.createElement('td');
-        SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
-        SoQDGiaoNhiemVuTd.colSpan = 2;
-        tableRow.appendChild(SoQDGiaoNhiemVuTd);
+        // const date = row.NgayQDGiaoNhiemVu ? new Date(row.NgayQDGiaoNhiemVu).toLocaleDateString("vi-VN") : "Không có ngày";
+        // const SoQDGiaoNhiemVuTd = document.createElement('td');
+        // SoQDGiaoNhiemVuTd.textContent = `${row.SoQDGiaoNhiemVu || "Không có số QĐ"} - ${date}`;
+        // SoQDGiaoNhiemVuTd.colSpan = 2;
+        // tableRow.appendChild(SoQDGiaoNhiemVuTd);
         //
-        const SoQDGiaoNhiemVu1Td = document.createElement('td');
-        SoQDGiaoNhiemVu1Td.textContent = row.SoQDGiaoNhiemVu;
-        SoQDGiaoNhiemVu1Td.colSpan = 2; // Gộp 2 cột
-        tableRow.appendChild(SoQDGiaoNhiemVu1Td);
+        // const SoQDGiaoNhiemVu1Td = document.createElement('td');
+        // SoQDGiaoNhiemVu1Td.textContent = row.SoQDGiaoNhiemVu;
+        // SoQDGiaoNhiemVu1Td.colSpan = 2; // Gộp 2 cột
+        // tableRow.appendChild(SoQDGiaoNhiemVu1Td);
         //
         const SoTietBaoLuuSangNamSauTd = document.createElement('td');
         SoTietBaoLuuSangNamSauTd.textContent = row.SoTietBaoLuuSangNamSau;
