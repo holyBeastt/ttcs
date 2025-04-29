@@ -273,7 +273,7 @@
                 <span>Hình thức kiểm tra giữa kì</span>
               </label>
 
-              <label>
+              <!-- <label>
                 <select class="input" name="he_dao_tao" id="he_dao_tao">
                   <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
                   <option value="Đại học (Đóng học phí)">Đại học (Đóng học phí)</option>
@@ -281,7 +281,7 @@
                   <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh (Đóng học phí)</option>
                 </select>
                 <span>Loại hình đào tạo</span>
-              </label>
+              </label> -->
 
               <div class="flex">
                 <label>
@@ -481,7 +481,7 @@
         const HinhThucKTGiuaKy =
           document.getElementById("HinhThucKTGiuaKy").value;
         const Lop = document.getElementById("Lop").value;
-        const he_dao_tao = document.getElementById("he_dao_tao").value;
+        // const he_dao_tao = document.getElementById("he_dao_tao").value;
         const response = await fetch(`/addclass/${MaPhongBan}`, {
           method: "POST",
           body: JSON.stringify({
@@ -496,7 +496,7 @@
             HinhThucKTGiuaKy,
             Lop,
             GiangVien,
-            he_dao_tao,
+            // he_dao_tao,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -684,36 +684,41 @@
           maLopInput.id = `maLopInput_${index}`;
           tableRow.appendChild(maLopTd);
 
-          //Thẻ select hình thức thi giữa kỳ
-          let he_dao_taoTd;
-          let he_dao_taoSelect;
-          he_dao_taoTd = document.createElement("td");
-          he_dao_taoSelect = document.createElement("select");
-          he_dao_taoSelect.name = "he_dao_tao";
+          //Hệ đào tạo 
+          const he_dao_taoTd = document.createElement("td");
+          he_dao_taoTd.textContent = row.he_dao_tao;
+          tableRow.appendChild(he_dao_taoTd);
 
-          // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
-          const option = [
-            { value: "Đại học (Mật mã)", text: "Đại học (Mật mã)" },
-            { value: "Đại học (Đóng học phí)", text: "Đại học (Đóng học phí)" },
-            { value: "Cao học (Đóng học phí)", text: "Cao học (Đóng học phí)" },
-            { value: "Nghiên cứu sinh (Đóng học phí)", text: "Nghiên cứu sinh (Đóng học phí)" },
-          ];
+          // //Thẻ select hình thức thi giữa kỳ
+          // let he_dao_taoTd;
+          // let he_dao_taoSelect;
+          // he_dao_taoTd = document.createElement("td");
+          // he_dao_taoSelect = document.createElement("select");
+          // he_dao_taoSelect.name = "he_dao_tao";
+
+          // // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
+          // const option = [
+          //   { value: "Đại học (Mật mã)", text: "Đại học (Mật mã)" },
+          //   { value: "Đại học (Đóng học phí)", text: "Đại học (Đóng học phí)" },
+          //   { value: "Cao học (Đóng học phí)", text: "Cao học (Đóng học phí)" },
+          //   { value: "Nghiên cứu sinh (Đóng học phí)", text: "Nghiên cứu sinh (Đóng học phí)" },
+          // ];
 
           // Thêm các tùy chọn vào select
-          option.forEach((optionData) => {
-            const option = document.createElement("option");
-            option.value = optionData.value;
-            option.textContent = optionData.text;
-            if (row.he_dao_tao === optionData.value) {
-              option.selected = true;
-            }
-            he_dao_taoSelect.appendChild(option);
-          });
+          // option.forEach((optionData) => {
+          //   const option = document.createElement("option");
+          //   option.value = optionData.value;
+          //   option.textContent = optionData.text;
+          //   if (row.he_dao_tao === optionData.value) {
+          //     option.selected = true;
+          //   }
+          //   he_dao_taoSelect.appendChild(option);
+          // });
 
-          he_dao_taoTd.appendChild(he_dao_taoSelect);
-          // Thêm id để lấy dữ liệu
-          he_dao_taoSelect.id = `he_dao_tao_${index}`;
-          tableRow.appendChild(he_dao_taoTd);
+          // he_dao_taoTd.appendChild(he_dao_taoSelect);
+          // // Thêm id để lấy dữ liệu
+          // he_dao_taoSelect.id = `he_dao_tao_${index}`;
+          // tableRow.appendChild(he_dao_taoTd);
 
           // Số sinh viên
           const soSVTd = document.createElement("td");
