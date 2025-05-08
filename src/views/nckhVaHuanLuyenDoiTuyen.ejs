@@ -200,7 +200,8 @@
                 },
                 width: "7%"
               },
-              { title: "KQ", field: "KetQua", editor: "false", width: "10%" },
+              { title: "Khoa", field: "KetQuaCapKhoa", editor: "false", width: "10%" },
+              { title: "Học viện", field: "KetQuaCapHocVien", editor: "false", width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
             ];
           } else {
@@ -226,7 +227,8 @@
                 editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
                 width: "7%"
               },
-              { title: "KQ", field: "KetQua", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
+              { title: "Khoa", field: "KetQuaCapKhoa", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
+              { title: "Học viện", field: "KetQuaCapHocVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
               { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
             ];
           }

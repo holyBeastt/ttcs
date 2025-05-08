@@ -431,7 +431,7 @@
           await getTenNhiemVu();
 
           // Đảm bảo DOM đã được cập nhật hoàn toàn sau khi getTenNhiemVu() thực thi
-          await new Promise(resolve => setTimeout(resolve, 0)); // Nhường cho event loop 1 vòng
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Đợi 1000ms
 
           // Lấy dữ liệu từ form sau khi getTenNhiemVu đã hoàn thành
           const formData = {

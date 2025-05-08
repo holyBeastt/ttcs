@@ -308,7 +308,7 @@
           }
 
           // Cấp quyền xóa: chỉ hiển thị cột "Hành Động" nếu tài khoản thuộc các nhóm được phép
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Xóa",
               field: "actions",
@@ -321,7 +321,7 @@
           }
 
           // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
+          if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",

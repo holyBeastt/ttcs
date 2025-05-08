@@ -1076,8 +1076,19 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
   // Lấy kết quả sau khi quy đổi
   const thanhVienFormatted = quyDoiResult.thanhVien || "";
 
-  console.log(thanhVienFormatted);
+  // console.log(thanhVienFormatted);
 
+  // Xác định cột kết quả dựa vào phanLoai
+  let ketQuaCapKhoa = null;
+  let ketQuaCapHocVien = null;
+  
+  if (phanLoai.toLowerCase().includes("khoa")) {
+    ketQuaCapKhoa = ketQua;
+  } else if (phanLoai.toLowerCase().includes("học viện")) {
+    ketQuaCapHocVien = ketQua;
+  } else {
+    ketQuaCapHocVien = ketQua; // Mặc định chèn vào KetQuaCapHocVien
+  }
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
   try {
@@ -1085,9 +1096,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO nckhvahuanluyendoituyen (
-PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQua 
+PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQuaCapKhoa, KetQuaCapHocVien 
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai, // Phân loại
@@ -1097,7 +1108,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
         thanhVienFormatted, // Danh sách thành viên đã được format
         khoa,
-        ketQua
+        ketQuaCapKhoa,
+        ketQuaCapHocVien
       ]
     );
 
