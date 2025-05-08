@@ -63,10 +63,60 @@
 
     /* Định dạng cho biểu đồ */
     #myChart {
-            width: 70% !important;
-            height: 400px;
-            margin-left: 15%;  /* Canh giữa */
-        }
+    width: 70%;
+    height: 400px;
+    margin: 0 auto; /* Căn giữa thay vì margin-left */
+    display: block; /* Đảm bảo canvas là block element */
+}
+.search-container {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #dee2e6;
+}
+
+.search-input {
+  flex-grow: 1;
+  position: relative;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.search-input input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-button {
+  background-color: #0d6efd;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  height: 100%;
+}
+
+.search-button:hover {
+  background-color: #0b5ed7;
+}
+
+.search-button:active {
+  transform: scale(0.98);
+}
   </style>
 </head>
 
@@ -82,9 +132,17 @@
         <!-- Combo box Năm -->
         <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;"></select>
         <!-- Combo box Khoa -->
-        <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
+        <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;"> </select>
+         <!-- Input tìm kiếm giảng viên -->
 
-        </select>
+<div class="search-container">
+    <div class="search-input">
+      <input type="text" id="tenGiangVien" placeholder="Nhập tên giảng viên" class="form-control">
+    </div>
+    <button class="search-button" id="btnFilter" type="button">
+      <i class="bi bi-search"></i> Hiển thị
+    </button>
+  </div>
       </div>
       <div class="overflow-auto">
         <table class="table table-bordered">
@@ -103,225 +161,247 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <canvas id="myChart" width="800" height="400"></canvas>
   <script>
-      // Function to fetch data for both the chart and the tables
-      async function fetchData() {
-          const nam = document.getElementById('NamHoc').value; // Get selected year
-          const khoa = document.getElementById('Khoa').value; // Get selected department
+// Function to fetch data for both the chart and the tables
+async function fetchData() {
+    const nam = document.getElementById('NamHoc').value; // Get selected year
+    const khoa = document.getElementById('Khoa').value; // Get selected department
+    const giangVien = document.getElementById('tenGiangVien').value.trim(); // Get lecturer name
 
-          // Fetch statistics data for the chart
-          try {
-              const response = await fetch(`/statistics?namhoc=${nam}&khoa=${khoa}`);
-              const data = await response.json();
-              if (data.success) {
-                  const ctx = document.getElementById('myChart').getContext('2d');
+    // Fetch statistics data for the chart
+    try {
+        const response = await fetch(`/statistics?namhoc=${nam}&khoa=${khoa}&giangvien=${encodeURIComponent(giangVien)}`);
+        const data = await response.json();
+        if (data.success) {
+            const ctx = document.getElementById('myChart').getContext('2d');
 
-                  // Destroy existing chart if it exists
-                  if (window.myChart instanceof Chart) {
-                      window.myChart.destroy();
-                  }
+            // Destroy existing chart if it exists
+            if (window.myChart instanceof Chart) {
+                window.myChart.destroy();
+            }
 
-                  // Create a new chart
-                  window.myChart = new Chart(ctx, {
-                      type: 'bar',
-                      data: {
-                          labels: [
-                              'Đề tài/Dự án',
-                              'Bài báo KH',
-                              'Bằng sáng chế/Giải thưởng',
-                              'Biên soạn giáo trình/bài giảng',
-                              'Xây dựng CTĐT',
-                              'NCKH và Huấn luyện đội tuyển',
-                              'Sách và Giáo trình'
-                          ],
-                          datasets: [{
-                              label: 'Số lượng',
-                              data: data.data,
-                              backgroundColor: [
-                                  'rgba(255, 99, 132, 0.2)',
-                                  'rgba(54, 162, 235, 0.2)',
-                                  'rgba(255, 206, 86, 0.2)',
-                                  'rgba(75, 192, 192, 0.2)',
-                                  'rgba(255, 159, 64, 0.2)',
-                                  'rgba(199, 199, 199, 0.2)',
-                                  'rgba(255, 99, 71, 0.2)'
-                              ],
-                              borderColor: [
-                                  'rgba(255, 99, 132, 1)',
-                                  'rgba(54, 162, 235, 1)',
-                                  'rgba(255, 206, 86, 1)',
-                                  'rgba(75, 192, 192, 1)',
-                                  'rgba(255, 159, 64, 1)',
-                                  'rgba(199, 199, 199, 1)',
-                                  'rgba(255, 99, 71, 1)'
-                              ],
-                              borderWidth: 4
-                          }]
-                      },
-                      options: {
-                          responsive: true,
-                          plugins: {
-                              legend: {
-                                  position: 'top',
-                              },
-                              title: {
-                                  display: true,
-                                  text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
-                                  font: { size: 30 }
-                              },
-                              tooltip: {
-                                  enabled: true,
-                                  callbacks: {
-                                      label: function (context) {
-                                          let label = context.dataset.label || '';
-                                          if (label) {
-                                              label += ': ';
-                                          }
-                                          label += context.raw;
-                                          return label;
-                                      }
-                                  }
-                              }
-                          },
-                          scales: {
-                              y: {
-                                  beginAtZero: true
-                              },
-                              x: {
-                                  ticks: {
-                                      align: 'right',
-                                  }
-                              }
-                          }
-                      }
-                  });
-              } else {
-                  alert('Không thể tải dữ liệu từ server.');
-              }
-          } catch (error) {
-              console.error('Lỗi:', error);
-          }
+            // Labels for the chart
+            const chartLabels = [
+                'Đề tài/Dự án',
+                'Bài báo KH',
+                'Bằng sáng chế/Giải thưởng',
+                'Biên soạn giáo trình/bài giảng',
+                'Xây dựng CTĐT',
+                'NCKH và Huấn luyện đội tuyển',
+                'Sách và Giáo trình',
+                'Nhiệm vụ khoa học và CN'
+            ];
+
+            // Create a new chart
+            window.myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Số lượng',
+                        data: data.data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(199, 199, 199, 0.2)',
+                            'rgba(255, 99, 71, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(199, 199, 199, 1)',
+                            'rgba(255, 99, 71, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Biểu đồ thống kê tổng số hạng mục NCKH',
+                            font: { size: 30 }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    // Lấy chính xác tên và giá trị từ dữ liệu hiện tại
+                                    const label = chartLabels[context.dataIndex];
+                                    const value = context.raw;
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                align: 'right',
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            alert('Không thể tải dữ liệu từ server.');
+        }
+    } catch (error) {
+        console.error('Lỗi:', error);
+    }
 
           // Fetch detail data for each table
           const detailTables = [
-              { id: 'detailTable', endpoint: '/detail-data' },
-              { id: 'detailTable2', endpoint: '/detail-data/baibaokhoahoc' },
-              { id: 'detailTable3', endpoint: '/detail-data/bangsangchevagiaithuong' },
-              { id: 'detailTable4', endpoint: '/detail-data/biensoan' },
-              { id: 'detailTable6', endpoint: '/detail-data/xaydung' },
-              { id: 'detailTable7', endpoint: '/detail-data/nckh' },
-              { id: 'detailTable8', endpoint: '/detail-data/sachvagiaotrinh' },
-          ];
+        { id: 'detailTable', endpoint: '/detail-data' },
+        { id: 'detailTable2', endpoint: '/detail-data/baibaokhoahoc' },
+        { id: 'detailTable3', endpoint: '/detail-data/bangsangchevagiaithuong' },
+        { id: 'detailTable4', endpoint: '/detail-data/biensoan' },
+        { id: 'detailTable6', endpoint: '/detail-data/xaydung' },
+        { id: 'detailTable7', endpoint: '/detail-data/nckh' },
+        { id: 'detailTable8', endpoint: '/detail-data/sachvagiaotrinh' },
+        { id: 'detailTable5', endpoint: '/detail-data/nhiemvu' },
+    ];
 
           for (const table of detailTables) {
               try {
-                  const detailResponse = await fetch(`${table.endpoint}?namhoc=${nam}&khoa=${khoa}`);
+                const detailResponse = await fetch(`${table.endpoint}?namhoc=${nam}&khoa=${khoa}&giangvien=${encodeURIComponent(giangVien)}`);
                   const detailData = await detailResponse.json();
                   if (detailData.success) {
                       const detailTable = document.getElementById(table.id);
                       detailTable.innerHTML = ''; // Clear existing rows
-                      detailData.data.forEach(item => {
-                          const row = document.createElement('tr');
-                          // Adjust the row creation logic based on the specific table's data structure
-                          switch (table.id) {
-                              case 'detailTable':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.CapDeTai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenDeTai}</td>
-                                    <td>${item.MaSoDeTai}</td>
-                                    <td>${item.Khoa}</td>
-                                    <td>${item.ChuNhiem}</td>
-                                    <td>${item.ThuKy}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${formatDate(item.NgayNghiemThu)}</td>
-                                  `;
-                                  break;
-                              case 'detailTable2':
-                                  row.innerHTML = `
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.ID}</td>
-                                    <td>${item.TenBaiBao}</td>
-                                    <td>${item.LoaiTapChi}</td>
-                                    <td>${item.ChiSoTapChi}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.TacGiaChiuTrachNhiem}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable3':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenBangSangCheVaGiaiThuong}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.SoQDCongNhan}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                    <td>${formatDate(item.NgayQDCongNhan)}</td>
-                                  `;
-                                  break;
-                              case 'detailTable4':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.Phanloai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenGiaoTrinhBaiGiang}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.SoTC}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.TacGia}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable6':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenChuongTrinh}</td>
-                                    <td>${item.SoTC}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.HinhThucXayDung}</td>\
-                                    <td>${item.KetQua}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable7':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenDeTai}</td>
-                                    <td>${item.SoQDGiaoNhiemVu}</td>
-                                    <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
-                                    <td>${item.KetQuaCapKhoa}</td>
-                                    <td>${item.KetQuaCapHocVien}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                              case 'detailTable8':
-                                  row.innerHTML = `
-                                    <td>${item.ID}</td>
-                                    <td>${item.PhanLoai}</td>
-                                    <td>${item.NamHoc}</td>
-                                    <td>${item.TenSachVaGiaoTrinh}</td>
-                                    <td>${item.SoTrang}</td>
-                                    <td>${item.SoXuatBan}</td>
-                                    <td>${item.TacGia}</td>\
-                                    <td>${item.DongChuBien}</td>
-                                    <td>${item.DanhSachThanhVien}</td>
-                                    <td>${item.Khoa}</td>
-                                  `;
-                                  break;
-                          }
-                          detailTable.appendChild(row);
-                      });
+                      detailData.data.forEach((item, index) => {
+    const row = document.createElement('tr');
+    switch (table.id) {
+        case 'detailTable':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.CapDeTai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenDeTai}</td>
+                <td>${item.MaSoDeTai}</td>
+                <td>${item.Khoa}</td>
+                <td>${item.ChuNhiem}</td>
+                <td>${item.ThuKy}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${formatDate(item.NgayNghiemThu)}</td>
+            `;
+            break;
+        case 'detailTable2':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenBaiBao}</td>
+                <td>${item.LoaiTapChi}</td>
+                <td>${item.ChiSoTapChi}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.TacGiaChiuTrachNhiem}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable3':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenBangSangCheVaGiaiThuong}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.SoQDCongNhan}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+                <td>${formatDate(item.NgayQDCongNhan)}</td>
+            `;
+            break;
+        case 'detailTable4':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.Phanloai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenGiaoTrinhBaiGiang}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.SoTC}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable6':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenChuongTrinh}</td>
+                <td>${item.SoTC}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.HinhThucXayDung}</td>
+                <td>${item.KetQua}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable7':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenDeTai}</td>
+                <td>${item.SoQDGiaoNhiemVu}</td>
+                <td>${formatDate(item.NgayQDGiaoNhiemVu)}</td>
+                <td>${item.KetQuaCapKhoa}</td>
+                <td>${item.KetQuaCapHocVien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable8':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.TenSachVaGiaoTrinh}</td>
+                <td>${item.SoTrang}</td>
+                <td>${item.SoXuatBan}</td>
+                <td>${item.TacGia}</td>
+                <td>${item.DongChuBien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${item.Khoa}</td>
+            `;
+            break;
+        case 'detailTable5':
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.PhanLoai}</td>
+                <td>${item.NamHoc}</td>
+                <td>${item.Khoa}</td>
+                <td>${item.TenNhiemVu}</td>
+                <td>${item.MaNhiemVu}</td>
+                <td>${item.ChuNhiem}</td>
+                <td>${item.PhanBien}</td>
+                <td>${item.ThuKy}</td>
+                <td>${item.UyVien}</td>
+                <td>${item.DanhSachThanhVien}</td>
+                <td>${formatDate(item.NgayNghiemThu)}</td>
+                <td>${item.KetQua}</td>
+            `;
+            break;
+    }
+    detailTable.appendChild(row);
+});
                   } else {
                       alert('Không thể tải dữ liệu chi tiết.');
                   }
@@ -342,7 +422,7 @@
             <table class="table table-bordered my-2" border="1" id="thongkemgTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>STT</th>
                         <th>Cấp đề tài</th>
                         <th>Năm học</th>
                         <th>Tên đề tài</th>
@@ -366,8 +446,8 @@
    <table class="table table-bordered my-2" border="1" id="thongkemgTable">
        <thead>
            <tr>
+               <th>STT</th>
                <th>Năm học</th>
-               <th>Mã bài báo</th>
                <th>Tên bài báo</th>
                <th>Loại tạp chí</th>
                <th>Chỉ số tạp chí</th>
@@ -385,7 +465,7 @@
    <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Năm học</th>
             <th>Tên bằng sáng chế/giải thưởng</th>
             <th>Phân loại</th>
@@ -404,7 +484,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên giáo trình bài giảng</th>
@@ -420,28 +500,12 @@
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
 </table>
-<!--Nhiệm vụ kh&cn  -->
-<!-- <h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
-<table class="table table-bordered my-2" border="1" id="thongkemgTable">
-    <thead>
-        <tr>
-            <th>Mã nhiệm vụ</th>
-            <th>Năm học</th>
-            <th>Tên nhiệm vụ</th>
-            <th>Số QĐ giao nhiệm vụ</th>
-            <th>Ngày QĐ giao nhiệm vụ</th>
-        </tr>
-    </thead>
-    <tbody id="detailTable5">
-        <!-- Dữ liệu sẽ được thêm vào đây -->
-    </tbody>
-</table> 
 <!-- Xây dựng CTĐT -->
 <h2 style="margin-top: 30px; text-align: center;">Chi tiết Xây dựng chương trình đào tạo</h2>
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Năm học</th>
             <th>Tên chương trình</th>
             <th>Số tín chỉ</th>
@@ -462,7 +526,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên đề tài</th>
@@ -483,7 +547,7 @@
 <table class="table table-bordered my-2" border="1" id="thongkemgTable">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>STT</th>
             <th>Phân loại</th>
             <th>Năm học</th>
             <th>Tên sách và giáo trình</th>
@@ -496,6 +560,31 @@
         </tr>
     </thead>
     <tbody id="detailTable8">
+        <!-- Dữ liệu sẽ được thêm vào đây -->
+    </tbody>
+</table>
+
+<!-- Nhiệm vụ KH&CN -->
+<h2 style="margin-top: 30px; text-align: center;">Chi tiết Nhiệm vụ KH&CN</h2>
+<table class="table table-bordered my-2" border="1" id="thongkemgTable">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Phân loại</th>
+            <th>Năm học</th>
+            <th>Khoa</th>
+            <th>Tên nhiệm vụ</th>
+            <th>Mã nhiệm vụ</th>
+            <th>Chủ nhiệm</th>
+            <th>Phản biện</th>
+            <th>Thư ký</th>
+            <th>Ủy viên</th>
+            <th>Danh sách thành viên</th>
+            <th>Ngày nghiệm thu</th>
+            <th>Kết quả</th>
+        </tr>
+    </thead>
+    <tbody id="detailTable5">
         <!-- Dữ liệu sẽ được thêm vào đây -->
     </tbody>
 </table>
@@ -627,6 +716,14 @@
             console.error("Lỗi khi lấy dữ liệu năm học và khoa:", error);
         }
     });
+});
+
+// Thêm sự kiện cho nút tìm kiếm
+document.getElementById("btnFilter").addEventListener("click", fetchData);
+document.getElementById("tenGiangVien").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        fetchData();
+    }
 });
 </script>
 

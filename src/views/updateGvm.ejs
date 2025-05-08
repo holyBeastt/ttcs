@@ -57,7 +57,7 @@
             <div style="width: 12%;">
               <label for="ngaySinh">Ngày sinh:</label>
               <input required class="form-control" type="date" name="NgaySinh" id="ngaySinh"
-                value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>">
+                value="<%= value.NgaySinh %>">
             </div>
 
             <div style="width: 13%;">
@@ -92,7 +92,7 @@
             <div class="col-md-2">
               <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
               <input required class="form-control" type="date" name="NgayCapCCCD" id="NgayCapCCCD"
-                value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>">
+                value="<%= value.NgayCapCCCD %>">
             </div>
             <div class="col-md-4">
               <label for="NoiCapCCCD">Nơi cấp CCCD:</label>
@@ -330,6 +330,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script>
+      function formatDate(dateString) {
+        if (!dateString) return 'N/A'; // Hoặc trả về giá trị mặc định
+        const date = new Date(dateString);
+        if (isNaN(date)) return 'N/A'; // Kiểm tra nếu ngày không hợp lệ
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`; // Định dạng YYYY-MM-DD
+      }
+
       function loadBoMonTheoPhongBan(maPhongBan, selectedBoMon = null) {
         const maBoMonSelect = document.getElementById('monGiangDayChinh');
         maBoMonSelect.innerHTML = "";

@@ -19,92 +19,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <!-- <style>
-      .teacher-group {
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-        border-collapse: separate;
-        margin-bottom: 10px;
-      }
-
-      .teacher-group td,
-      .teacher-group th {
-        padding: 8px;
-        text-align: left;
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-      }
-
-      /* phần css cho label tổng số tiết ki*/
-      .total-label {
-        margin-left: auto;
-        /* Căn phải cho thẻ total-label */
-        margin-right: 0;
-        font-family: Arial, sans-serif;
-        font-size: 16px;
-        background-color: #f4f4f4;
-        padding: 10px;
-        border-radius: 8px;
-        width: fit-content;
-        /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
-        display: block;
-        /* Đảm bảo thẻ div là khối để căn phải hoạt động */
-      }
-
-      .total-label label {
-        font-weight: bold;
-        /* Giữ chữ in đậm */
-        color: #000;
-        /* Màu chữ đen */
-        margin-right: 8px;
-        /* Thêm khoảng cách bên phải */
-        cursor: pointer;
-        /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
-        padding: 5px 10px;
-        /* Thêm padding cho label để tạo không gian */
-        border: 1px solid #ccc;
-        /* Khung cho label */
-        border-radius: 4px;
-        /* Bo góc cho khung */
-      }
-
-      .total-label label,
-      .total-label label span {
-        background-color: #007bff;
-        /* Màu nền khi hover */
-        color: #fff;
-        /* Màu chữ trắng khi hover */
-      }
-
-      .total-label span {
-        font-weight: bold;
-        /* Giữ chữ trong span cũng in đậm */
-        color: #333;
-        /* Màu chữ đậm cho giá trị */
-      }
-
-      .btn {
-        height: 45px !important;
-      }
-
-      .table {
-        border-collapse: collapse;
-        width: 100%;
-        /*border: 2px solid #333 !important; /* Viền ngoài đậm */
-      }
-
-      .table th,
-      .table td {
-        border: 1px solid #ccc; /* Viền giữa các ô nhạt hơn */
-        padding: 8px;
-        text-align: center;
-      }
-
-      .table-dark th {
-        background-color: #343a40;
-        color: white;
-      }
-    </style> -->
     <style>
       /* Tùy chỉnh danh sách gợi ý */
       .ui-autocomplete {
@@ -169,6 +83,14 @@
                 Xem dữ liệu
               </button>
 
+              <button id="update-unapproved-list" class="btn mx-3 luu">
+                Cập nhật
+              </button>
+              <button id="export-unapproved-list" class="btn mx-3 luu">
+                Xuất thông tin giảng viên
+              </button>
+            </div>
+            <div style="margin-bottom: 20px">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo Tên..."
@@ -178,13 +100,10 @@
               <input
                 type="text"
                 placeholder="Tìm kiếm theo Bộ môn"
+                style="margin-left: 20px"
                 class="search"
                 id="searchBoMon"
               />
-
-              <button id="update-unapproved-list" class="btn mx-3 luu">
-                Cập nhật
-              </button>
             </div>
 
             <div id="tableContainer" style="display: none">
@@ -634,6 +553,76 @@
       document
         .getElementById("update-unapproved-list")
         .addEventListener("click", submitData);
+
+      const exportData = async () => {
+        const MaPhongBan = document.getElementById("MaPhongBan").value;
+        const checkOrder = document.getElementById("checkOrder").value;
+
+        const updatedData = {
+          MaPhongBan,
+          checkOrder,
+          exportType: "waittingList",
+        };
+
+        try {
+          const response = await fetch("/api/gvm/waiting-list/export", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+          });
+
+          //Thêm đoạn kiểm tra lỗi
+          if (!response.ok) {
+            const err = await response.json(); // lấy nội dung lỗi từ server
+            return Swal.fire({
+              title: "Cảnh báo",
+              text: err.error || "Có lỗi xảy ra khi xuất file.",
+              icon: "warning",
+              confirmButtonText: "OK",
+            });
+          }
+
+          // Lấy tên file từ header (nếu server có set), không có thì dùng tên mặc định
+          const contentDisposition = response.headers.get(
+            "Content-Disposition"
+          );
+          let fileName = "DanhSachGiangVienMoi.xlsx";
+          if (contentDisposition && contentDisposition.includes("filename=")) {
+            fileName = contentDisposition
+              .split("filename=")[1]
+              .replace(/"/g, "")
+              .trim();
+          }
+
+          // Nhận dữ liệu dạng blob
+          const blob = await response.blob();
+
+          // Tạo link download và click tự động
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Có lỗi xảy ra:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: "Có lỗi xảy ra khi xuất file.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      };
+
+      // Gắn sự kiện click cho nút
+      document
+        .getElementById("export-unapproved-list")
+        .addEventListener("click", exportData);
 
       function submitData() {
         // Lấy dữ liệu để tiến hành cập nhật

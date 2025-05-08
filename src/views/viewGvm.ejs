@@ -54,7 +54,7 @@
           <div style="width: 12%;">
             <label for="ngaySinh">Ngày sinh:</label>
             <input class="form-control" type="date" name="NgaySinh" id="ngaySinh"
-              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" disabled>
+              value="<%= value.NgaySinh %>" disabled>
           </div>
 
           <div style="width: 13%;">
@@ -71,7 +71,7 @@
           </div>
           <div class="col-md-2">
             <label>Mã phòng ban:</label>
-            <input class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
+            <input id="MaPhongBan" class="form-control" type="text" value="<%= value.MaPhongBan %>" disabled>
           </div>
           <div style="padding: 0px; width: 30%;">
             <label for="monGiangDayChinh">Bộ môn:</label>
@@ -86,7 +86,7 @@
           <div class="col-md-2">
             <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
             <input class="form-control" type="date" name="NgayCapCCCD" id="NgayCapCCCD"
-              value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>" disabled>
+              value="<%= value.NgayCapCCCD %>" disabled>
           </div>
           <div class="col-md-4">
             <label for="NoiCapCCCD">Nơi cấp CCCD:</label>
@@ -443,13 +443,14 @@
     document.addEventListener("DOMContentLoaded", function () {
       const maPhongBan = localStorage.getItem("MaPhongBan");
       const isKhoa = localStorage.getItem("isKhoa");
-      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh từ localStorage    
+      const monGiangDayChinh = document.getElementById("boMon").value; // Lấy giá trị MonGiangDayChinh     
 
       fetch(`/getMaBoMon/${maPhongBan}/${isKhoa}`)
         .then(response => response.json())
         .then(data => {
           console.log(data); // In ra phản hồi để kiểm tra
           const maBoMonSelect = document.getElementById('monGiangDayChinh');
+          const MaPhongBan = document.getElementById("MaPhongBan").value;
 
           if (!maBoMonSelect) {
             console.error("Không tìm thấy phần tử với ID 'monGiangDayChinh'");
@@ -466,7 +467,7 @@
               option.textContent = item.TenBoMon; // Giả sử TenBoMon là tên bộ môn cần hiển thị
 
               // Kiểm tra nếu giá trị trùng với monGiangDayChinh
-              if (item.MaBoMon === monGiangDayChinh) {
+              if (item.MaBoMon === monGiangDayChinh && item.MaPhongBan === MaPhongBan) {
                 option.selected = true; // Đặt option thành selected nếu trùng
                 foundMatch = true; // Đánh dấu là đã tìm thấy giá trị trùng
               }
