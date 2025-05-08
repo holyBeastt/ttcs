@@ -304,6 +304,7 @@
             if (field === "DaoTaoDuyet") {
               updatedData.DaoTaoDuyet = daoTaoDuyet == 1 ? 0 : 1;
             }
+            updatedData.namHoc = year;
             await saveData(updatedData.ID, updatedData, row);
           });
 
@@ -361,7 +362,7 @@
         const button = document.createElement("button");
         button.innerHTML = "<i class=\"fas fa-trash-alt\"></i>";
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
         return button;
       }
 
@@ -407,9 +408,9 @@
       }
 
       // Hàm xóa dòng dữ liệu
-      async function deleteRow(id, row) {
+      async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/nckhvahuanluyendoituyen`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/${year}/nckhvahuanluyendoituyen`, { method: "POST" });
           const result = await response.json();
           if (result.success) {
             Swal.fire({

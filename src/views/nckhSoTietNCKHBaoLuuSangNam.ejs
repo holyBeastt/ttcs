@@ -23,13 +23,13 @@
       <div class="tabs">
         <ul class="tabs-nav">
           <li class="tab-item">
-            <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Nhập
+            <!-- <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Xem số tiết NCKH bảo lưu -->
             </a>
           </li>
-          <li class="tab-item">
+          <!-- <li class="tab-item">
             <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">Xem số
               giờ quy đổi</a>
-          </li>
+          </li> -->
         </ul>
       </div>
 
@@ -44,7 +44,7 @@
             </div>
             <div class="flex-item">
               <label for="namHocForm">Năm học</label>
-              <select class="namHoc" id="namHocForm" name="namHoc" required>
+              <select class="namHoc" id="namHocForm" name="namHoc" onclick="getDataSoTietNCKHBaoLuuSangNam()">
                 <!-- Các năm học sẽ được thêm vào đây bằng JavaScript -->
               </select>
             </div>
@@ -62,7 +62,7 @@
             </div>
           </div> -->
           <div id="table"></div>
-          <button type="button" class="btn" id="submitBtn">Gửi</button>
+          <!-- <button type="button" class="btn" id="submitBtn">Gửi</button> -->
         </form>
 
       </div>
@@ -255,6 +255,7 @@
               // Nếu check box được chọn, chuyển thành 1 để gửi lên sv
               updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
             }
+            updatedData.namHoc = year;
             await saveData(updatedData.ID, updatedData, row);
           });
         } catch (error) {
@@ -280,7 +281,7 @@
         const button = document.createElement("button");
         button.innerHTML = "<i class=\"fas fa-trash-alt\"></i>";
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
         return button;
       }
 
@@ -322,9 +323,9 @@
         }
       }
 
-      async function deleteRow(id, row) {
+      async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/sotietnckhbaoluusangnam`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/${year}/sotietnckhbaoluusangnam`, { method: "POST" });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
@@ -482,6 +483,64 @@
           alert("Không thể tải dữ liệu đề tài. Vui lòng thử lại sau.");
         }
       };
+
+
+      async function getDataSoTietNCKHBaoLuuSangNam() {
+        try {
+          await getTenNhiemVu();
+
+          // Đảm bảo DOM đã được cập nhật hoàn toàn sau khi getTenNhiemVu() thực thi
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Đợi 1000ms
+
+          // Lấy dữ liệu từ form sau khi getTenNhiemVu đã hoàn thành
+          const formData = {
+            tenNhiemVu: document.getElementById("capDeTai").value,
+            namHoc: document.getElementById("namHocForm").value,
+            giangVien: localStorage.getItem("TenNhanVien"),
+            khoa: localStorage.getItem("MaPhongBan"),
+          };
+
+          // Validate form
+          let missing = 0;
+          for (let key of Object.keys(formData)) {
+            if (!formData[key]) {
+              missing++;
+            }
+          }
+
+          if (missing > 0) {
+            alert("Vui lòng nhập đủ thông tin");
+            return;
+          }
+
+          // Gửi dữ liệu lên server
+          try {
+            const response = await fetch("/sotietnckhbaoluusangnam", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+              throw new Error("Gửi dữ liệu thất bại!");
+            }
+
+            const data = await response.json();
+            if (data) {
+              console.log(data);
+              renderTable(data);
+            }
+          } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra: " + error.message);
+          }
+        } catch (error) {
+          console.error("Lỗi khi khởi tạo dữ liệu:", error);
+          alert("Không thể tải dữ liệu đề tài. Vui lòng thử lại sau.");
+        }
+      }
 
       function renderTable(data) {
         const tableContainer = document.getElementById("table");

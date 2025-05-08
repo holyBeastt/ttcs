@@ -102,7 +102,7 @@ router.post("/delete-nhiemvukhoahoccongnghe", nckhAdmin.deleteRowQuyDinhSoGioNCK
 // =================================================================
 // sửa xóa 
 router.post("/nckh/edit/:ID/:MaBang", nckh.editNckh);
-router.post("/nckh/delete/:ID/:MaBang", nckh.deleteNckh);
+router.post("/nckh/delete/:ID/:namHoc/:MaBang", nckh.deleteNckh);
 
 
 
