@@ -54,7 +54,7 @@
           <div style="width: 12%;">
             <label for="ngaySinh">Ngày sinh:</label>
             <input class="form-control" type="date" name="NgaySinh" id="ngaySinh"
-              value="<%= new Date(value.NgaySinh).toISOString().split('T')[0] %>" disabled>
+              value="<%= value.NgaySinh %>" disabled>
           </div>
 
           <div style="width: 13%;">
@@ -86,7 +86,7 @@
           <div class="col-md-2">
             <label for="NgayCapCCCD">Ngày cấp CCCD:</label>
             <input class="form-control" type="date" name="NgayCapCCCD" id="NgayCapCCCD"
-              value="<%= new Date(value.NgayCapCCCD).toISOString().split('T')[0] %>" disabled>
+              value="<%= value.NgayCapCCCD %>" disabled>
           </div>
           <div class="col-md-4">
             <label for="NoiCapCCCD">Nơi cấp CCCD:</label>

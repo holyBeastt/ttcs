@@ -81,7 +81,7 @@
     <%- include('adminHeader') %>
     <div class="container my-5 box">
       <form action="/kytubatdau" method="POST" class="row">
-        <div class="col-md-5">
+        <div class="col-md-5" style="max-width: 300px;">
           <div class="form-group">
             <label for="viet_tat">Viết tắt:</label>
             <input
@@ -89,6 +89,18 @@
               class="form-control"
               id="viet_tat"
               name="viet_tat"
+              required
+            />
+          </div>
+        </div>
+        <div class="col-md-5" style="max-width: 300px;">
+          <div class="form-group">
+            <label for="doi_tuong">Đối tượng:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="doi_tuong"
+              name="doi_tuong"
               required
             />
           </div>
@@ -135,6 +147,7 @@
               <th>Viết tắt</th>
               <th>Tên lớp ví dụ</th>
               <th>Hệ đào tạo</th>
+              <th>Đối tượng</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -151,6 +164,7 @@
                 <%= kyTuBD[i].lop_vi_du %>
               </td>
               <td class="editable"><%= kyTuBD[i].gia_tri_so_sanh %></td>
+              <td class="editable doi_tuong-cell"><%= kyTuBD[i].doi_tuong %></td>
               <td class="d-flex justify-content-center" style="border: none;">
                 <button class="bi bi-pencil action-button edit-btn"></button>
                 <button
@@ -299,6 +313,7 @@
             const row = e.target.closest("tr");
             const lop_vi_duCell = row.querySelector(".lop_vi_du-cell");
             const viet_tatCell = row.querySelector(".viet_tat-cell");
+            const doiTuongCell = row.querySelector(".doi_tuong-cell");
             const giaTriSoSanhCell = row.querySelector(
               ".editable:nth-child(4)"
             );
@@ -306,6 +321,7 @@
             // Lưu giá trị gốc
             row.dataset.originallopViDu = lop_vi_duCell.textContent.trim();
             row.dataset.originalvietTat = viet_tatCell.textContent.trim();
+            row.dataset.originaldoiTuong = doiTuongCell.textContent.trim();
             row.dataset.originalgiaTriSoSanh =
               giaTriSoSanhCell.textContent.trim();
 
@@ -320,6 +336,9 @@
             `;
             viet_tatCell.innerHTML = `
               <input type="text" class="edit-input" value="${row.dataset.originalvietTat}">
+            `;
+            doiTuongCell.innerHTML = `
+              <input type="text" class="edit-input" value="${row.dataset.originaldoiTuong}">
             `;
             giaTriSoSanhCell.innerHTML = `
               <select class="edit-input" id="LoaiDaoTao">
@@ -359,6 +378,9 @@
             const newlop_vi_du = row.querySelector(
               ".lop_vi_du-cell input"
             ).value;
+            const newdoi_tuong = row.querySelector(
+              ".doi_tuong-cell input"
+            ).value;
             const newviet_tat = row.querySelector(".viet_tat-cell input").value;
             const newLoaiDaoTao = row.querySelector("#LoaiDaoTao").value;
             const newHeDaoTao = row.querySelector("#HeDaoTao").value;
@@ -375,6 +397,7 @@
                   viet_tat: newviet_tat,
                   loai_dao_tao: newLoaiDaoTao,
                   he_dao_tao: newHeDaoTao,
+                  doi_tuong: newdoi_tuong,
                 }),
               });
 
@@ -382,8 +405,10 @@
                 // Update UI
                 row.dataset.lop_vi_du = newlop_vi_du;
                 row.dataset.viet_tat = newviet_tat;
+                row.dataset.doi_tuong = newdoi_tuong;
                 row.querySelector(".lop_vi_du-cell").textContent = newlop_vi_du;
                 row.querySelector(".viet_tat-cell").textContent = newviet_tat;
+                row.querySelector(".doi_tuong-cell").textContent = newdoi_tuong;
                 row.querySelector(
                   ".editable:nth-child(4)"
                 ).textContent = `${newLoaiDaoTao} (${newHeDaoTao})`;
@@ -418,6 +443,8 @@
               row.dataset.originallopViDu;
             row.querySelector(".viet_tat-cell").textContent =
               row.dataset.originalvietTat;
+            row.querySelector(".doi_tuong-cell").textContent =
+              row.dataset.originaldoiTuong;
             row.querySelector(".editable:nth-child(4)").textContent =
               row.dataset.originalgiaTriSoSanh;
 
@@ -493,6 +520,7 @@
           const vietTat = $("#viet_tat").val();
           const loaiDaoTao = $("#LoaiDaoTao").val();
           const heDaoTao = $("#he_dao_tao").val();
+          const doiTuong = $("#doi_tuong").val();
           const giaTriSoSanh = `${loaiDaoTao} (${heDaoTao})`;
 
           // Kiểm tra trùng lặp trước khi thêm mới
@@ -503,10 +531,11 @@
             data: JSON.stringify({
               viet_tat: vietTat,
               gia_tri_so_sanh: giaTriSoSanh,
+              doi_tuong: doiTuong,
             }),
             success: function (response) {
               // Nếu không trùng, tiến hành thêm mới
-              addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh);
+              addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh, doiTuong);
             },
             error: function (xhr) {
               if (xhr.status === 409) {
@@ -527,7 +556,7 @@
           });
         });
 
-        function addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh) {
+        function addNewKyTuBD(vietTat, loaiDaoTao, heDaoTao, giaTriSoSanh, doiTuong) {
           $.ajax({
             url: "/kytubatdau",
             method: "POST",
@@ -537,6 +566,7 @@
               loai_dao_tao: loaiDaoTao,
               he_dao_tao: heDaoTao,
               gia_tri_so_sanh: giaTriSoSanh,
+              doi_tuong: doiTuong,
             }),
             success: function (response) {
               Swal.fire({

@@ -913,10 +913,16 @@ const saveToTableDoantotnghiep = async (req, res) => {
   try {
     connection = await createPoolConnection(); // Kết nối đến DB
 
+    const query = `SELECT * FROM kitubatdau`;
+    const [rows] = await connection.query(query);
+
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
     const values = data.map((row) => {
       // Tạo Khóa đào tạo
-      const KhoaDaoTao = row.MaSV.slice(0, 4);
+      // const KhoaDaoTao = row.MaSV.slice(0, 4);
+      const match = row.MaSV.match(/^([A-Za-z]+)(\d{2})/);
+      const KhoaDaoTao = match ? match[1] + match[2] : null;
+
 
       const KhoaDuyet = 0,
         DaoTaoDuyet = 0,
@@ -926,6 +932,17 @@ const saveToTableDoantotnghiep = async (req, res) => {
 
       const startDate = !row.NgayBatDau || row.NgayBatDau.trim() === '' ? defaultDate : row.NgayBatDau;
       const endDate = !row.NgayKetThuc || row.NgayKetThuc.trim() === '' ? defaultDate : row.NgayKetThuc;
+
+      // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
+      let DoiTuong = "Việt Nam"; // Mặc định là "Việt Nam"
+
+      for (const kitubatdau of rows) {
+        const prefix = kitubatdau.viet_tat; // Lấy giá trị viet_tat
+        // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
+        if (row.MaSV.startsWith(prefix) && row.MaSV[prefix.length]?.match(/^\d$/)) {
+          DoiTuong = kitubatdau.doi_tuong;
+        }
+      }
 
       return [
         row.TT,
@@ -949,7 +966,8 @@ const saveToTableDoantotnghiep = async (req, res) => {
         row.GiangVien2Real,
         DaBanHanh,
         Dot,
-        Ki
+        Ki,
+        DoiTuong,
       ];
     });
 
@@ -957,7 +975,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
     GiangVien1, GiangVien2, NamHoc, NgayBatDau, NgayKetThuc, MaPhongBan, SoQD, KhoaDuyet, DaoTaoDuyet, 
-    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki)
+    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong)
     VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values

@@ -12,6 +12,10 @@ const addClass = async (req, res) => {
     const query = `SELECT id_User FROM nhanvien WHERE TenNhanVien = ?`;
     const [rows] = await connection.query(query, [GiangVien]);
     const id_User = rows[0].id_User;
+    const queryhedaotao = `SELECT * FROM kitubatdau`;
+    const [hedaotao] = await connection.query(queryhedaotao);
+
+    
     let {
       [`SoTC`]: SoTC = 0,
       [`TenHocPhan`]: TenHocPhan = "", // Gán giá trị mặc định là chuỗi rỗng
@@ -23,7 +27,6 @@ const addClass = async (req, res) => {
       [`NamHoc`]: NamHoc, // Gán giá trị mặc định là chuỗi rỗng
       [`HinhThucKTGiuaKy`]: HinhThucKTGiuaKy, // Gán giá trị mặc định là chuỗi rỗng
       [`Lop`]: Lop = "", // Gán giá trị mặc định là chuỗi rỗng
-      [`he_dao_tao`]: he_dao_tao = "", // Gán giá trị mặc định là chuỗi rỗng
     } = req.body; // Đảm bảo rằng các biến được khai báo đúng cách
     SoTC = SoTC || 0;
     LenLop = LenLop || 0;
@@ -66,6 +69,18 @@ const addClass = async (req, res) => {
       let number = HeSoT7CN * (0.125 * SoSV + 2);
       SoTietKT = parseFloat(number.toFixed(2));
     }
+    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
+    let he_dao_tao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
+    let DoiTuong = "Việt Nam"; // Mặc định là "Việt Nam"
+
+    for (const row of hedaotao) {
+      const prefix = row.viet_tat; // Lấy giá trị viet_tat
+      // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
+      if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
+        he_dao_tao = row.gia_tri_so_sanh;
+        DoiTuong = row.doi_tuong;
+      }
+    }
     console.log(
       SoTC,
       TenHocPhan,
@@ -80,9 +95,10 @@ const addClass = async (req, res) => {
       SoTietKT,
       Lop,
       MaPhongBan,
-      he_dao_tao
+      he_dao_tao,
+      DoiTuong,
     );
-    const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+    const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, DoiTuong) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
     const [result] = await connection.query(query1, [
       SoTC,
       TenHocPhan,
@@ -101,10 +117,11 @@ const addClass = async (req, res) => {
       SoDe,
       MaPhongBan,
       he_dao_tao,
+      DoiTuong,
     ]);
     const MaGiangDay = result.insertId;
 
-    const query2 = `INSERT INTO giuaky (TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, Nguon, MaGiangDayNguon, he_dao_tao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+    const query2 = `INSERT INTO giuaky (TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, Nguon, MaGiangDayNguon, he_dao_tao, DoiTuong) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
     await connection.query(query2, [
       TenHocPhan,
       id_User,
@@ -121,6 +138,7 @@ const addClass = async (req, res) => {
       "lopngoaiquychuan",
       MaGiangDay,
       he_dao_tao,
+      DoiTuong,
     ]);
 
     res.status(200).send({ message: "Thêm lớp thành công" });
@@ -526,9 +544,9 @@ const updateLopThiGk = async (req, res) => {
           console.log(`✅ Cập nhật thành công cho MaGiangDay: ${MaGiangDay}`);
         } else {
           await connection.query(
-            `INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [MaGiangDay, row.TenHocPhan, id_User, heSoT7CN, row.SoSV, row.HocKy, row.NamHoc, row.MaHocPhan, GiangVien, hinhThucKTGiuaKy, SoTietKT, row.Lop, SoDe, row.Khoa, row.he_dao_tao, "giangday"]
+            `INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon, DoiTuong) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [MaGiangDay, row.TenHocPhan, id_User, heSoT7CN, row.SoSV, row.HocKy, row.NamHoc, row.MaHocPhan, GiangVien, hinhThucKTGiuaKy, SoTietKT, row.Lop, SoDe, row.Khoa, row.he_dao_tao, "giangday", row.DoiTuong]
           );
           console.log(`✅ Thêm mới thành công cho MaGiangDay: ${MaGiangDay}`);
         }
@@ -898,19 +916,19 @@ const getLopGiangDay = async (req, res) => {
 
     // Truy vấn kết hợp giangday và lopngoaiquychuan
     const query = `
-            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp quy chuẩn' AS source 
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, DoiTuong, 'Lớp quy chuẩn' AS source 
             FROM giangday 
             WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
             UNION ALL
-            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp ngoài quy chuẩn' AS source 
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, DoiTuong, 'Lớp ngoài quy chuẩn' AS source 
             FROM lopngoaiquychuan 
-            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
     // Truy vấn giuaky
     const query1 = `
             SELECT * 
             FROM giuaky 
-            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
@@ -1017,19 +1035,19 @@ const getTTVuotGio = async (req, res) => {
 
     // Truy vấn kết hợp giangday và lopngoaiquychuan
     const query = `
-            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp quy chuẩn' AS source 
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, DoiTuong, 'Lớp quy chuẩn' AS source 
             FROM giangday 
             WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?
             UNION ALL
-            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, 'Lớp ngoài quy chuẩn' AS source 
+            SELECT MaGiangDay, TenHocPhan, GiangVien, SoTC, Lop, LenLop, QuyChuan, DoiTuong, 'Lớp ngoài quy chuẩn' AS source 
             FROM lopngoaiquychuan 
-            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
     // Truy vấn giuaky
     const query1 = `
             SELECT * 
             FROM giuaky 
-            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ?`;
+            WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
@@ -1100,15 +1118,18 @@ const getTTVuotGio = async (req, res) => {
     const queryB = `
         SELECT *, 
             CASE 
-                WHEN TRIM(GiangVien1Real) = TRIM(?) THEN 'HD chính'
-                WHEN TRIM(GiangVien2Real) = TRIM(?) THEN 'HD hai'
+                WHEN LOWER(TRIM(GiangVien1)) LIKE LOWER(CONCAT('%', TRIM(?), '%')) THEN 'HD chính'
+                WHEN LOWER(TRIM(GiangVien2)) LIKE LOWER(CONCAT('%', TRIM(?), '%')) THEN 'HD hai'
             END AS VaiTro
         FROM doantotnghiep 
-        WHERE (TRIM(GiangVien1Real) = TRIM(?) OR TRIM(GiangVien2Real) = TRIM(?)) 
+        WHERE (LOWER(TRIM(GiangVien1)) LIKE LOWER(CONCAT('%', TRIM(?), '%')) 
+              OR LOWER(TRIM(GiangVien2)) LIKE LOWER(CONCAT('%', TRIM(?), '%'))) 
           AND NamHoc = ?
-        `;
+    `;
+
 
     const [rowsB] = await connection.query(queryB, [TenNhanVien, TenNhanVien, TenNhanVien, TenNhanVien, Nam]);
+    
     const cleanTenNhanVien = TenNhanVien.replace(/\s+/g, ' ').trim();
     const queryC1 = `SELECT *, 
             CASE 

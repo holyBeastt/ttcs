@@ -178,9 +178,10 @@
     <!-- nckh view -->
     <script>
       var table;
+      var year;
 
       document.getElementById("render").addEventListener("click", async function () {
-        const year = document.getElementById("namHocXem").value;
+        year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
         if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
@@ -328,6 +329,7 @@
               // Nếu checkbox được chỉnh sửa, chuyển sang 1 nếu chưa duyệt, ngược lại 0
               updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
             }
+            updatedData.namHoc = year;
             await saveData(updatedData.ID, updatedData, row);
           });
         } catch (error) {
@@ -353,7 +355,7 @@
         const button = document.createElement("button");
         button.innerHTML = "<i class='fas fa-trash-alt'></i>";
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
         return button;
       }
 
@@ -396,9 +398,9 @@
         }
       }
 
-      async function deleteRow(id, row) {
+      async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/baibaokhoahoc`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/${year}/baibaokhoahoc`, { method: "POST" });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
@@ -428,6 +430,7 @@
           console.error("Lỗi khi xóa dữ liệu:", error);
         }
       }
+
     </script>
 
     <!-- nckh form -->

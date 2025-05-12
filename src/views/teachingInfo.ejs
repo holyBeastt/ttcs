@@ -1477,7 +1477,39 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
-              }).catch((error) => console.error("Có lỗi xảy ra:", error));
+              }).then((response) => {
+                if (!response.ok) {
+                  Swal.fire({
+                    title: 'Thông báo',
+                    html: "Lỗi khi cập nhật tên giảng viên: " + response.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    width: 'auto', // Tự động điều chỉnh chiều rộng
+                    padding: '20px', // Giữ khoảng cách cho nội dung
+                  });
+                }
+                return response.json(); // hoặc .text() nếu bạn trả về plain text
+              })
+              .then((result) => {
+                // Hiển thị thông báo thành công
+                Toastify({
+                  text: "Thay đổi giảng viên thành công!",
+                  duration: 1000, // Hiển thị trong 3 giây
+                  gravity: "top", // Đưa thông báo lên trên
+                  position: "right", // Căn lề bên phải
+                  backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
+                }).showToast();
+              })
+              .catch((error) => {
+                Swal.fire({
+                  title: 'Thông báo',
+                  html: "Lỗi khi cập nhật tên giảng viên: ",
+                  icon: 'error',
+                  confirmButtonText: 'OK',
+                  width: 'auto', // Tự động điều chỉnh chiều rộng
+                  padding: '20px', // Giữ khoảng cách cho nội dung
+                });
+              });
             }
 
             return false;
