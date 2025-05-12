@@ -985,6 +985,13 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
       worksheet.mergeCells(`A${titleRow19.number}:G${titleRow19.number}`);
       titleRow19.height = 40; // Tăng chiều cao hàng
 
+      const titleRow35 = worksheet.addRow(["B.1. Hướng dẫn cho sinh viên Mật mã đối tượng Việt Nam"]);
+      titleRow35.font = { name: "Times New Roman", size: 12,  };
+      titleRow35.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow35.number}:G${titleRow35.number}`);
+      titleRow35.height = 40; // Tăng chiều cao hàng
+
+
       // Thêm tiêu đề cho bảng dữ liệu
       const headerRowExport = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo", "Số QĐ Giao Luận án, Luận văn, đồ án", "Số người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
       headerRowExport.font = { name: "Times New Roman", size: 12, bold: true };
@@ -999,6 +1006,164 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
       worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
       worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
 
+      const totalRow10 = worksheet.addRow(["Tổng B.1", "", "", "", "", "", ""]);
+
+      // Merge cells from A to F for the total row
+      worksheet.mergeCells(`A${totalRow10.number}:F${totalRow10.number}`);
+      
+      // Format the total row
+      totalRow10.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow10.getCell(1).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      totalRow10.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow10.getCell(7).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      const titleRow36 = worksheet.addRow(["B.2. Hướng dẫn cho sinh viên Mật mã đối tượng Lào"]);
+      titleRow36.font = { name: "Times New Roman", size: 12,  };
+      titleRow36.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow36.number}:G${titleRow36.number}`);
+      titleRow36.height = 40; // Tăng chiều cao hàng
+
+
+      // Thêm tiêu đề cho bảng dữ liệu
+      const headerRowExport10 = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo", "Số QĐ Giao Luận án, Luận văn, đồ án", "Số người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
+      headerRowExport10.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport10.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+      // Điều chỉnh chiều rộng cột
+      worksheet.getColumn('A').width = 4.1; // Cột TT
+      worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+      worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+      worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+      worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+      worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+      worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+      
+      const totalRow11 = worksheet.addRow(["Tổng B.2", "", "", "", "", "", ""]);
+
+      // Merge cells from A to F for the total row
+      worksheet.mergeCells(`A${totalRow11.number}:F${totalRow11.number}`);
+      
+      // Format the total row
+      totalRow11.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow11.getCell(1).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      totalRow11.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow11.getCell(7).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+
+
+      const titleRow37 = worksheet.addRow(["B.3. Hướng dẫn cho sinh viên Mật mã đối tượng Cuba"]);
+      titleRow37.font = { name: "Times New Roman", size: 12,  };
+      titleRow37.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow37.number}:G${titleRow37.number}`);
+      titleRow37.height = 40; // Tăng chiều cao hàng
+
+
+      // Thêm tiêu đề cho bảng dữ liệu
+      const headerRowExport11 = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo", "Số QĐ Giao Luận án, Luận văn, đồ án", "Số người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
+      headerRowExport11.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport11.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+      // Điều chỉnh chiều rộng cột
+      worksheet.getColumn('A').width = 4.1; // Cột TT
+      worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+      worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+      worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+      worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+      worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+      worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+      const totalRow12 = worksheet.addRow(["Tổng B.3", "", "", "", "", "", ""]);
+
+      // Merge cells from A to F for the total row
+      worksheet.mergeCells(`A${totalRow12.number}:F${totalRow12.number}`);
+      
+      // Format the total row
+      totalRow12.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow12.getCell(1).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      totalRow12.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow12.getCell(7).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      const titleRow40 = worksheet.addRow(["B.4. Hướng dẫn cho sinh viên Mật mã đối tượng Campuchia"]);
+      titleRow40.font = { name: "Times New Roman", size: 12,  };
+      titleRow40.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow40.number}:G${titleRow40.number}`);
+      titleRow40.height = 40; // Tăng chiều cao hàng
+
+
+      // Thêm tiêu đề cho bảng dữ liệu
+      const headerRowExport12 = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo", "Số QĐ Giao Luận án, Luận văn, đồ án", "Số người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
+      headerRowExport12.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport12.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+      // Điều chỉnh chiều rộng cột
+      worksheet.getColumn('A').width = 4.1; // Cột TT
+      worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+      worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+      worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+      worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+      worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+      worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
+      const totalRow13 = worksheet.addRow(["Tổng B.4", "", "", "", "", "", ""]);
+
+      // Merge cells from A to F for the total row
+      worksheet.mergeCells(`A${totalRow13.number}:F${totalRow13.number}`);
+      
+      // Format the total row
+      totalRow13.getCell(1).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow13.getCell(1).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+      totalRow13.getCell(7).font = { name: "Times New Roman", size: 12, bold: true };
+      totalRow13.getCell(7).alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true
+      };
+
+
+
+      const titleRow41 = worksheet.addRow(["B.5. Hướng dẫn cho sinh viên Hệ đóng học phí"]);
+      titleRow41.font = { name: "Times New Roman", size: 12,  };
+      titleRow41.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
+      worksheet.mergeCells(`A${titleRow41.number}:G${titleRow41.number}`);
+      titleRow41.height = 40; // Tăng chiều cao hàng
+
+
+      // Thêm tiêu đề cho bảng dữ liệu
+      const headerRowExport13 = worksheet.addRow(["TT", "Họ tên NCS, Học viên, Sinh viên", "Khóa đào tạo", "Số QĐ Giao Luận án, Luận văn, đồ án", "Số người HD", "HD chính/HD hai", "Số tiết quy đổi"]);
+      headerRowExport13.font = { name: "Times New Roman", size: 12, bold: true };
+      headerRowExport13.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+      // Điều chỉnh chiều rộng cột
+      worksheet.getColumn('A').width = 4.1; // Cột TT
+      worksheet.getColumn('B').width = 23.78; // Cột Tên học phần
+      worksheet.getColumn('C').width = 13.11; // Cột Số TC (HT)
+      worksheet.getColumn('D').width = 18.33; // Cột Lớp học phần
+      worksheet.getColumn('E').width = 17.22; // Cột Loại hình đào tạo
+      worksheet.getColumn('F').width = 16.89; // Cột Số tiết theo TKB
+      worksheet.getColumn('G').width = 10.67; // Cột Số tiết QC
       // Khởi tạo biến đếm cho cột TT
       let totalSoTietQuyDoi = 0;
 
@@ -1024,22 +1189,40 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
       });
       // Thêm dòng tổng cho số tiết quy đổi
       const totalRowExport = worksheet.addRow([
-        "TỔNG B", // Ghi chú
+        "TỔNG B.5", // Ghi chú
         "", // Tên học phần
         "", // Khóa đào tạo
         "", // Số QĐ Giao Luận án, Luận văn, đồ án
         "", // Số người HD
+        
         "", // HD chính/HD hai
         parseFloat(totalSoTietQuyDoi).toFixed(2) // Tổng số tiết quy đổi
       ]);
 
       // Gộp cột A và B cho dòng tổng
-      worksheet.mergeCells(`A${totalRowExport.number}:E${totalRowExport.number}`);
+      worksheet.mergeCells(`A${totalRowExport.number}:F${totalRowExport.number}`);
 
       // Định dạng dòng tổng
       totalRowExport.font = { name: "Times New Roman", size: 12, bold: true }; // Đặt đậm cho dòng tổng
       totalRowExport.alignment = { horizontal: "center", vertical: "middle" };
+      // Tính tổng B.1 + B.2 + B.3 + B.4 + B.5
+      const totalB1toB5 = totalSoTietQuyDoi; // Tổng B.5 đã được tính trước đó
+      const totalRowB1toB5 = worksheet.addRow([
+        "Tổng B = B.1 + B.2 + B.3 + B.4 + B.5",
+        "",
+        "",
+        "",
+        "",
+        "",
+        parseFloat(totalB1toB5).toFixed(2)
+      ]);
 
+      // Gộp cột A và F cho dòng tổng
+      worksheet.mergeCells(`A${totalRowB1toB5.number}:F${totalRowB1toB5.number}`);
+
+      // Định dạng dòng tổng
+      totalRowB1toB5.font = { name: "Times New Roman", size: 12, bold: true };
+      totalRowB1toB5.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
       // Giả sử bạn đã có tổng A và tổng B
       const totalB = totalSoTietQuyDoi; // Tổng B
 
@@ -1050,12 +1233,13 @@ console.log("abcs",filteredNCKHVaHuanLuyen)
         "", // Khóa đào tạo
         "", // Số QĐ Giao Luận án, Luận văn, đồ án
         "", // Số người HD
+        
         "", // HD chính/HD hai
         parseFloat(totalA + totalB).toFixed(2) // Tổng A+B
       ]);
 
       // Gộp cột A và B cho dòng tổng
-      worksheet.mergeCells(`A${grandTotalRowAB.number}:E${grandTotalRowAB.number}`);
+      worksheet.mergeCells(`A${grandTotalRowAB.number}:F${grandTotalRowAB.number}`);
 
       // Định dạng dòng tổng
       grandTotalRowAB.font = { name: "Times New Roman", size: 12, bold: true }; // Đặt đậm cho dòng tổng
@@ -1917,35 +2101,60 @@ content.forEach((item, index) => {
 });
 
 worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
-
 const titleRow31 = worksheet.addRow([" E. TỔNG SỐ TIẾT ĐỀ NGHỊ THANH TOÁN VƯỢT GIỜ"]);
 titleRow31.font = { name: "Times New Roman", size: 12, bold: true };
 titleRow31.alignment = { horizontal: "left", vertical: "middle", wrapText: true };
 worksheet.mergeCells(`A${titleRow31.number}:G${titleRow31.number}`);
 titleRow31.height = 40; // Tăng chiều cao hàng
+
 // Thêm bảng mới với các cột TT, Số tiết theo thời khóa biểu, Tổng quy chuẩn t.toán
-const titleRow32 = worksheet.addRow(["TT", "Số tiết theo thời khóa biểu", "", "", "", "", "Tổng quy chuẩn t.toán"]);
+const titleRow32 = worksheet.addRow([
+  "TT",
+  "Tên chuyên ngành (giảng dạy, coi chấm thi)",
+  "Số tiết thực hiện (theo quy chuẩn)",
+  "Số tiết phải giảng dạy (theo quy chuẩn)",
+  "Số tiết tính vượt giờ",
+  "",
+  "",
+]);
 titleRow32.font = { name: "Times New Roman", size: 12, bold: true };
 titleRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
-worksheet.mergeCells(`B${titleRow32.number}:F${titleRow32.number}`);
+worksheet.mergeCells(`E${titleRow32.number}:G${titleRow32.number}`);
+worksheet.mergeCells(`B${titleRow32.number}:D${titleRow32.number}`); // Gộp cột nội dung theo tiêu đề
 
 // Điều chỉnh chiều rộng cột
-worksheet.getColumn('A').width = 4.1; // Cột TT
-worksheet.getColumn('B').width = 30; // Cột Tổng
+worksheet.getColumn("A").width = 4.1; // Cột TT
+worksheet.getColumn("B").width = 30; // Cột Tổng
+worksheet.getColumn("C").width = 13.11; // Cột Số TC (HT)
+worksheet.getColumn("D").width = 18.33; // Cột Lớp học phần
+worksheet.getColumn("E").width = 10; // Cột Tổng quy chuẩn t.toán
 
-worksheet.getColumn('G').width = 10; // Cột Tổng quy chuẩn t.toán
+// Thêm dữ liệu cho các hàng
+const data = [
+  [1, "Việt Nam", "", "", "", "", ""],
+  [2, "Lào", "", "", "", "", ""],
+  [3, "Cuba", "", "", "", "", ""],
+  [4, "Campuchia", "", "", "", "", ""],
+  [5, "Đóng học phí", "", "", "", "", ""],
+];
 
-// Thêm tiêu đề cho các cột con
-const headerRow32 = worksheet.addRow(["", "Tổng", "Chuyên ngành KTMM", "", "", "Hệ đóng học phí", ""]);
-headerRow32.font = { name: "Times New Roman", size: 12, bold: true };
-headerRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-worksheet.mergeCells(`C${headerRow32.number}:E${headerRow32.number}`);
+data.forEach((row) => {
+  const dataRow = worksheet.addRow(row);
+  dataRow.font = { name: "Times New Roman", size: 12 };
+  dataRow.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+});s
 
-// Thêm tiêu đề cho các cột con của chuyên ngành KTMM
-const subHeaderRow32 = worksheet.addRow(["", "", "Việt Nam", "Lào", "Campuchia", "", ""]);
-subHeaderRow32.font = { name: "Times New Roman", size: 12, bold: true };
-subHeaderRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+ // // Thêm tiêu đề cho các cột con
+// const headerRow32 = worksheet.addRow(["", "Tổng", "Chuyên ngành KTMM", "", "", "Hệ đóng học phí", ""]);
+// headerRow32.font = { name: "Times New Roman", size: 12, bold: true };
+// headerRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+// worksheet.mergeCells(`C${headerRow32.number}:E${headerRow32.number}`);
+
+// // Thêm tiêu đề cho các cột con của chuyên ngành KTMM
+// const subHeaderRow32 = worksheet.addRow(["", "", "Việt Nam", "Lào", "Campuchia", "", ""]);
+// subHeaderRow32.font = { name: "Times New Roman", size: 12, bold: true };
+// subHeaderRow32.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
 
 
 
@@ -2020,38 +2229,32 @@ worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
 
 // Thêm phần chữ ký
     worksheet.addRow([]); // Thêm một hàng trống để tạo khoảng cách
-
     const signatureRow = worksheet.addRow([
-      "P.Chủ Nhiệm Khoa",
+      "Chủ nhiệm Khoa",
       "",
       "",
-      "Chủ nhiệm bộ môn",
+      "",
       "",
       "Người Kê Khai",
-     
       ""
-
     ]);
     signatureRow.font = { name: "Times New Roman", size: 12, bold: true };
     signatureRow.alignment = { horizontal: "center", vertical: "middle" };
-    worksheet.mergeCells(`A${signatureRow.number}:C${signatureRow.number}`);
-    worksheet.mergeCells(`D${signatureRow.number}:E${signatureRow.number}`);
+    worksheet.mergeCells(`A${signatureRow.number}:E${signatureRow.number}`);
     worksheet.mergeCells(`F${signatureRow.number}:G${signatureRow.number}`);
 
     const signatureRow2 = worksheet.addRow([
       "(ký, ghi rõ họ tên)",
       "",
       "",
-      "(ký, ghi rõ họ tên)",
+      "",
       "",
       "(ký, ghi rõ họ tên)",
-       
       ""
     ]);
     signatureRow2.font = { name: "Times New Roman", size: 12, italic: true };
     signatureRow2.alignment = { horizontal: "center", vertical: "middle" };
-    worksheet.mergeCells(`A${signatureRow2.number}:C${signatureRow2.number}`);
-    worksheet.mergeCells(`D${signatureRow2.number}:E${signatureRow2.number}`);
+    worksheet.mergeCells(`A${signatureRow2.number}:E${signatureRow2.number}`);
     worksheet.mergeCells(`F${signatureRow2.number}:G${signatureRow2.number}`);
 
 
