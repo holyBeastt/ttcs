@@ -175,20 +175,24 @@
         formData.append('file', file);
 
         // Gửi file lên server để upload và ghi đè file cũ
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Tệp đã được tải lên thành công:', data);
-            alert('Tải lên thành công!');
-        })
-        .catch(error => {
-            console.error('Lỗi tải lên:', error);
-            alert('Có lỗi xảy ra khi tải lên.');
-            fileInput.value = ''; // Xóa tệp đã chọn khi lỗi
-        });
+      fetch('/upload', {
+  method: 'POST',
+  body: formData
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+})
+.then(data => {
+  console.log('Tệp đã được tải lên thành công:', data);
+  alert('Tải lên thành công!');
+})
+.catch(error => {
+  console.error('Lỗi tải lên:', error);
+  alert('Có lỗi xảy ra khi tải lên.');
+});
     } else {
         alert('Vui lòng chọn tệp để tải lên!');
     }
