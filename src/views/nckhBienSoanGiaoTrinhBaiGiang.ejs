@@ -170,9 +170,10 @@
     <!-- nckh view -->
     <script>
       var table;
+      var year;
 
       document.getElementById("render").addEventListener("click", async function () {
-        const year = document.getElementById("namHocXem").value;
+        year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
         if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
@@ -381,6 +382,7 @@
             if (field === "DaoTaoDuyet") {
               updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
             }
+            updatedData.namHoc = year;
             await saveData(updatedData.ID, updatedData, row);
           });
 
@@ -439,7 +441,7 @@
         const button = document.createElement("button");
         button.innerHTML = "<i class='fas fa-trash-alt'></i>";
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow()));
+        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
         return button;
       }
 
@@ -481,16 +483,16 @@
         }
       }
 
-      async function deleteRow(id, row) {
+      async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/biensoangiaotrinhbaigiang`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/${year}/biensoangiaotrinhbaigiang`, { method: "POST" });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
               toast: true,
-              position: "top-end",
-              icon: "success",
-              title: "Thông báo",
+              position: 'top-end',
+              icon: 'success',
+              title: 'Thông báo',
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
@@ -500,9 +502,9 @@
           } else {
             Swal.fire({
               toast: true,
-              position: "top-end",
-              icon: "error",
-              title: "Thất bại",
+              position: 'top-end',
+              icon: 'error',
+              title: 'Thất bại',
               text: result.message,
               showConfirmButton: false,
               timer: 3000,

@@ -253,7 +253,7 @@ const exportPhuLucDA = async (req, res) => {
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
     const titleRow4 = summarySheet.addRow([
-      `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT `,
+      `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT `,
     ]);
     titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow4.alignment = { horizontal: "center", vertical: "middle" };
@@ -529,7 +529,7 @@ const exportPhuLucDA = async (req, res) => {
       worksheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
       const titleRow4 = worksheet.addRow([
-        `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
+        `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
       ]);
       titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4.alignment = { horizontal: "center", vertical: "middle" };

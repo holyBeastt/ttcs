@@ -969,7 +969,7 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
       const [kyTuBD] = await connection.query(
-        "SELECT lop_vi_du, viet_tat, gia_tri_so_sanh FROM kitubatdau"
+        "SELECT lop_vi_du, viet_tat, gia_tri_so_sanh, doi_tuong FROM kitubatdau"
       );
       res.render("vuotGioKyTuBD", {
         kyTuBD,
@@ -984,7 +984,7 @@ const AdminController = {
   },
 
   postKyTuBD: async (req, res) => {
-    let { viet_tat, loai_dao_tao, he_dao_tao } = req.body;
+    let { viet_tat, loai_dao_tao, he_dao_tao, doi_tuong } = req.body;
     viet_tat = viet_tat.toUpperCase();
     const lop_vi_du = viet_tat + "10";
     const gia_tri_so_sanh = `${loai_dao_tao} (${he_dao_tao})`;
@@ -1011,13 +1011,16 @@ const AdminController = {
 
       // Thêm vào bảng kí tự bắt đầu
       const insertQuery = `
-        INSERT INTO kitubatdau (lop_vi_du, viet_tat, gia_tri_so_sanh) 
-        VALUES (?, ?, ?)
+        INSERT INTO kitubatdau (lop_vi_du, viet_tat, gia_tri_so_sanh, doi_tuong, loai_dao_tao, he_dao_tao) 
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
       await connection.execute(insertQuery, [
         lop_vi_du,
         viet_tat,
         gia_tri_so_sanh,
+        doi_tuong,
+        loai_dao_tao,
+        he_dao_tao,
       ]);
 
       res.redirect("/kytubatdau?success=true&message=insertSuccess");
@@ -1054,7 +1057,7 @@ const AdminController = {
   },
   updateKyTuBD: async (req, res) => {
     const oldlop_vi_du = req.params.lop_vi_du;
-    const { lop_vi_du, viet_tat, loai_dao_tao, he_dao_tao } = req.body;
+    const { lop_vi_du, viet_tat, loai_dao_tao, he_dao_tao, doi_tuong } = req.body;
     const gia_tri_so_sanh = `${loai_dao_tao} (${he_dao_tao})`;
     let connection;
 
@@ -1064,8 +1067,8 @@ const AdminController = {
       // Kiểm tra trùng lặp, loại trừ bản ghi hiện tại
       const [existingRows] = await connection.query(
         `SELECT * FROM kitubatdau 
-         WHERE viet_tat = ? AND gia_tri_so_sanh = ? AND lop_vi_du != ?`,
-        [viet_tat, gia_tri_so_sanh, oldlop_vi_du]
+         WHERE viet_tat = ? AND gia_tri_so_sanh = ? AND lop_vi_du != ? AND doi_tuong`,
+        [viet_tat, gia_tri_so_sanh, oldlop_vi_du, doi_tuong]
       );
 
       if (existingRows.length > 0) {
@@ -1077,7 +1080,7 @@ const AdminController = {
 
       const query = `
         UPDATE kitubatdau 
-        SET lop_vi_du = ?, viet_tat = ?, gia_tri_so_sanh = ?
+        SET lop_vi_du = ?, viet_tat = ?, gia_tri_so_sanh = ?, doi_tuong = ?, he_dao_tao = ?, loai_dao_tao = ?
         WHERE lop_vi_du = ?
       `;
 
@@ -1085,6 +1088,9 @@ const AdminController = {
         lop_vi_du,
         viet_tat,
         gia_tri_so_sanh,
+        doi_tuong,
+        loai_dao_tao,
+        he_dao_tao,
         oldlop_vi_du,
       ]);
 
@@ -1111,13 +1117,13 @@ const AdminController = {
   },
 
   checkKyTuBD: async (req, res) => {
-    const { viet_tat, gia_tri_so_sanh } = req.body;
+    const { viet_tat, gia_tri_so_sanh, doi_tuong } = req.body;
     let connection;
     try {
       connection = await createPoolConnection();
       const [rows] = await connection.query(
-        `SELECT * FROM kitubatdau WHERE viet_tat = ? AND gia_tri_so_sanh = ?`,
-        [viet_tat, gia_tri_so_sanh]
+        `SELECT * FROM kitubatdau WHERE viet_tat = ? AND gia_tri_so_sanh = ? AND doi_tuong`,
+        [viet_tat, gia_tri_so_sanh, doi_tuong]
       );
 
       if (rows.length > 0) {

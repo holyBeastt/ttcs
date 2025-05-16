@@ -1076,8 +1076,19 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
   // Lấy kết quả sau khi quy đổi
   const thanhVienFormatted = quyDoiResult.thanhVien || "";
 
-  console.log(thanhVienFormatted);
+  // console.log(thanhVienFormatted);
 
+  // Xác định cột kết quả dựa vào phanLoai
+  let ketQuaCapKhoa = null;
+  let ketQuaCapHocVien = null;
+
+  if (phanLoai.toLowerCase().includes("khoa")) {
+    ketQuaCapKhoa = ketQua;
+  } else if (phanLoai.toLowerCase().includes("học viện")) {
+    ketQuaCapHocVien = ketQua;
+  } else {
+    ketQuaCapHocVien = ketQua; // Mặc định chèn vào KetQuaCapHocVien
+  }
   const connection = await createPoolConnection(); // Tạo kết nối từ pool
 
   try {
@@ -1085,9 +1096,9 @@ const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
     await connection.execute(
       `
 INSERT INTO nckhvahuanluyendoituyen (
-PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQua 
+PhanLoai, NamHoc, TenDeTai, SoQDGiaoNhiemVu, NgayQDGiaoNhiemVu, DanhSachThanhVien, Khoa, KetQuaCapKhoa, KetQuaCapHocVien 
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `,
       [
         phanLoai, // Phân loại
@@ -1097,7 +1108,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ngayQDGiaoNhiemVu, // Ngày quyết định công nhận
         thanhVienFormatted, // Danh sách thành viên đã được format
         khoa,
-        ketQua
+        ketQuaCapKhoa,
+        ketQuaCapHocVien
       ]
     );
 
@@ -1782,8 +1794,341 @@ function convertDateFormat(dateStr) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// const editNckh = async (req, res) => {
+//   const { ID, MaBang } = req.params;
+
+//   if (!ID) {
+//     return res.status(400).json({ message: "Thiếu ID cần cập nhật." });
+//   }
+
+//   if (!req.body || Object.keys(req.body).length === 0) {
+//     return res
+//       .status(400)
+//       .json({ message: "Dữ liệu gửi lên bị thiếu hoặc rỗng." });
+//   }
+
+//   let data = {};
+//   let updateQuery = "";
+//   let queryParams = [];
+
+//   switch (MaBang) {
+//     case "detaiduan":
+//       data = {
+//         CapDeTai: req.body.CapDeTai,
+//         TenDeTai: req.body.TenDeTai,
+//         MaSoDeTai: req.body.MaSoDeTai,
+//         ChuNhiem: req.body.ChuNhiem,
+//         ThuKy: req.body.ThuKy,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua
+//       };
+
+//       updateQuery = `
+//                 UPDATE detaiduan 
+//                 SET CapDeTai = ?, TenDeTai = ?, MaSoDeTai = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
+//                 WHERE ID = ?`;
+
+//       queryParams = [
+//         data.CapDeTai,
+//         data.TenDeTai,
+//         data.MaSoDeTai,
+//         data.ChuNhiem,
+//         data.ThuKy,
+//         data.DanhSachThanhVien,
+//         data.NgayNghiemThu,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+
+//     case "baibaokhoahoc":
+//       data = {
+//         LoaiTapChi: req.body.LoaiTapChi,
+//         TenBaiBao: req.body.TenBaiBao,
+//         TacGia: req.body.TacGia,
+//         TacGiaChiuTrachNhiem: req.body.TacGiaChiuTrachNhiem,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//       };
+
+//       updateQuery = `
+//                 UPDATE baibaokhoahoc 
+//                 SET LoaiTapChi = ?, TenBaiBao = ?, TacGia = ?, TacGiaChiuTrachNhiem = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+//                 WHERE ID = ?`;
+
+//       queryParams = [
+//         data.LoaiTapChi,
+//         data.TenBaiBao,
+//         data.TacGia,
+//         data.TacGiaChiuTrachNhiem,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         ID,
+//       ];
+//       break;
+
+//     case "bangsangchevagiaithuong":
+//       data = {
+//         PhanLoai: req.body.PhanLoai,
+//         TenBangSangCheVaGiaiThuong: req.body.TenBangSangCheVaGiaiThuong,
+//         NgayQDCongNhan: convertDateFormat(req.body.NgayQDCongNhan),
+//         SoQDCongNhan: req.body.SoQDCongNhan,
+//         TacGia: req.body.TacGia,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//       };
+
+//       updateQuery = `
+//                 UPDATE bangsangchevagiaithuong 
+//                 SET PhanLoai = ?, TenBangSangCheVaGiaiThuong = ?, NgayQDCongNhan = ?, SoQDCongNhan = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?
+//                 WHERE ID = ?`;
+
+//       queryParams = [
+//         data.PhanLoai,
+//         data.TenBangSangCheVaGiaiThuong,
+//         data.NgayQDCongNhan,
+//         data.SoQDCongNhan,
+//         data.TacGia,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         ID,
+//       ];
+//       break;
+
+//     case "biensoangiaotrinhbaigiang":
+//       data = {
+//         PhanLoai: req.body.PhanLoai,
+//         TenGiaoTrinhBaiGiang: req.body.TenGiaoTrinhBaiGiang,
+//         SoTC: req.body.SoTC,
+//         SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+//         NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
+//         TacGia: req.body.TacGia,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua,
+//       };
+
+//       updateQuery = `
+//                 UPDATE biensoangiaotrinhbaigiang 
+//                 SET PhanLoai = ?, TenGiaoTrinhBaiGiang = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, TacGia = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
+//                 WHERE ID = ?`;
+
+//       queryParams = [
+//         data.PhanLoai,
+//         data.TenGiaoTrinhBaiGiang,
+//         data.SoTC,
+//         data.SoQDGiaoNhiemVu,
+//         data.NgayQDGiaoNhiemVu,
+//         data.TacGia,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+//     case "nckhvahuanluyendoituyen":
+//       data = {
+//         PhanLoai: req.body.PhanLoai,
+//         TenDeTai: req.body.TenDeTai,
+//         SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+//         NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua
+//       };
+
+//       updateQuery = `
+//         UPDATE nckhvahuanluyendoituyen 
+//         SET PhanLoai = ?, TenDeTai = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ? 
+//         WHERE ID = ?`;
+
+//       queryParams = [
+//         data.PhanLoai,
+//         data.TenDeTai,
+//         data.SoQDGiaoNhiemVu,
+//         data.NgayQDGiaoNhiemVu,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+//     case "sachvagiaotrinh":
+//       // Giả sử đây là code cập nhật cho sachvagiaotrinh (đã có sẵn)
+//       data = {
+//         // Các trường dữ liệu của sachvagiaotrinh, ví dụ:
+//         PhanLoai: req.body.PhanLoai,
+//         TenSachVaGiaoTrinh: req.body.TenSachVaGiaoTrinh,
+//         SoXuatBan: req.body.SoXuatBan,
+//         SoTrang: req.body.SoTrang,
+//         TacGia: req.body.TacGia,
+//         DongChuBien: req.body.DongChuBien,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua,
+//       };
+
+//       updateQuery = `
+//                   UPDATE sachvagiaotrinh
+//                   SET PhanLoai = ?, TenSachVaGiaoTrinh = ?, SoXuatBan = ?, SoTrang = ?, TacGia = ?, DongChuBien = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
+//                   WHERE ID = ?`;
+
+//       queryParams = [
+//         data.PhanLoai,
+//         data.TenSachVaGiaoTrinh,
+//         data.SoXuatBan,
+//         data.SoTrang,
+//         data.TacGia,
+//         data.DongChuBien,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+//     case "xaydungctdt":
+//       // Code cập nhật cho bảng xaydungctdt
+//       data = {
+//         HinhThucXayDung: req.body.HinhThucXayDung,
+//         TenChuongTrinh: req.body.TenChuongTrinh,
+//         SoTC: req.body.SoTC,
+//         SoQDGiaoNhiemVu: req.body.SoQDGiaoNhiemVu,
+//         NgayQDGiaoNhiemVu: convertDateFormat(req.body.NgayQDGiaoNhiemVu),
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua,
+//       };
+
+//       updateQuery = `
+//                   UPDATE xaydungctdt
+//                   SET HinhThucXayDung = ?, TenChuongTrinh = ?, SoTC = ?, SoQDGiaoNhiemVu = ?, NgayQDGiaoNhiemVu = ?, DanhSachThanhVien = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
+//                   WHERE ID = ?`;
+
+//       queryParams = [
+//         data.HinhThucXayDung,
+//         data.TenChuongTrinh,
+//         data.SoTC,
+//         data.SoQDGiaoNhiemVu,
+//         data.NgayQDGiaoNhiemVu,
+//         data.DanhSachThanhVien,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+//     case "sotietnckhbaoluusangnam":
+//       // Code cập nhật cho bảng sotietnckhbaoluusangnam
+//       data = {
+//         TenNhiemVu: req.body.TenNhiemVu,
+//         GiangVien: req.body.GiangVien,
+//         TongSoTietNCKHTrongNam: req.body.TongSoTietNCKHTrongNam,
+//         SoTietVuotDinhMuc: req.body.SoTietVuotDinhMuc,
+//         SoTietBaoLuuSangNamSau: req.body.SoTietBaoLuuSangNamSau,
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//       };
+
+//       updateQuery = `
+//                   UPDATE sotietnckhbaoluusangnam
+//                   SET TenNhiemVu = ?, GiangVien = ?, TongSoTietNCKHTrongNam = ?, SoTietVuotDinhMuc = ?, SoTietBaoLuuSangNamSau = ?, DaoTaoDuyet = ?, Khoa = ?
+//                   WHERE ID = ?`;
+
+//       queryParams = [
+//         data.TenNhiemVu,
+//         data.GiangVien,
+//         data.TongSoTietNCKHTrongNam,
+//         data.SoTietVuotDinhMuc,
+//         data.SoTietBaoLuuSangNamSau,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         ID,
+//       ];
+//       break;
+//     case "nhiemvukhoahoccongnghe":
+//       data = {
+//         PhanLoai: req.body.PhanLoai,
+//         TenNhiemVu: req.body.TenNhiemVu,
+//         MaNhiemVu: req.body.MaNhiemVu,
+//         ChuNhiem: req.body.ChuNhiem,
+//         ThuKy: req.body.ThuKy,
+//         DanhSachThanhVien: req.body.DanhSachThanhVien,
+//         NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
+//         DaoTaoDuyet: req.body.DaoTaoDuyet,
+//         Khoa: req.body.Khoa,
+//         KetQua: req.body.KetQua
+//       };
+
+//       updateQuery = `
+//                   UPDATE nhiemvukhoahoccongnghe 
+//                   SET PhanLoai = ?, TenNhiemVu = ?, MaNhiemVu = ?, ChuNhiem = ?, ThuKy = ?, DanhSachThanhVien = ?, NgayNghiemThu = ?, DaoTaoDuyet = ?, Khoa = ?, KetQua = ?
+//                   WHERE ID = ?`;
+
+//       queryParams = [
+//         data.PhanLoai,
+//         data.TenNhiemVu,
+//         data.MaNhiemVu,
+//         data.ChuNhiem,
+//         data.ThuKy,
+//         data.DanhSachThanhVien,
+//         data.NgayNghiemThu,
+//         data.DaoTaoDuyet,
+//         data.Khoa,
+//         data.KetQua,
+//         ID,
+//       ];
+//       break;
+//     default:
+//       return res.status(400).json({ message: "Loại bảng không hợp lệ." });
+//   }
+
+//   const connection = await createPoolConnection();
+
+//   try {
+//     const [result] = await connection.execute(updateQuery, queryParams);
+
+//     if (result.affectedRows === 0) {
+//       return res
+//         .status(404)
+//         .json({ message: "Không tìm thấy bản ghi để cập nhật." });
+//     }
+
+//     // console.log(`Cập nhật thành công ID: ${ID} trong bảng ${MaBang} với data : ${queryParams}`);
+//     res.status(200).json({
+//       success: true,
+//       message: "Cập nhật thành công!",
+//     });
+//   } catch (error) {
+//     console.error("Lỗi khi cập nhật:", error);
+//     res.status(500).json({
+//       message: "Có lỗi xảy ra khi cập nhật.",
+//       error: error.message,
+//     });
+//   } finally {
+//     if (connection) connection.release();
+//   }
+// };
+
 const editNckh = async (req, res) => {
   const { ID, MaBang } = req.params;
+  const namHoc = req.body.namHoc; // Default năm học nếu không có
+
 
   if (!ID) {
     return res.status(400).json({ message: "Thiếu ID cần cập nhật." });
@@ -1798,6 +2143,14 @@ const editNckh = async (req, res) => {
   let data = {};
   let updateQuery = "";
   let queryParams = [];
+  let danhSachThanhVien = "";
+  let chuNhiem = "";
+  let thuKy = "";
+  let tacGia = "";
+  let tacGiaCtn = "";
+  let dongChuBien = "";
+  let phanBien = "";
+  let uyVien = "";
 
   switch (MaBang) {
     case "detaiduan":
@@ -1813,6 +2166,9 @@ const editNckh = async (req, res) => {
         Khoa: req.body.Khoa,
         KetQua: req.body.KetQua
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      chuNhiem = data.ChuNhiem;
+      thuKy = data.ThuKy;
 
       updateQuery = `
                 UPDATE detaiduan 
@@ -1844,6 +2200,9 @@ const editNckh = async (req, res) => {
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      tacGia = data.TacGia;
+      tacGiaCtn = data.TacGiaChiuTrachNhiem;
 
       updateQuery = `
                 UPDATE baibaokhoahoc 
@@ -1873,6 +2232,8 @@ const editNckh = async (req, res) => {
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      tacGia = data.TacGia;
 
       updateQuery = `
                 UPDATE bangsangchevagiaithuong 
@@ -1905,6 +2266,8 @@ const editNckh = async (req, res) => {
         Khoa: req.body.Khoa,
         KetQua: req.body.KetQua,
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      tacGia = data.TacGia;
 
       updateQuery = `
                 UPDATE biensoangiaotrinhbaigiang 
@@ -1936,6 +2299,7 @@ const editNckh = async (req, res) => {
         Khoa: req.body.Khoa,
         KetQua: req.body.KetQua
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
 
       updateQuery = `
         UPDATE nckhvahuanluyendoituyen 
@@ -1955,9 +2319,7 @@ const editNckh = async (req, res) => {
       ];
       break;
     case "sachvagiaotrinh":
-      // Giả sử đây là code cập nhật cho sachvagiaotrinh (đã có sẵn)
       data = {
-        // Các trường dữ liệu của sachvagiaotrinh, ví dụ:
         PhanLoai: req.body.PhanLoai,
         TenSachVaGiaoTrinh: req.body.TenSachVaGiaoTrinh,
         SoXuatBan: req.body.SoXuatBan,
@@ -1969,6 +2331,9 @@ const editNckh = async (req, res) => {
         Khoa: req.body.Khoa,
         KetQua: req.body.KetQua,
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      tacGia = data.TacGia;
+      dongChuBien = data.DongChuBien;
 
       updateQuery = `
                   UPDATE sachvagiaotrinh
@@ -1990,7 +2355,6 @@ const editNckh = async (req, res) => {
       ];
       break;
     case "xaydungctdt":
-      // Code cập nhật cho bảng xaydungctdt
       data = {
         HinhThucXayDung: req.body.HinhThucXayDung,
         TenChuongTrinh: req.body.TenChuongTrinh,
@@ -2002,6 +2366,7 @@ const editNckh = async (req, res) => {
         Khoa: req.body.Khoa,
         KetQua: req.body.KetQua,
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
 
       updateQuery = `
                   UPDATE xaydungctdt
@@ -2022,7 +2387,6 @@ const editNckh = async (req, res) => {
       ];
       break;
     case "sotietnckhbaoluusangnam":
-      // Code cập nhật cho bảng sotietnckhbaoluusangnam
       data = {
         TenNhiemVu: req.body.TenNhiemVu,
         GiangVien: req.body.GiangVien,
@@ -2060,8 +2424,15 @@ const editNckh = async (req, res) => {
         NgayNghiemThu: convertDateFormat(req.body.NgayNghiemThu),
         DaoTaoDuyet: req.body.DaoTaoDuyet,
         Khoa: req.body.Khoa,
-        KetQua: req.body.KetQua
+        KetQua: req.body.KetQua,
+        PhanBien: req.body.PhanBien,
+        UyVien: req.body.UyVien
       };
+      danhSachThanhVien = data.DanhSachThanhVien;
+      chuNhiem = data.ChuNhiem;
+      phanBien = data.PhanBien;
+      thuKy = data.ThuKy;
+      uyVien = data.UyVien;
 
       updateQuery = `
                   UPDATE nhiemvukhoahoccongnghe 
@@ -2089,6 +2460,7 @@ const editNckh = async (req, res) => {
   const connection = await createPoolConnection();
 
   try {
+    // Thực hiện câu truy vấn cập nhật bảng gốc
     const [result] = await connection.execute(updateQuery, queryParams);
 
     if (result.affectedRows === 0) {
@@ -2097,7 +2469,54 @@ const editNckh = async (req, res) => {
         .json({ message: "Không tìm thấy bản ghi để cập nhật." });
     }
 
-    // console.log(`Cập nhật thành công ID: ${ID} trong bảng ${MaBang} với data : ${queryParams}`);
+    // Tạo một Set để theo dõi các giảng viên đã được xử lý tránh trùng lặp
+    const processedLecturers = new Set();
+
+    // Hàm trích xuất tên giảng viên từ chuỗi có định dạng "Nguyễn Văn A ( KMA - 10 giờ )"
+    const extractLecturerName = (str) => {
+      if (!str || typeof str !== 'string') return null;
+      const tenMatch = str.match(/^([^(]+)/);
+      return tenMatch && tenMatch[1] ? tenMatch[1].trim() : null;
+    };
+
+    // Hàm xử lý giảng viên và gọi saveSoTietNCKHBaoLuuSangNam
+    const processLecturerIfNeeded = async (lecturerName) => {
+      if (lecturerName && !processedLecturers.has(lecturerName)) {
+        processedLecturers.add(lecturerName);
+        try {
+          const result = await saveSoTietNCKHBaoLuuSangNam(lecturerName, namHoc);
+          console.log(`${lecturerName}: ${result.message}`);
+        } catch (err) {
+          console.error(`${lecturerName}: ${err.message}`);
+        }
+      }
+    };
+
+    // Xử lý danh sách có nhiều tên (dạng danh sách được phân tách bởi dấu phẩy)
+    const processLecturerList = async (list) => {
+      if (list && list.trim() !== "") {
+        const lecturers = list.split(",").map(item => item.trim());
+        for (const lecturer of lecturers) {
+          const lecturerName = extractLecturerName(lecturer);
+          await processLecturerIfNeeded(lecturerName);
+        }
+      }
+    };
+
+    // Xử lý từng biến
+
+    // 1. Xử lý các biến dạng danh sách (có nhiều tên)
+    await processLecturerList(danhSachThanhVien);
+    await processLecturerList(phanBien);
+    await processLecturerList(uyVien);
+
+    // 2. Xử lý các biến dạng một tên
+    await processLecturerIfNeeded(extractLecturerName(chuNhiem));
+    await processLecturerIfNeeded(extractLecturerName(thuKy));
+    await processLecturerIfNeeded(extractLecturerName(tacGia));
+    await processLecturerIfNeeded(extractLecturerName(tacGiaCtn));
+    await processLecturerIfNeeded(extractLecturerName(dongChuBien));
+
     res.status(200).json({
       success: true,
       message: "Cập nhật thành công!",
@@ -2113,8 +2532,253 @@ const editNckh = async (req, res) => {
   }
 };
 
+
+const saveSoTietNCKHBaoLuuSangNamAfterDelete = async (ID, MaBang, namHoc) => {
+  if (!ID || !MaBang) {
+    throw new Error("Thiếu thông tin cần thiết (ID hoặc MaBang)!");
+  }
+
+  const connection = await createPoolConnection();
+
+  try {
+    // Tìm tất cả giảng viên liên quan đến bản ghi đã xóa dựa trên ID và MaBang
+    let queryGetInvolvedLecturers = "";
+    let queryParams = [ID];
+
+    switch (MaBang) {
+      case "detaiduan":
+        queryGetInvolvedLecturers = `
+          SELECT ChuNhiem, ThuKy, DanhSachThanhVien 
+          FROM detaiduan 
+          WHERE ID = ?`;
+        break;
+      case "baibaokhoahoc":
+        queryGetInvolvedLecturers = `
+          SELECT TacGia, TacGiaChiuTrachNhiem, DanhSachThanhVien 
+          FROM baibaokhoahoc 
+          WHERE ID = ?`;
+        break;
+      case "bangsangchevagiaithuong":
+        queryGetInvolvedLecturers = `
+          SELECT TacGia, DanhSachThanhVien 
+          FROM bangsangchevagiaithuong 
+          WHERE ID = ?`;
+        break;
+      case "biensoangiaotrinhbaigiang":
+        queryGetInvolvedLecturers = `
+          SELECT TacGia, DanhSachThanhVien 
+          FROM biensoangiaotrinhbaigiang 
+          WHERE ID = ?`;
+        break;
+      case "nckhvahuanluyendoituyen":
+        queryGetInvolvedLecturers = `
+          SELECT DanhSachThanhVien 
+          FROM nckhvahuanluyendoituyen 
+          WHERE ID = ?`;
+        break;
+      case "sachvagiaotrinh":
+        queryGetInvolvedLecturers = `
+          SELECT TacGia, DongChuBien, DanhSachThanhVien 
+          FROM sachvagiaotrinh 
+          WHERE ID = ?`;
+        break;
+      case "xaydungctdt":
+        queryGetInvolvedLecturers = `
+          SELECT DanhSachThanhVien 
+          FROM xaydungctdt 
+          WHERE ID = ?`;
+        break;
+      case "nhiemvukhoahoccongnghe":
+        queryGetInvolvedLecturers = `
+          SELECT ChuNhiem, ThuKy, PhanBien, UyVien, DanhSachThanhVien 
+          FROM nhiemvukhoahoccongnghe 
+          WHERE ID = ?`;
+        break;
+      case "sotietnckhbaoluusangnam":
+        // Nếu bảng bị xóa là sotietnckhbaoluusangnam thì không cần cập nhật gì thêm
+        return {
+          success: true,
+          message: "Không cần cập nhật lại bảng sotietnckhbaoluusangnam vì bảng nguồn đã bị xóa.",
+        };
+      default:
+        throw new Error("Loại bảng không hợp lệ!");
+    }
+
+    // Lấy thông tin bản ghi trước khi xóa
+    const [recordInfo] = await connection.execute(queryGetInvolvedLecturers, queryParams);
+
+    if (recordInfo.length === 0) {
+      // Đã không còn bản ghi nào (đã bị xóa)
+      // Tiến hành lấy danh sách tất cả giảng viên trong hệ thống để cập nhật lại
+      const [allLecturers] = await connection.execute(
+        `SELECT DISTINCT TenNhanVien FROM nhanvien WHERE TenNhanVien IS NOT NULL AND TenNhanVien <> ''`
+      );
+
+      // Set để theo dõi các giảng viên đã được xử lý
+      const processedLecturers = new Set();
+
+      // Trích xuất tên giảng viên từ chuỗi dạng "Nguyễn Văn A ( KMA - 10 giờ )"
+      const extractLecturerName = (str) => {
+        if (!str || typeof str !== 'string') return null;
+        const tenMatch = str.match(/^([^(]+)/);
+        return tenMatch && tenMatch[1] ? tenMatch[1].trim() : null;
+      };
+
+      // Cập nhật cho tất cả giảng viên
+      for (const lecturer of allLecturers) {
+        const lecturerName = lecturer.TenNhanVien;
+        if (!processedLecturers.has(lecturerName)) {
+          processedLecturers.add(lecturerName);
+          await updateLecturerNCKH(connection, lecturerName, namHoc);
+        }
+      }
+
+      return {
+        success: true,
+        message: "Đã cập nhật lại bảng sotietnckhbaoluusangnam cho tất cả giảng viên.",
+      };
+    } else {
+      // Bản ghi vẫn còn, chúng ta sẽ lấy tất cả tên giảng viên từ bản ghi này
+      const record = recordInfo[0];
+      const lecturerSet = new Set();
+
+      // Hàm để trích xuất tên giảng viên từ chuỗi
+      const extractLecturerName = (str) => {
+        if (!str || typeof str !== 'string') return null;
+        const tenMatch = str.match(/^([^(]+)/);
+        return tenMatch && tenMatch[1] ? tenMatch[1].trim() : null;
+      };
+
+      // Hàm để xử lý danh sách giảng viên
+      const processLecturerList = (list) => {
+        if (list && list.trim() !== "") {
+          const lecturers = list.split(",").map(item => item.trim());
+          for (const lecturer of lecturers) {
+            const lecturerName = extractLecturerName(lecturer);
+            if (lecturerName) {
+              lecturerSet.add(lecturerName);
+            }
+          }
+        }
+      };
+
+      // Xử lý từng trường có thể chứa tên giảng viên
+      Object.keys(record).forEach(field => {
+        if (field === 'DanhSachThanhVien' || field === 'PhanBien' || field === 'UyVien') {
+          processLecturerList(record[field]);
+        } else {
+          const lecturerName = extractLecturerName(record[field]);
+          if (lecturerName) {
+            lecturerSet.add(lecturerName);
+          }
+        }
+      });
+
+      // Cập nhật cho từng giảng viên
+      for (const lecturerName of lecturerSet) {
+        await updateLecturerNCKH(connection, lecturerName, namHoc);
+      }
+
+      return {
+        success: true,
+        message: `Đã cập nhật lại bảng sotietnckhbaoluusangnam cho ${lecturerSet.size} giảng viên liên quan.`,
+      };
+    }
+  } catch (error) {
+    console.error("Lỗi khi xử lý số tiết bảo lưu sau khi xóa:", error);
+    throw new Error("Có lỗi xảy ra: " + error.message);
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Hàm hỗ trợ để cập nhật thông tin NCKH cho một giảng viên
+const updateLecturerNCKH = async (connection, tenGiangVien, namHoc) => {
+  try {
+    // 1. Lấy mã khoa từ bảng nhân viên
+    const [rowsNV] = await connection.execute(
+      `SELECT MaPhongBan FROM nhanvien WHERE TenNhanVien = ? LIMIT 1`,
+      [tenGiangVien]
+    );
+    if (rowsNV.length === 0) {
+      throw new Error(`Không tìm thấy giảng viên "${tenGiangVien}" trong bảng nhanvien`);
+    }
+    const khoa = rowsNV[0].MaPhongBan;
+
+    const tenNhiemVu = "Số tiết NCKH bảo lưu";
+
+    // 2. Lấy định mức tiết NCKH
+    const [rowsSoTietDinhMuc] = await connection.execute(
+      `SELECT NCKH FROM sotietdinhmuc LIMIT 1`
+    );
+    if (rowsSoTietDinhMuc.length === 0) {
+      throw new Error("Không tìm thấy dữ liệu trong bảng sotietdinhmuc");
+    }
+    const soTietDinhMuc = rowsSoTietDinhMuc[0].NCKH;
+
+    // 3. Tổng hợp tiết NCKH
+    const dataTongHop = await tongHopSoTietNckhCuaMotGiangVien2(namHoc, tenGiangVien);
+    const tongSoTietNCKH = dataTongHop.total;
+
+    // 4. Tính toán tiết vượt định mức và bảo lưu
+    const soTietVuotDinhMuc = Math.max(0, tongSoTietNCKH - soTietDinhMuc);
+    const soTietBaoLuuSangNamSau = Math.min(soTietVuotDinhMuc, 85);
+
+    // 5. Kiểm tra xem đã tồn tại bản ghi chưa
+    const [existingRows] = await connection.execute(
+      `SELECT 1 FROM sotietnckhbaoluusangnam 
+       WHERE TenNhiemVu = ? AND NamHoc = ? AND GiangVien = ? 
+       LIMIT 1`,
+      [tenNhiemVu, namHoc, tenGiangVien]
+    );
+
+    if (existingRows.length > 0) {
+      // Nếu đã tồn tại => UPDATE
+      await connection.execute(
+        `UPDATE sotietnckhbaoluusangnam
+         SET Khoa = ?, 
+             SoTietBaoLuuSangNamSau = ?, 
+             TongSoTietNCKHTrongNam = ?, 
+             SoTietVuotDinhMuc = ?
+         WHERE TenNhiemVu = ? AND NamHoc = ? AND GiangVien = ?`,
+        [
+          khoa,
+          soTietBaoLuuSangNamSau,
+          tongSoTietNCKH,
+          soTietVuotDinhMuc,
+          tenNhiemVu,
+          namHoc,
+          tenGiangVien
+        ]
+      );
+      console.log(`Cập nhật số tiết bảo lưu cho "${tenGiangVien}" thành công!`);
+    } else {
+      // Nếu chưa tồn tại => INSERT
+      await connection.execute(
+        `INSERT INTO sotietnckhbaoluusangnam
+           (TenNhiemVu, NamHoc, GiangVien, Khoa, SoTietBaoLuuSangNamSau, TongSoTietNCKHTrongNam, SoTietVuotDinhMuc)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          tenNhiemVu,
+          namHoc,
+          tenGiangVien,
+          khoa,
+          soTietBaoLuuSangNamSau,
+          tongSoTietNCKH,
+          soTietVuotDinhMuc,
+        ]
+      );
+      console.log(`Thêm số tiết bảo lưu cho "${tenGiangVien}" thành công!`);
+    }
+    return true;
+  } catch (error) {
+    console.error(`Lỗi khi xử lý số tiết bảo lưu cho "${tenGiangVien}":`, error);
+    return false;
+  }
+};
+
 const deleteNckh = async (req, res) => {
-  const { ID, MaBang } = req.params;
+  const { ID, MaBang, namHoc } = req.params;
 
   if (!ID) {
     return res.status(400).json({ message: "Thiếu ID cần xóa." });
@@ -2178,6 +2842,9 @@ const deleteNckh = async (req, res) => {
     }
 
     console.log(`Xóa thành công ID: ${ID} trong bảng ${MaBang}`);
+
+    await saveSoTietNCKHBaoLuuSangNamAfterDelete(ID, MaBang, namHoc);
+
     res.status(200).json({
       success: true,
       message: "Xóa thành công!",
@@ -2611,86 +3278,184 @@ const tongHopSoTietNckhCuaMotGiangVien2 = async (NamHoc, TenGiangVien) => {
   }
 };
 
-const saveSoTietNCKHBaoLuuSangNam = async (req, res) => {
-  // Lấy dữ liệu từ body
-  const { tenNhiemVu, namHoc, giangVien, khoa } = req.body;
+// const saveSoTietNCKHBaoLuuSangNam = async (req, res) => {
+//   // Lấy dữ liệu từ body
+//   const { tenNhiemVu, namHoc, giangVien, khoa } = req.body;
 
-  // Kiểm tra dữ liệu đầu vào
-  if (!tenNhiemVu || !namHoc || !giangVien || !khoa) {
-    return res
-      .status(400)
-      .json({ message: "Vui lòng cung cấp đầy đủ thông tin!" });
+//   // Kiểm tra dữ liệu đầu vào
+//   if (!tenNhiemVu || !namHoc || !giangVien || !khoa) {
+//     return res
+//       .status(400)
+//       .json({ message: "Vui lòng cung cấp đầy đủ thông tin!" });
+//   }
+
+//   // Tạo kết nối từ pool
+//   const connection = await createPoolConnection();
+
+//   try {
+//     // 1. Query đến bảng sotietdinhmuc để lấy ra SoTietNCKH
+//     // Chú ý: Tên cột được chọn phải khớp với tên cột trong bảng
+//     const [rowsSoTietDinhMuc] = await connection.execute(
+//       `SELECT NCKH FROM sotietdinhmuc LIMIT 1`
+//     );
+//     if (rowsSoTietDinhMuc.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ message: "Không tìm thấy dữ liệu trong bảng sotietdinhmuc" });
+//     }
+//     const soTietDinhMuc = rowsSoTietDinhMuc[0].NCKH;
+//     // console.log('Định mức: ', soTietDinhMuc)
+
+//     // 2. Gọi hàm tổng hợp số tiết NCKH của giảng viên
+//     const dataTongHop = await tongHopSoTietNckhCuaMotGiangVien2(
+//       namHoc,
+//       giangVien
+//     );
+//     // Kiểm tra dữ liệu trả về có hợp lệ không
+
+//     const tongSoTietNCKH = dataTongHop.total;
+//     // console.log('Tổng năm: ', tongSoTietNCKH)
+
+//     // 3. Tính toán số tiết vượt định mức
+//     const soTietVuotDinhMuc =
+//       tongSoTietNCKH - soTietDinhMuc > 0 ? tongSoTietNCKH - soTietDinhMuc : 0;
+//     // Nếu số tiết vượt định mức > 0 thì tính, ngược lại gán là 0
+//     const soTietBaoLuuSangNamSau =
+//       soTietVuotDinhMuc > 0
+//         ? soTietVuotDinhMuc >= 85
+//           ? 85
+//           : soTietVuotDinhMuc
+//         : 0;
+
+//     // 4. Lưu dữ liệu vào bảng sotietnckhbaoluusangnam
+//     await connection.execute(
+//       `INSERT INTO sotietnckhbaoluusangnam 
+//          (TenNhiemVu, NamHoc, GiangVien, Khoa, SoTietBaoLuuSangNamSau, TongSoTietNCKHTrongNam, SoTietVuotDinhMuc)
+//          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+//       [
+//         tenNhiemVu,
+//         namHoc,
+//         giangVien,
+//         khoa,
+//         soTietBaoLuuSangNamSau,
+//         tongSoTietNCKH,
+//         soTietVuotDinhMuc,
+//       ]
+//     );
+
+//     console.log("Thêm số tiết bảo lưu thành công");
+//     res.status(200).json({
+//       success: true,
+//       message: "Thêm số tiết bảo lưu thành công!",
+//     });
+//   } catch (error) {
+//     console.error("Lỗi khi lưu số tiết bảo lưu:", error);
+//     res.status(500).json({
+//       message: "Có lỗi xảy ra thêm khi số tiết bảo lưu.",
+//       error: error.message,
+//     });
+//   } finally {
+//     if (connection) connection.release();
+//   }
+// };
+
+const saveSoTietNCKHBaoLuuSangNam = async (tenGiangVien, namHoc) => {
+  if (!tenGiangVien || !namHoc) {
+    throw new Error("Vui lòng cung cấp đầy đủ thông tin (tên giảng viên và năm học)!");
   }
 
-  // Tạo kết nối từ pool
   const connection = await createPoolConnection();
 
   try {
-    // 1. Query đến bảng sotietdinhmuc để lấy ra SoTietNCKH
-    // Chú ý: Tên cột được chọn phải khớp với tên cột trong bảng
+    // 1. Lấy mã khoa từ bảng nhân viên
+    const [rowsNV] = await connection.execute(
+      `SELECT MaPhongBan FROM nhanvien WHERE TenNhanVien = ? LIMIT 1`,
+      [tenGiangVien]
+    );
+    if (rowsNV.length === 0) {
+      throw new Error("Không tìm thấy giảng viên trong bảng nhanvien");
+    }
+    const khoa = rowsNV[0].MaPhongBan;
+
+    const tenNhiemVu = "Số tiết NCKH bảo lưu";
+
+    // 2. Lấy định mức tiết NCKH
     const [rowsSoTietDinhMuc] = await connection.execute(
       `SELECT NCKH FROM sotietdinhmuc LIMIT 1`
     );
     if (rowsSoTietDinhMuc.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "Không tìm thấy dữ liệu trong bảng sotietdinhmuc" });
+      throw new Error("Không tìm thấy dữ liệu trong bảng sotietdinhmuc");
     }
     const soTietDinhMuc = rowsSoTietDinhMuc[0].NCKH;
-    // console.log('Định mức: ', soTietDinhMuc)
 
-    // 2. Gọi hàm tổng hợp số tiết NCKH của giảng viên
-    const dataTongHop = await tongHopSoTietNckhCuaMotGiangVien2(
-      namHoc,
-      giangVien
-    );
-    // Kiểm tra dữ liệu trả về có hợp lệ không
-
+    // 3. Tổng hợp tiết NCKH
+    const dataTongHop = await tongHopSoTietNckhCuaMotGiangVien2(namHoc, tenGiangVien);
     const tongSoTietNCKH = dataTongHop.total;
-    // console.log('Tổng năm: ', tongSoTietNCKH)
 
-    // 3. Tính toán số tiết vượt định mức
-    const soTietVuotDinhMuc =
-      tongSoTietNCKH - soTietDinhMuc > 0 ? tongSoTietNCKH - soTietDinhMuc : 0;
-    // Nếu số tiết vượt định mức > 0 thì tính, ngược lại gán là 0
-    const soTietBaoLuuSangNamSau =
-      soTietVuotDinhMuc > 0
-        ? soTietVuotDinhMuc >= 85
-          ? 85
-          : soTietVuotDinhMuc
-        : 0;
+    // 4. Tính toán tiết vượt định mức và bảo lưu
+    const soTietVuotDinhMuc = Math.max(0, tongSoTietNCKH - soTietDinhMuc);
+    const soTietBaoLuuSangNamSau = Math.min(soTietVuotDinhMuc, 85);
 
-    // 4. Lưu dữ liệu vào bảng sotietnckhbaoluusangnam
-    await connection.execute(
-      `INSERT INTO sotietnckhbaoluusangnam 
-         (TenNhiemVu, NamHoc, GiangVien, Khoa, SoTietBaoLuuSangNamSau, TongSoTietNCKHTrongNam, SoTietVuotDinhMuc)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        tenNhiemVu,
-        namHoc,
-        giangVien,
-        khoa,
-        soTietBaoLuuSangNamSau,
-        tongSoTietNCKH,
-        soTietVuotDinhMuc,
-      ]
+    // 5. Kiểm tra xem đã tồn tại bản ghi chưa
+    const [existingRows] = await connection.execute(
+      `SELECT 1 FROM sotietnckhbaoluusangnam 
+       WHERE TenNhiemVu = ? AND NamHoc = ? AND GiangVien = ? 
+       LIMIT 1`,
+      [tenNhiemVu, namHoc, tenGiangVien]
     );
 
-    console.log("Thêm số tiết bảo lưu thành công");
-    res.status(200).json({
-      success: true,
-      message: "Thêm số tiết bảo lưu thành công!",
-    });
+    if (existingRows.length > 0) {
+      // Nếu đã tồn tại => UPDATE
+      await connection.execute(
+        `UPDATE sotietnckhbaoluusangnam
+         SET Khoa = ?, 
+             SoTietBaoLuuSangNamSau = ?, 
+             TongSoTietNCKHTrongNam = ?, 
+             SoTietVuotDinhMuc = ?
+         WHERE TenNhiemVu = ? AND NamHoc = ? AND GiangVien = ?`,
+        [
+          khoa,
+          soTietBaoLuuSangNamSau,
+          tongSoTietNCKH,
+          soTietVuotDinhMuc,
+          tenNhiemVu,
+          namHoc,
+          tenGiangVien
+        ]
+      );
+      return {
+        success: true,
+        message: "Cập nhật số tiết bảo lưu thành công!",
+      };
+    } else {
+      // Nếu chưa tồn tại => INSERT
+      await connection.execute(
+        `INSERT INTO sotietnckhbaoluusangnam
+           (TenNhiemVu, NamHoc, GiangVien, Khoa, SoTietBaoLuuSangNamSau, TongSoTietNCKHTrongNam, SoTietVuotDinhMuc)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          tenNhiemVu,
+          namHoc,
+          tenGiangVien,
+          khoa,
+          soTietBaoLuuSangNamSau,
+          tongSoTietNCKH,
+          soTietVuotDinhMuc,
+        ]
+      );
+      return {
+        success: true,
+        message: "Thêm số tiết bảo lưu thành công!",
+      };
+    }
   } catch (error) {
-    console.error("Lỗi khi lưu số tiết bảo lưu:", error);
-    res.status(500).json({
-      message: "Có lỗi xảy ra thêm khi số tiết bảo lưu.",
-      error: error.message,
-    });
+    console.error("Lỗi khi xử lý số tiết bảo lưu:", error);
+    throw new Error("Có lỗi xảy ra: " + error.message);
   } finally {
     if (connection) connection.release();
   }
 };
+
 
 const getDataSoTietNCKHBaoLuuSangNam = async (req, res) => {
   // Lấy dữ liệu từ body
