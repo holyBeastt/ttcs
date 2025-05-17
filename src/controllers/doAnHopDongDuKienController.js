@@ -345,8 +345,8 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           MaSV,
           NgayBatDau,
           NgayKetThuc,
-          ki,
           dot,
+          ki,
           namhoc,
           MaPhongBan,
           15 AS SoTiet
