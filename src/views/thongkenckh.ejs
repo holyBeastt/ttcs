@@ -694,19 +694,19 @@ async function fetchData() {
                     $('#NamHoc').val(response.MaxNamHoc).trigger('change');
                 }
                 // Cập nhật danh sách khoa, loại bỏ trùng lặp
-                let uniqueKhoa = [...new Set(response.Khoa.map(k => k.MaPhongBan))]; 
+                let uniqueKhoa = [...new Set(response.Khoa.map(k => k.Khoa))]; 
                 $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
                 uniqueKhoa.forEach(function (item) {
-                    $('#Khoa').append(`<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`);
+                    $('#Khoa').append(`<option value="${item}">${item}</option>`);
                 });
                 // Kiểm tra nếu người dùng có MaPhongBan cụ thể
                 const MaPhongBan = localStorage.getItem("MaPhongBan");
                 const isKhoa = localStorage.getItem("isKhoa");
                 console.log("Khoa:", MaPhongBan)
                         if (isKhoa == 0) {
-                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
+                            $('#Khoa').val('ALL'); 
                         } else if (isKhoa == 1) {
-                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
+                            $('#Khoa').val(MaPhongBan); 
                             $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
                         }
                         fetchData();
