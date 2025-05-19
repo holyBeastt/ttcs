@@ -787,6 +787,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
         const phuLucTeacher = phuLucData.filter(
           (item) => item.GiangVien.trim() == teacher.HoTen.trim()
         );
+
         const filePathAppendix = await generateAppendixContract(
           connection,
           tienLuongList,
@@ -1711,7 +1712,7 @@ const generateAppendixContract = async (
     }
 
     // Tạo tên file
-    let fileName = `PhuLuc_${data[0].GiangVien}`;
+    let fileName = `PhuLuc_${data?.[0]?.GiangVien || "KhongRo"}`;
 
     fileName += ".xlsx";
 
