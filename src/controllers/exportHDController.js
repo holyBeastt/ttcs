@@ -421,6 +421,17 @@ const exportMultipleContracts = async (req, res) => {
         teacher.NgayKetThuc
       );
 
+      // Cập nhật lại số tiền vào bảng hopdonggvmoi
+      await updateSoTienThucNhan(
+        connection,
+        teacher.id_Gvm,
+        dot,
+        ki,
+        namHoc,
+        tienThueText,
+        tienThucNhanText
+      );
+
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
@@ -504,9 +515,8 @@ const exportMultipleContracts = async (req, res) => {
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
+      }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
 
@@ -547,6 +557,34 @@ const exportMultipleContracts = async (req, res) => {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
+
+const updateSoTienThucNhan = async (connection, idGvm, dot, kiHoc, namHoc, truThue, thucNhan) => {
+  try {
+    const updateQuery = `
+      UPDATE hopdonggvmoi
+      SET TruThue = ?, ThucNhan = ?
+      WHERE id_Gvm = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+    `;
+    const [result] = await connection.execute(updateQuery, [
+      truThue,
+      thucNhan,
+      idGvm,
+      dot,
+      kiHoc,
+      namHoc,
+    ]);
+
+    if (result.affectedRows === 0) {
+      console.warn(`Không tìm thấy bản ghi để cập nhật cho giảng viên ${idGvm}`);
+    } else {
+      console.log(`Đã cập nhật TruThue và ThucNhan cho giảng viên ${idGvm}`);
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật thu nhập cho giảng viên ${idGvm}:`, err);
+    throw err;
+  }
+};
+
 
 const getExportHDSite = async (req, res) => {
   let connection;
@@ -1237,8 +1275,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1563,8 +1601,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
