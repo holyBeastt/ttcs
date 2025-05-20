@@ -99,7 +99,7 @@ const AdminController = {
           message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
         });
       }
-      const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+      const cleanedPhanTram = PhanTramMienGiam.replace("%", "").trim(); // Xóa dấu %
       const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
 
       if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
@@ -928,7 +928,7 @@ const AdminController = {
       connection = await createPoolConnection(); // Lấy kết nối từ pool
 
       // Truy vấn để update dữ liệu vào cơ sở dữ liệu
-      const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+      const cleanedPhanTram = PhanTramMienGiam.replace("%", "").trim(); // Xóa dấu %
       const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
       const query = `UPDATE nhanvien SET 
         TenNhanVien = ?,
@@ -1057,7 +1057,8 @@ const AdminController = {
   },
   updateKyTuBD: async (req, res) => {
     const oldlop_vi_du = req.params.lop_vi_du;
-    const { lop_vi_du, viet_tat, loai_dao_tao, he_dao_tao, doi_tuong } = req.body;
+    const { lop_vi_du, viet_tat, loai_dao_tao, he_dao_tao, doi_tuong } =
+      req.body;
     const gia_tri_so_sanh = `${loai_dao_tao} (${he_dao_tao})`;
     let connection;
 
@@ -1297,7 +1298,9 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [phanTramMienGiam] = await connection.query("SELECT * FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC");
+      const [phanTramMienGiam] = await connection.query(
+        "SELECT * FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC"
+      );
       res.render("adminPhanTramMienGiam", {
         phanTramMienGiam: phanTramMienGiam,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -1334,7 +1337,7 @@ const AdminController = {
     const Id = req.params.Id; // Sử dụng Id từ params
     const { lydo, phanTram } = req.body; // Lấy dữ liệu từ body
     console.log("body", req.body);
-    console.log("Id", Id); 
+    console.log("Id", Id);
     console.log("lydo", lydo);
     console.log("phanTram", phanTram);
     let connection;
@@ -1427,7 +1430,9 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [lyDoMienGiam] = await connection.query("SELECT *FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC");
+      const [lyDoMienGiam] = await connection.query(
+        "SELECT *FROM phantrammiengiam ORDER BY PhanTramMienGiam ASC"
+      );
       res.json({
         success: true,
         lydo: lyDoMienGiam,
@@ -1448,9 +1453,111 @@ const AdminController = {
       const lyDo = req.params.LyDo;
       console.log("lyDo", lyDo);
       connection = await createPoolConnection();
-      const [phanTram] = await connection.query("SELECT PhanTramMienGiam FROM phantrammiengiam WHERE LyDo = ?"  , [lyDo]);
+      const [phanTram] = await connection.query(
+        "SELECT PhanTramMienGiam FROM phantrammiengiam WHERE LyDo = ?",
+        [lyDo]
+      );
       console.log("Phan Tram", phanTram);
-      
+
+      res.json({
+        success: true,
+        phanTram: phanTram,
+      });
+    } catch (error) {
+      console.error("Lỗi: ", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+      });
+    } finally {
+      if (connection) connection.release(); // luôn giải phóng kết nối
+    }
+  },
+
+  // Lấy site chuyển khoa
+  getChuyenKhoaSite: async (req, res) => {
+    res.render("admin.chuyenKhoa.ejs");
+  },
+
+  updateFacultyData: async (req, res) => {
+    let connection;
+    try {
+      const { khoaChon, khoaMoi, maMoi } = req.body;
+      connection = await createPoolConnection();
+
+      // Tách thành 2 mảng
+      const khoaTen = khoaChon.map((item) => item.split(" - ")[0].trim());
+      const khoaMa = khoaChon.map((item) => item.split(" - ")[1].trim());
+
+      console.log("Tên khoa:", khoaTen);
+      console.log("Mã khoa:", khoaMa);
+
+      return;
+
+      const placeholders = khoaChon.map(() => "?").join(", ");
+
+      // Kiểm tra nếu trùng 1 trong 2: MaPhongBan hoặc TenPhongBan, trừ các khoa đang chuyển
+      const [isExist] = await connection.execute(
+        `SELECT EXISTS(
+        SELECT 1 FROM phongban 
+        WHERE (TenPhongBan = ? OR MaPhongBan = ?)
+        AND MaPhongBan NOT IN (${placeholders})
+      ) AS exist`,
+        [khoaMoi, maMoi, ...khoaMa]
+      );
+
+      // Kiểm tra nếu trùng CẢ HAI, và không nằm trong danh sách loại trừ
+      const [isMatching] = await connection.execute(
+        `SELECT EXISTS(
+        SELECT 1 FROM phongban 
+        WHERE TenPhongBan = ? AND MaPhongBan = ?
+        AND MaPhongBan NOT IN (${placeholders})
+      ) AS exist`,
+        [khoaMoi, maMoi, ...khoaMa]
+      );
+
+      // Nếu trùng một trong hai, nhưng KHÔNG trùng cả hai => lỗi
+      if (isExist[0].exist === 1 && isMatching[0].exist === 0) {
+        return res
+          .status(400)
+          .send("Tên khoa hoặc mã khoa đã tồn tại nhưng không khớp nhau");
+      }
+
+      // Nếu không tồn tại cả hai => tạo mới khoa, bộ môn CHUNG
+      const isMerging = isMatching[0].exist === 1;
+      if (!isMerging) {
+        // Tạo khoa mới
+        await connection.execute(
+          "INSERT INTO phongban(`MaPhongBan`, `TenPhongBan`, `isKhoa`) VALUES (?, ?, ?)",
+          [maMoi, khoaMoi, 1]
+        );
+
+        // Tạo bộ môn chung
+        await connection.execute(
+          "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, ?, ?)",
+          [maMoi, "CHUNG", `CHUNG khoa ${maMoi}`]
+        );
+      } else {
+        // Nếu tồn tại cả 2 => khoa cũ => kiểm tra xem đã có bộ môn CHUNG chưa
+
+        // Kiểm tra xem đã có bộ môn CHUNG chưa
+        const [hasChungBoMon] = await connection.execute(
+          `SELECT EXISTS(
+          SELECT 1 FROM bomon
+          WHERE MaPhongBan = ? AND MaBoMon = 'CHUNG'
+        ) AS exist`,
+          [maMoi]
+        );
+
+        if (hasChungBoMon[0].exist === 0) {
+          // Nếu chưa có thì tạo
+          await connection.execute(
+            "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, 'CHUNG', ?)",
+            [maMoi, `CHUNG khoa ${maMoi}`]
+          );
+        }
+      }
+
       res.json({
         success: true,
         phanTram: phanTram,

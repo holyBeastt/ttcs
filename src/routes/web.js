@@ -23,7 +23,9 @@ const {
   getthongkenckh,
   getthongkedoan,
   getBoMonShared,
+  getPhongBanInfoShared,
 } = require("../controllers/homeController");
+const { route } = require("./adminRoute");
 
 // const { createGVM } = require("../controllers/DaoTaoController");
 
@@ -62,4 +64,7 @@ router.get("/thongkedoan", getthongkedoan);
 
 // Lấy danh sách all mã bộ môn (không có điều kiện)
 router.get("/api/shared/bo-mon", getBoMonShared);
+
+// Lấy danh sách tên, mã phòng ban
+router.get("/api/shared/phong-ban-info", getPhongBanInfoShared);
 module.exports = router;

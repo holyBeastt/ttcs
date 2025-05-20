@@ -691,7 +691,7 @@ getStatisticsData: async (req, res) => {
 
             // Lấy dữ liệu khoa từ bảng phongban
             const [khoa] = await connection.query(
-                `SELECT MaPhongBan as Khoa, TenPhongBan FROM phongban WHERE isKhoa=1`
+                `SELECT MaPhongBan as Khoa FROM phongban WHERE isKhoa=1`
             );
 
             const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất

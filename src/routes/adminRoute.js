@@ -43,6 +43,8 @@ const {
   checkExistence2,
   getLyDoGiamTru,
   getPhanTram,
+  getChuyenKhoaSite,
+  updateFacultyData,
 } = require("../controllers/adminController");
 const {
   getaccountList,
@@ -193,6 +195,9 @@ router.post("/checkExistence2", checkExistence2);
 router.get("/getmiengiam", getLyDoGiamTru);
 router.get("/getphantram/:LyDo", getPhanTram);
 
+// Chuyển khoa
+router.get("/api/admin/getChuyenKhoaSite", getChuyenKhoaSite);
 
+router.post("/api/admin/department/update-faculty-data", updateFacultyData);
 
 module.exports = router;

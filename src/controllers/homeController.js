@@ -112,6 +112,32 @@ const getBoMonShared = async (req, res) => {
   }
 };
 
+const getPhongBanInfoShared = async (req, res) => {
+  let connection;
+
+  try {
+    // Tạo kết nối từ pool
+    connection = await createPoolConnection();
+
+    // Xác định truy vấn dựa vào MaPhongBan
+    let query = `
+      SELECT TenPhongBan, MaPhongBan from phongban where isKhoa = 1`;
+
+    // Thực hiện truy vấn với kết nối
+    const [results] = await connection.query(query);
+
+    // Trả về kết quả truy vấn
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Lỗi trong hàm getBoMon:", error);
+    return res
+      .status(500)
+      .json({ error: "Đã xảy ra lỗi trong quá trình xử lý dữ liệu." });
+  } finally {
+    if (connection) connection.release(); // Giải phóng kết nối khi hoàn thành
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   gethomePage,
@@ -138,4 +164,5 @@ module.exports = {
 
   // Controller chung
   getBoMonShared,
+  getPhongBanInfoShared,
 };

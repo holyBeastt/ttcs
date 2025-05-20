@@ -351,7 +351,7 @@
       }
 
       async function fetchKhoaData() {
-        const response = await fetch("/api/nhanvien"); // Gọi đến API để lấy dữ liệu nhân viên
+        const response = await fetch("/api/khoa"); // Gọi đến API để lấy dữ liệu nhân viên
         const data = await response.json();
         const khoaSelect = document.getElementById("Khoa");
         const uniqueDepartments = new Set(); // Sử dụng Set để loại bỏ trùng lặp
