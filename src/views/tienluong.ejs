@@ -54,6 +54,7 @@
           <select name="HocVi" id="HocVi" class="form-control" required>
             <option value="Thạc sĩ" selected>Thạc sĩ</option>
             <option value="Tiến sĩ">Tiến sĩ</option>
+            <option value="Phó giáo sư">Phó giáo sư</option>
             <option value="Giáo sư">Giáo sư</option>
           </select>
         </div>
@@ -166,6 +167,9 @@
                     <option value="Tiến sĩ" ${
                       originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
                     }>Tiến sĩ</option>
+                    <option value="Phó giáo sư" ${
+                      originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
+                    }>Phó giáo sư</option>
                     <option value="Giáo sư" ${
                       originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
                     }>Giáo sư</option>
