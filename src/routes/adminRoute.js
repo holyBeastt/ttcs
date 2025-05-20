@@ -44,6 +44,7 @@ const {
   getLyDoGiamTru,
   getPhanTram,
   getChuyenKhoaSite,
+  updateFacultyData,
 } = require("../controllers/adminController");
 const {
   getaccountList,
@@ -196,5 +197,7 @@ router.get("/getphantram/:LyDo", getPhanTram);
 
 // Chuyển khoa
 router.get("/api/admin/getChuyenKhoaSite", getChuyenKhoaSite);
+
+router.post("/api/admin/department/update-faculty-data", updateFacultyData);
 
 module.exports = router;

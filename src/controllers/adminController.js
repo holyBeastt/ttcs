@@ -1478,6 +1478,100 @@ const AdminController = {
   getChuyenKhoaSite: async (req, res) => {
     res.render("admin.chuyenKhoa.ejs");
   },
+
+  updateFacultyData: async (req, res) => {
+    let connection;
+    try {
+      const { khoaChon, khoaMoi, maMoi } = req.body;
+      connection = await createPoolConnection();
+
+      // Tách thành 2 mảng
+      const khoaTen = khoaChon.map((item) => item.split(" - ")[0].trim());
+      const khoaMa = khoaChon.map((item) => item.split(" - ")[1].trim());
+
+      console.log("Tên khoa:", khoaTen);
+      console.log("Mã khoa:", khoaMa);
+
+      return;
+
+      const placeholders = khoaChon.map(() => "?").join(", ");
+
+      // Kiểm tra nếu trùng 1 trong 2: MaPhongBan hoặc TenPhongBan, trừ các khoa đang chuyển
+      const [isExist] = await connection.execute(
+        `SELECT EXISTS(
+        SELECT 1 FROM phongban 
+        WHERE (TenPhongBan = ? OR MaPhongBan = ?)
+        AND MaPhongBan NOT IN (${placeholders})
+      ) AS exist`,
+        [khoaMoi, maMoi, ...khoaMa]
+      );
+
+      // Kiểm tra nếu trùng CẢ HAI, và không nằm trong danh sách loại trừ
+      const [isMatching] = await connection.execute(
+        `SELECT EXISTS(
+        SELECT 1 FROM phongban 
+        WHERE TenPhongBan = ? AND MaPhongBan = ?
+        AND MaPhongBan NOT IN (${placeholders})
+      ) AS exist`,
+        [khoaMoi, maMoi, ...khoaMa]
+      );
+
+      // Nếu trùng một trong hai, nhưng KHÔNG trùng cả hai => lỗi
+      if (isExist[0].exist === 1 && isMatching[0].exist === 0) {
+        return res
+          .status(400)
+          .send("Tên khoa hoặc mã khoa đã tồn tại nhưng không khớp nhau");
+      }
+
+      // Nếu không tồn tại cả hai => tạo mới khoa, bộ môn CHUNG
+      const isMerging = isMatching[0].exist === 1;
+      if (!isMerging) {
+        // Tạo khoa mới
+        await connection.execute(
+          "INSERT INTO phongban(`MaPhongBan`, `TenPhongBan`, `isKhoa`) VALUES (?, ?, ?)",
+          [maMoi, khoaMoi, 1]
+        );
+
+        // Tạo bộ môn chung
+        await connection.execute(
+          "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, ?, ?)",
+          [maMoi, "CHUNG", `CHUNG khoa ${maMoi}`]
+        );
+      } else {
+        // Nếu tồn tại cả 2 => khoa cũ => kiểm tra xem đã có bộ môn CHUNG chưa
+
+        // Kiểm tra xem đã có bộ môn CHUNG chưa
+        const [hasChungBoMon] = await connection.execute(
+          `SELECT EXISTS(
+          SELECT 1 FROM bomon
+          WHERE MaPhongBan = ? AND MaBoMon = 'CHUNG'
+        ) AS exist`,
+          [maMoi]
+        );
+
+        if (hasChungBoMon[0].exist === 0) {
+          // Nếu chưa có thì tạo
+          await connection.execute(
+            "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, 'CHUNG', ?)",
+            [maMoi, `CHUNG khoa ${maMoi}`]
+          );
+        }
+      }
+
+      res.json({
+        success: true,
+        phanTram: phanTram,
+      });
+    } catch (error) {
+      console.error("Lỗi: ", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+      });
+    } finally {
+      if (connection) connection.release(); // luôn giải phóng kết nối
+    }
+  },
 };
 
 module.exports = AdminController; // Export the entire controller

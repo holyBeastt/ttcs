@@ -197,12 +197,43 @@
           alert("Vui lòng nhập đầy đủ thông tin.");
           return;
         }
-        const ketQua = `
-      Gộp các khoa: <b>${khoaChon.join(", ")}</b><br>
-      => thành: <b>${tenMoi}</b> (Mã: <b>${maMoi}</b>)
-    `;
-        $("#ketQua").html(ketQua);
+
+        const requestData = {
+          khoaChon,
+          khoaMoi: tenMoi,
+          maMoi,
+        };
+
+        updateDB(requestData);
       }
+
+      const updateDB = (requestData) => {
+        fetch("/api/admin/department/update-faculty-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // báo cho server biết bạn đang gửi JSON
+          },
+          body: JSON.stringify(requestData), // chuyển object thành JSON string
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const khoaList = Array.isArray(data.MaPhongBan)
+              ? data.MaPhongBan
+              : data;
+
+            danhSachKhoa = khoaList.map(
+              (khoa) => `${khoa.TenPhongBan} - ${khoa.MaPhongBan}`
+            );
+          })
+          .catch((error) => {
+            console.error("Fetch error:", error);
+          });
+      };
     </script>
   </body>
 </html>
