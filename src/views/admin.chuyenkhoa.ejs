@@ -23,7 +23,27 @@
       body {
         font-family: Arial, sans-serif;
       }
-      .container {
+      .main-container {
+        padding: 20px;
+      }
+      .tabs-container {
+        margin-bottom: 20px;
+      }
+      .tab-button {
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        cursor: pointer;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+      }
+      .tab-button.chuyen-khoa-active {
+        background-color: #28a745 !important;
+        color: white;
+        border-color: #28a745;
+      }
+      .panel-container {
         display: flex;
         justify-content: space-between;
         gap: 20px;
@@ -73,9 +93,12 @@
       button:hover {
         background-color: #218838;
       }
-    </style>
-
-    <style>
+      .tab-content {
+        display: none;
+      }
+      .tab-content.chuyen-khoa-active {
+        display: block;
+      }
       /* Tùy chỉnh danh sách gợi ý */
       .ui-autocomplete {
         background: white;
@@ -86,7 +109,6 @@
         width: 200px; /* Giảm độ rộng */
         font-size: 14px !important;
       }
-
       /* Hiển thị đẹp hơn, không cần hover */
       .ui-menu-item {
         padding: 5px;
@@ -97,28 +119,85 @@
   <body>
     <%- include('adminHeader') %>
 
-    <h2>Thay đổi thông tin theo quyết định mới về khoa/phòng</h2>
+    <div class="main-container">
+      <h2>Thay đổi thông tin theo quyết định mới về khoa/phòng</h2>
 
-    <div class="container">
-      <!-- Bên trái -->
-      <div class="panel">
-        <h3>Chọn các khoa cần gộp / chuyển</h3>
-        <input type="text" id="khoaInput" placeholder="Nhập tên khoa..." />
-        <div id="selectedTags" class="tags-container"></div>
+      <div class="tabs-container">
+        <button
+          class="tab-button chuyen-khoa-active"
+          onclick="openTab('gopKhoa')"
+        >
+          Gộp khoa
+        </button>
+        <button class="tab-button" onclick="openTab('chuyenKhoa')">
+          Chuyển khoa
+        </button>
       </div>
 
-      <!-- Bên phải -->
-      <div class="panel">
-        <h3>Khoa sau khi gộp / đổi tên</h3>
-        <label>Tên khoa mới:</label>
-        <input type="text" id="tenKhoaMoi" placeholder="VD: Cơ bản" />
+      <!-- Tab Gộp khoa -->
+      <div id="gopKhoa" class="tab-content chuyen-khoa-active">
+        <div class="panel-container">
+          <!-- Bên trái -->
+          <div class="panel">
+            <h3>Chọn các khoa cần gộp</h3>
+            <input
+              type="text"
+              id="khoaInputGop"
+              placeholder="Nhập tên khoa..."
+            />
+            <div id="selectedTagsGop" class="tags-container"></div>
+          </div>
 
-        <label>Mã khoa mới:</label>
-        <input type="text" id="maKhoaMoi" placeholder="VD: CB" />
+          <!-- Bên phải -->
+          <div class="panel">
+            <h3>Khoa sau khi gộp</h3>
+            <label>Tên khoa mới:</label>
+            <input type="text" id="tenKhoaMoiGop" placeholder="VD: Cơ bản" />
 
-        <button onclick="update()">Cập nhật</button>
+            <label>Mã khoa mới:</label>
+            <input type="text" id="maKhoaMoiGop" placeholder="VD: CB" />
 
-        <div id="ketQua" style="margin-top: 20px; font-weight: bold"></div>
+            <button onclick="updateGop()">Cập nhật</button>
+
+            <div
+              id="ketQuaGop"
+              style="margin-top: 20px; font-weight: bold"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Chuyển khoa -->
+      <div id="chuyenKhoa" class="tab-content">
+        <div class="panel-container">
+          <!-- Bên trái -->
+          <div class="panel">
+            <h3>Chọn khoa cần đổi tên/mã</h3>
+            <input
+              type="text"
+              id="khoaInputChuyen"
+              placeholder="Nhập tên khoa..."
+            />
+            <div id="selectedTagsChuyen" class="tags-container"></div>
+          </div>
+
+          <!-- Bên phải -->
+          <div class="panel">
+            <h3>Thông tin mới của khoa</h3>
+            <label>Tên khoa mới:</label>
+            <input type="text" id="tenKhoaMoiChuyen" placeholder="VD: Cơ bản" />
+
+            <label>Mã khoa mới:</label>
+            <input type="text" id="maKhoaMoiChuyen" placeholder="VD: CB" />
+
+            <button onclick="updateChuyen()">Cập nhật</button>
+
+            <div
+              id="ketQuaChuyen"
+              style="margin-top: 20px; font-weight: bold"
+            ></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -132,6 +211,24 @@
       document.addEventListener("DOMContentLoaded", () => {
         getData();
       });
+
+      function openTab(tabName) {
+        // Ẩn tất cả các tab
+        const tabContents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabContents.length; i++) {
+          tabContents[i].classList.remove("chuyen-khoa-active");
+        }
+
+        // Bỏ chuyen-khoa-active khỏi tất cả buttons
+        const tabButtons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < tabButtons.length; i++) {
+          tabButtons[i].classList.remove("chuyen-khoa-active");
+        }
+
+        // Hiển thị tab được chọn và chuyen-khoa-active button
+        document.getElementById(tabName).classList.add("chuyen-khoa-active");
+        event.currentTarget.classList.add("chuyen-khoa-active");
+      }
 
       const getData = () => {
         fetch("/api/shared/phong-ban-info")
@@ -149,71 +246,145 @@
             danhSachKhoa = khoaList.map(
               (khoa) => `${khoa.TenPhongBan} - ${khoa.MaPhongBan}`
             );
+
+            // Thiết lập autocomplete sau khi có dữ liệu
+            setupAutocomplete();
           })
           .catch((error) => {
             console.error("Fetch error:", error);
           });
       };
 
-      let khoaChon = [];
+      // Biến lưu danh sách khoa đã chọn
+      let khoaChonGop = [];
+      let khoaChonChuyen = [];
 
-      $("#khoaInput").autocomplete({
-        source: function (request, response) {
-          const results = $.ui.autocomplete.filter(danhSachKhoa, request.term);
-          response(results.filter((item) => !khoaChon.includes(item)));
-        },
-        minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
-        select: function (event, ui) {
-          const khoa = ui.item.value;
-          if (!khoaChon.includes(khoa)) {
-            khoaChon.push(khoa);
-            capNhatTag();
-            $("#khoaInput").val("");
-          }
-          return false;
-        },
-      });
+      function setupAutocomplete() {
+        // Autocomplete cho Gộp khoa
+        $("#khoaInputGop")
+          .autocomplete({
+            source: function (request, response) {
+              const results = $.ui.autocomplete.filter(
+                danhSachKhoa,
+                request.term
+              );
+              response(results.filter((item) => !khoaChonGop.includes(item)));
+            },
+            minLength: 0,
+            select: function (event, ui) {
+              const khoa = ui.item.value;
+              if (!khoaChonGop.includes(khoa)) {
+                khoaChonGop.push(khoa);
+                capNhatTagGop();
+                $("#khoaInputGop").val("");
+              }
+              return false;
+            },
+          })
+          .on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
 
-      $("#khoaInput").on("focus", function () {
-        $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
-      });
+        // Autocomplete cho Chuyển khoa
+        $("#khoaInputChuyen")
+          .autocomplete({
+            source: function (request, response) {
+              const results = $.ui.autocomplete.filter(
+                danhSachKhoa,
+                request.term
+              );
+              response(
+                results.filter((item) => !khoaChonChuyen.includes(item))
+              );
+            },
+            minLength: 0,
+            select: function (event, ui) {
+              const khoa = ui.item.value;
+              // Chỉ cho phép chọn một khoa duy nhất
+              khoaChonChuyen = [khoa];
+              capNhatTagChuyen();
+              $("#khoaInputChuyen").val("");
+              return false;
+            },
+          })
+          .on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
+      }
 
-      function capNhatTag() {
-        $("#selectedTags").empty();
-        khoaChon.forEach((khoa) => {
+      function capNhatTagGop() {
+        $("#selectedTagsGop").empty();
+        khoaChonGop.forEach((khoa) => {
           const tag = $(`<span class="tag">${khoa} ✕</span>`);
           tag.click(() => {
-            khoaChon = khoaChon.filter((k) => k !== khoa);
-            capNhatTag();
+            khoaChonGop = khoaChonGop.filter((k) => k !== khoa);
+            capNhatTagGop();
           });
-          $("#selectedTags").append(tag);
+          $("#selectedTagsGop").append(tag);
         });
       }
 
-      function update() {
-        const tenMoi = $("#tenKhoaMoi").val().trim();
-        const maMoi = $("#maKhoaMoi").val().trim();
-        if (khoaChon.length === 0 || tenMoi === "" || maMoi === "") {
-          alert("Vui lòng nhập đầy đủ thông tin.");
+      function capNhatTagChuyen() {
+        $("#selectedTagsChuyen").empty();
+        // Hiển thị khoa đã chọn (chỉ có một)
+        if (khoaChonChuyen.length > 0) {
+          const khoa = khoaChonChuyen[0];
+          const tag = $(`<span class="tag">${khoa} ✕</span>`);
+          tag.click(() => {
+            khoaChonChuyen = [];
+            capNhatTagChuyen();
+          });
+          $("#selectedTagsChuyen").append(tag);
+        }
+      }
+
+      function updateGop() {
+        const tenMoi = $("#tenKhoaMoiGop").val().trim();
+        const maMoi = $("#maKhoaMoiGop").val().trim();
+
+        if (khoaChonGop.length < 2 || tenMoi === "" || maMoi === "") {
+          alert(
+            "Vui lòng chọn ít nhất 2 khoa và nhập đầy đủ thông tin khoa mới."
+          );
           return;
         }
 
         const requestData = {
-          khoaChon,
+          khoaChon: khoaChonGop,
           khoaMoi: tenMoi,
-          maMoi,
+          maMoi: maMoi,
+          action: "merge",
         };
 
-        updateDB(requestData);
+        updateDB(requestData, "gopKhoa");
       }
 
-      const updateDB = (requestData) => {
+      function updateChuyen() {
+        const tenMoi = $("#tenKhoaMoiChuyen").val().trim();
+        const maMoi = $("#maKhoaMoiChuyen").val().trim();
+
+        if (khoaChonChuyen.length !== 1 || tenMoi === "" || maMoi === "") {
+          alert("Vui lòng chọn một khoa và nhập đầy đủ thông tin khoa mới.");
+          return;
+        }
+
+        const requestData = {
+          khoaChon: khoaChonChuyen,
+          khoaMoi: tenMoi,
+          maMoi: maMoi,
+          action: "transfer",
+        };
+
+        updateDB(requestData, "chuyenKhoa");
+      }
+
+      const updateDB = (requestData, type) => {
         fetch("/api/admin/department/update-faculty-data", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json", // báo cho server biết bạn đang gửi JSON
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestData), // chuyển object thành JSON string
+          body: JSON.stringify(requestData),
         })
           .then((response) => {
             if (!response.ok) {
@@ -222,16 +393,34 @@
             return response.json();
           })
           .then((data) => {
-            const khoaList = Array.isArray(data.MaPhongBan)
-              ? data.MaPhongBan
-              : data;
+            // Cập nhật thông báo kết quả
+            if (type === "gopKhoa") {
+              $("#ketQuaGop").text("Cập nhật thành công!");
+              // Reset form sau khi cập nhật
+              khoaChonGop = [];
+              capNhatTagGop();
+              $("#tenKhoaMoiGop").val("");
+              $("#maKhoaMoiGop").val("");
+            } else {
+              $("#ketQuaChuyen").text("Cập nhật thành công!");
+              // Reset form sau khi cập nhật
+              khoaChonChuyen = [];
+              capNhatTagChuyen();
+              $("#tenKhoaMoiChuyen").val("");
+              $("#maKhoaMoiChuyen").val("");
+            }
 
-            danhSachKhoa = khoaList.map(
-              (khoa) => `${khoa.TenPhongBan} - ${khoa.MaPhongBan}`
-            );
+            // Cập nhật lại danh sách khoa
+            getData();
           })
           .catch((error) => {
             console.error("Fetch error:", error);
+            // Hiển thị thông báo lỗi
+            if (type === "gopKhoa") {
+              $("#ketQuaGop").text("Có lỗi xảy ra: " + error.message);
+            } else {
+              $("#ketQuaChuyen").text("Có lỗi xảy ra: " + error.message);
+            }
           });
       };
     </script>

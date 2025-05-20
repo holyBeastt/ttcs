@@ -200,7 +200,7 @@
               <input
                 type="text"
                 id="searchGiangVien"
-                placeholder="Tìm gv giảng dạy"
+                placeholder="Tìm giảng viên giảng dạy"
                 class="form-control m-2 search"
                 style="width: 300px"
               />
@@ -224,6 +224,10 @@
                         <th>Ngày thanh lý HĐ</th>
                         <th>Danh xưng</th>
                         <th>Họ tên</th>
+                        <th class="d_none">Tiền mời giảng</th>
+                        <th class="d_none">Thành tiền</th>
+                        <th class="d_none">Thuế 10%</th>
+                        <th class="d_none">Thực nhận</th>
                         <th>Ngày sinh</th>
                         <th>CCCD</th>
                         <th class="d_none">Ngày cấp CCCD</th>
@@ -496,37 +500,45 @@
               row.insertCell(4).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
               row.insertCell(5).textContent = item.GiangVien;
-              row.insertCell(6).textContent = item.NgaySinh
+              row.insertCell(6).textContent =
+                he_dao_tao === "AllHe"
+                  ? "Tùy hệ"
+                  : formatCurrency(item.TienMoiGiang);
+              row.insertCell(7).textContent = formatCurrency(item.ThanhTien);
+              row.insertCell(8).textContent = formatCurrency(item.Thue);
+              row.insertCell(9).textContent = formatCurrency(item.ThucNhan);
+
+              row.insertCell(10).textContent = item.NgaySinh
                 ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
                   })
                 : "";
-              row.insertCell(7).textContent = item.CCCD;
-              row.insertCell(8).textContent = item.NgayCapCCCD
+              row.insertCell(11).textContent = item.CCCD;
+              row.insertCell(12).textContent = item.NgayCapCCCD
                 ? new Date(item.NgayCapCCCD).toLocaleDateString("vi-VN", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
                   })
                 : "";
-              row.insertCell(9).textContent = item.HocVi;
-              row.insertCell(10).textContent = item.ChucVu;
-              row.insertCell(11).textContent = item.DienThoai;
-              row.insertCell(12).textContent = item.Email;
-              row.insertCell(13).textContent = item.STK;
-              row.insertCell(14).textContent = item.NganHang;
-              row.insertCell(15).textContent = item.MaSoThue;
-              row.insertCell(16).textContent = item.DiaChi;
+              row.insertCell(13).textContent = item.HocVi;
+              row.insertCell(14).textContent = item.ChucVu;
+              row.insertCell(15).textContent = item.DienThoai;
+              row.insertCell(16).textContent = item.Email;
+              row.insertCell(17).textContent = item.STK;
+              row.insertCell(18).textContent = item.NganHang;
+              row.insertCell(19).textContent = item.MaSoThue;
+              row.insertCell(20).textContent = item.DiaChi;
 
               //const cellNoiCongTac = row.insertCell(17);
               //cellNoiCongTac.textContent = item.NoiCongTac;
               //cellNoiCongTac.style.minWidth = "150px";
 
-              row.insertCell(17).textContent = item.NoiCongTac;
-              row.insertCell(18).textContent = item.MonGiangDayChinh;
-              const cellAction = row.insertCell(19); // Thêm cột thứ 19 (sau MonGiangDayChinh)
+              row.insertCell(21).textContent = item.NoiCongTac;
+              row.insertCell(22).textContent = item.MonGiangDayChinh;
+              const cellAction = row.insertCell(23); // Thêm cột thứ 19 (sau MonGiangDayChinh)
               cellAction.innerHTML = `
                 <td>
                   <button class="action-button view" onclick="viewClass(this, '${
@@ -551,6 +563,16 @@
           }
         });
       });
+
+      function formatCurrency(value) {
+        if (typeof value === "number" && !isNaN(value)) {
+          return value.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          });
+        }
+        return "0 ₫"; // hoặc 'Chưa có', hoặc giữ trống ''
+      }
     </script>
 
     <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
