@@ -1,7 +1,6 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
     background-color: #f8f8f8;
 }
 
@@ -11,10 +10,10 @@ h1 {
 }
 
 .filter-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 25px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Chia đều thành 4 cột */
+    gap: 20px; /* Khoảng cách giữa các phần tử */
+    align-items: start; /* Căn các phần tử theo hàng trên cùng */
     margin: 20px auto;
     padding: 25px;
     flex-wrap: wrap;
@@ -22,6 +21,13 @@ h1 {
     border-radius: 15px;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     max-width: 1200px;
+}
+.filter-item {
+    display: flex;
+    flex-direction: column; /* Sắp xếp các phần tử con theo cột */
+    place-items: center;
+    text-align: center;
+    gap: 10px;
 }
 
 .schedule-container {
@@ -205,8 +211,21 @@ h1 {
     background-color: white;
 }
 
+.filter-item input[type="date"] {
+    padding: 4px 8px; /* Giảm padding bên trong */
+    height: 36px; /* Giảm chiều cao */
+    width: auto; /* Đặt chiều rộng tự động để phù hợp với nội dung */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px; /* Giảm kích thước chữ */
+    box-shadow: none; /* Loại bỏ hiệu ứng đổ bóng mặc định */
+    margin: 0; /* Xóa margin mặc định */
+}
+
 /* Style cho nút tìm kiếm */
-.filter-container #searchBtn {
+.filter-item #searchBtn {
+    width: 60%;
+    margin: 30px;
     height: 45px;
     padding: 0 30px;
     border-radius: 8px;
@@ -389,4 +408,18 @@ body.modal-open .schedule-container {
 .modal.show .modal-dialog {
     transform: scale(1);
     opacity: 1;
+}
+
+.text-danger {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    color: red;
+    display: none; /* Mặc định ẩn thông báo */
+}
+
+.filter-item select,
+.filter-item input,
+.filter-item button {
+    width: 100%; /* Đảm bảo các phần tử có cùng chiều rộng */
+    height: 40px; /* Đặt chiều cao đồng nhất */
 }

@@ -24,34 +24,48 @@
 
     <h1 style="margin-top: 30px">Quản lý phòng học theo TKB</h1>
     <div class="filter-container">
-      <label><i class="fas fa-building"></i> Chọn tòa nhà: </label>
-      <select id="toaNhaSelect">
-        <option value="">Chọn tòa nhà</option>
-        <% toaNha.forEach(function(toa) { %>
-        <option value="<%= toa.TenToaNha %>"><%= toa.TenToaNha %></option>
-        <% }); %>
-      </select>
+      <!-- Chọn tòa nhà -->
+      <div class="filter-item">
+        <label><i class="fas fa-building"></i> Chọn tòa nhà:</label>
+        <select id="toaNhaSelect">
+          <option value="">Chọn tòa nhà</option>
+          <% toaNha.forEach(function(toa) { %>
+          <option value="<%= toa.TenToaNha %>"><%= toa.TenToaNha %></option>
+          <% }); %>
+        </select>
+        <div id="toaNhaWarning" class="text-danger">Vui lòng chọn tòa nhà.</div>
+      </div>
 
-      <label><i class="fas fa-calendar-alt"></i> Chọn ngày: </label>
-      <input
-        type="date"
-        id="datePicker"
-        value="<%= new Date().toISOString().split('T')[0] %>"
-      />
+      <!-- Chọn ngày -->
+      <div class="filter-item">
+        <label><i class="fas fa-calendar-alt"></i> Chọn ngày:</label>
+        <input
+          type="date"
+          id="datePicker"
+          value="<%= new Date().toISOString().split('T')[0] %>"
+        />
+      </div>
 
-      <label><i class="fas fa-clock"></i> Chọn ca học:</label>
-      <select id="caHocSelect">
-        <option value="">Chọn ca học</option>
-        <% periods.forEach(function(period) { %>
-        <option value="<%= period.start %>-<%= period.end %>">
-          <%= period.display %>
-        </option>
-        <% }); %>
-      </select>
+      <!-- Chọn ca học -->
+      <div class="filter-item">
+        <label><i class="fas fa-clock"></i> Chọn ca học:</label>
+        <select id="caHocSelect">
+          <option value="">Chọn ca học</option>
+          <% periods.forEach(function(period) { %>
+          <option value="<%= period.start %>-<%= period.end %>">
+            <%= period.display %>
+          </option>
+          <% }); %>
+        </select>
+        <div id="caHocWarning" class="text-danger">Vui lòng chọn ca học.</div>
+      </div>
 
-      <button id="searchBtn" class="btn btn-primary">
-        <i class="fas fa-search"></i> Tìm kiếm
-      </button>
+      <!-- Nút tìm kiếm -->
+      <div class="filter-item">
+        <button id="searchBtn" class="btn btn-primary">
+          <i class="fas fa-search"></i> Tìm kiếm
+        </button>
+      </div>
     </div>
 
     <div class="schedule-container">
@@ -113,6 +127,39 @@
 
     <script>
       $(document).ready(function () {
+        // Hàm kiểm tra và hiển thị cảnh báo
+        function validateInputs() {
+          let isValid = true;
+
+          const toaNha = $("#toaNhaSelect").val();
+          const caHoc = $("#caHocSelect").val();
+
+          // Kiểm tra tòa nhà
+          if (!toaNha) {
+            $("#toaNhaWarning").show(); // Hiển thị cảnh báo
+            isValid = false;
+          } else {
+            $("#toaNhaWarning").hide(); // Ẩn cảnh báo
+          }
+
+          // Kiểm tra ca học
+          if (!caHoc) {
+            $("#caHocWarning").show(); // Hiển thị cảnh báo
+            isValid = false;
+          } else {
+            $("#caHocWarning").hide(); // Ẩn cảnh báo
+          }
+
+          return isValid;
+        }
+
+        // Sự kiện tìm kiếm
+        $("#searchBtn").click(function () {
+          if (validateInputs()) {
+            loadPhongHoc(); // Chỉ gọi hàm loadPhongHoc nếu các input hợp lệ
+          }
+        });
+
         // Hàm load danh sách phòng
         function loadPhongHoc() {
           const toaNha = $("#toaNhaSelect").val();
@@ -187,9 +234,6 @@
               container.append(floorHtml);
             });
         }
-
-        // Sự kiện tìm kiếm
-        $("#searchBtn").click(loadPhongHoc);
 
         // Sự kiện click vào phòng
         $(document).on("click", ".room", function () {

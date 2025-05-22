@@ -520,7 +520,12 @@ const getHopDongDuKienData = async (req, res) => {
         gv.BangTotNghiep, 
 		  gv.NoiCongTac,
 		  gv.BangTotNghiepLoai,
-		  gv.MonGiangDayChinh
+		  gv.MonGiangDayChinh,
+      100000 AS TienMoiGiang,
+      Combined.SoTiet * 100000 AS ThanhTien,
+      Combined.SoTiet * 100000 * 0.1 AS Thue,
+      Combined.SoTiet * 100000 * 0.9 AS ThucNhan
+
     FROM (
         SELECT
             NgayBatDau,
@@ -592,56 +597,102 @@ const getHopDongDuKienData = async (req, res) => {
         gv.BangTotNghiep, 
 		    gv.NoiCongTac,
 		    gv.BangTotNghiepLoai,
-		    gv.MonGiangDayChinh
+        gv.MonGiangDayChinh,
+        tl.SoTien AS TienMoiGiang,
+        tl.SoTien * qc.QuyChuan AS ThanhTien,
+        tl.SoTien * qc.QuyChuan * 0.1 AS Thue,
+        tl.SoTien * qc.QuyChuan * 0.9 AS ThucNhan
     FROM 
         quychuan qc
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+    LEFT JOIN 
+        tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
     WHERE
         qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}'
     ),
-   SauDaiHocHopDongDuKien AS (
-    SELECT
-        NgayBatDau,
-        NgayKetThuc,
-        gv.id_Gvm,
-        gv.GioiTinh,
-        gv.HoTen,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        qc.Khoa AS MaKhoaMonHoc,
-        ROUND(
-            qc.QuyChuan * CASE 
-                WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
-                ELSE 1 
-            END, 2
-        ) AS SoTiet,
-        qc.he_dao_tao,
-        qc.NamHoc,
-        qc.KiHoc,
-        qc.Dot,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep, 
-		    gv.NoiCongTac,
-		    gv.BangTotNghiepLoai,
-		    gv.MonGiangDayChinh
-    FROM 
-        quychuan qc
-    JOIN 
-        gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
-    WHERE
-        qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
+    SoTietSauDaiHoc AS (
+        SELECT
+            qc.NgayBatDau,
+            qc.NgayKetThuc,
+            gv.id_Gvm,
+            gv.GioiTinh,
+            gv.HoTen,
+            gv.NgaySinh,
+            gv.CCCD,
+            gv.NoiCapCCCD,
+            gv.Email,
+            gv.MaSoThue,
+            gv.HocVi,
+            gv.ChucVu,
+            gv.HSL,
+            gv.DienThoai,
+            gv.STK,
+            gv.NganHang,
+            gv.MaPhongBan,
+            qc.Khoa AS MaKhoaMonHoc,
+            ROUND(
+                qc.QuyChuan * CASE 
+                    WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                    ELSE 1 
+                END, 2
+            ) AS SoTiet,
+            qc.he_dao_tao,
+            qc.NamHoc,
+            qc.KiHoc,
+            qc.Dot,
+            gv.NgayCapCCCD,
+            gv.DiaChi,
+            gv.BangTotNghiep, 
+            gv.NoiCongTac,
+            gv.BangTotNghiepLoai,
+            gv.MonGiangDayChinh,
+            tl.SoTien
+        FROM 
+            quychuan qc
+        JOIN 
+            gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+        LEFT JOIN 
+            tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+        WHERE
+            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
+    ),
+    SauDaiHocHopDongDuKien AS (
+        SELECT
+            NgayBatDau,
+            NgayKetThuc,
+            id_Gvm,
+            GioiTinh,
+            HoTen,
+            NgaySinh,
+            CCCD,
+            NoiCapCCCD,
+            Email,
+            MaSoThue,
+            HocVi,
+            ChucVu,
+            HSL,
+            DienThoai,
+            STK,
+            NganHang,
+            MaPhongBan,
+            MaKhoaMonHoc,
+            SoTiet,
+            he_dao_tao,
+            NamHoc,
+            KiHoc,
+            Dot,
+            NgayCapCCCD,
+            DiaChi,
+            BangTotNghiep,
+            NoiCongTac,
+            BangTotNghiepLoai,
+            MonGiangDayChinh,
+            SoTien AS TienMoiGiang,
+            ROUND(SoTien * SoTiet, 0) AS ThanhTien,
+            ROUND(SoTien * SoTiet * 0.1, 0) AS Thue,
+            ROUND(SoTien * SoTiet * 0.9, 0) AS ThucNhan
+        FROM SoTietSauDaiHoc
     ),
     tableALL AS (SELECT
         Dot,
@@ -673,7 +724,11 @@ const getHopDongDuKienData = async (req, res) => {
         BangTotNghiep, 
         NoiCongTac,
         BangTotNghiepLoai,
-        MonGiangDayChinh
+        MonGiangDayChinh,
+        TienMoiGiang,
+        ThanhTien,
+        Thue,
+        ThucNhan
     FROM 
         DoAnHopDongDuKien
     UNION ALL
@@ -707,7 +762,11 @@ const getHopDongDuKienData = async (req, res) => {
         BangTotNghiep, 
         NoiCongTac,
         BangTotNghiepLoai,
-        MonGiangDayChinh
+        MonGiangDayChinh,
+        TienMoiGiang,
+        ThanhTien,
+        Thue,
+        ThucNhan
     FROM 
         DaiHocHopDongDuKien
     UNION ALL
@@ -741,7 +800,11 @@ const getHopDongDuKienData = async (req, res) => {
         BangTotNghiep, 
         NoiCongTac,
         BangTotNghiepLoai,
-        MonGiangDayChinh
+        MonGiangDayChinh,
+        TienMoiGiang,
+        ThanhTien,
+        Thue,
+        ThucNhan
     FROM 
         SauDaiHocHopDongDuKien),
     TongSoTietGV AS (
@@ -798,6 +861,10 @@ const getHopDongDuKienData = async (req, res) => {
         ta.NoiCongTac,
         ta.BangTotNghiepLoai,
         ta.MonGiangDayChinh,
+        MAX(TienMoiGiang) AS TienMoiGiang,
+        SUM(ThanhTien) AS ThanhTien,
+        SUM(Thue) AS Thue,
+        SUM(ThucNhan) AS ThucNhan,
         tsgv.TongSoTiet
     FROM 
         tableALL ta
@@ -867,9 +934,11 @@ const getHopDongDuKienData = async (req, res) => {
     query = `select GiangDay from sotietdinhmuc`;
     const [SoTietDinhMucRow] = await connection.query(query);
 
+    // Lấy tiền mời giảng ứng với mỗi hệ đào tạo
+
     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
     const result = { dataDuKien: rows, SoTietDinhMuc };
-    // console.log(result)
+    console.log(rows);
     // Trả dữ liệu về client dưới dạng JSON
     res.status(200).json(result);
   } catch (error) {

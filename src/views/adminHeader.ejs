@@ -31,8 +31,13 @@
             <li class="nav-item">
               <a class="nav-link" id="NhanVien" href="/nhanVien">Nhân Viên </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" id="PhongBan" href="/phongBan">Phòng Ban </a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHocPhan" data-bs-toggle="dropdown"
+                aria-expanded="false">Phòng Ban</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownHocPhan">
+                <a class="nav-link" id="ChuyenKhoa" href="/api/admin/getChuyenKhoaSite">Chuyển khoa</a>
+                <a class="nav-link" id="PhongBan" href="/phongBan">Phòng Ban </a>
+              </div>
             </li>
             <li class="nav-item">
               <a class="nav-link" id="BoMon" href="/boMon">Bộ Môn </a>
