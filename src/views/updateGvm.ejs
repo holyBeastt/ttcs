@@ -375,24 +375,22 @@
         const maPhongBanSelect = document.getElementById("maPhongBan");
         const selectedMaPhongBan = maPhongBanSelect.dataset.selected;
         const selectedBoMon = document.getElementById("boMon").value;
+
+        alert("zo");
     
         // Gọi API để lấy bộ môn và lưu localStorage nếu chưa có
-        if (!localStorage.getItem('dsBoMon')) {
           fetch(`/api/shared/bo-mon`)
             .then(res => res.json())
             .then(data => {
               localStorage.setItem('dsBoMon', JSON.stringify(data));
+
+              console.log("data = ", data)
               if (selectedMaPhongBan) {
                 loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
               }
             })
             .catch(err => console.error("Lỗi khi fetch bo-mon:", err));
-        } else {
-          // Nếu đã có sẵn dữ liệu bộ môn
-          if (selectedMaPhongBan) {
-            loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
-          }
-        }
+        
     
         // Khi chọn lại phòng ban
         maPhongBanSelect.addEventListener("change", function () {

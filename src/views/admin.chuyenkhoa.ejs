@@ -359,7 +359,7 @@
         updateDB(requestData, "gopKhoa");
       }
 
-      function updateChuyen() {
+      const updateChuyen = async () => {
         const tenMoi = $("#tenKhoaMoiChuyen").val().trim();
         const maMoi = $("#maKhoaMoiChuyen").val().trim();
 
@@ -372,56 +372,68 @@
           khoaChon: khoaChonChuyen,
           khoaMoi: tenMoi,
           maMoi: maMoi,
-          action: "transfer",
         };
 
-        updateDB(requestData, "chuyenKhoa");
-      }
+        await updateTransferDB(requestData);
+      };
 
-      const updateDB = (requestData, type) => {
-        fetch("/api/admin/department/transfer-faculty-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
+      const updateTransferDB = async (requestData) => {
+        try {
+          const response = await fetch(
+            "/api/admin/department/transfer-faculty-data",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestData),
             }
-            return response.json();
-          })
-          .then((data) => {
-            // Cập nhật thông báo kết quả
-            if (type === "gopKhoa") {
-              $("#ketQuaGop").text("Cập nhật thành công!");
-              // Reset form sau khi cập nhật
-              khoaChonGop = [];
-              capNhatTagGop();
-              $("#tenKhoaMoiGop").val("");
-              $("#maKhoaMoiGop").val("");
-            } else {
-              $("#ketQuaChuyen").text("Cập nhật thành công!");
-              // Reset form sau khi cập nhật
-              khoaChonChuyen = [];
-              capNhatTagChuyen();
-              $("#tenKhoaMoiChuyen").val("");
-              $("#maKhoaMoiChuyen").val("");
-            }
+          );
 
-            // Cập nhật lại danh sách khoa
-            getData();
-          })
-          .catch((error) => {
-            console.error("Fetch error:", error);
-            // Hiển thị thông báo lỗi
-            if (type === "gopKhoa") {
-              $("#ketQuaGop").text("Có lỗi xảy ra: " + error.message);
-            } else {
-              $("#ketQuaChuyen").text("Có lỗi xảy ra: " + error.message);
+          const data = await response.json();
+
+          if (!response.ok) {
+            // Lỗi 400 từ server
+            alert("Lỗi: " + data.message); // hoặc data.message nếu server trả về dạng object
+            console.error("Chi tiết lỗi:", data.message);
+            return;
+          }
+
+          // Thành công
+          alert("Thành công:", data.message);
+        } catch (error) {
+          console.error("Lỗi fetch:", error);
+          alert("Lỗi mạng hoặc máy chủ không phản hồi");
+        }
+      };
+
+      const transferFacultyFile = async (requestData) => {
+        try {
+          const response = await fetch(
+            "/api/admin/department/transfer-faculty-file",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestData),
             }
-          });
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            // Lỗi 400 từ server
+            alert("Lỗi: " + data.message); // hoặc data.message nếu server trả về dạng object
+            console.error("Chi tiết lỗi:", data.message);
+            return;
+          }
+
+          alert("done" + data.message);
+        } catch (error) {
+          console.error("Lỗi fetch:", error);
+          alert("Lỗi mạng hoặc máy chủ không phản hồi");
+        }
       };
     </script>
   </body>
