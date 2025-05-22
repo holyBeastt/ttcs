@@ -590,12 +590,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
-      const titleRow4 = worksheet.addRow([
-        `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
-      ]);
-      titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
-      titleRow4.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
+      // const titleRow4 = worksheet.addRow([
+      //   `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
+      // ]);
+      // titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
+      // titleRow4.alignment = { horizontal: "center", vertical: "middle" };
+      // worksheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);
 
       // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
       const titleRow5 = worksheet.addRow([
@@ -862,7 +862,7 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       }
 
       // Thêm sheet 2 cho mỗi giảng viên
-      const worksheet2 = workbook.addWorksheet(`${giangVien} (Bản sao)`);
+      const worksheet2 = workbook.addWorksheet(`${giangVien} (2)`);
 
       worksheet2.addRow([]);
 
@@ -892,12 +892,12 @@ summarySheet.addRow([]); // Thêm một hàng trống ở đầu sheet
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
       const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);
 
-      const titleRow3_2 = worksheet2.addRow([
-        `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate_2}`,
-      ]);
-      titleRow3_2.font = { name: "Times New Roman", bold: true, size: 16 };
-      titleRow3_2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
+      // const titleRow3_2 = worksheet2.addRow([
+      //   `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate_2}`,
+      // ]);
+      // titleRow3_2.font = { name: "Times New Roman", bold: true, size: 16 };
+      // titleRow3_2.alignment = { horizontal: "center", vertical: "middle" };
+      // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
 
       const titleRow4_2 = worksheet2.addRow([
         `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate_2}`,
