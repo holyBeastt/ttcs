@@ -178,11 +178,9 @@
                 <option value="Kỹ sư" <%=value.HocVi==="Kỹ sư" ? "selected" : "" %>>Kỹ sư</option>
                 <option value="Thạc sĩ" <%=value.HocVi==="Thạc sĩ" ? "selected" : "" %>>Thạc sĩ</option>
                 <option value="Tiến sĩ" <%=value.HocVi==="Tiến sĩ" ? "selected" : "" %>>Tiến sĩ</option>
-                <option value="Phó giáo sư. Tiến sĩ" <%=value.HocVi==="Phó giáo sư. Tiến sĩ" ? "selected" : "" %>>Phó
-                  giáo
-                  sư. Tiến sĩ</option>
-                <option value="Giáo sư. Tiến sĩ" <%=value.HocVi==="Giáo sư. Tiến sĩ" ? "selected" : "" %>>Giáo sư. Tiến
-                  sĩ
+                <option value="Phó giáo sư" <%=value.HocVi==="Phó giáo sư" ? "selected" : "" %>>Phó
+                  giáo sư</option>
+                <option value="Giáo sư" <%=value.HocVi==="Giáo sư" ? "selected" : "" %>>Giáo sư
                 </option>
               </select>
             </div>
@@ -377,24 +375,22 @@
         const maPhongBanSelect = document.getElementById("maPhongBan");
         const selectedMaPhongBan = maPhongBanSelect.dataset.selected;
         const selectedBoMon = document.getElementById("boMon").value;
+
+        alert("zo");
     
         // Gọi API để lấy bộ môn và lưu localStorage nếu chưa có
-        if (!localStorage.getItem('dsBoMon')) {
           fetch(`/api/shared/bo-mon`)
             .then(res => res.json())
             .then(data => {
               localStorage.setItem('dsBoMon', JSON.stringify(data));
+
+              console.log("data = ", data)
               if (selectedMaPhongBan) {
                 loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
               }
             })
             .catch(err => console.error("Lỗi khi fetch bo-mon:", err));
-        } else {
-          // Nếu đã có sẵn dữ liệu bộ môn
-          if (selectedMaPhongBan) {
-            loadBoMonTheoPhongBan(selectedMaPhongBan, selectedBoMon);
-          }
-        }
+        
     
         // Khi chọn lại phòng ban
         maPhongBanSelect.addEventListener("change", function () {

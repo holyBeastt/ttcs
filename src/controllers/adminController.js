@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql2/promise"); // Ensure you have mysql2 installed
 const createPoolConnection = require("../config/databasePool");
+const transferFacultyFileGvm = require("../middlewares/transferFacultyFileGvmMiddleware");
 
 const AdminController = {
   index: (req, res) => {
@@ -1479,7 +1480,7 @@ const AdminController = {
     res.render("admin.chuyenKhoa.ejs");
   },
 
-  updateFacultyData: async (req, res) => {
+  mergeFacultyData: async (req, res) => {
     let connection;
     try {
       const { khoaChon, khoaMoi, maMoi } = req.body;
@@ -1488,9 +1489,6 @@ const AdminController = {
       // Tách thành 2 mảng
       const khoaTen = khoaChon.map((item) => item.split(" - ")[0].trim());
       const khoaMa = khoaChon.map((item) => item.split(" - ")[1].trim());
-
-      console.log("Tên khoa:", khoaTen);
-      console.log("Mã khoa:", khoaMa);
 
       return;
 
@@ -1561,6 +1559,125 @@ const AdminController = {
       res.json({
         success: true,
         phanTram: phanTram,
+      });
+    } catch (error) {
+      console.error("Lỗi: ", error);
+      res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy dữ liệu năm học",
+      });
+    } finally {
+      if (connection) connection.release(); // luôn giải phóng kết nối
+    }
+  },
+
+  transferFacultyData: async (req, res) => {
+    let connection;
+    try {
+      const { khoaChon, khoaMoi, maMoi } = req.body;
+
+      connection = await createPoolConnection();
+
+      const [khoaTen, khoaMa] = khoaChon[0].split("-").map((s) => s.trim());
+
+      const [isExist] = await connection.execute(
+        `SELECT EXISTS(
+        SELECT 1 FROM phongban 
+        WHERE (TenPhongBan = ? OR MaPhongBan = ?)
+        AND MaPhongBan != ?
+      ) AS exist`,
+        [khoaMoi, maMoi, khoaMa]
+      );
+
+      if (isExist[0].exist === 1) {
+        return res.status(400).json({
+          message: "Tên khoa hoặc mã khoa đã tồn tại nhưng không khớp nhau",
+        });
+      }
+
+      let transferQuery, transferParams;
+      // Chuyển trong phongban
+      transferQuery = `
+        UPDATE phongban 
+        SET MaPhongBan = ?, TenPhongBan = ?
+        WHERE MaPhongBan = ?
+      `;
+      transferParams = [maMoi, khoaMoi, khoaMa];
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Chuyển đường dẫn file trong gvmoi
+
+      // Đổi tên file lý lịch
+      transferQuery = `
+        UPDATE gvmoi
+        SET FileLyLich = REGEXP_REPLACE(FileLyLich, '^[^_]+_', CONCAT(?, '_'))
+        WHERE MaPhongBan = ? AND FileLyLich IS NOT NULL;
+      `;
+
+      transferParams = [maMoi, khoaMa];
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Đổi tên file bổ sung
+      transferQuery = `
+        UPDATE gvmoi
+        SET fileBoSung = REGEXP_REPLACE(fileBoSung, '^[^_]+_', CONCAT(?, '_'))
+        WHERE MaPhongBan = ? AND fileBoSung IS NOT NULL;
+      `;
+
+      transferParams = [maMoi, khoaMa];
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Chuyển khoa trong gvmoi
+      transferQuery = `
+        UPDATE gvmoi set MaPhongBan = ? where MaPhongBan = ?
+      `;
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Chuyển khoa trong nhanvien
+      transferQuery = `
+        UPDATE nhanvien set MaPhongBan = ? where MaPhongBan = ?
+      `;
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Chuyển khoa trong role
+      transferQuery = `
+        UPDATE role set MaPhongBan = ? where MaPhongBan = ?
+      `;
+
+      await connection.execute(transferQuery, transferParams);
+
+      // Chuyển khoa trong bomon
+      transferQuery = `
+        UPDATE bomon set MaPhongBan = ? where MaPhongBan = ?
+      `;
+
+      await connection.execute(transferQuery, transferParams);
+      // Chuyển đường dẫn file, tên file
+      // Vì đã update DB xong:
+      const [gvs] = await connection.execute(
+        `SELECT HoTen, MonGiangDayChinh FROM gvmoi WHERE MaPhongBan = ?`,
+        [maMoi]
+      );
+
+      for (let gv of gvs) {
+        transferFacultyFileGvm(khoaMa, maMoi, gv.MonGiangDayChinh, gv.HoTen);
+      }
+      // Chuyển khoa trong quychuan
+
+      // Chuyển khoa trong giangday
+
+      // Chuyển khoa trong hopdonggvmoi
+
+      // Chuyển khoa trong doantotnghiep
+
+      return res.status(200).json({
+        success: true,
+        message: "Chuyển khoa thành công",
       });
     } catch (error) {
       console.error("Lỗi: ", error);

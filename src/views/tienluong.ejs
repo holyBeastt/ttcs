@@ -54,6 +54,7 @@
           <select name="HocVi" id="HocVi" class="form-control" required>
             <option value="Thạc sĩ" selected>Thạc sĩ</option>
             <option value="Tiến sĩ">Tiến sĩ</option>
+            <option value="Phó giáo sư">Phó giáo sư</option>
             <option value="Giáo sư">Giáo sư</option>
           </select>
         </div>
@@ -79,7 +80,9 @@
           <thead>
             <tr>
               <th>STT</th>
-              <th>Hệ Đào Tạo</th>
+              <th id="sortHeDaoTao" style="cursor:pointer;">
+                Hệ Đào Tạo <span id="sortIcon">⇅</span>
+              </th>
               <th>Học Vị</th>
               <th>Số Tiền</th>
               <th>Thao Tác</th>
@@ -166,6 +169,9 @@
                     <option value="Tiến sĩ" ${
                       originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
                     }>Tiến sĩ</option>
+                    <option value="Phó giáo sư" ${
+                      originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
+                    }>Phó giáo sư</option>
                     <option value="Giáo sư" ${
                       originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
                     }>Giáo sư</option>
@@ -353,6 +359,24 @@
             },
           });
         }
+
+        let sortAsc = true;
+        $("#sortHeDaoTao").click(function () {
+          let rows = $("#data-table-body tr").get();
+          rows.sort(function(a, b) {
+            let keyA = $(a).find(".he_dao_tao-cell").text().toUpperCase();
+            let keyB = $(b).find(".he_dao_tao-cell").text().toUpperCase();
+            if (keyA < keyB) return sortAsc ? -1 : 1;
+            if (keyA > keyB) return sortAsc ? 1 : -1;
+            return 0;
+          });
+          $.each(rows, function(index, row) {
+            $("#data-table-body").append(row);
+            $(row).find("td:first").text(index + 1); // cập nhật lại STT
+          });
+          sortAsc = !sortAsc;
+          $("#sortIcon").text(sortAsc ? "⇅" : "⇵");
+        });
       });
 
       function deleteTienLuong(button, STT) {
