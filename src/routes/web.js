@@ -9,7 +9,7 @@ const {
   getDtaoduyet,
   getDtaoxemhd,
   getDtaonhap,
-  getPhongTaiChinh,
+  getPhongVP,
   getHomeMainDaoTao,
   getTeachingInfo,
   getXemBangQC,
@@ -47,7 +47,7 @@ router.get("/daotaoxemhd/daotaonhap", getDtaonhap);
 //router.post("/daotaoxemhd/daotaonhap/createGVM", handleUploadFile);
 // router.get("/index/import", getImport);
 router.get("/index/import", getImport);
-router.get("/PhongTaiChinh", getPhongTaiChinh);
+router.get("/PhongVP", getPhongVP);
 //phong dao tao
 // router.get("/maindt", getHomeMainDaoTao);
 router.get("/teachingInfo", getTeachingInfo);

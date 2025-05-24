@@ -965,7 +965,7 @@ const getCheckAllDoantotnghiep = async (req, res) => {
   return res.status(200).json({
     KhoaCheck: KhoaCheck,
     DaoTaoCheck: DaoTaoCheck,
-    TaiChinhCheck: TaiChinhCheck,
+    VPCheck: TaiChinhCheck,
   });
 };
 

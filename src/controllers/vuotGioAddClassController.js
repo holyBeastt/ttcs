@@ -15,7 +15,6 @@ const addClass = async (req, res) => {
     const queryhedaotao = `SELECT * FROM kitubatdau`;
     const [hedaotao] = await connection.query(queryhedaotao);
 
-    
     let {
       [`SoTC`]: SoTC = 0,
       [`TenHocPhan`]: TenHocPhan = "", // Gán giá trị mặc định là chuỗi rỗng
@@ -96,7 +95,7 @@ const addClass = async (req, res) => {
       Lop,
       MaPhongBan,
       he_dao_tao,
-      DoiTuong,
+      DoiTuong
     );
     const query1 = `INSERT INTO lopngoaiquychuan (SoTC, TenHocPhan, id_User, LenLop, HeSoT7CN, SoSV, HeSoLopDong, QuyChuan, HocKy, NamHoc, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, DoiTuong) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
     const [result] = await connection.query(query1, [
@@ -432,11 +431,11 @@ const DoneNoteDuyet = async (req, res) => {
 //         // Chuẩn bị mảng dữ liệu cho câu lệnh INSERT
 //         const checkQuery = `SELECT COUNT(*) AS count FROM giuaky WHERE MaGiangDayNguon = ?`;
 //         const insertQuery = `
-//             INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon) 
+//             INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon)
 //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 //         `;
 //         const updateQuery = `
-//             UPDATE giuaky 
+//             UPDATE giuaky
 //             SET id_User = ?, HeSoT7CN = ?, GiangVien = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, SoDe = ?
 //             WHERE MaGiangDayNguon = ?
 //         `;
@@ -447,7 +446,7 @@ const DoneNoteDuyet = async (req, res) => {
 //               console.error("Lỗi khi kiểm tra bản ghi:", err);
 //               return;
 //           }
-      
+
 //           if (result[0].count > 0) {
 //               // Nếu đã tồn tại, thực hiện UPDATE
 //               connection.query(updateQuery, [id_User, heSoT7CN, GiangVien, hinhThucKTGiuaKy, SoTietKT, SoDe, MaGiangDay], (err, result) => {
@@ -468,7 +467,6 @@ const DoneNoteDuyet = async (req, res) => {
 //               });
 //           }
 //         });
-      
 
 //         const query3 = `UPDATE giangday SET DaChon = 1, HinhThucKTGiuaKy= ?, GiangVienCoiGK= ?  WHERE MaGiangDay = ?`;
 //         await connection.query(query3, [
@@ -503,10 +501,14 @@ const updateLopThiGk = async (req, res) => {
 
   try {
     for (let data of globalData) {
-      const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } = data;
+      const { hinhThucKTGiuaKy, heSoT7CN, select, MaGiangDay, GiangVien } =
+        data;
 
       // Truy vấn dữ liệu từ bảng giangday
-      const [rows] = await connection.query("SELECT * FROM giangday WHERE MaGiangDay = ?", [MaGiangDay]);
+      const [rows] = await connection.query(
+        "SELECT * FROM giangday WHERE MaGiangDay = ?",
+        [MaGiangDay]
+      );
       if (rows.length === 0) {
         console.log(`Không tìm thấy dữ liệu với MaGiangDay: ${MaGiangDay}`);
         continue;
@@ -514,7 +516,10 @@ const updateLopThiGk = async (req, res) => {
       let row = rows[0];
 
       // Truy vấn id_User từ bảng nhanvien
-      const [gv] = await connection.query("SELECT id_User FROM nhanvien WHERE TenNhanVien = ?", [GiangVien]);
+      const [gv] = await connection.query(
+        "SELECT id_User FROM nhanvien WHERE TenNhanVien = ?",
+        [GiangVien]
+      );
       if (gv.length === 0) {
         console.log(`Không tìm thấy giảng viên: ${GiangVien}`);
         continue;
@@ -524,29 +529,64 @@ const updateLopThiGk = async (req, res) => {
       if (select) {
         let SoTietKT = 0;
         let SoDe = row.SoSV >= 81 ? 4 : row.SoSV >= 41 ? 3 : 2;
-        
-        if (hinhThucKTGiuaKy === "Coi, chấm TN" || hinhThucKTGiuaKy === "Coi, chấm viết") {
+
+        if (
+          hinhThucKTGiuaKy === "Coi, chấm TN" ||
+          hinhThucKTGiuaKy === "Coi, chấm viết"
+        ) {
           SoTietKT = parseFloat((heSoT7CN * (0.05 * row.SoSV + 2)).toFixed(2));
-        } else if (hinhThucKTGiuaKy === "Coi, chấm VĐ" || hinhThucKTGiuaKy === "Coi, chấm TH") {
+        } else if (
+          hinhThucKTGiuaKy === "Coi, chấm VĐ" ||
+          hinhThucKTGiuaKy === "Coi, chấm TH"
+        ) {
           SoTietKT = parseFloat((heSoT7CN * (0.125 * row.SoSV + 2)).toFixed(2));
         }
 
         // Kiểm tra tồn tại trước khi INSERT hoặc UPDATE
-        const [check] = await connection.query("SELECT COUNT(*) AS count FROM giuaky WHERE MaGiangDayNguon = ?", [MaGiangDay]);
+        const [check] = await connection.query(
+          "SELECT COUNT(*) AS count FROM giuaky WHERE MaGiangDayNguon = ?",
+          [MaGiangDay]
+        );
 
         if (check[0].count > 0) {
           await connection.query(
             `UPDATE giuaky 
              SET id_User = ?, HeSoT7CN = ?, GiangVien = ?, HinhThucKTGiuaKy = ?, SoTietKT = ?, SoDe = ? 
              WHERE MaGiangDayNguon = ?`,
-            [id_User, heSoT7CN, GiangVien, hinhThucKTGiuaKy, SoTietKT, SoDe, MaGiangDay]
+            [
+              id_User,
+              heSoT7CN,
+              GiangVien,
+              hinhThucKTGiuaKy,
+              SoTietKT,
+              SoDe,
+              MaGiangDay,
+            ]
           );
           console.log(`✅ Cập nhật thành công cho MaGiangDay: ${MaGiangDay}`);
         } else {
           await connection.query(
             `INSERT INTO giuaky (MaGiangDayNguon, TenHocPhan, id_User, HeSoT7CN, SoSV, HocKy, NamHoc, MaHocPhan, GiangVien, HinhThucKTGiuaKy, SoTietKT, Lop, SoDe, Khoa, he_dao_tao, Nguon, DoiTuong) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [MaGiangDay, row.TenHocPhan, id_User, heSoT7CN, row.SoSV, row.HocKy, row.NamHoc, row.MaHocPhan, GiangVien, hinhThucKTGiuaKy, SoTietKT, row.Lop, SoDe, row.Khoa, row.he_dao_tao, "giangday", row.DoiTuong]
+            [
+              MaGiangDay,
+              row.TenHocPhan,
+              id_User,
+              heSoT7CN,
+              row.SoSV,
+              row.HocKy,
+              row.NamHoc,
+              row.MaHocPhan,
+              GiangVien,
+              hinhThucKTGiuaKy,
+              SoTietKT,
+              row.Lop,
+              SoDe,
+              row.Khoa,
+              row.he_dao_tao,
+              "giangday",
+              row.DoiTuong,
+            ]
           );
           console.log(`✅ Thêm mới thành công cho MaGiangDay: ${MaGiangDay}`);
         }
@@ -557,8 +597,13 @@ const updateLopThiGk = async (req, res) => {
           [hinhThucKTGiuaKy, GiangVien, MaGiangDay]
         );
       } else {
-        await connection.query("DELETE FROM giuaky WHERE MaGiangDayNguon = ?", [MaGiangDay]);
-        await connection.query("UPDATE giangday SET DaChon = 0, GiangVienCoiGK = NULL WHERE MaGiangDay = ?", [MaGiangDay]);
+        await connection.query("DELETE FROM giuaky WHERE MaGiangDayNguon = ?", [
+          MaGiangDay,
+        ]);
+        await connection.query(
+          "UPDATE giangday SET DaChon = 0, GiangVienCoiGK = NULL WHERE MaGiangDay = ?",
+          [MaGiangDay]
+        );
       }
     }
 
@@ -657,7 +702,7 @@ const getLopNgoaiQuyChuan = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    if (MaPhongBan === "DAOTAO" || MaPhongBan === "TAICHINH") {
+    if (MaPhongBan === "DAOTAO" || MaPhongBan === "VP") {
       const query = `SELECT * FROM lopngoaiquychuan WHERE NamHoc = ?`;
       const [rows] = await connection.query(query, [Nam]);
       res.json({
@@ -690,11 +735,7 @@ const updateDuyet = async (req, res) => {
     const Table = rows[0].Nguon;
     if (Table === "lopngoaiquychuan") {
       const query1 = `UPDATE lopngoaiquychuan SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
-      await connection.query(query1, [
-        KhoaDuyet,
-        daoTaoDuyet,
-        MaGiangDayNguon,
-      ]);
+      await connection.query(query1, [KhoaDuyet, daoTaoDuyet, MaGiangDayNguon]);
       const query2 = `UPDATE giuaky SET KhoaDuyet = ?, DaoTaoDuyet = ? WHERE MaGiangDay = ?`;
       await connection.query(query2, [KhoaDuyet, daoTaoDuyet, MaGiangDay]);
     } else {
@@ -1127,10 +1168,15 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?
     `;
 
+    const [rowsB] = await connection.query(queryB, [
+      TenNhanVien,
+      TenNhanVien,
+      TenNhanVien,
+      TenNhanVien,
+      Nam,
+    ]);
 
-    const [rowsB] = await connection.query(queryB, [TenNhanVien, TenNhanVien, TenNhanVien, TenNhanVien, Nam]);
-    
-    const cleanTenNhanVien = TenNhanVien.replace(/\s+/g, ' ').trim();
+    const cleanTenNhanVien = TenNhanVien.replace(/\s+/g, " ").trim();
     const queryC1 = `SELECT *, 
             CASE 
                 WHEN TRIM(ChuNhiem) LIKE ? THEN 'Chủ nhiệm'
@@ -1142,13 +1188,13 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?`;
 
     const [rowsC1] = await connection.query(queryC1, [
-        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC2 = `SELECT *, 
             CASE 
@@ -1161,13 +1207,13 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?`;
 
     const [rowsC2] = await connection.query(queryC2, [
-        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC3 = `SELECT *, 
             CASE 
@@ -1179,11 +1225,11 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?`;
 
     const [rowsC3] = await connection.query(queryC3, [
-        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC4 = `SELECT *, 
             CASE 
@@ -1196,13 +1242,13 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?`;
 
     const [rowsC4] = await connection.query(queryC4, [
-        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC5 = `SELECT * 
                       FROM nckhvahuanluyendoituyen 
@@ -1210,8 +1256,8 @@ const getTTVuotGio = async (req, res) => {
                       AND NamHoc = ?`;
 
     const [rowsC5] = await connection.query(queryC5, [
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC6 = `SELECT * 
                       FROM xaydungctdt 
@@ -1219,8 +1265,8 @@ const getTTVuotGio = async (req, res) => {
                       AND NamHoc = ?;`;
 
     const [rowsC6] = await connection.query(queryC6, [
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     const queryC7 = `SELECT *, 
             CASE 
@@ -1232,20 +1278,20 @@ const getTTVuotGio = async (req, res) => {
           AND NamHoc = ?`;
 
     const [rowsC7] = await connection.query(queryC7, [
-        `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`, // Thêm `%` để tìm chuỗi chứa
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
-    // const queryC8 = `SELECT *, 
-    //         CASE 
+    // const queryC8 = `SELECT *,
+    //         CASE
     //             WHEN TRIM(TacGia) LIKE ? THEN 'Tác giả chính'
     //             WHEN TRIM(DongChuBien) LIKE ? THEN 'Đồng chủ biên'
     //             WHEN TRIM(DanhSachThanhVien) LIKE ? THEN 'Thành viên'
     //         END AS VaiTro
-    //     FROM sachvagiaotrinh 
-    //     WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?) 
+    //     FROM sachvagiaotrinh
+    //     WHERE (TRIM(TacGia) LIKE ? OR TRIM(DongChuBien) LIKE ? OR TRIM(DanhSachThanhVien) LIKE ?)
     //       AND NamHoc = ?`;
 
     // const [rowsC8] = await connection.query(queryC8, [
@@ -1261,12 +1307,12 @@ const getTTVuotGio = async (req, res) => {
                       WHERE TRIM(GiangVien) LIKE ? AND NamHoc = ?`;
 
     const [rowsC10] = await connection.query(queryC10, [
-        `%${cleanTenNhanVien}%`,
-        previousNam
+      `%${cleanTenNhanVien}%`,
+      previousNam,
     ]);
     const [rowsF] = await connection.query(queryC10, [
-        `%${cleanTenNhanVien}%`,
-        Nam
+      `%${cleanTenNhanVien}%`,
+      Nam,
     ]);
     // Trả về kết quả giống cấu trúc cũ
     res.json({

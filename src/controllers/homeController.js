@@ -33,7 +33,7 @@ const getlog = (req, res) => {
 const getDtaonhap = (req, res) => {
   res.render("daotaonhap.ejs");
 };
-const getPhongTaiChinh = (req, res) => {
+const getPhongVP = (req, res) => {
   res.render("mainTC.ejs");
 };
 const gethomePage = (req, res) => {
@@ -147,7 +147,7 @@ module.exports = {
   getDtaoduyet,
   //getDtaoxemhd,
   getDtaonhap,
-  getPhongTaiChinh,
+  getPhongVP,
   postFile,
   getHomeMainDaoTao,
   getTeachingInfo,
