@@ -1478,7 +1478,7 @@ const AdminController = {
 
   // Lấy site chuyển khoa
   getChuyenKhoaSite: async (req, res) => {
-    res.render("admin_chuyenKhoa.ejs");
+    res.render("admin_chuyenkhoa.ejs");
   },
 
   mergeFacultyData: async (req, res) => {
