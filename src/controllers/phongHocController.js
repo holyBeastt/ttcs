@@ -43,35 +43,56 @@ const phongHocController = {
       const [tatCaPhong] = await connection.query(phongQuery, [toaNha]);
 
       // Sửa query để sử dụng TenToaNha trong điều kiện LIKE
-      const phongSuDungQuery = `
-        SELECT DISTINCT 
-          SUBSTRING_INDEX(classroom, '-', 1) as phong,
-          course_name as monhoc,
-          lecturer as gv,
-          ll_total as slsv,
-          period_start,
-          period_end
-        FROM course_schedule_details 
-        WHERE classroom LIKE ?
-        AND ? BETWEEN start_date AND end_date
-        AND day_of_week = WEEKDAY(?) + 2
-        AND NOT (period_end < ? OR period_start > ?)
-        GROUP BY SUBSTRING_INDEX(classroom, '-', 1), course_name, lecturer, ll_total, period_start, period_end
-      `;
-
-      const [start, end] = ca.split('-');
-      const [phongDaSuDung] = await connection.query(phongSuDungQuery, 
-        [
-          `%-${toaNha}`, 
-          ngay, 
-          ngay, 
-          parseInt(start), 
+      let phongDaSuDung = [];
+      if (ca === "ALL") {
+        // Lấy tất cả các ca trong ngày
+        const phongSuDungQueryAll = `
+          SELECT 
+            SUBSTRING_INDEX(classroom, '-', 1) as phong,
+            course_name as monhoc,
+            lecturer as gv,
+            ll_total as slsv,
+            period_start,
+            period_end
+          FROM course_schedule_details 
+          WHERE classroom LIKE ?
+            AND ? BETWEEN start_date AND end_date
+            AND day_of_week = WEEKDAY(?) + 2
+        `;
+        [phongDaSuDung] = await connection.query(phongSuDungQueryAll, [
+          `%-${toaNha}`,
+          ngay,
+          ngay
+        ]);
+        console.log('Ngày được chọn:', ngay);
+        console.log('Ca được chọn: Cả ngày');
+      } else {
+        const [start, end] = ca.split('-');
+        const phongSuDungQuery = `
+          SELECT DISTINCT 
+            SUBSTRING_INDEX(classroom, '-', 1) as phong,
+            course_name as monhoc,
+            lecturer as gv,
+            ll_total as slsv,
+            period_start,
+            period_end
+          FROM course_schedule_details 
+          WHERE classroom LIKE ?
+            AND ? BETWEEN start_date AND end_date
+            AND day_of_week = WEEKDAY(?) + 2
+            AND NOT (period_end < ? OR period_start > ?)
+          GROUP BY SUBSTRING_INDEX(classroom, '-', 1), course_name, lecturer, ll_total, period_start, period_end
+        `;
+        [phongDaSuDung] = await connection.query(phongSuDungQuery, [
+          `%-${toaNha}`,
+          ngay,
+          ngay,
+          parseInt(start),
           parseInt(end)
-        ]
-      );
-
-      console.log('Ngày được chọn:', ngay);
-      console.log('Ca được chọn:', start, '-', end);
+        ]);
+        console.log('Ngày được chọn:', ngay);
+        console.log('Ca được chọn:', start, '-', end);
+      }
       console.log('Phòng đã sử dụng:', phongDaSuDung);
 
       // Lọc ra phòng trống

@@ -18,6 +18,33 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
+    <style>
+    .ca-list-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .ca-item {
+      padding: 6px 18px;
+      border-radius: 20px;
+      background: #f0f4ff;
+      color: #1976d2;
+      border: 1.5px solid #1976d2;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .ca-item.active,
+    .ca-item:hover {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1976d2;
+      box-shadow: 0 2px 8px #1976d23a;
+    }
+  </style>
   </head>
   <body>
     <%- include('header') %>
@@ -51,10 +78,11 @@
         <label><i class="fas fa-clock"></i> Chọn ca học:</label>
         <select id="caHocSelect">
           <option value="">Chọn ca học</option>
+          <option value="ALL">Cả ngày</option>
           <% periods.forEach(function(period) { %>
-          <option value="<%= period.start %>-<%= period.end %>">
-            <%= period.display %>
-          </option>
+            <option value="<%= period.start %>-<%= period.end %>">
+              <%= period.display %>
+            </option>
           <% }); %>
         </select>
         <div id="caHocWarning" class="text-danger">Vui lòng chọn ca học.</div>
@@ -188,10 +216,12 @@
           const container = $(".schedule-container");
           container.empty();
 
-          // Tạo mảng tất cả phòng và sắp xếp theo tầng
-          const allPhongs = [...phongTrong, ...phongDaSuDung].sort(
-            (a, b) => a.phong - b.phong
-          );
+          // Tạo mảng tất cả phòng duy nhất và sắp xếp theo tầng
+          const phongMap = {};
+          [...phongTrong, ...phongDaSuDung].forEach((p) => {
+            phongMap[p.phong] = p;
+          });
+          const allPhongs = Object.values(phongMap).sort((a, b) => a.phong - b.phong);
 
           // Nhóm phòng theo tầng
           const phongsByFloor = {};
@@ -216,14 +246,19 @@
                               const isAvailable = phongTrong.some(
                                 (room) => room.phong === p.phong
                               );
+                              const isAllDay = $("#caHocSelect").val() === "ALL";
                               return `
                                   <div class="room ${
                                     isAvailable ? "available" : "occupied"
                                   }" data-phong="${p.phong}">
-                                      <span>${p.phong}</span>
-                                      <span>${
-                                        isAvailable ? "Trống" : "Có lớp"
-                                      }</span>
+                                    <span>${p.phong}</span>
+                                    <span>${
+                                      isAvailable
+                                        ? "Trống"
+                                        : isAllDay
+                                        ? "Có lớp"
+                                        : "Có lớp"
+                                    }</span>
                                   </div>
                               `;
                             })
@@ -246,35 +281,83 @@
           $("#roomModalLabel").text(`Phòng ${phong}`);
 
           if (isOccupied) {
-            // Gọi API để lấy thông tin chi tiết của phòng
             $.ajax({
               url: "/getPhongTrong",
               method: "GET",
               data: { toaNha, ngay, ca },
               success: function (response) {
                 if (response.success) {
-                  const phongInfo = response.phongDaSuDung.find(
-                    (p) => p.phong === phong.toString()
+                  let phongInfoArr = response.phongDaSuDung.filter(
+                    (p) => p.phong == phong
                   );
-                  if (phongInfo) {
+                  if (ca === "ALL") {
+                    if (phongInfoArr.length === 0) {
+                      $(".modal-body").html(`<p class="info-item">Không có lớp học</p>`);
+                      return;
+                    }
+                    // Sắp xếp theo ca sớm nhất
+                    phongInfoArr.sort((a, b) => a.period_start - b.period_start);
+                    // Tạo danh sách các ca
+                    let caListHtml = `
+  <div class="ca-list-row">
+    ${phongInfoArr
+      .map(
+        (info, idx) => `
+        <div class="ca-item" data-idx="${idx}">
+          Ca ${info.period_start}-${info.period_end}
+        </div>
+      `
+      )
+      .join("")}
+  </div>
+`;
                     $(".modal-body").html(`
-                      <p class="info-item">
-                        <strong><i class="fas fa-book"></i>Môn học:</strong> 
-                        <span class="info-value">${phongInfo.monhoc}</span>
-                      </p>
-                      <p class="info-item">
-                        <strong><i class="fas fa-user-tie"></i>Giảng viên:</strong>
-                        <span class="info-value">${phongInfo.gv}</span>
-                      </p>
-                      <p class="info-item">
-                        <strong><i class="fas fa-users"></i>Số lượng sinh viên:</strong>
-                        <span class="info-value">${phongInfo.slsv}</span>
-                      </p>
-                      <p class="info-item">
-                        <strong><i class="fas fa-clock"></i>Ca:</strong>
-                        <span class="info-value">${phongInfo.period_start}-${phongInfo.period_end}</span>
-                      </p>
-                    `);
+              <div id="caList">${caListHtml}</div>
+              <div id="caDetail"></div>
+            `);
+                    // Hiển thị mặc định ca sớm nhất
+                    showCaDetail(0);
+                    // Sự kiện chọn ca
+                    $(".ca-item").click(function () {
+                      let idx = $(this).data("idx");
+                      showCaDetail(idx);
+                    });
+                    function showCaDetail(idx) {
+                      let info = phongInfoArr[idx];
+                      $("#caDetail").html(`
+                <hr>
+                <p class="info-item"><strong><i class="fas fa-book"></i>Môn học:</strong> <span class="info-value">${info.monhoc}</span></p>
+                <p class="info-item"><strong><i class="fas fa-user-tie"></i>Giảng viên:</strong> <span class="info-value">${info.gv}</span></p>
+                <p class="info-item"><strong><i class="fas fa-users"></i>Số lượng sinh viên:</strong> <span class="info-value">${info.slsv}</span></p>
+                <p class="info-item"><strong><i class="fas fa-clock"></i>Ca:</strong> <span class="info-value">${info.period_start}-${info.period_end}</span></p>
+              `);
+                      // Đánh dấu ca đang chọn
+                      $(".ca-item").removeClass("active");
+                      $(".ca-item[data-idx='"+idx+"']").addClass("active");
+                    }
+                  } else {
+                    // ...giữ nguyên code cũ cho từng ca...
+                    const phongInfo = phongInfoArr[0];
+                    if (phongInfo) {
+                      $(".modal-body").html(`
+                <p class="info-item">
+                  <strong><i class="fas fa-book"></i>Môn học:</strong> 
+                  <span class="info-value">${phongInfo.monhoc}</span>
+                </p>
+                <p class="info-item">
+                  <strong><i class="fas fa-user-tie"></i>Giảng viên:</strong>
+                  <span class="info-value">${phongInfo.gv}</span>
+                </p>
+                <p class="info-item">
+                  <strong><i class="fas fa-users"></i>Số lượng sinh viên:</strong>
+                  <span class="info-value">${phongInfo.slsv}</span>
+                </p>
+                <p class="info-item">
+                  <strong><i class="fas fa-clock"></i>Ca:</strong>
+                  <span class="info-value">${phongInfo.period_start}-${phongInfo.period_end}</span>
+                </p>
+              `);
+                    }
                   }
                 }
               },
@@ -284,23 +367,23 @@
             });
           } else {
             $(".modal-body").html(`
-              <p class="info-item">
-                <strong><i class="fas fa-book"></i>Môn học:</strong>
-                <span class="info-value">Không có lớp học</span>
-              </p>
-              <p class="info-item">
-                <strong><i class="fas fa-user-tie"></i>Giảng viên:</strong>
-                <span class="info-value">N/A</span>
-              </p>
-              <p class="info-item">
-                <strong><i class="fas fa-users"></i>Số lượng sinh viên:</strong>
-                <span class="info-value">N/A</span>
-              </p>
-              <p class="info-item">
-                <strong><i class="fas fa-clock"></i>Ca:</strong>
-                <span class="info-value">N/A</span>
-              </p>
-            `);
+      <p class="info-item">
+        <strong><i class="fas fa-book"></i>Môn học:</strong>
+        <span class="info-value">Không có lớp học</span>
+      </p>
+      <p class="info-item">
+        <strong><i class="fas fa-user-tie"></i>Giảng viên:</strong>
+        <span class="info-value">N/A</span>
+      </p>
+      <p class="info-item">
+        <strong><i class="fas fa-users"></i>Số lượng sinh viên:</strong>
+        <span class="info-value">N/A</span>
+      </p>
+      <p class="info-item">
+        <strong><i class="fas fa-clock"></i>Ca:</strong>
+        <span class="info-value">N/A</span>
+      </p>
+    `);
           }
 
           new bootstrap.Modal(document.getElementById("roomModal")).show();
