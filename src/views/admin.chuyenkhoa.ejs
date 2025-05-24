@@ -157,7 +157,7 @@
             <label>Mã khoa mới:</label>
             <input type="text" id="maKhoaMoiGop" placeholder="VD: CB" />
 
-            <button onclick="updateGop()">Cập nhật</button>
+            <button onclick="handleMerge()">Cập nhật</button>
 
             <div
               id="ketQuaGop"
@@ -204,6 +204,16 @@
     <!-- jQuery và jQuery UI -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <!-- Link script Sweet alert 2 -->
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
     <script>
       let danhSachKhoa = [];
@@ -338,7 +348,7 @@
         }
       }
 
-      function updateGop() {
+      function handleMerge() {
         const tenMoi = $("#tenKhoaMoiGop").val().trim();
         const maMoi = $("#maKhoaMoiGop").val().trim();
 
@@ -353,11 +363,60 @@
           khoaChon: khoaChonGop,
           khoaMoi: tenMoi,
           maMoi: maMoi,
-          action: "merge",
         };
 
-        updateDB(requestData, "gopKhoa");
+        updateMergeData(requestData);
       }
+
+      const updateMergeData = async (requestData) => {
+        try {
+          const response = await fetch(
+            "/api/admin/department/merge-faculty-data",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestData),
+            }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            // Lỗi 400 từ server
+            Swal.fire({
+              title: "Thông báo",
+              html: data.message,
+              icon: "info",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
+            return;
+          }
+
+          // Thành công
+          Swal.fire({
+            title: "Thông báo",
+            html: "Gộp khoa thành công",
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
+        } catch (error) {
+          console.error("Lỗi fetch:", error);
+          Swal.fire({
+            title: "Lỗi",
+            html: "Gộp khoa thất bại",
+            icon: "error",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
+        }
+      };
 
       const updateChuyen = async () => {
         const tenMoi = $("#tenKhoaMoiChuyen").val().trim();
@@ -374,10 +433,10 @@
           maMoi: maMoi,
         };
 
-        await updateTransferDB(requestData);
+        await updateTransferData(requestData);
       };
 
-      const updateTransferDB = async (requestData) => {
+      const updateTransferData = async (requestData) => {
         try {
           const response = await fetch(
             "/api/admin/department/transfer-faculty-data",
@@ -394,45 +453,35 @@
 
           if (!response.ok) {
             // Lỗi 400 từ server
-            alert("Lỗi: " + data.message); // hoặc data.message nếu server trả về dạng object
-            console.error("Chi tiết lỗi:", data.message);
+            Swal.fire({
+              title: "Thông báo",
+              html: data.message,
+              icon: "info",
+              confirmButtonText: "OK",
+              width: "auto", // Tự động điều chỉnh chiều rộng
+              padding: "20px", // Giữ khoảng cách cho nội dung
+            });
             return;
           }
 
           // Thành công
-          alert("Thành công:", data.message);
+          Swal.fire({
+            title: "Thông báo",
+            html: data.message,
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
         } catch (error) {
-          console.error("Lỗi fetch:", error);
-          alert("Lỗi mạng hoặc máy chủ không phản hồi");
-        }
-      };
-
-      const transferFacultyFile = async (requestData) => {
-        try {
-          const response = await fetch(
-            "/api/admin/department/transfer-faculty-file",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(requestData),
-            }
-          );
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            // Lỗi 400 từ server
-            alert("Lỗi: " + data.message); // hoặc data.message nếu server trả về dạng object
-            console.error("Chi tiết lỗi:", data.message);
-            return;
-          }
-
-          alert("done" + data.message);
-        } catch (error) {
-          console.error("Lỗi fetch:", error);
-          alert("Lỗi mạng hoặc máy chủ không phản hồi");
+          Swal.fire({
+            title: "Lỗi",
+            html: "Chuyển khoa thất bại",
+            icon: "error",
+            confirmButtonText: "OK",
+            width: "auto", // Tự động điều chỉnh chiều rộng
+            padding: "20px", // Giữ khoảng cách cho nội dung
+          });
         }
       };
     </script>
