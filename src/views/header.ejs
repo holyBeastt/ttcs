@@ -651,7 +651,7 @@
     let links = nckhNavChild.getElementsByClassName("nav-link");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (maPhongBan === "KHCN&HTPT" && userRole === "Duyệt") {
+    if (maPhongBan === "NC&HTPT" && userRole === "Duyệt") {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
@@ -679,7 +679,7 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
-    if (maPhongBan === "KHCN&HTPT") {
+    if (maPhongBan === "NC&HTPT") {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";

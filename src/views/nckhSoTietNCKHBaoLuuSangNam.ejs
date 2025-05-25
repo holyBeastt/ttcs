@@ -113,7 +113,7 @@
         const year = document.getElementById("namHocXem").value;
         // const department = document.getElementById("MaPhongBanView").value;
         let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
+        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "NC&HTPT") {
           department = "ALL";
         } else {
           department = localStorage.getItem("MaPhongBan");
@@ -211,7 +211,7 @@
           }
 
           // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
+          if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
             columns.push({
               title: "Xóa",
               field: "actions",
@@ -223,7 +223,7 @@
           }
 
           // Cấp quyền duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
+          if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") {
             columns.push({
               title: "Duyệt",
               field: "DaoTaoDuyet",

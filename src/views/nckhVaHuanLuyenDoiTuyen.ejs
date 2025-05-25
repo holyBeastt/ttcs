@@ -265,7 +265,7 @@
           let department;
           if (
             localStorage.getItem("MaPhongBan") == "DAOTAO" ||
-            localStorage.getItem("MaPhongBan") == "KHCN&HTPT"
+            localStorage.getItem("MaPhongBan") == "NC&HTPT"
           ) {
             department = "ALL";
           } else {
@@ -403,7 +403,7 @@
 
             // Cấp quyền xóa
             if (
-              (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") ||
+              (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") ||
               userRole === "GV_CNBM" ||
               userRole === "Lãnh đạo khoa"
             ) {
@@ -418,7 +418,7 @@
             }
 
             // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
-            if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
+            if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") {
               columns.push({
                 title: "Duyệt",
                 field: "DaoTaoDuyet",

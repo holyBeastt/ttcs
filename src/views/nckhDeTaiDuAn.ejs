@@ -301,7 +301,7 @@
           let department;
           if (
             localStorage.getItem("MaPhongBan") == "DAOTAO" ||
-            localStorage.getItem("MaPhongBan") == "KHCN&HTPT"
+            localStorage.getItem("MaPhongBan") == "NC&HTPT"
           ) {
             department = "ALL";
           } else {
@@ -455,7 +455,7 @@
 
             // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
             if (
-              (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") ||
+              (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") ||
               userRole === "GV_CNBM" ||
               userRole === "Lãnh đạo khoa"
             ) {
@@ -470,7 +470,7 @@
             }
 
             // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
-            if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
+            if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") {
               columns.push({
                 title: "Duyệt",
                 field: "DaoTaoDuyet",
