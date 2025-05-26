@@ -701,7 +701,7 @@
           VPCheckbox = document.createElement("input");
           VPCheckbox.type = "checkbox";
           VPCheckbox.name = "VP"; // Thêm thuộc tính name
-          VPCheckbox.checked = row.VPDuyet || false; // Dùng một trường cho checkbox
+          VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
           VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
           VPCheckboxTd.appendChild(VPCheckbox);
           tableRow.appendChild(VPCheckboxTd);
@@ -817,7 +817,7 @@
           // Cập nhật vào mảng globalData tương ứng với chỉ mục hàng (index)
           globalData[index].KhoaDuyet = khoaDuyet; // Cập nhật Khoa
           globalData[index].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
-          globalData[index].VPDuyet = VPDuyet; // Cập nhật Tài Chính
+          globalData[index].TaiChinhDuyet = VPDuyet; // Cập nhật Tài Chính
 
         });
 

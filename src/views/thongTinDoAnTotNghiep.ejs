@@ -812,7 +812,7 @@
           VPCheckbox.type = "checkbox";
           VPCheckbox.style.marginLeft = "30px";
           VPCheckbox.name = "VP"; // Thêm thuộc tính name
-          VPCheckbox.checked = row.VPDuyet || false; // Dùng một trường cho checkbox
+          VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
           VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
           VPCheckboxTd.appendChild(VPCheckbox);
           tableRow.appendChild(VPCheckboxTd);
@@ -1093,7 +1093,7 @@
 
           data[id].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
 
-          data[id].VPDuyet = VPDuyet; // Cập nhật Tài Chính
+          data[id].TaiChinhDuyet = VPDuyet; // Cập nhật Tài Chính
         });
 
         return data;
