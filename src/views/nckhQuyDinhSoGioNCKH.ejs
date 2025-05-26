@@ -1,90 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <!-- CSS của Bootstrap và FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <!-- CSS nội bộ -->
+    <style>
+      /* Tabs style */
+      .tabs {
+        list-style: none;
+        display: flex;
+        padding: 0;
+        margin: 0;
+        justify-content: space-around;
+      }
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <!-- CSS của Bootstrap và FontAwesome -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <!-- CSS nội bộ -->
-  <style>
-    /* Tabs style */
-    .tabs {
-      list-style: none;
-      display: flex;
-      padding: 0;
-      margin: 0;
-      justify-content: space-around;
-    }
+      .tab {
+        padding: 10px 20px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+        border-radius: 5px;
+        margin: 0 5px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
 
-    .tab {
-      padding: 10px 20px;
-      background-color: #f0f0f0;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 0 5px;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
+      .tab:hover {
+        background-color: #e0e0e0;
+      }
 
-    .tab:hover {
-      background-color: #e0e0e0;
-    }
+      .tab.active {
+        background-color: #007bff !important;
+        color: #fff;
+      }
 
-    .tab.active {
-      background-color: #007bff !important;
-      color: #fff;
-    }
+      /* Tab Content with fade effect */
+      .tab-content .tab-pane {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
 
-    /* Tab Content with fade effect */
-    .tab-content .tab-pane {
-      display: none;
-      opacity: 0;
-      transition: opacity 0.5s;
-    }
+      .tab-content .tab-pane.active {
+        display: block;
+        opacity: 1;
+        background-color: #f0f0f0;
+        color: black;
+      }
 
-    .tab-content .tab-pane.active {
-      display: block;
-      opacity: 1;
-      background-color: #f0f0f0;
-      color: black;
-    }
+      th {
+        background-color: #007bff !important;
+        color: white !important;
+      }
 
-    th {
-      background-color: #007bff !important;
-      color: white !important;
-    }
+      td {
+        background-color: white !important;
+        color: black !important;
+      }
 
-    td {
-      background-color: white !important;
-      color: black !important;
-    }
+      .active {
+        background-color: white !important;
+      }
+    </style>
+  </head>
 
-    .active {
-      background-color: white !important;
-    }
-  </style>
-</head>
-
-<body>
-  <!-- Header -->
-  <%- include('adminHeader') %>
+  <body>
+    <!-- Header -->
+    <%- include('adminHeader') %>
 
     <!-- Navigation Tabs -->
     <div class="container-lg mt-4">
       <ul class="tabs" id="tabs">
         <li class="tab active" data-tab="detaiduan">Đề tài, Dự Án</li>
         <li class="tab" data-tab="baibaokhoahoc">Bài Báo Khoa Học</li>
-        <li class="tab" data-tab="bangsangchevagiaithuong">Bằng Sáng Chế, Giải Thưởng</li>
+        <li class="tab" data-tab="bangsangchevagiaithuong">
+          Bằng Sáng Chế, Giải Thưởng
+        </li>
         <li class="tab" data-tab="sachvagiaotrinh">Sách, Giáo Trình</li>
-        <li class="tab" data-tab="nckhvahuanluyendoituyen">NCKH, Hướng dẫn đội tuyển</li>
+        <li class="tab" data-tab="nckhvahuanluyendoituyen">
+          NCKH, Hướng dẫn đội tuyển
+        </li>
         <li class="tab" data-tab="xaydungctdt">Xây Dựng CTĐT</li>
-        <li class="tab" data-tab="biensoangiaotrinhbaigiang">Biên Soạn Giáo Trình, Bài Giảng</li>
-        <li class="tab" data-tab="nhiemvukhoahoccongnghe">Nhiệm Vụ Khoa Học Công Nghệ</li>
+        <li class="tab" data-tab="biensoangiaotrinhbaigiang">
+          Biên Soạn Giáo Trình, Bài Giảng
+        </li>
+        <li class="tab" data-tab="nhiemvukhoahoccongnghe">
+          Nhiệm Vụ Khoa Học Công Nghệ
+        </li>
       </ul>
 
       <div class="tab-content mt-4">
@@ -102,34 +118,35 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'detaiduan').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.CapDeTaiDuAn %>
-                  </td>
-                  <td>
-                    <%= row.ChuNhiem %>
-                  </td>
-                  <td>
-                    <%= row.ThuKy %>
-                  </td>
-                  <td>
-                    <%= row.ThanhVien %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-dt" data-id="<%= row.ID %>"
-                      data-cap="<%= row.CapDeTaiDuAn %>" data-chunhiem="<%= row.ChuNhiem %>"
-                      data-thuky="<%= row.ThuKy %>" data-thanhvien="<%= row.ThanhVien %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-dt" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang === 'detaiduan').forEach(row => {
+              %>
+              <tr>
+                <td><%= row.CapDeTaiDuAn %></td>
+                <td><%= row.ChuNhiem %></td>
+                <td><%= row.ThuKy %></td>
+                <td><%= row.ThanhVien %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-dt"
+                    data-id="<%= row.ID %>"
+                    data-cap="<%= row.CapDeTaiDuAn %>"
+                    data-chunhiem="<%= row.ChuNhiem %>"
+                    data-thuky="<%= row.ThuKy %>"
+                    data-thanhvien="<%= row.ThanhVien %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-dt"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-dt">Thêm</button>
@@ -148,31 +165,33 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.LoaiTapChi %>
-                  </td>
-                  <td>
-                    <%= row.ChiSoTapChi %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-bbkh" data-id="<%= row.ID %>"
-                      data-loai="<%= row.LoaiTapChi %>" data-chi-so="<%= row.ChiSoTapChi %>"
-                      data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-bbkh" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row
+              => { %>
+              <tr>
+                <td><%= row.LoaiTapChi %></td>
+                <td><%= row.ChiSoTapChi %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-bbkh"
+                    data-id="<%= row.ID %>"
+                    data-loai="<%= row.LoaiTapChi %>"
+                    data-chi-so="<%= row.ChiSoTapChi %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-bbkh"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-bbkh">Thêm</button>
@@ -190,27 +209,31 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'bangsangchevagiaithuong').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.BangSangCheGiaiThuong %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-bscgt" data-id="<%= row.ID %>"
-                      data-phannhom="<%= row.BangSangCheGiaiThuong %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-bscgt" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang ===
+              'bangsangchevagiaithuong').forEach(row => { %>
+              <tr>
+                <td><%= row.BangSangCheGiaiThuong %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-bscgt"
+                    data-id="<%= row.ID %>"
+                    data-phannhom="<%= row.BangSangCheGiaiThuong %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-bscgt"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-bscgt">Thêm</button>
@@ -228,27 +251,31 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.SachGiaoTrinh %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-sgt" data-id="<%= row.ID %>"
-                      data-sach="<%= row.SachGiaoTrinh %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-sgt" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row
+              => { %>
+              <tr>
+                <td><%= row.SachGiaoTrinh %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-sgt"
+                    data-id="<%= row.ID %>"
+                    data-sach="<%= row.SachGiaoTrinh %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-sgt"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-sgt">Thêm</button>
@@ -266,27 +293,31 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'nckhvahuanluyendoituyen').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.NCKHHuanLuyenDoiTuyen %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-nckh" data-id="<%= row.ID %>"
-                      data-nckh="<%= row.NCKHHuanLuyenDoiTuyen %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-nckh" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang ===
+              'nckhvahuanluyendoituyen').forEach(row => { %>
+              <tr>
+                <td><%= row.NCKHHuanLuyenDoiTuyen %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-nckh"
+                    data-id="<%= row.ID %>"
+                    data-nckh="<%= row.NCKHHuanLuyenDoiTuyen %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-nckh"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-nckh">Thêm</button>
@@ -304,27 +335,31 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.XayDungCTDT %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-ctdt" data-id="<%= row.ID %>"
-                      data-xaydung="<%= row.XayDungCTDT %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-ctdt" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row =>
+              { %>
+              <tr>
+                <td><%= row.XayDungCTDT %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-ctdt"
+                    data-id="<%= row.ID %>"
+                    data-xaydung="<%= row.XayDungCTDT %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-ctdt"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-ctdt">Thêm</button>
@@ -342,27 +377,31 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'biensoangiaotrinhbaigiang').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.BienSoanGiaoTrinhBaiGiang %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-bsgtbg" data-id="<%= row.ID %>"
-                      data-biensoan="<%= row.BienSoanGiaoTrinhBaiGiang %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-bsgtbg" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang ===
+              'biensoangiaotrinhbaigiang').forEach(row => { %>
+              <tr>
+                <td><%= row.BienSoanGiaoTrinhBaiGiang %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-bsgtbg"
+                    data-id="<%= row.ID %>"
+                    data-biensoan="<%= row.BienSoanGiaoTrinhBaiGiang %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-bsgtbg"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-bsgtbg">Thêm</button>
@@ -382,34 +421,35 @@
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'nhiemvukhoahoccongnghe').forEach(row => { %>
-                <tr>
-                  <td>
-                    <%= row.NhiemVuKhoaHocCongNghe %>
-                  </td>
-                  <td>
-                    <%= row.ChuNhiem %>
-                  </td>
-                  <td>
-                    <%= row.ThuKy %>
-                  </td>
-                  <td>
-                    <%= row.SoGio %>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-edit-nvkhcn" data-id="<%= row.ID %>"
-                      data-nhiemvu="<%= row.NhiemVuKhoaHocCongNghe %>" data-chunhiem-nvkhcn="<%= row.ChuNhiem %>"
-                      data-thuky-nvkhcn="<%= row.ThuKy %>" data-so-gio="<%= row.SoGio %>">
-                      <i class="bi bi-pencil"></i> Sửa
-                    </button>
-                  </td>
-                  <td>
-                    <button class="btn btn-warning btn-sm btn-delete-nvkhcn" data-id="<%= row.ID %>">
-                      <i class="bi bi-trash"></i> Xóa
-                    </button>
-                  </td>
-                </tr>
-                <% }); %>
+              <% data.filter(row=> row.MaBang ===
+              'nhiemvukhoahoccongnghe').forEach(row => { %>
+              <tr>
+                <td><%= row.NhiemVuKhoaHocCongNghe %></td>
+                <td><%= row.ChuNhiem %></td>
+                <td><%= row.ThuKy %></td>
+                <td><%= row.SoGio %></td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-edit-nvkhcn"
+                    data-id="<%= row.ID %>"
+                    data-nhiemvu="<%= row.NhiemVuKhoaHocCongNghe %>"
+                    data-chunhiem-nvkhcn="<%= row.ChuNhiem %>"
+                    data-thuky-nvkhcn="<%= row.ThuKy %>"
+                    data-so-gio="<%= row.SoGio %>"
+                  >
+                    <i class="bi bi-pencil"></i> Sửa
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-warning btn-sm btn-delete-nvkhcn"
+                    data-id="<%= row.ID %>"
+                  >
+                    <i class="bi bi-trash"></i> Xóa
+                  </button>
+                </td>
+              </tr>
+              <% }); %>
             </tbody>
           </table>
           <button class="btn btn-primary btn-add-nvkhcn">Thêm</button>
@@ -420,57 +460,126 @@
     <!-- ===================== MODALS ===================== -->
 
     <!-- Modal: Đề tài / Dự Án (Add & Edit) -->
-    <div class="modal fade" id="modalDeTaiDuAn" tabindex="-1" aria-labelledby="modalDeTaiDuAnLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeTaiDuAn"
+      tabindex="-1"
+      aria-labelledby="modalDeTaiDuAnLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeTaiDuAn">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeTaiDuAnLabel">Thêm Đề Tài / Dự Án</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalDeTaiDuAnLabel">
+                Thêm Đề Tài / Dự Án
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deTaiDuAnId" name="id">
+              <input type="hidden" id="deTaiDuAnId" name="id" />
               <div class="mb-3">
-                <label for="CapDeTaiDuAn" class="form-label">Cấp đề tài / dự án</label>
-                <input type="text" class="form-control" id="CapDeTaiDuAn" name="CapDeTaiDuAn" required>
+                <label for="CapDeTaiDuAn" class="form-label"
+                  >Cấp đề tài / dự án</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="CapDeTaiDuAn"
+                  name="CapDeTaiDuAn"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label for="ChuNhiem" class="form-label">Chủ nhiệm</label>
-                <input type="text" class="form-control" id="ChuNhiem" name="ChuNhiem" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ChuNhiem"
+                  name="ChuNhiem"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label for="ThuKy" class="form-label">Thư ký</label>
-                <input type="text" class="form-control" id="ThuKy" name="ThuKy" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ThuKy"
+                  name="ThuKy"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label for="ThanhVien" class="form-label">Thành viên</label>
-                <input type="text" class="form-control" id="ThanhVien" name="ThanhVien" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ThanhVien"
+                  name="ThanhVien"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitDeTaiDuAn">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitDeTaiDuAn"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Đề tài / Dự Án (Delete) -->
-    <div class="modal fade" id="modalDeleteDeTaiDuAn" tabindex="-1" aria-labelledby="modalDeleteDeTaiDuAnLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteDeTaiDuAn"
+      tabindex="-1"
+      aria-labelledby="modalDeleteDeTaiDuAnLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteDeTaiDuAn">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteDeTaiDuAnLabel">Xóa Đề Tài / Dự Án</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalDeleteDeTaiDuAnLabel">
+                Xóa Đề Tài / Dự Án
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteDeTaiDuAnId" name="id">
+              <input type="hidden" id="deleteDeTaiDuAnId" name="id" />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -479,54 +588,118 @@
     </div>
 
     <!-- Modal: Bài Báo Khoa Học (Add & Edit) -->
-    <div class="modal fade" id="modalBaiBaoKhoaHoc" tabindex="-1" aria-labelledby="modalBaiBaoKhoaHocLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalBaiBaoKhoaHoc"
+      tabindex="-1"
+      aria-labelledby="modalBaiBaoKhoaHocLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formBaiBaoKhoaHoc">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalBaiBaoKhoaHocLabel">Thêm Bài Báo Khoa Học</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalBaiBaoKhoaHocLabel">
+                Thêm Bài Báo Khoa Học
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="baiBaoKhoaHocId" name="id">
+              <input type="hidden" id="baiBaoKhoaHocId" name="id" />
               <div class="mb-3">
                 <label for="LoaiTapChi" class="form-label">Loại tạp chí</label>
-                <input type="text" class="form-control" id="LoaiTapChi" name="LoaiTapChi" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="LoaiTapChi"
+                  name="LoaiTapChi"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="ChiSoTapChi" class="form-label">Chỉ số tạp chí</label>
-                <input type="text" class="form-control" id="ChiSoTapChi" name="ChiSoTapChi" required>
+                <label for="ChiSoTapChi" class="form-label"
+                  >Chỉ số tạp chí</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ChiSoTapChi"
+                  name="ChiSoTapChi"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioBaiBaoKhoaHoc" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioBaiBaoKhoaHoc" name="SoGio" required>
+                <label for="SoGioBaiBaoKhoaHoc" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioBaiBaoKhoaHoc"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitBaiBaoKhoaHoc">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitBaiBaoKhoaHoc"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Bài Báo Khoa Học (Delete) -->
-    <div class="modal fade" id="modalDeleteBaiBaoKhoaHoc" tabindex="-1" aria-labelledby="modalDeleteBaiBaoKhoaHocLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteBaiBaoKhoaHoc"
+      tabindex="-1"
+      aria-labelledby="modalDeleteBaiBaoKhoaHocLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteBaiBaoKhoaHoc">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteBaiBaoKhoaHocLabel">Xóa Bài Báo Khoa Học</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalDeleteBaiBaoKhoaHocLabel">
+                Xóa Bài Báo Khoa Học
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteBaiBaoKhoaHocId" name="id">
+              <input type="hidden" id="deleteBaiBaoKhoaHocId" name="id" />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -535,51 +708,115 @@
     </div>
 
     <!-- Modal: Bằng Sáng Chế / Giải Thưởng (Add & Edit) -->
-    <div class="modal fade" id="modalBangSangCheVaGiaiThuong" tabindex="-1"
-      aria-labelledby="modalBangSangCheVaGiaiThuongLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalBangSangCheVaGiaiThuong"
+      tabindex="-1"
+      aria-labelledby="modalBangSangCheVaGiaiThuongLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formBangSangCheVaGiaiThuong">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalBangSangCheVaGiaiThuongLabel">Thêm Bằng Sáng Chế / Giải Thưởng</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalBangSangCheVaGiaiThuongLabel">
+                Thêm Bằng Sáng Chế / Giải Thưởng
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="bangSangCheVaGiaiThuongId" name="id">
+              <input type="hidden" id="bangSangCheVaGiaiThuongId" name="id" />
               <div class="mb-3">
-                <label for="BangSangCheGiaiThuong" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="BangSangCheGiaiThuong" name="BangSangCheGiaiThuong"
-                  required>
+                <label for="BangSangCheGiaiThuong" class="form-label"
+                  >Phân loại</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="BangSangCheGiaiThuong"
+                  name="BangSangCheGiaiThuong"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioBangSangCheGiaiThuong" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioBangSangCheGiaiThuong" name="SoGio" required>
+                <label for="SoGioBangSangCheGiaiThuong" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioBangSangCheGiaiThuong"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitBangSangCheVaGiaiThuong">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitBangSangCheVaGiaiThuong"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Bằng Sáng Chế / Giải Thưởng (Delete) -->
-    <div class="modal fade" id="modalDeleteBangSangCheVaGiaiThuong" tabindex="-1"
-      aria-labelledby="modalDeleteBangSangCheVaGiaiThuongLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteBangSangCheVaGiaiThuong"
+      tabindex="-1"
+      aria-labelledby="modalDeleteBangSangCheVaGiaiThuongLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteBangSangCheVaGiaiThuong">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteBangSangCheVaGiaiThuongLabel">Xóa Bằng Sáng Chế / Giải Thưởng</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5
+                class="modal-title"
+                id="modalDeleteBangSangCheVaGiaiThuongLabel"
+              >
+                Xóa Bằng Sáng Chế / Giải Thưởng
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteBangSangCheVaGiaiThuongId" name="id">
+              <input
+                type="hidden"
+                id="deleteBangSangCheVaGiaiThuongId"
+                name="id"
+              />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -588,50 +825,106 @@
     </div>
 
     <!-- Modal: Sách / Giáo Trình (Add & Edit) -->
-    <div class="modal fade" id="modalSachVaGiaoTrinh" tabindex="-1" aria-labelledby="modalSachVaGiaoTrinhLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalSachVaGiaoTrinh"
+      tabindex="-1"
+      aria-labelledby="modalSachVaGiaoTrinhLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formSachVaGiaoTrinh">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalSachVaGiaoTrinhLabel">Thêm Sách / Giáo Trình</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalSachVaGiaoTrinhLabel">
+                Thêm Sách / Giáo Trình
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="sachVaGiaoTrinhId" name="id">
+              <input type="hidden" id="sachVaGiaoTrinhId" name="id" />
               <div class="mb-3">
                 <label for="SachGiaoTrinh" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="SachGiaoTrinh" name="SachGiaoTrinh" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SachGiaoTrinh"
+                  name="SachGiaoTrinh"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioSachVaGiaoTrinh" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioSachVaGiaoTrinh" name="SoGio" required>
+                <label for="SoGioSachVaGiaoTrinh" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioSachVaGiaoTrinh"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitSachVaGiaoTrinh">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitSachVaGiaoTrinh"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Sách / Giáo Trình (Delete) -->
-    <div class="modal fade" id="modalDeleteSachVaGiaoTrinh" tabindex="-1"
-      aria-labelledby="modalDeleteSachVaGiaoTrinhLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteSachVaGiaoTrinh"
+      tabindex="-1"
+      aria-labelledby="modalDeleteSachVaGiaoTrinhLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteSachVaGiaoTrinh">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteSachVaGiaoTrinhLabel">Xóa Sách / Giáo Trình</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalDeleteSachVaGiaoTrinhLabel">
+                Xóa Sách / Giáo Trình
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteSachVaGiaoTrinhId" name="id">
+              <input type="hidden" id="deleteSachVaGiaoTrinhId" name="id" />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -640,51 +933,115 @@
     </div>
 
     <!-- Modal: NCKH / Hướng dẫn đội tuyển (Add & Edit) -->
-    <div class="modal fade" id="modalNCKHVuaHuanLuyenDoiTuyen" tabindex="-1"
-      aria-labelledby="modalNCKHVuaHuanLuyenDoiTuyenLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalNCKHVuaHuanLuyenDoiTuyen"
+      tabindex="-1"
+      aria-labelledby="modalNCKHVuaHuanLuyenDoiTuyenLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formNCKHVuaHuanLuyenDoiTuyen">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalNCKHVuaHuanLuyenDoiTuyenLabel">Thêm NCKH / Hướng dẫn đội tuyển</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalNCKHVuaHuanLuyenDoiTuyenLabel">
+                Thêm NCKH / Hướng dẫn đội tuyển
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="nckhVaHuanLuyenDoiTuyenId" name="id">
+              <input type="hidden" id="nckhVaHuanLuyenDoiTuyenId" name="id" />
               <div class="mb-3">
-                <label for="NCKHVaHuanLuyenDoiTuyen" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="NCKHVaHuanLuyenDoiTuyen" name="NCKHHuanLuyenDoiTuyen"
-                  required>
+                <label for="NCKHVaHuanLuyenDoiTuyen" class="form-label"
+                  >Phân loại</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="NCKHVaHuanLuyenDoiTuyen"
+                  name="NCKHHuanLuyenDoiTuyen"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioNCKHVaHuanLuyenDoiTuyen" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioNCKHVaHuanLuyenDoiTuyen" name="SoGio" required>
+                <label for="SoGioNCKHVaHuanLuyenDoiTuyen" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioNCKHVaHuanLuyenDoiTuyen"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitNCKHVuaHuanLuyenDoiTuyen">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitNCKHVuaHuanLuyenDoiTuyen"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: NCKH / Hướng dẫn đội tuyển (Delete) -->
-    <div class="modal fade" id="modalDeleteNCKHVuaHuanLuyenDoiTuyen" tabindex="-1"
-      aria-labelledby="modalDeleteNCKHVuaHuanLuyenDoiTuyenLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteNCKHVuaHuanLuyenDoiTuyen"
+      tabindex="-1"
+      aria-labelledby="modalDeleteNCKHVuaHuanLuyenDoiTuyenLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteNCKHVuaHuanLuyenDoiTuyen">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteNCKHVuaHuanLuyenDoiTuyenLabel">Xóa NCKH / Hướng dẫn đội tuyển</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5
+                class="modal-title"
+                id="modalDeleteNCKHVuaHuanLuyenDoiTuyenLabel"
+              >
+                Xóa NCKH / Hướng dẫn đội tuyển
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteNCKHVuaHuanLuyenDoiTuyenId" name="id">
+              <input
+                type="hidden"
+                id="deleteNCKHVuaHuanLuyenDoiTuyenId"
+                name="id"
+              />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -693,50 +1050,104 @@
     </div>
 
     <!-- Modal: Xây Dựng CTĐT (Add & Edit) -->
-    <div class="modal fade" id="modalXayDungCTDT" tabindex="-1" aria-labelledby="modalXayDungCTDTLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalXayDungCTDT"
+      tabindex="-1"
+      aria-labelledby="modalXayDungCTDTLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formXayDungCTDT">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalXayDungCTDTLabel">Thêm Xây Dựng CTĐT</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalXayDungCTDTLabel">
+                Thêm Xây Dựng CTĐT
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="xayDungCTDTId" name="id">
+              <input type="hidden" id="xayDungCTDTId" name="id" />
               <div class="mb-3">
                 <label for="XayDungCTDT" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="XayDungCTDT" name="XayDungCTDT" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="XayDungCTDT"
+                  name="XayDungCTDT"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label for="SoGioXayDungCTDT" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioXayDungCTDT" name="SoGio" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioXayDungCTDT"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitXayDungCTDT">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitXayDungCTDT"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Xây Dựng CTĐT (Delete) -->
-    <div class="modal fade" id="modalDeleteXayDungCTDT" tabindex="-1" aria-labelledby="modalDeleteXayDungCTDTLabel"
-      aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteXayDungCTDT"
+      tabindex="-1"
+      aria-labelledby="modalDeleteXayDungCTDTLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteXayDungCTDT">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteXayDungCTDTLabel">Xóa Xây Dựng CTĐT</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalDeleteXayDungCTDTLabel">
+                Xóa Xây Dựng CTĐT
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteXayDungCTDTId" name="id">
+              <input type="hidden" id="deleteXayDungCTDTId" name="id" />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -745,53 +1156,115 @@
     </div>
 
     <!-- Modal: Biên Soạn Giáo Trình / Bài Giảng (Add & Edit) -->
-    <div class="modal fade" id="modalBienSoanGiaoTrinhBaiGiang" tabindex="-1"
-      aria-labelledby="modalBienSoanGiaoTrinhBaiGiangLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalBienSoanGiaoTrinhBaiGiang"
+      tabindex="-1"
+      aria-labelledby="modalBienSoanGiaoTrinhBaiGiangLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formBienSoanGiaoTrinhBaiGiang">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalBienSoanGiaoTrinhBaiGiangLabel">Thêm Biên Soạn Giáo Trình / Bài Giảng
+              <h5 class="modal-title" id="modalBienSoanGiaoTrinhBaiGiangLabel">
+                Thêm Biên Soạn Giáo Trình / Bài Giảng
               </h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="bienSoanGiaoTrinhBaiGiangId" name="id">
+              <input type="hidden" id="bienSoanGiaoTrinhBaiGiangId" name="id" />
               <div class="mb-3">
-                <label for="BienSoanGiaoTrinhBaiGiang" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="BienSoanGiaoTrinhBaiGiang" name="BienSoanGiaoTrinhBaiGiang"
-                  required>
+                <label for="BienSoanGiaoTrinhBaiGiang" class="form-label"
+                  >Phân loại</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="BienSoanGiaoTrinhBaiGiang"
+                  name="BienSoanGiaoTrinhBaiGiang"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioBienSoanGiaoTrinhBaiGiang" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioBienSoanGiaoTrinhBaiGiang" name="SoGio" required>
+                <label for="SoGioBienSoanGiaoTrinhBaiGiang" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioBienSoanGiaoTrinhBaiGiang"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitBienSoanGiaoTrinhBaiGiang">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitBienSoanGiaoTrinhBaiGiang"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Biên Soạn Giáo Trình / Bài Giảng (Delete) -->
-    <div class="modal fade" id="modalDeleteBienSoanGiaoTrinhBaiGiang" tabindex="-1"
-      aria-labelledby="modalDeleteBienSoanGiaoTrinhBaiGiangLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteBienSoanGiaoTrinhBaiGiang"
+      tabindex="-1"
+      aria-labelledby="modalDeleteBienSoanGiaoTrinhBaiGiangLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteBienSoanGiaoTrinhBaiGiang">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteBienSoanGiaoTrinhBaiGiangLabel">Xóa Biên Soạn Giáo Trình / Bài
-                Giảng</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5
+                class="modal-title"
+                id="modalDeleteBienSoanGiaoTrinhBaiGiangLabel"
+              >
+                Xóa Biên Soạn Giáo Trình / Bài Giảng
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteBienSoanGiaoTrinhBaiGiangId" name="id">
+              <input
+                type="hidden"
+                id="deleteBienSoanGiaoTrinhBaiGiangId"
+                name="id"
+              />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -800,59 +1273,139 @@
     </div>
 
     <!-- Modal: Nhiệm Vụ Khoa Học Công Nghệ (Add & Edit) -->
-    <div class="modal fade" id="modalNhiemVuKhoaHocCongNghe" tabindex="-1"
-      aria-labelledby="modalNhiemVuKhoaHocCongNgheLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalNhiemVuKhoaHocCongNghe"
+      tabindex="-1"
+      aria-labelledby="modalNhiemVuKhoaHocCongNgheLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formNhiemVuKhoaHocCongNghe">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalNhiemVuKhoaHocCongNgheLabel">Thêm Nhiệm Vụ Khoa Học Công Nghệ</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5 class="modal-title" id="modalNhiemVuKhoaHocCongNgheLabel">
+                Thêm Nhiệm Vụ Khoa Học Công Nghệ
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="nhiemVuKhoaHocCongNgheId" name="id">
+              <input type="hidden" id="nhiemVuKhoaHocCongNgheId" name="id" />
               <div class="mb-3">
-                <label for="NhiemVuKhoaHocCongNghe" class="form-label">Phân loại</label>
-                <input type="text" class="form-control" id="NhiemVuKhoaHocCongNghe" name="NhiemVuKhoaHocCongNghe"
-                  required>
+                <label for="NhiemVuKhoaHocCongNghe" class="form-label"
+                  >Phân loại</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="NhiemVuKhoaHocCongNghe"
+                  name="NhiemVuKhoaHocCongNghe"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="ChuNhiem-nvkhcn" class="form-label">Chủ tịch, phản biện</label>
-                <input type="text" class="form-control" id="ChuNhiem-nvkhcn" name="ChuNhiem-nvkhcn" required>
+                <label for="ChuNhiem-nvkhcn" class="form-label"
+                  >Chủ tịch, phản biện</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ChuNhiem-nvkhcn"
+                  name="ChuNhiem-nvkhcn"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="ThuKy-nvkhcn" class="form-label">Thư ký khoa học, ủy viên</label>
-                <input type="text" class="form-control" id="ThuKy-nvkhcn" name="ThuKy-nvkhcn" required>
+                <label for="ThuKy-nvkhcn" class="form-label"
+                  >Thư ký khoa học, ủy viên</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="ThuKy-nvkhcn"
+                  name="ThuKy-nvkhcn"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="SoGioNhiemVuKhoaHocCongNghe" class="form-label">Số giờ</label>
-                <input type="text" class="form-control" id="SoGioNhiemVuKhoaHocCongNghe" name="SoGio" required>
+                <label for="SoGioNhiemVuKhoaHocCongNghe" class="form-label"
+                  >Số giờ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="SoGioNhiemVuKhoaHocCongNghe"
+                  name="SoGio"
+                  required
+                />
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-              <button type="submit" class="btn btn-primary" id="submitNhiemVuKhoaHocCongNghe">Lưu</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitNhiemVuKhoaHocCongNghe"
+              >
+                Lưu
+              </button>
             </div>
           </form>
         </div>
       </div>
     </div>
     <!-- Modal: Nhiệm Vụ Khoa Học Công Nghệ (Delete) -->
-    <div class="modal fade" id="modalDeleteNhiemVuKhoaHocCongNghe" tabindex="-1"
-      aria-labelledby="modalDeleteNhiemVuKhoaHocCongNgheLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="modalDeleteNhiemVuKhoaHocCongNghe"
+      tabindex="-1"
+      aria-labelledby="modalDeleteNhiemVuKhoaHocCongNgheLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <form id="formDeleteNhiemVuKhoaHocCongNghe">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalDeleteNhiemVuKhoaHocCongNgheLabel">Xóa Nhiệm Vụ Khoa Học Công Nghệ</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+              <h5
+                class="modal-title"
+                id="modalDeleteNhiemVuKhoaHocCongNgheLabel"
+              >
+                Xóa Nhiệm Vụ Khoa Học Công Nghệ
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Đóng"
+              ></button>
             </div>
             <div class="modal-body">
-              <input type="hidden" id="deleteNhiemVuKhoaHocCongNgheId" name="id">
+              <input
+                type="hidden"
+                id="deleteNhiemVuKhoaHocCongNgheId"
+                name="id"
+              />
               <p>Bạn có chắc muốn xóa mục này không?</p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
               <button type="submit" class="btn btn-warning">Xóa</button>
             </div>
           </form>
@@ -864,728 +1417,959 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <script>
       // Chuyển đổi Tab
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-          tab.classList.add('active');
-          document.getElementById(tab.getAttribute('data-tab')).classList.add('active');
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-pane")
+            .forEach((p) => p.classList.remove("active"));
+          tab.classList.add("active");
+          document
+            .getElementById(tab.getAttribute("data-tab"))
+            .classList.add("active");
         });
       });
 
       // ---------- ĐỀ TÀI / DỰ ÁN ----------
-      const modalDeTaiDuAn = new bootstrap.Modal(document.getElementById('modalDeTaiDuAn'));
-      const modalDeleteDeTaiDuAn = new bootstrap.Modal(document.getElementById('modalDeleteDeTaiDuAn'));
+      const modalDeTaiDuAn = new bootstrap.Modal(
+        document.getElementById("modalDeTaiDuAn")
+      );
+      const modalDeleteDeTaiDuAn = new bootstrap.Modal(
+        document.getElementById("modalDeleteDeTaiDuAn")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-dt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalDeTaiDuAnLabel').innerText = 'Sửa Đề Tài / Dự Án';
-          document.getElementById('deTaiDuAnId').value = btn.getAttribute('data-id');
-          document.getElementById('CapDeTaiDuAn').value = btn.getAttribute('data-cap');
-          document.getElementById('ChuNhiem').value = btn.getAttribute('data-chunhiem');
-          document.getElementById('ThuKy').value = btn.getAttribute('data-thuky');
-          document.getElementById('ThanhVien').value = btn.getAttribute('data-thanhvien');
+      document.querySelectorAll(".btn-edit-dt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("modalDeTaiDuAnLabel").innerText =
+            "Sửa Đề Tài / Dự Án";
+          document.getElementById("deTaiDuAnId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("CapDeTaiDuAn").value =
+            btn.getAttribute("data-cap");
+          document.getElementById("ChuNhiem").value =
+            btn.getAttribute("data-chunhiem");
+          document.getElementById("ThuKy").value =
+            btn.getAttribute("data-thuky");
+          document.getElementById("ThanhVien").value =
+            btn.getAttribute("data-thanhvien");
           modalDeTaiDuAn.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-dt').addEventListener('click', () => {
-        document.getElementById('modalDeTaiDuAnLabel').innerText = 'Thêm Đề Tài / Dự Án';
-        document.getElementById('deTaiDuAnId').value = '';
-        document.getElementById('CapDeTaiDuAn').value = '';
-        document.getElementById('ChuNhiem').value = '';
-        document.getElementById('ThuKy').value = '';
-        document.getElementById('ThanhVien').value = '';
+      document.querySelector(".btn-add-dt").addEventListener("click", () => {
+        document.getElementById("modalDeTaiDuAnLabel").innerText =
+          "Thêm Đề Tài / Dự Án";
+        document.getElementById("deTaiDuAnId").value = "";
+        document.getElementById("CapDeTaiDuAn").value = "";
+        document.getElementById("ChuNhiem").value = "";
+        document.getElementById("ThuKy").value = "";
+        document.getElementById("ThanhVien").value = "";
         modalDeTaiDuAn.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-dt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteDeTaiDuAnId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-dt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteDeTaiDuAnId").value =
+            btn.getAttribute("data-id");
           modalDeleteDeTaiDuAn.show();
         });
       });
-      document.getElementById('formDeTaiDuAn').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'detaiduan',
-          id: document.getElementById('deTaiDuAnId').value,
-          CapDeTaiDuAn: document.getElementById('CapDeTaiDuAn').value,
-          ChuNhiem: document.getElementById('ChuNhiem').value,
-          ThuKy: document.getElementById('ThuKy').value,
-          ThanhVien: document.getElementById('ThanhVien').value
-        };
-        fetch(data.id ? '/edit-detaiduan' : '/add-detaiduan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
-            });
+      document
+        .getElementById("formDeTaiDuAn")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "detaiduan",
+            id: document.getElementById("deTaiDuAnId").value,
+            CapDeTaiDuAn: document.getElementById("CapDeTaiDuAn").value,
+            ChuNhiem: document.getElementById("ChuNhiem").value,
+            ThuKy: document.getElementById("ThuKy").value,
+            ThanhVien: document.getElementById("ThanhVien").value,
+          };
+          fetch(data.id ? "/edit-detaiduan" : "/add-detaiduan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => {
-            console.error(err);
-            alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
-          });
-      });
-      document.getElementById('formDeleteDeTaiDuAn').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteDeTaiDuAnId').value };
-        fetch('/delete-detaiduan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteDeTaiDuAn")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteDeTaiDuAnId").value,
+          };
+          fetch("/delete-detaiduan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+            });
+        });
 
       // ---------- BÀI BÁO KHOA HỌC ----------
-      const modalBaiBaoKhoaHoc = new bootstrap.Modal(document.getElementById('modalBaiBaoKhoaHoc'));
-      const modalDeleteBaiBaoKhoaHoc = new bootstrap.Modal(document.getElementById('modalDeleteBaiBaoKhoaHoc'));
+      const modalBaiBaoKhoaHoc = new bootstrap.Modal(
+        document.getElementById("modalBaiBaoKhoaHoc")
+      );
+      const modalDeleteBaiBaoKhoaHoc = new bootstrap.Modal(
+        document.getElementById("modalDeleteBaiBaoKhoaHoc")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-bbkh').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalBaiBaoKhoaHocLabel').innerText = 'Sửa Bài Báo Khoa Học';
-          document.getElementById('baiBaoKhoaHocId').value = btn.getAttribute('data-id');
-          document.getElementById('LoaiTapChi').value = btn.getAttribute('data-loai');
-          document.getElementById('ChiSoTapChi').value = btn.getAttribute('data-chi-so');
-          document.getElementById('SoGioBaiBaoKhoaHoc').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-bbkh").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("modalBaiBaoKhoaHocLabel").innerText =
+            "Sửa Bài Báo Khoa Học";
+          document.getElementById("baiBaoKhoaHocId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("LoaiTapChi").value =
+            btn.getAttribute("data-loai");
+          document.getElementById("ChiSoTapChi").value =
+            btn.getAttribute("data-chi-so");
+          document.getElementById("SoGioBaiBaoKhoaHoc").value =
+            btn.getAttribute("data-so-gio");
           modalBaiBaoKhoaHoc.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-bbkh').addEventListener('click', () => {
-        document.getElementById('modalBaiBaoKhoaHocLabel').innerText = 'Thêm Bài Báo Khoa Học';
-        document.getElementById('baiBaoKhoaHocId').value = '';
-        document.getElementById('LoaiTapChi').value = '';
-        document.getElementById('ChiSoTapChi').value = '';
-        document.getElementById('SoGioBaiBaoKhoaHoc').value = '';
+      document.querySelector(".btn-add-bbkh").addEventListener("click", () => {
+        document.getElementById("modalBaiBaoKhoaHocLabel").innerText =
+          "Thêm Bài Báo Khoa Học";
+        document.getElementById("baiBaoKhoaHocId").value = "";
+        document.getElementById("LoaiTapChi").value = "";
+        document.getElementById("ChiSoTapChi").value = "";
+        document.getElementById("SoGioBaiBaoKhoaHoc").value = "";
         modalBaiBaoKhoaHoc.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-bbkh').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteBaiBaoKhoaHocId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-bbkh").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteBaiBaoKhoaHocId").value =
+            btn.getAttribute("data-id");
           modalDeleteBaiBaoKhoaHoc.show();
         });
       });
-      document.getElementById('formBaiBaoKhoaHoc').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'baibaokhoahoc',
-          id: document.getElementById('baiBaoKhoaHocId').value,
-          LoaiTapChi: document.getElementById('LoaiTapChi').value,
-          ChiSoTapChi: document.getElementById('ChiSoTapChi').value,
-          SoGio: document.getElementById('SoGioBaiBaoKhoaHoc').value
-        };
-        fetch(data.id ? '/edit-baibaokhoahoc' : '/add-baibaokhoahoc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
-            });
+      document
+        .getElementById("formBaiBaoKhoaHoc")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "baibaokhoahoc",
+            id: document.getElementById("baiBaoKhoaHocId").value,
+            LoaiTapChi: document.getElementById("LoaiTapChi").value,
+            ChiSoTapChi: document.getElementById("ChiSoTapChi").value,
+            SoGio: document.getElementById("SoGioBaiBaoKhoaHoc").value,
+          };
+          fetch(data.id ? "/edit-baibaokhoahoc" : "/add-baibaokhoahoc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteBaiBaoKhoaHoc').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteBaiBaoKhoaHocId').value };
-        fetch('/delete-baibaokhoahoc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteBaiBaoKhoaHoc")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteBaiBaoKhoaHocId").value,
+          };
+          fetch("/delete-baibaokhoahoc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+            });
+        });
 
       // ---------- BẰNG SÁNG CHẾ / GIẢI THƯỞNG ----------
-      const modalBangSangCheVaGiaiThuong = new bootstrap.Modal(document.getElementById('modalBangSangCheVaGiaiThuong'));
-      const modalDeleteBangSangCheVaGiaiThuong = new bootstrap.Modal(document.getElementById('modalDeleteBangSangCheVaGiaiThuong'));
+      const modalBangSangCheVaGiaiThuong = new bootstrap.Modal(
+        document.getElementById("modalBangSangCheVaGiaiThuong")
+      );
+      const modalDeleteBangSangCheVaGiaiThuong = new bootstrap.Modal(
+        document.getElementById("modalDeleteBangSangCheVaGiaiThuong")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-bscgt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalBangSangCheVaGiaiThuongLabel').innerText = 'Sửa Bằng Sáng Chế / Giải Thưởng';
-          document.getElementById('bangSangCheVaGiaiThuongId').value = btn.getAttribute('data-id');
-          document.getElementById('BangSangCheGiaiThuong').value = btn.getAttribute('data-phannhom');
-          document.getElementById('SoGioBangSangCheGiaiThuong').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-bscgt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById(
+            "modalBangSangCheVaGiaiThuongLabel"
+          ).innerText = "Sửa Bằng Sáng Chế / Giải Thưởng";
+          document.getElementById("bangSangCheVaGiaiThuongId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("BangSangCheGiaiThuong").value =
+            btn.getAttribute("data-phannhom");
+          document.getElementById("SoGioBangSangCheGiaiThuong").value =
+            btn.getAttribute("data-so-gio");
           modalBangSangCheVaGiaiThuong.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-bscgt').addEventListener('click', () => {
-        document.getElementById('modalBangSangCheVaGiaiThuongLabel').innerText = 'Thêm Bằng Sáng Chế / Giải Thưởng';
-        document.getElementById('bangSangCheVaGiaiThuongId').value = '';
-        document.getElementById('BangSangCheGiaiThuong').value = '';
-        document.getElementById('SoGioBangSangCheGiaiThuong').value = '';
+      document.querySelector(".btn-add-bscgt").addEventListener("click", () => {
+        document.getElementById("modalBangSangCheVaGiaiThuongLabel").innerText =
+          "Thêm Bằng Sáng Chế / Giải Thưởng";
+        document.getElementById("bangSangCheVaGiaiThuongId").value = "";
+        document.getElementById("BangSangCheGiaiThuong").value = "";
+        document.getElementById("SoGioBangSangCheGiaiThuong").value = "";
         modalBangSangCheVaGiaiThuong.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-bscgt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteBangSangCheVaGiaiThuongId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-bscgt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteBangSangCheVaGiaiThuongId").value =
+            btn.getAttribute("data-id");
           modalDeleteBangSangCheVaGiaiThuong.show();
         });
       });
-      document.getElementById('formBangSangCheVaGiaiThuong').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'bangsangchevagiaithuong',
-          id: document.getElementById('bangSangCheVaGiaiThuongId').value,
-          BangSangCheGiaiThuong: document.getElementById('BangSangCheGiaiThuong').value,
-          SoGio: document.getElementById('SoGioBangSangCheGiaiThuong').value
-        };
-        fetch(data.id ? '/edit-bangsangchevagiaithuong' : '/add-bangsangchevagiaithuong', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+      document
+        .getElementById("formBangSangCheVaGiaiThuong")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "bangsangchevagiaithuong",
+            id: document.getElementById("bangSangCheVaGiaiThuongId").value,
+            BangSangCheGiaiThuong: document.getElementById(
+              "BangSangCheGiaiThuong"
+            ).value,
+            SoGio: document.getElementById("SoGioBangSangCheGiaiThuong").value,
+          };
+          fetch(
+            data.id
+              ? "/edit-bangsangchevagiaithuong"
+              : "/add-bangsangchevagiaithuong",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            }
+          )
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteBangSangCheVaGiaiThuong")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteBangSangCheVaGiaiThuongId")
+              .value,
+          };
+          fetch("/delete-bangsangchevagiaithuong", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteBangSangCheVaGiaiThuong').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteBangSangCheVaGiaiThuongId').value };
-        fetch('/delete-bangsangchevagiaithuong', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
-          })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+        });
 
       // ---------- SÁCH / GIÁO TRÌNH ----------
-      const modalSachVaGiaoTrinh = new bootstrap.Modal(document.getElementById('modalSachVaGiaoTrinh'));
-      const modalDeleteSachVaGiaoTrinh = new bootstrap.Modal(document.getElementById('modalDeleteSachVaGiaoTrinh'));
+      const modalSachVaGiaoTrinh = new bootstrap.Modal(
+        document.getElementById("modalSachVaGiaoTrinh")
+      );
+      const modalDeleteSachVaGiaoTrinh = new bootstrap.Modal(
+        document.getElementById("modalDeleteSachVaGiaoTrinh")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-sgt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalSachVaGiaoTrinhLabel').innerText = 'Sửa Sách / Giáo Trình';
-          document.getElementById('sachVaGiaoTrinhId').value = btn.getAttribute('data-id');
-          document.getElementById('SachGiaoTrinh').value = btn.getAttribute('data-sach');
-          document.getElementById('SoGioSachVaGiaoTrinh').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-sgt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("modalSachVaGiaoTrinhLabel").innerText =
+            "Sửa Sách / Giáo Trình";
+          document.getElementById("sachVaGiaoTrinhId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("SachGiaoTrinh").value =
+            btn.getAttribute("data-sach");
+          document.getElementById("SoGioSachVaGiaoTrinh").value =
+            btn.getAttribute("data-so-gio");
           modalSachVaGiaoTrinh.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-sgt').addEventListener('click', () => {
-        document.getElementById('modalSachVaGiaoTrinhLabel').innerText = 'Thêm Sách / Giáo Trình';
-        document.getElementById('sachVaGiaoTrinhId').value = '';
-        document.getElementById('SachGiaoTrinh').value = '';
-        document.getElementById('SoGioSachVaGiaoTrinh').value = '';
+      document.querySelector(".btn-add-sgt").addEventListener("click", () => {
+        document.getElementById("modalSachVaGiaoTrinhLabel").innerText =
+          "Thêm Sách / Giáo Trình";
+        document.getElementById("sachVaGiaoTrinhId").value = "";
+        document.getElementById("SachGiaoTrinh").value = "";
+        document.getElementById("SoGioSachVaGiaoTrinh").value = "";
         modalSachVaGiaoTrinh.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-sgt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteSachVaGiaoTrinhId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-sgt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteSachVaGiaoTrinhId").value =
+            btn.getAttribute("data-id");
           modalDeleteSachVaGiaoTrinh.show();
         });
       });
-      document.getElementById('formSachVaGiaoTrinh').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'sachvagiaotrinh',
-          id: document.getElementById('sachVaGiaoTrinhId').value,
-          SachGiaoTrinh: document.getElementById('SachGiaoTrinh').value,
-          SoGio: document.getElementById('SoGioSachVaGiaoTrinh').value
-        };
-        fetch(data.id ? '/edit-sachvagiaotrinh' : '/add-sachvagiaotrinh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
-            });
+      document
+        .getElementById("formSachVaGiaoTrinh")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "sachvagiaotrinh",
+            id: document.getElementById("sachVaGiaoTrinhId").value,
+            SachGiaoTrinh: document.getElementById("SachGiaoTrinh").value,
+            SoGio: document.getElementById("SoGioSachVaGiaoTrinh").value,
+          };
+          fetch(data.id ? "/edit-sachvagiaotrinh" : "/add-sachvagiaotrinh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteSachVaGiaoTrinh').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteSachVaGiaoTrinhId').value };
-        fetch('/delete-sachvagiaotrinh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteSachVaGiaoTrinh")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteSachVaGiaoTrinhId").value,
+          };
+          fetch("/delete-sachvagiaotrinh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+            });
+        });
 
       // ---------- NCKH / Hướng dẫn đội tuyển ----------
-      const modalNCKHVuaHuanLuyenDoiTuyen = new bootstrap.Modal(document.getElementById('modalNCKHVuaHuanLuyenDoiTuyen'));
-      const modalDeleteNCKHVuaHuanLuyenDoiTuyen = new bootstrap.Modal(document.getElementById('modalDeleteNCKHVuaHuanLuyenDoiTuyen'));
+      const modalNCKHVuaHuanLuyenDoiTuyen = new bootstrap.Modal(
+        document.getElementById("modalNCKHVuaHuanLuyenDoiTuyen")
+      );
+      const modalDeleteNCKHVuaHuanLuyenDoiTuyen = new bootstrap.Modal(
+        document.getElementById("modalDeleteNCKHVuaHuanLuyenDoiTuyen")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-nckh').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalNCKHVuaHuanLuyenDoiTuyenLabel').innerText = 'Sửa NCKH / Hướng dẫn đội tuyển';
-          document.getElementById('nckhVaHuanLuyenDoiTuyenId').value = btn.getAttribute('data-id');
-          document.getElementById('NCKHVaHuanLuyenDoiTuyen').value = btn.getAttribute('data-nckh');
-          document.getElementById('SoGioNCKHVaHuanLuyenDoiTuyen').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-nckh").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById(
+            "modalNCKHVuaHuanLuyenDoiTuyenLabel"
+          ).innerText = "Sửa NCKH / Hướng dẫn đội tuyển";
+          document.getElementById("nckhVaHuanLuyenDoiTuyenId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("NCKHVaHuanLuyenDoiTuyen").value =
+            btn.getAttribute("data-nckh");
+          document.getElementById("SoGioNCKHVaHuanLuyenDoiTuyen").value =
+            btn.getAttribute("data-so-gio");
           modalNCKHVuaHuanLuyenDoiTuyen.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-nckh').addEventListener('click', () => {
-        document.getElementById('modalNCKHVuaHuanLuyenDoiTuyenLabel').innerText = 'Thêm NCKH / Hướng dẫn đội tuyển';
-        document.getElementById('nckhVaHuanLuyenDoiTuyenId').value = '';
-        document.getElementById('NCKHVaHuanLuyenDoiTuyen').value = '';
-        document.getElementById('SoGioNCKHVaHuanLuyenDoiTuyen').value = '';
+      document.querySelector(".btn-add-nckh").addEventListener("click", () => {
+        document.getElementById(
+          "modalNCKHVuaHuanLuyenDoiTuyenLabel"
+        ).innerText = "Thêm NCKH / Hướng dẫn đội tuyển";
+        document.getElementById("nckhVaHuanLuyenDoiTuyenId").value = "";
+        document.getElementById("NCKHVaHuanLuyenDoiTuyen").value = "";
+        document.getElementById("SoGioNCKHVaHuanLuyenDoiTuyen").value = "";
         modalNCKHVuaHuanLuyenDoiTuyen.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-nckh').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteNCKHVuaHuanLuyenDoiTuyenId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-nckh").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteNCKHVuaHuanLuyenDoiTuyenId").value =
+            btn.getAttribute("data-id");
           modalDeleteNCKHVuaHuanLuyenDoiTuyen.show();
         });
       });
-      document.getElementById('formNCKHVuaHuanLuyenDoiTuyen').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'nckhvahuanluyendoituyen',
-          id: document.getElementById('nckhVaHuanLuyenDoiTuyenId').value,
-          NCKHHuanLuyenDoiTuyen: document.getElementById('NCKHVaHuanLuyenDoiTuyen').value,
-          SoGio: document.getElementById('SoGioNCKHVaHuanLuyenDoiTuyen').value
-        };
-        fetch(data.id ? '/edit-nckhvahuanluyendoituyen' : '/add-nckhvahuanluyendoituyen', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+      document
+        .getElementById("formNCKHVuaHuanLuyenDoiTuyen")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "nckhvahuanluyendoituyen",
+            id: document.getElementById("nckhVaHuanLuyenDoiTuyenId").value,
+            NCKHHuanLuyenDoiTuyen: document.getElementById(
+              "NCKHVaHuanLuyenDoiTuyen"
+            ).value,
+            SoGio: document.getElementById("SoGioNCKHVaHuanLuyenDoiTuyen")
+              .value,
+          };
+          fetch(
+            data.id
+              ? "/edit-nckhvahuanluyendoituyen"
+              : "/add-nckhvahuanluyendoituyen",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            }
+          )
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteNCKHVuaHuanLuyenDoiTuyen")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteNCKHVuaHuanLuyenDoiTuyenId")
+              .value,
+          };
+          fetch("/delete-nckhvahuanluyendoituyen", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteNCKHVuaHuanLuyenDoiTuyen').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteNCKHVuaHuanLuyenDoiTuyenId').value };
-        fetch('/delete-nckhvahuanluyendoituyen', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
-          })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+        });
 
       // ---------- XÂY DỰNG CTĐT ----------
-      const modalXayDungCTDT = new bootstrap.Modal(document.getElementById('modalXayDungCTDT'));
-      const modalDeleteXayDungCTDT = new bootstrap.Modal(document.getElementById('modalDeleteXayDungCTDT'));
+      const modalXayDungCTDT = new bootstrap.Modal(
+        document.getElementById("modalXayDungCTDT")
+      );
+      const modalDeleteXayDungCTDT = new bootstrap.Modal(
+        document.getElementById("modalDeleteXayDungCTDT")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-ctdt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalXayDungCTDTLabel').innerText = 'Sửa Xây Dựng CTĐT';
-          document.getElementById('xayDungCTDTId').value = btn.getAttribute('data-id');
-          document.getElementById('XayDungCTDT').value = btn.getAttribute('data-xaydung');
-          document.getElementById('SoGioXayDungCTDT').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-ctdt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("modalXayDungCTDTLabel").innerText =
+            "Sửa Xây Dựng CTĐT";
+          document.getElementById("xayDungCTDTId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("XayDungCTDT").value =
+            btn.getAttribute("data-xaydung");
+          document.getElementById("SoGioXayDungCTDT").value =
+            btn.getAttribute("data-so-gio");
           modalXayDungCTDT.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-ctdt').addEventListener('click', () => {
-        document.getElementById('modalXayDungCTDTLabel').innerText = 'Thêm Xây Dựng CTĐT';
-        document.getElementById('xayDungCTDTId').value = '';
-        document.getElementById('XayDungCTDT').value = '';
-        document.getElementById('SoGioXayDungCTDT').value = '';
+      document.querySelector(".btn-add-ctdt").addEventListener("click", () => {
+        document.getElementById("modalXayDungCTDTLabel").innerText =
+          "Thêm Xây Dựng CTĐT";
+        document.getElementById("xayDungCTDTId").value = "";
+        document.getElementById("XayDungCTDT").value = "";
+        document.getElementById("SoGioXayDungCTDT").value = "";
         modalXayDungCTDT.show();
       });
       // Delete
-      document.querySelectorAll('.btn-delete-ctdt').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteXayDungCTDTId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-ctdt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteXayDungCTDTId").value =
+            btn.getAttribute("data-id");
           modalDeleteXayDungCTDT.show();
         });
       });
-      document.getElementById('formXayDungCTDT').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'xaydungctdt',
-          id: document.getElementById('xayDungCTDTId').value,
-          XayDungCTDT: document.getElementById('XayDungCTDT').value,
-          SoGio: document.getElementById('SoGioXayDungCTDT').value
-        };
-        fetch(data.id ? '/edit-xaydungctdt' : '/add-xaydungctdt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
-            });
+      document
+        .getElementById("formXayDungCTDT")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "xaydungctdt",
+            id: document.getElementById("xayDungCTDTId").value,
+            XayDungCTDT: document.getElementById("XayDungCTDT").value,
+            SoGio: document.getElementById("SoGioXayDungCTDT").value,
+          };
+          fetch(data.id ? "/edit-xaydungctdt" : "/add-xaydungctdt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteXayDungCTDT').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteXayDungCTDTId').value };
-        fetch('/delete-xaydungctdt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteXayDungCTDT")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteXayDungCTDTId").value,
+          };
+          fetch("/delete-xaydungctdt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+            });
+        });
 
       // ---------- BIÊN SOẠN GIÁO TRÌNH / BÀI GIẢNG ----------
-      const modalBienSoanGiaoTrinhBaiGiang = new bootstrap.Modal(document.getElementById('modalBienSoanGiaoTrinhBaiGiang'));
-      const modalDeleteBienSoanGiaoTrinhBaiGiang = new bootstrap.Modal(document.getElementById('modalDeleteBienSoanGiaoTrinhBaiGiang'));
+      const modalBienSoanGiaoTrinhBaiGiang = new bootstrap.Modal(
+        document.getElementById("modalBienSoanGiaoTrinhBaiGiang")
+      );
+      const modalDeleteBienSoanGiaoTrinhBaiGiang = new bootstrap.Modal(
+        document.getElementById("modalDeleteBienSoanGiaoTrinhBaiGiang")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-bsgtbg').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalBienSoanGiaoTrinhBaiGiangLabel').innerText = 'Sửa Biên Soạn Giáo Trình / Bài Giảng';
-          document.getElementById('bienSoanGiaoTrinhBaiGiangId').value = btn.getAttribute('data-id');
-          document.getElementById('BienSoanGiaoTrinhBaiGiang').value = btn.getAttribute('data-biensoan');
-          document.getElementById('SoGioBienSoanGiaoTrinhBaiGiang').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-bsgtbg").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById(
+            "modalBienSoanGiaoTrinhBaiGiangLabel"
+          ).innerText = "Sửa Biên Soạn Giáo Trình / Bài Giảng";
+          document.getElementById("bienSoanGiaoTrinhBaiGiangId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("BienSoanGiaoTrinhBaiGiang").value =
+            btn.getAttribute("data-biensoan");
+          document.getElementById("SoGioBienSoanGiaoTrinhBaiGiang").value =
+            btn.getAttribute("data-so-gio");
           modalBienSoanGiaoTrinhBaiGiang.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-bsgtbg').addEventListener('click', () => {
-        document.getElementById('modalBienSoanGiaoTrinhBaiGiangLabel').innerText = 'Thêm Biên Soạn Giáo Trình / Bài Giảng';
-        document.getElementById('bienSoanGiaoTrinhBaiGiangId').value = '';
-        document.getElementById('BienSoanGiaoTrinhBaiGiang').value = '';
-        document.getElementById('SoGioBienSoanGiaoTrinhBaiGiang').value = '';
-        modalBienSoanGiaoTrinhBaiGiang.show();
-      });
+      document
+        .querySelector(".btn-add-bsgtbg")
+        .addEventListener("click", () => {
+          document.getElementById(
+            "modalBienSoanGiaoTrinhBaiGiangLabel"
+          ).innerText = "Thêm Biên Soạn Giáo Trình / Bài Giảng";
+          document.getElementById("bienSoanGiaoTrinhBaiGiangId").value = "";
+          document.getElementById("BienSoanGiaoTrinhBaiGiang").value = "";
+          document.getElementById("SoGioBienSoanGiaoTrinhBaiGiang").value = "";
+          modalBienSoanGiaoTrinhBaiGiang.show();
+        });
       // Delete
-      document.querySelectorAll('.btn-delete-bsgtbg').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteBienSoanGiaoTrinhBaiGiangId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-bsgtbg").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteBienSoanGiaoTrinhBaiGiangId").value =
+            btn.getAttribute("data-id");
           modalDeleteBienSoanGiaoTrinhBaiGiang.show();
         });
       });
-      document.getElementById('formBienSoanGiaoTrinhBaiGiang').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'biensoangiaotrinhbaigiang',
-          id: document.getElementById('bienSoanGiaoTrinhBaiGiangId').value,
-          BienSoanGiaoTrinhBaiGiang: document.getElementById('BienSoanGiaoTrinhBaiGiang').value,
-          SoGio: document.getElementById('SoGioBienSoanGiaoTrinhBaiGiang').value
-        };
-        fetch(data.id ? '/edit-biensoangiaotrinhbaigiang' : '/add-biensoangiaotrinhbaigiang', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+      document
+        .getElementById("formBienSoanGiaoTrinhBaiGiang")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "biensoangiaotrinhbaigiang",
+            id: document.getElementById("bienSoanGiaoTrinhBaiGiangId").value,
+            BienSoanGiaoTrinhBaiGiang: document.getElementById(
+              "BienSoanGiaoTrinhBaiGiang"
+            ).value,
+            SoGio: document.getElementById("SoGioBienSoanGiaoTrinhBaiGiang")
+              .value,
+          };
+          fetch(
+            data.id
+              ? "/edit-biensoangiaotrinhbaigiang"
+              : "/add-biensoangiaotrinhbaigiang",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            }
+          )
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteBienSoanGiaoTrinhBaiGiang")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteBienSoanGiaoTrinhBaiGiangId")
+              .value,
+          };
+          fetch("/delete-biensoangiaotrinhbaigiang", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteBienSoanGiaoTrinhBaiGiang').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteBienSoanGiaoTrinhBaiGiangId').value };
-        fetch('/delete-biensoangiaotrinhbaigiang', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
-          })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+        });
 
       // ---------- NHIỆM VỤ KHOA HỌC CÔNG NGHỆ ----------
-      const modalNhiemVuKhoaHocCongNghe = new bootstrap.Modal(document.getElementById('modalNhiemVuKhoaHocCongNghe'));
-      const modalDeleteNhiemVuKhoaHocCongNghe = new bootstrap.Modal(document.getElementById('modalDeleteNhiemVuKhoaHocCongNghe'));
+      const modalNhiemVuKhoaHocCongNghe = new bootstrap.Modal(
+        document.getElementById("modalNhiemVuKhoaHocCongNghe")
+      );
+      const modalDeleteNhiemVuKhoaHocCongNghe = new bootstrap.Modal(
+        document.getElementById("modalDeleteNhiemVuKhoaHocCongNghe")
+      );
       // Edit
-      document.querySelectorAll('.btn-edit-nvkhcn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('modalNhiemVuKhoaHocCongNgheLabel').innerText = 'Sửa Nhiệm Vụ Khoa Học Công Nghệ';
-          document.getElementById('nhiemVuKhoaHocCongNgheId').value = btn.getAttribute('data-id');
-          document.getElementById('NhiemVuKhoaHocCongNghe').value = btn.getAttribute('data-nhiemvu');
-          document.getElementById('ChuNhiem-nvkhcn').value = btn.getAttribute('data-chunhiem-nvkhcn');
-          document.getElementById('ThuKy-nvkhcn').value = btn.getAttribute('data-thuky-nvkhcn');
-          document.getElementById('SoGioNhiemVuKhoaHocCongNghe').value = btn.getAttribute('data-so-gio');
+      document.querySelectorAll(".btn-edit-nvkhcn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById(
+            "modalNhiemVuKhoaHocCongNgheLabel"
+          ).innerText = "Sửa Nhiệm Vụ Khoa Học Công Nghệ";
+          document.getElementById("nhiemVuKhoaHocCongNgheId").value =
+            btn.getAttribute("data-id");
+          document.getElementById("NhiemVuKhoaHocCongNghe").value =
+            btn.getAttribute("data-nhiemvu");
+          document.getElementById("ChuNhiem-nvkhcn").value = btn.getAttribute(
+            "data-chunhiem-nvkhcn"
+          );
+          document.getElementById("ThuKy-nvkhcn").value =
+            btn.getAttribute("data-thuky-nvkhcn");
+          document.getElementById("SoGioNhiemVuKhoaHocCongNghe").value =
+            btn.getAttribute("data-so-gio");
           modalNhiemVuKhoaHocCongNghe.show();
         });
       });
       // Add
-      document.querySelector('.btn-add-nvkhcn').addEventListener('click', () => {
-        document.getElementById('modalNhiemVuKhoaHocCongNgheLabel').innerText = 'Thêm Nhiệm Vụ Khoa Học Công Nghệ';
-        document.getElementById('nhiemVuKhoaHocCongNgheId').value = '';
-        document.getElementById('NhiemVuKhoaHocCongNghe').value = '';
-        document.getElementById('ChuNhiem-nvkhcn').value = '';
-        document.getElementById('ThuKy-nvkhcn').value = '';
-        document.getElementById('SoGioNhiemVuKhoaHocCongNghe').value = '';
-        modalNhiemVuKhoaHocCongNghe.show();
-      });
+      document
+        .querySelector(".btn-add-nvkhcn")
+        .addEventListener("click", () => {
+          document.getElementById(
+            "modalNhiemVuKhoaHocCongNgheLabel"
+          ).innerText = "Thêm Nhiệm Vụ Khoa Học Công Nghệ";
+          document.getElementById("nhiemVuKhoaHocCongNgheId").value = "";
+          document.getElementById("NhiemVuKhoaHocCongNghe").value = "";
+          document.getElementById("ChuNhiem-nvkhcn").value = "";
+          document.getElementById("ThuKy-nvkhcn").value = "";
+          document.getElementById("SoGioNhiemVuKhoaHocCongNghe").value = "";
+          modalNhiemVuKhoaHocCongNghe.show();
+        });
       // Delete
-      document.querySelectorAll('.btn-delete-nvkhcn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.getElementById('deleteNhiemVuKhoaHocCongNgheId').value = btn.getAttribute('data-id');
+      document.querySelectorAll(".btn-delete-nvkhcn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("deleteNhiemVuKhoaHocCongNgheId").value =
+            btn.getAttribute("data-id");
           modalDeleteNhiemVuKhoaHocCongNghe.show();
         });
       });
-      document.getElementById('formNhiemVuKhoaHocCongNghe').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = {
-          MaBang: 'nhiemvukhoahoccongnghe',
-          id: document.getElementById('nhiemVuKhoaHocCongNgheId').value,
-          NhiemVuKhoaHocCongNghe: document.getElementById('NhiemVuKhoaHocCongNghe').value,
-          ChuNhiem: document.getElementById('ChuNhiem-nvkhcn').value,
-          PhanBien: document.getElementById('ChuNhiem-nvkhcn').value, // Phản biện = chủ nhiệm
-          ThuKy: document.getElementById('ThuKy-nvkhcn').value,
-          UyVien: document.getElementById('ThuKy-nvkhcn').value, // Ủy viên = Thư ký
-          SoGio: document.getElementById('SoGioNhiemVuKhoaHocCongNghe').value
-        };
-        fetch(data.id ? '/edit-nhiemvukhoahoccongnghe' : '/add-nhiemvukhoahoccongnghe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+      document
+        .getElementById("formNhiemVuKhoaHocCongNghe")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            MaBang: "nhiemvukhoahoccongnghe",
+            id: document.getElementById("nhiemVuKhoaHocCongNgheId").value,
+            NhiemVuKhoaHocCongNghe: document.getElementById(
+              "NhiemVuKhoaHocCongNghe"
+            ).value,
+            ChuNhiem: document.getElementById("ChuNhiem-nvkhcn").value,
+            PhanBien: document.getElementById("ChuNhiem-nvkhcn").value, // Phản biện = chủ nhiệm
+            ThuKy: document.getElementById("ThuKy-nvkhcn").value,
+            UyVien: document.getElementById("ThuKy-nvkhcn").value, // Ủy viên = Thư ký
+            SoGio: document.getElementById("SoGioNhiemVuKhoaHocCongNghe").value,
+          };
+          fetch(
+            data.id
+              ? "/edit-nhiemvukhoahoccongnghe"
+              : "/add-nhiemvukhoahoccongnghe",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            }
+          )
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
+        });
+      document
+        .getElementById("formDeleteNhiemVuKhoaHocCongNghe")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const data = {
+            id: document.getElementById("deleteNhiemVuKhoaHocCongNgheId").value,
+          };
+          fetch("/delete-nhiemvukhoahoccongnghe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
           })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
-      document.getElementById('formDeleteNhiemVuKhoaHocCongNghe').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const data = { id: document.getElementById('deleteNhiemVuKhoaHocCongNgheId').value };
-        fetch('/delete-nhiemvukhoahoccongnghe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(response => response.json())
-          .then(result => {
-            Swal.fire({
-              toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
-              text: result.message,
-              showConfirmButton: false,
-              timer: 1500,
-              timerProgressBar: true,
-              didClose: () => {
-                location.reload();
-              }
+            .then((response) => response.json())
+            .then((result) => {
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
+                text: result.message,
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                didClose: () => {
+                  location.reload();
+                },
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
             });
-          })
-          .catch(err => { console.error(err); alert("Đã có lỗi xảy ra. Vui lòng thử lại!"); });
-      });
+        });
     </script>
-</body>
-
+  </body>
 </html>

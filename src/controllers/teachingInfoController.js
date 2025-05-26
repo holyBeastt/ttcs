@@ -421,7 +421,7 @@ const renderInfo = async (req, res) => {
       results: results,
       check: check,
       DaoTaoCheck: DaoTaoCheck,
-      TaiChinhCheck: TaiChinhCheck,
+      VPCheck: TaiChinhCheck,
     });
   } catch (error) {
     // Xử lý lỗi trong trường hợp truy vấn thất bại

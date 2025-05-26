@@ -319,18 +319,16 @@
                     >
                   </div>
                 </th>
-                <th style="width: 50px" id="taiChinhColumn">
+                <th style="width: 50px" id="VPColumn">
                   <div class="form-check d-flex">
                     <input
                       class="check"
                       type="checkbox"
-                      id="checkAllTaiChinh"
-                      onclick="checkAll('taiChinh')"
+                      id="checkAllVP"
+                      onclick="checkAll('VP')"
                     />
-                    <label
-                      class="form-check-label text-nowrap"
-                      for="checkAllTaiChinh"
-                      >Tài Chính</label
+                    <label class="form-check-label text-nowrap" for="checkAllVP"
+                      >Văn phòng</label
                     >
                   </div>
                 </th>
@@ -492,10 +490,7 @@
               "DaoTaoCheck",
               JSON.stringify(checkAll.DaoTaoCheck)
             );
-            localStorage.setItem(
-              "TaiChinhCheck",
-              JSON.stringify(checkAll.TaiChinhCheck)
-            );
+            localStorage.setItem("VPCheck", JSON.stringify(checkAll.VPCheck));
 
             globalData = infoDoAn;
             localStorage.setItem("tableData", JSON.stringify(infoDoAn));
@@ -810,19 +805,19 @@
           daoTaoCheckbox.style.display = "none";
 
           // Checkbox tài chính
-          let taiChinhCheckboxTd, taiChinhCheckbox;
+          let VPCheckboxTd, VPCheckbox;
 
-          taiChinhCheckboxTd = document.createElement("td");
-          taiChinhCheckbox = document.createElement("input");
-          taiChinhCheckbox.type = "checkbox";
-          taiChinhCheckbox.style.marginLeft = "30px";
-          taiChinhCheckbox.name = "taiChinh"; // Thêm thuộc tính name
-          taiChinhCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
-          taiChinhCheckbox.onchange = () => updateCheckAll("taiChinh"); // Gọi hàm khi checkbox thay đổi
-          taiChinhCheckboxTd.appendChild(taiChinhCheckbox);
-          tableRow.appendChild(taiChinhCheckboxTd);
+          VPCheckboxTd = document.createElement("td");
+          VPCheckbox = document.createElement("input");
+          VPCheckbox.type = "checkbox";
+          VPCheckbox.style.marginLeft = "30px";
+          VPCheckbox.name = "VP"; // Thêm thuộc tính name
+          VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
+          VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
+          VPCheckboxTd.appendChild(VPCheckbox);
+          tableRow.appendChild(VPCheckboxTd);
           // Ẩn đi
-          taiChinhCheckbox.style.display = "none";
+          VPCheckbox.style.display = "none";
 
           if (isKhoa == 1 && role == "Lãnh đạo khoa") {
             khoaCheckbox.style.display = "block";
@@ -831,13 +826,13 @@
               khoaCheckbox.style.display = "block";
 
               daoTaoCheckbox.style.display = "block";
-              taiChinhCheckbox.style.display = "none";
-            } else if (MaPhongBan == "TAICHINH") {
+              VPCheckbox.style.display = "none";
+            } else if (MaPhongBan == "VP") {
               // Checkbox cho Đào Tạo
               daoTaoCheckbox.style.display = "block";
               khoaCheckboxTd.style.display = "none";
               // Checkbox cho Tài Chính
-              taiChinhCheckbox.style.display = "block";
+              VPCheckbox.style.display = "block";
             }
           }
 
@@ -862,7 +857,7 @@
 
           const KhoaCheck = localStorage.getItem("KhoaCheck");
           const DaoTaoCheck = localStorage.getItem("DaoTaoCheck");
-          const TaiChinhCheck = localStorage.getItem("TaiChinhCheck");
+          const VPCheck = localStorage.getItem("VPCheck");
           // Phân quyền theo phòng ban
           if (isKhoa == 1) {
             // Nếu là khoa
@@ -897,21 +892,21 @@
           }
 
           if (
-            MaPhongBan.toLowerCase() === "taichinh" &&
+            MaPhongBan.toLowerCase() === "VP" &&
             role.toLowerCase() !== "thường"
           ) {
             // Nếu khoa đã check thì hiện check bên đào tạo
             if (!DaoTaoCheck.includes(row.MaPhongBan)) {
               // Ngăn thay đổi trạng thái check box khoa
               daoTaoCheckbox.disabled = true;
-              taiChinhCheckbox.disabled = true;
+              VPCheckbox.disabled = true;
             }
 
             // Nếu đào tạo đã check thì disable check đào tạo
-            if (TaiChinhCheck.includes(row.MaPhongBan)) {
+            if (VPCheck.includes(row.MaPhongBan)) {
               // Ngăn thay đổi trạng thái check box khoa
               daoTaoCheckbox.disabled = true;
-              taiChinhCheckbox.disabled = true;
+              VPCheckbox.disabled = true;
             }
           }
 
@@ -1071,8 +1066,8 @@
           const daoTaoCheckbox = row.querySelector(
             'input[type="checkbox"][name="daoTao"]'
           );
-          const taiChinhCheckbox = row.querySelector(
-            'input[type="checkbox"][name="taiChinh"]'
+          const VPCheckbox = row.querySelector(
+            'input[type="checkbox"][name="VP"]'
           );
 
           // Lấy trạng thái của checkbox "Khoa"
@@ -1082,9 +1077,7 @@
           const daoTaoDuyet = daoTaoCheckbox ? daoTaoCheckbox.checked : false;
 
           // Lấy trạng thái của checkbox "Tài Chính"
-          let taiChinhDuyet = taiChinhCheckbox
-            ? taiChinhCheckbox.checked
-            : false;
+          let VPDuyet = VPCheckbox ? VPCheckbox.checked : false;
 
           if (isKhoa == 1) {
             // Cập nhật vào mảng globalData tương ứng với chỉ mục hàng (index)
@@ -1100,7 +1093,7 @@
 
           data[id].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
 
-          data[id].TaiChinhDuyet = taiChinhDuyet; // Cập nhật Tài Chính
+          data[id].TaiChinhDuyet = VPDuyet; // Cập nhật Tài Chính
         });
 
         return data;
@@ -1655,7 +1648,7 @@
           // Ẩn tất cả các cột
           document.getElementById("khoaColumn").style.display = "none";
           document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("taiChinhColumn").style.display = "none";
+          document.getElementById("VPColumn").style.display = "none";
           if (!role.includes("CNBM")) {
             document.getElementById("updateDoAn").style.display = "none";
           }
@@ -1663,7 +1656,7 @@
 
         if (isKhoa == 1 && role == "Lãnh đạo khoa") {
           document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("taiChinhColumn").style.display = "none";
+          document.getElementById("VPColumn").style.display = "none";
 
           document.getElementById("khoaColumn").style.display = "block";
         }
@@ -1671,11 +1664,11 @@
         if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
             console.log("role = ", role);
-            // Ẩn cột 'taiChinhColumn'
-            document.getElementById("taiChinhColumn").style.display = "none";
+            // Ẩn cột 'VPColumn'
+            document.getElementById("VPColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
               "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
-          } else if (MaPhongBan == "TAICHINH") {
+          } else if (MaPhongBan == "VP") {
             // Ẩn cột 'khoaColumn'
             document.getElementById("khoaColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
@@ -1763,7 +1756,7 @@
         $('#MaPhongBan option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
-          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
           method: "GET",
           success: function (response) {
             // Kiểm tra nếu response thành công

@@ -188,7 +188,7 @@ const renderInfo = async (req, res) => {
       results: results,
       check: check,
       DaoTaoCheck: DaoTaoCheck,
-      TaiChinhCheck: TaiChinhCheck,
+      VPCheck: TaiChinhCheck,
     });
   } catch (error) {
     console.error("Error executing query:", error);

@@ -445,10 +445,7 @@
         // Ẩn phần lọc khoa nếu role là Khoa
         const departmentFilter = document.getElementById("departmentFilter");
 
-        if (
-          !MaPhongBan.includes("DAOTAO") &&
-          !MaPhongBan.includes("TAICHINH")
-        ) {
+        if (!MaPhongBan.includes("DAOTAO") && !MaPhongBan.includes("VP")) {
           departmentFilter.style.display = "none";
         }
       });
@@ -537,7 +534,9 @@
               tr.classList.add("teacher-group");
               tr.innerHTML = `
         <td rowspan="${courses.length - 1}">${index}</td>
-        <td rowspan="${courses.length - 1}">${course.GiangVien + `<br>(GVM ${course.MaPhongBan})`}</td>
+        <td rowspan="${courses.length - 1}">${
+                course.GiangVien + `<br>(GVM ${course.MaPhongBan})`
+              }</td>
       `;
               index++;
             }
@@ -920,7 +919,7 @@
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
-          url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+          url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
           method: "GET",
           success: function (response) {
             // Kiểm tra nếu response thành công

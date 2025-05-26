@@ -317,17 +317,15 @@
                     >
                   </div>
                 </th>
-                <th style="width: 50px" id="taiChinhColumn">
+                <th style="width: 50px" id="VPColumn">
                   <div class="form-check d-flex">
                     <input
                       class="check"
                       type="checkbox"
-                      id="checkAllTaiChinh"
-                      onclick="checkAll('taiChinh')"
+                      id="checkAllVP"
+                      onclick="checkAll('VP')"
                     />
-                    <label
-                      class="form-check-label text-nowrap"
-                      for="checkAllTaiChinh"
+                    <label class="form-check-label text-nowrap" for="checkAllVP"
                       >Tài Chính</label
                     >
                   </div>
@@ -680,11 +678,11 @@
 
           const check = rs.check; // Dữ liệu check
           const DaoTaoCheck = rs.DaoTaoCheck;
-          const TaiChinhCheck = rs.TaiChinhCheck;
+          const VPCheck = rs.VPCheck;
 
           localStorage.setItem("check", check);
           localStorage.setItem("DaoTaoCheck", DaoTaoCheck);
-          localStorage.setItem("TaiChinhCheck", TaiChinhCheck);
+          localStorage.setItem("VPCheck", VPCheck);
 
           renderTable(globalData); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
 
@@ -1031,20 +1029,20 @@
           daoTaoCheckbox.disabled = true;
 
           // Checkbox tài chính
-          let taiChinhCheckboxTd, taiChinhCheckbox;
+          let VPCheckboxTd, VPCheckbox;
 
-          taiChinhCheckboxTd = document.createElement("td");
-          taiChinhCheckbox = document.createElement("input");
-          taiChinhCheckbox.type = "checkbox";
-          taiChinhCheckbox.style.marginLeft = "30px";
-          taiChinhCheckbox.name = "taiChinh"; // Thêm thuộc tính name
-          taiChinhCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
-          taiChinhCheckbox.onchange = () => updateCheckAll("taiChinh"); // Gọi hàm khi checkbox thay đổi
-          taiChinhCheckboxTd.appendChild(taiChinhCheckbox);
-          tableRow.appendChild(taiChinhCheckboxTd);
+          VPCheckboxTd = document.createElement("td");
+          VPCheckbox = document.createElement("input");
+          VPCheckbox.type = "checkbox";
+          VPCheckbox.style.marginLeft = "30px";
+          VPCheckbox.name = "VP"; // Thêm thuộc tính name
+          VPCheckbox.checked = row.VPDuyet || false; // Dùng một trường cho checkbox
+          VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
+          VPCheckboxTd.appendChild(VPCheckbox);
+          tableRow.appendChild(VPCheckboxTd);
           // Ẩn đi
-          //taiChinhCheckbox.style.display = "none";
-          taiChinhCheckbox.disabled = true;
+          //VPCheckbox.style.display = "none";
+          VPCheckbox.disabled = true;
 
           // Hiện checkbox
           /*
@@ -1055,13 +1053,13 @@
               khoaCheckbox.style.display = "block";
 
               daoTaoCheckbox.style.display = "block";
-              taiChinhCheckboxTd.style.display = "none";
-            } else if (MaPhongBan == "TAICHINH") {
+              VPCheckboxTd.style.display = "none";
+            } else if (MaPhongBan == "VP") {
               // Checkbox cho Đào Tạo
               daoTaoCheckbox.style.display = "block";
               khoaCheckboxTd.style.display = "none";
               // Checkbox cho Tài Chính
-              taiChinhCheckbox.style.display = "block";
+              VPCheckbox.style.display = "block";
             }
           }*/
 
@@ -1072,13 +1070,13 @@
               khoaCheckbox.disabled = false;
 
               daoTaoCheckbox.disabled = false;
-              //taiChinhCheckboxTd.style.display = "none";
-            } else if (MaPhongBan == "TAICHINH") {
+              //VPCheckboxTd.style.display = "none";
+            } else if (MaPhongBan == "VP") {
               // Checkbox cho Đào Tạo
               daoTaoCheckbox.disabled = false;
               //khoaCheckboxTd.style.display = "none";
               // Checkbox cho Tài Chính
-              taiChinhCheckbox.disabled = false;
+              VPCheckbox.disabled = false;
             }
           }
 
@@ -1101,7 +1099,7 @@
             }
           }
           const DaoTaoCheck = localStorage.getItem("DaoTaoCheck");
-          const TaiChinhCheck = localStorage.getItem("TaiChinhCheck");
+          const VPCheck = localStorage.getItem("VPCheck");
 
           if (
             MaPhongBan.toLowerCase() === "daotao" &&
@@ -1125,21 +1123,21 @@
           }
 
           if (
-            MaPhongBan.toLowerCase() === "taichinh" &&
+            MaPhongBan.toLowerCase() === "VP" &&
             role.toLowerCase() !== "thường"
           ) {
             // Nếu khoa đã check thì hiện check bên đào tạo
             if (!DaoTaoCheck.includes(row.Khoa)) {
               // Ngăn thay đổi trạng thái check box khoa
               daoTaoCheckbox.disabled = true;
-              taiChinhCheckbox.disabled = true;
+              VPCheckbox.disabled = true;
             }
 
             // Nếu đào tạo đã check thì disable check đào tạo
-            if (TaiChinhCheck.includes(row.Khoa)) {
+            if (VPCheck.includes(row.Khoa)) {
               // Ngăn thay đổi trạng thái check box khoa
               daoTaoCheckbox.disabled = true;
-              taiChinhCheckbox.disabled = true;
+              VPCheckbox.disabled = true;
             }
           }
         });
@@ -1415,8 +1413,8 @@
           const daoTaoCheckbox = row.querySelector(
             'input[type="checkbox"][name="daoTao"]'
           );
-          const taiChinhCheckbox = row.querySelector(
-            'input[type="checkbox"][name="taiChinh"]'
+          const VPCheckbox = row.querySelector(
+            'input[type="checkbox"][name="VP"]'
           );
 
           // Lấy trạng thái của checkbox "Khoa"
@@ -1426,20 +1424,18 @@
           const daoTaoDuyet = daoTaoCheckbox ? daoTaoCheckbox.checked : false;
 
           // Lấy trạng thái của checkbox "Tài Chính"
-          let taiChinhDuyet = taiChinhCheckbox
-            ? taiChinhCheckbox.checked
-            : false;
+          let VPDuyet = VPCheckbox ? VPCheckbox.checked : false;
 
           /*
       // Điều chỉnh theo role
       if (MaPhongBan == 'DAOTAO' && role == 'Duyệt') {
         // Khi role là DAOTAO_ALL
         khoaDuyet = khoaCheckbox ? khoaCheckbox.checked : false; // Cập nhật Khoa
-      } else if (MaPhongBan == 'TAICHINH' && role == 'Duyệt') {
-        // Khi role là TAICHINH_ALL
+      } else if (MaPhongBan == 'VP' && role == 'Duyệt') {
+        // Khi role là VP_ALL
         khoaDuyet = globalData[index].KhoaDuyet; // Giữ nguyên giá trị cũ của Khoa
         
-        taiChinhDuyet = taiChinhCheckbox ? taiChinhCheckbox.checked : false; // Cập nhật Tài Chính
+        VPDuyet = VPCheckbox ? VPCheckbox.checked : false; // Cập nhật Tài Chính
       }
 */
           if (isKhoa == 1) {
@@ -1456,7 +1452,7 @@
 
           globalData[index].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
 
-          globalData[index].TaiChinhDuyet = taiChinhDuyet; // Cập nhật Tài Chính
+          globalData[index].VPDuyet = VPDuyet; // Cập nhật Tài Chính
         });
 
         // Gửi dữ liệu lên server
@@ -2100,7 +2096,7 @@
           // Ẩn tất cả các cột
           document.getElementById("checkAllKhoa").disabled = true;
           document.getElementById("checkAllDaoTao").disabled = true;
-          document.getElementById("checkAllTaiChinh").disabled = true;
+          document.getElementById("checkAllVP").disabled = true;
 
           if (!role.includes("CNBM")) {
             document.getElementById("update-qc").style.display = "none";
@@ -2109,15 +2105,15 @@
 
         if (isKhoa == 1 && role == "Lãnh đạo khoa") {
           document.getElementById("checkAllDaoTao").disabled = true;
-          document.getElementById("checkAllTaiChinh").disabled = true;
+          document.getElementById("checkAllVP").disabled = true;
 
           document.getElementById("checkAllKhoa").disabled = false;
         } else if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
-            // Ẩn cột 'taiChinhColumn'
-            document.getElementById("checkAllTaiChinh").disabled = true;
+            // Ẩn cột 'VPColumn'
+            document.getElementById("checkAllVP").disabled = true;
             document.getElementById("checkAllDaoTao").disabled = false;
-          } else if (MaPhongBan == "TAICHINH") {
+          } else if (MaPhongBan == "VP") {
             // Ẩn cột 'khoaColumn'
             document.getElementById("checkAllKhoa").disabled = true;
             document.getElementById("update-qc").disabled = false; // Sử dụng 'inline-block' để hiển thị nút
