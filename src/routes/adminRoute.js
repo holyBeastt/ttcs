@@ -45,6 +45,7 @@ const {
   getPhanTram,
   getChuyenKhoaSite,
   transferFacultyData,
+  mergeFacultyData,
 } = require("../controllers/adminController");
 const {
   getaccountList,
@@ -200,5 +201,8 @@ router.get("/api/admin/getChuyenKhoaSite", getChuyenKhoaSite);
 
 // Cập nhật data chuyển khoa
 router.post("/api/admin/department/transfer-faculty-data", transferFacultyData);
+
+// Cập nhật data gộp khoa
+router.post("/api/admin/department/merge-faculty-data", mergeFacultyData);
 
 module.exports = router;

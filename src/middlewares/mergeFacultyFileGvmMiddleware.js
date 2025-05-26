@@ -2,25 +2,27 @@ const fs = require("fs");
 const path = require("path");
 const appRoot = require("app-root-path");
 
-const transferFacultyFileGvm = (oldDept, newDept, subject, fullName) => {
+const transferFacultyFileGvm = (oldFaculty, newFaculty, subject, fullName) => {
   const oldFolder = path.join(
     appRoot.path,
     "Giang_Vien_Moi",
-    oldDept,
+    oldFaculty,
     subject,
     fullName
   );
   const newFolder = path.join(
     appRoot.path,
     "Giang_Vien_Moi",
-    newDept,
-    subject,
+    newFaculty,
+    oldFaculty,
     fullName
   );
 
   if (fs.existsSync(oldFolder)) {
     // Tạo folder cha nếu chưa có
+    console.log("📁 Tạo thư mục:", path.dirname(newFolder));
     fs.mkdirSync(path.dirname(newFolder), { recursive: true });
+    console.log("✅ Tạo xong");
 
     fs.renameSync(oldFolder, newFolder);
     console.log("✅ Đã đổi thư mục:", oldFolder, "→", newFolder);
@@ -28,8 +30,8 @@ const transferFacultyFileGvm = (oldDept, newDept, subject, fullName) => {
     // Đổi tên file chứa mã khoa cũ
     const files = fs.readdirSync(newFolder);
     files.forEach((file) => {
-      if (file.startsWith(oldDept + "_")) {
-        const newFileName = file.replace(oldDept + "_", newDept + "_");
+      if (file.startsWith(oldFaculty + "_")) {
+        const newFileName = file.replace(oldFaculty + "_", newFaculty + "_");
         fs.renameSync(
           path.join(newFolder, file),
           path.join(newFolder, newFileName)
@@ -38,7 +40,7 @@ const transferFacultyFileGvm = (oldDept, newDept, subject, fullName) => {
       }
     });
 
-    const oldDeptFolder = path.join(appRoot.path, "Giang_Vien_Moi", oldDept);
+    const oldDeptFolder = path.join(appRoot.path, "Giang_Vien_Moi", oldFaculty);
     if (fs.existsSync(oldDeptFolder)) {
       const files = fs.readdirSync(oldDeptFolder);
       if (files.length === 0) {

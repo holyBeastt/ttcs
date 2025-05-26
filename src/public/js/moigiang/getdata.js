@@ -38,7 +38,7 @@ $(document).ready(function () {
   $('#MaPhongBan option[value=""]').remove();
   // Gọi AJAX để lấy dữ liệu JSON từ API
   $.ajax({
-    url: "/getPhongBan", // Đường dẫn tới API getPhongBan
+    url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
     method: "GET",
     success: function (response) {
       // Kiểm tra nếu response thành công

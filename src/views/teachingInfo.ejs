@@ -351,9 +351,9 @@
                     Đào tạo
                   </div>
                 </th>
-                <th style="width: 50px; display: none" id="taiChinhColumn">
+                <th style="width: 50px; display: none" id="VPColumn">
                   <div class="form-check">
-                    Tài chính
+                    Văn phòng
                   </div>
                 </th>
               </tr>
@@ -497,7 +497,7 @@
           }
           document.getElementById('khoaColumn').style.display = 'table-cell';
           document.getElementById('daoTaoColumn').style.display = 'table-cell';
-          document.getElementById('taiChinhColumn').style.display = 'table-cell';
+          document.getElementById('VPColumn').style.display = 'table-cell';
         }
       });
 
@@ -1057,22 +1057,22 @@
             daoTaoCheckboxTd.appendChild(daoTaoCheckbox);
             tableRow.appendChild(daoTaoCheckboxTd);
 
-            let taiChinhCheckboxTd, taiChinhCheckbox;
-            taiChinhCheckboxTd = document.createElement('td');
-            taiChinhCheckbox = document.createElement('input');
-            taiChinhCheckbox.disabled = true;
-            taiChinhCheckbox.type = 'checkbox';
-            taiChinhCheckbox.name = 'taichinh';
-            taiChinhCheckbox.checked = row.TaiChinhDuyet;
-            taiChinhCheckboxTd.appendChild(taiChinhCheckbox);
-            tableRow.appendChild(taiChinhCheckboxTd);
+            let VPCheckboxTd, VPCheckbox;
+            VPCheckboxTd = document.createElement('td');
+            VPCheckbox = document.createElement('input');
+            VPCheckbox.disabled = true;
+            VPCheckbox.type = 'checkbox';
+            VPCheckbox.name = 'VP';
+            VPCheckbox.checked = row.VPDuyet;
+            VPCheckboxTd.appendChild(VPCheckbox);
+            tableRow.appendChild(VPCheckboxTd);
 
 
             // Điều kiện ẩn checkbox Khoa nếu role không phải "CNTT_ALL"
             if (role != "Lãnh đạo khoa") {
               khoaCheckbox.disabled = true;
               daoTaoCheckbox.disabled = true;
-              taiChinhCheckbox.disabled = true;
+              VPCheckbox.disabled = true;
             }
 
 

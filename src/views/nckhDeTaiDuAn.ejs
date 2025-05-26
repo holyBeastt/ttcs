@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/nckh.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="/css/admin.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <link rel="stylesheet" href="/css/nckh.css" />
-</head>
-
-<body>
-  <!-- Phần header -->
-  <%- include('header') %>
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <div class="my-3 box formNckh">
       <h2 class="titleNckh">Đề tài, dự án</h2>
@@ -23,12 +31,22 @@
       <div class="tabs">
         <ul class="tabs-nav">
           <li class="tab-item">
-            <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">Nhập
+            <a
+              href="#formTab"
+              class="tab-link"
+              id="tab-form"
+              onclick="toggleTabs(event, 'formTab', 'tab-form')"
+              >Nhập
             </a>
           </li>
           <li class="tab-item">
-            <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">Xem số
-              giờ quy đổi</a>
+            <a
+              href="#viewTab"
+              class="tab-link"
+              id="tab-view"
+              onclick="toggleTabs(event, 'viewTab', 'tab-view')"
+              >Xem số giờ quy đổi</a
+            >
           </li>
         </ul>
       </div>
@@ -58,18 +76,30 @@
           <!-- Tên đề tài -->
           <div class="form-group">
             <label for="tenDeTai">Tên đề tài, dự án</label>
-            <input type="text" id="tenDeTai" name="tenDeTai" placeholder="Nhập tên đề tài" required />
+            <input
+              type="text"
+              id="tenDeTai"
+              name="tenDeTai"
+              placeholder="Nhập tên đề tài"
+              required
+            />
           </div>
 
           <!-- Mã đề tài -->
           <div class="form-group flex-container">
             <div class="flex-item">
               <label for="maDeTai">Mã số đề tài, dự án</label>
-              <input type="text" id="maDeTai" name="maDeTai" placeholder="VD: 06/2022/CB" required />
+              <input
+                type="text"
+                id="maDeTai"
+                name="maDeTai"
+                placeholder="VD: 06/2022/CB"
+                required
+              />
             </div>
             <div class="flex-item">
               <label for="ketQua">Kết quả</label>
-              <select id="ketQua" style="width: 100% !important;" required>
+              <select id="ketQua" style="width: 100% !important" required>
                 <option value="Đạt">Đạt</option>
                 <option value="Giỏi">Giỏi</option>
                 <option value="Xuất sắc">Xuất sắc</option>
@@ -77,7 +107,12 @@
             </div>
             <div class="flex-item">
               <label for="ngayNghiemThu">Ngày nghiệm thu</label>
-              <input type="date" id="ngayNghiemThu" name="ngayNghiemThu" required />
+              <input
+                type="date"
+                id="ngayNghiemThu"
+                name="ngayNghiemThu"
+                required
+              />
             </div>
           </div>
 
@@ -86,16 +121,38 @@
             <div class="flex-item">
               <label for="chuNhiem">
                 Chủ nhiệm
-                <input type="checkbox" id="chuNhiemCheckbox" name="chuNhiemCheckbox" />
-                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
+                <input
+                  type="checkbox"
+                  id="chuNhiemCheckbox"
+                  name="chuNhiemCheckbox"
+                />
+                <span class="faded-text"
+                  >(Check nếu là giảng viên ngoài viện và điền đơn vị công
+                  tác)</span
+                >
               </label>
-              <div id="chuNhiem-suggestions" class="suggestions-container"></div>
-              <input type="text" id="chuNhiem" name="chuNhiem" placeholder="Nhập tên chủ nhiệm" required />
+              <div
+                id="chuNhiem-suggestions"
+                class="suggestions-container"
+              ></div>
+              <input
+                type="text"
+                id="chuNhiem"
+                name="chuNhiem"
+                placeholder="Nhập tên chủ nhiệm"
+                required
+              />
             </div>
             <div class="flex-item combo-box-wrapper">
               <label for="chuNhiemComboBox">Đơn vị</label>
-              <input type="text" id="chuNhiemComboBox" name="chuNhiemComboBox" class="combo-box"
-                placeholder="Nhập đơn vị" required />
+              <input
+                type="text"
+                id="chuNhiemComboBox"
+                name="chuNhiemComboBox"
+                class="combo-box"
+                placeholder="Nhập đơn vị"
+                required
+              />
             </div>
           </div>
 
@@ -104,15 +161,31 @@
             <div class="flex-item">
               <label for="thuKy">
                 Thư ký
-                <input type="checkbox" id="thuKyCheckbox" name="thuKyCheckbox" />
+                <input
+                  type="checkbox"
+                  id="thuKyCheckbox"
+                  name="thuKyCheckbox"
+                />
               </label>
               <div id="thuKy-suggestions" class="suggestions-container"></div>
-              <input type="text" id="thuKy" name="thuKy" placeholder="Nhập tên thư ký" required />
+              <input
+                type="text"
+                id="thuKy"
+                name="thuKy"
+                placeholder="Nhập tên thư ký"
+                required
+              />
             </div>
             <div class="flex-item combo-box-wrapper">
               <label for="thuKyComboBox">Đơn vị</label>
-              <input type="text" id="thuKyComboBox" name="thuKyComboBox" class="combo-box" placeholder="Nhập đơn vị"
-                required />
+              <input
+                type="text"
+                id="thuKyComboBox"
+                name="thuKyComboBox"
+                class="combo-box"
+                placeholder="Nhập đơn vị"
+                required
+              />
             </div>
           </div>
 
@@ -121,20 +194,42 @@
             <div class="flex-item">
               <label for="thanhVien">
                 Thành viên
-                <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox" />
+                <input
+                  type="checkbox"
+                  id="thanhVienCheckbox"
+                  name="thanhVienCheckbox"
+                />
               </label>
-              <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div>
-              <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field"
-                required />
+              <div
+                id="themThanhVien-suggestions"
+                class="suggestions-container-dstv"
+              ></div>
+              <input
+                type="text"
+                id="thanhVien"
+                name="thanhVien"
+                placeholder="Nhập tên thành viên"
+                class="input-field"
+                required
+              />
             </div>
             <div class="flex-item combo-box-wrapper">
               <label for="thanhVienComboBox">Đơn vị</label>
-              <input type="text" id="thanhVienComboBox" name="thanhVienComboBox" class="combo-box"
-                placeholder="Nhập đơn vị" required />
+              <input
+                type="text"
+                id="thanhVienComboBox"
+                name="thanhVienComboBox"
+                class="combo-box"
+                placeholder="Nhập đơn vị"
+                required
+              />
             </div>
           </div>
 
-          <div id="memberListDisplay" class="member-list-display form-group"></div>
+          <div
+            id="memberListDisplay"
+            class="member-list-display form-group"
+          ></div>
 
           <button type="button" class="btn" id="submitBtn">Gửi</button>
         </form>
@@ -155,7 +250,9 @@
             </select>
           </div> -->
           <div class="flex-item-view">
-            <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
+            <button onclick="" class="btn text-nowrap" id="render">
+              Hiển thị
+            </button>
           </div>
         </div>
 
@@ -165,7 +262,10 @@
       </div>
     </div>
     <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
@@ -174,12 +274,18 @@
 
     <!-- Link thư viện tabulator -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
     <!-- fix ngày -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"
+    />
     <!-- Flatpickr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <!-- nckh view -->
@@ -187,220 +293,240 @@
       var table;
       var year;
 
-      document.getElementById("render").addEventListener("click", async function () {
-        year = document.getElementById("namHocXem").value;
-        // const department = document.getElementById("MaPhongBanView").value;
-        let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
-          department = "ALL";
-        } else {
-          department = localStorage.getItem("MaPhongBan");
-        };
-        const url = `/tabledetaiduan/${year}/${department}`;
-
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-
-          // Lấy thông tin từ localStorage
-          const userRole = localStorage.getItem("userRole");
-          const userPhongBan = localStorage.getItem("MaPhongBan");
-
-          let columns;
-
-          // Nếu tài khoản là "GV" hoặc "Thường", tất cả các cột chỉ ở chế độ xem (editor: "false")
-          if (userRole === "GV" || userRole === "Thường") {
-            columns = [
-              {
-                title: "Cấp Đề Tài",
-                field: "CapDeTai",
-                editor: "false",
-                width: "10%"
-              },
-              {
-                title: "Tên Đề Tài",
-                field: "TenDeTai",
-                editor: "false",
-              },
-              {
-                title: "Mã Số Đề Tài",
-                field: "MaSoDeTai",
-                editor: "false",
-                width: "7%"
-              },
-              {
-                title: "Chủ Nhiệm",
-                field: "ChuNhiem",
-                editor: "false",
-                width: "10%"
-              },
-              {
-                title: "Thư Ký",
-                field: "ThuKy",
-                editor: "false",
-                width: "10%"
-              },
-              {
-                title: "Danh Sách Thành Viên",
-                field: "DanhSachThanhVien",
-                editor: "false",
-              },
-              {
-                title: "Ngày Nghiệm Thu",
-                field: "NgayNghiemThu",
-                editor: "false",
-                formatter: "datetime",
-                formatterParams: {
-                  inputFormat: "iso",
-                  outputFormat: "dd/MM/yyyy"
-                },
-                width: "7%"
-              },
-              {
-                title: "KQ",
-                field: "KetQua",
-                editor: "false",
-                width: "7%"
-              },
-            ];
+      document
+        .getElementById("render")
+        .addEventListener("click", async function () {
+          year = document.getElementById("namHocXem").value;
+          // const department = document.getElementById("MaPhongBanView").value;
+          let department;
+          if (
+            localStorage.getItem("MaPhongBan") == "DAOTAO" ||
+            localStorage.getItem("MaPhongBan") == "NC&HTPT"
+          ) {
+            department = "ALL";
           } else {
-            // Nếu tài khoản có quyền chỉnh sửa
-            columns = [
-              {
-                title: "Cấp Đề Tài",
-                field: "CapDeTai",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "10%"
-              },
-              {
-                title: "Tên Đề Tài",
-                field: "TenDeTai",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              },
-              {
-                title: "Mã Số Đề Tài",
-                field: "MaSoDeTai",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "7%"
-              },
-              {
-                title: "Chủ Nhiệm",
-                field: "ChuNhiem",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "10%"
-              },
-              {
-                title: "Thư Ký",
-                field: "ThuKy",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "10%"
-              },
-              {
-                title: "Danh Sách Thành Viên",
-                field: "DanhSachThanhVien",
-                editor: "input",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              },
-              {
-                title: "Ngày Nghiệm Thu",
-                field: "NgayNghiemThu",
-                editor: customDateEditor,
-                formatter: "datetime",
-                formatterParams: {
-                  inputFormat: "iso",
-                  outputFormat: "MM/dd/yyyy"
+            department = localStorage.getItem("MaPhongBan");
+          }
+          const url = `/tabledetaiduan/${year}/${department}`;
+
+          try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Lấy thông tin từ localStorage
+            const userRole = localStorage.getItem("userRole");
+            const userPhongBan = localStorage.getItem("MaPhongBan");
+
+            let columns;
+
+            // Nếu tài khoản là "GV" hoặc "Thường", tất cả các cột chỉ ở chế độ xem (editor: "false")
+            if (userRole === "GV" || userRole === "Thường") {
+              columns = [
+                {
+                  title: "Cấp Đề Tài",
+                  field: "CapDeTai",
+                  editor: "false",
+                  width: "10%",
                 },
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "7%"
-              },
-              {
-                title: "KQ",
-                field: "KetQua",
-                editor: "input",
+                {
+                  title: "Tên Đề Tài",
+                  field: "TenDeTai",
+                  editor: "false",
+                },
+                {
+                  title: "Mã Số Đề Tài",
+                  field: "MaSoDeTai",
+                  editor: "false",
+                  width: "7%",
+                },
+                {
+                  title: "Chủ Nhiệm",
+                  field: "ChuNhiem",
+                  editor: "false",
+                  width: "10%",
+                },
+                {
+                  title: "Thư Ký",
+                  field: "ThuKy",
+                  editor: "false",
+                  width: "10%",
+                },
+                {
+                  title: "Danh Sách Thành Viên",
+                  field: "DanhSachThanhVien",
+                  editor: "false",
+                },
+                {
+                  title: "Ngày Nghiệm Thu",
+                  field: "NgayNghiemThu",
+                  editor: "false",
+                  formatter: "datetime",
+                  formatterParams: {
+                    inputFormat: "iso",
+                    outputFormat: "dd/MM/yyyy",
+                  },
+                  width: "7%",
+                },
+                {
+                  title: "KQ",
+                  field: "KetQua",
+                  editor: "false",
+                  width: "7%",
+                },
+              ];
+            } else {
+              // Nếu tài khoản có quyền chỉnh sửa
+              columns = [
+                {
+                  title: "Cấp Đề Tài",
+                  field: "CapDeTai",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Tên Đề Tài",
+                  field: "TenDeTai",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                },
+                {
+                  title: "Mã Số Đề Tài",
+                  field: "MaSoDeTai",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "7%",
+                },
+                {
+                  title: "Chủ Nhiệm",
+                  field: "ChuNhiem",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Thư Ký",
+                  field: "ThuKy",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Danh Sách Thành Viên",
+                  field: "DanhSachThanhVien",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                },
+                {
+                  title: "Ngày Nghiệm Thu",
+                  field: "NgayNghiemThu",
+                  editor: customDateEditor,
+                  formatter: "datetime",
+                  formatterParams: {
+                    inputFormat: "iso",
+                    outputFormat: "MM/dd/yyyy",
+                  },
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "7%",
+                },
+                {
+                  title: "KQ",
+                  field: "KetQua",
+                  editor: "input",
+                  width: "7%",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                },
+              ];
+            }
+
+            // Nếu department == "ALL" thì thêm cột "Khoa"
+            if (department == "ALL") {
+              columns.push({
+                title: "Khoa",
+                field: "Khoa",
+                editor:
+                  userRole === "GV" || userRole === "Thường"
+                    ? "false"
+                    : "input",
+                editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%",
+              });
+            }
+
+            // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
+            if (
+              (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") ||
+              userRole === "GV_CNBM" ||
+              userRole === "Lãnh đạo khoa"
+            ) {
+              columns.push({
+                title: "Xóa",
+                field: "actions",
+                formatter: actionFormatter,
+                hozAlign: "center",
+                headerSort: false,
+                width: "5%",
+              });
+            }
+
+            // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
+            if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") {
+              columns.push({
+                title: "Duyệt",
+                field: "DaoTaoDuyet",
+                // formatter: checkboxFormatter,
+                formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
+                editor: "tickCross",
+                cellClick: function (e, cell) {
+                  // Cho phép chỉnh sửa nếu dòng chưa được duyệt
+                  cell.edit();
+                },
                 width: "7%",
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              },
-            ];
-          }
-
-          // Nếu department == "ALL" thì thêm cột "Khoa"
-          if (department == "ALL") {
-            columns.push({
-              title: "Khoa",
-              field: "Khoa",
-              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              width: "10%"
-            });
-          }
-
-          // Cột Hành Động: chỉ hiển thị nếu tài khoản có quyền xóa (ví dụ: Duyệt, GV_CNBM, Lãnh đạo khoa)
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
-            columns.push({
-              title: "Xóa",
-              field: "actions",
-              formatter: actionFormatter,
-              hozAlign: "center",
-              headerSort: false,
-              width: "5%"
-            });
-          }
-
-          // Nếu tài khoản có quyền Duyệt, thêm cột Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
-            columns.push({
-              title: "Duyệt",
-              field: "DaoTaoDuyet",
-              // formatter: checkboxFormatter,
-              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
-              editor: "tickCross",
-              cellClick: function (e, cell) {
-                // Cho phép chỉnh sửa nếu dòng chưa được duyệt
-                cell.edit();
-              },
-              width: "7%"
-            });
-          }
-
-
-          table = new Tabulator("#table-container", {
-            data: data,
-            dependencies: { luxon: luxon.DateTime },
-            index: "ID",
-            layout: "fitColumns",
-            columns: columns
-          });
-
-          table.on("cellEdited", async function (cell) {
-            const field = cell.getField();
-            const row = cell.getRow();
-            let updatedData = row.getData();
-            console.log(row.getData())
-            if (field === "NgayNghiemThu" && updatedData.NgayNghiemThu) {
-              const isoDate = convertDMYtoISO(updatedData.NgayNghiemThu);
-              if (isoDate) updatedData.NgayNghiemThu = isoDate;
+              });
             }
-            if (field === "DaoTaoDuyet") {
-              // Nếu check box được chọn, chuyển thành 1 để gửi lên sv
-              updatedData.DaoTaoDuyet = updatedData.DaoTaoDuyet == false ? 1 : 0;
-            }
-            updatedData.namHoc = year;
-            await saveData(updatedData.ID, updatedData, row);
-          });
-        } catch (error) {
-          console.error("Lỗi khi lấy dữ liệu:", error);
-        }
-      });
+
+            table = new Tabulator("#table-container", {
+              data: data,
+              dependencies: { luxon: luxon.DateTime },
+              index: "ID",
+              layout: "fitColumns",
+              columns: columns,
+            });
+
+            table.on("cellEdited", async function (cell) {
+              const field = cell.getField();
+              const row = cell.getRow();
+              let updatedData = row.getData();
+              console.log(row.getData());
+              if (field === "NgayNghiemThu" && updatedData.NgayNghiemThu) {
+                const isoDate = convertDMYtoISO(updatedData.NgayNghiemThu);
+                if (isoDate) updatedData.NgayNghiemThu = isoDate;
+              }
+              if (field === "DaoTaoDuyet") {
+                // Nếu check box được chọn, chuyển thành 1 để gửi lên sv
+                updatedData.DaoTaoDuyet =
+                  updatedData.DaoTaoDuyet == false ? 1 : 0;
+              }
+              updatedData.namHoc = year;
+              await saveData(updatedData.ID, updatedData, row);
+            });
+          } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu:", error);
+          }
+        });
 
       // Hàm tạo custom editor cho Tabulator
-      function customDateEditor(cell, onRendered, success, cancel, editorParams) {
+      function customDateEditor(
+        cell,
+        onRendered,
+        success,
+        cancel,
+        editorParams
+      ) {
         var cellValue = cell.getValue();
-        var formattedValue = cellValue ? moment(cellValue).format("MM/DD/YYYY") : "";
+        var formattedValue = cellValue
+          ? moment(cellValue).format("MM/DD/YYYY")
+          : "";
 
         var input = document.createElement("input");
         input.setAttribute("type", "text");
@@ -413,16 +539,20 @@
         onRendered(function () {
           input.focus();
           flatpickr(input, {
-            dateFormat: "m/d/Y",  // Định dạng mm/dd/yyyy
+            dateFormat: "m/d/Y", // Định dạng mm/dd/yyyy
             defaultDate: formattedValue,
-            allowInput: true,      // ✅ Cho phép nhập tay từ bàn phím
-            clickOpens: true,      // Mở lịch khi click vào input
+            allowInput: true, // ✅ Cho phép nhập tay từ bàn phím
+            clickOpens: true, // Mở lịch khi click vào input
             onChange: function (selectedDates, dateStr) {
-              success(selectedDates.length ? moment(selectedDates[0]).toISOString() : "");
+              success(
+                selectedDates.length
+                  ? moment(selectedDates[0]).toISOString()
+                  : ""
+              );
             },
             onClose: function (selectedDates, dateStr) {
               if (!selectedDates.length) cancel();
-            }
+            },
           });
         });
 
@@ -433,7 +563,7 @@
       function checkboxFormatter(cell, formatterParams, onRendered) {
         let value = cell.getValue();
         // Chuyển đổi giá trị: nếu là 1 hoặc true thì đánh dấu checked
-        let checked = (value == 1 || value == true) ? "checked" : "";
+        let checked = value == 1 || value == true ? "checked" : "";
         return `<input type="checkbox" ${checked}/>`;
       }
 
@@ -445,43 +575,45 @@
         }
         const id = rowData.ID;
         const button = document.createElement("button");
-        button.innerHTML = "<i class=\"fas fa-trash-alt\"></i>";
+        button.innerHTML = '<i class="fas fa-trash-alt"></i>';
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
+        button.addEventListener("click", () =>
+          deleteRow(id, cell.getRow(), year)
+        );
         return button;
       }
 
       async function saveData(id, updatedData, row) {
-        const MaBang = 'detaiduan';
+        const MaBang = "detaiduan";
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedData)
+            body: JSON.stringify(updatedData),
           });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
             document.getElementById("render").click(); // Hiển thị lại bảng
           } else {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'error',
-              title: 'Thất bại',
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
           }
         } catch (error) {
@@ -491,30 +623,32 @@
 
       async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/${year}/detaiduan`, { method: "POST" });
+          const response = await fetch(`/nckh/delete/${id}/${year}/detaiduan`, {
+            method: "POST",
+          });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
             row.delete();
           } else {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'error',
-              title: 'Thất bại',
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
           }
         } catch (error) {
@@ -797,11 +931,11 @@
             thanhVien: Array.from(
               document.querySelectorAll("#memberListDisplay span")
             ).map((member) => member.textContent),
-            ketQua: document.getElementById("ketQua").value
+            ketQua: document.getElementById("ketQua").value,
           };
 
           // Phần quyền nhập
-          if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
+          if (role == "GV" || role == "Thường" || MaPhongBan == "VP") {
             alert("Bạn không có quyền truy cấp chức năng này");
             return;
           }
@@ -820,12 +954,10 @@
             }
           }
 
-
           if (missing > 0) {
             alert("Vui lòng nhập đủ thông tin");
             return;
           }
-
 
           // Gửi dữ liệu lên server
           fetch("/detaiduan", {
@@ -844,12 +976,12 @@
             .then((data) => {
               if (data.success) {
                 Swal.fire({
-                  title: 'Thông báo',
+                  title: "Thông báo",
                   html: `${data.message}`,
-                  icon: 'success',
-                  confirmButtonText: 'OK',
-                  width: 'auto',
-                  padding: '20px',
+                  icon: "success",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
                   timer: 3000, // Tự động đóng sau 3 giây
                   timerProgressBar: true, // Hiển thị thanh đếm thời gian
                   didClose: () => {
@@ -857,8 +989,8 @@
                     document.getElementById("memberListDisplay").innerHTML = "";
                     members = [];
                     location.reload();
-                  }
-                })
+                  },
+                });
               }
             })
             .catch((error) => {
@@ -954,13 +1086,12 @@
           selectElement.innerHTML = "";
 
           // Thêm option mới từ dữ liệu API
-          data.forEach(item => {
+          data.forEach((item) => {
             const option = document.createElement("option");
             option.value = item.CapDeTaiDuAn; // Giá trị option
             option.textContent = item.CapDeTaiDuAn; // Nội dung hiển thị
             selectElement.appendChild(option);
           });
-
         } catch (error) {
           console.error("Lỗi khi gọi API:", error);
         }
@@ -973,7 +1104,5 @@
     <script src="/js/nckh/href.js"></script>
     <!-- srcipt năm học, khoa -->
     <script src="/js/nckh/getdata.js"></script>
-
-</body>
-
+  </body>
 </html>

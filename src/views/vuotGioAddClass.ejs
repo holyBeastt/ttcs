@@ -1,230 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/css/forminput.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/table.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
-  <style>
-    input,
-    select {
-      color: #2c9caf !important;
-    }
-
-    .formcreate {
-      display: flex;
-      overflow-y: auto;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 350px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 20px;
-      position: relative;
-    }
-
-    .title {
-      font-size: 28px;
-      color: royalblue;
-      font-weight: 600;
-      letter-spacing: -1px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding-left: 30px;
-    }
-
-    .title::before,
-    .title::after {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      border-radius: 50%;
-      left: 0px;
-      background-color: royalblue;
-    }
-
-    .title::before {
-      width: 18px;
-      height: 18px;
-      background-color: royalblue;
-    }
-
-    .title::after {
-      width: 18px;
-      height: 18px;
-      animation: pulse 1s linear infinite;
-    }
-
-    .message,
-    .signin {
-      color: rgba(88, 87, 87, 0.822);
-      font-size: 14px;
-    }
-
-    .signin {
-      text-align: center;
-    }
-
-    .signin a {
-      color: royalblue;
-    }
-
-    .signin a:hover {
-      text-decoration: underline royalblue;
-    }
-
-    .flex {
-      display: flex;
-      width: 100%;
-      gap: 6px;
-    }
-
-    .formcreate label {
-      position: relative;
-    }
-
-    .formcreate label .input {
-      width: 100%;
-      padding: 10px 10px 20px 10px;
-      outline: 0;
-      border: 1px solid rgba(105, 105, 105, 0.397);
-      border-radius: 10px;
-    }
-
-    .formcreate label .input+span {
-      position: absolute;
-      left: 10px;
-      top: 15px;
-      color: grey;
-      font-size: 0.9em;
-      cursor: text;
-      transition: 0.3s ease;
-    }
-
-    .formcreate label .input:placeholder-shown+span {
-      top: 15px;
-      font-size: 0.9em;
-    }
-
-    .formcreate label .input:focus+span,
-    .formcreate label .input:valid+span {
-      top: 30px;
-      font-size: 0.7em;
-      font-weight: 600;
-    }
-
-    .formcreate label .input:valid+span {
-      color: green;
-    }
-
-    .submit {
-      border: none;
-      outline: none;
-      background-color: royalblue;
-      padding: 10px;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 16px;
-      transform: 0.3s ease;
-    }
-
-    .submit:hover {
-      background-color: rgb(56, 90, 194);
-    }
-
-    @keyframes pulse {
-      from {
-        transform: scale(0.9);
-        opacity: 1;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/forminput.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <link rel="stylesheet" href="public/css/styles.css"> -->
+    <style>
+      input,
+      select {
+        color: #2c9caf !important;
       }
 
-      to {
-        transform: scale(1.8);
-        opacity: 0;
+      .formcreate {
+        display: flex;
+        overflow-y: auto;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 350px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 20px;
+        position: relative;
       }
-    }
 
-    #formcreate {
-      display: none;
-      /* Ẩn form ban đầu */
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 10px;
-      /* Góc tròn */
-      padding: 20px;
-      background-color: white;
-      z-index: 2000;
-      width: max-content;
-      box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
-      /* Tăng bóng đổ */
-      font-family: Arial, sans-serif;
-    }
+      .title {
+        font-size: 28px;
+        color: royalblue;
+        font-weight: 600;
+        letter-spacing: -1px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding-left: 30px;
+      }
 
-    /* phần css cho label tổng số tiết ki*/
-    .total-label {
-      margin-left: auto;
-      /* Căn phải cho thẻ total-label */
-      margin-right: 0;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      background-color: #f4f4f4;
-      padding: 10px;
-      border-radius: 8px;
-      width: fit-content;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      display: block;
-      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
-    }
+      .title::before,
+      .title::after {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        left: 0px;
+        background-color: royalblue;
+      }
 
-    .total-label label {
-      font-weight: bold;
-      /* Giữ chữ in đậm */
-      color: #000;
-      /* Màu chữ đen */
-      margin-right: 8px;
-      /* Thêm khoảng cách bên phải */
-      cursor: pointer;
-      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
-      padding: 5px 10px;
-      /* Thêm padding cho label để tạo không gian */
-      border: 1px solid #ccc;
-      /* Khung cho label */
-      border-radius: 4px;
-      /* Bo góc cho khung */
-    }
+      .title::before {
+        width: 18px;
+        height: 18px;
+        background-color: royalblue;
+      }
 
-    .total-label label,
-    .total-label label span {
-      background-color: #007bff;
-      /* Màu nền khi hover */
-      color: #fff;
-      /* Màu chữ trắng khi hover */
-    }
+      .title::after {
+        width: 18px;
+        height: 18px;
+        animation: pulse 1s linear infinite;
+      }
 
-    .total-label span {
-      font-weight: bold;
-      /* Giữ chữ trong span cũng in đậm */
-      color: #333;
-      /* Màu chữ đậm cho giá trị */
-    }
-  </style>
-</head>
+      .message,
+      .signin {
+        color: rgba(88, 87, 87, 0.822);
+        font-size: 14px;
+      }
 
-<body>
-  <!-- Phần header -->
-  <%- include('header') %>
+      .signin {
+        text-align: center;
+      }
+
+      .signin a {
+        color: royalblue;
+      }
+
+      .signin a:hover {
+        text-decoration: underline royalblue;
+      }
+
+      .flex {
+        display: flex;
+        width: 100%;
+        gap: 6px;
+      }
+
+      .formcreate label {
+        position: relative;
+      }
+
+      .formcreate label .input {
+        width: 100%;
+        padding: 10px 10px 20px 10px;
+        outline: 0;
+        border: 1px solid rgba(105, 105, 105, 0.397);
+        border-radius: 10px;
+      }
+
+      .formcreate label .input + span {
+        position: absolute;
+        left: 10px;
+        top: 15px;
+        color: grey;
+        font-size: 0.9em;
+        cursor: text;
+        transition: 0.3s ease;
+      }
+
+      .formcreate label .input:placeholder-shown + span {
+        top: 15px;
+        font-size: 0.9em;
+      }
+
+      .formcreate label .input:focus + span,
+      .formcreate label .input:valid + span {
+        top: 30px;
+        font-size: 0.7em;
+        font-weight: 600;
+      }
+
+      .formcreate label .input:valid + span {
+        color: green;
+      }
+
+      .submit {
+        border: none;
+        outline: none;
+        background-color: royalblue;
+        padding: 10px;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 16px;
+        transform: 0.3s ease;
+      }
+
+      .submit:hover {
+        background-color: rgb(56, 90, 194);
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(0.9);
+          opacity: 1;
+        }
+
+        to {
+          transform: scale(1.8);
+          opacity: 0;
+        }
+      }
+
+      #formcreate {
+        display: none;
+        /* Ẩn form ban đầu */
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 10px;
+        /* Góc tròn */
+        padding: 20px;
+        background-color: white;
+        z-index: 2000;
+        width: max-content;
+        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.2);
+        /* Tăng bóng đổ */
+        font-family: Arial, sans-serif;
+      }
+
+      /* phần css cho label tổng số tiết ki*/
+      .total-label {
+        margin-left: auto;
+        /* Căn phải cho thẻ total-label */
+        margin-right: 0;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 8px;
+        width: fit-content;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: block;
+        /* Đảm bảo thẻ div là khối để căn phải hoạt động */
+      }
+
+      .total-label label {
+        font-weight: bold;
+        /* Giữ chữ in đậm */
+        color: #000;
+        /* Màu chữ đen */
+        margin-right: 8px;
+        /* Thêm khoảng cách bên phải */
+        cursor: pointer;
+        /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
+        padding: 5px 10px;
+        /* Thêm padding cho label để tạo không gian */
+        border: 1px solid #ccc;
+        /* Khung cho label */
+        border-radius: 4px;
+        /* Bo góc cho khung */
+      }
+
+      .total-label label,
+      .total-label label span {
+        background-color: #007bff;
+        /* Màu nền khi hover */
+        color: #fff;
+        /* Màu chữ trắng khi hover */
+      }
+
+      .total-label span {
+        font-weight: bold;
+        /* Giữ chữ trong span cũng in đậm */
+        color: #333;
+        /* Màu chữ đậm cho giá trị */
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <!-- Phần nội dung -->
     <div>
@@ -240,10 +248,19 @@
                 <option value="">Năm học</option>
               </select>
 
-              <button id="infoGvm" class="btn text-nowrap mx-2" style="height: 45px">
+              <button
+                id="infoGvm"
+                class="btn text-nowrap mx-2"
+                style="height: 45px"
+              >
                 Hiển thị
               </button>
-              <button onclick="submitData()" class="btn mx-2" id="update-qc" style="height: 45px">
+              <button
+                onclick="submitData()"
+                class="btn mx-2"
+                id="update-qc"
+                style="height: 45px"
+              >
                 Cập nhật
               </button>
               <button class="btn" id="createclass" style="height: 45px">
@@ -257,11 +274,21 @@
               <p class="message">Nhập đầy đủ các thông tin bên dưới.</p>
               <input type="text" id="GiangVien" name="GiangVien" hidden />
               <label>
-                <input class="input" type="text" name="TenHocPhan" id="TenHocPhan" required />
+                <input
+                  class="input"
+                  type="text"
+                  name="TenHocPhan"
+                  id="TenHocPhan"
+                  required
+                />
                 <span>Tên học phần</span>
               </label>
               <label>
-                <select class="input" name="HinhThucKTGiuaKy" id="HinhThucKTGiuaKy">
+                <select
+                  class="input"
+                  name="HinhThucKTGiuaKy"
+                  id="HinhThucKTGiuaKy"
+                >
                   <option value="none">None</option>
                   <option value="Coi, chấm TN">
                     Coi, chấm trắc nghiệm trên giấy
@@ -285,32 +312,67 @@
 
               <div class="flex">
                 <label>
-                  <input type="text" class="input" name="Lop" id="Lop" required />
+                  <input
+                    type="text"
+                    class="input"
+                    name="Lop"
+                    id="Lop"
+                    required
+                  />
                   <span>Mã lớp</span>
                 </label>
                 <label>
-                  <input type="text" class="input" name="SoTC" id="SoTC" required />
+                  <input
+                    type="text"
+                    class="input"
+                    name="SoTC"
+                    id="SoTC"
+                    required
+                  />
                   <span>Số tín chỉ</span>
                 </label>
               </div>
 
               <div class="flex">
                 <label>
-                  <input type="text" class="input" name="LenLop" id="LenLop" required />
+                  <input
+                    type="text"
+                    class="input"
+                    name="LenLop"
+                    id="LenLop"
+                    required
+                  />
                   <span>Số tiết TKB</span>
                 </label>
                 <label>
-                  <input type="text" class="input" name="QuyChuan" id="QuyChuan" required />
+                  <input
+                    type="text"
+                    class="input"
+                    name="QuyChuan"
+                    id="QuyChuan"
+                    required
+                  />
                   <span>Số tiết QC</span>
                 </label>
               </div>
               <div class="flex">
                 <label style="width: 50%">
-                  <input type="text" class="input" name="SoSV" id="SoSV" required />
+                  <input
+                    type="text"
+                    class="input"
+                    name="SoSV"
+                    id="SoSV"
+                    required
+                  />
                   <span>Số SV</span>
                 </label>
                 <label style="width: 50%">
-                  <select class="input" name="HeSoT7CN" id="HeSoT7CN" style="height: 57px">
+                  <select
+                    class="input"
+                    name="HeSoT7CN"
+                    id="HeSoT7CN"
+                    style="height: 57px"
+                  >
                     <option value="1.0">1.0</option>
                     <option value="1.5">1.5</option>
                     <option value="2.0">2.0</option>
@@ -358,8 +420,12 @@
                   <th style="width: 50px">Số tiết KT</th>
                   <th style="width: 50px">Ghi chú</th>
                   <th style="width: 80px" id="select">
-                    <label class="form-check-label" for="checkAllSelect" style="margin-left: 0px; margin-right: 0px">Xoá
-                      lớp</label>
+                    <label
+                      class="form-check-label"
+                      for="checkAllSelect"
+                      style="margin-left: 0px; margin-right: 0px"
+                      >Xoá lớp</label
+                    >
                   </th>
                 </tr>
               </thead>
@@ -371,10 +437,15 @@
           <!-- Label tổng số tiết tách riêng với bảng -->
           <div class="total-label d-flex">
             <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-            <label class="flex"><span class="align-content-around text-nowrap">Tổng số tiết Quy Chuẩn: </span><span
-                class="value" id="totalSoTietQC">0</span></label>
-            <label class="flex"><span class="align-content-around">Tổng số tiết Kiểm Tra: </span><span class="value"
-                id="totalSoTietKT">0</span></label>
+            <label class="flex"
+              ><span class="align-content-around text-nowrap"
+                >Tổng số tiết Quy Chuẩn: </span
+              ><span class="value" id="totalSoTietQC">0</span></label
+            >
+            <label class="flex"
+              ><span class="align-content-around">Tổng số tiết Kiểm Tra: </span
+              ><span class="value" id="totalSoTietKT">0</span></label
+            >
           </div>
         </div>
       </div>
@@ -684,7 +755,7 @@
           maLopInput.id = `maLopInput_${index}`;
           tableRow.appendChild(maLopTd);
 
-          //Hệ đào tạo 
+          //Hệ đào tạo
           const he_dao_taoTd = document.createElement("td");
           he_dao_taoTd.textContent = row.he_dao_tao;
           tableRow.appendChild(he_dao_taoTd);
@@ -879,7 +950,6 @@
 
           deleteButtonTd.appendChild(deleteButton);
           tableRow.appendChild(deleteButtonTd);
-
 
           if (row.KhoaDuyet) {
             tenHocPhanInput.disabled = true;
@@ -1243,13 +1313,11 @@
       const updateBtn = document.getElementById("update-qc");
       // const deleteClass = document.getElementById("select");
 
-
-      if (MaPhongBan == "TAICHINH") {
+      if (MaPhongBan == "VP") {
         addClassBtn.style.display = "none";
         updateBtn.style.display = "none";
         // deleteClass.style.display = "none";
       }
     </script>
-</body>
-
+  </body>
 </html>
