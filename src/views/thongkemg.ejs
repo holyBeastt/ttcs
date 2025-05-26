@@ -180,6 +180,10 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .btn.active {
+        background: #1976d2;
+        color: #fff;
+        }
     </style>
 </head>
 
@@ -189,23 +193,30 @@
 
   <!-- Phần nội dung -->
 
-    <div class="container-fluid box m-4  ">
-        <div class="mx-5 flex-grow-1">
-            <div class="d-flex justify-content-start align-items-end mb-3">
-
-                <!-- Combo box kì -->
-                <select class="form-select w-100px mx-1 selectop" id="comboboxki">
-                </select>
-
-                <!-- Combo box Năm -->
-                <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;">
-                </select>
-
-                <!-- Combo box Khoa -->
-                <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;">
-                </select>
-
+    <div class="container-fluid box m-4">
+    <div class="mx-5 flex-grow-1">
+        <!-- Nút chuyển đổi -->
+        <div class="d-flex justify-content-start align-items-center mb-3">
+            <div class="btn-group me-3" role="group" aria-label="Toggle statistics">
+                <button id="toggleKhoa" class="btn btn-primary active">
+                    <i class="bi bi-building"></i> Thống kê theo Khoa
+                </button>
+                <button id="toggleHeDaoTao" class="btn btn-outline-primary">
+                    <i class="bi bi-mortarboard"></i> Thống kê theo Hệ đào tạo
+                </button>
             </div>
+        </div>
+        <!-- Bộ lọc -->
+        <div class="d-flex justify-content-start align-items-end mb-3">
+            <!-- Combo box kì -->
+            <select class="form-select w-100px mx-1 selectop" id="comboboxki"></select>
+            <!-- Combo box Năm -->
+            <select class="form-select mx-1 selectop" id="NamHoc" style="width: 160px;"></select>
+            <!-- Combo box Khoa -->
+            <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;"></select>
+            <!-- Combo box Hệ đào tạo (ẩn mặc định) -->
+            <select class="form-select mx-1 selectop" id="HeDaoTao" style="width: fit-content; display: none;"></select>
+        </div>
             <div class="overflow-auto">
                 <table class="table table-bordered">
                     <thead>
@@ -238,6 +249,7 @@
     <h3>Bảng chi tiết số tiết mời giảng</h3>
     <div class="total-label">
         <label>Tổng số tiết của tất cả giảng viên mời: <span class="value" id="total">0</span></label>
+        <label>Tổng số tiền mời giảng: <span class="value" id="totalMoney">0</span></label>
     </div>
     <table class="table table-bordered my-2" border="1" id="thongkemgTable">
         <thead>
@@ -245,7 +257,9 @@
                 <th>STT</th>
                 <th>Họ tên</th>
                 <th>Hệ đào tạo</th>
+                <th>Học vị</th>
                 <th>Tổng số tiết</th>
+                <th>Tổng tiền mời giảng</th>
             </tr>
         </thead>
         <tbody id="tableBody">
@@ -348,20 +362,73 @@
 
         let myChart = null;
 
+        let currentType = "khoa"; // "khoa" hoặc "hedaotao"
+
+        // Hàm lấy danh sách hệ đào tạo
+        function loadHeDaoTaoCombobox(selectedValue = "ALL", callback) {
+            $('#HeDaoTao').empty();
+            $.ajax({
+                url: '/getHeDaoTaoMG',
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        $('#HeDaoTao').append('<option value="ALL">Tất cả hệ</option>');
+                        response.HeDaoTao.forEach(function (item) {
+                            $('#HeDaoTao').append(
+                                `<option value="${item.HeDaoTao}">${item.HeDaoTao}</option>`
+                            );
+                        });
+                        $('#HeDaoTao').val(selectedValue); // Luôn set về ALL nếu truyền vào
+                        if (typeof callback === 'function') callback();
+                    }
+                }
+            });
+        }
+
+        // Sửa lại sự kiện chuyển đổi
+        document.getElementById("toggleKhoa").onclick = function () {
+            currentType = "khoa";
+            this.classList.add("active");
+            document.getElementById("toggleHeDaoTao").classList.remove("active");
+            $('#Khoa').show();
+            $('#HeDaoTao').hide();
+            document.getElementById('totalMoney').parentElement.style.display = 'none'; // Ẩn label tổng tiền khi về chế độ khoa
+            fetchThongkemgData();
+        };
+        document.getElementById("toggleHeDaoTao").onclick = function () {
+            currentType = "hedaotao";
+            this.classList.add("active");
+            document.getElementById("toggleKhoa").classList.remove("active");
+            $('#Khoa').hide();
+            $('#HeDaoTao').show();
+            loadHeDaoTaoCombobox('ALL', function() {
+                document.getElementById('HeDaoTao').value = 'ALL';
+                fetchThongkemgData();
+            });
+        };
+
+        // Sửa fetchThongkemgData để lấy đúng giá trị lọc
         async function fetchThongkemgData() {
             try {
                 const ki = document.getElementById('comboboxki').value;
                 const nam = document.getElementById('NamHoc').value;
-                const khoa = document.getElementById('Khoa').value;
+                let khoa = "";
+                let hedaotao = "";
 
-                console.log('Fetching with params:', { ki, nam, khoa });
+                if (currentType === "khoa") {
+                    khoa = document.getElementById('Khoa').value;
+                } else {
+                    hedaotao = document.getElementById('HeDaoTao').value;
+                }
 
                 let url = '/api/thongkemg-data';
                 const params = new URLSearchParams();
 
                 if (ki) params.append('kihoc', ki);
                 if (nam) params.append('namhoc', nam);
-                if (khoa) params.append('khoa', khoa);
+                if (currentType === "khoa" && khoa) params.append('khoa', khoa);
+                if (currentType === "hedaotao" && hedaotao) params.append('hedaotao', hedaotao);
+                params.append('type', currentType);
 
                 if (params.toString()) {
                     url += '?' + params.toString();
@@ -398,37 +465,66 @@
                     return;
                 }
 
-                // Cập nhật header của bảng dựa vào khoa được chọn
+                // Cập nhật header của bảng dựa vào chế độ thống kê
                 const tableHeader = document.querySelector('#thongkemgTable thead tr');
                 if (tableHeader) {
-                    tableHeader.innerHTML = `
-                        <th>STT</th>
-                        <th>${khoa === 'ALL' ? 'Khoa' : 'Họ tên'}</th>
-                        <th>${khoa === 'ALL' ? 'Tổng số tiết' : 'Hệ đào tạo'}</th>
-                        <th>${khoa === 'ALL' ? 'Số lượng giảng viên' : 'Tổng số tiết'}</th>
-                    `;
+                    if (currentType === "khoa") {
+                        tableHeader.innerHTML = `
+                            <th>STT</th>
+                            <th>${khoa === 'ALL' ? 'Khoa' : 'Họ tên'}</th>
+                            <th>${khoa === 'ALL' ? 'Tổng số tiết' : 'Hệ đào tạo'}</th>
+                            <th>${khoa === 'ALL' ? 'Số lượng giảng viên' : 'Tổng số tiết'}</th>
+                        `;
+                    } else if (currentType === "hedaotao") {
+                        if (hedaotao === 'ALL') {
+                            tableHeader.innerHTML = `
+                                <th>STT</th>
+                                <th>Hệ đào tạo</th>
+                                <th>Tổng số tiết</th>
+                                <th>Tổng tiền mời giảng</th>
+                                <th>Số lượng giảng viên</th>
+                            `;
+                        } else {
+                            tableHeader.innerHTML = `
+                                <th>STT</th>
+                                <th>Họ tên</th>
+                                <th>Hệ đào tạo</th>
+                                <th>Học vị</th>
+                                <th>Tổng số tiết</th>
+                                <th>Tổng tiền mời giảng</th>
+                            `;
+                        }
+                    }
                 }
 
                 // Thêm dữ liệu mới
                 data.forEach((item, index) => {
-                    console.log('Processing row:', item);
                     const row = tableBody.insertRow();
-
-                    // Cột STT
-                    const cellSTT = row.insertCell(0);
-                    cellSTT.textContent = index + 1;
-
-                    // Cột Họ tên/Khoa
-                    const cellName = row.insertCell(1);
-                    cellName.textContent = khoa === 'ALL' ? item.khoa : item.hoten;
-
-                    // Cột Tổng số tiết/Hệ đào tạo
-                    const cellTotal = row.insertCell(2);
-                    cellTotal.textContent = khoa === 'ALL' ? item.tongsotiet : item.hedaotao;
-
-                    // Thêm cột số lượng giảng viên/Tổng số tiết
-                    const cellGV = row.insertCell(3);
-                    cellGV.textContent = khoa === 'ALL' ? item.sogiangvien : item.tongsotiet;
+                    let cellIdx = 0;
+                    // Chế độ theo khoa
+                    if (currentType === "khoa") {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.khoa || "") : (item.hoten || "");
+                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.tongsotiet || "") : (item.hedaotao || "");
+                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.sogiangvien || "") : (item.tongsotiet || "");
+                    } else if (currentType === "hedaotao") {
+                        if (hedaotao === 'ALL') {
+                            row.insertCell(cellIdx++).textContent = index + 1;
+                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
+                            row.insertCell(cellIdx++).textContent = item.tongsotiet || "";
+                            const tongtienCell = row.insertCell(cellIdx++);
+                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
+                            row.insertCell(cellIdx++).textContent = item.sogiangvien || "";
+                        } else {
+                            row.insertCell(cellIdx++).textContent = index + 1;
+                            row.insertCell(cellIdx++).textContent = item.hoten || "";
+                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
+                            row.insertCell(cellIdx++).textContent = item.hocvi || "";
+                            row.insertCell(cellIdx++).textContent = item.tongsotiet || "";
+                            const tongtienCell = row.insertCell(cellIdx++);
+                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
+                        }
+                    }
                 });
 
                 // Cập nhật tổng số tiết
@@ -438,8 +534,20 @@
                     totalElement.textContent = total.toFixed(2);
                 }
 
+                // Thêm tính tổng tiền
+                const totalMoney = data.reduce((sum, item) => sum + parseFloat(item.tongtien || 0), 0);
+                const totalMoneyElement = document.getElementById('totalMoney');
+                if (totalMoneyElement) {
+                    if (currentType === 'hedaotao') {
+                        totalMoneyElement.parentElement.style.display = '';
+                        totalMoneyElement.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalMoney);
+                    } else {
+                        totalMoneyElement.parentElement.style.display = 'none';
+                    }
+                }
+
                 // Sau khi cập nhật bảng, gọi hàm vẽ biểu đồ
-                updateCharts(data, khoa);
+                updateCharts(data, khoa, currentType);
 
             } catch (error) {
                 console.error('Error in fetchThongkemgData:', error);
@@ -457,10 +565,13 @@
         }
 
         // Tách riêng hàm vẽ biểu đồ
-        function updateCharts(data, khoa) {
+        function updateCharts(data, khoa, type) {
             try {
-                if (khoa === 'ALL') {
-                    // Hiển thị 2 biểu đồ tất cả khoa
+                // Lấy giá trị hedaotao hiện tại nếu có
+                const hedaotao = document.getElementById('HeDaoTao') ? document.getElementById('HeDaoTao').value : "";
+
+                // Sửa điều kiện để hiển thị 2 biểu đồ khi khoa==ALL hoặc (type==hedaotao && hedaotao==ALL)
+                if (khoa === 'ALL' || (type === "hedaotao" && hedaotao === "ALL")) {
                     document.getElementById('khoa-chart-container').style.display = 'none';
                     document.getElementById('all-khoa-charts').style.display = 'flex';
 
@@ -480,7 +591,7 @@
                     window.pieChart = new Chart(ctxPie, {
                         type: 'pie',
                         data: {
-                            labels: data.map(item => item.khoa),
+                            labels: data.map(item => type === "hedaotao" ? item.hedaotao : item.khoa),
                             datasets: [{
                                 data: data.map(item => item.tongsotiet),
                                 backgroundColor: [
@@ -527,218 +638,206 @@
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Phân bố số tiết theo khoa',
-                                    font: {size: 20}
+                                    text: type === "hedaotao" ? 'Phân bố số tiết theo hệ đào tạo' : 'Phân bố số tiết theo khoa',
+                                    font: { size: 20 }
                                 }
                             }
-                        }
-                    });
+                        }});
 
-                    // Vẽ biểu đồ cột số giảng viên
-                    const ctxBar = document.getElementById('barChart');
-                    if (!ctxBar) {
-                        console.error('Không tìm thấy element barChart');
-                        return;
-                    }
-                    if (window.barChart instanceof Chart) {
-                        window.barChart.destroy();
-                    }
-                    window.barChart = new Chart(ctxBar, {
-                        type: 'bar',
-                        data: {
-                            labels: data.map(item => item.khoa),
-                            datasets: [{
-                                label: 'Số tiết mời giảng',
-                                data: data.map(item => item.tongsotiet),
-                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 1.5,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Số tiết mời giảng theo khoa',
-                                    font: {size: 20}
-                                }
+                        // Vẽ biểu đồ cột số giảng viên
+                        const ctxBar = document.getElementById('barChart');
+                        if (!ctxBar) {
+                            console.error('Không tìm thấy element barChart');
+                            return;
+                        }
+                        if (window.barChart instanceof Chart) {
+                            window.barChart.destroy();
+                        }
+                        window.barChart = new Chart(ctxBar, {
+                            type: 'bar',
+                            data: {
+                                labels: data.map(item => type === "hedaotao" ? item.hedaotao : item.khoa),
+                                datasets: [{
+                                    label: 'Số tiết mời giảng',
+                                    data: data.map(item => item.tongsotiet),
+                                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                aspectRatio: 1.5,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: type === "hedaotao" ? 'Số tiết mời giảng theo hệ đào tạo' : 'Số tiết mời giảng theo khoa',
+                                        font: { size: 20 }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            stepSize: 1
+                                        }
                                     }
                                 }
-                            }
-                        }
-                    });
-                } else {
-                    // Hiển thị biểu đồ cho một khoa
-                    document.getElementById('khoa-chart-container').style.display = 'block';
-                    document.getElementById('all-khoa-charts').style.display = 'none';
+                            }});
+                        } else {
+                            // Hiển thị biểu đồ cho một khoa
+                            document.getElementById('khoa-chart-container').style.display = 'block';
+                            document.getElementById('all-khoa-charts').style.display = 'none';
 
-                    // Vẽ biểu đồ cột cho khoa được chọn
-                    const ctxKhoa = document.getElementById('khoaChart');
-                    if (!ctxKhoa) {
-                        console.error('Không tìm thấy element khoaChart');
-                        return;
-                    }
-                    if (window.khoaChart instanceof Chart) {
-                        window.khoaChart.destroy();
-                    }
-                    window.khoaChart = new Chart(ctxKhoa, {
-                        type: 'bar',
-                        data: {
-                            labels: data.map(item => item.hoten),
-                            datasets: [{
-                                label: 'Số tiết mời giảng',
-                                data: data.map(item => item.tongsotiet),
-                                backgroundColor: 'blue',
-                                borderColor: 'black',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 2,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Số tiết mời giảng theo giảng viên'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
+                            // Vẽ biểu đồ cột cho khoa được chọn
+                            const ctxKhoa = document.getElementById('khoaChart');
+                            if (!ctxKhoa) {
+                                console.error('Không tìm thấy element khoaChart');
+                                return;
                             }
+                            if (window.khoaChart instanceof Chart) {
+                                window.khoaChart.destroy();
+                            }
+                            window.khoaChart = new Chart(ctxKhoa, {
+                                type: 'bar',
+                                data: {
+                                    labels: data.map(item => item.hoten),
+                                    datasets: [{
+                                        label: 'Số tiết mời giảng',
+                                        data: data.map(item => item.tongsotiet),
+                                        backgroundColor: 'blue',
+                                        borderColor: 'black',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    aspectRatio: 2,
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Số tiết mời giảng theo giảng viên'
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
                         }
-                    });
+                    } catch (error) {
+                        console.error('Error in updateCharts:', error);
+                    }
                 }
-            } catch (error) {
-                console.error('Error in updateCharts:', error);
-            }
-        }
 
-        // Load dữ liệu ban đầu khi trang được tải
-        window.onload = async () => {
-            await fetchThongkemgData();
-        };
+                // Load dữ liệu ban đầu khi trang được tải
+                window.onload = async () => {
+                    await fetchThongkemgData();
+                };
 
-        // Thêm event listeners
-        document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
-        document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
-        document.getElementById('Khoa').addEventListener('change', fetchThongkemgData);
-    </script>
+                // Thêm event listeners
+                document.getElementById('comboboxki').addEventListener('change', fetchThongkemgData);
+                document.getElementById('NamHoc').addEventListener('change', fetchThongkemgData);
+                document.getElementById('Khoa').addEventListener('change', fetchThongkemgData);
+                document.getElementById('HeDaoTao').addEventListener('change', fetchThongkemgData);
+            </script>
 
-    <script>
-        function calculateTotals() {
-            let total = 0;
-            const rows = document.querySelectorAll('#tableBody tr');
+            <script>
+                function calculateTotals() {
+                    let total = 0;
+                    const rows = document.querySelectorAll('#tableBody tr');
 
-            rows.forEach((row) => {
-                // Lấy ô chứa số tiết (cột thứ 3)
-                const sotietCell = row.querySelector('td:nth-child(3)');
-                // Chuyển đổi giá trị thành số và cộng dồn
-                const sotiet = parseFloat(sotietCell.textContent) || 0;
-                total += sotiet;
-            });
+                    rows.forEach((row) => {
+                        // Lấy ô chứa số tiết (cột thứ 3)
+                        const sotietCell = row.querySelector('td:nth-child(3)');
+                        // Chuyển đổi giá trị thành số và cộng dồn
+                        const sotiet = parseFloat(sotietCell.textContent) || 0;
+                        total += sotiet;
+                    });
 
-            // Cập nhật tổng số tiết
-            document.getElementById('total').textContent = total.toFixed(2);
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const role = localStorage.getItem("userRole");
-            const isKhoa = localStorage.getItem("isKhoa");
-            const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+                    // Cập nhật tổng số tiết
+                    document.getElementById('total').textContent = total.toFixed(2);
+                }
+            </script>
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    const role = localStorage.getItem("userRole");
+                    const isKhoa = localStorage.getItem("isKhoa");
+                    const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-            // Ẩn button import đồ án
-            const importDoAn = document.getElementById('importDoAn');
-            const suaHD = document.getElementById('suaHD');
+                    // Ẩn button ngay khi trang được tải
+                    const actionButton = document.getElementById('changeMessage');
+                    //Ẩn site thêm thông báo
+                    if (role === "Duyệt") {
+                        actionButton.style.display = '';
+                    } else {
+                        actionButton.style.display = 'none';
+                    }
+                });
 
-            if (isKhoa == 0 && role == 'Duyệt'){
-                importDoAn.style.display = 'block';
-                suaHD.style.display = 'block';
-            }
 
-            
+            </script>
 
-            // Ẩn button ngay khi trang được tải
-            const actionButton = document.getElementById('changeMessage');
-            //Ẩn site thêm thông báo
-            if (role === "Duyệt") {
-                actionButton.style.display = '';
-            } else {
-                actionButton.style.display = 'none';
-            }
-        });
+            <script>
+                document.getElementById("changeMessage").addEventListener("click", function (event) {
+                    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+                    const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-        
-    </script>
+                    if (MaPhongBan) {
+                        // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+                        window.location.href = `/changeMessage/${MaPhongBan}`;
+                    } else {
+                        alert("Không tìm thấy MaPhongBan trong localStorage.");
+                    }
+                });
+            </script>
 
-    <script>
-        document.getElementById("changeMessage").addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-            const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+            <script>
+                document.getElementById("changePasswordLink").addEventListener("click", function (event) {
+                    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+                    const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
-            if (MaPhongBan) {
-                // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-                window.location.href = `/changeMessage/${MaPhongBan}`;
-            } else {
-                alert("Không tìm thấy MaPhongBan trong localStorage.");
-            }
-        });
-    </script>
+                    if (tenDangNhap) {
+                        // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+                        window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
+                    } else {
+                        alert("Không tìm thấy TenDangNhap trong localStorage.");
+                    }
+                });
+            </script>
 
-    <script>
-        document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-            const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+            <script>
+                document.getElementById("infome").addEventListener("click", function (event) {
+                    event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+                    const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
+                    if (id_User) {
+                        // Chuyển hướng đến trang infome và truyền id_User trong URL
+                        window.location.href = `/infome/${id_User}`;
+                    } else {
+                        alert("Không tìm thấy id_User trong localStorage.");
+                    }
+                });
+                // Thêm sự kiện click cho phần tử có id="Home"
 
-            if (tenDangNhap) {
-                // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-                window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-            } else {
-                alert("Không tìm thấy TenDangNhap trong localStorage.");
-            }
-        });
-    </script>
+                const Home = document.getElementById("Home");
 
-    <script>
-        document.getElementById("infome").addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-            const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage
-            if (id_User) {
-                // Chuyển hướng đến trang infome và truyền id_User trong URL
-                window.location.href = `/infome/${id_User}`;
-            } else {
-                alert("Không tìm thấy id_User trong localStorage.");
-            }
-        });
-        // Thêm sự kiện click cho phần tử có id="Home"
+                Home.addEventListener("click", function (event) {
+                    event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
 
-        const Home = document.getElementById("Home");
+                    const isKhoa = localStorage.getItem("isKhoa");
 
-        Home.addEventListener("click", function (event) {
-            event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-            const isKhoa = localStorage.getItem("isKhoa");
-
-            if (isKhoa == 0) {
-                // Nếu là đào tạo hoặc tài chính
-                window.location.href = "/maindt";
-            } else {
-                window.location.href = "/mainkhoa";
-            }
-        });
-    </script>
+                    if (isKhoa == 0) {
+                        // Nếu là đào tạo hoặc tài chính
+                        window.location.href = "/maindt";
+                    } else {
+                        window.location.href = "/mainkhoa";
+                    }
+                });
+            </script>
 </body>
 
 </html>
