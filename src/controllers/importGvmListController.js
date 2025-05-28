@@ -135,7 +135,7 @@ const saveToDB = async (req, res) => {
           GioiTinh = "Không rõ"; // Hoặc "Nam", "Nữ" tuỳ chính sách
         }
 
-        let HoTen = row["Họ và Tên"];
+        let HoTen = row["Họ và tên"];
         const CCCD = row["Số CCCD"];
         const NoiCapCCCD = row["Nơi cấp"] || " ";
         const DiaChi = row["Địa chỉ theo CCCD"];
