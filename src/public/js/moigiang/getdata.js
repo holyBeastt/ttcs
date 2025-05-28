@@ -35,7 +35,6 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
-  $('#MaPhongBan option[value=""]').remove();
   // Gọi AJAX để lấy dữ liệu JSON từ API
   $.ajax({
     url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
@@ -44,7 +43,7 @@ $(document).ready(function () {
       // Kiểm tra nếu response thành công
       const MaPhongBan = response.MaPhongBan;
       if (response.success) {
-        $("#MaPhongBan").prepend();
+        // Giữ lại option "Tất cả khoa" và thêm các khoa khác
         // Lặp qua từng mục trong mảng MaPhongBan
         MaPhongBan.forEach(function (item) {
           $("#MaPhongBan").append(
