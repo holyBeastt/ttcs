@@ -1,140 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/forminput.css" />
+    <link rel="stylesheet" href="/css/table.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/forminput.css" />
-  <link rel="stylesheet" href="/css/table.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      /* Container chính */
+      .container-fluid.box {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
 
-  <style>
-    /* Container chính */
-    .container-fluid.box {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+      /* Tiêu đề chính */
+      .container-fluid.box h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
 
-    /* Tiêu đề chính */
-    .container-fluid.box h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
+      /* Input wrapper */
+      .input-wrapper {
+        margin-bottom: 15px;
+      }
 
-    /* Input wrapper */
-    .input-wrapper {
-      margin-bottom: 15px;
-    }
+      /* Label */
+      .input-wrapper label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+      }
 
-    /* Label */
-    .input-wrapper label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-      color: #555;
-    }
+      /* Các trường nhập liệu */
+      .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 16px;
+      }
 
-    /* Các trường nhập liệu */
-    .form-control {
-      width: 100%;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 16px;
-    }
+      input,
+      textarea {
+        padding: 6px;
+        outline: none;
+        background-color: white !important;
+        border: none;
+      }
 
-    input,
-    textarea {
-      padding: 6px;
-      outline: none;
-      background-color: white !important;
-      border: none;
-    }
+      /* Hiệu ứng hover và focus cho input */
+      input:focus {
+        outline: none;
+        background-image: none !important;
+      }
 
+      thead {
+        height: 35px;
+      }
 
-    /* Hiệu ứng hover và focus cho input */
-    input:focus {
-      outline: none;
-      background-image: none !important;
-    }
+      table tr:hover {
+        background-color: white !important;
+      }
 
-    thead {
-      height: 35px;
-    }
+      /* Cho textarea, cho phép thay đổi kích thước theo chiều dọc */
+      textarea.form-control {
+        resize: vertical;
+        background-image: none !important;
+      }
 
-    table tr:hover {
-      background-color: white !important;
-    }
+      /* Các khoảng cách margin cho nút */
+      .btn.mt-3 {
+        margin-top: 15px;
+      }
 
+      .btn.m-3 {
+        margin: 15px;
+      }
 
-    /* Cho textarea, cho phép thay đổi kích thước theo chiều dọc */
-    textarea.form-control {
-      resize: vertical;
-      background-image: none !important;
-    }
+      .btn.m-2 {
+        margin: 10px;
+      }
 
-    /* Các khoảng cách margin cho nút */
-    .btn.mt-3 {
-      margin-top: 15px;
-    }
+      /* Phần hiển thị danh sách thông báo */
+      .showMessage {
+        margin-top: 30px;
+      }
 
-    .btn.m-3 {
-      margin: 15px;
-    }
+      /* Tiêu đề bảng thông báo */
+      .showMessage h4 {
+        margin-bottom: 15px;
+        color: #333;
+        text-align: center;
+      }
 
-    .btn.m-2 {
-      margin: 10px;
-    }
+      /* Định dạng bảng */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+      }
 
-    /* Phần hiển thị danh sách thông báo */
-    .showMessage {
-      margin-top: 30px;
-    }
+      table th,
+      table td {
+        padding: 0px;
+        border: 1px solid #ccc;
+        text-align: center;
+      }
 
-    /* Tiêu đề bảng thông báo */
-    .showMessage h4 {
-      margin-bottom: 15px;
-      color: #333;
-      text-align: center;
-    }
+      table th {
+        background-color: #f8f8f8;
+      }
+    </style>
+  </head>
 
-    /* Định dạng bảng */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 15px;
-    }
-
-    table th,
-    table td {
-      padding: 0px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-
-    table th {
-      background-color: #f8f8f8;
-    }
-  </style>
-</head>
-
-<body>
-  <!-- Phần header -->
-  <%- include('header') %>
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <!-- Phần nội dung -->
-
-
 
     <!-- Phần trên của navbar chứa logo và tiêu đề -->
     <div class="container-fluid box">
@@ -144,45 +148,72 @@
         <div class="row">
           <div class="col-md-12 input-wrapper">
             <label for="Title">Tiêu đề:</label>
-            <input type="text" id="Title" name="Title" class="form-control" required />
+            <input
+              type="text"
+              id="Title"
+              name="Title"
+              class="form-control"
+              required
+            />
           </div>
         </div>
         <div class="row">
           <div class="col-md-12 input-wrapper">
             <label for="LoiNhan">Thông báo:</label>
             <!-- <input type="text" id="LoiNhan" name="LoiNhan" class="form-control" required /> -->
-            <textarea rows="3" id="LoiNhan" name="LoiNhan" class="form-control" style="background-color: #FAF7F0;"
-              required></textarea>
+            <textarea
+              rows="3"
+              id="LoiNhan"
+              name="LoiNhan"
+              class="form-control"
+              style="background-color: #faf7f0"
+              required
+            ></textarea>
           </div>
         </div>
         <div class="row">
           <div class="col-md-4 input-wrapper">
             <label for="Deadline">Ngày hết hạn:</label>
-            <input type="datetime-local" id="Deadline" name="Deadline" class="form-control" required />
+            <input
+              type="datetime-local"
+              id="Deadline"
+              name="Deadline"
+              class="form-control"
+              required
+            />
           </div>
         </div>
-        <button id="submit" type="submit" class="btn mt-3">Thêm thông báo</button>
+        <button id="submit" type="submit" class="btn mt-3">
+          Thêm thông báo
+        </button>
         <button type="button" class="btn m-3" onclick="goBack()">
           Quay Lại
         </button>
       </form>
       <div class="showMessage">
         <h2>Thông báo đã ban hành</h2>
-        <table class=" text-center" style="width: 100%;">
+        <table class="text-center" style="width: 100%">
           <thead>
             <tr>
-              <th style="width: 30%;">Tiêu đề</th>
-              <th style="width: 50%;">Thông báo</th>
-              <th style="width: 10%;">Hạn cuối</th>
-              <th style="width: 5%;">Ẩn TB</th>
-              <th style="width: 5%;">Xoá TB</th>
+              <th style="width: 30%">Tiêu đề</th>
+              <th style="width: 50%">Thông báo</th>
+              <th style="width: 10%">Hạn cuối</th>
+              <th style="width: 5%">Ẩn TB</th>
+              <th style="width: 5%">Xoá TB</th>
             </tr>
           </thead>
           <tbody id="tableBody">
             <!-- Dữ liệu sẽ được chèn vào đây -->
           </tbody>
         </table>
-        <button onclick="submitData()" class="btn m-2" id="update-qc" style="height: 45px;">Cập nhật</button>
+        <button
+          onclick="submitData()"
+          class="btn m-2"
+          id="update-qc"
+          style="height: 45px"
+        >
+          Cập nhật
+        </button>
       </div>
     </div>
 
@@ -201,82 +232,85 @@
         return date.toISOString();
       }
 
-      document.getElementById("changeMessageForm").addEventListener("submit", function (event) {
-        event.preventDefault(); // Ngăn chặn form gửi mặc định
+      document
+        .getElementById("changeMessageForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // Ngăn chặn form gửi mặc định
 
-        // Lấy giá trị từ form
-        const Title = document.getElementById("Title").value.trim();
-        const LoiNhan = document.getElementById("LoiNhan").value.trim();
-        const Deadline = convertDatetimeLocalToISO(document.getElementById("Deadline").value);
+          // Lấy giá trị từ form
+          const Title = document.getElementById("Title").value.trim();
+          const LoiNhan = document.getElementById("LoiNhan").value.trim();
+          const Deadline = convertDatetimeLocalToISO(
+            document.getElementById("Deadline").value
+          );
 
-        // Kiểm tra dữ liệu hợp lệ
-        if (!Title) {
-          alert("Vui lòng nhập tiêu đề.");
-          return;
-        }
-        if (!LoiNhan) {
-          alert("Vui lòng nhập nội dung thông báo.");
-          return;
-        }
-        if (!Deadline) {
-          alert("Vui lòng chọn ngày hết hạn.");
-          return;
-        }
+          // Kiểm tra dữ liệu hợp lệ
+          if (!Title) {
+            alert("Vui lòng nhập tiêu đề.");
+            return;
+          }
+          if (!LoiNhan) {
+            alert("Vui lòng nhập nội dung thông báo.");
+            return;
+          }
+          if (!Deadline) {
+            alert("Vui lòng chọn ngày hết hạn.");
+            return;
+          }
 
-        const now = new Date();
-        const selectedDate = new Date(Deadline);
-        if (selectedDate < now) {
-          alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
-          return;
-        }
+          const now = new Date();
+          const selectedDate = new Date(Deadline);
+          if (selectedDate < now) {
+            alert("Ngày hết hạn phải lớn hơn ngày hiện tại.");
+            return;
+          }
 
-        // Tạo object dữ liệu để gửi
-        const formData = {
-          Title: Title,
-          LoiNhan: LoiNhan,
-          Deadline: Deadline
-        };
+          // Tạo object dữ liệu để gửi
+          const formData = {
+            Title: Title,
+            LoiNhan: LoiNhan,
+            Deadline: Deadline,
+          };
 
-        const MaPhongBan = localStorage.getItem("MaPhongBan");
-        // console.log(formData)
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
+          // console.log(formData)
 
-        // Gửi request bằng Fetch API (AJAX)
-        fetch(`/changeMessage/${MaPhongBan}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              Swal.fire({
-                title: "Thông báo",
-                html: data.message,
-                icon: "success",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-                timerProgressBar: true,
-                timer: 3000
-              });
-              location.reload();
-            } else {
-              alert("Có lỗi xảy ra: " + data.message);
-            }
+          // Gửi request bằng Fetch API (AJAX)
+          fetch(`/changeMessage/${MaPhongBan}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
           })
-          .catch(error => {
-            console.error("Lỗi khi gửi dữ liệu:", error);
-            alert("Đã xảy ra lỗi khi gửi thông báo.");
-          });
-      });
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                Swal.fire({
+                  title: "Thông báo",
+                  html: data.message,
+                  icon: "success",
+                  confirmButtonText: "OK",
+                  width: "auto", // Tự động điều chỉnh chiều rộng
+                  padding: "20px", // Giữ khoảng cách cho nội dung
+                  timerProgressBar: true,
+                  timer: 3000,
+                });
+                location.reload();
+              } else {
+                alert("Có lỗi xảy ra: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Lỗi khi gửi dữ liệu:", error);
+              alert("Đã xảy ra lỗi khi gửi thông báo.");
+            });
+        });
 
       // Nút quay lại
       function goBack() {
         window.history.back();
       }
-
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -284,7 +318,7 @@
         const role = localStorage.getItem("userRole");
 
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('MessageChanged') === 'true') {
+        if (urlParams.get("MessageChanged") === "true") {
           Swal.fire({
             title: "Thông báo",
             html: "Thêm thông báo thành công",
@@ -293,7 +327,7 @@
             width: "auto", // Tự động điều chỉnh chiều rộng
             padding: "20px", // Giữ khoảng cách cho nội dung
           });
-        } else if (urlParams.get('MessageChanged') === 'false') {
+        } else if (urlParams.get("MessageChanged") === "false") {
           Swal.fire({
             title: "Thông báo",
             html: "Thêm thông báo mới không đúng!",
@@ -302,7 +336,7 @@
             width: "auto", // Tự động điều chỉnh chiều rộng
             padding: "20px", // Giữ khoảng cách cho nội dung
           });
-        } else if (urlParams.get('MessageChanged') === 'false2') {
+        } else if (urlParams.get("MessageChanged") === "false2") {
           Swal.fire({
             title: "Thông báo",
             html: "Cập nhật thông báo thất bại!",
@@ -317,7 +351,7 @@
     </script>
     <script>
       async function getMessage() {
-        const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy mã phòng ban từ localStorage
         if (!MaPhongBan) {
           alert("Mã phòng ban không tồn tại!");
           return;
@@ -326,25 +360,27 @@
         try {
           console.log("Gửi dữ liệu");
           const response = await fetch(`/getMessage/${MaPhongBan}`, {
-            method: 'GET', // Gửi yêu cầu GET
+            method: "GET", // Gửi yêu cầu GET
           });
           if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            throw new Error(
+              `Error: ${response.status} - ${response.statusText}`
+            );
           }
           const data = await response.json(); // Lấy dữ liệu từ server
           console.log(data);
           if (data.success) {
             if (data.Message && data.Message.length > 0) {
-              console.log('Dữ liệu thông báo:', data);
+              console.log("Dữ liệu thông báo:", data);
               Swal.fire({
                 toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: 'Thông báo',
+                position: "top-end",
+                icon: "success",
+                title: "Thông báo",
                 text: "Thành công",
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
               });
               renderTable(data);
             } else {
@@ -353,12 +389,12 @@
             alert("Không tìm thấy dữ liệu!");
           }
         } catch (error) {
-          console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+          console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
         }
       }
 
       async function getMessage2() {
-        const MaPhongBan = localStorage.getItem('MaPhongBan'); // Lấy mã phòng ban từ localStorage
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy mã phòng ban từ localStorage
         if (!MaPhongBan) {
           alert("Mã phòng ban không tồn tại!");
           return;
@@ -367,16 +403,18 @@
         try {
           console.log("Get data");
           const response = await fetch(`/getMessage/${MaPhongBan}`, {
-            method: 'GET', // Gửi yêu cầu GET
+            method: "GET", // Gửi yêu cầu GET
           });
           if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            throw new Error(
+              `Error: ${response.status} - ${response.statusText}`
+            );
           }
           const data = await response.json(); // Lấy dữ liệu từ server
           console.log(data);
           if (data.success) {
             if (data.Message && data.Message.length > 0) {
-              console.log('Dữ liệu thông báo:', data);
+              console.log("Dữ liệu thông báo:", data);
               renderTable(data);
             } else {
             }
@@ -384,15 +422,14 @@
             alert("Không tìm thấy dữ liệu!");
           }
         } catch (error) {
-          console.error('Có lỗi xảy ra khi lấy dữ liệu:', error);
+          console.error("Có lỗi xảy ra khi lấy dữ liệu:", error);
         }
       }
-
     </script>
     <script>
       function convertISOToDatetimeLocal(isoString) {
         const date = new Date(isoString);
-        const pad = num => String(num).padStart(2, '0');
+        const pad = (num) => String(num).padStart(2, "0");
 
         const year = date.getFullYear();
         const month = pad(date.getMonth() + 1); // Tháng trong JS là 0-indexed
@@ -407,42 +444,41 @@
         const MaPhongBan = localStorage.getItem("MaPhongBan");
         let tableRowData = [];
 
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = ''; // Xóa nội dung cũ
+        const tableBody = document.getElementById("tableBody");
+        tableBody.innerHTML = ""; // Xóa nội dung cũ
         //let index = -1;
         let Data = data.Message;
         Data.forEach((row, index) => {
-
-          const tableRow = document.createElement('tr');
+          const tableRow = document.createElement("tr");
 
           // Thêm id vào dữ liệu row để lưu trữ
           let rowWithId = {
             id: index,
-            ...row
+            ...row,
           };
           tableRowData.push(rowWithId);
 
           tableRow.setAttribute("data-id", row.id);
 
           //Tiêu đề
-          const tieuDeTd = document.createElement('td');
-          const tieuDeInput = document.createElement('input');
-          tieuDeInput.type = 'text'; // Loại input là text
+          const tieuDeTd = document.createElement("td");
+          const tieuDeInput = document.createElement("input");
+          tieuDeInput.type = "text"; // Loại input là text
           tieuDeInput.value = row.Title; // Gán giá trị ban đầu
-          tieuDeInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-          tieuDeInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          tieuDeInput.classList.add("border-light"); // Thêm class Bootstrap (tùy chọn)
+          tieuDeInput.style.width = "100%"; // Đảm bảo input vừa với ô bảng
           // Gắn input vào ô td
           tieuDeTd.appendChild(tieuDeInput);
           tieuDeInput.id = `tieuDeInput_${index}`;
           tableRow.appendChild(tieuDeTd);
 
           //Lời nhắn
-          const loiNhanTd = document.createElement('td');
-          const loiNhanInput = document.createElement('input');
-          loiNhanInput.type = 'text'; // Loại input là text
+          const loiNhanTd = document.createElement("td");
+          const loiNhanInput = document.createElement("input");
+          loiNhanInput.type = "text"; // Loại input là text
           loiNhanInput.value = row.LoiNhan; // Gán giá trị ban đầu
-          loiNhanInput.classList.add('border-light'); // Thêm class Bootstrap (tùy chọn)
-          loiNhanInput.style.width = '100%'; // Đảm bảo input vừa với ô bảng
+          loiNhanInput.classList.add("border-light"); // Thêm class Bootstrap (tùy chọn)
+          loiNhanInput.style.width = "100%"; // Đảm bảo input vừa với ô bảng
           // Gắn input vào ô td
           loiNhanTd.appendChild(loiNhanInput);
           loiNhanInput.id = `loiNhanInput_${index}`;
@@ -452,33 +488,35 @@
           const deadlineValue = convertISOToDatetimeLocal(row.Deadline);
 
           // Tạo phần tử input cho deadline
-          const deadlineTd = document.createElement('td');
-          const deadlineInput = document.createElement('input');
-          deadlineInput.type = 'datetime-local';
+          const deadlineTd = document.createElement("td");
+          const deadlineInput = document.createElement("input");
+          deadlineInput.type = "datetime-local";
           deadlineInput.value = deadlineValue;
-          deadlineInput.classList.add('border-light');
-          deadlineInput.style.width = '100%';
+          deadlineInput.classList.add("border-light");
+          deadlineInput.style.width = "100%";
           deadlineInput.id = `deadlineInput_${index}`;
           deadlineTd.appendChild(deadlineInput);
           tableRow.appendChild(deadlineTd);
 
-          //Check box chọn thông báo 
+          //Check box chọn thông báo
           let selectCheckboxTd, selectCheckbox;
-          selectCheckboxTd = document.createElement('td');
-          selectCheckbox = document.createElement('input');
-          selectCheckbox.type = 'checkbox';
-          selectCheckbox.name = 'select'; // Thêm thuộc tính name
+          selectCheckboxTd = document.createElement("td");
+          selectCheckbox = document.createElement("input");
+          selectCheckbox.type = "checkbox";
+          selectCheckbox.name = "select"; // Thêm thuộc tính name
           selectCheckbox.checked = row.HetHan || false; // Dùng một trường cho checkbox
           selectCheckboxTd.appendChild(selectCheckbox);
           tableRow.appendChild(selectCheckboxTd);
 
           //button xoá thông báo
           let deleteButtonTd, deleteButton;
-          deleteButtonTd = document.createElement('td');
-          deleteButton = document.createElement('button');
-          deleteButton.className = 'bi bi-trash3 action-button edit'; // Thêm class để định dạng nếu cần
+          deleteButtonTd = document.createElement("td");
+          deleteButton = document.createElement("button");
+          deleteButton.className = "bi bi-trash3 action-button edit"; // Thêm class để định dạng nếu cần
           deleteButton.onclick = () => {
-            const confirmed = confirm('Bạn có chắc chắn muốn xóa lớp này không?');
+            const confirmed = confirm(
+              "Bạn có chắc chắn muốn xóa lớp này không?"
+            );
             if (confirmed) {
               tableRow.remove(); // Xóa dòng tương ứng
               // Có thể gọi thêm hàm để xóa dữ liệu liên quan nếu cần
@@ -492,16 +530,15 @@
         });
 
         // Lưu dữ liệu với id vào localStorage
-        localStorage.setItem('tableData', JSON.stringify(tableRowData));
+        localStorage.setItem("tableData", JSON.stringify(tableRowData));
       }
-
     </script>
     <script>
       function convertDatetimeLocalToISO(datetimeLocalString) {
         // Tách phần ngày và phần giờ
-        const [datePart, timePart] = datetimeLocalString.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute] = timePart.split(':').map(Number);
+        const [datePart, timePart] = datetimeLocalString.split("T");
+        const [year, month, day] = datePart.split("-").map(Number);
+        const [hour, minute] = timePart.split(":").map(Number);
 
         // Tạo đối tượng Date sử dụng giờ địa phương
         // Lưu ý: tháng trong Date khởi tạo là 0-indexed nên trừ đi 1
@@ -511,26 +548,29 @@
         return date.toISOString();
       }
       async function submitData() {
-        const rows = document.querySelectorAll('#tableBody tr'); // Lấy tất cả các hàng trong bảng
+        const rows = document.querySelectorAll("#tableBody tr"); // Lấy tất cả các hàng trong bảng
         const rowCount = rows.length;
         const globalData = [];
 
         rows.forEach((row, index) => {
-
           const tieuDeInput = document.getElementById(`tieuDeInput_${index}`);
-          const tieuDe = tieuDeInput ? tieuDeInput.value : '';
+          const tieuDe = tieuDeInput ? tieuDeInput.value : "";
 
           const loiNhanInput = document.getElementById(`loiNhanInput_${index}`);
-          const loiNhan = loiNhanInput ? loiNhanInput.value : '';
+          const loiNhan = loiNhanInput ? loiNhanInput.value : "";
 
-          const deadlineInput = document.getElementById(`deadlineInput_${index}`);
+          const deadlineInput = document.getElementById(
+            `deadlineInput_${index}`
+          );
           const deadline = deadlineInput ? deadlineInput.value : null;
           const deadlineConvert = convertDatetimeLocalToISO(deadline);
           // const deadlineConvert = deadline;
-          console.log("datetime-local:" + deadlineConvert)
+          console.log("datetime-local:" + deadlineConvert);
 
           // Lấy trạng thái từ selectCheckbox
-          const selectCheckbox = row.querySelector('input[type="checkbox"][name="select"]');
+          const selectCheckbox = row.querySelector(
+            'input[type="checkbox"][name="select"]'
+          );
           const isChecked = selectCheckbox ? selectCheckbox.checked : false;
 
           // Đẩy dữ liệu vào globalData
@@ -551,48 +591,48 @@
 
       // Gửi dữ liệu lên server
       function update(globalData) {
-        console.log('Dữ liệu gửi lên:', globalData);  // Kiểm tra dữ liệu trước khi gửi
-        fetch('/updateMessage', {
-          method: 'POST',
+        console.log("Dữ liệu gửi lên:", globalData); // Kiểm tra dữ liệu trước khi gửi
+        fetch("/updateMessage", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(globalData) // Chuyển đổi globalData thành chuỗi JSON
+          body: JSON.stringify(globalData), // Chuyển đổi globalData thành chuỗi JSON
         })
-          .then(response => {
+          .then((response) => {
             if (!response.ok) {
-              return response.json().then(err => {
-                throw new Error(err.message || 'Lỗi khi gửi dữ liệu');
+              return response.json().then((err) => {
+                throw new Error(err.message || "Lỗi khi gửi dữ liệu");
               });
             }
             return response.json(); // Chuyển đổi phản hồi thành JSON
           })
-          .then(data => {
+          .then((data) => {
             console.log(data.message); // Thông báo khi dữ liệu gửi thành công
             getMessage();
           })
-          .catch(error => {
-            console.error('Có lỗi xảy ra:', error);
+          .catch((error) => {
+            console.error("Có lỗi xảy ra:", error);
             console.log(error.message);
           });
       }
       function deleteData(id) {
-        fetch('/deleteMessage', {
-          method: 'POST',
+        fetch("/deleteMessage", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ id }),
         })
-          .then(response => {
+          .then((response) => {
             if (!response.ok) {
-              return response.json().then(err => {
-                throw new Error(err.message || 'Lỗi khi xóa dữ liệu');
+              return response.json().then((err) => {
+                throw new Error(err.message || "Lỗi khi xóa dữ liệu");
               });
             }
             return response.json();
           })
-          .then(data => {
+          .then((data) => {
             if (data.success) {
               // Cập nhật giao diện, ví dụ: xóa hàng khỏi bảng
               const row = document.querySelector(`tr[data-id="${id}"]`);
@@ -601,8 +641,8 @@
               alert(`Lỗi: ${data.message}`);
             }
           })
-          .catch(error => {
-            console.error('Có lỗi xảy ra:', error);
+          .catch((error) => {
+            console.error("Có lỗi xảy ra:", error);
             alert(`Không thể xóa: ${error.message}`);
           });
       }
@@ -614,8 +654,8 @@
         const TenDangNhap = localStorage.getItem("TenDangNhap");
 
         let Role = localStorage.getItem("userRole");
-        if (Role.toUpperCase() == 'LÃNH ĐẠO KHOA') {
-          Role = 'LĐK';
+        if (Role.toUpperCase() == "LÃNH ĐẠO KHOA") {
+          Role = "LĐK";
         }
 
         if (TenNhanVien) {
@@ -675,57 +715,64 @@
     </script>
 
     <script>
-      document.getElementById("changePasswordLink").addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 
-        if (tenDangNhap) {
-          // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-          window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(tenDangNhap)}`;
-        } else {
-          alert("Không tìm thấy TenDangNhap trong localStorage.");
-        }
-      });
+          if (tenDangNhap) {
+            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
     </script>
     <script>
-      document.getElementById("infome").addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-        if (id_User) {
-          // Chuyển hướng đến trang infome và truyền id_User trong URL
-          window.location.href = `/infome/${id_User}`;
-        } else {
-          alert("Không tìm thấy id_User trong localStorage.");
-        }
-      });
+      document
+        .getElementById("infome")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+          if (id_User) {
+            // Chuyển hướng đến trang infome và truyền id_User trong URL
+            window.location.href = `/infome/${id_User}`;
+          } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+          }
+        });
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const role = localStorage.getItem("userRole");
 
         // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById('changeMessage');
+        const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
         if (role === "Duyệt") {
-          actionButton.style.display = '';
+          actionButton.style.display = "";
         } else {
-          actionButton.style.display = 'none';
+          actionButton.style.display = "none";
         }
       });
     </script>
     <script>
-      document.getElementById("changeMessage").addEventListener("click", function (event) {
-        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+      document
+        .getElementById("changeMessage")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-        if (MaPhongBan) {
-          // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-          window.location.href = `/changeMessage/${MaPhongBan}`;
-        } else {
-          alert("Không tìm thấy MaPhongBan trong localStorage.");
-        }
-      });
+          if (MaPhongBan) {
+            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+          } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+          }
+        });
     </script>
-</body>
-
+  </body>
 </html>

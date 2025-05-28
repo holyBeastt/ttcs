@@ -412,10 +412,7 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        if (MaPhongBan == "DAOTAO" && role == "Duyệt") {
-          // Ẩn cột 'VPColumn'
-          // document.getElementById("VPColumn").style.display = "none";
-
+        if ((MaPhongBan == "BGĐ" || MaPhongBan == "DAOTAO") && role == "Duyệt") {
           document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
 
 
@@ -428,14 +425,6 @@
 
           document.getElementById("save-data-all").style.display =
             "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
-
-        }
-
-        if (role == "Thường") {
-          // Ẩn tất cả các cột
-          document.getElementById("khoaColumn").style.display = "none";
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("VPColumn").style.display = "none";
         }
       });
     </script>
@@ -701,7 +690,7 @@
           VPCheckbox = document.createElement("input");
           VPCheckbox.type = "checkbox";
           VPCheckbox.name = "VP"; // Thêm thuộc tính name
-          VPCheckbox.checked = row.VPDuyet || false; // Dùng một trường cho checkbox
+          VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
           VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
           VPCheckboxTd.appendChild(VPCheckbox);
           tableRow.appendChild(VPCheckboxTd);
@@ -750,7 +739,7 @@
             }
           }
 
-          if (MaPhongBan.toLowerCase() === "VP" && role.toLowerCase() !== "thường") {
+          if (MaPhongBan.toLowerCase() === "vp" && role.toLowerCase() !== "thường") {
             // Nếu khoa đã check thì hiện check bên đào tạo
             if (!DaoTaoCheck.includes(row.Khoa)) {
               // Ngăn thay đổi trạng thái check box khoa
@@ -765,10 +754,17 @@
               VPCheckbox.disabled = true;
             }
           }
+          
           if (role.toLowerCase() === "thường") {
-            khoaCheckboxTd.style.display = 'none';
-            daoTaoCheckboxTd.style.display = 'none';
-            VPCheckboxTd.style.display = 'none';
+            khoaCheckbox.disabled = true;
+            daoTaoCheckbox.disabled = true;
+            VPCheckbox.disabled = true;
+          }
+
+          if (MaPhongBan === "BGĐ" && role.toLocaleLowerCase() === "duyệt") {
+            khoaCheckbox.disabled = false;
+            daoTaoCheckbox.disabled = false;
+            VPCheckbox.disabled = false;
           }
 
           tableBody.appendChild(tableRow); // Thêm hàng vào bảng
@@ -817,7 +813,7 @@
           // Cập nhật vào mảng globalData tương ứng với chỉ mục hàng (index)
           globalData[index].KhoaDuyet = khoaDuyet; // Cập nhật Khoa
           globalData[index].DaoTaoDuyet = daoTaoDuyet; // Cập nhật Đào Tạo
-          globalData[index].VPDuyet = VPDuyet; // Cập nhật Tài Chính
+          globalData[index].TaiChinhDuyet = VPDuyet; // Cập nhật Tài Chính
 
         });
 

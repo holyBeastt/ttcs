@@ -9,5 +9,6 @@ router.get("/thongkemg", showThongkemgPage);
 router.get("/api/thongkemg-data", thongkemgController.getThongkemgData);
 router.get("/getNamHocmg", thongkemgController.getNamHocData);
 router.get("/getPhongBanmg", thongkemgController.getPhongBanMG);
+router.get("/getHeDaoTaomg", thongkemgController.getHeDaoTaoMG);
 
 module.exports = router;

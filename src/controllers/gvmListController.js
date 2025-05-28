@@ -170,7 +170,7 @@ const getWaitingListData = async (req, res, khoa, checkOrder) => {
     (khoa_duyet = 1 AND dao_tao_duyet = 1) DESC, 
     khoa_duyet ASC`;
 
-    if (MaPhongBan == "HV")
+    if (MaPhongBan == "BGĐ")
       displayOrder = ` ORDER BY dao_tao_duyet DESC, khoa_duyet DESC`;
 
     if (isKhoa == 1) {
@@ -229,7 +229,7 @@ const getWaitingCountUnapproved = async (req, res) => {
       }
 
       // Nếu là học viện, lấy số lượng khi đào tạo đã duyệt
-      if (MaPhongBan === "HV") {
+      if (MaPhongBan === "BGĐ") {
         query += " AND dao_tao_duyet = 1";
       }
     } else if (isKhoa == 1) {

@@ -487,7 +487,7 @@
 
               if (
                 item.khoa_duyet == 1 &&
-                (MaPhongBan === "HV" ||
+                (MaPhongBan === "BGĐ" ||
                   (MaPhongBan == "DAOTAO" &&
                     role == "Duyệt" &&
                     item.dao_tao_duyet == 0))
@@ -518,7 +518,7 @@
                 isDisabled = false;
               }
 
-              if (item.dao_tao_duyet == 1 && MaPhongBan === "HV") {
+              if (item.dao_tao_duyet == 1 && MaPhongBan === "BGĐ") {
                 isDisabled = false;
               }
 
@@ -535,7 +535,7 @@
               hocVienCheckbox.onchange = () => updateCheckAll("hocVien"); // Gọi hàm khi checkbox thay đổi
 
               hocVienCheckbox.disabled =
-                MaPhongBan != "HV" || // Chỉ bật nếu là Học viện
+                MaPhongBan != "BGĐ" || // Chỉ bật nếu là Học viện
                 item.dao_tao_duyet === 0; // Khóa nếu đào tạo chưa duyệt
               hocVienCheckboxTd.appendChild(hocVienCheckbox);
             });
@@ -707,7 +707,7 @@
             let unchecked = false;
 
             if (
-              MaPhongBan === "HV" &&
+              MaPhongBan === "BGĐ" &&
               globalData[id_Gvm].dao_tao_duyet == 1 &&
               daoTaoChecked == 0
             ) {
