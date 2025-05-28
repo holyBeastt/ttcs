@@ -167,6 +167,79 @@
       cursor: default;
     }
   </style>
+
+    <style>
+    .summary-container {
+      font-size: 12px;
+      position: fixed;
+      bottom: 20px;
+      right: 10px; /* giảm khoảng cách bên phải */
+      z-index: 1050;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .floating-box {
+      width: 200px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .detail-popup {
+      position: absolute;
+      bottom: 60px;
+      right: 0;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #f8f9fa;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      display: none;
+    }
+
+    .toggle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #0d6efd;
+      color: white;
+      border: none;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .toggle-btn svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .detail-item {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .xem-chi-tiet {
+      font-style: italic;
+      text-decoration: underline;
+      font-size: 12px;
+      color: #007bff;
+      cursor: pointer;
+      margin-top: 6px;
+      display: inline-block;
+    }
+  </style>
 </head>
 
 <body>
@@ -373,8 +446,49 @@
               </tr>
             </tbody>
           </table>
+                    <!-- Floating Summary Container -->
+          <div class="summary-container">
+            <div class="floating-box" id="summaryBox">
+              <div>
+                <strong>Tổng tiết mời giảng:</strong>
+                <span id="tietMoi">0</span>
+              </div>
+              <div>
+                <strong>Tổng tiết cơ hữu:</strong>
+                <span id="tietCoHuu">0</span>
+              </div>
+              <div>
+                <strong>Tổng số tiết:</strong>
+                <span id="tongTiet">0</span>
+              </div>
+
+              <!-- Link xem chi tiết -->
+              <div>
+                <span id="xemChiTiet" class="xem-chi-tiet popup-font-size"
+                  >Xem chi tiết</span
+                >
+              </div>
+
+              <div class="detail-popup" id="popupChiTiet"></div>
+            </div>
+
+            <button class="toggle-btn" id="toggleBtn">
+              <!-- Mũi tên SVG -->
+              <svg
+                id="arrowIcon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                viewBox="0 0 24 24"
+              >
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+      
       <!-- Label tổng số tiết tách riêng với bảng -->
       <div class="total-label">
         <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label>
@@ -509,6 +623,7 @@
       var totalLL;
       var totalQC;
       var globalData = [];
+      let tongTiet;
 
       document.addEventListener('DOMContentLoaded', function () {
 
@@ -697,6 +812,9 @@
           globalData = rs.results; // Dữ liệu kết quả
           const check = rs.check; // Dữ liệu check
           localStorage.setItem('check', check);
+          tongTiet = rs.tongTiet;
+
+          loadDataPopup();
 
           // Hiển thị dữ liệu
           viewData(globalData);
@@ -833,6 +951,8 @@
             globalData = rs.results; // Dữ liệu kết quả
             const check = rs.check; // Dữ liệu check
             localStorage.setItem('check', check);
+            tongTiet = rs.tongTiet;
+            loadDataPopup();
 
             // Hiển thị dữ liệu
             viewData(globalData);
@@ -840,6 +960,72 @@
             console.error('Đã có lỗi xảy ra:', error);
           }
         }
+
+      const loadDataPopup = async () => {
+        // Phần popup hiển thị tổng số tiết
+        const tietMapMoi = tongTiet.detailMoiGiang;
+        const tietMapCoHuu = tongTiet.detailCoHuu;
+
+        document.getElementById("tietMoi").innerText =
+          tongTiet.tongTietMoiGiang;
+        document.getElementById("tietCoHuu").innerText = tongTiet.tongTietCoHuu;
+        document.getElementById("tongTiet").innerText = tongTiet.tongTietAll;
+
+        const popup = document.getElementById("popupChiTiet");
+        const xemChiTiet = document.getElementById("xemChiTiet");
+
+        xemChiTiet.addEventListener("click", (e) => {
+          e.stopPropagation();
+          popup.innerHTML = "";
+
+          // --- Phần Mời Giảng ---
+          const titleMoi = document.createElement("h6");
+          titleMoi.innerText = "Giảng viên mời:";
+          popup.appendChild(titleMoi);
+
+          for (let gv in tietMapMoi) {
+            const div = document.createElement("div");
+            div.className = "detail-item";
+            div.innerText = `${gv}: ${tietMapMoi[gv]} tiết`;
+            popup.appendChild(div);
+          }
+
+          // --- Phần Cơ Hữu ---
+          const titleCoHuu = document.createElement("h6");
+          titleCoHuu.innerText = "Giảng viên cơ hữu:";
+          titleCoHuu.style.marginTop = "10px";
+          popup.appendChild(titleCoHuu);
+
+          for (let gv in tietMapCoHuu) {
+            const div = document.createElement("div");
+            div.className = "detail-item";
+            div.innerText = `${gv}: ${tietMapCoHuu[gv]} tiết`;
+            popup.appendChild(div);
+          }
+
+          popup.style.display = "block";
+        });
+
+        document.addEventListener("click", () => {
+          popup.style.display = "none";
+        });
+
+        popup.addEventListener("click", (e) => e.stopPropagation());
+
+        const toggleBtn = document.getElementById("toggleBtn");
+        const arrowIcon = document.getElementById("arrowIcon");
+        const summaryBox = document.getElementById("summaryBox");
+
+        let isVisible = false;
+        toggleBtn.addEventListener("click", () => {
+          isVisible = !isVisible;
+          summaryBox.style.display = isVisible ? "block" : "none";
+          arrowIcon.style.transform = isVisible
+            ? "rotate(180deg)"
+            : "rotate(0deg)";
+        });
+      };
+
 
         // render ra bảng
         function renderTable(data) {

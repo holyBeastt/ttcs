@@ -829,6 +829,7 @@ const totalNumberOfPeriods = async (connection, data) => {
 
     let tongTietMoiGiang = 0;
     let tongTietCoHuu = 0;
+    let tongTietChuaRo = 0;
     let tongTietAll = 0;
 
     const tongTietDetail = {}; // Tổng tiết từng giảng viên
@@ -841,8 +842,11 @@ const totalNumberOfPeriods = async (connection, data) => {
 
       if (!gv1Info.ten) return;
 
-      if (!gv2Info.ten || gv2Info.ten.toLowerCase() === "không") {
+      if (gv2Info.ten.toLowerCase() === "không") {
         tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 25;
+      } else if (!gv2Info.ten) {
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
+        tongTietDetail["Chưa rõ"] = (tongTietDetail["Chưa rõ"] || 0) + 10;
       } else {
         tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
         tongTietDetail[gv2Info.ten] = (tongTietDetail[gv2Info.ten] || 0) + 10;
@@ -866,12 +870,16 @@ const totalNumberOfPeriods = async (connection, data) => {
       } else if (gvInfo.loai === "cơ hữu" || isCoHuu) {
         tongTietCoHuu += tiet;
         detailCoHuu[tenGV] = tiet;
+      } else {
+        tongTietChuaRo += tiet;
+        // detailChuaRo[tenGV] = tiet;
       }
     }
 
     return {
       tongTietMoiGiang,
       tongTietCoHuu,
+      tongTietChuaRo,
       tongTietAll,
       tongTietDetail,
       detailMoiGiang,
