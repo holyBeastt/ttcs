@@ -412,10 +412,7 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        if (MaPhongBan == "DAOTAO" && role == "Duyệt") {
-          // Ẩn cột 'VPColumn'
-          // document.getElementById("VPColumn").style.display = "none";
-
+        if ((MaPhongBan == "BGĐ" || MaPhongBan == "DAOTAO") && role == "Duyệt") {
           document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
 
 
@@ -428,14 +425,6 @@
 
           document.getElementById("save-data-all").style.display =
             "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
-
-        }
-
-        if (role == "Thường") {
-          // Ẩn tất cả các cột
-          document.getElementById("khoaColumn").style.display = "none";
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("VPColumn").style.display = "none";
         }
       });
     </script>
@@ -765,10 +754,17 @@
               VPCheckbox.disabled = true;
             }
           }
+          
           if (role.toLowerCase() === "thường") {
-            khoaCheckboxTd.style.display = 'none';
-            daoTaoCheckboxTd.style.display = 'none';
-            VPCheckboxTd.style.display = 'none';
+            khoaCheckbox.disabled = true;
+            daoTaoCheckbox.disabled = true;
+            VPCheckbox.disabled = true;
+          }
+
+          if (MaPhongBan === "BGĐ" && role.toLocaleLowerCase() === "duyệt") {
+            khoaCheckbox.disabled = false;
+            daoTaoCheckbox.disabled = false;
+            VPCheckbox.disabled = false;
           }
 
           tableBody.appendChild(tableRow); // Thêm hàng vào bảng

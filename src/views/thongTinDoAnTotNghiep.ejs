@@ -1645,32 +1645,18 @@
         }
 
         if (role == "Thường" || role.includes("GV")) {
-          // Ẩn tất cả các cột
-          document.getElementById("khoaColumn").style.display = "none";
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("VPColumn").style.display = "none";
           if (!role.includes("CNBM")) {
             document.getElementById("updateDoAn").style.display = "none";
           }
         }
 
-        if (isKhoa == 1 && role == "Lãnh đạo khoa") {
-          document.getElementById("daoTaoColumn").style.display = "none";
-          document.getElementById("VPColumn").style.display = "none";
-
-          document.getElementById("khoaColumn").style.display = "block";
-        }
-
         if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
-            console.log("role = ", role);
             // Ẩn cột 'VPColumn'
-            document.getElementById("VPColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
               "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
           } else if (MaPhongBan == "VP") {
             // Ẩn cột 'khoaColumn'
-            document.getElementById("khoaColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
               "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
             document.getElementById("saveDataDoAn").style.display =
