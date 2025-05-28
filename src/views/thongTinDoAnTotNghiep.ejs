@@ -171,6 +171,7 @@
   </style>
   <style>
     .summary-container {
+      font-size: 12px;
       position: fixed;
       bottom: 20px;
       right: 10px; /* giảm khoảng cách bên phải */
@@ -180,7 +181,7 @@
     }
 
     .floating-box {
-      width: 225px;
+      width: 180px;
       background-color: white;
       border: 1px solid #ddd;
       border-radius: 12px;
@@ -226,14 +227,14 @@
     }
 
     .detail-item {
-      font-size: 14px;
+      font-size: 12px;
       margin-bottom: 4px;
     }
 
     .xem-chi-tiet {
       font-style: italic;
       text-decoration: underline;
-      font-size: 14px;
+      font-size: 12px;
       color: #007bff;
       cursor: pointer;
       margin-top: 6px;
@@ -427,15 +428,19 @@
                 <span id="tietMoi">0</span>
               </div>
               <div>
-                <strong>Tổng tiết cơ hữu:</strong> <span id="tietCoHuu">0</span>
+                <strong>Tổng tiết cơ hữu:</strong>
+                <span id="tietCoHuu">0</span>
               </div>
               <div>
-                <strong>Tổng số tiết:</strong> <span id="tongTiet">0</span>
+                <strong>Tổng số tiết:</strong>
+                <span id="tongTiet">0</span>
               </div>
 
               <!-- Link xem chi tiết -->
               <div>
-                <span id="xemChiTiet" class="xem-chi-tiet">Xem chi tiết</span>
+                <span id="xemChiTiet" class="xem-chi-tiet popup-font-size"
+                  >Xem chi tiết</span
+                >
               </div>
 
               <div class="detail-popup" id="popupChiTiet"></div>
@@ -621,10 +626,10 @@
           }
         }
       });
-
       const loadDataPopup = async () => {
         // Phần popup hiển thị tổng số tiết
-        const tietMap = tongTiet.tongTietDetail;
+        const tietMapMoi = tongTiet.detailMoiGiang;
+        const tietMapCoHuu = tongTiet.detailCoHuu;
 
         document.getElementById("tietMoi").innerText =
           tongTiet.tongTietMoiGiang;
@@ -632,18 +637,37 @@
         document.getElementById("tongTiet").innerText = tongTiet.tongTietAll;
 
         const popup = document.getElementById("popupChiTiet");
-
         const xemChiTiet = document.getElementById("xemChiTiet");
 
         xemChiTiet.addEventListener("click", (e) => {
           e.stopPropagation();
           popup.innerHTML = "";
-          for (let gv in tietMap) {
+
+          // --- Phần Mời Giảng ---
+          const titleMoi = document.createElement("h6");
+          titleMoi.innerText = "Giảng viên mời:";
+          popup.appendChild(titleMoi);
+
+          for (let gv in tietMapMoi) {
             const div = document.createElement("div");
             div.className = "detail-item";
-            div.innerText = `${gv}: ${tietMap[gv]} tiết`;
+            div.innerText = `${gv}: ${tietMapMoi[gv]} tiết`;
             popup.appendChild(div);
           }
+
+          // --- Phần Cơ Hữu ---
+          const titleCoHuu = document.createElement("h6");
+          titleCoHuu.innerText = "Giảng viên cơ hữu:";
+          titleCoHuu.style.marginTop = "10px";
+          popup.appendChild(titleCoHuu);
+
+          for (let gv in tietMapCoHuu) {
+            const div = document.createElement("div");
+            div.className = "detail-item";
+            div.innerText = `${gv}: ${tietMapCoHuu[gv]} tiết`;
+            popup.appendChild(div);
+          }
+
           popup.style.display = "block";
         });
 

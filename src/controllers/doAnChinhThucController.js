@@ -808,15 +808,7 @@ const getInfoDoAn = async (req, res) => {
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
 
-    const [tongTietMoiGiang, tongTietCoHuu, tongTietAll, tongTietDetail] =
-      await totalNumberOfPeriods(connection, result);
-
-    tongTiet = {
-      tongTietMoiGiang, // tongTiet[0]
-      tongTietCoHuu, // tongTiet[1]
-      tongTietAll, // tongTiet[2]
-      tongTietDetail, // tongTiet[3]
-    };
+    const tongTiet = await totalNumberOfPeriods(connection, result);
 
     // Trả dữ liệu về client dưới dạng JSON
     res.status(200).json({ result, SoQDList, tongTiet });
@@ -839,7 +831,9 @@ const totalNumberOfPeriods = async (connection, data) => {
     let tongTietCoHuu = 0;
     let tongTietAll = 0;
 
-    const tongTietDetail = {}; // Lưu tổng số tiết của từng giảng viên
+    const tongTietDetail = {}; // Tổng tiết từng giảng viên
+    const detailMoiGiang = {}; // DS giảng viên mời
+    const detailCoHuu = {}; // DS giảng viên cơ hữu
 
     data.forEach((row) => {
       const gv1Info = tachTenVaLoai(row.GiangVien1 || "");
@@ -857,35 +851,32 @@ const totalNumberOfPeriods = async (connection, data) => {
 
     for (const tenGV in tongTietDetail) {
       const tiet = tongTietDetail[tenGV];
+      const gvInfo = tachTenVaLoai(tenGV); // Tách để lấy loại
 
-      const gvInfo = tachTenVaLoai(tenGV); // Tách lại để lấy loại
+      const isMoi = gvmList.some((gv) => gv.HoTen?.trim() === gvInfo.ten);
+      const isCoHuu = coHuuList.some(
+        (gv) => gv.TenNhanVien?.trim() === gvInfo.ten
+      );
 
-      if (gvInfo.loai === "giảng viên mời") {
-        const isMoi = gvmList.some((gv) => gv.HoTen?.trim() === gvInfo.ten);
-        if (isMoi) tongTietMoiGiang += tiet;
+      tongTietAll += tiet;
 
-        tongTietAll += tiet;
-      } else if (gvInfo.loai === "cơ hữu") {
-        const isCoHuu = coHuuList.some(
-          (gv) => gv.TenNhanVien?.trim() === gvInfo.ten
-        );
-        if (isCoHuu) tongTietCoHuu += tiet;
-
-        tongTietAll += tiet;
-      } else {
-        // Nếu không có loại rõ ràng thì kiểm tra ở cả hai danh sách
-        const isMoi = gvmList.some((gv) => gv.HoTen?.trim() === gvInfo.ten);
-        const isCoHuu = coHuuList.some(
-          (gv) => gv.TenNhanVien?.trim() === gvInfo.ten
-        );
-        tongTietAll += tiet;
-
-        if (isMoi) tongTietMoiGiang += tiet;
-        else if (isCoHuu) tongTietCoHuu += tiet;
+      if (gvInfo.loai === "giảng viên mời" || isMoi) {
+        tongTietMoiGiang += tiet;
+        detailMoiGiang[tenGV] = tiet;
+      } else if (gvInfo.loai === "cơ hữu" || isCoHuu) {
+        tongTietCoHuu += tiet;
+        detailCoHuu[tenGV] = tiet;
       }
     }
 
-    return [tongTietMoiGiang, tongTietCoHuu, tongTietAll, tongTietDetail];
+    return {
+      tongTietMoiGiang,
+      tongTietCoHuu,
+      tongTietAll,
+      tongTietDetail,
+      detailMoiGiang,
+      detailCoHuu,
+    };
   } catch (error) {
     console.error("Lỗi khi xử lý:", error);
   } finally {
