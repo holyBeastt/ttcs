@@ -80,24 +80,24 @@
               </button>
             </div>
           </div>
-        </div> <!-- Unified Contract & Termination Numbers Summary Section -->
+        </div>        <!-- Unified Contract & Termination Numbers Summary Section -->
         <div class="content-section mt-4">
-          <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="card">            <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">
                 <i class="fas fa-chart-bar me-2"></i>Tổng hợp số hợp đồng và số thanh lý hợp đồng
               </h5>
-              <button type="button" class="btn btn-primary btn-sm" onclick="loadUnifiedSummary()">
-                <i class="fas fa-sync me-2"></i>Xem tổng hợp
-              </button>
-            </div>
-            <div class="card-body">
+              <div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="loadUnifiedSummary()">
+                  <i class="fas fa-sync me-2"></i>Xem tổng hợp
+                </button>
+              </div>
+            </div>            <div class="card-body">
               <!-- Unified Summary Table -->
               <div id="unifiedSummaryDiv" style="display: none;">
-                <!-- <div class="alert alert-info mb-3">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Lưu ý:</strong> Mỗi hợp đồng có cùng chỉ số cho cả số hợp đồng (HĐ-ĐT) và số thanh lý (TLHĐ-ĐT)
-              </div> -->
+                <div class="alert alert-info mb-3">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <strong>Lưu ý:</strong> Dữ liệu được sắp xếp theo khoa và hệ đào tạo để đảm bảo số tăng dần đúng thứ tự.
+                </div>
                 <div class="table-responsive">
                   <table class="table table-striped table-hover table-sm" id="unifiedSummaryTable">
                     <thead class="table-dark">
@@ -243,18 +243,15 @@
             <div class="card-body">
               <!-- Results Table -->
               <div id="resultsDiv" style="display: none;">
-                <div class="table-responsive">
-                  <table class="table table-striped table-hover" id="contractsTable">
-                    <thead class="table-dark">
+                <div class="table-responsive">                  <table class="table table-striped table-hover" id="contractsTable">                    <thead class="table-dark">
                       <tr>
                         <th>STT</th>
                         <th>Họ tên giảng viên</th>
-                        <th>Khoa</th>
-                        <th>Hệ đào tạo</th>
-                        <th>Số hợp đồng hiện tại</th>
-                        <th>Số hợp đồng mới</th>
-                        <th>Số thanh lý hiện tại</th>
-                        <th>Số thanh lý mới</th>
+                        <th>Khoa - Hệ đào tạo</th>
+                        <th>Số HĐ hiện tại</th>
+                        <th>Số TL hiện tại</th>
+                        <th>Số HĐ mới</th>
+                        <th>Số TL mới</th>
                       </tr>
                     </thead>
                     <tbody id="contractsTableBody">
@@ -486,25 +483,62 @@
           .always(function () {
             showLoading(false);
           });
-      }
-
-      // Display synchronized preview results
+      }      // Display synchronized preview results
       function displaySynchronizedPreviewResults(contracts) {
         const tbody = $('#contractsTableBody');
         tbody.empty();
 
-        contracts.forEach((contract, index) => {
+        if (contracts.length === 0) {
           tbody.append(`
-          <tr>
-            <td>${index + 1}</td>
-            <td>${contract.HoTen || ''}</td>
-            <td>${contract.Khoa || ''}</td>
-            <td>${contract.HeDaoTao || ''}</td>            <td>${contract.SoHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-            <td><strong class="text-success">${contract.newSoHopDong}</strong></td>
-            <td>${contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-            <td><strong class="text-info">${contract.newSoThanhLy}</strong></td>
-          </tr>
-        `);
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+          $('#resultsDiv').show();
+          return;
+        }
+
+        // Group contracts by faculty and education system for better display
+        let currentGroup = '';
+        let groupRowSpan = 0;
+        
+        contracts.forEach((contract, index) => {
+          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+          const isNewGroup = groupInfo !== currentGroup;
+          
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index && 
+              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+          }
+
+          // Old numbers: Current database values
+          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          
+          // New numbers: Preview values with highlight
+          const newContractNumber = contract.newSoHopDong 
+            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+            
+          const newTerminationNumber = contract.newSoThanhLy 
+            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
+          tbody.append(`
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || ''}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${oldContractNumber}</td>
+              <td>${oldTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+            </tr>
+          `);
         });
         $('#resultsDiv').show();
       }
@@ -611,31 +645,41 @@
           .always(function () {
             showLoading(false);
           });
-      }    // Display contracts in table
+      }      // Display contracts in table
       function displayContracts(contracts) {
         const tbody = $('#contractsTableBody');
         tbody.empty();
 
         if (contracts.length === 0) {
-          tbody.append('<tr><td colspan="8" class="text-center">Không có hợp đồng nào</td></tr>');
+          tbody.append('<tr><td colspan="7" class="text-center">Không có hợp đồng nào</td></tr>');
         } else {
           contracts.forEach((contract, index) => {
+            // Combined Khoa and HeDaoTao column
+            const khoaHeDaoTao = `${contract.Khoa || contract.MaPhongBan || ''} - ${contract.HeDaoTao || contract.he_dao_tao || ''}`;
+            
+            // Current contract numbers from database (old numbers)
+            const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+            
+            // New numbers: Show "Chưa có" when first loading, will be updated during preview
+            const newContractNumber = '<span class="text-muted">Chưa có</span>';
+            const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+            
             tbody.append(`
             <tr>
               <td>${index + 1}</td>
               <td>${contract.HoTen || ''}</td>
-              <td>${contract.Khoa || ''}</td>
-              <td>${contract.HeDaoTao || ''}</td>
-              <td>${contract.SoHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-              <td><span class="text-muted">Chưa cài đặt</span></td>
-              <td>${contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-              <td><span class="text-muted">Chưa cài đặt</span></td>
+              <td>${khoaHeDaoTao}</td>
+              <td>${currentContractNumber}</td>
+              <td>${currentTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
             </tr>
           `);
           });
         }
         $('#resultsDiv').show();
-      }    // Load unified contract and termination summary
+      }// Load unified contract and termination summary
       function loadUnifiedSummary() {
         console.log('loadUnifiedSummary() called');
         showLoading(true);
@@ -806,20 +850,48 @@
         const tbody = $('#contractsTableBody');
         tbody.empty();
 
+        if (contracts.length === 0) {
+          tbody.append(`
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+          $('#resultsDiv').show();
+          return;
+        }
+
         contracts.forEach((contract, index) => {
+          // Combine Khoa and HeDaoTao into single column
+          const khoaHeDaoTao = `${contract.Khoa || contract.MaPhongBan || ''} - ${contract.HeDaoTao || contract.he_dao_tao || ''}`;
+          
+          // Old numbers: Current database values
+          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          
+          // New numbers: Preview values with highlight
+          const newContractNumber = contract.newSoHopDong 
+            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+            
+          const newTerminationNumber = contract.newSoThanhLy 
+            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
           tbody.append(`
           <tr>
             <td>${index + 1}</td>
             <td>${contract.HoTen || ''}</td>
-            <td>${contract.Khoa || ''}</td>
-            <td>${contract.HeDaoTao || ''}</td>
-            <td>${contract.SoHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-            <td><strong class="text-success">${contract.newSoHopDong}</strong></td>
-            <td>${contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-            <td><span class="text-muted">Không thay đổi</span></td>
+            <td>${khoaHeDaoTao}</td>
+            <td>${oldContractNumber}</td>
+            <td>${oldTerminationNumber}</td>
+            <td>${newContractNumber}</td>
+            <td>${newTerminationNumber}</td>
           </tr>
         `);
         });
+        $('#resultsDiv').show();
       }// Execute setup
       function executeSetup() {
         const dot = $('#combobox-dot').val();
@@ -985,26 +1057,61 @@
           .always(function () {
             showLoading(false);
           });
-      }
-
-      // Display termination preview results
+      }      // Display termination preview results
       function displayTerminationPreviewResults(contracts) {
         const tbody = $('#contractsTableBody');
         tbody.empty();
 
-        contracts.forEach((contract, index) => {
+        if (contracts.length === 0) {
           tbody.append(`
-          <tr>
-            <td>${index + 1}</td>
-            <td>${contract.HoTen || ''}</td>
-            <td>${contract.Khoa || ''}</td>
-            <td>${contract.HeDaoTao || ''}</td>
-            <td>${contract.SoHopDong || '<span class="text-muted">Chưa có</span>'}</td>            <td><span class="text-muted">Không thay đổi</span></td>
-            <td>${contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>'}</td>
-            <td><strong class="text-info">${contract.newSoThanhLy}</strong></td>
-          </tr>
-        `);
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+          $('#resultsDiv').show();
+          return;
+        }
+
+        // Group contracts by faculty and education system for better display
+        let currentGroup = '';
+        let groupRowSpan = 0;
+        
+        contracts.forEach((contract, index) => {
+          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+          const isNewGroup = groupInfo !== currentGroup;
+          
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index && 
+              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+          }
+
+          // Old numbers: Current database values
+          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          
+          // New numbers: For termination preview, only show new termination numbers
+          const newContractNumber = '<span class="text-muted">-</span>';
+          const newTerminationNumber = contract.newSoThanhLy 
+            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
+          tbody.append(`
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || ''}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${oldContractNumber}</td>
+              <td>${oldTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+            </tr>
+          `);
         });
+        $('#resultsDiv').show();
       }
 
       // Execute termination setup
@@ -1134,8 +1241,117 @@
               executeTerminationSetup();
             }
           }
+        });      }      // Display contracts in table with group information
+      function displayContracts(contracts) {
+        const tbody = $('#contractsTableBody');
+        tbody.empty();        if (contracts.length === 0) {
+          tbody.append(`
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+          $('#resultsDiv').show();
+          return;
+        }
+
+        // Group contracts by faculty and education system for better display
+        let currentGroup = '';
+        let groupRowSpan = 0;
+        
+        contracts.forEach((contract, index) => {
+          const groupInfo = `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+          const isNewGroup = groupInfo !== currentGroup;
+          
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index && 
+              `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}` === groupInfo).length;
+          }
+
+          // Current contract numbers from database (old numbers)
+          const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+          const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          
+          // New numbers: Show "Chưa có" when first loading, will be updated during preview
+          const newContractNumber = '<span class="text-muted">Chưa có</span>';
+          const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+
+          tbody.append(`
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || ''}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${currentContractNumber}</td>
+              <td>${currentTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+            </tr>
+          `);
         });
-      }    // Legacy function removed - using unified summary function above
+        
+        $('#resultsDiv').show();
+      }// Enhanced display preview results with group information  
+      function displayPreviewResults(contracts) {
+        const tbody = $('#contractsTableBody');
+        tbody.empty();
+
+        if (contracts.length === 0) {
+          tbody.append(`
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+          $('#resultsDiv').show();
+          return;
+        }
+
+        // Group contracts by faculty and education system for better display
+        let currentGroup = '';
+        let groupRowSpan = 0;
+        
+        contracts.forEach((contract, index) => {
+          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+          const isNewGroup = groupInfo !== currentGroup;
+          
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index && 
+              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+          }          // Old numbers: Current database values
+          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          
+          // New numbers: Show both contract and termination numbers when available
+          const newContractNumber = contract.newSoHopDong 
+            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+          const newTerminationNumber = contract.newSoThanhLy 
+            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
+          tbody.append(`
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || ''}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${oldContractNumber}</td>
+              <td>${oldTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+            </tr>
+          `);
+        });
+        
+        $('#resultsDiv').show();
+      }
+
+      // Legacy function removed - using unified summary function above
 
       // Utility functions
       function showLoading(show) {
