@@ -270,116 +270,205 @@ const renderInfoWithValueKhoa = async (req, res) => {
   }
 };
 
-// const renderInfoWithValueKhoa = async (req, res) => {
-//   const { Khoa, Dot, Ki, Nam } = req.body; // Lấy giá trị Khoa, Dot, Ki, Nam từ body của yêu cầu
-//   const tableName = process.env.DB_TABLE_QC; // Bảng cần truy vấn
-//   let query = ""; // Khởi tạo query
+// const totalNumberOfPeriods = async (connection, data) => {
+//   try {
+//     const [gvmList] = await connection.query("SELECT * FROM gvmoi");
+//     const [coHuuList] = await connection.query("SELECT * FROM nhanvien");
 
-//   // Gọi hàm KhoaCheckAll để kiểm tra điều kiện duyệt
-//   const kq = await KhoaCheckAll(req, Dot, Ki, Nam);
+//     let tongTietMoiGiang = 0;
+//     let tongTietCoHuu = 0;
+//     let tongTietAll = 0;
 
-//   // Kiểm tra nếu "TAICHINH" không có trong kết quả, trả về thông báo chưa duyệt
+//     const tongTietDetail = {};
+//     const detailMoiGiang = {};
+//     const detailCoHuu = {};
 
-//   // if (!kq.includes("TAICHINH")) {
-//   //   return res
-//   //     .status(403)
-//   //     .json({ message: "Quy chuẩn chưa được duyệt bởi Tài chính" });
-//   // }
+//     // Hàm xác định loại giảng viên và gắn hậu tố
+//     const getLabel = (ten, type) => {
+//       const tenTrim = ten.trim();
 
-//   // Xác định query SQL với điều kiện WHERE cho Khoa, Dot, Ki, Nam
-//   query = `
-//     SELECT * FROM ${tableName}
-//     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?`;
-
-//   console.log({ Khoa, Dot, Ki, Nam }); // Log the incoming request parameters for debugging
-
-//   // Lấy connection từ pool hoặc createConnection
-//   connection.query(
-//     query,
-//     [Khoa, Dot, Ki, Nam], // Truyền các tham số an toàn vào query
-//     (error, results) => {
-//       if (error) {
-//         // Trả về lỗi nếu có vấn đề trong truy vấn SQL
-//         return res.status(500).json({ error: "Lỗi truy vấn" });
+//       let isMoi, isCoHuu;
+//       if (type == 1) {
+//         isMoi = gvmList.some((gv) => gv.HoTen?.trim() === tenTrim);
+//       } else {
+//         isCoHuu = coHuuList.some((gv) => gv.TenNhanVien?.trim() === tenTrim);
 //       }
 
-//       if (results.length === 0) {
-//         // Trả về thông báo nếu không tìm thấy dữ liệu
-//         return res.status(404).json({ message: "Không có dữ liệu" });
-//       }
+//       if (isMoi) return `${tenTrim} - Giảng viên mời`;
+//       if (isCoHuu) return `${tenTrim} - Cơ hữu`;
+//       return tenTrim; // không xác định
+//     };
 
-//       // Trả về kết quả truy vấn dưới dạng JSON
-//       return res.status(200).json({
-//         results, // Trả về kết quả từ query
-//       });
+//     // Tính tổng tiết cho từng giảng viên
+//     data.forEach((row) => {
+//       const giangVien = row.GiaoVienGiangDay;
+//       if (!giangVien) return;
+
+//       if (giangVien.includes(",")) {
+//         const [gv1, gv2] = giangVien.split(",").map((gv) => gv.trim());
+//         const gv1Label = getLabel(gv1, 0);
+//         const gv2Label = getLabel(gv2, row.MoiGiang);
+
+//         tongTietDetail[gv1Label] =
+//           (tongTietDetail[gv1Label] || 0) + row.QuyChuan * 0.3;
+//         tongTietDetail[gv2Label] =
+//           (tongTietDetail[gv2Label] || 0) + row.QuyChuan * 0.7;
+//       } else {
+//         const gvLabel = getLabel(giangVien, row.MoiGiang);
+//         tongTietDetail[gvLabel] = (tongTietDetail[gvLabel] || 0) + row.QuyChuan;
+//       }
+//     });
+
+//     // Phân loại lại để thống kê chi tiết
+//     for (const tenGV in tongTietDetail) {
+//       const tiet = tongTietDetail[tenGV];
+//       tongTietAll += tiet;
+
+//       if (tenGV.includes("Giảng viên mời")) {
+//         tongTietMoiGiang += tiet;
+//         detailMoiGiang[tenGV] = tiet;
+//       } else if (tenGV.includes("Cơ hữu")) {
+//         tongTietCoHuu += tiet;
+//         detailCoHuu[tenGV] = tiet;
+//       }
 //     }
-//   );
-// };
 
-// cũ
-// const renderInfo = async (req, res) => {
-//   const role = req.session.role;
-//   const isKhoa = req.session.isKhoa;
-//   const MaPhongBan = req.session.MaPhongBan;
-//   console.log("Mã phòng ban = ", MaPhongBan);
-
-//   const { Dot, Ki, Nam } = req.body; // Lấy giá trị khoa, dot, ki từ body của yêu cầu
-//   const tableName = process.env.DB_TABLE_QC;
-//   let query = "";
-//   console.log(Dot, Ki, Nam);
-
-//   if (isKhoa == 1) {
-//     query = `SELECT * FROM ${tableName}
-//     WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND Khoa = ?;`;
+//     return {
+//       tongTietMoiGiang,
+//       tongTietCoHuu,
+//       tongTietAll,
+//       tongTietDetail,
+//       detailMoiGiang,
+//       detailCoHuu,
+//     };
+//   } catch (error) {
+//     console.error("Lỗi khi xử lý:", error);
+//   } finally {
+//     if (connection) connection.release();
 //   }
-//   // Xây dựng câu truy vấn SQL sử dụng các tham số
-//   if (isKhoa == 0) {
-//     query = `
-//       SELECT * FROM ${tableName}
-//       WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;
-//     `;
-//   }
-
-//   // Gọi hàm KhoaCheckAll để kiểm tra
-//   const check = await KhoaCheckAll(req, Dot, Ki, Nam);
-//   const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, Ki, Nam);
-//   const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, Ki, Nam);
-
-//   // Thực thi câu truy vấn với các tham số an toàn
-//   connection.query(
-//     query,
-//     isKhoa == 0 ? [Dot, Ki, Nam] : [Dot, Ki, Nam, MaPhongBan],
-//     (error, results) => {
-//       if (error) {
-//         return res.status(500).json({ error: "Internal server error" });
-//       }
-
-//       if (results.length === 0) {
-//         return res.status(404).json({ message: "No data found" });
-//       }
-
-//       // Trả về kết quả tương ứng với đợt, kì, năm và thêm check
-//       return res.status(200).json({
-//         results: results,
-//         check: check,
-//         DaoTaoCheck: DaoTaoCheck,
-//         TaiChinhCheck: TaiChinhCheck,
-//       }); // Trả về kết quả tương ứng với đợt, kì, năm và check
-//     }
-//   );
 // };
-
-// Hàm lấy tất cả tên giảng viên từ cơ sở dữ liệu
 
 // mới
+
+const totalNumberOfPeriods = async (connection, data) => {
+  try {
+    const [gvmList] = await connection.query("SELECT * FROM gvmoi");
+    const [coHuuList] = await connection.query("SELECT * FROM nhanvien");
+
+    let tongTietMoiGiang = 0;
+    let tongTietCoHuu = 0;
+    let tongTietAll = 0;
+
+    const tongTietDetail = {};
+    const detailMoiGiang = {};
+    const detailCoHuu = {};
+
+    // Hàm xác định loại giảng viên và gắn hậu tố
+    const getLabel = (ten, type) => {
+      const tenTrim = ten.trim();
+
+      let isMoi, isCoHuu;
+      if (type == 1) {
+        isMoi = gvmList.some((gv) => gv.HoTen?.trim() === tenTrim);
+      } else {
+        isCoHuu = coHuuList.some((gv) => gv.TenNhanVien?.trim() === tenTrim);
+      }
+
+      if (isMoi) return `${tenTrim} - Giảng viên mời`;
+      if (isCoHuu) return `${tenTrim} - Cơ hữu`;
+      return tenTrim; // không xác định
+    };
+
+    // Tính tổng tiết cho từng giảng viên
+    data.forEach((row) => {
+      const giangVien = row.GiaoVienGiangDay;
+      if (!giangVien) return;
+
+      // Chuyển đổi QuyChuan sang số và xử lý null/undefined
+      const quyChuan = parseFloat(row.QuyChuan) || 0;
+
+      if (giangVien.includes(",")) {
+        const [gv1, gv2] = giangVien.split(",").map((gv) => gv.trim());
+        const gv1Label = getLabel(gv1, 0);
+        const gv2Label = getLabel(gv2, row.MoiGiang);
+
+        // Đảm bảo phép cộng số học
+        tongTietDetail[gv1Label] =
+          (parseFloat(tongTietDetail[gv1Label]) || 0) + quyChuan * 0.3;
+        tongTietDetail[gv2Label] =
+          (parseFloat(tongTietDetail[gv2Label]) || 0) + quyChuan * 0.7;
+      } else {
+        const gvLabel = getLabel(giangVien, row.MoiGiang);
+        tongTietDetail[gvLabel] =
+          (parseFloat(tongTietDetail[gvLabel]) || 0) + quyChuan;
+      }
+    });
+
+    // Phân loại lại để thống kê chi tiết
+    for (const tenGV in tongTietDetail) {
+      const tiet = parseFloat(tongTietDetail[tenGV]) || 0;
+      tongTietAll += tiet;
+
+      gvInfo = tachTenVaLoai(tenGV);
+
+      if (gvInfo.loai.includes("giảng viên mời")) {
+        tongTietMoiGiang += tiet;
+        detailMoiGiang[gvInfo.ten] = tiet;
+      } else if (gvInfo.loai.includes("cơ hữu")) {
+        tongTietCoHuu += tiet;
+        detailCoHuu[gvInfo.ten] = tiet;
+      }
+    }
+
+    // Làm tròn kết quả để tránh lỗi floating point
+    return {
+      tongTietMoiGiang: Math.round(tongTietMoiGiang * 100) / 100,
+      tongTietCoHuu: Math.round(tongTietCoHuu * 100) / 100,
+      tongTietAll: Math.round(tongTietAll * 100) / 100,
+      tongTietDetail: Object.fromEntries(
+        Object.entries(tongTietDetail).map(([key, value]) => [
+          key,
+          Math.round((parseFloat(value) || 0) * 100) / 100,
+        ])
+      ),
+      detailMoiGiang: Object.fromEntries(
+        Object.entries(detailMoiGiang).map(([key, value]) => [
+          key,
+          Math.round(value * 100) / 100,
+        ])
+      ),
+      detailCoHuu: Object.fromEntries(
+        Object.entries(detailCoHuu).map(([key, value]) => [
+          key,
+          Math.round(value * 100) / 100,
+        ])
+      ),
+    };
+  } catch (error) {
+    console.error("Lỗi khi xử lý:", error);
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+function tachTenVaLoai(tenGoc) {
+  const match = tenGoc.match(/^(.+?)\s*-\s*(Giảng viên mời|Cơ hữu)/i);
+  if (match) {
+    return {
+      ten: match[1].trim(),
+      loai: match[2].trim().toLowerCase(),
+    };
+  } else {
+    return {
+      ten: tenGoc.trim(),
+      loai: null,
+    };
+  }
+}
+
 const renderInfo = async (req, res) => {
   const isKhoa = req.session.isKhoa;
   const MaPhongBan = req.session.MaPhongBan;
-
-  // if (typeof MaPhongBan === "undefined") {
-  //   // console.log("ok");
-  //   return res.status(500).json({ error: "Vui lòng đăng nhập lại!" });
-  // }
 
   const { Dot, Ki, Nam } = req.body; // Lấy giá trị Dot, Ki, Nam từ body của yêu cầu
   const tableName = process.env.DB_TABLE_QC;
@@ -416,12 +505,15 @@ const renderInfo = async (req, res) => {
       return res.status(404).json({ message: "No data found" });
     }
 
+    const tongTiet = await totalNumberOfPeriods(connection, results);
+
     // Trả về kết quả và các giá trị check
     return res.status(200).json({
       results: results,
       check: check,
       DaoTaoCheck: DaoTaoCheck,
       VPCheck: TaiChinhCheck,
+      tongTiet,
     });
   } catch (error) {
     // Xử lý lỗi trong trường hợp truy vấn thất bại

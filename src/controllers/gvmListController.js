@@ -503,7 +503,7 @@ const getGvmListXLSX = async (req, res, rows, MaPhongBan) => {
 
     worksheet.columns = [
       { header: "STT", key: "stt", width: 5 },
-      { header: "Họ và Tên", key: "HoTen", width: 20 },
+      { header: "Họ và tên", key: "HoTen", width: 20 },
       { header: "Giới Tính", key: "GioiTinh", width: 12 },
       { header: "Ngày Sinh", key: "NgaySinh", width: 15 },
       { header: "Điện Thoại", key: "DienThoai", width: 15 },

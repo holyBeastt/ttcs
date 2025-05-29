@@ -431,6 +431,10 @@
                 <strong>Tổng tiết cơ hữu:</strong>
                 <span id="tietCoHuu">0</span>
               </div>
+              <div id="tongTietChuaRoBox">
+                <strong>Tổng tiết chưa rõ:</strong>
+                <span id="tietChuaRo">0</span>
+              </div>
               <div>
                 <strong>Tổng số tiết:</strong>
                 <span id="tongTiet">0</span>
@@ -635,6 +639,13 @@
           tongTiet.tongTietMoiGiang;
         document.getElementById("tietCoHuu").innerText = tongTiet.tongTietCoHuu;
         document.getElementById("tongTiet").innerText = tongTiet.tongTietAll;
+
+        if (tongTiet.tongTietChuaRo == 0) {
+          document.getElementById("tongTietChuaRoBox").style.display = "none";
+        } else {
+          document.getElementById("tietChuaRo").innerText =
+            tongTiet.tongTietChuaRo;
+        }
 
         const popup = document.getElementById("popupChiTiet");
         const xemChiTiet = document.getElementById("xemChiTiet");
