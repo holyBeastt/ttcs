@@ -27,20 +27,51 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <style>
       .filter-container {
-        display: flex; /* Sử dụng Flexbox */
-        justify-content: space-between; /* Chia đều không gian giữa hai phần */
-        margin-bottom: 20px; /* Khoảng cách dưới cùng */
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        align-items: center; /* Căn giữa theo chiều dọc */
       }
 
       .left-container,
       .right-container {
-        display: flex; /* Sử dụng Flexbox cho các phần tử bên trong */
-        align-items: center; /* Căn giữa theo chiều dọc */
+        display: flex;
+        align-items: center;
         gap: 10px; /* Khoảng cách giữa các phần tử */
       }
 
+      /* Đặt kích thước và căn chỉnh đồng đều cho các phần tử */
+      .form-select,
+      input[type="date"],
+      .btn,
+      .right-container label {
+        height: 38px; /* Chiều cao cố định */
+        font-size: 14px; /* Kích thước chữ đồng đều */
+        line-height: 1.5; /* Căn giữa chữ theo chiều dọc */
+        margin: 0; /* Loại bỏ margin mặc định */
+        padding: 6px 12px; /* Padding đồng đều */
+        box-sizing: border-box; /* Đảm bảo kích thước tính cả padding và border */
+      }
+
       .form-select {
-        margin-top: 0;
+        width: 150px; /* Chiều rộng cố định cho dropdown */
+      }
+
+      input[type="date"] {
+        width: 150px; /* Chiều rộng cố định cho input date */
+      }
+
+      .right-container label {
+        margin-top: 25px;
+        display: flex;
+        align-items: center; /* Căn giữa nhãn theo chiều dọc */
+        padding: 0 6px; /* Padding nhẹ để cân đối */
+      }
+
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Căn giữa nội dung nút */
       }
 
       .loading-container {
@@ -54,7 +85,7 @@
         position: relative;
         width: 80px;
         height: 16px;
-        margin: 0 auto; /* Căn giữa spinner */
+        margin: 0 auto;
       }
 
       .spinner div {
@@ -111,6 +142,20 @@
         color: #004dff;
         font-weight: bold;
       }
+
+      /* Đảm bảo z-index của modal và backdrop */
+      .modal {
+        z-index: 1055 !important;
+      }
+
+      .modal-backdrop {
+        z-index: 1050 !important;
+        opacity: 0.5 !important;
+      }
+
+      .swal2-container {
+        z-index: 1000 !important;
+      }
     </style>
   </head>
 
@@ -136,7 +181,6 @@
         <button
           id="showButton"
           class="btn btn-primary"
-          style="margin-top: 15px"
         >
           Hiển thị
         </button>
@@ -149,13 +193,33 @@
         <button
           id="filterButton"
           class="btn btn-primary"
-          style="margin-top: 15px; margin-right: 10px"
         >
           Lọc
         </button>
+        <button id="downloadButton" class="btn btn-success">
+          <i class="bi bi-download"></i> Tải file log
+        </button>
       </div>
     </div>
-
+    <!-- Modal hiển thị danh sách file -->
+    <div class="modal fade" id="logFilesModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Chọn file log để tải về</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="list-group" id="logFilesList">
+              <!-- Danh sách file sẽ được thêm ở đây -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Thêm loading indicator -->
     <div class="loading-container" id="loadingIndicator">
       <div class="spinner">
@@ -182,6 +246,8 @@
           <th>Nội Dung Thay Đổi</th>
           <th>Thời Gian Thay Đổi</th>
         </tr>
+ “
+
       </thead>
       <tbody id="logTableBody"></tbody>
     </table>
@@ -398,6 +464,49 @@
         await fetchLoaiThongTinData();
         fetchLogData();
       };
+
+      // Hàm hiển thị danh sách file log
+      async function showLogFiles() {
+        try {
+          const response = await fetch('/api/log/files');
+          const files = await response.json();
+          const filesList = document.getElementById('logFilesList');
+          filesList.innerHTML = '';
+
+          if (files.length === 0) {
+            filesList.innerHTML = '<div class="list-group-item text-center">Không có file log nào</div>';
+            return;
+          }
+
+          files.forEach(file => {
+            const fileSize = (file.size / 1024).toFixed(2); // Convert to KB
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.innerHTML = `
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">${file.name}</h6>
+                <small>${fileSize} KB</small>
+              </div>
+              <small>Click để tải về</small>
+            `;
+            item.addEventListener('click', () => {
+              window.location.href = `/api/log/download/${file.name}`;
+            });
+            filesList.appendChild(item);
+          });
+
+          // Hiển thị modal
+          const modal = new bootstrap.Modal(document.getElementById('logFilesModal'));
+          modal.show();
+        } catch (error) {
+          console.error('Lỗi khi lấy danh sách file log:', error);
+          Swal.fire('Lỗi', 'Không thể lấy danh sách file log', 'error');
+        }
+      }
+
+      // Thêm sự kiện cho nút tải về
+      document.getElementById('downloadButton').addEventListener('click', showLogFiles);
     </script>
   </body>
 </html>

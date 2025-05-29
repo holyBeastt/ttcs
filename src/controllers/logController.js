@@ -1,4 +1,7 @@
 const createConnection = require("../config/databasePool");
+const fs = require('fs');
+const path = require('path');
+const { Document, Packer, Paragraph, TextRun, AlignmentType } = require('docx');
 
 // src/controllers/logController.js
 const logController = {
@@ -10,7 +13,6 @@ const logController = {
   // Phương thức để lấy dữ liệu log
   getLogData: async (req, res) => {
     let connection;
-
     try {
       connection = await createConnection();
       const query = "SELECT * FROM lichsunhaplieu ORDER BY MaLichSuNhap DESC";
@@ -87,7 +89,7 @@ const logController = {
     }
   },
 
-  // Phương thức để lấy dữ liệu LoạiThongTin
+  // Phương thức để lấy dữ liệu LoaiThongTin
   getLoaiThongTinData: async (req, res) => {
     let connection;
     try {
@@ -101,7 +103,127 @@ const logController = {
     } finally {
       if (connection) connection.release();
     }
+  },
+
+  // Phương thức để tự động export log ra file Word
+  autoExportLog: async () => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const query = "SELECT * FROM lichsunhaplieu ORDER BY ThoiGianThayDoi DESC";
+      const [result] = await connection.query(query);
+
+      if (result.length === 0) return;
+
+      // Tạo thư mục logs nếu chưa tồn tại
+      const logDir = path.join(__dirname, '../../logs');
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+
+      // Tạo tên file theo tháng/năm hiện tại
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+      const fileName = `Log_${monthNames[month - 1]}_${year}.docx`;
+      const filePath = path.join(logDir, fileName);
+
+      // Tạo tài liệu Word
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              // Tiêu đề
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `Bảng Lịch Sử Nhập Liệu (${monthNames[month - 1]}/${year})`,
+                    font: "Times New Roman",
+                    size: 36, // Font size 18pt (36 half-points)
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER, // Căn giữa
+                spacing: { after: 200 },
+              }),
+              // Dữ liệu log dưới dạng văn bản
+              ...result.map((item, index) => new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `${item.MaLichSuNhap} | ${new Date(item.ThoiGianThayDoi).toLocaleString()} | ${item.id_User} | ${item.TenNhanVien} | ${item.LoaiThongTin} | ${item.NoiDungThayDoi}`,
+                    font: "Times New Roman",
+                    size: 24, // Font size 12pt (24 half-points)
+                  }),
+                ],
+                spacing: { after: 100 },
+              })),
+            ],
+          },
+        ],
+      });
+
+      // Ghi file
+      const buffer = await Packer.toBuffer(doc);
+      fs.writeFileSync(filePath, buffer);
+      // console.log(`Đã xuất log thành công vào file: ${filePath}`);
+    } catch (err) {
+      console.error('Lỗi khi xuất log ra file Word:', err);
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  // Phương thức để lấy danh sách file log
+  getLogFiles: async (req, res) => {
+    try {
+      const logDir = path.join(__dirname, '../../logs');
+      if (!fs.existsSync(logDir)) {
+        return res.json([]);
+      }
+
+      const files = fs.readdirSync(logDir)
+        .filter(file => file.startsWith('Log_') && file.endsWith('.docx'))
+        .map(file => {
+          const filePath = path.join(logDir, file);
+          return {
+            name: file,
+            path: filePath,
+            size: fs.statSync(filePath).size
+          };
+        });
+
+      res.json(files);
+    } catch (err) {
+      console.error('Lỗi khi lấy danh sách file log:', err);
+      res.status(500).send('Lỗi máy chủ');
+    }
+  },
+
+  // Phương thức để tải file log
+  downloadLogFile: async (req, res) => {
+    try {
+      const fileName = req.params.filename;
+      const filePath = path.join(__dirname, '../../logs', fileName);
+      
+      if (fs.existsSync(filePath)) {
+        res.download(filePath);
+      } else {
+        res.status(404).send('File không tồn tại');
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải file log:', err);
+      res.status(500).send('Lỗi máy chủ');
+    }
   }
 };
+
+// Tự động chạy export log mỗi 5 phút
+setInterval(() => {
+  logController.autoExportLog();
+}, 1000); // 1s
+
+// Chạy ngay lần đầu khi khởi động
+logController.autoExportLog();
 
 module.exports = logController;
