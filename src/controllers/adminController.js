@@ -2,6 +2,7 @@ const express = require("express");
 const mysql = require("mysql2/promise"); // Ensure you have mysql2 installed
 const createPoolConnection = require("../config/databasePool");
 const transferFacultyFileGvm = require("../middlewares/transferFacultyFileGvmMiddleware");
+const mergeFacultyFileGvm = require("../middlewares/mergeFacultyFileGvmMiddleware");
 
 const AdminController = {
   index: (req, res) => {
@@ -1477,7 +1478,7 @@ const AdminController = {
 
   // Lấy site chuyển khoa
   getChuyenKhoaSite: async (req, res) => {
-    res.render("admin.chuyenKhoa.ejs");
+    res.render("admin_chuyenkhoa.ejs");
   },
 
   mergeFacultyData: async (req, res) => {
@@ -1489,8 +1490,6 @@ const AdminController = {
       // Tách thành 2 mảng
       const khoaTen = khoaChon.map((item) => item.split(" - ")[0].trim());
       const khoaMa = khoaChon.map((item) => item.split(" - ")[1].trim());
-
-      return;
 
       const placeholders = khoaChon.map(() => "?").join(", ");
 
@@ -1524,6 +1523,10 @@ const AdminController = {
       // Nếu không tồn tại cả hai => tạo mới khoa, bộ môn CHUNG
       const isMerging = isMatching[0].exist === 1;
       if (!isMerging) {
+        // Chuyển khoa trong phongban
+        const deleteQuery = `DELETE FROM phongban where MaPhongBan IN (${placeholders})`;
+        await connection.query(deleteQuery, [...khoaMa]);
+
         // Tạo khoa mới
         await connection.execute(
           "INSERT INTO phongban(`MaPhongBan`, `TenPhongBan`, `isKhoa`) VALUES (?, ?, ?)",
@@ -1531,34 +1534,112 @@ const AdminController = {
         );
 
         // Tạo bộ môn chung
-        await connection.execute(
-          "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, ?, ?)",
-          [maMoi, "CHUNG", `CHUNG khoa ${maMoi}`]
-        );
-      } else {
-        // Nếu tồn tại cả 2 => khoa cũ => kiểm tra xem đã có bộ môn CHUNG chưa
+        // await connection.execute(
+        //   "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, ?, ?)",
+        //   [maMoi, "CHUNG", `CHUNG khoa ${maMoi}`]
+        // );
+      }
+      // else {
+      //   // Nếu tồn tại cả 2 => khoa cũ => kiểm tra xem đã có bộ môn CHUNG chưa
 
-        // Kiểm tra xem đã có bộ môn CHUNG chưa
-        const [hasChungBoMon] = await connection.execute(
-          `SELECT EXISTS(
-          SELECT 1 FROM bomon
-          WHERE MaPhongBan = ? AND MaBoMon = 'CHUNG'
-        ) AS exist`,
-          [maMoi]
+      //   // Kiểm tra xem đã có bộ môn CHUNG chưa
+      //   const [hasChungBoMon] = await connection.execute(
+      //     `SELECT EXISTS(
+      //     SELECT 1 FROM bomon
+      //     WHERE MaPhongBan = ? AND MaBoMon = 'CHUNG'
+      //   ) AS exist`,
+      //     [maMoi]
+      //   );
+
+      //   if (hasChungBoMon[0].exist === 0) {
+      //     // Nếu chưa có thì tạo
+      //     await connection.execute(
+      //       "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, 'CHUNG', ?)",
+      //       [maMoi, `CHUNG khoa ${maMoi}`]
+      //     );
+      //   }
+      // }
+
+      // Chuyển data vào bomon CHUNG của khoa mới
+      // Chuyển đường dẫn file trong gvmoi
+      let mergeQuery, mergerParams;
+
+      // Đổi tên file lý lịch
+      mergeQuery = `
+        UPDATE gvmoi
+        SET FileLyLich = REGEXP_REPLACE(FileLyLich, '^[^_]+_', CONCAT(?, '_'))
+        WHERE MaPhongBan IN (${placeholders}) AND FileLyLich IS NOT NULL;
+      `;
+
+      mergerParams = [maMoi, ...khoaMa];
+
+      await connection.execute(mergeQuery, mergerParams);
+
+      // Đổi tên file bổ sung
+      mergeQuery = `
+        UPDATE gvmoi
+        SET fileBoSung = REGEXP_REPLACE(fileBoSung, '^[^_]+_', CONCAT(?, '_'))
+        WHERE MaPhongBan IN (${placeholders}) AND fileBoSung IS NOT NULL;
+      `;
+
+      await connection.execute(mergeQuery, mergerParams);
+
+      // Chuyển khoa trong role
+      mergeQuery = `
+        UPDATE role set MaPhongBan = ? where MaPhongBan IN (${placeholders})
+      `;
+
+      await connection.execute(mergeQuery, mergerParams);
+
+      // Chuyển khoa, bộ môn trong bomon, gvmoi
+      for (let i = 0; i < khoaChon.length; i++) {
+        // Chuyển khoa, bộ môn trong bomón
+        const [ten, ma] = khoaChon[i].split(" - ").map((s) => s.trim());
+
+        const deleteQuery = `
+          Delete from bomon where MaPhongBan = ?
+        `;
+        await connection.execute(deleteQuery, [ma]);
+
+        let insertQuery = `
+            INSERT INTO bomon (MaPhongBan, MaBoMon, TenBoMon)
+            VALUES (?, ?, ?)
+        `;
+
+        await connection.execute(insertQuery, [maMoi, ma, ten]);
+
+        // Lấy trước danh sách giảng viên mời cũ để lấy đường dẫn phục vụ việc chuyển file
+        const [gvs] = await connection.execute(
+          `SELECT HoTen, MonGiangDayChinh FROM gvmoi WHERE MaPhongBan = ?`,
+          [ma]
         );
 
-        if (hasChungBoMon[0].exist === 0) {
-          // Nếu chưa có thì tạo
-          await connection.execute(
-            "INSERT INTO bomon(`MaPhongBan`, `MaBoMon`, `TenBoMon`) VALUES (?, 'CHUNG', ?)",
-            [maMoi, `CHUNG khoa ${maMoi}`]
-          );
+        // Chuyển khoa, bộ môn trong gvmoi
+        insertQuery = `
+            UPDATE gvmoi SET MaPhongBan = ?, MonGiangDayChinh = ?
+            WHERE MaPhongBan = ?
+        `;
+
+        await connection.execute(insertQuery, [maMoi, ma, ma]);
+
+        // Chuyển khoa, bộ môn trong nhanvien
+        insertQuery = `
+            UPDATE nhanvien SET MaPhongBan = ?, MonGiangDayChinh = ?
+            WHERE MaPhongBan = ?
+        `;
+
+        await connection.execute(insertQuery, [maMoi, ma, ma]);
+
+        // Chuyển đường dẫn file, tên file
+
+        for (let gv of gvs) {
+          mergeFacultyFileGvm(ma, maMoi, gv.MonGiangDayChinh, gv.HoTen);
         }
       }
 
-      res.json({
+      return res.status(200).json({
         success: true,
-        phanTram: phanTram,
+        message: "Gộp khoa thành công",
       });
     } catch (error) {
       console.error("Lỗi: ", error);

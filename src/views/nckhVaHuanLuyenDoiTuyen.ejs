@@ -1,35 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/nckh.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã</title>
-  <link rel="stylesheet" href="/css/admin.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <link rel="stylesheet" href="/css/nckh.css" />
-</head>
-
-<body>
-  <!-- Phần header -->
-  <%- include('header') %>
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
 
     <!-- Phần nội dung -->
     <div class="my-3 box formNckh">
-      <h2 class="titleNckh">Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển</h2>
+      <h2 class="titleNckh">
+        Hướng dẫn sinh viên NCKH và Huấn luyện đội tuyển
+      </h2>
 
       <div class="tabs">
         <ul class="tabs-nav">
           <li class="tab-item">
-            <a href="#formTab" class="tab-link" id="tab-form" onclick="toggleTabs(event, 'formTab', 'tab-form')">
+            <a
+              href="#formTab"
+              class="tab-link"
+              id="tab-form"
+              onclick="toggleTabs(event, 'formTab', 'tab-form')"
+            >
               Nhập
             </a>
           </li>
           <li class="tab-item">
-            <a href="#viewTab" class="tab-link" id="tab-view" onclick="toggleTabs(event, 'viewTab', 'tab-view')">
+            <a
+              href="#viewTab"
+              class="tab-link"
+              id="tab-view"
+              onclick="toggleTabs(event, 'viewTab', 'tab-view')"
+            >
               Xem số giờ quy đổi
             </a>
           </li>
@@ -43,22 +63,45 @@
             <div class="flex-item">
               <label for="phanLoai">Phân loại</label>
               <select id="phanLoai" name="phanLoai" required>
-                <option value="NCKH đạt yêu cầu cấp khoa">NCKH đạt yêu cầu cấp Khoa</option>
-                <option value="NCKH đạt yêu cầu cấp Học viện">NCKH đạt yêu cầu cấp Học viện</option>
-                <option value="NCKH đạt giải khuyến khích, giải Ba cấp Học viện">NCKH đạt giải khuyến khích, giải Ba cấp
-                  Học viện</option>
-                <option value="NCKH đạt giải Nhì, sản phẩm tiêu biểu cấp Học viện">NCKH đạt giải Nhì, sản phẩm tiêu biểu
-                  cấp Học viện</option>
-                <option value="NCKH đạt giải Nhất cấp Học viện">NCKH đạt giải Nhất cấp Học viện</option>
-                <option value="Huấn luyện đội tuyển trong các cuộc thi cấp quốc tế">Huấn luyện đội tuyển trong các cuộc
-                  thi cấp quốc tế</option>
-                <option value="Huấn luyện đội tuyển trong các cuộc thi trong nước">Huấn luyện đội tuyển trong các cuộc
-                  thi trong nước</option>
+                <option value="NCKH đạt yêu cầu cấp khoa">
+                  NCKH đạt yêu cầu cấp Khoa
+                </option>
+                <option value="NCKH đạt yêu cầu cấp Học viện">
+                  NCKH đạt yêu cầu cấp Học viện
+                </option>
+                <option
+                  value="NCKH đạt giải khuyến khích, giải Ba cấp Học viện"
+                >
+                  NCKH đạt giải khuyến khích, giải Ba cấp Học viện
+                </option>
+                <option
+                  value="NCKH đạt giải Nhì, sản phẩm tiêu biểu cấp Học viện"
+                >
+                  NCKH đạt giải Nhì, sản phẩm tiêu biểu cấp Học viện
+                </option>
+                <option value="NCKH đạt giải Nhất cấp Học viện">
+                  NCKH đạt giải Nhất cấp Học viện
+                </option>
+                <option
+                  value="Huấn luyện đội tuyển trong các cuộc thi cấp quốc tế"
+                >
+                  Huấn luyện đội tuyển trong các cuộc thi cấp quốc tế
+                </option>
+                <option
+                  value="Huấn luyện đội tuyển trong các cuộc thi trong nước"
+                >
+                  Huấn luyện đội tuyển trong các cuộc thi trong nước
+                </option>
               </select>
             </div>
             <div class="flex-item">
               <label for="namHocForm">Năm học</label>
-              <select class="namHoc" id="namHocForm" name="namHoc" required></select>
+              <select
+                class="namHoc"
+                id="namHocForm"
+                name="namHoc"
+                required
+              ></select>
             </div>
             <!-- <div class="flex-item">
               <label for="MaPhongBanForm">Khoa</label>
@@ -69,21 +112,38 @@
 
           <div class="form-group">
             <label for="tenDeTai">Tên đề tài</label>
-            <input type="text" id="tenDeTai" name="tenDeTai" placeholder="Nhập tên đề tài" required />
+            <input
+              type="text"
+              id="tenDeTai"
+              name="tenDeTai"
+              placeholder="Nhập tên đề tài"
+              required
+            />
           </div>
 
           <div class="form-group flex-container">
             <div class="flex-item">
               <label for="soQuyetDinh">Số quyết định giao nhiệm vụ</label>
-              <input type="text" id="soQuyetDinh" name="soQuyetDinh" placeholder="VD: 1277/QĐ-HVM" required />
+              <input
+                type="text"
+                id="soQuyetDinh"
+                name="soQuyetDinh"
+                placeholder="VD: 1277/QĐ-HVM"
+                required
+              />
             </div>
             <div class="flex-item">
               <label for="ngayQuyetDinh">Ngày quyết định giao nhiệm vụ</label>
-              <input type="date" id="ngayQuyetDinh" name="ngayQuyetDinh" required />
+              <input
+                type="date"
+                id="ngayQuyetDinh"
+                name="ngayQuyetDinh"
+                required
+              />
             </div>
             <div class="flex-item">
               <label for="ketQua">Kết quả</label>
-              <select id="ketQua" style="width: 100% !important;" required>
+              <select id="ketQua" style="width: 100% !important" required>
                 <option value="Đạt">Đạt</option>
                 <option value="Giỏi">Giỏi</option>
                 <option value="Xuất sắc">Xuất sắc</option>
@@ -93,22 +153,48 @@
 
           <div class="form-group flex-container">
             <div class="flex-item">
-              <label for="thanhVien">Thành viên
-                <input type="checkbox" id="thanhVienCheckbox" name="thanhVienCheckbox" />
-                <span class="faded-text">(Check nếu là giảng viên ngoài viện và điền đơn vị công tác)</span>
+              <label for="thanhVien"
+                >Thành viên
+                <input
+                  type="checkbox"
+                  id="thanhVienCheckbox"
+                  name="thanhVienCheckbox"
+                />
+                <span class="faded-text"
+                  >(Check nếu là giảng viên ngoài viện và điền đơn vị công
+                  tác)</span
+                >
               </label>
-              <div id="themThanhVien-suggestions" class="suggestions-container-dstv"></div>
-              <input type="text" id="thanhVien" name="thanhVien" placeholder="Nhập tên thành viên" class="input-field"
-                required />
+              <div
+                id="themThanhVien-suggestions"
+                class="suggestions-container-dstv"
+              ></div>
+              <input
+                type="text"
+                id="thanhVien"
+                name="thanhVien"
+                placeholder="Nhập tên thành viên"
+                class="input-field"
+                required
+              />
             </div>
             <div class="flex-item combo-box-wrapper">
               <label for="thanhVienComboBox">Đơn vị</label>
-              <input type="text" id="thanhVienComboBox" name="thanhVienComboBox" class="combo-box"
-                placeholder="Nhập đơn vị" required />
+              <input
+                type="text"
+                id="thanhVienComboBox"
+                name="thanhVienComboBox"
+                class="combo-box"
+                placeholder="Nhập đơn vị"
+                required
+              />
             </div>
           </div>
 
-          <div id="memberListDisplay" class="member-list-display form-group"></div>
+          <div
+            id="memberListDisplay"
+            class="member-list-display form-group"
+          ></div>
           <button type="button" class="btn" id="submitBtn">Gửi</button>
         </form>
       </div>
@@ -129,7 +215,9 @@
             </select>
           </div> -->
           <div class="flex-item-view">
-            <button onclick="" class="btn text-nowrap" id="render">Hiển thị</button>
+            <button onclick="" class="btn text-nowrap" id="render">
+              Hiển thị
+            </button>
           </div>
         </div>
 
@@ -139,19 +227,28 @@
       </div>
     </div>
     <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Link thư viện tabulator -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
     <!-- fix ngày -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css"
+    />
     <!-- Flatpickr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <!-- nckh view -->
@@ -159,164 +256,238 @@
       var table;
       var daoTaoDuyet;
 
-      document.getElementById("render").addEventListener("click", async function () {
-        const year = document.getElementById("namHocXem").value;
-        // const department = document.getElementById("MaPhongBanView").value;
+      document
+        .getElementById("render")
+        .addEventListener("click", async function () {
+          const year = document.getElementById("namHocXem").value;
+          // const department = document.getElementById("MaPhongBanView").value;
 
-        let department;
-        if (localStorage.getItem("MaPhongBan") == "DAOTAO" || localStorage.getItem("MaPhongBan") == "KHCN&HTPT") {
-          department = "ALL";
-        } else {
-          department = localStorage.getItem("MaPhongBan");
-        };
-
-        const url = `/nckhvahuanluyendoituyen/${year}/${department}`;
-
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-
-          // Lấy thông tin từ localStorage
-          const userRole = localStorage.getItem("userRole");
-          const userPhongBan = localStorage.getItem("MaPhongBan");
-
-          // Định nghĩa các cột với logic giống đề tài dự án:
-          let columns;
-
-          // Cấp quyền sửa
-          if (userRole === "GV" || userRole === "Thường") {
-            columns = [
-              { title: "Phân loại", field: "PhanLoai", editor: "false", width: "10%" },
-              { title: "Tên đề tài", field: "TenDeTai", editor: "false" },
-              { title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "false", width: "7%" },
-              {
-                title: "Ngày QĐ Giao NV",
-                field: "NgayQDGiaoNhiemVu",
-                editor: "false",
-                formatter: "datetime",
-                formatterParams: {
-                  inputFormat: "iso",
-                  outputFormat: "dd/MM/yyyy"
-                },
-                width: "7%"
-              },
-              { title: "Khoa", field: "KetQuaCapKhoa", editor: "false", width: "10%" },
-              { title: "Học viện", field: "KetQuaCapHocVien", editor: "false", width: "10%" },
-              { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "false" }
-            ];
+          let department;
+          if (
+            localStorage.getItem("MaPhongBan") == "DAOTAO" ||
+            localStorage.getItem("MaPhongBan") == "NC&HTPT"
+          ) {
+            department = "ALL";
           } else {
-            columns = [
-              {
-                title: "Phân loại", field: "PhanLoai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "10%"
-              },
-              { title: "Tên đề tài", field: "TenDeTai", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 },
-              {
-                title: "Số QĐ giao nhiệm vụ", field: "SoQDGiaoNhiemVu", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "7%"
-              },
-              {
-                title: "Ngày QĐ giao nhiệm vụ",
-                field: "NgayQDGiaoNhiemVu",
-                editor: customDateEditor,
-                formatter: "datetime",
-                formatterParams: {
-                  inputFormat: "iso",
-                  outputFormat: "MM/dd/yyyy"
+            department = localStorage.getItem("MaPhongBan");
+          }
+
+          const url = `/nckhvahuanluyendoituyen/${year}/${department}`;
+
+          try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Lấy thông tin từ localStorage
+            const userRole = localStorage.getItem("userRole");
+            const userPhongBan = localStorage.getItem("MaPhongBan");
+
+            // Định nghĩa các cột với logic giống đề tài dự án:
+            let columns;
+
+            // Cấp quyền sửa
+            if (userRole === "GV" || userRole === "Thường") {
+              columns = [
+                {
+                  title: "Phân loại",
+                  field: "PhanLoai",
+                  editor: "false",
+                  width: "10%",
                 },
-                editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-                width: "7%"
-              },
-              { title: "Khoa", field: "KetQuaCapKhoa", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
-              { title: "Học viện", field: "KetQuaCapHocVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1, width: "10%" },
-              { title: "Danh sách thành viên", field: "DanhSachThanhVien", editor: "input", editable: cell => cell.getRow().getData().DaoTaoDuyet != 1 }
-            ];
-          }
-
-          // Nếu khoa == ALL thì thêm cột khoa
-          if (department == "ALL") {
-            columns.push({
-              title: "Khoa",
-              field: "Khoa",
-              editor: (userRole === "GV" || userRole === "Thường") ? "false" : "input",
-              editable: cell => cell.getRow().getData().DaoTaoDuyet != 1,
-              width: "10%"
-            });
-          }
-
-          // Cấp quyền xóa
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT" || userRole === "GV_CNBM" || userRole === "Lãnh đạo khoa") {
-            columns.push({
-              title: "Xóa",
-              field: "actions",
-              formatter: actionFormatter,
-              hozAlign: "center",
-              headerSort: false,
-              width: "5%"
-            });
-          }
-
-          // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
-          if (userRole === "Duyệt" && MaPhongBan == "KHCN&HTPT") {
-            columns.push({
-              title: "Duyệt",
-              field: "DaoTaoDuyet",
-              formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
-              editor: "tickCross",    // Cho phép chỉnh sửa checkbox theo mặc định
-              // Khi click vào ô checkbox, chuyển sang chế độ chỉnh sửa ngay lập tức
-              cellClick: function (e, cell) {
-                const rowData = cell.getRow().getData();
-                daoTaoDuyet = rowData.DaoTaoDuyet;
-                cell.edit();
-              },
-              width: "7%"
-            });
-          }
-
-          // Tạo bảng với Tabulator
-          table = new Tabulator("#table-container", {
-            data: data,
-            dependencies: { luxon: luxon.DateTime },
-            index: "ID",
-            layout: "fitColumns",
-            columns: columns
-          });
-
-          // Sự kiện khi chỉnh sửa ô
-          table.on("cellEdited", async function (cell) {
-            const field = cell.getField();
-            const row = cell.getRow();
-            let updatedData = row.getData();
-
-            // Nếu chỉnh sửa ô ngày thì chuyển từ dd/MM/yyyy sang định dạng ISO
-            if (field === "NgayQDGiaoNhiemVu" && updatedData.NgayQDGiaoNhiemVu) {
-              const isoDate = convertDMYtoISO(updatedData.NgayQDGiaoNhiemVu);
-              if (isoDate) updatedData.NgayQDGiaoNhiemVu = isoDate;
+                { title: "Tên đề tài", field: "TenDeTai", editor: "false" },
+                {
+                  title: "Số QĐ giao nhiệm vụ",
+                  field: "SoQDGiaoNhiemVu",
+                  editor: "false",
+                  width: "7%",
+                },
+                {
+                  title: "Ngày QĐ Giao NV",
+                  field: "NgayQDGiaoNhiemVu",
+                  editor: "false",
+                  formatter: "datetime",
+                  formatterParams: {
+                    inputFormat: "iso",
+                    outputFormat: "dd/MM/yyyy",
+                  },
+                  width: "7%",
+                },
+                {
+                  title: "Khoa",
+                  field: "KetQuaCapKhoa",
+                  editor: "false",
+                  width: "10%",
+                },
+                {
+                  title: "Học viện",
+                  field: "KetQuaCapHocVien",
+                  editor: "false",
+                  width: "10%",
+                },
+                {
+                  title: "Danh sách thành viên",
+                  field: "DanhSachThanhVien",
+                  editor: "false",
+                },
+              ];
+            } else {
+              columns = [
+                {
+                  title: "Phân loại",
+                  field: "PhanLoai",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Tên đề tài",
+                  field: "TenDeTai",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                },
+                {
+                  title: "Số QĐ giao nhiệm vụ",
+                  field: "SoQDGiaoNhiemVu",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "7%",
+                },
+                {
+                  title: "Ngày QĐ giao nhiệm vụ",
+                  field: "NgayQDGiaoNhiemVu",
+                  editor: customDateEditor,
+                  formatter: "datetime",
+                  formatterParams: {
+                    inputFormat: "iso",
+                    outputFormat: "MM/dd/yyyy",
+                  },
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "7%",
+                },
+                {
+                  title: "Khoa",
+                  field: "KetQuaCapKhoa",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Học viện",
+                  field: "KetQuaCapHocVien",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                  width: "10%",
+                },
+                {
+                  title: "Danh sách thành viên",
+                  field: "DanhSachThanhVien",
+                  editor: "input",
+                  editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                },
+              ];
             }
-            // Riêng site này bị bug ngầm với hàm edit check box Duyệt
-            // Khi Duyệt = 1, ta bỏ duyệt nhưng hàm edit bị vấn đề gì đó nên vẫn trả về 1 ( đúng ra là trả về 0)
-            // Tương tự với Duyệt = 0.
 
-            // Cách fix : thêm biến var daoTaoDuyet mỗi lần checkbox thay đổi lưu lại. 
-            //            Nên mình viết thêm xử lí như sau :
-            //            Là daoTaoDuyet == 1 thì mình gửi 0, == 0 thì mình gửi 1
-
-            if (field === "DaoTaoDuyet") {
-              updatedData.DaoTaoDuyet = daoTaoDuyet == 1 ? 0 : 1;
+            // Nếu khoa == ALL thì thêm cột khoa
+            if (department == "ALL") {
+              columns.push({
+                title: "Khoa",
+                field: "Khoa",
+                editor:
+                  userRole === "GV" || userRole === "Thường"
+                    ? "false"
+                    : "input",
+                editable: (cell) => cell.getRow().getData().DaoTaoDuyet != 1,
+                width: "10%",
+              });
             }
-            updatedData.namHoc = year;
-            await saveData(updatedData.ID, updatedData, row);
-          });
 
-        } catch (error) {
-          console.error("Lỗi khi lấy dữ liệu:", error);
-        }
-      });
+            // Cấp quyền xóa
+            if (
+              (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") ||
+              userRole === "GV_CNBM" ||
+              userRole === "Lãnh đạo khoa"
+            ) {
+              columns.push({
+                title: "Xóa",
+                field: "actions",
+                formatter: actionFormatter,
+                hozAlign: "center",
+                headerSort: false,
+                width: "5%",
+              });
+            }
+
+            // Cấp quyền duyệt: chỉ thêm cột "Duyệt" nếu tài khoản có quyền Duyệt
+            if (userRole === "Duyệt" && MaPhongBan == "NC&HTPT") {
+              columns.push({
+                title: "Duyệt",
+                field: "DaoTaoDuyet",
+                formatter: "tickCross", // Sử dụng formatter mặc định của Tabulator để hiển thị checkbox
+                editor: "tickCross", // Cho phép chỉnh sửa checkbox theo mặc định
+                // Khi click vào ô checkbox, chuyển sang chế độ chỉnh sửa ngay lập tức
+                cellClick: function (e, cell) {
+                  const rowData = cell.getRow().getData();
+                  daoTaoDuyet = rowData.DaoTaoDuyet;
+                  cell.edit();
+                },
+                width: "7%",
+              });
+            }
+
+            // Tạo bảng với Tabulator
+            table = new Tabulator("#table-container", {
+              data: data,
+              dependencies: { luxon: luxon.DateTime },
+              index: "ID",
+              layout: "fitColumns",
+              columns: columns,
+            });
+
+            // Sự kiện khi chỉnh sửa ô
+            table.on("cellEdited", async function (cell) {
+              const field = cell.getField();
+              const row = cell.getRow();
+              let updatedData = row.getData();
+
+              // Nếu chỉnh sửa ô ngày thì chuyển từ dd/MM/yyyy sang định dạng ISO
+              if (
+                field === "NgayQDGiaoNhiemVu" &&
+                updatedData.NgayQDGiaoNhiemVu
+              ) {
+                const isoDate = convertDMYtoISO(updatedData.NgayQDGiaoNhiemVu);
+                if (isoDate) updatedData.NgayQDGiaoNhiemVu = isoDate;
+              }
+              // Riêng site này bị bug ngầm với hàm edit check box Duyệt
+              // Khi Duyệt = 1, ta bỏ duyệt nhưng hàm edit bị vấn đề gì đó nên vẫn trả về 1 ( đúng ra là trả về 0)
+              // Tương tự với Duyệt = 0.
+
+              // Cách fix : thêm biến var daoTaoDuyet mỗi lần checkbox thay đổi lưu lại.
+              //            Nên mình viết thêm xử lí như sau :
+              //            Là daoTaoDuyet == 1 thì mình gửi 0, == 0 thì mình gửi 1
+
+              if (field === "DaoTaoDuyet") {
+                updatedData.DaoTaoDuyet = daoTaoDuyet == 1 ? 0 : 1;
+              }
+              updatedData.namHoc = year;
+              await saveData(updatedData.ID, updatedData, row);
+            });
+          } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu:", error);
+          }
+        });
 
       // Hàm tạo custom editor cho Tabulator
-      function customDateEditor(cell, onRendered, success, cancel, editorParams) {
+      function customDateEditor(
+        cell,
+        onRendered,
+        success,
+        cancel,
+        editorParams
+      ) {
         var cellValue = cell.getValue();
-        var formattedValue = cellValue ? moment(cellValue).format("MM/DD/YYYY") : "";
+        var formattedValue = cellValue
+          ? moment(cellValue).format("MM/DD/YYYY")
+          : "";
 
         var input = document.createElement("input");
         input.setAttribute("type", "text");
@@ -329,16 +500,20 @@
         onRendered(function () {
           input.focus();
           flatpickr(input, {
-            dateFormat: "m/d/Y",  // Định dạng mm/dd/yyyy
+            dateFormat: "m/d/Y", // Định dạng mm/dd/yyyy
             defaultDate: formattedValue,
-            allowInput: true,      // ✅ Cho phép nhập tay từ bàn phím
-            clickOpens: true,      // Mở lịch khi click vào input
+            allowInput: true, // ✅ Cho phép nhập tay từ bàn phím
+            clickOpens: true, // Mở lịch khi click vào input
             onChange: function (selectedDates, dateStr) {
-              success(selectedDates.length ? moment(selectedDates[0]).toISOString() : "");
+              success(
+                selectedDates.length
+                  ? moment(selectedDates[0]).toISOString()
+                  : ""
+              );
             },
             onClose: function (selectedDates, dateStr) {
               if (!selectedDates.length) cancel();
-            }
+            },
           });
         });
 
@@ -348,7 +523,7 @@
       // Formatter hiển thị checkbox cho cột Duyệt
       function checkboxFormatter(cell, formatterParams, onRendered) {
         let value = cell.getValue();
-        let checked = (value == 1 || value == true) ? "checked" : "";
+        let checked = value == 1 || value == true ? "checked" : "";
         return `<input type="checkbox" ${checked} />`;
       }
 
@@ -360,46 +535,48 @@
         }
         const id = rowData.ID;
         const button = document.createElement("button");
-        button.innerHTML = "<i class=\"fas fa-trash-alt\"></i>";
+        button.innerHTML = '<i class="fas fa-trash-alt"></i>';
         button.classList.add("btn", "btn-delete");
-        button.addEventListener("click", () => deleteRow(id, cell.getRow(), year));
+        button.addEventListener("click", () =>
+          deleteRow(id, cell.getRow(), year)
+        );
         return button;
       }
 
       // Hàm cập nhật dữ liệu sau khi chỉnh sửa
       async function saveData(id, updatedData, row) {
         console.log(updatedData);
-        const MaBang = 'nckhvahuanluyendoituyen';
+        const MaBang = "nckhvahuanluyendoituyen";
         try {
           const response = await fetch(`/nckh/edit/${id}/${MaBang}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedData)
+            body: JSON.stringify(updatedData),
           });
           const result = await response.json();
           if (result.success) {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
             // Render lại bảng sau khi cập nhật
             document.getElementById("render").click();
           } else {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'error',
-              title: 'Thất bại',
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
           }
         } catch (error) {
@@ -410,30 +587,33 @@
       // Hàm xóa dòng dữ liệu
       async function deleteRow(id, row, year) {
         try {
-          const response = await fetch(`/nckh/delete/${id}/${year}/nckhvahuanluyendoituyen`, { method: "POST" });
+          const response = await fetch(
+            `/nckh/delete/${id}/${year}/nckhvahuanluyendoituyen`,
+            { method: "POST" }
+          );
           const result = await response.json();
           if (result.success) {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'success',
-              title: 'Thông báo',
+              position: "top-end",
+              icon: "success",
+              title: "Thông báo",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
             row.delete();
           } else {
             Swal.fire({
               toast: true,
-              position: 'top-end',
-              icon: 'error',
-              title: 'Thất bại',
+              position: "top-end",
+              icon: "error",
+              title: "Thất bại",
               text: result.message,
               showConfirmButton: false,
               timer: 3000,
-              timerProgressBar: true
+              timerProgressBar: true,
             });
           }
         } catch (error) {
@@ -449,7 +629,6 @@
         return new Date(Date.UTC(year, month - 1, day)).toISOString();
       }
     </script>
-
 
     <!-- nckh form -->
     <script>
@@ -505,7 +684,6 @@
       });
 
       // =================================================================
-
 
       // check thì tắt gợi ý
       document.addEventListener("DOMContentLoaded", function () {
@@ -699,9 +877,8 @@
             ketQua: document.getElementById("ketQua").value,
           };
 
-
           // Phần quyền nhập
-          if (role == "GV" || role == "Thường" || MaPhongBan == "TAICHINH") {
+          if (role == "GV" || role == "Thường" || MaPhongBan == "VP") {
             alert("Bạn không có quyền truy cấp chức năng này");
             return;
           }
@@ -738,12 +915,12 @@
             .then((data) => {
               if (data.success) {
                 Swal.fire({
-                  title: 'Thông báo',
+                  title: "Thông báo",
                   html: `${data.message}`,
-                  icon: 'success',
-                  confirmButtonText: 'OK',
-                  width: 'auto',
-                  padding: '20px',
+                  icon: "success",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
                   timer: 3000, // Tự động đóng sau 3 giây
                   timerProgressBar: true, // Hiển thị thanh đếm thời gian
                   didClose: () => {
@@ -751,8 +928,8 @@
                     document.getElementById("memberListDisplay").innerHTML = "";
                     members = [];
                     location.reload();
-                  }
-                })
+                  },
+                });
               }
             })
             .catch((error) => {
@@ -827,13 +1004,12 @@
           selectElement.innerHTML = "";
 
           // Thêm option mới từ dữ liệu API
-          data.forEach(item => {
+          data.forEach((item) => {
             const option = document.createElement("option");
             option.value = item.NCKHHuanLuyenDoiTuyen; // Giá trị option
             option.textContent = item.NCKHHuanLuyenDoiTuyen; // Nội dung hiển thị
             selectElement.appendChild(option);
           });
-
         } catch (error) {
           console.error("Lỗi khi gọi API:", error);
         }
@@ -845,7 +1021,5 @@
     <script src="/js/nckh/href.js"></script>
     <!-- srcipt năm học, khoa -->
     <script src="/js/nckh/getdata.js"></script>
-
-</body>
-
+  </body>
 </html>

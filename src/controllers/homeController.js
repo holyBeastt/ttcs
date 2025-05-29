@@ -33,7 +33,7 @@ const getlog = (req, res) => {
 const getDtaonhap = (req, res) => {
   res.render("daotaonhap.ejs");
 };
-const getPhongTaiChinh = (req, res) => {
+const getPhongVP = (req, res) => {
   res.render("mainTC.ejs");
 };
 const gethomePage = (req, res) => {
@@ -138,6 +138,24 @@ const getPhongBanInfoShared = async (req, res) => {
   }
 };
 
+const getFacultyCodeList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT MaPhongBan FROM `phongban` where isKhoa = 1";
+    const [result] = await connection.query(query);
+    res.json({
+      success: true,
+      MaPhongBan: result,
+    });
+  } catch (error) {
+    console.error("Lỗi: ", error);
+    res.status(500).send("Đã có lỗi xảy ra");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   gethomePage,
@@ -147,7 +165,7 @@ module.exports = {
   getDtaoduyet,
   //getDtaoxemhd,
   getDtaonhap,
-  getPhongTaiChinh,
+  getPhongVP,
   postFile,
   getHomeMainDaoTao,
   getTeachingInfo,
@@ -165,4 +183,5 @@ module.exports = {
   // Controller chung
   getBoMonShared,
   getPhongBanInfoShared,
+  getFacultyCodeList,
 };

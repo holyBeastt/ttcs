@@ -156,6 +156,7 @@
                 <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
                 <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
+                <a class="nav-link" href="/duyet-hop-dong" role="button">Duyệt hợp đồng</a>
 
                 <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <a class="nav-link" href="/phuLucHD">Phụ lục hợp đồng</a>
@@ -163,7 +164,7 @@
                 <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">Phụ lục minh chứng giảng viên mời</a>
                 <a class="nav-link" href="/api/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
                 <a class="nav-link" style="display: none" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-                <!-- <a class="nav-link" href="/tongHopGvmExport">Tổng hợp</a> -->
+                <a class="nav-link" href="/sohopdong">Tạo số hợp đồng</a>
               </div>
             </div>
           </div>
@@ -179,7 +180,8 @@
                 <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
-                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH </a>
+                <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH
+                </a>
               </div>
             </div>
           </div>
@@ -433,7 +435,7 @@
     let links = nckhNavChild.getElementsByClassName("nav-link");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (maPhongBan === "KHCN&HTPT" && userRole === "Duyệt") {
+    if (maPhongBan === "NC&HTPT" && userRole === "Duyệt") {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
@@ -461,7 +463,7 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
-    if (maPhongBan === "KHCN&HTPT") {
+    if (maPhongBan === "NC&HTPT") {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";
@@ -475,7 +477,7 @@
     // }
 
     // Tài chính không hiển thị tkb, thêm file qc
-    if (maPhongBan === "TAICHINH") {
+    if (maPhongBan === "VP") {
       tkbNav.style.display = "none";
       navLink_addFileQC.style.display = "none";
     }

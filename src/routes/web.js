@@ -9,7 +9,7 @@ const {
   getDtaoduyet,
   getDtaoxemhd,
   getDtaonhap,
-  getPhongTaiChinh,
+  getPhongVP,
   getHomeMainDaoTao,
   getTeachingInfo,
   getXemBangQC,
@@ -24,6 +24,7 @@ const {
   getthongkedoan,
   getBoMonShared,
   getPhongBanInfoShared,
+  getFacultyCodeList,
 } = require("../controllers/homeController");
 const { route } = require("./adminRoute");
 
@@ -47,7 +48,7 @@ router.get("/daotaoxemhd/daotaonhap", getDtaonhap);
 //router.post("/daotaoxemhd/daotaonhap/createGVM", handleUploadFile);
 // router.get("/index/import", getImport);
 router.get("/index/import", getImport);
-router.get("/PhongTaiChinh", getPhongTaiChinh);
+router.get("/PhongVP", getPhongVP);
 //phong dao tao
 // router.get("/maindt", getHomeMainDaoTao);
 router.get("/teachingInfo", getTeachingInfo);
@@ -65,6 +66,9 @@ router.get("/thongkedoan", getthongkedoan);
 // Lấy danh sách all mã bộ môn (không có điều kiện)
 router.get("/api/shared/bo-mon", getBoMonShared);
 
-// Lấy danh sách tên, mã phòng ban
+// Lấy danh sách tên, mã khoa
 router.get("/api/shared/phong-ban-info", getPhongBanInfoShared);
+
+// Lấy danh sách mã khoa
+router.get("/api/shared/faculty-code-list", getFacultyCodeList);
 module.exports = router;

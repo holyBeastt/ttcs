@@ -7,7 +7,7 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
-const { Document, Packer, PageOrientation, Paragraph, VerticalAlign, Table, TableCell, TableRow, WidthType, BorderStyle, TextRun, AlignmentType, HeadingLevel } = require('docx');
+const { Document, Packer, PageOrientation, Paragraph, VerticalAlign, Table, TableCell, TableRow, WidthType, BorderStyle, TextRun, AlignmentType } = require('docx');
 
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
@@ -529,7 +529,7 @@ const exportMultipleContracts = async (req, res) => {
     const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc}`;
     const summaryDoc = createTransferDetailDocument(summaryData, noiDung);
     const summaryBuf = await Packer.toBuffer(summaryDoc);
-    const summaryName = `thong_ke_chuyen_khoan_dot${dot}_Ki${ki}_${namHoc}.docx`;
+    const summaryName = `File_Thong_Ke_Chuyen_Khoan.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
     const archive = archiver("zip", {
@@ -2191,41 +2191,55 @@ const exportImageDownloadData = async (req, res) => {
 
 function createTransferDetailDocument(data = [], noiDung = '') {
   // Hàm phụ trợ: tạo ô header
-  function createHeaderCell(text, isBold) {
-    return new TableCell({
+  function createHeaderCell(text, isBold, width = null) {
+    const cellConfig = {
       children: [
         new Paragraph({
-          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 26, color: '000000' })], // Size 26 for 13pt, black color
+          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 24, color: '000000' })],
           alignment: AlignmentType.CENTER,
         }),
       ],
       verticalAlign: VerticalAlign.CENTER,
-      margins: { // Thêm padding
+      margins: {
         top: 50,
         bottom: 50,
         left: 50,
         right: 50,
       },
-    });
+    };
+
+    // Nếu có width được chỉ định, thêm width vào cell
+    if (width) {
+      cellConfig.width = { size: width, type: WidthType.DXA };
+    }
+
+    return new TableCell(cellConfig);
   }
 
   // Hàm phụ trợ: tạo ô bình thường
-  function createCell(text, isBold = false) {
-    return new TableCell({
+  function createCell(text, isBold = false, width = null) {
+    const cellConfig = {
       children: [
         new Paragraph({
-          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 26, color: '000000' })], // Size 26 for 13pt, black color
+          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 24, color: '000000' })],
           alignment: AlignmentType.CENTER,
         }),
       ],
       verticalAlign: VerticalAlign.CENTER,
-      margins: { // Thêm padding
+      margins: {
         top: 50,
         bottom: 50,
         left: 50,
         right: 50,
       },
-    });
+    };
+
+    // Nếu có width được chỉ định, thêm width vào cell
+    if (width) {
+      cellConfig.width = { size: width, type: WidthType.DXA };
+    }
+
+    return new TableCell(cellConfig);
   }
 
   // Hàm tính tổng tiền
@@ -2244,11 +2258,11 @@ function createTransferDetailDocument(data = [], noiDung = '') {
       tableHeader: true,
       children: [
         createHeaderCell('STT', true),
-        createHeaderCell('Số HĐ', true),
+        createHeaderCell('Số HĐ', true, 1200), // Đặt width cố định 1200 twips cho cột Số HĐ
         createHeaderCell('Đơn vị thụ hưởng\n(hoặc cá nhân)', true),
         createHeaderCell('Mã số thuế', true),
         createHeaderCell('Số tài khoản', true),
-        createHeaderCell('Tại ngân hàng', true),
+        createHeaderCell('Tại ngân hàng', true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
         createHeaderCell('Số tiền (VNĐ)', true),
       ],
     });
@@ -2257,33 +2271,41 @@ function createTransferDetailDocument(data = [], noiDung = '') {
       ? data.map((row, idx) => new TableRow({
         children: [
           createCell((idx + 1).toString()),
-          createCell(''), // Để trống trường Số HĐ theo yêu cầu
+          createCell('', false, 1200), // Ô Số HĐ với width cố định
           createCell(row.HoTen || ''),
           createCell(row.MaSoThue || ''),
           createCell(row.STK || ''),
-          createCell(row.NganHang || ''),
+          createCell(row.NganHang || '', false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
           createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ''),
         ],
       }))
       : Array.from({ length: 4 }).map(() => new TableRow({
-        children: Array(7).fill('').map(() => createCell('')), // Changed to 7 because of column removal
+        children: [
+          createCell(''), // STT
+          createCell('', false, 1200), // Số HĐ với width cố định
+          createCell(''), // Đơn vị thụ hưởng
+          createCell(''), // Mã số thuế
+          createCell(''), // Số tài khoản
+          createCell('', false, 4800), // Tại ngân hàng với width cố định
+          createCell('') // Số tiền
+        ]
       }));
 
-    const totalAmount = calculateTotal(data); // Tính tổng tiền
-    const formattedTotalAmount = formatVND(totalAmount); // Định dạng tổng tiền
+    const totalAmount = calculateTotal(data);
+    const formattedTotalAmount = formatVND(totalAmount);
 
     const totalRow = new TableRow({
       children: [
-        new TableCell({ // Ô "Tổng cộng" gộp 6 cột
+        new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({ text: 'Tổng cộng', bold: true, font: 'Times New Roman', size: 26, color: '000000' })],
-              alignment: AlignmentType.CENTER, // Căn giữa "Tổng cộng"
+              children: [new TextRun({ text: 'Tổng cộng', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
+              alignment: AlignmentType.CENTER,
             }),
           ],
           verticalAlign: VerticalAlign.CENTER,
-          columnSpan: 6, // Gộp 6 cột lại thành 1
-          margins: { // Thêm padding
+          columnSpan: 6,
+          margins: {
             top: 50,
             bottom: 50,
             left: 50,
@@ -2293,12 +2315,12 @@ function createTransferDetailDocument(data = [], noiDung = '') {
         new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({ text: formattedTotalAmount, font: 'Times New Roman', size: 26, color: '000000' })], // Hiển thị tổng tiền đã định dạng
+              children: [new TextRun({ text: formattedTotalAmount, font: 'Times New Roman', size: 24, color: '000000' })],
               alignment: AlignmentType.CENTER,
             }),
           ],
           verticalAlign: VerticalAlign.CENTER,
-          margins: { // Thêm padding
+          margins: {
             top: 50,
             bottom: 50,
             left: 50,
@@ -2322,24 +2344,33 @@ function createTransferDetailDocument(data = [], noiDung = '') {
     });
   }
 
-
   return new Document({
     styles: {
       default: {
         document: {
           font: "Times New Roman",
-          size: 26,
+          size: 24,
           color: "000000"
         },
         paragraph: {
-          color: "000000", // Đặt màu mặc định cho paragraph là đen
+          color: "000000",
         },
       },
     },
     sections: [{
       properties: {
         page: {
-          orientation: PageOrientation.LANDSCAPE, // Đặt mặc định là landscape
+          orientation: PageOrientation.LANDSCAPE, // Đặt orientation là landscape
+          margin: {
+            top: 567,    // 1 cm = 567 twips
+            right: 567,  // 1 cm
+            bottom: 567, // 1 cm  
+            left: 567,   // 1 cm
+          },
+          size: {
+            width: 15840,  // A4 landscape width (11 inches = 15840 twips)
+            height: 12240, // A4 landscape height (8.5 inches = 12240 twips)
+          },
         },
       },
       children: [
@@ -2358,15 +2389,15 @@ function createTransferDetailDocument(data = [], noiDung = '') {
                 new TableCell({
                   children: [
                     new Paragraph({
-                      children: [new TextRun({ text: 'BAN CƠ YẾU CHÍNH PHỦ', bold: true, font: 'Times New Roman', size: 26, color: '000000' })], // Size 26 for 13pt, black color
+                      children: [new TextRun({ text: 'BAN CƠ YẾU CHÍNH PHỦ', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
                       alignment: AlignmentType.CENTER,
                     }),
                     new Paragraph({
-                      children: [new TextRun({ text: 'HỌC VIỆN KỸ THUẬT MẬT MÃ', bold: true, font: 'Times New Roman', size: 26, color: '000000' })], // Size 26 for 13pt, black color
+                      children: [new TextRun({ text: 'HỌC VIỆN KỸ THUẬT MẬT MÃ', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
                       alignment: AlignmentType.CENTER,
                     }),
                   ],
-                  width: { size: 100, type: WidthType.PERCENTAGE }, // Adjusted width
+                  width: { size: 100, type: WidthType.PERCENTAGE },
                   borders: {
                     top: { style: BorderStyle.NONE, size: 0 },
                     bottom: { style: BorderStyle.NONE, size: 0 },
@@ -2386,7 +2417,7 @@ function createTransferDetailDocument(data = [], noiDung = '') {
             new TextRun({
               text: 'BẢNG KÊ CHI TIẾT THÔNG TIN CHUYỂN KHOẢN',
               font: 'Times New Roman',
-              size: 26, // 26 half-points = 13pt
+              size: 26,
               color: '000000',
               bold: true,
             })
@@ -2400,7 +2431,17 @@ function createTransferDetailDocument(data = [], noiDung = '') {
           spacing: { after: 200 },
         }),
         createDetailTable(data),
-        new Paragraph({ text: 'Ghi chú: Số tiền chuyển khoản là số tiền sau thuế', italics: true, spacing: { before: 200 }, children: [new TextRun({ font: 'Times New Roman', size: 26, color: '000000' })] }), // Size 26 for 13pt, black color
+        new Paragraph({
+          italics: true,
+          spacing: { before: 200 },
+          children: [new TextRun({
+            text: 'Ghi chú: Số tiền chuyển khoản là số tiền sau thuế',
+            font: 'Times New Roman',
+            size: 26,
+            color: '000000',
+            italics: true
+          })]
+        }),
       ],
     }],
   });

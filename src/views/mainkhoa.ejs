@@ -726,6 +726,14 @@
       }
     </script>
     <script>
+      function formatDateTimeVN(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const pad = num => String(num).padStart(2, '0');
+        const weekdays = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+        return `lúc ${pad(date.getHours())}:${pad(date.getMinutes())} ${weekdays[date.getDay()]}, ${pad(date.getDate())} tháng ${pad(date.getMonth() + 1)}, ${date.getFullYear()}`;
+      }
+
       function showNotifications(messages) {
         const container = document.getElementById("notifications-container");
 
@@ -759,6 +767,7 @@
         }</strong> <br>
         <strong>Khoa (Phòng Ban): ${message.MaPhongBan} thông báo </strong> <br>
         <strong>Lời nhắn:</strong> ${message.LoiNhan}<br>
+        <strong>Ngày đăng:</strong> <span style="color:#222">${formatDateTimeVN(message.TimeTao)}</span><br>
         <strong>Hạn chót:</strong> <span style = "color:red">${new Date(
           message.Deadline
         ).toLocaleString("vi-VN", {

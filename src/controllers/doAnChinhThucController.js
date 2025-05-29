@@ -808,8 +808,10 @@ const getInfoDoAn = async (req, res) => {
     }
     const [result] = await connection.query(query, values); // Dùng destructuring để lấy dữ liệu
 
+    const tongTiet = await totalNumberOfPeriods(connection, result);
+
     // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json({ result, SoQDList });
+    res.status(200).json({ result, SoQDList, tongTiet });
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu từ database:", error);
 
@@ -819,6 +821,92 @@ const getInfoDoAn = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
+
+const totalNumberOfPeriods = async (connection, data) => {
+  try {
+    const [gvmList] = await connection.query("select * from gvmoi");
+    const [coHuuList] = await connection.query("select * from nhanvien");
+
+    let tongTietMoiGiang = 0;
+    let tongTietCoHuu = 0;
+    let tongTietChuaRo = 0;
+    let tongTietAll = 0;
+
+    const tongTietDetail = {}; // Tổng tiết từng giảng viên
+    const detailMoiGiang = {}; // DS giảng viên mời
+    const detailCoHuu = {}; // DS giảng viên cơ hữu
+
+    data.forEach((row) => {
+      const gv1Info = tachTenVaLoai(row.GiangVien1 || "");
+      const gv2Info = tachTenVaLoai(row.GiangVien2 || "");
+
+      if (!gv1Info.ten) return;
+
+      if (gv2Info.ten.toLowerCase() === "không") {
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 25;
+      } else if (!gv2Info.ten) {
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
+        tongTietDetail["Chưa rõ"] = (tongTietDetail["Chưa rõ"] || 0) + 10;
+      } else {
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
+        tongTietDetail[gv2Info.ten] = (tongTietDetail[gv2Info.ten] || 0) + 10;
+      }
+    });
+
+    for (const tenGV in tongTietDetail) {
+      const tiet = tongTietDetail[tenGV];
+      const gvInfo = tachTenVaLoai(tenGV); // Tách để lấy loại
+
+      const isMoi = gvmList.some((gv) => gv.HoTen?.trim() === gvInfo.ten);
+      const isCoHuu = coHuuList.some(
+        (gv) => gv.TenNhanVien?.trim() === gvInfo.ten
+      );
+
+      tongTietAll += tiet;
+
+      if (gvInfo.loai === "giảng viên mời" || isMoi) {
+        tongTietMoiGiang += tiet;
+        detailMoiGiang[tenGV] = tiet;
+      } else if (gvInfo.loai === "cơ hữu" || isCoHuu) {
+        tongTietCoHuu += tiet;
+        detailCoHuu[tenGV] = tiet;
+      } else {
+        tongTietChuaRo += tiet;
+        // detailChuaRo[tenGV] = tiet;
+      }
+    }
+
+    return {
+      tongTietMoiGiang,
+      tongTietCoHuu,
+      tongTietChuaRo,
+      tongTietAll,
+      tongTietDetail,
+      detailMoiGiang,
+      detailCoHuu,
+    };
+  } catch (error) {
+    console.error("Lỗi khi xử lý:", error);
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Hàm tách tên và loại giảng viên từ chuỗi
+function tachTenVaLoai(tenGoc) {
+  const match = tenGoc.match(/^(.+?)\s*-\s*(Giảng viên mời|Cơ hữu)/i);
+  if (match) {
+    return {
+      ten: match[1].trim(),
+      loai: match[2].trim().toLowerCase(),
+    };
+  } else {
+    return {
+      ten: tenGoc.trim(),
+      loai: null,
+    };
+  }
+}
 
 const KhoaCheckAll = async (req, Dot, ki, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
@@ -965,7 +1053,7 @@ const getCheckAllDoantotnghiep = async (req, res) => {
   return res.status(200).json({
     KhoaCheck: KhoaCheck,
     DaoTaoCheck: DaoTaoCheck,
-    TaiChinhCheck: TaiChinhCheck,
+    VPCheck: TaiChinhCheck,
   });
 };
 
