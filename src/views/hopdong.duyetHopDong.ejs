@@ -11,6 +11,12 @@
   <link rel="stylesheet" href="/css/gvmList.css" />
   <link rel="stylesheet" href="/css/table.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
   <style>
     .teacher-group {
       border: 2px solid black;
@@ -56,17 +62,17 @@
     .total-label span {
       font-weight: bold;
       color: #333;
-    }
-
-    .btn {
+    }    .btn {
       height: 45px !important;
     }
 
-    .alert-sotiet {
+    #saveDataMoiGiang,
+    #saveDataDoAn {
+      white-space: nowrap;
+      font-size: 14px;
+    }    .alert-sotiet {
       background-color: #ffcccc !important;
     }
-
-    .no-shadow-page {}
 
     .table {
       border-collapse: collapse;
@@ -200,9 +206,16 @@
               <option value="">Tất cả khoa</option>
             </select> <select class="form-select mx-1 selectop" id="he_dao_tao">
               <option value="Mời giảng">Mời giảng</option>
-              <option value="Đồ án">Đồ án</option>
-            </select>
-            <button id="viewDataBtn" class="btn view">Xem dữ liệu</button>
+              <option value="Đồ án">Đồ án</option>            </select> <button id="viewDataBtn" class="btn view">Xem dữ liệu</button>
+            <button id="approveContractBtn" class="btn btn-success mx-2" style="display: none;">
+              <i class="fas fa-check"></i> Duyệt hợp đồng
+            </button>
+            <button id="saveDataMoiGiang" class="btn btn-warning mx-2" style="display: none; height: 45px;">
+              <i class="fas fa-save"></i> Lưu dữ liệu hợp đồng mời giảng
+            </button>
+            <button id="saveDataDoAn" class="btn btn-info mx-2" style="display: none; height: 45px;">
+              <i class="fas fa-save"></i> Lưu dữ liệu hợp đồng đồ án
+            </button>
             <br />
 
           </div>
@@ -210,7 +223,7 @@
             <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên"
               class="form-control m-2 search" style="width: 300px" />
 
-          </div> <!-- Data Table Section -->
+          </div><!-- Data Table Section -->
           <div class="mt-4">
             <!-- Quota information -->
             <div id="quotaInfo"></div> <!-- Results Table -->
@@ -230,6 +243,7 @@
                           <th class="wide-col">Số tiền</th>
                           <th class="narrow-col">Trừ thuế</th>
                           <th class="wide-col">Thực nhận</th>
+                          <th class="narrow-col">Trạng thái</th>
                           <th class="action-col">Thao tác</th>
                         </tr>
                       </thead>
@@ -346,7 +360,8 @@
             <div id="modal-content-additional">
               <!-- Training program breakdown will be inserted here dynamically -->
             </div>
-          </div>          <div class="modal-footer">
+          </div>
+          <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             <button type="button" class="btn btn-info" id="modal-view-contract" style="display: none;">
               <i class="fas fa-eye"></i> Xem hợp đồng
@@ -383,17 +398,49 @@
     <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
     <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>      $(document).ready(function () {
+        // Initialize buttons state
+        $('#saveDataMoiGiang').hide();
+        $('#saveDataDoAn').hide();
+        $('#approveContractBtn').hide();
+        
         // Initialize search functionality
         $('#searchGiangVien').on('input', function () {
           filterTable();
-        });        // Handle view data button click
+        });// Handle view data button click
         $('#viewDataBtn').on('click', function () {
           loadContractData();
         });
 
-        // Handle export button click
+        // Handle he_dao_tao selection change to show/hide save buttons
+        $('#he_dao_tao').on('change', function () {
+          const selectedValue = $(this).val();
+          
+          // Hide both buttons first
+          $('#saveDataMoiGiang').hide();
+          $('#saveDataDoAn').hide();
+          
+          // Show appropriate button based on selection
+          if (selectedValue === 'Mời giảng') {
+            $('#saveDataMoiGiang').show();
+          } else if (selectedValue === 'Đồ án') {
+            $('#saveDataDoAn').show();
+          }
+        });// Handle export button click
         $('#exportHDDK').on('click', function () {
           exportContractData();
+        });        // Handle approve contract button click
+        $('#approveContractBtn').on('click', function () {
+          approveContract();
+        });
+
+        // Handle save contract data for Moi Giang
+        $('#saveDataMoiGiang').on('click', function () {
+          saveContractDataMoiGiang();
+        });
+
+        // Handle save contract data for Do An
+        $('#saveDataDoAn').on('click', function () {
+          saveContractDataDoAn();
         });
 
         // Handle modal close events
@@ -425,7 +472,7 @@
         }; $.ajax({
           url: '/api/duyet-hop-dong',
           type: 'POST',
-          data: params, success: function (response) {
+          data: params,          success: function (response) {
             if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
               displayContractDataInSeparateTables(
                 response.groupedByTeacher,
@@ -433,14 +480,32 @@
                 response.SoTietDinhMuc || 0
               );
               showSuccess('Tải dữ liệu thành công');
+
+              // Show approve button after loading data
+              $('#approveContractBtn').show();
+              
+              // Show appropriate save button based on he_dao_tao selection
+              const heDaoTao = $('#he_dao_tao').val();
+              if (heDaoTao === 'Mời giảng') {
+                $('#saveDataMoiGiang').show();
+                $('#saveDataDoAn').hide();
+              } else if (heDaoTao === 'Đồ án') {
+                $('#saveDataDoAn').show();
+                $('#saveDataMoiGiang').hide();
+              }
             } else {
               showError('Không có dữ liệu để hiển thị');
               $('#noDataMessage').show();
+              $('#approveContractBtn').hide();
+              $('#saveDataMoiGiang').hide();
+              $('#saveDataDoAn').hide();
             }
-          },
-          error: function () {
+          },          error: function () {
             showError('Có lỗi xảy ra khi kết nối với server');
             $('#noDataMessage').show();
+            $('#approveContractBtn').hide();
+            $('#saveDataMoiGiang').hide();
+            $('#saveDataDoAn').hide();
           },
           complete: function () {
             showLoading(false);
@@ -455,7 +520,7 @@
         if (Object.keys(groupedByTeacher).length === 0) {
           const noDataRow = `
             <tr>
-              <td colspan="9" class="text-center text-muted">
+              <td colspan="10" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
               </td>
             </tr>
@@ -525,12 +590,14 @@
             DiaChi: teacherData.DiaChi,
             NoiCongTac: teacherData.NoiCongTac,
             MonGiangDayChinh: teacherData.MonGiangDayChinh,
-            SoHopDong: teacherData.SoHopDong,
-            heDaoTao: teacherData.he_dao_tao || $('#he_dao_tao').val(),
+            SoHopDong: teacherData.SoHopDong, heDaoTao: teacherData.he_dao_tao || $('#he_dao_tao').val(),
             MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
             // Add enhanced training program data
             trainingPrograms: enhancedData ? enhancedData.trainingPrograms : [],
-            hasEnhancedData: !!enhancedData
+            hasEnhancedData: !!enhancedData,
+            // Add approval status
+            DaoTaoDuyet: teacherData.DaoTaoDuyet || 0,
+            TaiChinhDuyet: teacherData.TaiChinhDuyet || 0
           };
 
           // Store for modal access
@@ -540,7 +607,16 @@
 
           // Summary Table Row with enhanced display indicator
           const enhancedIndicator = mergedData.hasEnhancedData ?
-            '<i class="fas fa-chart-pie text-info ms-1" title="Có thông tin chi tiết theo chương trình đào tạo"></i>' : '';
+            '<i class="fas fa-chart-pie text-info ms-1" title="Có thông tin chi tiết theo chương trình đào tạo"></i>' : '';          // Create approval status display
+          const getApprovalStatus = (daoTaoDuyet, taiChinhDuyet) => {
+            if (taiChinhDuyet == 1) {
+              return '<span class="badge bg-success"><i class="fas fa-check-double"></i> Đã duyệt TC</span>';
+            } else if (daoTaoDuyet == 1) {
+              return '<span class="badge bg-warning"><i class="fas fa-check"></i> Đã duyệt ĐT</span>';
+            } else {
+              return '<span class="badge bg-secondary"><i class="fas fa-clock"></i> Chưa duyệt</span>';
+            }
+          };
 
           const summaryRow = `
             <tr ${mergedData.TongSoTiet > SoTietDinhMuc ? 'class="alert-sotiet"' : ''}>
@@ -551,7 +627,8 @@
               <td>${Number.parseFloat(mergedData.TongTiet).toFixed(2)}</td>
               <td>${formatCurrency(mergedData.ThanhTien)}</td>
               <td>${formatCurrency(mergedData.Thue)}</td>
-              <td>${formatCurrency(mergedData.ThucNhan)}</td>              <td>
+              <td>${formatCurrency(mergedData.ThucNhan)}</td>
+              <td>${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>              <td>
                 <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetail('${encodeURIComponent(teacherName)}')">
                   <i class="fas fa-eye"></i> Xem
                 </button>
@@ -784,7 +861,7 @@
       function viewContract(contractNumber) {
         // Navigate to contract detail page
         window.location.href = `/hop-dong/chi-tiet/${contractNumber}`;
-      }      function editContract(contractNumber) {
+      } function editContract(contractNumber) {
         // Navigate to contract edit page
         window.location.href = `/hop-dong/sua/${contractNumber}`;
       }
@@ -839,6 +916,220 @@
         if (modal) {
           modal.hide();
         }
+      }
+
+      // Function to approve contracts
+      function approveContract() {
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+        const maPhongBan = $('#MaPhongBan').val();
+        const heDaoTao = $('#he_dao_tao').val(); if (!dot || !ki || !namHoc || !heDaoTao) {
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Vui lòng chọn đầy đủ Đợt, Kỳ, Năm học và Hệ đào tạo',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        // Validation logic based on contract type
+        if (heDaoTao === 'Mời giảng') {
+          // For "Mời giảng", must select "Tất cả khoa"
+          if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+            Swal.fire({
+              title: 'Lỗi!',
+              text: 'Với hợp đồng mời giảng, chỉ được chọn "Tất cả khoa", không thể duyệt từng khoa riêng lẻ',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+        }
+        // For "Đồ án", can select individual faculty (no restriction)        // Show confirmation dialog
+        const message = heDaoTao === 'Mời giảng'
+          ? `Bạn có chắc chắn muốn duyệt tất cả hợp đồng mời giảng cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}?`
+          : `Bạn có chắc chắn muốn duyệt hợp đồng đồ án cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}${maPhongBan ? `, khoa: ${$('#MaPhongBan option:selected').text()}` : ''}?`;
+
+        Swal.fire({
+          title: 'Xác nhận duyệt hợp đồng',
+          text: message,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Có, duyệt hợp đồng',
+          cancelButtonText: 'Hủy bỏ'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Call API to approve contracts
+            $.ajax({
+              url: '/api/approve-contracts',
+              type: 'POST',
+              data: {
+                dot: dot,
+                ki: ki,
+                namHoc: namHoc,
+                maPhongBan: maPhongBan,
+                heDaoTao: heDaoTao
+              },
+              success: function (response) {
+                if (response.success) {
+                  Swal.fire({
+                    title: 'Thành công!',
+                    text: response.message || 'Duyệt hợp đồng thành công',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                  }).then(() => {
+                    // Refresh data to show updated status
+                    loadContractData();
+                  });
+                } else {
+                  Swal.fire({
+                    title: 'Lỗi!',
+                    text: response.message || 'Có lỗi xảy ra khi duyệt hợp đồng',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                  });
+                }
+              },
+              error: function () {
+                Swal.fire({
+                  title: 'Lỗi!',
+                  text: 'Có lỗi xảy ra khi kết nối với server',
+                  icon: 'error',
+                  confirmButtonText: 'OK'
+                });
+              }
+            });
+          }
+        });      }
+
+      // Function to save contract data for Moi Giang (from teachingInfo2.ejs)
+      function saveContractDataMoiGiang() {
+        // Validate required fields
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+
+        if (!dot || !ki || !namHoc) {
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        const duLieu = {
+          dot: dot,
+          ki: ki,
+          namHoc: namHoc
+        };
+
+        // Show loading
+        showLoading(true);
+
+        fetch("/submitData2", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(duLieu)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto',
+            padding: '20px'
+          });
+        })
+        .catch(error => {
+          console.error("Error sending signal:", error);
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        })
+        .finally(() => {
+          showLoading(false);
+        });
+      }
+
+      // Function to save contract data for Do An (from thongTinDoAnTotNghiep.ejs)
+      function saveContractDataDoAn() {
+        // Validate required fields
+        const NamHoc = $('#NamHoc').val();
+        const MaPhongBan = $('#MaPhongBan').val();
+        const Dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+
+        if (!Dot || !ki || !NamHoc) {
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }        const requestData = {
+          Dot: Dot,
+          ki: ki,
+          NamHoc: NamHoc,
+          MaPhongBan: (MaPhongBan === "" || !MaPhongBan) ? "ALL" : MaPhongBan
+        };
+
+        // Show loading
+        showLoading(true);
+
+        fetch(`/saveToExportDoAn`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Lỗi khi gửi dữ liệu");
+          }
+          return response.json();
+        })
+        .then(data => {
+          Swal.fire({
+            title: "Thông báo",
+            html: data.message,
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto",
+            padding: "20px"
+          });
+        })
+        .catch(error => {
+          console.error("Có lỗi xảy ra:", error);
+          Swal.fire({
+            title: "Thông báo",
+            html: "Có lỗi xảy ra khi cập nhật dữ liệu.",
+            icon: "error",
+            confirmButtonText: "OK"
+          });
+        })
+        .finally(() => {
+          showLoading(false);
+        });
       }
 
       // Add keyboard shortcut to close modal with Escape key

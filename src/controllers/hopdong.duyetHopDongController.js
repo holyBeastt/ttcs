@@ -95,11 +95,13 @@ const getDuyetHopDongData = async (req, res) => {
                 0.7 * qc.QuyChuan,
                 qc.QuyChuan
             )
-        ) * 0.9 AS ThucNhan,
-
-        NULL AS SoHopDong,
+        ) * 0.9 AS ThucNhan,        NULL AS SoHopDong,
         'Chưa có hợp đồng' AS TrangThaiHopDong,
-        pb.TenPhongBan
+        pb.TenPhongBan,
+        
+        -- Thông tin trạng thái duyệt
+        MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+        MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
 
     FROM 
         quychuan qc
@@ -131,7 +133,7 @@ const getDuyetHopDongData = async (req, res) => {
             if (maPhongBan && maPhongBan !== "ALL") {
                 query += " AND gv.MaPhongBan = ?";
                 params.push(maPhongBan);
-            }            query += `
+            } query += `
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
                     gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
@@ -139,7 +141,8 @@ const getDuyetHopDongData = async (req, res) => {
                     qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
                     gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, tl.SoTien, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen, qc.he_dao_tao
-            `;} else if (heDaoTao === "Đồ án") {
+            `;
+        } else if (heDaoTao === "Đồ án") {
             // Case 2: Query from doantotnghiep table with grouping by department/program
             query = `
                 SELECT
@@ -178,10 +181,13 @@ const getDuyetHopDongData = async (req, res) => {
                     100000 AS TienMoiGiang,
                     SUM(da.SoTiet) * 100000 AS ThanhTien,
                     SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                    SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
-                    NULL as SoHopDong,
+                    SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,                    NULL as SoHopDong,
                     'Chưa có hợp đồng' as TrangThaiHopDong,
-                    pb.TenPhongBan
+                    pb.TenPhongBan,
+                    
+                    -- Thông tin trạng thái duyệt cho đồ án
+                    1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
+                    1 AS TaiChinhDuyet -- Placeholder, sẽ được cập nhật từ bảng doantotnghiep nếu có
                 FROM (
                     SELECT
                         NgayBatDau,
@@ -233,10 +239,10 @@ const getDuyetHopDongData = async (req, res) => {
                 LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
                 WHERE 1=1
             `;
-            params = [namHoc, dot, ki, namHoc, dot, ki];            if (maPhongBan && maPhongBan !== "ALL") {
+            params = [namHoc, dot, ki, namHoc, dot, ki]; if (maPhongBan && maPhongBan !== "ALL") {
                 query += " AND da.MaPhongBan = ?";
                 params.push(maPhongBan);
-            }            query += `
+            } query += `
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
                     gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
@@ -250,7 +256,7 @@ const getDuyetHopDongData = async (req, res) => {
             return res.status(400).json({
                 message: "Hệ đào tạo không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'"
             });
-        }        const [results] = await connection.query(query, params);
+        } const [results] = await connection.query(query, params);
 
         // Enhanced grouping: Group by teacher and training program to show detailed breakdown
         const groupedByTeacher = results.reduce((acc, current) => {
@@ -294,7 +300,7 @@ const getDuyetHopDongData = async (req, res) => {
                     }
                 };
             }
-              // Add training program data with validation and error handling
+            // Add training program data with validation and error handling
             const programData = {
                 he_dao_tao: current.he_dao_tao || 'Không xác định',
                 SoTiet: parseFloat(current.SoTiet) || 0,
@@ -307,18 +313,18 @@ const getDuyetHopDongData = async (req, res) => {
                 Lop: current.Lop || '',
                 SiSo: current.SiSo || ''
             };
-            
+
             // Validate program data for completeness
             if (!programData.he_dao_tao || programData.he_dao_tao === 'Không xác định') {
                 console.warn(`Warning: Missing training program data for teacher ${teacher}`);
             }
-            
+
             if (programData.SoTiet <= 0) {
                 console.warn(`Warning: Invalid or missing hours data for teacher ${teacher}, program ${programData.he_dao_tao}`);
             }
-            
+
             acc[teacher].trainingPrograms.push(programData);
-            
+
             // Update totals
             acc[teacher].totalFinancials.totalSoTiet += programData.SoTiet;
             acc[teacher].totalFinancials.totalThanhTien += programData.ThanhTien;
@@ -378,7 +384,7 @@ const getDuyetHopDongData = async (req, res) => {
                 // For Mời giảng, initialize empty array as there's no SoQD in quychuan
                 SoQDList = [];
             }
-        }        res.json({
+        } res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher: sortedEnhancedGroupedByTeacher, // Send detailed data for enhanced display, properly sorted
             SoTietDinhMuc: SoTietDinhMuc,
@@ -451,11 +457,12 @@ const exportDuyetHopDongData = async (req, res) => {
             if (maPhongBan && maPhongBan !== "ALL") {
                 query += " AND gv.MaPhongBan = ?";
                 params.push(maPhongBan);
-            }            query += `
+            } query += `
                 GROUP BY
                     gv.HoTen, qc.he_dao_tao, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen, qc.he_dao_tao
-            `;        } else if (heDaoTao === "Đồ án") {
+            `;
+        } else if (heDaoTao === "Đồ án") {
             // Case 2: Query from doantotnghiep table with proper structure
             query = `
                 SELECT
@@ -528,7 +535,7 @@ const exportDuyetHopDongData = async (req, res) => {
             if (maPhongBan && maPhongBan !== "ALL") {
                 query += " AND da.MaPhongBan = ?";
                 params.push(maPhongBan);
-            }            query += `
+            } query += `
                 GROUP BY
                     gv.HoTen, da.MaPhongBan, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen, pb.TenPhongBan
@@ -551,13 +558,13 @@ const exportDuyetHopDongData = async (req, res) => {
                     totalThucNhan: 0
                 };
             }
-            
+
             acc[teacher].programs.push(current);
             acc[teacher].totalSoTiet += parseFloat(current.SoTiet) || 0;
             acc[teacher].totalThanhTien += parseFloat(current.ThanhTien) || 0;
             acc[teacher].totalThue += parseFloat(current.Thue) || 0;
             acc[teacher].totalThucNhan += parseFloat(current.ThucNhan) || 0;
-            
+
             return acc;
         }, {});
 
@@ -596,7 +603,7 @@ const exportDuyetHopDongData = async (req, res) => {
             worksheet.addRow({
                 stt: index + 1,
                 hoTen: row.HoTen,
-                heDaoTao: row.he_dao_tao,                tenPhongBan: row.TenPhongBan,
+                heDaoTao: row.he_dao_tao, tenPhongBan: row.TenPhongBan,
                 monHoc: row.MonHoc,
                 lop: row.Lop,
                 siSo: row.SiSo,
@@ -637,8 +644,180 @@ const exportDuyetHopDongData = async (req, res) => {
     }
 };
 
+/**
+ * Approve contracts based on criteria
+ */
+const approveContracts       = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const { dot, ki, namHoc, maPhongBan, heDaoTao } = req.body;
+
+        if (!dot || !ki || !namHoc || !heDaoTao) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Hệ đào tạo"
+            });
+        }
+
+        // Validation for "Mời giảng" - must select all faculties
+        if (heDaoTao === "Mời giảng" && maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+            return res.status(400).json({
+                success: false,
+                message: "Với hợp đồng mời giảng, chỉ được chọn tất cả khoa, không thể duyệt từng khoa riêng lẻ"
+            });
+        }
+
+        // First, check if all records have DaoTaoDuyet = 1 (following TaiChinhCheckAll pattern)
+        let unapprovedFaculties = [];
+
+        if (heDaoTao === "Mời giảng") {
+            // For mời giảng, check all faculties if no specific faculty selected
+            if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
+                // Get all faculties
+                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
+                
+                for (const faculty of faculties) {
+                    const [check] = await connection.query(`
+                        SELECT DaoTaoDuyet FROM quychuan 
+                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                    `, [faculty.MaPhongBan, dot, ki, namHoc]);
+
+                    // Check if all records in this faculty have DaoTaoDuyet = 1
+                    const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
+                    
+                    if (hasUnapprovedDaoTao) {
+                        unapprovedFaculties.push(faculty.MaPhongBan);
+                    }
+                }
+            }
+        } else if (heDaoTao === "Đồ án") {
+            // For đồ án, check specific faculty or all faculties
+            const facultiesToCheck = [];
+            
+            if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+                facultiesToCheck.push(maPhongBan);
+            } else {
+                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
+                facultiesToCheck.push(...faculties.map(f => f.MaPhongBan));
+            }
+
+            for (const facultyCode of facultiesToCheck) {
+                const [check] = await connection.query(`
+                    SELECT DaoTaoDuyet FROM doantotnghiep 
+                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
+                `, [facultyCode, namHoc, dot, ki]);
+
+                // Check if all records in this faculty have DaoTaoDuyet = 1
+                const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
+                
+                if (hasUnapprovedDaoTao) {
+                    unapprovedFaculties.push(facultyCode);
+                }
+            }
+        }
+
+        // If there are faculties with unapproved DaoTao, return notification instead of error
+        if (unapprovedFaculties.length > 0) {
+            return res.status(200).json({
+                success: false,
+                isNotification: true,
+                message: `Hiện tại không thể duyệt vì các khoa sau chưa được đào tạo duyệt hoàn toàn: ${unapprovedFaculties.join(', ')}. Vui lòng đợi đào tạo duyệt xong trước khi tiến hành duyệt tài chính.`,
+                unapprovedFaculties: unapprovedFaculties,
+                affectedRows: 0
+            });
+        }
+
+        // If all checks pass, update TaiChinhDuyet = 1 based on contract type
+        let affectedRows = 0;
+
+        if (heDaoTao === "Mời giảng") {
+            // For mời giảng, update all faculties if no specific faculty selected
+            if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
+                // Get all faculties and update each that has all DaoTaoDuyet = 1
+                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
+                
+                for (const faculty of faculties) {
+                    // Double-check this faculty is fully approved by DaoTao
+                    const [check] = await connection.query(`
+                        SELECT DaoTaoDuyet FROM quychuan 
+                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                    `, [faculty.MaPhongBan, dot, ki, namHoc]);
+
+                    const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
+                    
+                    if (allDaoTaoApproved && check.length > 0) {
+                        const [updateResult] = await connection.query(`
+                            UPDATE quychuan 
+                            SET TaiChinhDuyet = 1 
+                            WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
+                              AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
+                        `, [faculty.MaPhongBan, dot, ki, namHoc]);
+                        
+                        affectedRows += updateResult.affectedRows;
+                    }
+                }
+            }
+        } else if (heDaoTao === "Đồ án") {
+            // For đồ án, handle specific faculty or all faculties
+            const facultiesToUpdate = [];
+            
+            if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+                facultiesToUpdate.push(maPhongBan);
+            } else {
+                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
+                facultiesToUpdate.push(...faculties.map(f => f.MaPhongBan));
+            }
+
+            for (const facultyCode of facultiesToUpdate) {
+                // Double-check this faculty is fully approved by DaoTao
+                const [check] = await connection.query(`
+                    SELECT DaoTaoDuyet FROM doantotnghiep 
+                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
+                `, [facultyCode, namHoc, dot, ki]);
+
+                const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
+                
+                if (allDaoTaoApproved && check.length > 0) {
+                    const [updateResult] = await connection.query(`
+                        UPDATE doantotnghiep 
+                        SET TaiChinhDuyet = 1 
+                        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? 
+                          AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
+                    `, [facultyCode, namHoc, dot, ki]);
+                    
+                    affectedRows += updateResult.affectedRows;
+                }
+            }
+        }
+
+        const facultyText = (heDaoTao === "Đồ án" && maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL')
+            ? ` của khoa ${maPhongBan}`
+            : ' của tất cả khoa';
+
+        res.json({
+            success: true,
+            message: `Đã duyệt thành công ${affectedRows} hợp đồng ${heDaoTao.toLowerCase()}${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
+            affectedRows: affectedRows
+        });
+
+    } catch (error) {
+        console.error("Error approving contracts:", error);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi duyệt hợp đồng"
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 module.exports = {
     getDuyetHopDongPage,
     getDuyetHopDongData,
-    exportDuyetHopDongData
+    exportDuyetHopDongData,
+    approveContracts
 };

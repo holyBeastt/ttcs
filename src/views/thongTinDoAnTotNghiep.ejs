@@ -1016,14 +1016,12 @@
           } else if (isKhoa == 0 && role == "Duyệt") {
             if (MaPhongBan == "DAOTAO") {
               khoaCheckbox.style.display = "block";
-
               daoTaoCheckbox.style.display = "block";
               VPCheckbox.style.display = "none";
             } else if (MaPhongBan == "VP") {
-              // Checkbox cho Đào Tạo
+              // Sửa lỗi: hiển thị checkbox cho cột Văn Phòng
+              khoaCheckbox.style.display = "block";
               daoTaoCheckbox.style.display = "block";
-              khoaCheckboxTd.style.display = "none";
-              // Checkbox cho Tài Chính
               VPCheckbox.style.display = "block";
             }
           }
@@ -1087,16 +1085,17 @@
             MaPhongBan.toLowerCase() === "vp" &&
             role.toLowerCase() !== "thường"
           ) {
-            // Nếu khoa đã check thì hiện check bên đào tạo
+            // Nếu đào tạo chưa check thì disable checkbox VP
             if (!DaoTaoCheck.includes(row.MaPhongBan)) {
-              // Ngăn thay đổi trạng thái check box khoa
+              // Ngăn thay đổi trạng thái check box đào tạo và VP
               daoTaoCheckbox.disabled = true;
               VPCheckbox.disabled = true;
             }
 
-            // Nếu đào tạo đã check thì disable check đào tạo
+            // Nếu VP đã check thì disable tất cả checkbox
             if (VPCheck.includes(row.MaPhongBan)) {
-              // Ngăn thay đổi trạng thái check box khoa
+              // Ngăn thay đổi trạng thái check box
+              khoaCheckbox.disabled = true;
               daoTaoCheckbox.disabled = true;
               VPCheckbox.disabled = true;
             }
@@ -1368,6 +1367,7 @@
             NamHoc: NamHoc,
             MaPhongBan: MaPhongBan,
           };
+          console.log("Request Data:", requestData);
 
           // Gửi dữ liệu qua API
           fetch(`/saveToExportDoAn`, {
@@ -1844,14 +1844,15 @@
         if (isKhoa == 0 && role == "Duyệt") {
           if (MaPhongBan == "DAOTAO") {
             // Ẩn cột 'VPColumn'
-            document.getElementById("updateDoAn").style.display =
-              "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
+            document.getElementById("VPColumn").style.display = "none";
+            document.getElementById("updateDoAn").style.display = "inline-block";
           } else if (MaPhongBan == "VP") {
-            // Ẩn cột 'khoaColumn'
-            document.getElementById("updateDoAn").style.display =
-              "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
-            document.getElementById("saveDataDoAn").style.display =
-              "inline-block";
+            // Hiển thị tất cả các cột cho VP
+            document.getElementById("khoaColumn").style.display = "table-cell";
+            document.getElementById("daoTaoColumn").style.display = "table-cell";
+            document.getElementById("VPColumn").style.display = "table-cell";
+            document.getElementById("updateDoAn").style.display = "inline-block";
+            document.getElementById("saveDataDoAn").style.display = "inline-block";
           }
         }
 

@@ -11,4 +11,7 @@ router.post('/api/duyet-hop-dong', duyetHopDongController.getDuyetHopDongData);
 // API route for exporting contract approval data
 router.get('/api/export-duyet-hop-dong', duyetHopDongController.exportDuyetHopDongData);
 
+// API route for approving contracts
+router.post('/api/approve-contracts', duyetHopDongController.approveContracts);
+
 module.exports = router;
