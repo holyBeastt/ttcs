@@ -448,18 +448,29 @@ const previewContract = async (req, res) => {
             let pdfBuffer;
             
             try {
-                // First try using libreoffice-convert library
-                pdfBuffer = await new Promise((resolve, reject) => {
-                    libre.convert(buf, '.pdf', undefined, (err, done) => {
-                        if (err) {
-                            console.error('LibreOffice conversion error:', err);
-                            reject(err);
-                        } else {
-                            resolve(done);
-                        }
+                // Suppress console output during library conversion
+                const originalConsole = suppressConsole();
+                
+                try {
+                    // First try using libreoffice-convert library
+                    pdfBuffer = await new Promise((resolve, reject) => {
+                        libre.convert(buf, '.pdf', undefined, (err, done) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(done);
+                            }
+                        });
                     });
-                });
-                console.log('PDF conversion successful using libreoffice-convert');
+                    
+                    // Restore console and log success
+                    restoreConsole(originalConsole);
+                    console.log('PDF conversion successful using libreoffice-convert');
+                } catch (libraryError) {
+                    // Restore console before handling error
+                    restoreConsole(originalConsole);
+                    throw libraryError;
+                }
             } catch (libraryError) {
                 console.log('Library conversion failed, trying direct method:', libraryError.message);
                 // Fallback to direct LibreOffice command
@@ -848,6 +859,36 @@ const downloadContract = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+/**
+ * Temporarily suppress console output during LibreOffice conversion
+ */
+function suppressConsole() {
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info
+    };
+    
+    // Override console methods with empty functions
+    console.log = () => {};
+    console.error = () => {};
+    console.warn = () => {};
+    console.info = () => {};
+    
+    return originalConsole;
+}
+
+/**
+ * Restore console output
+ */
+function restoreConsole(originalConsole) {
+    console.log = originalConsole.log;
+    console.error = originalConsole.error;
+    console.warn = originalConsole.warn;
+    console.info = originalConsole.info;
+}
 
 // Các hàm utility được sao chép từ exportHDController
 function formatDate(date) {
