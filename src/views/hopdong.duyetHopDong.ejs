@@ -11,11 +11,10 @@
   <link rel="stylesheet" href="/css/gvmList.css" />
   <link rel="stylesheet" href="/css/table.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-
-  <!-- SweetAlert2 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 CSS -->  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <!-- Note: Removed docx-preview library as we now use PDF preview -->
 
   <style>
     .teacher-group {
@@ -161,7 +160,9 @@
 
     .total-label .row {
       margin: 0;
-    }    .total-label .col-md-3 {
+    }
+
+    .total-label .col-md-3 {
       padding: 5px;
       font-weight: bold;
       color: white;
@@ -195,7 +196,9 @@
     .modal-content {
       width: 100%;
       margin: 0 auto;
-    }    /* Simple Dropdown menu styles */
+    }
+
+    /* Simple Dropdown menu styles */
     .dropdown-menu {
       z-index: 1050;
       min-width: 180px;
@@ -224,7 +227,9 @@
     .btn-group .dropdown-toggle {
       height: 45px;
       border-radius: 4px;
-    }    /* Simple button styles for approve and save buttons */
+    }
+
+    /* Simple button styles for approve and save buttons */
     #approveContractBtn {
       background-color: #007bff;
       border: 1px solid #007bff;
@@ -237,14 +242,15 @@
       border-color: #004085;
     }
 
-    #saveDataMoiGiang, #saveDataDoAn {
+    #saveDataMoiGiang,
+    #saveDataDoAn {
       border-radius: 4px;
       background-color: #007bff;
       border: 1px solid #007bff;
       color: white;
     }
 
-    #saveDataMoiGiang:hover, #saveDataDoAn:hover {
+    #saveDataMoiGiang:hover,    #saveDataDoAn:hover {
       background-color: #0056b3;
       border-color: #004085;
     }
@@ -294,13 +300,13 @@
               </ul>
             </div>
             <button id="approveContractBtn" class="btn btn-success mx-2" style="display: none;">
-              <i class="fas fa-check"></i> Duyệt hợp đồng
+              Duyệt hợp đồng
             </button>
             <button id="saveDataMoiGiang" class="btn btn-warning mx-2" style="display: none; height: 45px;">
-              <i class="fas fa-save"></i> Lưu dữ liệu hợp đồng mời giảng
+              Lưu dữ liệu hợp đồng mời giảng
             </button>
             <button id="saveDataDoAn" class="btn btn-info mx-2" style="display: none; height: 45px;">
-              <i class="fas fa-save"></i> Lưu dữ liệu hợp đồng đồ án
+              Lưu dữ liệu hợp đồng đồ án
             </button>
             <br />
 
@@ -330,7 +336,7 @@
                           <th class="narrow-col">Trừ thuế</th>
                           <th class="wide-col">Thực nhận</th>
                           <th class="narrow-col">Trạng thái</th>
-                          <th class="action-col">Thao tác</th>
+                          <th class="action-col">Chi tiết</th>
                         </tr>
                       </thead>
                       <tbody id="summaryTableBody">
@@ -348,7 +354,6 @@
             <div id="heDaoTaoResultsDiv" style="display: none;">
               <div class="mb-4">
                 <h5 class="text-primary border-bottom pb-2">
-                  <i class="fas fa-chart-pie me-2"></i>Dữ liệu theo Hệ đào tạo
                 </h5>
                 <div class="table-responsive">
                   <div class="over-f">
@@ -382,7 +387,6 @@
 
             <!-- No data message -->
             <div id="noDataMessage" class="text-center py-4" style="display: block;">
-              <i class="fas fa-search fa-3x text-muted mb-3"></i>
               <h5 class="text-muted">Vui lòng chọn điều kiện lọc và nhấn "Xem dữ liệu" để hiển thị danh sách hợp đồng
               </h5>
             </div>
@@ -480,19 +484,19 @@
             <div id="modal-content-additional">
               <!-- Training program breakdown will be inserted here dynamically -->
             </div>
-          </div>
-          <div class="modal-footer">
+          </div>          <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button type="button" class="btn btn-success" id="modal-preview-contract">
+              <i class="fas fa-eye"></i> Xem trước HĐ
+            </button>
             <button type="button" class="btn btn-info" id="modal-view-contract" style="display: none;">
-              <i class="fas fa-eye"></i> Xem hợp đồng
+              Xem hợp đồng
             </button>
             <button type="button" class="btn btn-warning" id="modal-edit-contract" style="display: none;">
-              <i class="fas fa-edit"></i> Sửa hợp đồng
-            </button>
-          </div>
+              Sửa hợp đồng
+            </button>          </div>
         </div>
-      </div>
-    </div>
+      </div>    </div>
 
     <!-- Success/Error Messages -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -517,7 +521,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
     <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script>      $(document).ready(function () {        // Initialize Bootstrap dropdowns
+    <script>      // Global variables for storing table data
+      window.teacherTableData = []; // Store teacher table data
+      window.teacherDetailData = {};
+      window.enhancedTeacherData = {};
+      window.heDaoTaoDetailData = [];
+
+      $(document).ready(function () {
+        // Initialize Bootstrap dropdowns
         var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
         var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
           return new bootstrap.Dropdown(dropdownToggleEl);
@@ -545,7 +556,7 @@
         $('#saveDataMoiGiang').hide();
         $('#saveDataDoAn').hide();
         $('#approveContractBtn').hide();
-        
+
         // Initialize table states - show no data message by default
         showNoDataMessage();
 
@@ -557,15 +568,15 @@
           e.preventDefault();
           e.stopPropagation();
           $('.dropdown-menu').removeClass('show'); // Close dropdown
-          
+
           // Update dropdown button text to show current view
           $(this).closest('.btn-group').find('.dropdown-toggle').html(`
-            <i class="fas fa-user-tie"></i> Hiển thị: Theo giảng viên
+             Hiển thị: Theo giảng viên
           `);
-          
+
           // Add visual feedback
           $(this).addClass('active').siblings().removeClass('active');
-          
+
           loadContractData();
         });
 
@@ -574,15 +585,15 @@
           e.preventDefault();
           e.stopPropagation();
           $('.dropdown-menu').removeClass('show'); // Close dropdown
-          
+
           // Update dropdown button text to show current view
           $(this).closest('.btn-group').find('.dropdown-toggle').html(`
-            <i class="fas fa-graduation-cap"></i> Hiển thị: Theo hệ đào tạo
+             Hiển thị: Theo hệ đào tạo
           `);
-          
+
           // Add visual feedback
           $(this).addClass('active').siblings().removeClass('active');
-          
+
           loadContractDataByHeDaoTao();
         });// Handle loaiHopDong selection change to show/hide save buttons
         $('#loaiHopDong').on('change', function () {
@@ -630,9 +641,9 @@
         if (!dot || !ki || !namHoc) {
           showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
           return;
-        }        showLoading(true);
+        } showLoading(true);
         hideAllTables(); // Use helper function
-        
+
         const params = {
           dot: dot,
           ki: ki,
@@ -640,11 +651,11 @@
           maPhongBan: $('#MaPhongBan').val(),
           loaiHopDong: $('#loaiHopDong').val()
         };
-        
+
         $.ajax({
           url: '/api/duyet-hop-dong',
           type: 'POST',
-          data: params, 
+          data: params,
           success: function (response) {
             if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
               displayContractDataInSeparateTables(
@@ -664,14 +675,15 @@
               } else if (loaiHopDong === 'Đồ án') {
                 $('#saveDataDoAn').show();
                 $('#saveDataMoiGiang').hide();
-              }            } else {
+              }
+            } else {
               showError('Không có dữ liệu để hiển thị');
               showNoDataMessage(); // Use helper function
               $('#approveContractBtn').hide();
               $('#saveDataMoiGiang').hide();
               $('#saveDataDoAn').hide();
             }
-          }, 
+          },
           error: function () {
             showError('Có lỗi xảy ra khi kết nối với server');
             showNoDataMessage(); // Use helper function
@@ -692,7 +704,7 @@
         if (!dot || !ki || !namHoc) {
           showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
           return;
-        }        showLoading(true);
+        } showLoading(true);
         hideAllTables(); // Use helper function
 
         const params = {
@@ -706,7 +718,7 @@
         $.ajax({
           url: '/api/duyet-hop-dong-theo-he-dao-tao',
           type: 'POST',
-          data: params,          success: function (response) {
+          data: params, success: function (response) {
             if (response.data && response.data.length > 0) {
               showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo. Xem chi tiết trong bảng bên dưới.`);
 
@@ -716,7 +728,8 @@
               $('#saveDataDoAn').hide();
 
               // Hiển thị bảng hệ đào tạo
-              displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);            } else {
+              displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);
+            } else {
               showError('Không có dữ liệu để hiển thị');
               showNoDataMessage(); // Use helper function
               // Hide buttons when no data
@@ -724,14 +737,14 @@
               $('#saveDataMoiGiang').hide();
               $('#saveDataDoAn').hide();
             }
-          },          error: function (xhr, status, error) {
+          }, error: function (xhr, status, error) {
             showError('Có lỗi xảy ra khi kết nối với server');
             showNoDataMessage(); // Use helper function
             // Hide buttons on error
             $('#approveContractBtn').hide();
             $('#saveDataMoiGiang').hide();
             $('#saveDataDoAn').hide();
-          },complete: function () {
+          }, complete: function () {
             showLoading(false);
           }
         });
@@ -742,11 +755,11 @@
 
         // Clear table body
         const heDaoTaoTbody = $('#heDaoTaoTableBody');
-        heDaoTaoTbody.empty();        if (!data || data.length === 0) {
+        heDaoTaoTbody.empty(); if (!data || data.length === 0) {
           const noDataRow = `
             <tr>
               <td colspan="10" class="text-center text-muted">
-                <i class="fas fa-inbox"></i> Không có dữ liệu hệ đào tạo để hiển thị
+                 Không có dữ liệu hệ đào tạo để hiển thị
               </td>
             </tr>
           `;
@@ -832,7 +845,8 @@
               <i class="fas fa-info-circle"></i> 
               Định mức giảng dạy: <strong>${SoTietDinhMuc}</strong> tiết/năm
             </div>
-          `);        }
+          `);
+        }
 
         // Show training program results table 
         // Note: teacher table (resultsDiv) is already hidden by hideAllTables() call at function start
@@ -944,10 +958,10 @@
       function displayContractDataInSeparateTables(groupedByTeacher, enhancedGroupedByTeacher, SoTietDinhMuc) {
         // Hide training program table and show only teacher table
         hideAllTables(); // Use helper function
-        
+
         // Clear table body
         const summaryTbody = $('#summaryTableBody');
-        summaryTbody.empty();        if (Object.keys(groupedByTeacher).length === 0) {
+        summaryTbody.empty(); if (Object.keys(groupedByTeacher).length === 0) {
           const noDataRow = `
             <tr>
               <td colspan="10" class="text-center text-muted">
@@ -958,7 +972,7 @@
           summaryTbody.append(noDataRow);
           $('#resultsDiv').show(); // Show teacher table even with no data message
           return;
-        }let totalQC = 0;
+        } let totalQC = 0;
         let totalThanhTienAll = 0;
         let totalThueAll = 0;
         let totalThucNhanAll = 0;
@@ -967,6 +981,9 @@
         // Store enhanced data globally for modal access
         window.teacherDetailData = {};
         window.enhancedTeacherData = enhancedGroupedByTeacher || {};
+
+        // Clear and initialize teacher table data array
+        window.teacherTableData = [];
 
         // Convert grouped data to flat array
         Object.keys(groupedByTeacher).forEach((teacherName) => {
@@ -1003,6 +1020,7 @@
 
           // Create a merged data object and store it globally
           const mergedData = {
+            STT: rowIndex,
             TongTiet: totalTeacherHours,
             TongSoTiet: totalTeacherHours,
             NgayBatDau: teacherData.NgayBatDau,
@@ -1029,16 +1047,24 @@
             SoHopDong: teacherData.SoHopDong,
             loaiHopDong: teacherData.he_dao_tao || $('#loaiHopDong').val(),
             MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
+            TenPhongBan: teacherData.TenPhongBan,
             // Add enhanced training program data
             trainingPrograms: enhancedData ? enhancedData.trainingPrograms : [],
             hasEnhancedData: !!enhancedData,
             // Add approval status
             DaoTaoDuyet: teacherData.DaoTaoDuyet || 0,
-            TaiChinhDuyet: teacherData.TaiChinhDuyet || 0
+            TaiChinhDuyet: teacherData.TaiChinhDuyet || 0,
+            // Add filter parameters for reference
+            Dot: $('#combobox-dot').val(),
+            Ki: $('#comboboxki').val(),
+            NamHoc: $('#NamHoc').val()
           };
 
           // Store for modal access
           window.teacherDetailData[teacherName] = mergedData;
+
+          // Add to teacher table data array
+          window.teacherTableData.push(mergedData);
 
           const hasContract = mergedData.SoHopDong && mergedData.SoHopDong.trim() !== '';
 
@@ -1067,7 +1093,10 @@
               <td>${formatCurrency(mergedData.ThucNhan)}</td>
               <td>${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>              <td>
                 <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetail('${encodeURIComponent(teacherName)}')">
-                  <i class="fas fa-eye"></i> Xem
+                   Chi tiết
+                </button>
+                <button class="btn btn-sm btn-success me-1" onclick="previewContract('${encodeURIComponent(teacherName)}')">
+                   <i class="fas fa-eye"></i> Xem trước HĐ
                 </button>
                 ${hasContract ?
               `<button class="btn btn-sm btn-secondary" onclick="editContract('${mergedData.SoHopDong}')">
@@ -1580,13 +1609,64 @@
         $('#resultsDiv').hide();           // Teacher view table
         $('#heDaoTaoResultsDiv').hide();   // Training program view table
         $('#noDataMessage').hide();
-      }
-
-      // Helper function to show no data message and hide all tables
+      }      // Helper function to show no data message and hide all tables
       function showNoDataMessage() {
         hideAllTables();
         $('#noDataMessage').show();
+      }      // Contract preview functionality - Navigate to preview page
+      function previewContract(teacherName) {
+        const decodedName = decodeURIComponent(teacherName);
+        const teacherData = window.teacherDetailData[decodedName];
+        
+        if (!teacherData) {
+          showError('Không tìm thấy thông tin giảng viên');
+          return;
+        }
+
+        // Get current filter parameters
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+
+        if (!dot || !ki || !namHoc) {
+          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
+          return;
+        }
+
+        // Use API to show preview page instead of form submission
+        const requestData = {
+          teacherData: JSON.stringify(teacherData),
+          dot: dot,
+          ki: ki,
+          namHoc: namHoc
+        };
+
+        // Call API to get preview page with teacher data
+        fetch('/api/preview-page', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to load preview page');
+          }
+          return response.text();
+        })
+        .then(html => {
+          // Open preview in new window
+          const newWindow = window.open('', '_blank');
+          newWindow.document.write(html);
+          newWindow.document.close();
+        })
+        .catch(error => {
+          console.error('Preview error:', error);
+          showError('Không thể mở trang xem trước hợp đồng');
+        });
       }
+
     </script>
 
     <script src="/js/moigiang/href.js"></script>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xem trước hợp đồng - <%= teacherName %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />      <!-- PDF viewer will use browser's native PDF viewer -->
+    
+    <style>
+        .preview-container {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        
+        .preview-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .contract-selection {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .contract-option {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .contract-option:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.15);
+        }
+        
+        .contract-option.selected {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        
+        .preview-content {
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+        
+        .preview-header-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .preview-body {
+            padding: 0;
+            min-height: 500px;
+        }
+          #pdf-preview-container {
+            padding: 0;
+            min-height: 500px;
+        }
+        
+        #pdf-viewer {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 100px 20px;
+            color: #dc3545;
+        }
+        
+        .teacher-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .btn-group-custom {
+            gap: 10px;
+        }
+        
+        .contract-meta {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="preview-container">
+    <!-- Header -->
+    <div class="preview-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-file-contract me-3"></i>
+                        Xem trước hợp đồng
+                    </h1>
+                    <div class="teacher-info">
+                        <h5 class="mb-1"><%= teacherName %></h5>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar me-2"></i>
+                            Đợt <%= dot %> - Kỳ <%= ki %> - Năm học <%= namHoc %>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group-custom d-flex justify-content-end">
+                        <a href="/hop-dong/duyet" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Contract Selection -->
+        <div class="contract-selection">
+            <h4 class="mb-4">
+                <i class="fas fa-list-check me-2"></i>
+                Chọn loại hợp đồng để xem trước
+            </h4>
+            
+            <div id="contract-options" class="row">
+                <!-- Contract options will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Hướng dẫn:</strong> Chọn một loại hợp đồng bên trên để xem trước nội dung. 
+                    Hợp đồng sẽ được tạo với dữ liệu hiện tại của giảng viên.
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Content -->
+        <div class="preview-content" id="preview-section" style="display: none;">
+            <div class="preview-header-content">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-0" id="current-contract-title">
+                            <i class="fas fa-eye me-2"></i>
+                            Xem trước hợp đồng
+                        </h5>
+                        <p class="mb-0 text-muted" id="current-contract-meta"></p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group-custom d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary" onclick="closePreview()">
+                                <i class="fas fa-times me-2"></i>Đóng
+                            </button>
+                            <button type="button" class="btn btn-primary" id="download-btn" onclick="downloadContract()">
+                                <i class="fas fa-download me-2"></i>Tải xuống
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-body">
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-spinner">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <h5 class="mt-3">Đang tạo hợp đồng...</h5>
+                    <p class="text-muted">Vui lòng đợi trong giây lát</p>
+                </div>
+                
+                <!-- Error State -->
+                <div id="error-state" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Không thể tạo hợp đồng</h5>
+                    <p id="error-message-text">Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.</p>
+                    <button type="button" class="btn btn-primary" onclick="retryGeneration()">
+                        <i class="fas fa-redo me-2"></i>Thử lại
+                    </button>
+                </div>
+                  <!-- PDF Preview Container -->
+                <div id="pdf-preview-container" style="display: none;">
+                    <iframe id="pdf-viewer" type="application/pdf"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let currentContractBuffer = null;
+        let currentContractType = '';
+        const teacherData = <%- JSON.stringify(teacherData || {}) %>;
+        
+        $(document).ready(function() {
+            // Initialize contract options
+            initializeContractOptions();
+        });
+        
+        function initializeContractOptions() {
+            const optionsContainer = $('#contract-options');
+            optionsContainer.empty();
+            
+            // Check if teacher has training programs data
+            if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
+                if (teacherData.trainingPrograms.length > 1) {
+                    // Show options for each training program
+                    teacherData.trainingPrograms.forEach((program, index) => {
+                        const optionHtml = `
+                            <div class="col-md-6 col-lg-4">
+                                <div class="contract-option" onclick="selectContract('${encodeURIComponent(program.he_dao_tao)}')">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-file-contract fa-2x text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1">Hợp đồng ${program.he_dao_tao}</h6>
+                                            <div class="contract-meta">
+                                                <div><i class="fas fa-clock me-1"></i>${program.SoTiet.toFixed(2)} tiết</div>
+                                                <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(program.ThucNhan)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        optionsContainer.append(optionHtml);
+                    });
+                } else {
+                    // Single training program
+                    const program = teacherData.trainingPrograms[0];
+                    const optionHtml = `
+                        <div class="col-md-8 col-lg-6 mx-auto">
+                            <div class="contract-option" onclick="selectContract('${encodeURIComponent(program.he_dao_tao)}')">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-file-contract fa-3x text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="mb-2">Hợp đồng ${program.he_dao_tao}</h5>
+                                        <div class="contract-meta">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <i class="fas fa-clock me-1"></i>${program.SoTiet ? program.SoTiet.toFixed(2) : '0'} tiết
+                                                </div>
+                                                <div class="col-6">
+                                                    <i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(program.ThucNhan || 0)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    optionsContainer.append(optionHtml);
+                }
+            } else {
+                // Fallback to contract type if no training programs data
+                let contractType = teacherData.loaiHopDong;
+                if (!contractType || contractType === 'AllHe') {
+                    contractType = '<%= loaiHopDong || "Mời giảng" %>';
+                }
+                
+                const optionHtml = `
+                    <div class="col-md-8 col-lg-6 mx-auto">
+                        <div class="contract-option" onclick="selectContract('${encodeURIComponent(contractType)}')">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-contract fa-3x text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="mb-2">Hợp đồng ${contractType}</h5>
+                                    <div class="contract-meta">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? teacherData.TongTiet.toFixed(2) : '0'} tiết
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                optionsContainer.append(optionHtml);
+            }
+        }
+        
+        function selectContract(contractType) {
+            // Remove previous selections
+            $('.contract-option').removeClass('selected');
+            
+            // Add selection to clicked option
+            event.currentTarget.classList.add('selected');
+            
+            currentContractType = decodeURIComponent(contractType);
+            
+            // Show preview section
+            $('#preview-section').show();
+            
+            // Update title
+            $('#current-contract-title').html(`
+                <i class="fas fa-eye me-2"></i>
+                Xem trước hợp đồng ${currentContractType}
+            `);
+            
+            $('#current-contract-meta').text(`Tạo lúc: ${new Date().toLocaleString('vi-VN')}`);
+            
+            // Generate preview
+            generatePreview(currentContractType);
+            
+            // Scroll to preview section
+            $('html, body').animate({
+                scrollTop: $("#preview-section").offset().top - 20
+            }, 500);
+        }
+        
+        function generatePreview(heHopDong) {
+            // Reset states
+            $('#loading-state').show();
+            $('#error-state').hide();
+            $('#pdf-preview-container').hide();
+            
+            // Prepare data for API call - include teacherData if available
+            const previewData = {
+                teacherId: '<%= teacherId || "" %>',
+                heHopDong: heHopDong,
+                dot: '<%= dot || "" %>',
+                ki: '<%= ki || "" %>',
+                namHoc: '<%= namHoc || "" %>',
+                teacherData: JSON.stringify(teacherData)
+            };
+            
+            // Call preview API
+            $.ajax({
+                url: '/api/preview-contract',
+                type: 'POST',
+                data: previewData,
+                xhrFields: {
+                    responseType: 'arraybuffer'
+                },
+                success: function(data, textStatus, xhr) {
+                    try {
+                        // Hide loading
+                        $('#loading-state').hide();
+                        
+                        // Store buffer for download (DOCX)
+                        currentContractBuffer = data;
+                        
+                        // Show PDF preview in iframe
+                        const pdfViewer = document.getElementById('pdf-viewer');
+                        const blob = new Blob([data], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        pdfViewer.src = url;
+                        
+                        $('#pdf-preview-container').show();
+                            
+                    } catch (error) {
+                        console.error('Preview error:', error);
+                        showError('Có lỗi xảy ra khi xử lý hợp đồng: ' + error.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('API error:', error);
+                    $('#loading-state').hide();
+                    
+                    let errorMessage = 'Có lỗi xảy ra khi tạo hợp đồng';
+                    if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = xhr.responseText;
+                        }
+                    }
+                    showError(errorMessage);
+                }
+            });
+        }
+
+        function downloadContract() {
+            if (!currentContractType) {
+                alert('Vui lòng chọn và xem trước hợp đồng trước khi tải xuống');
+                return;
+            }
+            
+            // Prepare data for download API call - include teacherData
+            const downloadData = {
+                teacherId: '<%= teacherId || "" %>',
+                heHopDong: currentContractType,
+                dot: '<%= dot || "" %>',
+                ki: '<%= ki || "" %>',
+                namHoc: '<%= namHoc || "" %>',
+                teacherData: JSON.stringify(teacherData)
+            };
+            
+            // Create a form to submit download request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/download-contract';
+            form.style.display = 'none';
+            
+            // Add form data
+            for (const key in downloadData) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = downloadData[key];
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            // Show success message
+            const toast = $(`
+                <div class="toast position-fixed bottom-0 end-0 m-3" role="alert">
+                    <div class="toast-header bg-success text-white">
+                        <strong class="me-auto">Thành công</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Đang tải xuống hợp đồng...
+                    </div>
+                </div>
+            `);
+            $('body').append(toast);
+            new bootstrap.Toast(toast[0]).show();
+            
+            // Remove toast after it's hidden
+            toast.on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }
+        
+        // Currency formatting function
+        function formatCurrency(value) {
+            if (typeof value === "number" && !isNaN(value)) {
+                return value.toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                });
+            }
+            return "0 ₫";
+        }
+    </script>
+</body>
+</html>

@@ -37,6 +37,7 @@ const backupRoute = require("./routes/backupRoute");
 const tongHopGvmExportRoute = require("./routes/tongHopGvmExportRoute");
 const soHopDong = require("./routes/hopdong.soHopDongRoute");
 const duyetHopDong = require("./routes/hopdong.duyetHopDongRoute");
+const previewHopDong = require("./routes/hopdong.previewRoute");
 
 
 
@@ -146,6 +147,7 @@ app.use("/", backupRoute);
 app.use("/", tongHopGvmExportRoute);
 app.use("/", soHopDong);
 app.use("/", duyetHopDong);
+app.use("/", previewHopDong);
 
 
 // Phần admin
