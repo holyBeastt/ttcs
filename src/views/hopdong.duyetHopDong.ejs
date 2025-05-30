@@ -62,7 +62,9 @@
     .total-label span {
       font-weight: bold;
       color: #333;
-    }    .btn {
+    }
+
+    .btn {
       height: 45px !important;
     }
 
@@ -70,7 +72,9 @@
     #saveDataDoAn {
       white-space: nowrap;
       font-size: 14px;
-    }    .alert-sotiet {
+    }
+
+    .alert-sotiet {
       background-color: #ffcccc !important;
     }
 
@@ -150,6 +154,25 @@
       z-index: 1050;
     }
 
+    /* Training program table specific styles */
+    #heDaoTaoTable .text-info {
+      color: #0dcaf0 !important;
+    }
+
+    .total-label .row {
+      margin: 0;
+    }    .total-label .col-md-3 {
+      padding: 5px;
+      font-weight: bold;
+      color: white;
+      text-align: center;
+    }
+
+    /* Badge styles for approval status */
+    .badge {
+      font-size: 0.7em;
+    }
+
     .modal.fade .modal-dialog {
       transition: transform 0.3s ease-out;
     }
@@ -164,7 +187,7 @@
     }
 
     .modal-dialog.modal-xl {
-      max-width: 90%;
+      max-width: 1600px;
       width: 90%;
     }
 
@@ -172,6 +195,58 @@
     .modal-content {
       width: 100%;
       margin: 0 auto;
+    }    /* Simple Dropdown menu styles */
+    .dropdown-menu {
+      z-index: 1050;
+      min-width: 180px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: #ffffff;
+    }
+
+    .dropdown-item {
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+
+    .dropdown-item:hover {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .dropdown-item.active {
+      background-color: #28a745;
+      color: white;
+      font-weight: 600;
+    }
+
+    .btn-group .dropdown-toggle {
+      height: 45px;
+      border-radius: 4px;
+    }    /* Simple button styles for approve and save buttons */
+    #approveContractBtn {
+      background-color: #007bff;
+      border: 1px solid #007bff;
+      border-radius: 4px;
+      color: white;
+    }
+
+    #approveContractBtn:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+    }
+
+    #saveDataMoiGiang, #saveDataDoAn {
+      border-radius: 4px;
+      background-color: #007bff;
+      border: 1px solid #007bff;
+      color: white;
+    }
+
+    #saveDataMoiGiang:hover, #saveDataDoAn:hover {
+      background-color: #0056b3;
+      border-color: #004085;
     }
   </style>
 
@@ -204,9 +279,20 @@
 
             <select class="form-select mx-1 selectop" style="width: max-content" id="MaPhongBan">
               <option value="">Tất cả khoa</option>
-            </select> <select class="form-select mx-1 selectop" id="he_dao_tao">
+            </select> <select class="form-select mx-1 selectop" id="loaiHopDong">
               <option value="Mời giảng">Mời giảng</option>
-              <option value="Đồ án">Đồ án</option>            </select> <button id="viewDataBtn" class="btn view">Xem dữ liệu</button>
+              <option value="Đồ án">Đồ án</option>
+            </select>
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                Hiển thị
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" id="viewDataByTeacher">Theo giảng viên</a></li>
+                <li><a class="dropdown-item" href="#" id="viewDataByHeDaoTao">Theo hệ đào tạo</a></li>
+              </ul>
+            </div>
             <button id="approveContractBtn" class="btn btn-success mx-2" style="display: none;">
               <i class="fas fa-check"></i> Duyệt hợp đồng
             </button>
@@ -252,11 +338,45 @@
                     </table>
                   </div>
                 </div>
-              </div>
-
-              <!-- Label tổng số tiết tách riêng với bảng -->
+              </div> <!-- Label tổng số tiết và tổng tiền tách riêng với bảng -->
               <div class="total-label">
                 <label><span class="value" id="totalQC"></span></label>
+              </div>
+            </div>
+
+            <!-- Training Program Results Table -->
+            <div id="heDaoTaoResultsDiv" style="display: none;">
+              <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2">
+                  <i class="fas fa-chart-pie me-2"></i>Dữ liệu theo Hệ đào tạo
+                </h5>
+                <div class="table-responsive">
+                  <div class="over-f">
+                    <table class="table table-striped table-hover table-bordered" id="heDaoTaoTable">
+                      <thead class="table-dark">
+                        <tr>
+                          <th class="narrow-col">STT</th>
+                          <th class="wide-col">Hệ đào tạo</th>
+                          <th class="narrow-col">Số GV</th>
+                          <th class="narrow-col">Tổng tiết</th>
+                          <th class="wide-col">Tiền/tiết</th>
+                          <th class="wide-col">Thành tiền</th>
+                          <th class="narrow-col">Thuế</th>
+                          <th class="wide-col">Thực nhận</th>
+                          <th class="narrow-col">Trạng thái</th>
+                          <th class="action-col">Chi tiết</th>
+                        </tr>
+                      </thead>
+                      <tbody id="heDaoTaoTableBody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary for training programs -->
+              <div class="total-label">
+                <label><span class="value" id="totalHeDaoTao"></span></label>
               </div>
             </div>
 
@@ -351,7 +471,7 @@
                 </div>
                 <div class="col-md-6">
                   <p><strong>Tổng số tiết:</strong> <span id="modal-tongtiet"></span></p>
-                  <p><strong>Loại hợp đồng:</strong> <span id="modal-hedaotao"></span></p>
+                  <p><strong>Loại hợp đồng:</strong> <span id="modal-loaihopdong"></span></p>
                 </div>
               </div>
             </div>
@@ -397,28 +517,81 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/bootstrap/dist/js/jquery-3.7.1.min.js"></script>
     <script src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script>      $(document).ready(function () {
-        // Initialize buttons state
+    <script>      $(document).ready(function () {        // Initialize Bootstrap dropdowns
+        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+          return new bootstrap.Dropdown(dropdownToggleEl);
+        });
+
+        // Manual dropdown toggle as fallback
+        $('.dropdown-toggle').on('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const dropdownMenu = $(this).next('.dropdown-menu');
+
+          // Close other dropdowns
+          $('.dropdown-menu').not(dropdownMenu).removeClass('show');
+
+          // Toggle current dropdown
+          dropdownMenu.toggleClass('show');
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function (e) {
+          if (!$(e.target).closest('.btn-group').length) {
+            $('.dropdown-menu').removeClass('show');
+          }
+        });        // Initialize buttons state
         $('#saveDataMoiGiang').hide();
         $('#saveDataDoAn').hide();
         $('#approveContractBtn').hide();
         
+        // Initialize table states - show no data message by default
+        showNoDataMessage();
+
         // Initialize search functionality
         $('#searchGiangVien').on('input', function () {
           filterTable();
-        });// Handle view data button click
-        $('#viewDataBtn').on('click', function () {
+        });        // Handle view data dropdown menu clicks
+        $('#viewDataByTeacher').on('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $('.dropdown-menu').removeClass('show'); // Close dropdown
+          
+          // Update dropdown button text to show current view
+          $(this).closest('.btn-group').find('.dropdown-toggle').html(`
+            <i class="fas fa-user-tie"></i> Hiển thị: Theo giảng viên
+          `);
+          
+          // Add visual feedback
+          $(this).addClass('active').siblings().removeClass('active');
+          
           loadContractData();
         });
 
-        // Handle he_dao_tao selection change to show/hide save buttons
-        $('#he_dao_tao').on('change', function () {
-          const selectedValue = $(this).val();
+        // Handle view data by training program dropdown menu click
+        $('#viewDataByHeDaoTao').on('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $('.dropdown-menu').removeClass('show'); // Close dropdown
           
+          // Update dropdown button text to show current view
+          $(this).closest('.btn-group').find('.dropdown-toggle').html(`
+            <i class="fas fa-graduation-cap"></i> Hiển thị: Theo hệ đào tạo
+          `);
+          
+          // Add visual feedback
+          $(this).addClass('active').siblings().removeClass('active');
+          
+          loadContractDataByHeDaoTao();
+        });// Handle loaiHopDong selection change to show/hide save buttons
+        $('#loaiHopDong').on('change', function () {
+          const selectedValue = $(this).val();
+
           // Hide both buttons first
           $('#saveDataMoiGiang').hide();
           $('#saveDataDoAn').hide();
-          
+
           // Show appropriate button based on selection
           if (selectedValue === 'Mời giảng') {
             $('#saveDataMoiGiang').show();
@@ -457,22 +630,22 @@
         if (!dot || !ki || !namHoc) {
           showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
           return;
-        }
-
-        showLoading(true);
-        $('#noDataMessage').hide();
-        $('#resultsDiv').hide();
-
+        }        showLoading(true);
+        hideAllTables(); // Use helper function
+        
         const params = {
           dot: dot,
           ki: ki,
           namHoc: namHoc,
           maPhongBan: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val()
-        }; $.ajax({
+          loaiHopDong: $('#loaiHopDong').val()
+        };
+        
+        $.ajax({
           url: '/api/duyet-hop-dong',
           type: 'POST',
-          data: params,          success: function (response) {
+          data: params, 
+          success: function (response) {
             if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
               displayContractDataInSeparateTables(
                 response.groupedByTeacher,
@@ -483,26 +656,25 @@
 
               // Show approve button after loading data
               $('#approveContractBtn').show();
-              
-              // Show appropriate save button based on he_dao_tao selection
-              const heDaoTao = $('#he_dao_tao').val();
-              if (heDaoTao === 'Mời giảng') {
+              // Show appropriate save button based on loaiHopDong selection
+              const loaiHopDong = $('#loaiHopDong').val();
+              if (loaiHopDong === 'Mời giảng') {
                 $('#saveDataMoiGiang').show();
                 $('#saveDataDoAn').hide();
-              } else if (heDaoTao === 'Đồ án') {
+              } else if (loaiHopDong === 'Đồ án') {
                 $('#saveDataDoAn').show();
                 $('#saveDataMoiGiang').hide();
-              }
-            } else {
+              }            } else {
               showError('Không có dữ liệu để hiển thị');
-              $('#noDataMessage').show();
+              showNoDataMessage(); // Use helper function
               $('#approveContractBtn').hide();
               $('#saveDataMoiGiang').hide();
               $('#saveDataDoAn').hide();
             }
-          },          error: function () {
+          }, 
+          error: function () {
             showError('Có lỗi xảy ra khi kết nối với server');
-            $('#noDataMessage').show();
+            showNoDataMessage(); // Use helper function
             $('#approveContractBtn').hide();
             $('#saveDataMoiGiang').hide();
             $('#saveDataDoAn').hide();
@@ -511,13 +683,271 @@
             showLoading(false);
           }
         });
+      }      // Load contract approval data grouped by training program (he_dao_tao)
+      function loadContractDataByHeDaoTao() {
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+
+        if (!dot || !ki || !namHoc) {
+          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
+          return;
+        }        showLoading(true);
+        hideAllTables(); // Use helper function
+
+        const params = {
+          dot: dot,
+          ki: ki,
+          namHoc: namHoc,
+          maPhongBan: $('#MaPhongBan').val(),
+          loaiHopDong: $('#loaiHopDong').val()
+        };
+
+        $.ajax({
+          url: '/api/duyet-hop-dong-theo-he-dao-tao',
+          type: 'POST',
+          data: params,          success: function (response) {
+            if (response.data && response.data.length > 0) {
+              showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo. Xem chi tiết trong bảng bên dưới.`);
+
+              // Hide approve and save buttons when viewing by training program
+              $('#approveContractBtn').hide();
+              $('#saveDataMoiGiang').hide();
+              $('#saveDataDoAn').hide();
+
+              // Hiển thị bảng hệ đào tạo
+              displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);            } else {
+              showError('Không có dữ liệu để hiển thị');
+              showNoDataMessage(); // Use helper function
+              // Hide buttons when no data
+              $('#approveContractBtn').hide();
+              $('#saveDataMoiGiang').hide();
+              $('#saveDataDoAn').hide();
+            }
+          },          error: function (xhr, status, error) {
+            showError('Có lỗi xảy ra khi kết nối với server');
+            showNoDataMessage(); // Use helper function
+            // Hide buttons on error
+            $('#approveContractBtn').hide();
+            $('#saveDataMoiGiang').hide();
+            $('#saveDataDoAn').hide();
+          },complete: function () {
+            showLoading(false);
+          }
+        });
+      }      // Function to display training program data in separate table
+      function displayHeDaoTaoData(data, enhancedData, SoTietDinhMuc) {
+        // Hide teacher table and show only training program table
+        hideAllTables(); // Use helper function
+
+        // Clear table body
+        const heDaoTaoTbody = $('#heDaoTaoTableBody');
+        heDaoTaoTbody.empty();        if (!data || data.length === 0) {
+          const noDataRow = `
+            <tr>
+              <td colspan="10" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu hệ đào tạo để hiển thị
+              </td>
+            </tr>
+          `;
+          heDaoTaoTbody.append(noDataRow);
+          $('#heDaoTaoResultsDiv').show(); // Show training program table even with no data message
+          return;
+        }
+
+        let totalSoTiet = 0;
+        let totalThanhTien = 0;
+        let totalThue = 0;
+        let totalThucNhan = 0;
+        let totalGiangVien = 0;
+
+        // Store enhanced data globally for modal access
+        window.heDaoTaoDetailData = enhancedData || [];
+
+        // Generate table rows
+        data.forEach((heDaoTao, index) => {
+          totalSoTiet += parseFloat(heDaoTao.SoTiet) || 0;
+          totalThanhTien += parseFloat(heDaoTao.ThanhTien) || 0;
+          totalThue += parseFloat(heDaoTao.Thue) || 0;
+          totalThucNhan += parseFloat(heDaoTao.ThucNhan) || 0;
+          totalGiangVien += parseInt(heDaoTao.SoGiangVien) || 0;
+
+          // Create approval status display
+          const getApprovalStatus = (daoTaoDuyet, taiChinhDuyet) => {
+            if (taiChinhDuyet == 1) {
+              return '<span class="badge bg-success"><i class="fas fa-check-double"></i> Đã duyệt TC</span>';
+            } else if (daoTaoDuyet == 1) {
+              return '<span class="badge bg-warning"><i class="fas fa-check"></i> Đã duyệt ĐT</span>';
+            } else {
+              return '<span class="badge bg-secondary"><i class="fas fa-clock"></i> Chưa duyệt</span>';
+            }
+          };
+
+          // Check if enhanced data exists for this training program
+          const hasEnhancedData = enhancedData && enhancedData.some(enhanced =>
+            enhanced.he_dao_tao === heDaoTao.he_dao_tao &&
+            enhanced.chiTietGiangVien &&
+            enhanced.chiTietGiangVien.length > 0
+          );
+
+          const enhancedIndicator = hasEnhancedData ?
+            '<i class="fas fa-users text-info ms-1" title="Có thông tin chi tiết giảng viên"></i>' : '';
+
+          const row = `
+            <tr>
+              <td>${index + 1}</td>
+              <td><strong>${heDaoTao.he_dao_tao}</strong>${enhancedIndicator}</td>
+              <td>${heDaoTao.SoGiangVien}</td>
+              <td>${Number.parseFloat(heDaoTao.SoTiet).toFixed(2)}</td>
+              <td>${formatCurrency(heDaoTao.TienMoiGiang)}</td>
+              <td>${formatCurrency(heDaoTao.ThanhTien)}</td>
+              <td>${formatCurrency(heDaoTao.Thue)}</td>
+              <td>${formatCurrency(heDaoTao.ThucNhan)}</td>
+              <td>${getApprovalStatus(heDaoTao.DaoTaoDuyet, heDaoTao.TaiChinhDuyet)}</td>
+              <td>
+                <button class="btn btn-sm btn-info" onclick="viewHeDaoTaoDetail('${encodeURIComponent(heDaoTao.he_dao_tao)}')">
+                  <i class="fas fa-eye"></i> Chi tiết
+                </button>
+              </td>
+            </tr>
+          `;
+          heDaoTaoTbody.append(row);
+        });        // Update total display
+        const totalElement = document.getElementById("totalHeDaoTao");
+        if (totalElement) {
+          totalElement.innerHTML = `
+            <div class="row">
+              <div class="col-md-3">Tổng ${data.length} hệ đào tạo</div>
+              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
+              <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
+            </div>
+          `;
+        }
+
+        // Display quota information
+        if (SoTietDinhMuc > 0) {
+          $('#quotaInfo').html(`
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> 
+              Định mức giảng dạy: <strong>${SoTietDinhMuc}</strong> tiết/năm
+            </div>
+          `);        }
+
+        // Show training program results table 
+        // Note: teacher table (resultsDiv) is already hidden by hideAllTables() call at function start
+        $('#heDaoTaoResultsDiv').show();
+      }
+
+      // Function to view details of a specific training program
+      function viewHeDaoTaoDetail(heDaoTaoName) {
+        const decodedName = decodeURIComponent(heDaoTaoName);
+        const enhancedData = window.heDaoTaoDetailData || [];
+
+        // Find the training program data
+        const heDaoTaoData = enhancedData.find(item => item.he_dao_tao === decodedName);
+
+        if (!heDaoTaoData || !heDaoTaoData.chiTietGiangVien || heDaoTaoData.chiTietGiangVien.length === 0) {
+          showError('Không tìm thấy thông tin chi tiết giảng viên cho hệ đào tạo này');
+          return;
+        }
+
+        // Create modal content for training program details
+        const modalContent = `
+          <div class="modal fade" id="heDaoTaoDetailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">
+                    <i class="fas fa-graduation-cap me-2"></i>Chi tiết Hệ đào tạo: ${decodedName}
+                  </h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <h6 class="text-primary">Thông tin tổng quan</h6>
+                    <div class="row">
+                      <div class="col-md-3"><strong>Số giảng viên:</strong> ${heDaoTaoData.chiTietGiangVien.length}</div>
+                      <div class="col-md-3"><strong>Tổng số tiết:</strong> ${heDaoTaoData.SoTiet}</div>
+                      <div class="col-md-3"><strong>Thành tiền:</strong> ${formatCurrency(heDaoTaoData.ThanhTien)}</div>
+                      <div class="col-md-3"><strong>Thực nhận:</strong> ${formatCurrency(heDaoTaoData.ThucNhan)}</div>
+                    </div>
+                  </div>
+                  
+                  <h6 class="text-primary border-bottom pb-2">Danh sách giảng viên</h6>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                      <thead class="table-dark">
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ tên</th>
+                          <th>Học vị</th>
+                          <th>Phòng ban</th>
+                          <th>Số tiết</th>
+                          <th>Thành tiền</th>
+                          <th>Thực nhận</th>
+                          <th>Liên hệ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+        `;
+
+        let tableRows = '';
+        heDaoTaoData.chiTietGiangVien.forEach((gv, index) => {
+          tableRows += `
+            <tr>
+              <td>${index + 1}</td>
+              <td><strong>${gv.HoTen}</strong></td>
+              <td>${gv.HocVi || 'N/A'}</td>
+              <td>${gv.TenPhongBan || 'N/A'}</td>
+              <td>${Number.parseFloat(gv.SoTiet).toFixed(2)}</td>
+              <td>${formatCurrency(gv.ThanhTien)}</td>
+              <td>${formatCurrency(gv.ThucNhan)}</td>
+              <td>
+                <small>
+                  ${gv.Email ? `📧 ${gv.Email}<br>` : ''}
+                  ${gv.DienThoai ? `📞 ${gv.DienThoai}` : ''}
+                </small>
+              </td>
+            </tr>
+          `;
+        });
+
+        const modalEnd = `
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Remove existing modal if any
+        $('#heDaoTaoDetailModal').remove();
+
+        // Add modal to body
+        $('body').append(modalContent + tableRows + modalEnd);
+
+        // Show modal
+        const modal = new bootstrap.Modal($('#heDaoTaoDetailModal')[0]);
+        modal.show();
+
+        // Clean up modal when hidden
+        $('#heDaoTaoDetailModal').on('hidden.bs.modal', function () {
+          $(this).remove();
+        });
       }      // Enhanced display function with training program breakdown
       function displayContractDataInSeparateTables(groupedByTeacher, enhancedGroupedByTeacher, SoTietDinhMuc) {
+        // Hide training program table and show only teacher table
+        hideAllTables(); // Use helper function
+        
         // Clear table body
         const summaryTbody = $('#summaryTableBody');
-        summaryTbody.empty();
-
-        if (Object.keys(groupedByTeacher).length === 0) {
+        summaryTbody.empty();        if (Object.keys(groupedByTeacher).length === 0) {
           const noDataRow = `
             <tr>
               <td colspan="10" class="text-center text-muted">
@@ -526,11 +956,12 @@
             </tr>
           `;
           summaryTbody.append(noDataRow);
-          $('#resultsDiv').show();
+          $('#resultsDiv').show(); // Show teacher table even with no data message
           return;
-        }
-
-        let totalQC = 0;
+        }let totalQC = 0;
+        let totalThanhTienAll = 0;
+        let totalThueAll = 0;
+        let totalThucNhanAll = 0;
         let rowIndex = 1;
 
         // Store enhanced data globally for modal access
@@ -565,6 +996,11 @@
             totalThucNhan = teacherData.ThucNhan || 0;
           }
 
+          // Add to grand totals
+          totalThanhTienAll += parseFloat(totalThanhTien) || 0;
+          totalThueAll += parseFloat(totalThue) || 0;
+          totalThucNhanAll += parseFloat(totalThucNhan) || 0;
+
           // Create a merged data object and store it globally
           const mergedData = {
             TongTiet: totalTeacherHours,
@@ -590,7 +1026,8 @@
             DiaChi: teacherData.DiaChi,
             NoiCongTac: teacherData.NoiCongTac,
             MonGiangDayChinh: teacherData.MonGiangDayChinh,
-            SoHopDong: teacherData.SoHopDong, heDaoTao: teacherData.he_dao_tao || $('#he_dao_tao').val(),
+            SoHopDong: teacherData.SoHopDong,
+            loaiHopDong: teacherData.he_dao_tao || $('#loaiHopDong').val(),
             MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
             // Add enhanced training program data
             trainingPrograms: enhancedData ? enhancedData.trainingPrograms : [],
@@ -643,13 +1080,16 @@
           `;
           summaryTbody.append(summaryRow);
           rowIndex++;
-        });
-
-        // Update total display
+        });        // Update total display
         const totalElement = document.getElementById("totalQC");
-        totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${totalQC.toFixed(2)}`;
-
-        // Display quota information
+        totalElement.innerHTML = `
+          <div class="row">
+            <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+            <div class="col-md-3">Tổng thành tiền: ${formatCurrency(totalThanhTienAll)}</div>
+            <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
+            <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
+          </div>
+        `;        // Display quota information
         if (SoTietDinhMuc > 0) {
           $('#quotaInfo').html(`
             <div class="alert alert-info">
@@ -657,9 +1097,9 @@
               Định mức giảng dạy: <strong>${SoTietDinhMuc}</strong> tiết/năm
             </div>
           `);
-        }
-
+        }        // Show teacher results table and hide training program table
         $('#resultsDiv').show();
+        // Note: heDaoTaoResultsDiv is already hidden by hideAllTables() call at function start
       }
 
       // Currency formatting function
@@ -721,10 +1161,8 @@
         $('#modal-hocvi').text(data.HocVi || 'Chưa có thông tin');
         $('#modal-chucvu').text(data.ChucVu || 'Chưa có thông tin');
         $('#modal-dienthoai').text(data.DienThoai || 'Chưa có thông tin');
-        $('#modal-email').text(data.Email || 'Chưa có thông tin');
-
-        // Financial information totals
-        $('#modal-tienmoigiang').text(data.heDaoTao === "AllHe" ? "Tùy hệ" : formatCurrency(data.TienMoiGiang));
+        $('#modal-email').text(data.Email || 'Chưa có thông tin');        // Financial information totals
+        $('#modal-tienmoigiang').text(data.loaiHopDong === "AllHe" ? "Tùy hệ" : formatCurrency(data.TienMoiGiang));
         $('#modal-thanhtien').text(formatCurrency(data.ThanhTien));
         $('#modal-thue').text(formatCurrency(data.Thue));
         $('#modal-thucnhan').text(formatCurrency(data.ThucNhan));
@@ -746,10 +1184,9 @@
           '<span class="badge bg-success">Đã có hợp đồng</span>' :
           '<span class="badge bg-warning">Chưa có hợp đồng</span>';
 
-        $('#modal-trangthai').html(contractStatus);
-        $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
+        $('#modal-trangthai').html(contractStatus); $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
         $('#modal-tongtiet').text(Number.parseFloat(data.TongTiet).toFixed(2));
-        $('#modal-hedaotao').text(data.heDaoTao || 'Chưa xác định');
+        $('#modal-loaihopdong').text(data.loaiHopDong || 'Chưa xác định');
 
         // Enhanced: Display training program breakdown if available
         displayTrainingProgramBreakdown(enhancedData, data);        // Show/hide action buttons based on contract status
@@ -875,14 +1312,12 @@
         if (!dot || !ki || !namHoc) {
           showError('Vui lòng chọn điều kiện lọc trước khi xuất dữ liệu');
           return;
-        }
-
-        const params = new URLSearchParams({
+        } const params = new URLSearchParams({
           dot: dot,
           ki: ki,
           namHoc: namHoc,
           maPhongBan: $('#MaPhongBan').val() || '',
-          heDaoTao: $('#he_dao_tao').val() || ''
+          loaiHopDong: $('#loaiHopDong').val() || ''
         });
 
         // Open export URL in new window
@@ -924,10 +1359,12 @@
         const ki = $('#comboboxki').val();
         const namHoc = $('#NamHoc').val();
         const maPhongBan = $('#MaPhongBan').val();
-        const heDaoTao = $('#he_dao_tao').val(); if (!dot || !ki || !namHoc || !heDaoTao) {
+        const loaiHopDong = $('#loaiHopDong').val();
+
+        if (!dot || !ki || !namHoc || !loaiHopDong) {
           Swal.fire({
             title: 'Lỗi!',
-            text: 'Vui lòng chọn đầy đủ Đợt, Kỳ, Năm học và Hệ đào tạo',
+            text: 'Vui lòng chọn đầy đủ Đợt, Kỳ, Năm học và Loại hợp đồng',
             icon: 'error',
             confirmButtonText: 'OK'
           });
@@ -935,7 +1372,7 @@
         }
 
         // Validation logic based on contract type
-        if (heDaoTao === 'Mời giảng') {
+        if (loaiHopDong === 'Mời giảng') {
           // For "Mời giảng", must select "Tất cả khoa"
           if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
             Swal.fire({
@@ -948,7 +1385,7 @@
           }
         }
         // For "Đồ án", can select individual faculty (no restriction)        // Show confirmation dialog
-        const message = heDaoTao === 'Mời giảng'
+        const message = loaiHopDong === 'Mời giảng'
           ? `Bạn có chắc chắn muốn duyệt tất cả hợp đồng mời giảng cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}?`
           : `Bạn có chắc chắn muốn duyệt hợp đồng đồ án cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}${maPhongBan ? `, khoa: ${$('#MaPhongBan option:selected').text()}` : ''}?`;
 
@@ -966,13 +1403,12 @@
             // Call API to approve contracts
             $.ajax({
               url: '/api/approve-contracts',
-              type: 'POST',
-              data: {
+              type: 'POST', data: {
                 dot: dot,
                 ki: ki,
                 namHoc: namHoc,
                 maPhongBan: maPhongBan,
-                heDaoTao: heDaoTao
+                loaiHopDong: loaiHopDong
               },
               success: function (response) {
                 if (response.success) {
@@ -1004,7 +1440,8 @@
               }
             });
           }
-        });      }
+        });
+      }
 
       // Function to save contract data for Moi Giang (from teachingInfo2.ejs)
       function saveContractDataMoiGiang() {
@@ -1034,39 +1471,40 @@
 
         fetch("/submitData2", {
           method: "POST",
+
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(duLieu)
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          Swal.fire({
-            title: 'Thông báo',
-            html: data.message,
-            icon: 'success',
-            confirmButtonText: 'OK',
-            width: 'auto',
-            padding: '20px'
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            Swal.fire({
+              title: 'Thông báo',
+              html: data.message,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              width: 'auto',
+              padding: '20px'
+            });
+          })
+          .catch(error => {
+            console.error("Error sending signal:", error);
+            Swal.fire({
+              title: 'Lỗi!',
+              text: 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          })
+          .finally(() => {
+            showLoading(false);
           });
-        })
-        .catch(error => {
-          console.error("Error sending signal:", error);
-          Swal.fire({
-            title: 'Lỗi!',
-            text: 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
-        })
-        .finally(() => {
-          showLoading(false);
-        });
       }
 
       // Function to save contract data for Do An (from thongTinDoAnTotNghiep.ejs)
@@ -1085,7 +1523,7 @@
             confirmButtonText: 'OK'
           });
           return;
-        }        const requestData = {
+        } const requestData = {
           Dot: Dot,
           ki: ki,
           NamHoc: NamHoc,
@@ -1102,42 +1540,53 @@
           },
           body: JSON.stringify(requestData)
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Lỗi khi gửi dữ liệu");
-          }
-          return response.json();
-        })
-        .then(data => {
-          Swal.fire({
-            title: "Thông báo",
-            html: data.message,
-            icon: "success",
-            confirmButtonText: "OK",
-            width: "auto",
-            padding: "20px"
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Lỗi khi gửi dữ liệu");
+            }
+            return response.json();
+          })
+          .then(data => {
+            Swal.fire({
+              title: "Thông báo",
+              html: data.message,
+              icon: "success",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px"
+            });
+          })
+          .catch(error => {
+            console.error("Có lỗi xảy ra:", error);
+            Swal.fire({
+              title: "Thông báo",
+              html: "Có lỗi xảy ra khi cập nhật dữ liệu.",
+              icon: "error",
+              confirmButtonText: "OK"
+            });
+          })
+          .finally(() => {
+            showLoading(false);
           });
-        })
-        .catch(error => {
-          console.error("Có lỗi xảy ra:", error);
-          Swal.fire({
-            title: "Thông báo",
-            html: "Có lỗi xảy ra khi cập nhật dữ liệu.",
-            icon: "error",
-            confirmButtonText: "OK"
-          });
-        })
-        .finally(() => {
-          showLoading(false);
-        });
-      }
-
-      // Add keyboard shortcut to close modal with Escape key
+      }      // Add keyboard shortcut to close modal with Escape key
       $(document).keydown(function (e) {
         if (e.key === "Escape") {
           closeModal();
         }
       });
+
+      // Helper function to manage table visibility - ensures only one table is shown at a time
+      function hideAllTables() {
+        $('#resultsDiv').hide();           // Teacher view table
+        $('#heDaoTaoResultsDiv').hide();   // Training program view table
+        $('#noDataMessage').hide();
+      }
+
+      // Helper function to show no data message and hide all tables
+      function showNoDataMessage() {
+        hideAllTables();
+        $('#noDataMessage').show();
+      }
     </script>
 
     <script src="/js/moigiang/href.js"></script>
