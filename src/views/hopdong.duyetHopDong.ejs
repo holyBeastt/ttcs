@@ -357,23 +357,24 @@
                 <li><a class="dropdown-item" href="#" id="viewDataByHeDaoTao">Theo hệ đào tạo</a></li>
               </ul>
             </div>
-            <button id="approveContractBtn" class="btn btn-success mx-2" style="display: none;">
-              Duyệt hợp đồng
-            </button>
-            <button id="saveDataMoiGiang" class="btn btn-warning mx-2" style="display: none; height: 45px;">
-              Lưu dữ liệu hợp đồng mời giảng
-            </button>
-            <button id="saveDataDoAn" class="btn btn-info mx-2" style="display: none; height: 45px;">
-              Lưu dữ liệu hợp đồng đồ án
-            </button>
-            <br />
-
           </div>
-          <div class="controls-container">
+          <div class="controls-container d-flex justify-content-between align-items-center">
             <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên"
-              class="form-control m-2 search" style="width: 300px" />
-
-          </div><!-- Data Table Section -->
+              class="form-control search" style="width: 300px" />
+            
+            <div class="d-flex gap-2">
+              <button id="approveContractBtn" class="btn btn-success" style="display: none;">
+                Duyệt hợp đồng
+              </button>
+              <button id="saveDataMoiGiang" class="btn btn-warning" style="display: none; height: 45px;">
+                Lưu dữ liệu hợp đồng mời giảng
+              </button>
+              <button id="saveDataDoAn" class="btn btn-info" style="display: none; height: 45px;">
+                Lưu dữ liệu hợp đồng đồ án
+              </button>
+            </div>
+          </div>
+          <!-- Data Table Section -->
           <div class="mt-4">
             <!-- Quota information -->
             <div id="quotaInfo"></div> <!-- Results Table -->
@@ -612,13 +613,14 @@
              Hiển thị: Theo giảng viên
           `);
 
+          // Update search placeholder
+          $('#searchGiangVien').attr('placeholder', 'Tìm theo tên giảng viên');
+
           // Add visual feedback
           $(this).addClass('active').siblings().removeClass('active');
 
           loadContractData();
-        });
-
-        // Handle view data by training program dropdown menu click
+        });        // Handle view data by training program dropdown menu click
         $('#viewDataByHeDaoTao').on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
@@ -628,6 +630,9 @@
           $(this).closest('.btn-group').find('.dropdown-toggle').html(`
              Hiển thị: Theo hệ đào tạo
           `);
+
+          // Update search placeholder
+          $('#searchGiangVien').attr('placeholder', 'Tìm theo tên giảng viên trong hệ đào tạo');
 
           // Add visual feedback
           $(this).addClass('active').siblings().removeClass('active');
@@ -677,7 +682,7 @@
         const namHoc = $('#NamHoc').val();
 
         if (!dot || !ki || !namHoc) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
+          showError('Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học');
           return;
         } showLoading(true);
         hideAllTables(); // Use helper function
@@ -741,9 +746,12 @@
         const loaiHopDong = $('#loaiHopDong').val();
 
         if (!dot || !ki || !namHoc) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm học');
+          showError('Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học');
           return;
         } 
+
+        // Clear search input when switching to training program view
+        $('#searchGiangVien').val('');
 
         showLoading(true);
         hideAllTables(); // Use helper function
@@ -1064,6 +1072,7 @@
             </div>
           `);
         }
+        
 
         // Show training program results table 
         $('#heDaoTaoResultsDiv').show();
@@ -1432,38 +1441,139 @@
           });
         }
         return "0 ₫";
-      }      // Filter table based on search input
+      }      // Filter table based on search input - for teacher view
       function filterTable() {
         const searchText = $('#searchGiangVien').val().toLowerCase();
 
-        // Get summary table body
+        // Check if we're viewing by teacher or training program
+        const isTeacherView = $('#resultsDiv').is(':visible');
+        const isHeDaoTaoView = $('#heDaoTaoResultsDiv').is(':visible');
+
+        if (isTeacherView) {
+          filterTeacherTable(searchText);
+        } else if (isHeDaoTaoView) {
+          filterHeDaoTaoTable(searchText);
+        }
+      }
+
+      // Filter teacher table
+      function filterTeacherTable(searchText) {
         const summaryTbody = $('#summaryTableBody');
         const summaryRows = summaryTbody.find('tr');
 
         let totalQC = 0;
+        let totalThanhTienAll = 0;
+        let totalThueAll = 0;
+        let totalThucNhanAll = 0;
 
-        // Filter summary table rows (teacher name is in column 2)
+        // Filter summary table rows (teacher name is in column 3 - Họ tên)
         summaryRows.each(function (index) {
           const row = $(this);
-          const lecturerName = row.find('td:nth-child(2)').text().toLowerCase();
+          const lecturerName = row.find('td:nth-child(3)').text().toLowerCase(); // Column 3 is "Họ tên"
 
           if (lecturerName.includes(searchText)) {
             row.show();
-            // Add to total if row is visible (tổng tiết is in column 5)
-            const soTietText = row.find('td:nth-child(5)').text();
+            // Add to totals if row is visible 
+            // Column 7 is "Số tiết", Column 8 is "Số tiền", Column 9 is "Trừ thuế", Column 10 is "Thực nhận"
+            const soTietText = row.find('td:nth-child(7)').text();
+            const thanhTienText = row.find('td:nth-child(8)').text();
+            const thueText = row.find('td:nth-child(9)').text();
+            const thucNhanText = row.find('td:nth-child(10)').text();
+            
             const soTiet = parseFloat(soTietText) || 0;
+            const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
+            const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
+            const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
+            
             totalQC += soTiet;
+            totalThanhTienAll += thanhTien;
+            totalThueAll += thue;
+            totalThucNhanAll += thucNhan;
           } else {
             row.hide();
           }
         });
 
-        // Update total display
+        // Update total display for teacher view
         const totalElement = document.getElementById("totalQC");
         if (totalElement) {
-          totalElement.textContent = `Tổng số tiết Quy Chuẩn: ${totalQC.toFixed(2)}`;
+          totalElement.innerHTML = `
+            <div class="row">
+              <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
+              <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
+              <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
+            </div>
+          `;
         }
-      }      // Enhanced teacher detail view with training program breakdown
+      }
+
+      // Filter training program table
+      function filterHeDaoTaoTable(searchText) {
+        const container = $('#heDaoTaoGroupedContainer');
+        const groups = container.find('.training-program-group');
+        
+        let totalSoTiet = 0;
+        let totalThanhTien = 0;
+        let totalThue = 0;
+        let totalThucNhan = 0;
+        let totalGiangVien = 0;
+
+        groups.each(function() {
+          const group = $(this);
+          const teacherRows = group.find('tbody tr');
+          let hasVisibleTeacher = false;
+          
+          teacherRows.each(function() {
+            const row = $(this);
+            const teacherName = row.find('td:nth-child(3)').text().toLowerCase(); // Column 3 is teacher name
+            
+            if (teacherName.includes(searchText)) {
+              row.show();
+              hasVisibleTeacher = true;
+              
+              // Add to totals for visible teachers
+              const soTietText = row.find('td:nth-child(7)').text();
+              const thanhTienText = row.find('td:nth-child(8)').text();
+              const thueText = row.find('td:nth-child(9)').text();
+              const thucNhanText = row.find('td:nth-child(10)').text();
+              
+              const soTiet = parseFloat(soTietText) || 0;
+              const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
+              const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
+              const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
+              
+              totalSoTiet += soTiet;
+              totalThanhTien += thanhTien;
+              totalThue += thue;
+              totalThucNhan += thucNhan;
+              totalGiangVien += 1;
+            } else {
+              row.hide();
+            }
+          });
+          
+          // Show/hide the entire group based on whether it has visible teachers
+          if (hasVisibleTeacher) {
+            group.show();
+          } else {
+            group.hide();
+          }
+        });
+
+        // Update total display for training program view
+        const totalElement = document.getElementById("totalHeDaoTao");
+        if (totalElement) {
+          totalElement.innerHTML = `
+            <div class="row">
+              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
+              <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
+              <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
+            </div>
+          `;
+        }
+      }// Enhanced teacher detail view with training program breakdown
       function viewTeacherDetail(teacherName) {
         const decodedName = decodeURIComponent(teacherName);
         const data = window.teacherDetailData[decodedName];
