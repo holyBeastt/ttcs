@@ -125,20 +125,18 @@ const showPreviewPageAPI = async (req, res) => {
         }
 
         const parsedTeacherData = JSON.parse(teacherData);
-        const teacherId = parsedTeacherData.GiangVien;
-
-        // Get contract types from teacher data
+        const teacherId = parsedTeacherData.GiangVien;        // Get contract types from teacher data
         let contractTypes = [];
         if (parsedTeacherData.hasEnhancedData && parsedTeacherData.trainingPrograms && parsedTeacherData.trainingPrograms.length > 0) {
             contractTypes = parsedTeacherData.trainingPrograms.map(program => ({
                 he_dao_tao: program.he_dao_tao,
-                TongTiet: program.SoTiet
+                TongTiet: parseFloat(program.SoTiet) || 0
             }));
         } else {
             // Single contract type
             contractTypes = [{
                 he_dao_tao: parsedTeacherData.loaiHopDong || 'Mời giảng',
-                TongTiet: parsedTeacherData.TongTiet || 0
+                TongTiet: parseFloat(parsedTeacherData.TongTiet) || 0
             }];
         }
 

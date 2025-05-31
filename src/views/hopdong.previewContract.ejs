@@ -305,12 +305,38 @@
             // Initialize contract options
             initializeContractOptions();
         });
-        
-        function initializeContractOptions() {
+          function initializeContractOptions() {
             const optionsContainer = $('#contract-options');
             optionsContainer.empty();
             
-            // Check if teacher has training programs data
+            // Get current contract type from URL parameters or teacherData
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án
+            if (currentLoaiHopDong === 'Đồ án') {
+                // Với đồ án, luôn hiển thị hệ đào tạo "Đồ án" (set cứng)
+                const optionHtml = `
+                    <div class="contract-option" onclick="selectContract('${encodeURIComponent('Đồ án')}')">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-file-alt fa-lg text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">Đồ án</h6>
+                                <div class="contract-meta">
+                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? teacherData.TongTiet.toFixed(2) : '0'} tiết</div>
+                                    <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                optionsContainer.append(optionHtml);
+                return;
+            }
+            
+            // Check if teacher has training programs data (cho các loại hợp đồng khác)
             if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
                 teacherData.trainingPrograms.forEach((program, index) => {
                     const optionHtml = `
@@ -335,7 +361,7 @@
                 // Fallback to contract type if no training programs data
                 let contractType = teacherData.loaiHopDong;
                 if (!contractType || contractType === 'AllHe') {
-                    contractType = '<%= loaiHopDong || "Mời giảng" %>';
+                    contractType = currentLoaiHopDong;
                 }
                 
                 const optionHtml = `
@@ -401,17 +427,26 @@
                 generatePreview(currentContractType);
             }
         }
-        
-        function generatePreview(heHopDong) {
+          function generatePreview(heHopDong) {
             // Reset states
             $('#loading-state').show();
             $('#error-state').hide();
             $('#pdf-preview-container').hide();
             
+            // Get current contract type from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
+            let actualHeHopDong = heHopDong;
+            if (currentLoaiHopDong === 'Đồ án') {
+                actualHeHopDong = 'Đồ án';
+            }
+            
             // Prepare data for API call - include teacherData if available
             const previewData = {
                 teacherId: '<%= teacherId || "" %>',
-                heHopDong: heHopDong,
+                heHopDong: actualHeHopDong,
                 dot: '<%= dot || "" %>',
                 ki: '<%= ki || "" %>',
                 namHoc: '<%= namHoc || "" %>',
@@ -463,18 +498,26 @@
                     showError(errorMessage);
                 }
             });
-        }
-
-        function downloadContract() {
+        }        function downloadContract() {
             if (!currentContractType) {
                 alert('Vui lòng chọn và xem trước hợp đồng trước khi tải xuống');
                 return;
             }
             
+            // Get current contract type from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
+            let actualHeHopDong = currentContractType;
+            if (currentLoaiHopDong === 'Đồ án') {
+                actualHeHopDong = 'Đồ án';
+            }
+            
             // Prepare data for download API call - include teacherData
             const downloadData = {
                 teacherId: '<%= teacherId || "" %>',
-                heHopDong: currentContractType,
+                heHopDong: actualHeHopDong,
                 dot: '<%= dot || "" %>',
                 ki: '<%= ki || "" %>',
                 namHoc: '<%= namHoc || "" %>',
