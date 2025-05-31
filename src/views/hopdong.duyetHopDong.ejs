@@ -11,7 +11,8 @@
   <link rel="stylesheet" href="/css/gvmList.css" />
   <link rel="stylesheet" href="/css/table.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-  <!-- SweetAlert2 CSS -->  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   <!-- Note: Removed docx-preview library as we now use PDF preview -->
@@ -98,7 +99,9 @@
       font-size: 11px;
       font-weight: 600;
       background-color: #343a40 !important;
-    }    .table .wide-col {
+    }
+
+    .table .wide-col {
       max-width: 120px;
     }
 
@@ -131,7 +134,9 @@
 
     .table-responsive {
       font-size: 12px;
-    }    .over-f {
+    }
+
+    .over-f {
       overflow-x: auto;
       max-width: none;
     }
@@ -177,7 +182,9 @@
       font-weight: bold;
       color: white;
       text-align: center;
-    }    /* Badge styles for approval status */
+    }
+
+    /* Badge styles for approval status */
     .badge {
       font-size: 0.7em;
     }
@@ -221,7 +228,9 @@
 
     .training-program-table .table {
       margin-bottom: 0;
-    }    .training-program-table .table th {
+    }
+
+    .training-program-table .table th {
       border-bottom: 2px solid #dee2e6;
       font-weight: 600;
       font-size: 12px;
@@ -308,10 +317,64 @@
       color: white;
     }
 
-    #saveDataMoiGiang:hover,    #saveDataDoAn:hover {
+    #saveDataMoiGiang:hover,
+    #saveDataDoAn:hover {
       background-color: #0056b3;
       border-color: #004085;
     }
+
+    /* Contract Save Status Styles */
+    .card-body .card-title {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    #contractSaveStatus {
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      display: inline-block;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .badge-secondary {
+      background-color: #6c757d !important;
+      color: white !important;
+    }
+
+    .badge-success {
+      background-color: #28a745 !important;
+      color: white !important;
+    }
+
+    .badge-danger {
+      background-color: #dc3545 !important;
+      color: white !important;
+    }
+
+    .badge-warning {
+      background-color: #ffc107 !important;
+      color: #212529 !important;
+    }
+
+    .badge-info {
+      background-color: #17a2b8 !important;
+      color: white !important;
+    }
+
+    #checkContractStatusBtn {
+      height: 38px;
+      border-radius: 4px;
+    }
+
+    #checkContractStatusBtn:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+    }
+
+    /* ...existing code... */
   </style>
 
 </head>
@@ -359,9 +422,9 @@
             </div>
           </div>
           <div class="controls-container d-flex justify-content-between align-items-center">
-            <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên"
-              class="form-control search" style="width: 300px" />
-            
+            <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên" class="form-control search"
+              style="width: 300px" />
+
             <div class="d-flex gap-2">
               <button id="approveContractBtn" class="btn btn-success" style="display: none;">
                 Duyệt hợp đồng
@@ -374,6 +437,46 @@
               </button>
             </div>
           </div>
+          <!-- Contract Save Status Display Area -->
+          <div class="mt-3">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card border-info">
+                  <div class="card-body">
+                    <h6 class="card-title text-info">
+                      <i class="fas fa-info-circle"></i> Trạng thái lưu hợp đồng
+                    </h6>
+                    <div id="contractSaveStatus" class="badge badge-secondary fs-6">
+                      Chưa kiểm tra
+                    </div>
+                    <button type="button" class="btn btn-outline-info btn-sm ms-2" id="checkContractStatusBtn">
+                      <i class="fas fa-sync-alt"></i> Kiểm tra trạng thái
+                    </button>
+                    <!-- Detailed information for unmet records -->
+                    <div id="unmetRecordsSection" class="mt-3" style="display: none;">
+                      <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Chi tiết các bản ghi chưa lưu hợp đồng:</h6>
+                        <div id="unmetRecordsCount" class="mb-2"></div>
+                        <div class="table-responsive">
+                          <table class="table table-sm table-bordered">
+                            <thead class="table-warning">
+                              <tr id="unmetRecordsTableHeader">
+                                <!-- Headers will be added dynamically -->
+                              </tr>
+                            </thead>
+                            <tbody id="unmetRecordsTableBody">
+                              <!-- Data will be added dynamically -->
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Data Table Section -->
           <div class="mt-4">
             <!-- Quota information -->
@@ -396,7 +499,6 @@
                           <th class="wide-col">Số tiền</th>
                           <th class="narrow-col">Trừ thuế</th>
                           <th class="wide-col">Thực nhận</th>
-                          <th class="narrow-col">Trạng thái</th>
                           <th class="action-col">Thao tác</th>
                         </tr>
                       </thead>
@@ -409,7 +511,7 @@
               <div class="total-label">
                 <label><span class="value" id="totalQC"></span></label>
               </div>
-            </div>            <!-- Training Program Results Table - Detailed View -->
+            </div> <!-- Training Program Results Table - Detailed View -->
             <div id="heDaoTaoResultsDiv" style="display: none;">
               <div class="mb-4">
                 <br>
@@ -472,7 +574,8 @@
 
             <!-- Financial Information -->
             <div class="mb-4">
-              <h6 class="text-primary border-bottom pb-2">Thông tin tài chính</h6>              <div class="row">
+              <h6 class="text-primary border-bottom pb-2">Thông tin tài chính</h6>
+              <div class="row">
                 <div class="col-md-6">
                   <p><strong>Tiền mời giảng:</strong> <span id="modal-tienmoigiang"></span></p>
                   <p><strong>Số tiền:</strong> <span id="modal-thanhtien"></span></p>
@@ -523,7 +626,8 @@
             <div id="modal-content-additional">
               <!-- Training program breakdown will be inserted here dynamically -->
             </div>
-          </div>          <div class="modal-footer">
+          </div>
+          <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             <button type="button" class="btn btn-success" id="modal-preview-contract">
               Xem trước HĐ
@@ -533,9 +637,11 @@
             </button>
             <button type="button" class="btn btn-warning" id="modal-edit-contract" style="display: none;">
               Sửa hợp đồng
-            </button>          </div>
+            </button>
+          </div>
         </div>
-      </div>    </div>
+      </div>
+    </div>
 
     <!-- Success/Error Messages -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -606,9 +712,7 @@
         $('#viewDataByTeacher').on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          $('.dropdown-menu').removeClass('show'); // Close dropdown
-
-          // Update dropdown button text to show current view
+          $('.dropdown-menu').removeClass('show'); // Close dropdown          // Update dropdown button text to show current view
           $(this).closest('.btn-group').find('.dropdown-toggle').html(`
              Hiển thị: Theo giảng viên
           `);
@@ -620,7 +724,9 @@
           $(this).addClass('active').siblings().removeClass('active');
 
           loadContractData();
-        });        // Handle view data by training program dropdown menu click
+          // Reset contract status when viewing data
+          resetContractStatus();
+        });// Handle view data by training program dropdown menu click
         $('#viewDataByHeDaoTao').on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
@@ -632,12 +738,12 @@
           `);
 
           // Update search placeholder
-          $('#searchGiangVien').attr('placeholder', 'Tìm theo tên giảng viên trong hệ đào tạo');
-
-          // Add visual feedback
+          $('#searchGiangVien').attr('placeholder', 'Tìm theo tên giảng viên trong hệ đào tạo');          // Add visual feedback
           $(this).addClass('active').siblings().removeClass('active');
 
           loadContractDataByHeDaoTao();
+          // Update contract save status when viewing data
+          checkAndDisplayContractSaveStatus();
         });// Handle loaiHopDong selection change to show/hide save buttons
         $('#loaiHopDong').on('change', function () {
           const selectedValue = $(this).val();
@@ -674,6 +780,14 @@
         $('#detailModal').on('hidden.bs.modal', function () {
           // Clean up any event handlers or data when modal is closed
           $(this).find('.modal-body').scrollTop(0);
+        });        // Handle check contract status button click
+        $('#checkContractStatusBtn').on('click', function () {
+          checkAndDisplayContractSaveStatus();
+        });
+
+        // Reset contract status when filter values change (but don't auto-check)
+        $('#combobox-dot, #comboboxki, #NamHoc, #loaiHopDong, #MaPhongBan').on('change', function () {
+          resetContractStatus();
         });
       });// Load contract approval data
       function loadContractData(isDetailView = false) {
@@ -748,7 +862,7 @@
         if (!dot || !ki || !namHoc) {
           showError('Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học');
           return;
-        } 
+        }
 
         // Clear search input when switching to training program view
         $('#searchGiangVien').val('');
@@ -778,7 +892,7 @@
                   response.groupedByTeacher,
                   response.enhancedGroupedByTeacher
                 );
-                
+
                 showSuccess('Tải dữ liệu đồ án thành công!');
 
                 // Hide approve and save buttons when viewing by training program
@@ -822,7 +936,7 @@
           $.ajax({
             url: '/api/duyet-hop-dong-theo-he-dao-tao',
             type: 'POST',
-            data: params, 
+            data: params,
             success: function (response) {
               if (response.data && response.data.length > 0) {
                 showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo. Xem chi tiết trong bảng bên dưới.`);
@@ -842,7 +956,7 @@
                 $('#saveDataMoiGiang').hide();
                 $('#saveDataDoAn').hide();
               }
-            }, 
+            },
             error: function (xhr, status, error) {
               showError('Có lỗi xảy ra khi kết nối với server');
               showNoDataMessage(); // Use helper function
@@ -850,7 +964,7 @@
               $('#approveContractBtn').hide();
               $('#saveDataMoiGiang').hide();
               $('#saveDataDoAn').hide();
-            }, 
+            },
             complete: function () {
               showLoading(false);
             }
@@ -874,11 +988,11 @@
         Object.keys(groupedByTeacher).forEach(teacherName => {
           const teacherGroup = groupedByTeacher[teacherName];
           const enhancedTeacher = enhancedGroupedByTeacher[teacherName];
-          
+
           if (teacherGroup && teacherGroup.length > 0) {
             const firstRecord = teacherGroup[0];
             const enhancedRecord = enhancedTeacher || {};
-            
+
             // Tính tổng tiết cho giảng viên này
             let totalTiet = 0;
             teacherGroup.forEach(record => {
@@ -956,7 +1070,7 @@
         // Generate grouped display for each training program
         enhancedData.forEach((heDaoTao, groupIndex) => {
           const giangVienList = heDaoTao.chiTietGiangVien || [];
-          
+
           totalSoTiet += parseFloat(heDaoTao.SoTiet) || 0;
           totalThanhTien += parseFloat(heDaoTao.ThanhTien) || 0;
           totalThue += parseFloat(heDaoTao.Thue) || 0;
@@ -1005,7 +1119,6 @@
                           <th class="wide-col">Số tiền</th>
                           <th class="narrow-col">Trừ thuế</th>
                           <th class="wide-col">Thực nhận</th>
-                          <th class="narrow-col">Trạng thái</th>
                           <th class="action-col">Thao tác</th>
                         </tr>
                       </thead>
@@ -1023,7 +1136,7 @@
           giangVienList.forEach((gv, index) => {
             // Get teacher's approval status
             const teacherStatus = getApprovalStatus(gv.DaoTaoDuyet, gv.TaiChinhDuyet);
-            
+
             const teacherRow = $(`
               <tr>
                 <td>${index + 1}</td>
@@ -1036,7 +1149,6 @@
                 <td>${formatCurrency(gv.ThanhTien)}</td>
                 <td>${formatCurrency(gv.Thue || (parseFloat(gv.ThanhTien) || 0) * 0.1)}</td>
                 <td>${formatCurrency(gv.ThucNhan)}</td>
-                <td>${teacherStatus}</td>
                 <td>
                   <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', '${encodeURIComponent(heDaoTao.he_dao_tao)}')">
                    Xem chi tiết
@@ -1072,12 +1184,12 @@
             </div>
           `);
         }
-        
+
 
         // Show training program results table 
         $('#heDaoTaoResultsDiv').show();
       }
-      
+
 
       // Function to view details of a specific training program
       function viewHeDaoTaoDetail(heDaoTaoName) {
@@ -1185,25 +1297,25 @@
         const decodedTeacherName = decodeURIComponent(teacherName);
         const decodedHeDaoTaoName = decodeURIComponent(heDaoTaoName);
         const loaiHopDong = $('#loaiHopDong').val();
-        
+
         // Xử lý đặc biệt cho đồ án
         if (loaiHopDong === 'Đồ án' && decodedHeDaoTaoName === 'Đại học') {
           // Với đồ án, chỉ cần gọi hàm xem chi tiết giảng viên thông thường
           viewTeacherDetail(encodeURIComponent(decodedTeacherName));
           return;
         }
-        
+
         // Find the training program data
         const heDaoTaoData = window.heDaoTaoDetailData.find(item => item.he_dao_tao === decodedHeDaoTaoName);
-        
+
         if (!heDaoTaoData || !heDaoTaoData.chiTietGiangVien) {
           showError('Không tìm thấy thông tin hệ đào tạo');
           return;
         }
-        
+
         // Find the specific teacher
         const teacherData = heDaoTaoData.chiTietGiangVien.find(gv => gv.HoTen === decodedTeacherName);
-        
+
         if (!teacherData) {
           showError('Không tìm thấy thông tin giảng viên');
           return;
@@ -1379,21 +1491,20 @@
               <td>${mergedData.MaPhongBan || 'Chưa xác định'}</td>
               <td>${mergedData.HocVi || 'N/A'}</td>
               <td>${(() => {
-                if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length > 1) {
-                  return 'Xem ở chi tiết';
-                } else if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length === 1) {
-                  return formatCurrency(enhancedData.trainingPrograms[0].TienMoiGiang);
-                } else if (mergedData.TienMoiGiang && mergedData.TienMoiGiang > 0) {
-                  return formatCurrency(mergedData.TienMoiGiang);
-                } else {
-                  return 'N/A';
-                }
-              })()}</td>
+              if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length > 1) {
+                return 'Xem ở chi tiết';
+              } else if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length === 1) {
+                return formatCurrency(enhancedData.trainingPrograms[0].TienMoiGiang);
+              } else if (mergedData.TienMoiGiang && mergedData.TienMoiGiang > 0) {
+                return formatCurrency(mergedData.TienMoiGiang);
+              } else {
+                return 'N/A';
+              }
+            })()}</td>
               <td>${Number.parseFloat(mergedData.TongTiet).toFixed(2)}</td>
               <td>${formatCurrency(mergedData.ThanhTien)}</td>
               <td>${formatCurrency(mergedData.Thue)}</td>
               <td>${formatCurrency(mergedData.ThucNhan)}</td>
-              <td>${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>
               <td>
                 <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetail('${encodeURIComponent(teacherName)}')">
                    Xem chi tiết
@@ -1479,12 +1590,12 @@
             const thanhTienText = row.find('td:nth-child(8)').text();
             const thueText = row.find('td:nth-child(9)').text();
             const thucNhanText = row.find('td:nth-child(10)').text();
-            
+
             const soTiet = parseFloat(soTietText) || 0;
             const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
             const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
             const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
-            
+
             totalQC += soTiet;
             totalThanhTienAll += thanhTien;
             totalThueAll += thue;
@@ -1512,37 +1623,37 @@
       function filterHeDaoTaoTable(searchText) {
         const container = $('#heDaoTaoGroupedContainer');
         const groups = container.find('.training-program-group');
-        
+
         let totalSoTiet = 0;
         let totalThanhTien = 0;
         let totalThue = 0;
         let totalThucNhan = 0;
         let totalGiangVien = 0;
 
-        groups.each(function() {
+        groups.each(function () {
           const group = $(this);
           const teacherRows = group.find('tbody tr');
           let hasVisibleTeacher = false;
-          
-          teacherRows.each(function() {
+
+          teacherRows.each(function () {
             const row = $(this);
             const teacherName = row.find('td:nth-child(3)').text().toLowerCase(); // Column 3 is teacher name
-            
+
             if (teacherName.includes(searchText)) {
               row.show();
               hasVisibleTeacher = true;
-              
+
               // Add to totals for visible teachers
               const soTietText = row.find('td:nth-child(7)').text();
               const thanhTienText = row.find('td:nth-child(8)').text();
               const thueText = row.find('td:nth-child(9)').text();
               const thucNhanText = row.find('td:nth-child(10)').text();
-              
+
               const soTiet = parseFloat(soTietText) || 0;
               const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
               const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
               const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
-              
+
               totalSoTiet += soTiet;
               totalThanhTien += thanhTien;
               totalThue += thue;
@@ -1552,7 +1663,7 @@
               row.hide();
             }
           });
-          
+
           // Show/hide the entire group based on whether it has visible teachers
           if (hasVisibleTeacher) {
             group.show();
@@ -1674,7 +1785,7 @@
                     <th>Số tiết</th>
                     <th>Tiền/tiết</th>                    <th>Số tiền</th>
                     <th>Thuế 10%</th>
-                    <th>Thực nhận</th>
+                    <th>Thực nhận </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1708,7 +1819,8 @@
           </div>
           `;
 
-          tableContainer.html(tableHtml);        } else {
+          tableContainer.html(tableHtml);
+        } else {
           // Fallback: show simple summary when detailed data is not available
           tableContainer.html(`
             <div class="alert alert-info">
@@ -2006,7 +2118,7 @@
       function hideAllTables() {
         $('#resultsDiv').hide();           // Teacher view table
         $('#heDaoTaoResultsDiv').hide();   // Training program view table
-       
+
         $('#noDataMessage').hide();
       }      // Helper function to show no data message and hide all tables
       function showNoDataMessage() {
@@ -2016,9 +2128,9 @@
       function previewContract(teacherName) {
         const decodedName = decodeURIComponent(teacherName);
         const teacherData = window.teacherDetailData[decodedName];
-        
+
         if (!teacherData) {
-         
+
           showError('Không tìm thấy thông tin giảng viên');
           return;
         }
@@ -2049,26 +2161,26 @@
           },
           body: JSON.stringify(requestData)
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to load preview page');
-          }
-          return response.text();
-        })
-        .then(html => {
-          // Open preview in new window
-          const newWindow = window.open('', '_blank');
-          newWindow.document.write(html);
-          newWindow.document.close();
-        })        .catch(error => {
-          console.error('Preview error:', error);
-          showError('Không thể mở trang xem trước hợp đồng');
-        });
-      }      function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to load preview page');
+            }
+            return response.text();
+          })
+          .then(html => {
+            // Open preview in new window
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(html);
+            newWindow.document.close();
+          }).catch(error => {
+            console.error('Preview error:', error);
+            showError('Không thể mở trang xem trước hợp đồng');
+          });
+      } function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
         const decodedTeacherName = decodeURIComponent(teacherName);
         const decodedHeDaoTao = decodeURIComponent(heDaoTaoName);
         const loaiHopDong = $('#loaiHopDong').val();
-        
+
         // Xử lý đặc biệt cho đồ án
         if (loaiHopDong === 'Đồ án' && decodedHeDaoTao === 'Đại học') {
           // Với đồ án, redirect đến trang preview với hệ đào tạo mặc định là "Đồ án"
@@ -2085,10 +2197,10 @@
           window.open(url, '_blank');
           return;
         }
-        
+
         // Find training program data
         const trainingProgramData = window.heDaoTaoDetailData.find(tp => tp.he_dao_tao === decodedHeDaoTao);
-        
+
         if (!trainingProgramData) {
           showError('Không tìm thấy thông tin hệ đào tạo');
           return;
@@ -2096,7 +2208,7 @@
 
         // Find specific teacher data within the training program
         const teacherData = trainingProgramData.chiTietGiangVien.find(gv => gv.HoTen === decodedTeacherName);
-        
+
         if (!teacherData) {
           showError('Không tìm thấy thông tin giảng viên trong hệ đào tạo này');
           return;
@@ -2146,22 +2258,217 @@
           },
           body: JSON.stringify(requestData)
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to load preview page');
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to load preview page');
+            }
+            return response.text();
+          })
+          .then(html => {
+            // Open preview in new window
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(html);
+            newWindow.document.close();
+          })
+          .catch(error => {
+            console.error('Preview error:', error);
+            showError('Không thể mở trang xem trước hợp đồng');
+          });
+      }      // Check and display contract save status
+      function checkAndDisplayContractSaveStatus() {
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+        const maPhongBan = $('#MaPhongBan').val();
+        const loaiHopDong = $('#loaiHopDong').val();
+
+        if (!dot || !ki || !namHoc || !loaiHopDong) {
+          $('#contractSaveStatus')
+            .text('Vui lòng chọn đầy đủ Đợt, Kỳ, Năm học và Loại hợp đồng')
+            .removeClass('badge-success badge-danger badge-warning')
+            .addClass('badge-secondary');
+          return;
+        }
+
+        // Show loading state
+        $('#contractSaveStatus')
+          .text('Đang kiểm tra...')
+          .removeClass('badge-success badge-danger badge-warning badge-secondary')
+          .addClass('badge-info');
+
+        const params = {
+          dot: dot,
+          ki: ki,
+          namHoc: namHoc,
+          maPhongBan: maPhongBan || 'ALL',
+          loaiHopDong: loaiHopDong
+        };
+
+        $.ajax({
+          url: '/api/check-contract-save-status',
+          type: 'POST',
+          data: params, success: function (response) {
+            if (response.success && response.message) {
+              const statusText = response.message;
+              const data = response.data || {};
+
+              // Display the status text
+              $('#contractSaveStatus').text(statusText);
+
+              if (statusText === 'Đã lưu HĐ') {
+                $('#contractSaveStatus')
+                  .removeClass('badge-secondary badge-danger badge-warning badge-info')
+                  .addClass('badge-success');
+                // Hide unmet records section
+                $('#unmetRecordsSection').hide();
+              } else if (statusText === 'Chưa lưu HĐ') {
+                $('#contractSaveStatus')
+                  .removeClass('badge-secondary badge-success badge-warning badge-info')
+                  .addClass('badge-danger');
+
+                // Show detailed unmet records if available
+                if (data.unmetRecords && data.unmetRecords.length > 0) {
+                  displayUnmetRecords(data.unmetRecords, data.totalRecords, data.unmetCount, loaiHopDong);
+                } else {
+                  $('#unmetRecordsSection').hide();
+                }
+              } else {
+                // For "Không có dữ liệu" or other messages
+                $('#contractSaveStatus')
+                  .removeClass('badge-secondary badge-success badge-danger badge-info')
+                  .addClass('badge-warning');
+                $('#unmetRecordsSection').hide();
+              }
+
+              // Remove any existing tooltip
+              $('#contractSaveStatus').removeAttr('title');
+
+            } else {
+              $('#contractSaveStatus')
+                .text('Lỗi: ' + (response.message || 'Không thể kiểm tra trạng thái'))
+                .removeClass('badge-success badge-danger badge-info')
+                .addClass('badge-warning');
+              $('#unmetRecordsSection').hide();
+            }
+          }, error: function (xhr, status, error) {
+            console.error('Error checking contract save status:', error);
+            $('#contractSaveStatus')
+              .text('Lỗi kết nối khi kiểm tra trạng thái')
+              .removeClass('badge-success badge-danger badge-info')
+              .addClass('badge-warning');
+            $('#unmetRecordsSection').hide();
           }
-          return response.text();
-        })
-        .then(html => {
-          // Open preview in new window
-          const newWindow = window.open('', '_blank');
-          newWindow.document.write(html);
-          newWindow.document.close();
-        })
-        .catch(error => {
-          console.error('Preview error:', error);
-          showError('Không thể mở trang xem trước hợp đồng');
         });
+      }
+
+      // Display detailed unmet records
+      function displayUnmetRecords(unmetRecords, totalRecords, unmetCount, loaiHopDong) {
+        // Update count information
+        $('#unmetRecordsCount').html(`
+          <strong>Tổng số bản ghi:</strong> ${totalRecords} | 
+          <strong>Số bản ghi chưa lưu:</strong> <span class="text-danger">${unmetCount}</span>
+        `);
+
+        // Clear existing table
+        $('#unmetRecordsTableHeader').empty();
+        $('#unmetRecordsTableBody').empty();
+
+        if (unmetRecords.length === 0) {
+          $('#unmetRecordsSection').hide();
+          return;
+        }        // Create table headers based on contract type
+        let headers = [];
+        if (loaiHopDong === 'Mời giảng') {
+          headers = [
+            'STT',
+            'Khoa',
+            'Mã học phần',
+            'Lớp học phần',
+            'Tên lớp',
+            'Giảng viên',
+            'Quy chuẩn',
+            'Trạng thái lưu',
+            'Ngày bắt đầu',
+            'Ngày kết thúc'
+          ];
+        } else if (loaiHopDong === 'Đồ án') {
+          headers = [
+            'STT',
+            'Khoa',
+            'Tên đề tài',
+            'Sinh viên',
+            'Mã SV',
+            'Giảng viên 1',
+            'Giảng viên 2',
+            'Trạng thái lưu',
+            'Ngày bắt đầu',
+            'Ngày kết thúc'
+          ];
+        }
+
+        // Add headers to table
+        const headerRow = headers.map(header => `<th class="text-center">${header}</th>`).join('');
+        $('#unmetRecordsTableHeader').html(headerRow);
+
+        // Add data rows
+        unmetRecords.forEach((record, index) => {
+          let row = `<tr>`;
+          row += `<td class="text-center">${index + 1}</td>`;
+          if (loaiHopDong === 'Mời giảng') {
+            const daLuuText = record.DaLuu === null ? 'NULL' : (record.DaLuu == 1 ? 'Đã lưu' : 'Chưa lưu');
+            const daLuuClass = record.DaLuu === null ? 'text-muted' : (record.DaLuu == 1 ? 'text-success' : 'text-danger');
+
+            row += `<td>${record.TenKhoa || record.Khoa || ''}</td>`;
+            row += `<td>${record.MaHocPhan || ''}</td>`;
+            row += `<td>${record.LopHocPhan || ''}</td>`;
+            row += `<td>${record.TenLop || ''}</td>`;
+            row += `<td>${record.GiaoVienGiangDay || ''}</td>`;
+            row += `<td class="text-center">${record.QuyChuan || ''}</td>`;
+            row += `<td class="text-center"><span class="${daLuuClass}">${daLuuText}</span></td>`;
+            row += `<td class="text-center">${record.NgayBatDau ? new Date(record.NgayBatDau).toLocaleDateString('vi-VN') : ''}</td>`;
+            row += `<td class="text-center">${record.NgayKetThuc ? new Date(record.NgayKetThuc).toLocaleDateString('vi-VN') : ''}</td>`;
+          } else if (loaiHopDong === 'Đồ án') {
+            const daLuuText = record.DaLuu === null ? 'NULL' : (record.DaLuu == 1 ? 'Đã lưu' : 'Chưa lưu');
+            const daLuuClass = record.DaLuu === null ? 'text-muted' : (record.DaLuu == 1 ? 'text-success' : 'text-danger');
+
+            row += `<td>${record.TenKhoa || record.Khoa || ''}</td>`;
+            row += `<td>${record.TenDeTai || ''}</td>`;
+            row += `<td>${record.SinhVien || ''}</td>`;
+            row += `<td>${record.MaSV || ''}</td>`;
+            row += `<td>${record.GiangVien1 || ''}</td>`;
+            row += `<td>${record.GiangVien2 || ''}</td>`;
+            row += `<td class="text-center"><span class="${daLuuClass}">${daLuuText}</span></td>`;
+            row += `<td class="text-center">${record.NgayBatDau ? new Date(record.NgayBatDau).toLocaleDateString('vi-VN') : ''}</td>`;
+            row += `<td class="text-center">${record.NgayKetThuc ? new Date(record.NgayKetThuc).toLocaleDateString('vi-VN') : ''}</td>`;
+          }
+
+          row += `</tr>`;
+          $('#unmetRecordsTableBody').append(row);
+        });
+
+        // Show the section
+        $('#unmetRecordsSection').show();
+      }      // Auto-check status when filters change
+      function autoCheckContractStatus() {
+        const dot = $('#combobox-dot').val();
+        const ki = $('#comboboxki').val();
+        const namHoc = $('#NamHoc').val();
+        const loaiHopDong = $('#loaiHopDong').val();
+
+        if (dot && ki && namHoc && loaiHopDong) {
+          checkAndDisplayContractSaveStatus();
+        } else {
+          resetContractStatus();
+        }
+      }
+
+      // Reset contract status to initial state
+      function resetContractStatus() {
+        $('#contractSaveStatus')
+          .text('Chưa kiểm tra')
+          .removeClass('badge-success badge-danger badge-warning badge-info')
+          .addClass('badge-secondary');
+        $('#unmetRecordsSection').hide();
       }
 
     </script>

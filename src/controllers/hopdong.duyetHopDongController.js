@@ -1015,9 +1015,152 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
     }
 };
 
+/**
+ * Check contract save status based on filter conditions
+ */
+const checkContractSaveStatus = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+
+        // Validate required parameters
+        if (!dot || !ki || !namHoc || !loaiHopDong) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+            });
+        }
+
+        // Validate loaiHopDong values
+        if (loaiHopDong !== "Mời giảng" && loaiHopDong !== "Đồ án") {
+            return res.status(400).json({
+                success: false,
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'"
+            });
+        }        // First check overall status
+        let statusQuery, statusParams;
+        if (loaiHopDong === "Mời giảng") {
+            statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM quychuan qc WHERE qc.NamHoc = ? AND qc.Dot = ? AND qc.KiHoc = ?";
+            statusParams = [namHoc, dot, ki];
+
+            if (maPhongBan && maPhongBan !== "ALL") {
+                statusQuery += " AND qc.Khoa = ?";
+                statusParams.push(maPhongBan);
+            }        } else if (loaiHopDong === "Đồ án") {
+            statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM doantotnghiep dt WHERE dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?";
+            statusParams = [namHoc, dot, ki];
+
+            if (maPhongBan && maPhongBan !== "ALL") {
+                statusQuery += " AND dt.MaPhongBan = ?";
+                statusParams.push(maPhongBan);
+            }
+        }
+
+        const [statusResults] = await connection.query(statusQuery, statusParams);
+        const statusData = statusResults[0];
+
+        let message;
+        let unmetRecords = [];
+        
+        if (statusData.totalRecords === 0) {
+            message = "Không có dữ liệu";
+        } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
+            // Tất cả bản ghi đều có DaLuu = 1
+            message = "Đã lưu HĐ";
+        } else {
+            // Có bản ghi chưa đạt điều kiện - lấy chi tiết
+            message = "Chưa lưu HĐ";
+            
+            let detailQuery, detailParams;            if (loaiHopDong === "Mời giảng") {
+                detailQuery = `
+                    SELECT 
+                        qc.ID,
+                        qc.Khoa,
+                        qc.MaHocPhan,
+                        qc.LopHocPhan,
+                        qc.TenLop,
+                        qc.GiaoVienGiangDay,
+                        qc.QuyChuan,
+                        qc.DaLuu,
+                        qc.NgayBatDau,
+                        qc.NgayKetThuc,
+                        pb.TenPhongBan as TenKhoa
+                    FROM quychuan qc
+                    LEFT JOIN phongban pb ON qc.Khoa = pb.MaPhongBan
+                    WHERE qc.NamHoc = ? 
+                      AND qc.Dot = ? 
+                      AND qc.KiHoc = ?
+                      AND (qc.DaLuu IS NULL OR qc.DaLuu <> 1)
+                `;
+                detailParams = [namHoc, dot, ki];
+
+                if (maPhongBan && maPhongBan !== "ALL") {
+                    detailQuery += " AND qc.Khoa = ?";
+                    detailParams.push(maPhongBan);
+                }
+            } else if (loaiHopDong === "Đồ án") {                detailQuery = `
+                    SELECT 
+                        dt.ID,
+                        dt.MaPhongBan as Khoa,
+                        dt.TenDeTai,
+                        dt.SinhVien,
+                        dt.MaSV,
+                        dt.GiangVien1,
+                        dt.GiangVien2,
+                        dt.DaLuu,
+                        dt.NgayBatDau,
+                        dt.NgayKetThuc,
+                        pb.TenPhongBan as TenKhoa
+                    FROM doantotnghiep dt
+                    LEFT JOIN phongban pb ON dt.MaPhongBan = pb.MaPhongBan
+                    WHERE dt.NamHoc = ? 
+                      AND dt.Dot = ? 
+                      AND dt.Ki = ?
+                      AND (dt.DaLuu IS NULL OR dt.DaLuu <> 1)
+                `;
+                detailParams = [namHoc, dot, ki];
+
+                if (maPhongBan && maPhongBan !== "ALL") {
+                    detailQuery += " AND dt.MaPhongBan = ?";
+                    detailParams.push(maPhongBan);
+                }
+            }
+
+            const [detailResults] = await connection.query(detailQuery, detailParams);
+            unmetRecords = detailResults;
+        }        res.json({
+            success: true,
+            message: message,
+            data: {
+                totalRecords: statusData.totalRecords,
+                unmetRecords: unmetRecords,
+                unmetCount: unmetRecords.length
+            }
+        });
+
+    } catch (error) {
+        console.error("❌ Error in checkContractSaveStatus:");
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi kiểm tra trạng thái lưu hợp đồng",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 module.exports = {
     getDuyetHopDongPage,
     getDuyetHopDongData,
     getDuyetHopDongTheoHeDaoTao,
-    approveContracts
+    approveContracts,
+    checkContractSaveStatus
 };
