@@ -506,7 +506,8 @@ GROUP BY
         compression: "DEFLATE",
       });
 
-      const fileName = `HopDong_${teacher.HoTen}.docx`;
+      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+      const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
@@ -674,7 +675,8 @@ const exportAdditionalDoAnGvm = async (req, res) => {
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
-      const teacherZipName = `${teacher.HoTen}.zip`;
+      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+      const teacherZipName = `${hoTenTrim}_${teacher.CCCD}.zip`;
       const teacherZipPath = path.join(tempDir, teacherZipName);
       const teacherArchive = archiver("zip", { zlib: { level: 9 } });
       const output = fs.createWriteStream(teacherZipPath);
@@ -960,7 +962,9 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       compression: "DEFLATE",
     });
 
-    const fileName = `HopDong_${teacher.HoTen}.docx`;
+    let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+    const fileName = `HopDong_${hoTenTrim}_${teacher.CCCD}.docx`;
     const filePath = path.join(tempDir, fileName);
     fs.writeFileSync(filePath, buf);
 
@@ -1752,7 +1756,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
     }
 
     // Tạo tên file
-    let fileName = `PhuLuc_${data[0].GiangVien}`;
+    let hoTenTrim = data[0].GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
+    let fileName = `PhuLuc_${hoTenTrim}_${data[0].CCCD}`;
 
     fileName += ".xlsx";
 
