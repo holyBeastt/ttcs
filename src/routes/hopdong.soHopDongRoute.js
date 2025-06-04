@@ -21,4 +21,20 @@ router.post('/api/preview-synchronized-setup', soHopDongController.previewSynchr
 router.post('/api/setup-synchronized-numbers', soHopDongController.setupSynchronizedNumbers);
 router.get('/api/unified-summary', soHopDongController.getUnifiedSummary);
 
+// ===== THESIS PROJECT (ĐỒ ÁN) ROUTES =====
+
+// Route to display thesis project numbers page
+router.get('/sodoan', soHopDongController.getDoAnPage);
+
+// API routes for thesis project number management
+router.get('/api/doan-list', soHopDongController.getDoAnList);
+router.post('/api/setup-so-qd-doan-toan-bo', soHopDongController.setupSoQDDoAnToanBo);
+router.get('/api/doan-summary', soHopDongController.getDoAnSummary);
+router.post('/api/preview-doan-setup', soHopDongController.previewDoAnSetup);
+
+// API routes for synchronized thesis project number management
+router.post('/api/preview-doan-synchronized-setup', soHopDongController.previewDoAnSynchronizedSetup);
+router.post('/api/setup-doan-synchronized-numbers', soHopDongController.setupDoAnSynchronizedNumbers);
+router.get('/api/doan-unified-summary', soHopDongController.getDoAnUnifiedSummary);
+
 module.exports = router;

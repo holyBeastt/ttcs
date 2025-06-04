@@ -5,7 +5,7 @@ const createPoolConnection = require("../config/databasePool");
 const getSoHopDongPage = async (req, res) => {
   try {
     // Render the contract numbers page
-    res.render('hopdong.soHopDong.ejs', {
+    res.render('hopdong.soHopDongMoiGiang.ejs', {
       title: 'Quản lý Số Hợp Đồng',
       user: req.user || {}
     });
@@ -749,6 +749,535 @@ const getUnifiedSummary = async (req, res) => {
     if (connection) connection.release();  }
 };
 
+// ===== THESIS PROJECT (ĐỒ ÁN) FUNCTIONS =====
+
+// Lấy trang quản lý số quyết định đồ án
+const getDoAnPage = async (req, res) => {
+  try {
+    // Render the thesis project numbers page
+    res.render('hopdong.soHopDongDoAn.ejs', {
+      title: 'Quản lý Số Quyết Định Đồ Án',
+      user: req.user || {}
+    });
+  } catch (error) {
+    console.error('Error rendering so do an page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+// Lấy danh sách đồ án theo điều kiện
+const getDoAnList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa } = req.query;
+
+    let query = `
+      SELECT 
+        ID,
+        SinhVien,
+        MaSV,
+        KhoaDaoTao,
+        SoQD,
+        TenDeTai,
+        SoNguoi,
+        isHDChinh,
+        GiangVien,
+        CCCD,
+        SoTiet,
+        NgayBatDau,
+        NgayKetThuc,
+        NamHoc,
+        isMoiGiang,
+        MaPhongBan as Khoa,
+        Dot,
+        ki,
+        TT,
+        GioiTinh,
+        NgaySinh,
+        NgayCapCCCD,
+        NoiCapCCCD,
+        DiaChi,
+        DienThoai,
+        Email,
+        MaSoThue,
+        HocVi,
+        MonGiangDayChinh,
+        HSL,
+        NganHang,
+        NoiCongTac,
+        ChucVu,
+        STK
+      FROM exportdoantotnghiep 
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (dot) {
+      query += ` AND Dot = ?`;
+      params.push(dot);
+    }
+    if (ki) {
+      query += ` AND ki = ?`;
+      params.push(ki);
+    }
+    if (nam) {
+      query += ` AND NamHoc = ?`;
+      params.push(nam);
+    }
+    if (khoa && khoa !== 'ALL' && khoa !== '') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    // Sắp xếp theo khoa, rồi mới đến tên để nhóm theo khoa
+    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+
+    const [rows] = await connection.execute(query, params);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching do an list:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi lấy danh sách đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Setup số quyết định đồ án tự động tăng dần cho toàn bộ
+const setupSoQDDoAnToanBo = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa, startingNumber } = req.body;
+
+    // Validate input
+    if (!dot || !ki || !nam || !startingNumber) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu' 
+      });
+    }
+
+    // Build query để lấy danh sách đồ án cần cập nhật, nhóm theo khoa
+    let query = `
+      SELECT ID, SinhVien, GiangVien, MaPhongBan, TenDeTai
+      FROM exportdoantotnghiep 
+      WHERE Dot = ? AND ki = ? AND NamHoc = ?
+    `;
+    let params = [dot, ki, nam];
+
+    if (khoa && khoa !== 'ALL') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    // Sắp xếp theo khoa, rồi mới đến tên để đảm bảo số tăng dần theo từng nhóm
+    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+
+    const [rows] = await connection.execute(query, params);
+
+    if (rows.length === 0) {
+      return res.json({ success: false, message: 'Không tìm thấy đồ án nào phù hợp điều kiện' });
+    }
+
+    // Bắt đầu transaction
+    await connection.beginTransaction();
+
+    // Nhóm dữ liệu theo khoa
+    const groupedData = {};
+    rows.forEach(row => {
+      const key = row.MaPhongBan;
+      if (!groupedData[key]) {
+        groupedData[key] = [];
+      }
+      groupedData[key].push(row);
+    });
+
+    let currentNumber = parseInt(startingNumber);
+    let updatedCount = 0;
+
+    // Xử lý từng nhóm khoa
+    for (const groupKey in groupedData) {
+      const group = groupedData[groupKey];
+      
+      for (const row of group) {
+        // Validate row has required fields
+        if (!row.ID) {
+          console.error('Row missing ID field:', row);
+          throw new Error('Database row missing required ID field');
+        }
+        
+        const soQD = `${String(currentNumber).padStart(3, '0')}/QĐ-ĐA`;
+        
+        const updateQuery = `UPDATE exportdoantotnghiep SET SoQD = ? WHERE ID = ?`;
+        await connection.execute(updateQuery, [soQD, row.ID]);
+        
+        currentNumber++;
+        updatedCount++;
+      }
+    }
+
+    await connection.commit();
+
+    res.json({ 
+      success: true, 
+      message: `Đã cập nhật số quyết định đồ án cho ${updatedCount} đồ án thành công (nhóm theo khoa)`,
+      updatedCount 
+    });
+
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error('Error setting up so qd do an toan bo:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi setup số quyết định đồ án: ' + error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Lấy tổng quan số quyết định đồ án theo khoa
+const getDoAnSummary = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa } = req.query;
+
+    let query = `
+      SELECT 
+        MaPhongBan as khoa,
+        COUNT(*) as count,
+        MIN(SoQD) as firstDecision,
+        MAX(SoQD) as lastDecision
+      FROM exportdoantotnghiep 
+      WHERE SoQD IS NOT NULL AND SoQD != ''
+    `;
+    let params = [];
+
+    if (dot) {
+      query += ` AND Dot = ?`;
+      params.push(dot);
+    }
+    if (ki) {
+      query += ` AND ki = ?`;
+      params.push(ki);
+    }
+    if (nam) {
+      query += ` AND NamHoc = ?`;
+      params.push(nam);
+    }
+    if (khoa && khoa !== 'ALL' && khoa !== '') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    query += ` GROUP BY MaPhongBan ORDER BY MaPhongBan`;
+
+    const [rows] = await connection.execute(query, params);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching do an summary:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số quyết định đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Xem trước kết quả setup đồ án
+const previewDoAnSetup = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa, startingNumber } = req.body;
+
+    let query = `
+      SELECT ID, SinhVien, GiangVien, MaPhongBan as Khoa, TenDeTai, SoQD
+      FROM exportdoantotnghiep 
+      WHERE Dot = ? AND ki = ? AND NamHoc = ?
+    `;
+    let params = [dot, ki, nam];
+
+    if (khoa && khoa !== 'ALL' && khoa !== '') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    // Sắp xếp theo khoa, rồi mới đến tên
+    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+
+    const [rows] = await connection.execute(query, params);
+
+    let preview = [];
+
+    // Nhóm dữ liệu theo khoa
+    const groupedData = {};
+    rows.forEach(row => {
+      const key = row.Khoa;
+      if (!groupedData[key]) {
+        groupedData[key] = [];
+      }
+      groupedData[key].push(row);
+    });
+
+    let currentNumber = parseInt(startingNumber || 1);
+
+    // Xử lý từng nhóm khoa
+    for (const groupKey in groupedData) {
+      const group = groupedData[groupKey];
+      
+      for (const row of group) {
+        preview.push({
+          ...row,
+          newSoQD: `${String(currentNumber).padStart(3, '0')}/QĐ-ĐA`,
+          groupInfo: `${row.Khoa}`
+        });
+        currentNumber++;
+      }
+    }
+
+    res.json({ success: true, data: preview, total: preview.length });
+
+  } catch (error) {
+    console.error('Error previewing do an setup:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Synchronized setup functions for thesis projects
+const previewDoAnSynchronizedSetup = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa, startingNumber } = req.body;
+
+    let query = `
+      SELECT 
+        ID,
+        SinhVien,
+        GiangVien,
+        MaPhongBan as Khoa,
+        TenDeTai,
+        SoQD,
+        TT
+      FROM exportdoantotnghiep 
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (dot) {
+      query += ` AND Dot = ?`;
+      params.push(dot);
+    }
+    if (ki) {
+      query += ` AND ki = ?`;
+      params.push(ki);
+    }
+    if (nam) {
+      query += ` AND NamHoc = ?`;
+      params.push(nam);
+    }
+    if (khoa && khoa !== 'ALL') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    // Sắp xếp theo khoa, rồi mới đến tên
+    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+
+    const [rows] = await connection.execute(query, params);
+
+    let preview = [];
+
+    // Nhóm dữ liệu theo khoa
+    const groupedData = {};
+    rows.forEach(row => {
+      const key = row.Khoa;
+      if (!groupedData[key]) {
+        groupedData[key] = [];
+      }
+      groupedData[key].push(row);
+    });
+
+    let currentNumber = parseInt(startingNumber || 1);
+    
+    // Xử lý từng nhóm khoa
+    for (const groupKey in groupedData) {
+      const group = groupedData[groupKey];
+      
+      for (const row of group) {
+        const numberStr = String(currentNumber).padStart(3, '0');
+        preview.push({
+          ...row,
+          newSoQD: `${numberStr}/QĐ-ĐA`,
+          newTT: currentNumber,
+          groupInfo: `${row.Khoa}`
+        });
+        currentNumber++;
+      }
+    }
+
+    res.json({ success: true, data: preview, total: preview.length });
+
+  } catch (error) {
+    console.error('Error previewing do an synchronized setup:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup đồng bộ đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const setupDoAnSynchronizedNumbers = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa, startingNumber } = req.body;
+
+    await connection.beginTransaction();
+
+    let query = `
+      SELECT 
+        ID,
+        SinhVien,
+        GiangVien,
+        MaPhongBan,
+        TenDeTai
+      FROM exportdoantotnghiep 
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (dot) {
+      query += ` AND Dot = ?`;
+      params.push(dot);
+    }
+    if (ki) {
+      query += ` AND ki = ?`;
+      params.push(ki);
+    }
+    if (nam) {
+      query += ` AND NamHoc = ?`;
+      params.push(nam);
+    }
+    if (khoa && khoa !== 'ALL') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    // Sắp xếp theo khoa, rồi mới đến tên
+    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+
+    const [rows] = await connection.execute(query, params);
+
+    // Nhóm dữ liệu theo khoa
+    const groupedData = {};
+    rows.forEach(row => {
+      const key = row.MaPhongBan;
+      if (!groupedData[key]) {
+        groupedData[key] = [];
+      }
+      groupedData[key].push(row);
+    });
+
+    let currentNumber = parseInt(startingNumber || 1);
+    let updatedCount = 0;
+
+    // Xử lý từng nhóm khoa
+    for (const groupKey in groupedData) {
+      const group = groupedData[groupKey];
+
+      for (const row of group) {
+        const numberStr = String(currentNumber).padStart(3, '0');
+        const decisionNumber = `${numberStr}/QĐ-ĐA`;
+
+        await connection.execute(
+          `UPDATE exportdoantotnghiep 
+           SET SoQD = ?, TT = ? 
+           WHERE ID = ?`,
+          [decisionNumber, currentNumber, row.ID]
+        );
+
+        currentNumber++;
+        updatedCount++;
+      }
+    }
+
+    await connection.commit();
+
+    res.json({
+      success: true,
+      message: `Cài đặt đồng bộ thành công cho ${updatedCount} đồ án (nhóm theo khoa)`,
+      updatedCount: updatedCount
+    });
+
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error('Error setting up do an synchronized numbers:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi cài đặt đồng bộ số quyết định và TT đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Lấy tổng quan hợp nhất số quyết định đồ án theo khoa
+const getDoAnUnifiedSummary = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, khoa } = req.query;
+
+    let query = `
+      SELECT 
+        MaPhongBan as khoa,
+        COUNT(*) as count,
+        MIN(CASE WHEN SoQD IS NOT NULL AND SoQD != '' 
+            THEN CAST(SUBSTRING_INDEX(SoQD, '/', 1) AS UNSIGNED) END) as firstIndex,
+        MAX(CASE WHEN SoQD IS NOT NULL AND SoQD != '' 
+            THEN CAST(SUBSTRING_INDEX(SoQD, '/', 1) AS UNSIGNED) END) as lastIndex,
+        MIN(SoQD) as firstDecision,
+        MAX(SoQD) as lastDecision,
+        MIN(TT) as firstTT,
+        MAX(TT) as lastTT
+      FROM exportdoantotnghiep 
+      WHERE (SoQD IS NOT NULL AND SoQD != '') 
+         OR (TT IS NOT NULL AND TT != '')
+    `;
+    let params = [];
+
+    if (dot) {
+      query += ` AND Dot = ?`;
+      params.push(dot);
+    }
+    if (ki) {
+      query += ` AND ki = ?`;
+      params.push(ki);
+    }
+    if (nam) {
+      query += ` AND NamHoc = ?`;
+      params.push(nam);
+    }
+    if (khoa && khoa !== 'ALL') {
+      query += ` AND MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    query += ` GROUP BY MaPhongBan ORDER BY MaPhongBan`;
+
+    const [rows] = await connection.execute(query, params);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching do an unified summary:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan hợp nhất đồ án' });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+
+
 module.exports = {
   getSoHopDongPage,
   getHopDongList,
@@ -760,5 +1289,14 @@ module.exports = {
   previewTerminationSetup,
   previewSynchronizedSetup,
   setupSynchronizedNumbers,
-  getUnifiedSummary
+  getUnifiedSummary,
+  // New functions for thesis projects (đồ án)
+  getDoAnPage,
+  getDoAnList,
+  setupSoQDDoAnToanBo,
+  getDoAnSummary,
+  previewDoAnSetup,
+  previewDoAnSynchronizedSetup,
+  setupDoAnSynchronizedNumbers,
+  getDoAnUnifiedSummary
 };
