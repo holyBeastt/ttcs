@@ -7,7 +7,20 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
-const { Document, Packer, PageOrientation, Paragraph, VerticalAlign, Table, TableCell, TableRow, WidthType, BorderStyle, TextRun, AlignmentType } = require('docx');
+const {
+  Document,
+  Packer,
+  PageOrientation,
+  Paragraph,
+  VerticalAlign,
+  Table,
+  TableCell,
+  TableRow,
+  WidthType,
+  BorderStyle,
+  TextRun,
+  AlignmentType,
+} = require("docx");
 
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
@@ -443,7 +456,7 @@ const exportMultipleContracts = async (req, res) => {
         MaSoThue: teacher.MaSoThue,
         STK: teacher.STK,
         NganHang: teacher.NganHang,
-        ThucNhan: tienThucNhanText
+        ThucNhan: tienThucNhanText,
       });
 
       const data = {
@@ -521,7 +534,8 @@ const exportMultipleContracts = async (req, res) => {
         compression: "DEFLATE",
       });
 
-      const fileName = `HopDong_${teacher.HoTen}.docx`;
+      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+      const fileName = `HopDong_${hoTenTrim}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
@@ -536,8 +550,9 @@ const exportMultipleContracts = async (req, res) => {
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
-      }.zip`;
+    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
+      khoa || "all"
+    }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
 
@@ -579,7 +594,15 @@ const exportMultipleContracts = async (req, res) => {
   }
 };
 
-const updateSoTienThucNhan = async (connection, idGvm, dot, kiHoc, namHoc, truThue, thucNhan) => {
+const updateSoTienThucNhan = async (
+  connection,
+  idGvm,
+  dot,
+  kiHoc,
+  namHoc,
+  truThue,
+  thucNhan
+) => {
   try {
     const updateQuery = `
       UPDATE hopdonggvmoi
@@ -596,7 +619,9 @@ const updateSoTienThucNhan = async (connection, idGvm, dot, kiHoc, namHoc, truTh
     ]);
 
     if (result.affectedRows === 0) {
-      console.warn(`Không tìm thấy bản ghi để cập nhật cho giảng viên ${idGvm}`);
+      console.warn(
+        `Không tìm thấy bản ghi để cập nhật cho giảng viên ${idGvm}`
+      );
     } else {
       console.log(`Đã cập nhật TruThue và ThucNhan cho giảng viên ${idGvm}`);
     }
@@ -605,7 +630,6 @@ const updateSoTienThucNhan = async (connection, idGvm, dot, kiHoc, namHoc, truTh
     throw err;
   }
 };
-
 
 const getExportHDSite = async (req, res) => {
   let connection;
@@ -823,7 +847,8 @@ const exportAdditionalInfoGvm = async (req, res) => {
 
     try {
       for (const teacher of teachers) {
-        const teacherZipName = `${teacher.HoTen}.zip`;
+        let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+        const teacherZipName = `${hoTenTrim}_${teacher.CCCD}.zip`;
         const teacherZipPath = path.join(tempDir, teacherZipName);
         const teacherArchive = archiver("zip", { zlib: { level: 9 } });
         const output = fs.createWriteStream(teacherZipPath);
@@ -1067,7 +1092,8 @@ const generateContractForTeacher = async (
     compression: "DEFLATE",
   });
 
-  const fileName = `HopDong_${teacher.HoTen}.docx`;
+  let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+  const fileName = `HopDong_${hoTenTrim}_${teacher.CCCD}.docx`;
   const filePath = path.join(tempDir, fileName);
   fs.writeFileSync(filePath, buf);
 
@@ -1297,8 +1323,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1623,8 +1649,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -2189,13 +2215,21 @@ const exportImageDownloadData = async (req, res) => {
   }
 };
 
-function createTransferDetailDocument(data = [], noiDung = '') {
+function createTransferDetailDocument(data = [], noiDung = "") {
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 24, color: '000000' })],
+          children: [
+            new TextRun({
+              text,
+              bold: isBold,
+              font: "Times New Roman",
+              size: 24,
+              color: "000000",
+            }),
+          ],
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2221,7 +2255,15 @@ function createTransferDetailDocument(data = [], noiDung = '') {
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [new TextRun({ text, bold: isBold, font: 'Times New Roman', size: 24, color: '000000' })],
+          children: [
+            new TextRun({
+              text,
+              bold: isBold,
+              font: "Times New Roman",
+              size: 24,
+              color: "000000",
+            }),
+          ],
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2249,7 +2291,7 @@ function createTransferDetailDocument(data = [], noiDung = '') {
 
   // Hàm định dạng số tiền theo VNĐ
   function formatVND(amount) {
-    return amount.toLocaleString('vi-VN');
+    return amount.toLocaleString("vi-VN");
   }
 
   // Hàm tạo bảng chi tiết
@@ -2257,39 +2299,45 @@ function createTransferDetailDocument(data = [], noiDung = '') {
     const headerRow = new TableRow({
       tableHeader: true,
       children: [
-        createHeaderCell('STT', true),
-        createHeaderCell('Số HĐ', true, 1200), // Đặt width cố định 1200 twips cho cột Số HĐ
-        createHeaderCell('Đơn vị thụ hưởng\n(hoặc cá nhân)', true),
-        createHeaderCell('Mã số thuế', true),
-        createHeaderCell('Số tài khoản', true),
-        createHeaderCell('Tại ngân hàng', true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
-        createHeaderCell('Số tiền (VNĐ)', true),
+        createHeaderCell("STT", true),
+        createHeaderCell("Số HĐ", true, 1200), // Đặt width cố định 1200 twips cho cột Số HĐ
+        createHeaderCell("Đơn vị thụ hưởng\n(hoặc cá nhân)", true),
+        createHeaderCell("Mã số thuế", true),
+        createHeaderCell("Số tài khoản", true),
+        createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
+        createHeaderCell("Số tiền (VNĐ)", true),
       ],
     });
 
     const dataRows = data.length
-      ? data.map((row, idx) => new TableRow({
-        children: [
-          createCell((idx + 1).toString()),
-          createCell('', false, 1200), // Ô Số HĐ với width cố định
-          createCell(row.HoTen || ''),
-          createCell(row.MaSoThue || ''),
-          createCell(row.STK || ''),
-          createCell(row.NganHang || '', false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
-          createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ''),
-        ],
-      }))
-      : Array.from({ length: 4 }).map(() => new TableRow({
-        children: [
-          createCell(''), // STT
-          createCell('', false, 1200), // Số HĐ với width cố định
-          createCell(''), // Đơn vị thụ hưởng
-          createCell(''), // Mã số thuế
-          createCell(''), // Số tài khoản
-          createCell('', false, 4800), // Tại ngân hàng với width cố định
-          createCell('') // Số tiền
-        ]
-      }));
+      ? data.map(
+          (row, idx) =>
+            new TableRow({
+              children: [
+                createCell((idx + 1).toString()),
+                createCell("", false, 1200), // Ô Số HĐ với width cố định
+                createCell(row.HoTen || ""),
+                createCell(row.MaSoThue || ""),
+                createCell(row.STK || ""),
+                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
+                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+              ],
+            })
+        )
+      : Array.from({ length: 4 }).map(
+          () =>
+            new TableRow({
+              children: [
+                createCell(""), // STT
+                createCell("", false, 1200), // Số HĐ với width cố định
+                createCell(""), // Đơn vị thụ hưởng
+                createCell(""), // Mã số thuế
+                createCell(""), // Số tài khoản
+                createCell("", false, 4800), // Tại ngân hàng với width cố định
+                createCell(""), // Số tiền
+              ],
+            })
+        );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2299,7 +2347,15 @@ function createTransferDetailDocument(data = [], noiDung = '') {
         new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({ text: 'Tổng cộng', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
+              children: [
+                new TextRun({
+                  text: "Tổng cộng",
+                  bold: true,
+                  font: "Times New Roman",
+                  size: 24,
+                  color: "000000",
+                }),
+              ],
               alignment: AlignmentType.CENTER,
             }),
           ],
@@ -2315,7 +2371,14 @@ function createTransferDetailDocument(data = [], noiDung = '') {
         new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({ text: formattedTotalAmount, font: 'Times New Roman', size: 24, color: '000000' })],
+              children: [
+                new TextRun({
+                  text: formattedTotalAmount,
+                  font: "Times New Roman",
+                  size: 24,
+                  color: "000000",
+                }),
+              ],
               alignment: AlignmentType.CENTER,
             }),
           ],
@@ -2350,100 +2413,130 @@ function createTransferDetailDocument(data = [], noiDung = '') {
         document: {
           font: "Times New Roman",
           size: 24,
-          color: "000000"
+          color: "000000",
         },
         paragraph: {
           color: "000000",
         },
       },
     },
-    sections: [{
-      properties: {
-        page: {
-          orientation: PageOrientation.LANDSCAPE, // Đặt orientation là landscape
-          margin: {
-            top: 567,    // 1 cm = 567 twips
-            right: 567,  // 1 cm
-            bottom: 567, // 1 cm  
-            left: 567,   // 1 cm
-          },
-          size: {
-            width: 15840,  // A4 landscape width (11 inches = 15840 twips)
-            height: 12240, // A4 landscape height (8.5 inches = 12240 twips)
+    sections: [
+      {
+        properties: {
+          page: {
+            orientation: PageOrientation.LANDSCAPE, // Đặt orientation là landscape
+            margin: {
+              top: 567, // 1 cm = 567 twips
+              right: 567, // 1 cm
+              bottom: 567, // 1 cm
+              left: 567, // 1 cm
+            },
+            size: {
+              width: 15840, // A4 landscape width (11 inches = 15840 twips)
+              height: 12240, // A4 landscape height (8.5 inches = 12240 twips)
+            },
           },
         },
+        children: [
+          // Header
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: {
+              top: { style: BorderStyle.NONE, size: 0 },
+              bottom: { style: BorderStyle.NONE, size: 0 },
+              left: { style: BorderStyle.NONE, size: 0 },
+              right: { style: BorderStyle.NONE, size: 0 },
+            },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    children: [
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "BAN CƠ YẾU CHÍNH PHỦ",
+                            bold: true,
+                            font: "Times New Roman",
+                            size: 24,
+                            color: "000000",
+                          }),
+                        ],
+                        alignment: AlignmentType.CENTER,
+                      }),
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "HỌC VIỆN KỸ THUẬT MẬT MÃ",
+                            bold: true,
+                            font: "Times New Roman",
+                            size: 24,
+                            color: "000000",
+                          }),
+                        ],
+                        alignment: AlignmentType.CENTER,
+                      }),
+                    ],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: {
+                      top: { style: BorderStyle.NONE, size: 0 },
+                      bottom: { style: BorderStyle.NONE, size: 0 },
+                      left: { style: BorderStyle.NONE, size: 0 },
+                      right: { style: BorderStyle.NONE, size: 0 },
+                    },
+                  }),
+                ],
+              }),
+            ],
+          }),
+          new Paragraph({ text: "", spacing: { after: 200 } }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [
+              new TextRun({
+                text: "BẢNG KÊ CHI TIẾT THÔNG TIN CHUYỂN KHOẢN",
+                font: "Times New Roman",
+                size: 26,
+                color: "000000",
+                bold: true,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Nội dung: `,
+                font: "Times New Roman",
+                size: 26,
+                color: "000000",
+              }),
+              new TextRun({
+                text: `${noiDung}`,
+                font: "Times New Roman",
+                size: 26,
+                color: "000000",
+              }),
+            ],
+            spacing: { after: 200 },
+          }),
+          createDetailTable(data),
+          new Paragraph({
+            italics: true,
+            spacing: { before: 200 },
+            children: [
+              new TextRun({
+                text: "Ghi chú: Số tiền chuyển khoản là số tiền sau thuế",
+                font: "Times New Roman",
+                size: 26,
+                color: "000000",
+                italics: true,
+              }),
+            ],
+          }),
+        ],
       },
-      children: [
-        // Header
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: {
-            top: { style: BorderStyle.NONE, size: 0 },
-            bottom: { style: BorderStyle.NONE, size: 0 },
-            left: { style: BorderStyle.NONE, size: 0 },
-            right: { style: BorderStyle.NONE, size: 0 },
-          },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      children: [new TextRun({ text: 'BAN CƠ YẾU CHÍNH PHỦ', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
-                      alignment: AlignmentType.CENTER,
-                    }),
-                    new Paragraph({
-                      children: [new TextRun({ text: 'HỌC VIỆN KỸ THUẬT MẬT MÃ', bold: true, font: 'Times New Roman', size: 24, color: '000000' })],
-                      alignment: AlignmentType.CENTER,
-                    }),
-                  ],
-                  width: { size: 100, type: WidthType.PERCENTAGE },
-                  borders: {
-                    top: { style: BorderStyle.NONE, size: 0 },
-                    bottom: { style: BorderStyle.NONE, size: 0 },
-                    left: { style: BorderStyle.NONE, size: 0 },
-                    right: { style: BorderStyle.NONE, size: 0 },
-                  },
-                }),
-              ]
-            })
-          ],
-        }),
-        new Paragraph({ text: '', spacing: { after: 200 } }),
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 200 },
-          children: [
-            new TextRun({
-              text: 'BẢNG KÊ CHI TIẾT THÔNG TIN CHUYỂN KHOẢN',
-              font: 'Times New Roman',
-              size: 26,
-              color: '000000',
-              bold: true,
-            })
-          ]
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: `Nội dung: `, font: 'Times New Roman', size: 26, color: '000000' }),
-            new TextRun({ text: `${noiDung}`, font: 'Times New Roman', size: 26, color: '000000' })
-          ],
-          spacing: { after: 200 },
-        }),
-        createDetailTable(data),
-        new Paragraph({
-          italics: true,
-          spacing: { before: 200 },
-          children: [new TextRun({
-            text: 'Ghi chú: Số tiền chuyển khoản là số tiền sau thuế',
-            font: 'Times New Roman',
-            size: 26,
-            color: '000000',
-            italics: true
-          })]
-        }),
-      ],
-    }],
+    ],
   });
 }
 
