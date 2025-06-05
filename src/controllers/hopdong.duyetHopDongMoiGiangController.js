@@ -20,9 +20,7 @@ const getDuyetHopDongPage = (req, res) => {
 const getDuyetHopDongData = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();
-
-        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
+        connection = await createPoolConnection();        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
         if (!dot || !ki || !namHoc || !loaiHopDong) {
             return res.status(400).json({
                 success: false,
@@ -31,18 +29,15 @@ const getDuyetHopDongData = async (req, res) => {
         }
 
         // Validate loaiHopDong values
-        if (loaiHopDong !== "Mời giảng" && loaiHopDong !== "Đồ án") {
+        if (loaiHopDong !== "Mời giảng") {
             return res.status(400).json({
                 success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'",
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'",
                 receivedLoaiHopDong: loaiHopDong
             });
-        }
-
-        let query, params;
-        if (loaiHopDong === "Mời giảng") {
-            // Enhanced query to show financial breakdown by training program
-            query = `
+        }        let query, params;
+        // Enhanced query to show financial breakdown by training program
+        query = `
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,
         MAX(qc.NgayKetThuc) AS NgayKetThuc,
@@ -143,135 +138,19 @@ const getDuyetHopDongData = async (req, res) => {
         AND qc.Dot = ?
         AND qc.KiHoc = ?
 `;
-            params = [namHoc, dot, ki];
+        params = [namHoc, dot, ki];
 
-            if (maPhongBan && maPhongBan !== "ALL") {
-                query += " AND gv.MaPhongBan = ?";
-                params.push(maPhongBan);
-            } query += `
-                GROUP BY
-                    gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
-                    gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-                    gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, qc.NamHoc, 
-                    qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
-                    gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, tl.SoTien, pb.TenPhongBan                ORDER BY SoTiet DESC, gv.HoTen, qc.he_dao_tao
-            `;
-        } else if (loaiHopDong === "Đồ án") {
-            // Case 2: Query from doantotnghiep table with grouping by department/program
-            query = `
-                SELECT
-                    da.NgayBatDau,
-                    da.NgayKetThuc,
-                    gv.id_Gvm,
-                    gv.HoTen,
-                    gv.GioiTinh,
-                    gv.NgaySinh,
-                    gv.CCCD,
-                    gv.NoiCapCCCD,
-                    gv.Email,
-                    gv.MaSoThue,
-                    gv.HocVi,
-                    gv.ChucVu,
-                    gv.HSL,
-                    gv.DienThoai,
-                    gv.STK,
-                    gv.NganHang,
-                    gv.MaPhongBan,
-                    da.MaPhongBan AS MaKhoaMonHoc,
-                    SUM(da.SoTiet) AS SoTiet,
-                    COALESCE(pb.TenPhongBan, 'Đồ án chung') as he_dao_tao,  -- Use department as "program" for grouping
-                    da.NamHoc,
-                    da.ki as KiHoc,
-                    da.Dot,
-                    gv.NgayCapCCCD,
-                    gv.DiaChi,
-                    gv.BangTotNghiep,
-                    gv.NoiCongTac,
-                    gv.BangTotNghiepLoai,
-                    gv.MonGiangDayChinh,
-                    GROUP_CONCAT(DISTINCT da.TenDeTai SEPARATOR ', ') as MonHoc,
-                    GROUP_CONCAT(DISTINCT da.SinhVien SEPARATOR ', ') as Lop,
-                    GROUP_CONCAT(DISTINCT da.MaSV SEPARATOR ', ') as SiSo,
-                    100000 AS TienMoiGiang,
-                    SUM(da.SoTiet) * 100000 AS ThanhTien,
-                    SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                    SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,                    NULL as SoHopDong,
-                    'Chưa có hợp đồng' as TrangThaiHopDong,
-                    pb.TenPhongBan,
-                    
-                    -- Thông tin trạng thái duyệt cho đồ án
-                    1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
-                    1 AS TaiChinhDuyet -- Placeholder, sẽ được cập nhật từ bảng doantotnghiep nếu có
-                FROM (
-                    SELECT
-                        NgayBatDau,
-                        NgayKetThuc,
-                        MaPhongBan,
-                        TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                        Dot,
-                        ki,
-                        NamHoc,
-                        TenDeTai,
-                        SinhVien,
-                        MaSV,
-                        CASE 
-                            WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                            ELSE 15
-                        END AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien1 IS NOT NULL
-                        AND GiangVien1 != ''
-                        AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
-                        AND Dot = ?
-                        AND ki = ?
-                    
-                    UNION ALL
-                    
-                    SELECT
-                        NgayBatDau,
-                        NgayKetThuc,
-                        MaPhongBan,
-                        TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                        Dot,
-                        ki,
-                        NamHoc,
-                        TenDeTai,
-                        SinhVien,
-                        MaSV,
-                        10 AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien2 IS NOT NULL 
-                        AND GiangVien2 != 'không'
-                        AND GiangVien2 != ''
-                        AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
-                        AND Dot = ?
-                        AND ki = ?
-                ) da
-                JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-                WHERE 1=1
-            `;
-            params = [namHoc, dot, ki, namHoc, dot, ki]; if (maPhongBan && maPhongBan !== "ALL") {
-                query += " AND da.MaPhongBan = ?";
-                params.push(maPhongBan);
-            } query += `
-                GROUP BY
-                    gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
-                    gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-                    gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, da.NamHoc, 
-                    da.ki, da.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
-                    gv.BangTotNghiepLoai, gv.MonGiangDayChinh, da.NgayBatDau, da.NgayKetThuc
-                ORDER BY SoTiet DESC, gv.HoTen, pb.TenPhongBan            `;
-        } else {
-            // Default case - return empty result or error
-            return res.status(400).json({
-                success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'",
-                receivedLoaiHopDong: loaiHopDong
-            });
-        }const [results] = await connection.query(query, params);
+        if (maPhongBan && maPhongBan !== "ALL") {
+            query += " AND gv.MaPhongBan = ?";
+            params.push(maPhongBan);
+        } query += `
+            GROUP BY
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, qc.NamHoc, 
+                qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
+                gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, tl.SoTien, pb.TenPhongBan                ORDER BY SoTiet DESC, gv.HoTen, qc.he_dao_tao
+        `;const [results] = await connection.query(query, params);
 
         // Enhanced grouping: Group by teacher and training program to show detailed breakdown
         const groupedByTeacher = results.reduce((acc, current) => {
@@ -382,21 +261,13 @@ const getDuyetHopDongData = async (req, res) => {
         const sortedEnhancedGroupedByTeacher = teachersWithTotals.reduce((acc, { teacherName, teacherData }) => {
             acc[teacherName] = teacherData;
             return acc;
-        }, {});
-        // Get SoTietDinhMuc
+        }, {});        // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        // Get SoQDList like in hopDongDuKien controller
-        let SoQDList = []; // Initialize with empty array as default
-        if (maPhongBan && maPhongBan !== "ALL") {
-            if (loaiHopDong === "Đồ án") {
-                // For Đồ án, get SoQD from doantotnghiep table
-                const SoQDquery = `SELECT DISTINCT SoQD FROM doantotnghiep WHERE SoQD != 'NULL' AND SoQD IS NOT NULL AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
-                [SoQDList] = await connection.query(SoQDquery, [dot, ki, namHoc, maPhongBan]);            } else {
-                // For Mời giảng, initialize empty array as there's no SoQD in quychuan
-                SoQDList = [];
-            }
-        }
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
+
+        // For Mời giảng, SoQD is not applicable
+        let SoQDList = [];
 
         res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
@@ -441,10 +312,16 @@ const approveContracts = async (req, res) => {
                 success: false,
                 message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
             });
+        }        // Validation for contract type
+        if (loaiHopDong !== "Mời giảng") {
+            return res.status(400).json({
+                success: false,
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'"
+            });
         }
 
         // Validation for "Mời giảng" - must select all faculties
-        if (loaiHopDong === "Mời giảng" && maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+        if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
             return res.status(400).json({
                 success: false,
                 message: "Với hợp đồng mời giảng, chỉ được chọn tất cả khoa, không thể duyệt từng khoa riêng lẻ"
@@ -452,47 +329,21 @@ const approveContracts = async (req, res) => {
         }        // First, check if all records have DaoTaoDuyet = 1 (following TaiChinhCheckAll pattern)
         let unapprovedFaculties = [];
 
-        if (loaiHopDong === "Mời giảng") {
-            // For mời giảng, check all faculties if no specific faculty selected
-            if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
-                // Get all faculties
-                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-                
-                for (const faculty of faculties) {
-                    const [check] = await connection.query(`
-                        SELECT DaoTaoDuyet FROM quychuan 
-                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-                    `, [faculty.MaPhongBan, dot, ki, namHoc]);
-
-                    // Check if all records in this faculty have DaoTaoDuyet = 1
-                    const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
-                      if (hasUnapprovedDaoTao) {
-                        unapprovedFaculties.push(faculty.MaPhongBan);
-                    }
-                }
-            }
-        } else if (loaiHopDong === "Đồ án") {
-            // For đồ án, check specific faculty or all faculties
-            const facultiesToCheck = [];
+        // For mời giảng, check all faculties if no specific faculty selected
+        if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
+            // Get all faculties
+            const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
             
-            if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
-                facultiesToCheck.push(maPhongBan);
-            } else {
-                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-                facultiesToCheck.push(...faculties.map(f => f.MaPhongBan));
-            }
-
-            for (const facultyCode of facultiesToCheck) {
+            for (const faculty of faculties) {
                 const [check] = await connection.query(`
-                    SELECT DaoTaoDuyet FROM doantotnghiep 
-                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
-                `, [facultyCode, namHoc, dot, ki]);
+                    SELECT DaoTaoDuyet FROM quychuan 
+                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 // Check if all records in this faculty have DaoTaoDuyet = 1
                 const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
-                
-                if (hasUnapprovedDaoTao) {
-                    unapprovedFaculties.push(facultyCode);
+                  if (hasUnapprovedDaoTao) {
+                    unapprovedFaculties.push(faculty.MaPhongBan);
                 }
             }
         }
@@ -506,73 +357,39 @@ const approveContracts = async (req, res) => {
                 unapprovedFaculties: unapprovedFaculties,
                 affectedRows: 0
             });
-        }        // If all checks pass, update TaiChinhDuyet = 1 based on contract type
+        }        // If all checks pass, update TaiChinhDuyet = 1 for mời giảng
         let affectedRows = 0;
 
-        if (loaiHopDong === "Mời giảng") {
-            // For mời giảng, update all faculties if no specific faculty selected
-            if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
-                // Get all faculties and update each that has all DaoTaoDuyet = 1
-                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-                
-                for (const faculty of faculties) {
-                    // Double-check this faculty is fully approved by DaoTao
-                    const [check] = await connection.query(`
-                        SELECT DaoTaoDuyet FROM quychuan 
-                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-                    `, [faculty.MaPhongBan, dot, ki, namHoc]);
-
-                    const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
-                    
-                    if (allDaoTaoApproved && check.length > 0) {
-                        const [updateResult] = await connection.query(`
-                            UPDATE quychuan 
-                            SET TaiChinhDuyet = 1 
-                            WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
-                              AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
-                        `, [faculty.MaPhongBan, dot, ki, namHoc]);
-                        
-                        affectedRows += updateResult.affectedRows;
-                    }                }
-            }
-        } else if (loaiHopDong === "Đồ án") {
-            // For đồ án, handle specific faculty or all faculties
-            const facultiesToUpdate = [];
+        // For mời giảng, update all faculties if no specific faculty selected
+        if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
+            // Get all faculties and update each that has all DaoTaoDuyet = 1
+            const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
             
-            if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
-                facultiesToUpdate.push(maPhongBan);
-            } else {
-                const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-                facultiesToUpdate.push(...faculties.map(f => f.MaPhongBan));
-            }
-
-            for (const facultyCode of facultiesToUpdate) {
+            for (const faculty of faculties) {
                 // Double-check this faculty is fully approved by DaoTao
                 const [check] = await connection.query(`
-                    SELECT DaoTaoDuyet FROM doantotnghiep 
-                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
-                `, [facultyCode, namHoc, dot, ki]);
+                    SELECT DaoTaoDuyet FROM quychuan 
+                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
                 
                 if (allDaoTaoApproved && check.length > 0) {
                     const [updateResult] = await connection.query(`
-                        UPDATE doantotnghiep 
+                        UPDATE quychuan 
                         SET TaiChinhDuyet = 1 
-                        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? 
+                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
                           AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
-                    `, [facultyCode, namHoc, dot, ki]);
+                    `, [faculty.MaPhongBan, dot, ki, namHoc]);
                     
                     affectedRows += updateResult.affectedRows;
                 }
             }
-        }        const facultyText = (loaiHopDong === "Đồ án" && maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL')
-            ? ` của khoa ${maPhongBan}`
-            : ' của tất cả khoa';
+        }        const facultyText = ' của tất cả khoa';
 
         res.json({
             success: true,
-            message: `Đã duyệt thành công ${affectedRows} hợp đồng ${loaiHopDong.toLowerCase()}${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
+            message: `Đã duyệt thành công ${affectedRows} hợp đồng mời giảng${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
             affectedRows: affectedRows
         });
 
@@ -605,377 +422,213 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 success: false,
                 message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
             });
-        }
-
-        // Validate loaiHopDong values
-        if (loaiHopDong !== "Mời giảng" && loaiHopDong !== "Đồ án") {
+        }        // Validate loaiHopDong values
+        if (loaiHopDong !== "Mời giảng") {
             return res.status(400).json({
                 success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'",
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'",
                 receivedLoaiHopDong: loaiHopDong
             });
+        }        // Query for "Mời giảng" - group by he_dao_tao from quychuan table
+        let query = `
+            SELECT
+                MIN(qc.NgayBatDau) AS NgayBatDau,
+                MAX(qc.NgayKetThuc) AS NgayKetThuc,
+                qc.he_dao_tao,
+                qc.NamHoc,
+                qc.KiHoc,
+                qc.Dot,
+
+                -- Tính tổng số tiết theo hệ đào tạo (áp dụng 0.7 nếu nhiều giảng viên)
+                SUM(
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        0.7 * qc.QuyChuan,
+                        qc.QuyChuan
+                    )
+                ) AS SoTiet,
+
+                -- Lấy mức tiền từ bảng tienluong theo hệ đào tạo và học vị
+                AVG(tl.SoTien) AS TienMoiGiang,
+
+                -- Tính thành tiền, thuế, thực nhận
+                AVG(tl.SoTien) * SUM(
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        0.7 * qc.QuyChuan,
+                        qc.QuyChuan
+                    )
+                ) AS ThanhTien,
+
+                AVG(tl.SoTien) * SUM(
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        0.7 * qc.QuyChuan,
+                        qc.QuyChuan
+                    )
+                ) * 0.1 AS Thue,
+
+                AVG(tl.SoTien) * SUM(
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        0.7 * qc.QuyChuan,
+                        qc.QuyChuan
+                    )
+                ) * 0.9 AS ThucNhan,
+
+                -- Thông tin trạng thái duyệt
+                MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+                MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet,
+
+                -- Số lượng giảng viên trong hệ đào tạo này
+                COUNT(DISTINCT 
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
+                        TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
+                    )
+                ) AS SoGiangVien
+
+            FROM 
+                quychuan qc
+
+            -- JOIN với bảng gvmoi (INNER JOIN để chỉ lấy giảng viên tồn tại)
+            JOIN gvmoi gv 
+                ON 
+                    IF(
+                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                        TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
+                        TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
+                    ) = gv.HoTen
+
+            -- JOIN với bảng tienluong để lấy mức tiền theo hệ đào tạo và học vị
+            LEFT JOIN tienluong tl 
+                ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+
+            WHERE
+                qc.MoiGiang = 1 
+                AND qc.NamHoc = ?
+                AND qc.Dot = ?
+                AND qc.KiHoc = ?
+        `;
+        const params = [namHoc, dot, ki];
+
+        if (maPhongBan && maPhongBan !== "ALL") {
+            query += " AND qc.Khoa = ?";
+            params.push(maPhongBan);
         }
 
-        let query, params;
-        if (loaiHopDong === "Mời giảng") {
-            // Query for "Mời giảng" - group by he_dao_tao from quychuan table
-            query = `
-                SELECT
-                    MIN(qc.NgayBatDau) AS NgayBatDau,
-                    MAX(qc.NgayKetThuc) AS NgayKetThuc,
-                    qc.he_dao_tao,
-                    qc.NamHoc,
-                    qc.KiHoc,
-                    qc.Dot,
-
-                    -- Tính tổng số tiết theo hệ đào tạo (áp dụng 0.7 nếu nhiều giảng viên)
-                    SUM(
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            0.7 * qc.QuyChuan,
-                            qc.QuyChuan
-                        )
-                    ) AS SoTiet,
-
-                    -- Lấy mức tiền từ bảng tienluong theo hệ đào tạo và học vị
-                    AVG(tl.SoTien) AS TienMoiGiang,
-
-                    -- Tính thành tiền, thuế, thực nhận
-                    AVG(tl.SoTien) * SUM(
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            0.7 * qc.QuyChuan,
-                            qc.QuyChuan
-                        )
-                    ) AS ThanhTien,
-
-                    AVG(tl.SoTien) * SUM(
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            0.7 * qc.QuyChuan,
-                            qc.QuyChuan
-                        )
-                    ) * 0.1 AS Thue,
-
-                    AVG(tl.SoTien) * SUM(
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            0.7 * qc.QuyChuan,
-                            qc.QuyChuan
-                        )
-                    ) * 0.9 AS ThucNhan,
-
-                    -- Thông tin trạng thái duyệt
-                    MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-                    MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet,                    -- Số lượng giảng viên trong hệ đào tạo này
-                    COUNT(DISTINCT 
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                            TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-                        )
-                    ) AS SoGiangVien
-
-                FROM 
-                    quychuan qc                -- JOIN với bảng gvmoi (INNER JOIN để chỉ lấy giảng viên tồn tại)
-                JOIN gvmoi gv 
-                    ON 
-                        IF(
-                            INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                            TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                            TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-                        ) = gv.HoTen
-
-                -- JOIN với bảng tienluong để lấy mức tiền theo hệ đào tạo và học vị
-                LEFT JOIN tienluong tl 
-                    ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
-
-                WHERE
-                    qc.MoiGiang = 1 
-                    AND qc.NamHoc = ?
-                    AND qc.Dot = ?
-                    AND qc.KiHoc = ?
-            `;
-            params = [namHoc, dot, ki];
-
-            if (maPhongBan && maPhongBan !== "ALL") {
-                query += " AND qc.Khoa = ?";
-                params.push(maPhongBan);
-            }
-
-            query += `
-                GROUP BY
-                    qc.he_dao_tao, qc.NamHoc, qc.KiHoc, qc.Dot
-                ORDER BY SoTiet DESC, qc.he_dao_tao
-            `;
-        } else if (loaiHopDong === "Đồ án") {
-            // Query for "Đồ án" - use department as "training program" since đồ án doesn't have he_dao_tao
-            query = `
-                SELECT
-                    MIN(da.NgayBatDau) AS NgayBatDau,
-                    MAX(da.NgayKetThuc) AS NgayKetThuc,
-                    COALESCE(pb.TenPhongBan, 'Đồ án chung') as he_dao_tao,  -- Use department name as "program"
-                    da.NamHoc,
-                    da.ki as KiHoc,
-                    da.Dot,
-
-                    -- Tính tổng số tiết theo khoa
-                    SUM(da.SoTiet) AS SoTiet,
-
-                    -- Mức tiền cố định cho đồ án
-                    100000 AS TienMoiGiang,
-
-                    -- Tính thành tiền, thuế, thực nhận
-                    SUM(da.SoTiet) * 100000 AS ThanhTien,
-                    SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                    SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
-
-                    -- Thông tin trạng thái duyệt cho đồ án
-                    1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
-                    1 AS TaiChinhDuyet, -- Placeholder
-
-                    -- Số lượng giảng viên theo khoa
-                    COUNT(DISTINCT da.GiangVien) AS SoGiangVien
-
-                FROM (
-                    SELECT
-                        NgayBatDau,
-                        NgayKetThuc,
-                        MaPhongBan,
-                        TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                        Dot,
-                        ki,
-                        NamHoc,
-                        CASE 
-                            WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                            ELSE 15
-                        END AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien1 IS NOT NULL
-                        AND GiangVien1 != ''
-                        AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
-                        AND Dot = ?
-                        AND ki = ?
-                    
-                    UNION ALL
-                    
-                    SELECT
-                        NgayBatDau,
-                        NgayKetThuc,
-                        MaPhongBan,
-                        TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                        Dot,
-                        ki,
-                        NamHoc,
-                        10 AS SoTiet
-                    FROM doantotnghiep
-                    WHERE GiangVien2 IS NOT NULL 
-                        AND GiangVien2 != 'không'
-                        AND GiangVien2 != ''
-                        AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
-                        AND Dot = ?
-                        AND ki = ?
-                ) da
-                JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-                WHERE 1=1
-            `;
-            params = [namHoc, dot, ki, namHoc, dot, ki];
-
-            if (maPhongBan && maPhongBan !== "ALL") {
-                query += " AND da.MaPhongBan = ?";
-                params.push(maPhongBan);
-            }
-
-            query += `
-                GROUP BY
-                    da.MaPhongBan, pb.TenPhongBan, da.NamHoc, da.ki, da.Dot
-                ORDER BY SoTiet DESC, pb.TenPhongBan
-            `;
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'",
-                receivedLoaiHopDong: loaiHopDong
-            });
-        }
+        query += `
+            GROUP BY
+                qc.he_dao_tao, qc.NamHoc, qc.KiHoc, qc.Dot
+            ORDER BY SoTiet DESC, qc.he_dao_tao
+        `;
 
         const [results] = await connection.query(query, params);
 
         // Get detailed teacher information for each training program
         const enhancedResults = [];
-        
-        for (const heDaoTao of results) {
+          for (const heDaoTao of results) {
             // Query to get detailed teacher info for this training program
-            let teacherQuery, teacherParams;
+           let teacherQuery = `
+    SELECT
+        MIN(qc.NgayBatDau) AS NgayBatDau,          -- ✅ BỔ SUNG
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,        -- ✅ BỔ SUNG
+        gv.id_Gvm,
+        gv.HoTen,
+        gv.GioiTinh,
+        gv.NgaySinh,
+        gv.CCCD,
+        gv.NoiCapCCCD,
+        gv.Email,
+        gv.MaSoThue,
+        gv.HocVi,
+        gv.ChucVu,
+        gv.HSL,
+        gv.DienThoai,
+        gv.STK,
+        gv.NganHang,
+        gv.MaPhongBan,
+        gv.NgayCapCCCD,
+        gv.DiaChi,
+        gv.BangTotNghiep,
+        gv.NoiCongTac,
+        gv.BangTotNghiepLoai,
+        gv.MonGiangDayChinh,
+        pb.TenPhongBan,
+        
+        SUM(
+            IF(
+                INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                0.7 * qc.QuyChuan,
+                qc.QuyChuan
+            )
+        ) AS SoTiet,
+        
+        tl.SoTien AS TienMoiGiang,
+        tl.SoTien * SUM(
+            IF(
+                INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                0.7 * qc.QuyChuan,
+                qc.QuyChuan
+            )
+        ) AS ThanhTien,
+        
+        tl.SoTien * SUM(
+            IF(
+                INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                0.7 * qc.QuyChuan,
+                qc.QuyChuan
+            )
+        ) * 0.1 AS Thue,
+        
+        tl.SoTien * SUM(
+            IF(
+                INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                0.7 * qc.QuyChuan,
+                qc.QuyChuan
+            )
+        ) * 0.9 AS ThucNhan,
+        
+        MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+        MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
+
+    FROM 
+        quychuan qc
+    JOIN gvmoi gv 
+        ON 
+            IF(
+                INSTR(qc.GiaoVienGiangDay, ',') > 0,
+                TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
+                TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
+            ) = gv.HoTen
+    LEFT JOIN tienluong tl 
+        ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+    LEFT JOIN phongban pb 
+        ON gv.MaPhongBan = pb.MaPhongBan
+    WHERE
+        qc.MoiGiang = 1 
+        AND qc.NamHoc = ?
+        AND qc.Dot = ?
+        AND qc.KiHoc = ?
+        AND qc.he_dao_tao = ?
+`;
+            const teacherParams = [namHoc, dot, ki, heDaoTao.he_dao_tao];
             
-            if (loaiHopDong === "Mời giảng") {
-                teacherQuery = `
-                    SELECT
-                        gv.id_Gvm,
-                        gv.HoTen,
-                        gv.GioiTinh,
-                        gv.NgaySinh,
-                        gv.CCCD,
-                        gv.NoiCapCCCD,
-                        gv.Email,
-                        gv.MaSoThue,
-                        gv.HocVi,
-                        gv.ChucVu,
-                        gv.HSL,
-                        gv.DienThoai,
-                        gv.STK,
-                        gv.NganHang,
-                        gv.MaPhongBan,
-                        pb.TenPhongBan,
-                        
-                        SUM(
-                            IF(
-                                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                                0.7 * qc.QuyChuan,
-                                qc.QuyChuan
-                            )
-                        ) AS SoTiet,
-                        
-                        tl.SoTien AS TienMoiGiang,
-                        tl.SoTien * SUM(
-                            IF(
-                                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                                0.7 * qc.QuyChuan,
-                                qc.QuyChuan
-                            )
-                        ) AS ThanhTien,
-                        
-                        tl.SoTien * SUM(
-                            IF(
-                                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                                0.7 * qc.QuyChuan,
-                                qc.QuyChuan
-                            )
-                        ) * 0.1 AS Thue,
-                        
-                        tl.SoTien * SUM(
-                            IF(
-                                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                                0.7 * qc.QuyChuan,
-                                qc.QuyChuan
-                            )
-                        ) * 0.9 AS ThucNhan,
-                        
-                        MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-                        MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
-
-                    FROM 
-                        quychuan qc
-                    JOIN gvmoi gv 
-                        ON 
-                            IF(
-                                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                                TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                                TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-                            ) = gv.HoTen
-                    LEFT JOIN tienluong tl 
-                        ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
-                    LEFT JOIN phongban pb 
-                        ON gv.MaPhongBan = pb.MaPhongBan
-                    WHERE
-                        qc.MoiGiang = 1 
-                        AND qc.NamHoc = ?
-                        AND qc.Dot = ?
-                        AND qc.KiHoc = ?
-                        AND qc.he_dao_tao = ?
-                `;
-                teacherParams = [namHoc, dot, ki, heDaoTao.he_dao_tao];
-                
-                if (maPhongBan && maPhongBan !== "ALL") {
-                    teacherQuery += " AND qc.Khoa = ?";
-                    teacherParams.push(maPhongBan);
-                }
-                
-                teacherQuery += `
-                    GROUP BY
-                        gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
-                        gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-                        gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan, tl.SoTien
-                    ORDER BY SoTiet DESC, gv.HoTen
-                `;
-            } else if (loaiHopDong === "Đồ án") {
-                // For đồ án, we use department as "training program"
-                teacherQuery = `
-                    SELECT
-                        gv.id_Gvm,
-                        gv.HoTen,
-                        gv.GioiTinh,
-                        gv.NgaySinh,
-                        gv.CCCD,
-                        gv.NoiCapCCCD,
-                        gv.Email,
-                        gv.MaSoThue,
-                        gv.HocVi,
-                        gv.ChucVu,
-                        gv.HSL,
-                        gv.DienThoai,
-                        gv.STK,
-                        gv.NganHang,
-                        gv.MaPhongBan,
-                        pb.TenPhongBan,
-                        
-                        SUM(da.SoTiet) AS SoTiet,
-                        100000 AS TienMoiGiang,
-                        SUM(da.SoTiet) * 100000 AS ThanhTien,
-                        SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                        SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
-                        
-                        1 AS DaoTaoDuyet,
-                        1 AS TaiChinhDuyet
-
-                    FROM (
-                        SELECT
-                            MaPhongBan,
-                            TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                            CASE 
-                                WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                                ELSE 15
-                            END AS SoTiet
-                        FROM doantotnghiep
-                        WHERE GiangVien1 IS NOT NULL
-                            AND GiangVien1 != ''
-                            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                            AND NamHoc = ?
-                            AND Dot = ?
-                            AND ki = ?
-                        
-                        UNION ALL
-                        
-                        SELECT
-                            MaPhongBan,
-                            TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                            10 AS SoTiet
-                        FROM doantotnghiep
-                        WHERE GiangVien2 IS NOT NULL 
-                            AND GiangVien2 != 'không'
-                            AND GiangVien2 != ''
-                            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                            AND NamHoc = ?
-                            AND Dot = ?
-                            AND ki = ?
-                    ) da
-                    JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-                    LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-                    WHERE pb.TenPhongBan = ?
-                `;
-                teacherParams = [namHoc, dot, ki, namHoc, dot, ki, heDaoTao.he_dao_tao];
-                
-                teacherQuery += `
-                    GROUP BY
-                        gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
-                        gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-                        gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
-                    ORDER BY SoTiet DESC, gv.HoTen
-                `;
+            if (maPhongBan && maPhongBan !== "ALL") {
+                teacherQuery += " AND qc.Khoa = ?";
+                teacherParams.push(maPhongBan);
             }
+            
+            teacherQuery += `
+              GROUP BY
+        gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
+        gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
+        gv.STK, gv.NganHang, gv.MaPhongBan, gv.NgayCapCCCD, gv.DiaChi, 
+        gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
+        pb.TenPhongBan, tl.SoTien
+    ORDER BY SoTiet DESC, gv.HoTen
+            `;
             
             const [teacherDetails] = await connection.query(teacherQuery, teacherParams);
             
@@ -994,7 +647,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
             SoTietDinhMuc: SoTietDinhMuc,
-            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho ${loaiHopDong.toLowerCase()}`
+            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho mời giảng`
         });
 
     } catch (error) {
@@ -1031,31 +684,29 @@ const checkContractSaveStatus = async (req, res) => {
                 success: false,
                 message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
             });
-        }
-
-        // Validate loaiHopDong values
-        if (loaiHopDong !== "Mời giảng" && loaiHopDong !== "Đồ án") {
+        }        // Validate loaiHopDong values
+        if (loaiHopDong !== "Mời giảng") {
             return res.status(400).json({
                 success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng' và 'Đồ án'"
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'"
             });
-        }        // First check overall status
-        let statusQuery, statusParams;
-        if (loaiHopDong === "Mời giảng") {
-            statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM quychuan qc WHERE qc.NamHoc = ? AND qc.Dot = ? AND qc.KiHoc = ?";
-            statusParams = [namHoc, dot, ki];
+        }        // Check overall status for mời giảng
+        // const statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM quychuan qc WHERE qc.NamHoc = ? AND qc.Dot = ? AND qc.KiHoc = ?";
+        const statusQuery = `
+    SELECT COUNT(*) as totalRecords, 
+           COUNT(DISTINCT DaLuu) as distinctValues, 
+           MIN(DaLuu) as minValue, 
+           MAX(DaLuu) as maxVal 
+    FROM quychuan qc 
+    WHERE qc.NamHoc = ? 
+      AND qc.Dot = ? 
+      AND qc.KiHoc = ?
+      AND qc.MoiGiang = 1`;
+        const statusParams = [namHoc, dot, ki];
 
-            if (maPhongBan && maPhongBan !== "ALL") {
-                statusQuery += " AND qc.Khoa = ?";
-                statusParams.push(maPhongBan);
-            }        } else if (loaiHopDong === "Đồ án") {
-            statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM doantotnghiep dt WHERE dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?";
-            statusParams = [namHoc, dot, ki];
-
-            if (maPhongBan && maPhongBan !== "ALL") {
-                statusQuery += " AND dt.MaPhongBan = ?";
-                statusParams.push(maPhongBan);
-            }
+        if (maPhongBan && maPhongBan !== "ALL") {
+            statusQuery += " AND qc.Khoa = ?";
+            statusParams.push(maPhongBan);
         }
 
         const [statusResults] = await connection.query(statusQuery, statusParams);
@@ -1069,63 +720,35 @@ const checkContractSaveStatus = async (req, res) => {
         } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
             // Tất cả bản ghi đều có DaLuu = 1
             message = "Đã lưu HĐ";
-        } else {
-            // Có bản ghi chưa đạt điều kiện - lấy chi tiết
+        } else {            // Có bản ghi chưa đạt điều kiện - lấy chi tiết
             message = "Chưa lưu HĐ";
             
-            let detailQuery, detailParams;            if (loaiHopDong === "Mời giảng") {
-                detailQuery = `
-                    SELECT 
-                        qc.ID,
-                        qc.Khoa,
-                        qc.MaHocPhan,
-                        qc.LopHocPhan,
-                        qc.TenLop,
-                        qc.GiaoVienGiangDay,
-                        qc.QuyChuan,
-                        qc.DaLuu,
-                        qc.NgayBatDau,
-                        qc.NgayKetThuc,
-                        pb.TenPhongBan as TenKhoa
-                    FROM quychuan qc
-                    LEFT JOIN phongban pb ON qc.Khoa = pb.MaPhongBan
-                    WHERE qc.NamHoc = ? 
-                      AND qc.Dot = ? 
-                      AND qc.KiHoc = ?
-                      AND (qc.DaLuu IS NULL OR qc.DaLuu <> 1)
-                `;
-                detailParams = [namHoc, dot, ki];
+            const detailQuery = `
+    SELECT 
+        qc.ID,
+        qc.Khoa,
+        qc.MaHocPhan,
+        qc.LopHocPhan,
+        qc.TenLop,
+        qc.GiaoVienGiangDay,
+        qc.QuyChuan,
+        qc.DaLuu,
+        qc.NgayBatDau,
+        qc.NgayKetThuc,
+        pb.TenPhongBan as TenKhoa
+    FROM quychuan qc
+    LEFT JOIN phongban pb ON qc.Khoa = pb.MaPhongBan
+    WHERE qc.NamHoc = ? 
+      AND qc.Dot = ? 
+      AND qc.KiHoc = ?
+      AND qc.MoiGiang = 1          -- ✅ BỔ SUNG
+      AND (qc.DaLuu IS NULL OR qc.DaLuu <> 1)
+`;
+            const detailParams = [namHoc, dot, ki];
 
-                if (maPhongBan && maPhongBan !== "ALL") {
-                    detailQuery += " AND qc.Khoa = ?";
-                    detailParams.push(maPhongBan);
-                }
-            } else if (loaiHopDong === "Đồ án") {                detailQuery = `
-                    SELECT 
-                        dt.ID,
-                        dt.MaPhongBan as Khoa,
-                        dt.TenDeTai,
-                        dt.SinhVien,
-                        dt.MaSV,
-                        dt.GiangVien1,
-                        dt.GiangVien2,
-                        dt.DaLuu,
-                        dt.NgayBatDau,
-                        dt.NgayKetThuc,
-                        pb.TenPhongBan as TenKhoa
-                    FROM doantotnghiep dt
-                    LEFT JOIN phongban pb ON dt.MaPhongBan = pb.MaPhongBan
-                    WHERE dt.NamHoc = ? 
-                      AND dt.Dot = ? 
-                      AND dt.Ki = ?
-                      AND (dt.DaLuu IS NULL OR dt.DaLuu <> 1)
-                `;
-                detailParams = [namHoc, dot, ki];
-
-                if (maPhongBan && maPhongBan !== "ALL") {
-                    detailQuery += " AND dt.MaPhongBan = ?";
-                    detailParams.push(maPhongBan);
-                }
+            if (maPhongBan && maPhongBan !== "ALL") {
+                detailQuery += " AND qc.Khoa = ?";
+                detailParams.push(maPhongBan);
             }
 
             const [detailResults] = await connection.query(detailQuery, detailParams);

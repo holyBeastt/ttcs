@@ -55,9 +55,8 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.STK,
                 gv.NganHang,
                 gv.MaPhongBan,
-                da.MaPhongBan AS MaKhoaMonHoc,
-                SUM(da.SoTiet) AS SoTiet,
-                COALESCE(pb.TenPhongBan, 'Đồ án chung') as he_dao_tao,  -- Use department as "program" for grouping
+                da.MaPhongBan AS MaKhoaMonHoc,                SUM(da.SoTiet) AS SoTiet,
+                COALESCE('Đại học', 'Đại học') as he_dao_tao,  -- Default training program for thesis contracts
                 da.NamHoc,
                 da.ki as KiHoc,
                 da.Dot,
@@ -187,10 +186,9 @@ const getDuyetHopDongData = async (req, res) => {
                         totalThucNhan: 0
                     }
                 };
-            }
-            // Add training program data with validation and error handling
+            }            // Add training program data with validation and error handling
             const programData = {
-                he_dao_tao: current.he_dao_tao || 'Không xác định',
+                he_dao_tao: current.he_dao_tao || 'Đại học',  // Default to "Đại học" for thesis contracts
                 SoTiet: parseFloat(current.SoTiet) || 0,
                 TienMoiGiang: parseFloat(current.TienMoiGiang) || 0,
                 ThanhTien: parseFloat(current.ThanhTien) || 0,
@@ -203,8 +201,9 @@ const getDuyetHopDongData = async (req, res) => {
             };
 
             // Validate program data for completeness
-            if (!programData.he_dao_tao || programData.he_dao_tao === 'Không xác định') {
-                console.warn(`Warning: Missing training program data for teacher ${teacher}`);
+            if (!programData.he_dao_tao) {
+                console.warn(`Warning: Using default training program 'Đại học' for teacher ${teacher}`);
+                programData.he_dao_tao = 'Đại học';
             }
 
             if (programData.SoTiet <= 0) {
@@ -431,17 +430,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Đồ án'",
                 receivedLoaiHopDong: loaiHopDong
             });
-        }        // Query for "Đồ án" - use department as "training program" since đồ án doesn't have he_dao_tao
+        }        // Query for "Đồ án" - set default training program as "Đại học" since thesis contracts don't have separate training programs
         let query = `
             SELECT
                 MIN(da.NgayBatDau) AS NgayBatDau,
                 MAX(da.NgayKetThuc) AS NgayKetThuc,
-                COALESCE(pb.TenPhongBan, 'Đồ án chung') as he_dao_tao,  -- Use department name as "program"
+                'Đại học' as he_dao_tao,  -- Default training program for thesis contracts
                 da.NamHoc,
                 da.ki as KiHoc,
                 da.Dot,
 
-                -- Tính tổng số tiết theo khoa
+                -- Tính tổng số tiết cho tất cả khoa
                 SUM(da.SoTiet) AS SoTiet,
 
                 -- Mức tiền cố định cho đồ án
@@ -456,7 +455,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
                 1 AS TaiChinhDuyet, -- Placeholder
 
-                -- Số lượng giảng viên theo khoa
+                -- Số lượng giảng viên tổng cộng
                 COUNT(DISTINCT da.GiangVien) AS SoGiangVien
 
             FROM (
@@ -509,19 +508,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         if (maPhongBan && maPhongBan !== "ALL") {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
-        }
-
-        query += `
+        }        query += `
             GROUP BY
-                da.MaPhongBan, pb.TenPhongBan, da.NamHoc, da.ki, da.Dot
-            ORDER BY SoTiet DESC, pb.TenPhongBan
+                da.NamHoc, da.ki, da.Dot
+            ORDER BY 'Đại học'
         `;
 
-        const [results] = await connection.query(query, params);        // Get detailed teacher information for each training program
+        const [results] = await connection.query(query, params);        // Get detailed teacher information for the "Đại học" training program
         const enhancedResults = [];
         
         for (const heDaoTao of results) {
-            // Query to get detailed teacher info for thesis contracts by department
+            // Query to get detailed teacher info for all thesis contracts (since we group everything under "Đại học")
             const teacherQuery = `
                 SELECT
                     gv.id_Gvm,
@@ -548,7 +545,11 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
                     
                     1 AS DaoTaoDuyet,
-                    1 AS TaiChinhDuyet
+                    1 AS TaiChinhDuyet,
+                    
+                    GROUP_CONCAT(DISTINCT dt.TenDeTai SEPARATOR ', ') as MonHoc,
+                    GROUP_CONCAT(DISTINCT dt.SinhVien SEPARATOR ', ') as Lop,
+                    GROUP_CONCAT(DISTINCT dt.MaSV SEPARATOR ', ') as SiSo
 
                 FROM (
                     SELECT
@@ -582,17 +583,32 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         AND ki = ?
                 ) da
                 JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-                WHERE pb.TenPhongBan = ?
+                LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan                LEFT JOIN doantotnghiep dt ON (
+                    (TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen OR TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen)
+                    AND dt.NamHoc = ? AND dt.Dot = ? AND dt.ki = ?
+                    AND dt.MaPhongBan = da.MaPhongBan  -- Thêm điều kiện này để tránh duplicate
+                )
+                WHERE 1=1
+            `;
+            
+            let teacherParams = [namHoc, dot, ki, namHoc, dot, ki, namHoc, dot, ki];
+            let teacherQueryWithFilter = teacherQuery;
+            
+            // Add department filter if specified
+            if (maPhongBan && maPhongBan !== "ALL") {
+                teacherQueryWithFilter += " AND da.MaPhongBan = ?";
+                teacherParams.push(maPhongBan);
+            }
+            
+            teacherQueryWithFilter += `
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
                     gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
                     gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen
             `;
-            const teacherParams = [namHoc, dot, ki, namHoc, dot, ki, heDaoTao.he_dao_tao];
             
-            const [teacherDetails] = await connection.query(teacherQuery, teacherParams);
+            const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
             
             // Add teacher details to the training program data
             enhancedResults.push({
@@ -609,7 +625,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
             SoTietDinhMuc: SoTietDinhMuc,
-            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} khoa cho đồ án`
+            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho đồ án (mặc định: Đại học)`
         });
 
     } catch (error) {
@@ -731,10 +747,143 @@ const checkContractSaveStatus = async (req, res) => {
     }
 };
 
+/**
+ * Debug function to compare results between two functions
+ */
+const debugCompareQueries = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+        const { dot, ki, namHoc, maPhongBan } = req.body;
+
+        console.log("🔍 DEBUG: Comparing queries for:", { dot, ki, namHoc, maPhongBan });
+
+        // Query 1: getDuyetHopDongData style - detailed by teacher
+        const detailQuery = `
+            SELECT
+                gv.HoTen,
+                SUM(da.SoTiet) AS SoTiet,
+                COUNT(*) as RecordCount
+            FROM (
+                SELECT
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    CASE 
+                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
+                        ELSE 15
+                    END AS SoTiet
+                FROM doantotnghiep
+                WHERE GiangVien1 IS NOT NULL
+                    AND GiangVien1 != ''
+                    AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+                    AND NamHoc = ? AND Dot = ? AND ki = ?
+                
+                UNION ALL
+                
+                SELECT
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+                    10 AS SoTiet
+                FROM doantotnghiep
+                WHERE GiangVien2 IS NOT NULL 
+                    AND GiangVien2 != 'không'
+                    AND GiangVien2 != ''
+                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+                    AND NamHoc = ? AND Dot = ? AND ki = ?
+            ) da
+            JOIN gvmoi gv ON da.GiangVien = gv.HoTen
+            WHERE 1=1
+            ${maPhongBan && maPhongBan !== "ALL" ? "AND da.MaPhongBan = ?" : ""}
+            GROUP BY gv.HoTen
+            ORDER BY SoTiet DESC
+        `;
+
+        // Query 2: getDuyetHopDongTheoHeDaoTao style - total summary
+        const summaryQuery = `
+            SELECT
+                SUM(da.SoTiet) AS TotalSoTiet,
+                COUNT(DISTINCT da.GiangVien) AS UniqueTeachers,
+                COUNT(*) as TotalRecords
+            FROM (
+                SELECT
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    CASE 
+                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
+                        ELSE 15
+                    END AS SoTiet
+                FROM doantotnghiep
+                WHERE GiangVien1 IS NOT NULL
+                    AND GiangVien1 != ''
+                    AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+                    AND NamHoc = ? AND Dot = ? AND ki = ?
+                
+                UNION ALL
+                
+                SELECT
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+                    10 AS SoTiet
+                FROM doantotnghiep
+                WHERE GiangVien2 IS NOT NULL 
+                    AND GiangVien2 != 'không'
+                    AND GiangVien2 != ''
+                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+                    AND NamHoc = ? AND Dot = ? AND ki = ?
+            ) da
+            JOIN gvmoi gv ON da.GiangVien = gv.HoTen
+            WHERE 1=1
+            ${maPhongBan && maPhongBan !== "ALL" ? "AND da.MaPhongBan = ?" : ""}
+        `;
+
+        let params1 = [namHoc, dot, ki, namHoc, dot, ki];
+        let params2 = [namHoc, dot, ki, namHoc, dot, ki];
+        
+        if (maPhongBan && maPhongBan !== "ALL") {
+            params1.push(maPhongBan);
+            params2.push(maPhongBan);
+        }
+
+        const [detailResults] = await connection.query(detailQuery, params1);
+        const [summaryResults] = await connection.query(summaryQuery, params2);
+
+        // Calculate total from detail results
+        const calculatedTotal = detailResults.reduce((sum, row) => sum + parseFloat(row.SoTiet), 0);
+
+        console.log("📊 DETAIL RESULTS:", detailResults);
+        console.log("📈 SUMMARY RESULTS:", summaryResults[0]);
+        console.log("🧮 CALCULATED TOTAL from details:", calculatedTotal);
+
+        res.json({
+            success: true,
+            detailResults: detailResults,
+            summaryResults: summaryResults[0],
+            calculatedTotalFromDetails: calculatedTotal,
+            comparison: {
+                match: Math.abs(calculatedTotal - summaryResults[0].TotalSoTiet) < 0.01,
+                difference: calculatedTotal - summaryResults[0].TotalSoTiet
+            }
+        });
+
+    } catch (error) {
+        console.error("❌ Error in debugCompareQueries:", error);
+        res.status(500).json({
+            success: false,
+            message: "Debug error",
+            error: error.message
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 module.exports = {
     getDuyetHopDongPage,
     getDuyetHopDongData,
     getDuyetHopDongTheoHeDaoTao,
     approveContracts,
-    checkContractSaveStatus
+    checkContractSaveStatus,
+    debugCompareQueries
 };
