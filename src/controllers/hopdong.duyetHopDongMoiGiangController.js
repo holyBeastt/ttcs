@@ -7,7 +7,7 @@ const createPoolConnection = require("../config/databasePool");
  */
 const getDuyetHopDongPage = (req, res) => {
     try {
-        res.render('hopdong.duyetHopDong.ejs');
+        res.render('hopdong.duyetHopDongMoiGiang.ejs');
     } catch (error) {
         console.error("Error rendering duyet hop dong page:", error);
         res.status(500).send("Internal Server Error");

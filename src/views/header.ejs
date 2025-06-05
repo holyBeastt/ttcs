@@ -152,10 +152,18 @@
                 aria-expanded="false">
                 Mời Giảng
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="nav-link"
+                  href="/xemCacLopGvm">Xem các lớp mời</a>
                 <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-                <a class="nav-link" href="/duyet-hop-dong" role="button">Tài chính - Duyệt hợp đồng</a>
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
+                    aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
+                    <a class="nav-link" href="/duyet-hop-dong">Hợp đồng mời giảng</a>
+                    <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
+                  </div>
+                </div>
                 <div class="dropdown-submenu" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
                     aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>

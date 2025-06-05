@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const duyetHopDongController = require('../controllers/hopdong.duyetHopDongController');
+const duyetHopDongController = require('../controllers/hopdong.duyetHopDongMoiGiangController');
 const previewController = require('../controllers/hopdong.previewController');
 
 // Route to display contract approval page
