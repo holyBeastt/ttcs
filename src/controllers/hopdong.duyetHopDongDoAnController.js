@@ -20,11 +20,11 @@ const getDuyetHopDongPage = (req, res) => {
 const getDuyetHopDongData = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        connection = await createPoolConnection();        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
+        if (!dot || !namHoc || !loaiHopDong) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
             });
         }
 
@@ -55,10 +55,8 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.STK,
                 gv.NganHang,
                 gv.MaPhongBan,
-                da.MaPhongBan AS MaKhoaMonHoc,                SUM(da.SoTiet) AS SoTiet,
-                COALESCE('Đại học', 'Đại học') as he_dao_tao,  -- Default training program for thesis contracts
+                da.MaPhongBan AS MaKhoaMonHoc,                SUM(da.SoTiet) AS SoTiet,                COALESCE('Đại học', 'Đại học') as he_dao_tao,  -- Default training program for thesis contracts
                 da.NamHoc,
-                da.ki as KiHoc,
                 da.Dot,
                 gv.NgayCapCCCD,
                 gv.DiaChi,
@@ -83,10 +81,8 @@ const getDuyetHopDongData = async (req, res) => {
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     Dot,
-                    ki,
                     NamHoc,
                     TenDeTai,
                     SinhVien,
@@ -101,17 +97,14 @@ const getDuyetHopDongData = async (req, res) => {
                     AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
                     AND NamHoc = ?
                     AND Dot = ?
-                    AND ki = ?
                 
                 UNION ALL
                 
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                     Dot,
-                    ki,
                     NamHoc,
                     TenDeTai,
                     SinhVien,
@@ -124,13 +117,11 @@ const getDuyetHopDongData = async (req, res) => {
                     AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
                     AND NamHoc = ?
                     AND Dot = ?
-                    AND ki = ?
             ) da
             JOIN gvmoi gv ON da.GiangVien = gv.HoTen
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-            WHERE 1=1
-        `;
-        let params = [namHoc, dot, ki, namHoc, dot, ki];        if (maPhongBan && maPhongBan !== "ALL") {
+            WHERE 1=1        `;
+        let params = [namHoc, dot, namHoc, dot];        if (maPhongBan && maPhongBan !== "ALL") {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
         }
@@ -138,9 +129,8 @@ const getDuyetHopDongData = async (req, res) => {
         query += `
             GROUP BY
                 gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
-                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, da.NamHoc, 
-                da.ki, da.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, da.NamHoc, 
+                da.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac,
                 gv.BangTotNghiepLoai, gv.MonGiangDayChinh, da.NgayBatDau, da.NgayKetThuc
             ORDER BY SoTiet DESC, gv.HoTen, pb.TenPhongBan
         `;const [results] = await connection.query(query, params);
@@ -260,10 +250,9 @@ const getDuyetHopDongData = async (req, res) => {
         const [sotietResult] = await connection.query(sotietQuery);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        // Get SoQDList for thesis contracts
         let SoQDList = []; // Initialize with empty array as default
-        if (maPhongBan && maPhongBan !== "ALL") {
-            // For Đồ án, get SoQD from doantotnghiep table
-            const SoQDquery = `SELECT DISTINCT SoQD FROM doantotnghiep WHERE SoQD != 'NULL' AND SoQD IS NOT NULL AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
-            [SoQDList] = await connection.query(SoQDquery, [dot, ki, namHoc, maPhongBan]);
+        if (maPhongBan && maPhongBan !== "ALL") {            // For Đồ án, get SoQD from doantotnghiep table
+            const SoQDquery = `SELECT DISTINCT SoQD FROM doantotnghiep WHERE SoQD != 'NULL' AND SoQD IS NOT NULL AND Dot = ? AND NamHoc = ? AND MaPhongBan = ?`;
+            [SoQDList] = await connection.query(SoQDquery, [dot, namHoc, maPhongBan]);
         }
 
         res.json({
@@ -300,12 +289,12 @@ const getDuyetHopDongData = async (req, res) => {
 const approveContracts = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+        connection = await createPoolConnection();        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
 
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        if (!dot || !namHoc || !loaiHopDong) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
             });
         }
 
@@ -332,8 +321,8 @@ const approveContracts = async (req, res) => {
         }        for (const facultyCode of facultiesToCheck) {
             const [check] = await connection.query(`
                 SELECT DaoTaoDuyet FROM doantotnghiep 
-                WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
-            `, [facultyCode, namHoc, dot, ki]);
+                WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?
+            `, [facultyCode, namHoc, dot]);
 
             // Check if all records in this faculty have DaoTaoDuyet = 1
             const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
@@ -365,12 +354,11 @@ const approveContracts = async (req, res) => {
             facultiesToUpdate.push(...faculties.map(f => f.MaPhongBan));
         }
 
-        for (const facultyCode of facultiesToUpdate) {
-            // Double-check this faculty is fully approved by DaoTao
+        for (const facultyCode of facultiesToUpdate) {            // Double-check this faculty is fully approved by DaoTao
             const [check] = await connection.query(`
                 SELECT DaoTaoDuyet FROM doantotnghiep 
-                WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
-            `, [facultyCode, namHoc, dot, ki]);
+                WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?
+            `, [facultyCode, namHoc, dot]);
 
             const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
             
@@ -378,9 +366,8 @@ const approveContracts = async (req, res) => {
                 const [updateResult] = await connection.query(`
                     UPDATE doantotnghiep 
                     SET TaiChinhDuyet = 1 
-                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? 
-                      AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
-                `, [facultyCode, namHoc, dot, ki]);
+                    WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? 
+                      AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1                `, [facultyCode, namHoc, dot]);
                 
                 affectedRows += updateResult.affectedRows;
             }
@@ -390,7 +377,7 @@ const approveContracts = async (req, res) => {
 
         res.json({
             success: true,
-            message: `Đã duyệt thành công ${affectedRows} hợp đồng đồ án${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
+            message: `Đã duyệt thành công ${affectedRows} hợp đồng đồ án${facultyText} cho đợt ${dot}, năm học ${namHoc}`,
             affectedRows: affectedRows
         });
 
@@ -415,15 +402,15 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
     try {
         connection = await createPoolConnection();
 
-        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
 
         // Validate required parameters
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        if (!dot || !namHoc || !loaiHopDong) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
             });
-        }        // Validate loaiHopDong - only support thesis contracts
+        }// Validate loaiHopDong - only support thesis contracts
         if (loaiHopDong !== "Đồ án") {
             return res.status(400).json({
                 success: false,
@@ -435,9 +422,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             SELECT
                 MIN(da.NgayBatDau) AS NgayBatDau,
                 MAX(da.NgayKetThuc) AS NgayKetThuc,
-                'Đại học' as he_dao_tao,  -- Default training program for thesis contracts
-                da.NamHoc,
-                da.ki as KiHoc,
+                'Đại học' as he_dao_tao,  -- Default training program for thesis contracts                da.NamHoc,
                 da.Dot,
 
                 -- Tính tổng số tiết cho tất cả khoa
@@ -462,10 +447,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     Dot,
-                    ki,
                     NamHoc,
                     CASE 
                         WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
@@ -477,7 +460,6 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
                     AND NamHoc = ?
                     AND Dot = ?
-                    AND ki = ?
                 
                 UNION ALL
                 
@@ -487,30 +469,27 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     MaPhongBan,
                     TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                     Dot,
-                    ki,
                     NamHoc,
                     10 AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien2 IS NOT NULL 
                     AND GiangVien2 != 'không'
                     AND GiangVien2 != ''
-                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ?
+                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')                    AND NamHoc = ?
                     AND Dot = ?
-                    AND ki = ?
             ) da
             JOIN gvmoi gv ON da.GiangVien = gv.HoTen
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
             WHERE 1=1
         `;
-        let params = [namHoc, dot, ki, namHoc, dot, ki];
+        let params = [namHoc, dot, namHoc, dot];
 
         if (maPhongBan && maPhongBan !== "ALL") {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
         }        query += `
             GROUP BY
-                da.NamHoc, da.ki, da.Dot
+                da.NamHoc, da.Dot
             ORDER BY 'Đại học'
         `;
 
@@ -562,10 +541,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     FROM doantotnghiep
                     WHERE GiangVien1 IS NOT NULL
                         AND GiangVien1 != ''
-                        AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                        AND NamHoc = ?
+                        AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')                        AND NamHoc = ?
                         AND Dot = ?
-                        AND ki = ?
                     
                     UNION ALL
                     
@@ -580,18 +557,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
                         AND NamHoc = ?
                         AND Dot = ?
-                        AND ki = ?
                 ) da
                 JOIN gvmoi gv ON da.GiangVien = gv.HoTen
                 LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan                LEFT JOIN doantotnghiep dt ON (
                     (TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen OR TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen)
-                    AND dt.NamHoc = ? AND dt.Dot = ? AND dt.ki = ?
+                    AND dt.NamHoc = ? AND dt.Dot = ?
                     AND dt.MaPhongBan = da.MaPhongBan  -- Thêm điều kiện này để tránh duplicate
                 )
                 WHERE 1=1
             `;
             
-            let teacherParams = [namHoc, dot, ki, namHoc, dot, ki, namHoc, dot, ki];
+            let teacherParams = [namHoc, dot, namHoc, dot, namHoc, dot];
             let teacherQueryWithFilter = teacherQuery;
             
             // Add department filter if specified
@@ -651,26 +627,25 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
  */
 const checkContractSaveStatus = async (req, res) => {
     let connection;
-    try {
-        connection = await createPoolConnection();
+    try {        connection = await createPoolConnection();
 
-        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
 
         // Validate required parameters
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        if (!dot || !namHoc || !loaiHopDong) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
             });
-        }        // Validate loaiHopDong - only support thesis contracts
+        }// Validate loaiHopDong - only support thesis contracts
         if (loaiHopDong !== "Đồ án") {
             return res.status(400).json({
                 success: false,
                 message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Đồ án'"
             });
         }        // Check overall status for thesis contracts
-        let statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM doantotnghiep dt WHERE dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?";
-        let statusParams = [namHoc, dot, ki];
+        let statusQuery = "SELECT COUNT(*) as totalRecords, COUNT(DISTINCT DaLuu) as distinctValues, MIN(DaLuu) as minValue, MAX(DaLuu) as maxVal FROM doantotnghiep dt WHERE dt.NamHoc = ? AND dt.Dot = ?";
+        let statusParams = [namHoc, dot];
 
         if (maPhongBan && maPhongBan !== "ALL") {
             statusQuery += " AND dt.MaPhongBan = ?";
@@ -705,13 +680,11 @@ const checkContractSaveStatus = async (req, res) => {
                     dt.NgayKetThuc,
                     pb.TenPhongBan as TenKhoa
                 FROM doantotnghiep dt
-                LEFT JOIN phongban pb ON dt.MaPhongBan = pb.MaPhongBan
-                WHERE dt.NamHoc = ? 
+                LEFT JOIN phongban pb ON dt.MaPhongBan = pb.MaPhongBan                WHERE dt.NamHoc = ? 
                   AND dt.Dot = ? 
-                  AND dt.Ki = ?
                   AND (dt.DaLuu IS NULL OR dt.DaLuu <> 1)
             `;
-            let detailParams = [namHoc, dot, ki];
+            let detailParams = [namHoc, dot];
 
             if (maPhongBan && maPhongBan !== "ALL") {
                 detailQuery += " AND dt.MaPhongBan = ?";

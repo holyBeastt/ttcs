@@ -46,7 +46,7 @@
       border-radius: 8px;
       transition: all 0.3s ease;
     }
-    
+
     #doanTypeIndicator {
       transition: all 0.3s ease;
       font-size: 1rem;
@@ -59,12 +59,9 @@
   <%- include('header') %>
 
     <div class="container-fluid my-4" style="padding-left: 20px">
-      <div class="flex-grow-1">
-
-        <!-- Filter Section -->
+      <div class="flex-grow-1"> <!-- Filter Section -->
         <div class="header-actions">
-          <div class="right" style="margin-top: 0px">
-            <div class="loc d-flex align-items-center">
+          <div class="right" style="margin-top: 0px">            <div class="loc d-flex align-items-center">
               <select class="selectop" id="combobox-dot" style="width: 70px">
                 <option value="">Đợt</option>
               </select>
@@ -82,14 +79,12 @@
               </button>
             </div>
           </div>
-        </div>
-
-        <!-- Thesis Project Summary Section -->
+        </div> <!-- Unified Contract & Termination Numbers Summary Section -->
         <div class="content-section mt-4">
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">
-                <i class="fas fa-chart-bar me-2"></i>Tổng hợp số quyết định đồ án
+                <i class="fas fa-chart-bar me-2"></i>Tổng hợp số hợp đồng & thanh lý đồ án
               </h5>
               <div>
                 <button type="button" class="btn btn-primary btn-sm" onclick="loadDoAnUnifiedSummary()">
@@ -106,11 +101,10 @@
                       <tr>
                         <th>STT</th>
                         <th>Khoa</th>
-                        <th>Số lượng</th>
-                        <th>Số QĐ đầu tiên</th>
-                        <th>Số QĐ cuối cùng</th>
-                        <th>TT đầu tiên</th>
-                        <th>TT cuối cùng</th>
+                        <th>Số HĐ đầu tiên</th>
+                        <th>Số HĐ cuối cùng</th>
+                        <th>Số TLHĐ đầu tiên</th>
+                        <th>Số TLHĐ cuối cùng</th>
                       </tr>
                     </thead>
                     <tbody id="doanUnifiedSummaryTableBody">
@@ -122,26 +116,24 @@
               <!-- No summary data message -->
               <div id="noDoAnSummaryMessage" class="text-center py-4" style="display: block;">
                 <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Nhấn nút "Xem tổng hợp" để xem thống kê số quyết định đồ án theo khoa</h5>
+                <h5 class="text-muted">Nhấn nút "Xem tổng hợp" để xem thống kê số hợp đồng & thanh lý đồ án theo khoa
+                </h5>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Thesis Project Setup Section -->
+        </div> <!-- Unified Setup Section -->
         <div class="content-section mt-4" id="doanSetupOptions">
           <div class="card">
             <div class="card-header">
               <h5 class="mb-0">
-                <i class="fas fa-cog me-2"></i>Tạo số quyết định đồ án
+                <i class="fas fa-cog me-2"></i>Tạo số hợp đồng & thanh lý đồ án
               </h5>
             </div>
             <div class="card-body">
-              <!-- Instruction message -->
-              <div id="doanSetupInstruction" class="alert alert-info">
+              <!-- Instruction message -->              <div id="doanSetupInstruction" class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>
                 <strong>Hướng dẫn:</strong> Vui lòng chọn điều kiện lọc (Đợt, Kì, Năm) ở phần trên và nhấn "Hiển thị" để
-                xem danh sách đồ án trước khi tạo số quyết định.
+                xem danh sách đồ án trước khi tạo số hợp đồng.
               </div>
 
               <!-- Preview Examples -->
@@ -151,20 +143,22 @@
                     <div class="row">
                       <div class="col-md-6">
                         <div class="d-flex align-items-center">
-                          <i class="fas fa-file-alt text-primary me-2"></i>
-                          <span><strong>Số quyết định (ví dụ):</strong> <span id="doanDecisionPreview">001/QĐ-ĐA</span></span>
+                          <i class="fas fa-file-contract text-primary me-2"></i>
+                          <span><strong>Số hợp đồng (ví dụ):</strong> <span
+                              id="doanContractPreview">001/HĐ-ĐA</span></span>
                         </div>
                       </div>
                       <div class="col-md-6">
                         <div class="d-flex align-items-center">
-                          <i class="fas fa-sort-numeric-up text-info me-2"></i>
-                          <span><strong>Thứ tự tương ứng:</strong> <span id="doanTTPreview">1</span></span>
+                          <i class="fas fa-file-invoice text-info me-2"></i>
+                          <span><strong>Số thanh lý (ví dụ):</strong> <span
+                              id="doanTerminationPreview">001/TLHĐ-ĐA</span></span>
                         </div>
                       </div>
                     </div>
                     <small class="text-muted mt-2 d-block">
                       <i class="fas fa-arrow-right me-1"></i>
-                      Mỗi đồ án sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số quyết định và thứ tự
+                      Mỗi đồ án sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số hợp đồng và số thanh lý
                     </small>
                   </div>
                 </div>
@@ -182,10 +176,10 @@
                 <div class="col-md-8 d-flex align-items-end">
                   <div class="btn-group" role="group">
                     <button type="button" class="btn btn-outline-primary" onclick="previewDoAnSynchronizedSetup()">
-                      <i class="fas fa-eye me-2"></i>Xem trước
+                      <i class="fas fa-eye me-2"></i>Xem trước khi tạo
                     </button>
                     <button type="button" class="btn btn-success" onclick="executeDoAnSynchronizedSetup()">
-                      <i class="fas fa-cog me-2"></i>Thực hiện tạo số
+                      <i class="fas fa-cog me-2"></i>Tạo
                     </button>
                   </div>
                 </div>
@@ -207,18 +201,16 @@
               <div id="doanResultsDiv" style="display: none;">
                 <div class="table-responsive">
                   <table class="table table-striped table-hover" id="doanTable">
-                    <thead class="table-dark">
+                    <thead class="table-dark" id="doanTableHeader">
                       <tr>
                         <th>STT</th>
-                        <th>Sinh viên</th>
-                        <th>Mã SV</th>
-                        <th>Khoa</th>
-                        <th>Giảng viên</th>
-                        <th>Tên đề tài</th>
-                        <th>Số QĐ</th>
-                        <th>TT</th>
+                        <th>Họ tên GV</th>
+                        <th>Khoa - Hệ đào tạo</th>
+                        <th>Số HĐ hiện tại</th>
+                        <th>Số TLHĐ hiện tại</th>
+                        <th>Số HĐ mới</th>
+                        <th>Số TLHĐ mới</th>
                         <th>Số tiết</th>
-                        <th>HD chính</th>
                       </tr>
                     </thead>
                     <tbody id="doanTableBody">
@@ -227,8 +219,7 @@
                 </div>
               </div>
 
-              <!-- No data message -->
-              <div id="noDoanDataMessage" class="text-center py-4" style="display: block;">
+              <!-- No data message -->              <div id="noDoanDataMessage" class="text-center py-4" style="display: block;">
                 <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted">Chọn điều kiện lọc và nhấn "Hiển thị" để xem danh sách đồ án</h5>
               </div>
@@ -258,19 +249,35 @@
     <!-- Common scripts -->
     <script src="/js/moigiang/href.js"></script>
     <script src="/js/moigiang/getdata.js"></script>
-    <script src="/js/moigiang/hideBtn.js"></script>
-
-    <!-- Thesis project specific script -->
+    <script src="/js/moigiang/hideBtn.js"></script>    <!-- Thesis project specific script -->
     <script>
       // Update the number format preview for thesis projects
       function updateDoAnNumberPreview() {
         const startingNumber = parseInt($('#doanUnifiedStartingNumber').val()) || 1;
-        const decisionNumber = String(startingNumber).padStart(3, '0') + '/QĐ-ĐA';
-        const ttNumber = startingNumber;
+        const contractNumber = String(startingNumber).padStart(3, '0') + '/HĐ-ĐA';
+        const terminationNumber = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐA';
 
         // Update preview examples
-        $('#doanDecisionPreview').text(decisionNumber);
-        $('#doanTTPreview').text(ttNumber);
+        $('#doanContractPreview').text(contractNumber);
+        $('#doanTerminationPreview').text(terminationNumber);
+      }
+
+      // Handle thesis project operations (similar to contract site)
+      function handleDoAnOperation(operation) {
+        switch (operation) {
+          case 'load':
+            loadDoAnContracts();
+            break;
+          case 'summary':
+            loadDoAnUnifiedSummary();
+            break;
+          case 'preview':
+            previewDoAnSynchronizedSetup();
+            break;
+          case 'execute':
+            executeDoAnSynchronizedSetup();
+            break;
+        }
       }
 
       // Load thesis projects based on filter criteria
@@ -295,7 +302,7 @@
           url: '/api/doan-list',
           method: 'GET',
           data: { dot, ki, nam, khoa },
-          success: function(response) {
+          success: function (response) {
             if (response.success) {
               displayDoAnContracts(response.data);
               $('#doanSetupInstruction').hide();
@@ -303,19 +310,34 @@
               showError(response.message);
             }
           },
-          error: function() {
+          error: function () {
             showError('Lỗi khi tải danh sách đồ án');
           },
-          complete: function() {
+          complete: function () {
             showLoading(false);
           }
         });
       }
 
-      // Display thesis projects in table
+      // Display thesis projects in table (enhanced with proper structure)
       function displayDoAnContracts(contracts) {
         $('#doanResultsDiv').show();
         $('#noDoanDataMessage').hide();
+
+        // Update table header to match the standard format with grouped columns
+        const thead = $('#doanTableHeader');
+        thead.html(`
+          <tr>
+            <th>STT</th>
+            <th>Họ tên GV</th>
+            <th>Khoa - Hệ đào tạo</th>
+            <th>Số HĐ hiện tại</th>
+            <th>Số TLHĐ hiện tại</th>
+            <th>Số HĐ mới</th>
+            <th>Số TLHĐ mới</th>
+            <th>Số tiết</th>
+          </tr>
+        `);
 
         const tbody = $('#doanTableBody');
         tbody.empty();
@@ -323,27 +345,53 @@
         if (contracts.length === 0) {
           tbody.append(`
             <tr>
-              <td colspan="10" class="text-center text-muted">
-                <i class="fas fa-inbox"></i> Không có dữ liệu đồ án nào
+              <td colspan="8" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu giảng viên nào
               </td>
             </tr>
           `);
           return;
         }
 
+        // Group contracts by faculty for better display (similar to contract site)
+        let currentGroup = '';
+        let groupRowSpan = 0;
+
         contracts.forEach((contract, index) => {
+          const groupKey = contract.MaPhongBan || 'Không xác định';
+          const groupInfo = `${groupKey} - Đồ án tốt nghiệp`;
+          const isNewGroup = groupInfo !== currentGroup;
+
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index &&
+              `${(c.MaPhongBan || 'Không xác định')} - Đồ án tốt nghiệp` === groupInfo).length;
+          }
+
+          // Current numbers from database - display existing values if they exist
+          const currentContractNumber = contract.SoHopDong && contract.SoHopDong !== '' 
+            ? `<span class="text-primary">${contract.SoHopDong}</span>` 
+            : '<span class="text-muted">Chưa có</span>';
+
+          const currentTerminationNumber = contract.SoThanhLyHopDong && contract.SoThanhLyHopDong !== ''
+            ? `<span class="text-info">${contract.SoThanhLyHopDong}</span>`
+            : '<span class="text-muted">Chưa có</span>';
+
+          // New numbers: Will be updated during preview
+          const newContractNumber = '<span class="text-muted">Chưa tạo</span>';
+          const newTerminationNumber = '<span class="text-muted">Chưa tạo</span>';
+
           const row = `
-            <tr>
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
               <td>${index + 1}</td>
-              <td>${contract.SinhVien || 'N/A'}</td>
-              <td>${contract.MaSV || 'N/A'}</td>
-              <td>${contract.Khoa || 'N/A'}</td>
-              <td>${contract.GiangVien || 'N/A'}</td>
-              <td>${contract.TenDeTai || 'N/A'}</td>
-              <td>${contract.SoQD || '<span class="text-muted">Chưa có</span>'}</td>
-              <td>${contract.TT || '<span class="text-muted">Chưa có</span>'}</td>
+              <td>${contract.HoTen || 'N/A'}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${currentContractNumber}</td>
+              <td>${currentTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
               <td>${contract.SoTiet || 'N/A'}</td>
-              <td>${contract.isHDChinh ? '<span class="badge bg-success">Có</span>' : '<span class="badge bg-secondary">Không</span>'}</td>
             </tr>
           `;
           tbody.append(row);
@@ -363,20 +411,19 @@
           url: '/api/doan-unified-summary',
           method: 'GET',
           data: { dot, ki, nam, khoa },
-          success: function(response) {
+          success: function (response) {
             if (response.success) {
               displayDoAnUnifiedSummary(response.data);
             } else {
               showError(response.message);
             }
           },
-          error: function() {
+          error: function () {
             showError('Lỗi khi tải tổng hợp đồ án');
           },
-          complete: function() {
+          complete: function () {
             showLoading(false);
-          }
-        });
+          }        });
       }
 
       // Display thesis project unified summary
@@ -390,7 +437,7 @@
         if (summaryData.length === 0) {
           tbody.append(`
             <tr>
-              <td colspan="7" class="text-center text-muted">
+              <td colspan="6" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu tổng hợp
               </td>
             </tr>
@@ -403,18 +450,16 @@
             <tr>
               <td>${index + 1}</td>
               <td>${item.khoa}</td>
-              <td>${item.count}</td>
-              <td>${item.firstDecision || '<span class="text-muted">Chưa có</span>'}</td>
-              <td>${item.lastDecision || '<span class="text-muted">Chưa có</span>'}</td>
-              <td>${item.firstTT || '<span class="text-muted">Chưa có</span>'}</td>
-              <td>${item.lastTT || '<span class="text-muted">Chưa có</span>'}</td>
+              <td>${item.firstContract || '<span class="text-muted">Chưa có</span>'}</td>
+              <td>${item.lastContract || '<span class="text-muted">Chưa có</span>'}</td>
+              <td>${item.firstTermination || '<span class="text-muted">Chưa có</span>'}</td>
+              <td>${item.lastTermination || '<span class="text-muted">Chưa có</span>'}</td>
             </tr>
           `;
-          tbody.append(row);
-        });
+          tbody.append(row);        });
       }
 
-      // Preview thesis project synchronized setup
+      // Preview thesis project synchronized setup (enhanced like contract site)
       function previewDoAnSynchronizedSetup() {
         const dot = $('#combobox-dot').val();
         const ki = $('#comboboxki').val();
@@ -441,90 +486,34 @@
         }
 
         showLoading(true);
+        showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng & thanh lý đồ án...');
 
-        $.ajax({
-          url: '/api/preview-doan-synchronized-setup',
-          method: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify({ dot, ki, nam, khoa, startingNumber }),
-          success: function(response) {
+        const data = {
+          dot: dot,
+          ki: ki,
+          nam: nam,
+          khoa: khoa,
+          startingNumber: startingNumber
+        };
+
+        $.post('/api/preview-doan-synchronized-setup', data)
+          .done(function (response) {
             if (response.success) {
               displayDoAnSynchronizedPreviewResults(response.data);
+              showSuccess('Xem trước đồng bộ thành công. Kiểm tra kết quả bên dưới.');
             } else {
               showError(response.message);
             }
-          },
-          error: function() {
-            showError('Lỗi khi xem trước setup đồ án');
-          },
-          complete: function() {
+          })
+          .fail(function () {
+            showError('Lỗi khi xem trước cài đặt đồ án');
+          })
+          .always(function () {
             showLoading(false);
-          }
-        });
-      }
-
-      // Display thesis project synchronized preview results
-      function displayDoAnSynchronizedPreviewResults(contracts) {
-        if (contracts.length === 0) {
-          Swal.fire({
-            title: 'Không có dữ liệu',
-            text: 'Không tìm thấy đồ án nào phù hợp điều kiện',
-            icon: 'info'
           });
-          return;
-        }
-
-        let previewHtml = `
-          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-            <table class="table table-sm table-striped">
-              <thead class="table-dark sticky-top">
-                <tr>
-                  <th>STT</th>
-                  <th>Sinh viên</th>
-                  <th>Khoa</th>
-                  <th>Giảng viên</th>
-                  <th>Số QĐ mới</th>
-                  <th>TT mới</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
-        contracts.forEach((contract, index) => {
-          previewHtml += `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${contract.SinhVien}</td>
-              <td>${contract.Khoa}</td>
-              <td>${contract.GiangVien}</td>
-              <td><strong class="text-success">${contract.newSoQD}</strong></td>
-              <td><strong class="text-info">${contract.newTT}</strong></td>
-            </tr>
-          `;
-        });
-
-        previewHtml += `
-              </tbody>
-            </table>
-          </div>
-        `;
-
-        Swal.fire({
-          title: `Xem trước tạo số cho ${contracts.length} đồ án`,
-          html: previewHtml,
-          width: '80%',
-          showCancelButton: true,
-          confirmButtonText: 'Thực hiện tạo số',
-          cancelButtonText: 'Hủy',
-          confirmButtonColor: '#28a745'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            performDoAnSynchronizedSetup();
-          }
-        });
       }
 
-      // Execute thesis project synchronized setup
+      // Execute thesis project synchronized setup (enhanced confirmation like contract site)
       function executeDoAnSynchronizedSetup() {
         const dot = $('#combobox-dot').val();
         const ki = $('#comboboxki').val();
@@ -541,13 +530,58 @@
           return;
         }
 
+        if (!startingNumber || startingNumber < 1) {
+          Swal.fire({
+            title: 'Số bắt đầu không hợp lệ',
+            text: 'Vui lòng nhập số bắt đầu lớn hơn 0',
+            icon: 'warning'
+          });
+          return;
+        }
+
+        // Enhanced confirmation dialog (similar to contract site)
+        const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐA';
+        const terminationExample = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐA';
+
         Swal.fire({
-          title: 'Xác nhận tạo số',
-          text: 'Bạn có chắc chắn muốn tạo số quyết định cho các đồ án đã chọn?',
+          title: 'Xác nhận tạo số đồng bộ đồ án',
+          html: `
+            <div class="text-start">
+              <p><strong>Thông tin cài đặt:</strong></p>
+              <ul class="list-unstyled">
+                <li><i class="fas fa-calendar-alt text-primary"></i> Đợt: <strong>${dot}</strong></li>
+                <li><i class="fas fa-bookmark text-info"></i> Kì: <strong>${ki}</strong></li>
+                <li><i class="fas fa-graduation-cap text-success"></i> Năm: <strong>${nam}</strong></li>
+                <li><i class="fas fa-building text-warning"></i> Khoa: <strong>${khoa === 'ALL' ? 'Tất cả khoa' : khoa}</strong></li>
+              </ul>
+              <p><strong>Ví dụ số sẽ được tạo:</strong></p>
+              <div class="row">
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-file-contract text-primary me-2"></i>
+                    <span>Hợp đồng: <strong class="text-primary">${contractExample}</strong></span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-file-invoice text-info me-2"></i>
+                    <span>Thanh lý: <strong class="text-info">${terminationExample}</strong></span>
+                  </div>
+                </div>
+              </div>
+              <div class="alert alert-warning mt-3">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <strong>Cảnh báo:</strong> Thao tác này sẽ tạo đồng thời cả số hợp đồng và số thanh lý!
+              </div>
+            </div>
+          `,
           icon: 'question',
           showCancelButton: true,
-          confirmButtonText: 'Có, tạo số',
-          cancelButtonText: 'Hủy'
+          confirmButtonText: 'Thực hiện đồng bộ',
+          cancelButtonText: 'Hủy',
+          confirmButtonColor: '#28a745',
+          cancelButtonColor: '#dc3545',
+          width: '600px'
         }).then((result) => {
           if (result.isConfirmed) {
             performDoAnSynchronizedSetup();
@@ -555,37 +589,145 @@
         });
       }
 
-      // Perform the actual thesis project synchronized setup
+      // Perform the actual synchronized setup (similar to contract site)
       function performDoAnSynchronizedSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
-        const khoa = $('#MaPhongBan').val();
-        const startingNumber = parseInt($('#doanUnifiedStartingNumber').val()) || 1;
-
         showLoading(true);
 
-        $.ajax({
-          url: '/api/setup-doan-synchronized-numbers',
-          method: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify({ dot, ki, nam, khoa, startingNumber }),
-          success: function(response) {
+        const data = {
+          dot: $('#combobox-dot').val(),
+          ki: $('#comboboxki').val(),
+          nam: $('#NamHoc').val(),
+          khoa: $('#MaPhongBan').val(),
+          startingNumber: parseInt($('#doanUnifiedStartingNumber').val()) || 1
+        };
+
+        $.post('/api/setup-doan-synchronized-numbers', data)
+          .done(function (response) {
             if (response.success) {
-              showSuccess(response.message);
-              // Reload the contracts list to show updated numbers
-              loadDoAnContracts();
+              // Enhanced success message (similar to contract site)
+              Swal.fire({
+                title: 'Thành công!',
+                html: `
+                  <div class="text-start">
+                    <p>Đã cài đặt đồng bộ thành công cho <strong>${response.updatedCount}</strong> đồ án</p>
+                    <div class="row mt-3">
+                      <div class="col-6">
+                        <div class="d-flex align-items-center">
+                          <i class="fas fa-file-contract text-primary me-2"></i>
+                          <span>Số hợp đồng: <strong class="text-success">${response.updatedCount}</strong></span>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="d-flex align-items-center">
+                          <i class="fas fa-file-invoice text-info me-2"></i>
+                          <span>Số thanh lý: <strong class="text-success">${response.updatedCount}</strong></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'OK'
+              }).then(() => {
+                // Reload the contracts list to show updated numbers
+                loadDoAnContracts();
+                // Also reload summary if it was displayed
+                if ($('#doanUnifiedSummaryDiv').is(':visible')) {
+                  loadDoAnUnifiedSummary();
+                }
+              });
             } else {
               showError(response.message);
             }
-          },
-          error: function() {
-            showError('Lỗi khi tạo số quyết định đồ án');
-          },
-          complete: function() {
+          })
+          .fail(function () {
+            showError('Lỗi khi tạo số hợp đồng & thanh lý đồ án');
+          })
+          .always(function () {
             showLoading(false);
+          });
+      }
+
+      // Display synchronized preview results (enhanced like contract site)
+      function displayDoAnSynchronizedPreviewResults(contracts) {
+        const thead = $('#doanTableHeader');
+        thead.html(`
+          <tr>
+            <th>STT</th>
+            <th>Họ tên GV</th>
+            <th>Khoa - Hệ đào tạo</th>
+            <th>Số HĐ hiện tại</th>
+            <th>Số TLHĐ hiện tại</th>
+            <th>Số HĐ mới</th>
+            <th>Số TLHĐ mới</th>
+            <th>Số tiết</th>
+          </tr>
+        `);
+
+        const tbody = $('#doanTableBody');
+        tbody.empty();
+
+        if (contracts.length === 0) {
+          tbody.append(`
+            <tr>
+              <td colspan="8" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu giảng viên nào để xem trước
+              </td>
+            </tr>
+          `);
+          return;
+        }
+
+        // Group contracts by faculty for better display with rowspan
+        let currentGroup = '';
+        let groupRowSpan = 0;
+
+        contracts.forEach((contract, index) => {
+          const groupKey = contract.Khoa || 'Không xác định';
+          const groupInfo = `${groupKey} - Đồ án tốt nghiệp`;
+          const isNewGroup = groupInfo !== currentGroup;
+
+          if (isNewGroup) {
+            currentGroup = groupInfo;
+            // Count how many contracts in this group
+            groupRowSpan = contracts.filter((c, i) => i >= index &&
+              `${(c.Khoa || 'Không xác định')} - Đồ án tốt nghiệp` === groupInfo).length;
           }
+
+          // Old numbers: Current database values - display existing values if they exist
+          const oldContractNumber = contract.SoHopDong && contract.SoHopDong !== ''
+            ? `<span class="text-primary">${contract.SoHopDong}</span>`
+            : '<span class="text-muted">Chưa có</span>';
+
+          const oldTerminationNumber = contract.SoThanhLyHopDong && contract.SoThanhLyHopDong !== ''
+            ? `<span class="text-info">${contract.SoThanhLyHopDong}</span>`
+            : '<span class="text-muted">Chưa có</span>';
+
+          // New numbers: Preview values with highlight
+          const newContractNumber = contract.newSoHopDong
+            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
+          const newTerminationNumber = contract.newSoThanhLyHopDong
+            ? `<strong class="text-info">${contract.newSoThanhLyHopDong}</strong>`
+            : '<span class="text-muted">Chưa tạo</span>';
+
+          const row = `
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || 'N/A'}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${oldContractNumber}</td>
+              <td>${oldTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+              <td>${contract.SoTiet || 'N/A'}</td>
+            </tr>
+          `;
+          tbody.append(row);
         });
+        
+        $('#doanResultsDiv').show();
       }
 
       // Utility functions
@@ -609,12 +751,16 @@
         toast.show();
       }
 
-      // Initialize on page load
-      $(document).ready(function() {
+      // Initialize on page load (similar to contract site)
+      $(document).ready(function () {
         updateDoAnNumberPreview();
-        
+
         // Update preview when starting number changes
         $('#doanUnifiedStartingNumber').on('input', updateDoAnNumberPreview);
+
+        // Update button text to match unified approach
+        $('button[onclick="previewDoAnSynchronizedSetup()"]').html('<i class="fas fa-eye me-2"></i>Xem trước khi tạo');
+        $('button[onclick="executeDoAnSynchronizedSetup()"]').html('<i class="fas fa-cog me-2"></i>Tạo');
       });
     </script>
 </body>
