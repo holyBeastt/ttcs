@@ -233,12 +233,24 @@ const getDuyetHopDongData = async (req, res) => {
             return {
                 teacherName,
                 teacherData,
-                totalSoTiet: teacherData.totalFinancials.totalSoTiet
+                totalSoTiet: teacherData.totalFinancials.totalSoTiet,
+                maPhongBan: teacherData.teacherInfo.MaPhongBan
             };
         });
 
-        // Sort by total hours in descending order
-        teachersWithTotals.sort((a, b) => b.totalSoTiet - a.totalSoTiet);
+        // Sort by faculty first, then by total hours in descending order, then by teacher name
+        teachersWithTotals.sort((a, b) => {
+            // First sort by faculty
+            if (a.maPhongBan !== b.maPhongBan) {
+                return (a.maPhongBan || '').localeCompare(b.maPhongBan || '');
+            }
+            // Then by total hours descending
+            if (b.totalSoTiet !== a.totalSoTiet) {
+                return b.totalSoTiet - a.totalSoTiet;
+            }
+            // Finally by teacher name
+            return a.teacherName.localeCompare(b.teacherName);
+        });
 
         // Convert to the expected format with proper sorting
         const simplifiedGroupedByTeacher = teachersWithTotals.reduce((acc, { teacherName, teacherData }) => {
@@ -264,16 +276,34 @@ const getDuyetHopDongData = async (req, res) => {
         }, {});        // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
-
-        // For Mời giảng, SoQD is not applicable
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        // For Mời giảng, SoQD is not applicable
         let SoQDList = [];
+
+        // Calculate totals for teacher view
+        let totalQC = 0;
+        let totalThanhTienAll = 0;
+        let totalThueAll = 0;
+        let totalThucNhanAll = 0;
+
+        Object.values(sortedEnhancedGroupedByTeacher).forEach(teacherData => {
+            totalQC += teacherData.totalFinancials.totalSoTiet;
+            totalThanhTienAll += teacherData.totalFinancials.totalThanhTien;
+            totalThueAll += teacherData.totalFinancials.totalThue;
+            totalThucNhanAll += teacherData.totalFinancials.totalThucNhan;
+        });
 
         res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher: sortedEnhancedGroupedByTeacher, // Send detailed data for enhanced display, properly sorted
             SoTietDinhMuc: SoTietDinhMuc,
-            SoQDList: SoQDList
+            SoQDList: SoQDList,
+            // Include calculated totals for teacher view
+            totalsByTeacher: {
+                totalQC: totalQC,
+                totalThanhTienAll: totalThanhTienAll,
+                totalThueAll: totalThueAll,
+                totalThucNhanAll: totalThucNhanAll
+            }
         });
     } catch (error) {
         console.error("❌ Error in getDuyetHopDongData:");
@@ -407,6 +437,78 @@ const approveContracts = async (req, res) => {
 };
 
 /**
+ * Unapprove contracts based on criteria (reverse of approval)
+ */
+const unapproveContracts = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+
+        if (!dot || !ki || !namHoc || !loaiHopDong) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+            });
+        }
+
+        // Validation for contract type
+        if (loaiHopDong !== "Mời giảng") {
+            return res.status(400).json({
+                success: false,
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'"
+            });
+        }
+
+        // Validation for "Mời giảng" - must select all faculties
+        if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
+            return res.status(400).json({
+                success: false,
+                message: "Với hợp đồng mời giảng, chỉ được chọn tất cả khoa, không thể bỏ duyệt từng khoa riêng lẻ"
+            });
+        }
+
+        // Update TaiChinhDuyet = 0 for mời giảng (reverse of approval)
+        let affectedRows = 0;
+
+        // For mời giảng, update all faculties if no specific faculty selected
+        if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
+            // Get all faculties and update each that has TaiChinhDuyet = 1
+            const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
+            
+            for (const faculty of faculties) {
+                const [updateResult] = await connection.query(`
+                    UPDATE quychuan 
+                    SET TaiChinhDuyet = 0 
+                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0
+                      AND TaiChinhDuyet = 1
+                `, [faculty.MaPhongBan, dot, ki, namHoc]);
+                
+                affectedRows += updateResult.affectedRows;
+            }
+        }        const facultyText = ' của tất cả khoa';
+
+        res.json({
+            success: true,
+            message: `Đã bỏ duyệt thành công ${affectedRows} hợp đồng mời giảng${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
+            affectedRows: affectedRows
+        });
+
+    } catch (error) {
+        console.error("Error unapproving contracts:", error);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi bỏ duyệt hợp đồng"
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
+/**
  * Get contract approval data grouped by training program (he_dao_tao)
  */
 const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
@@ -448,11 +550,12 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     )
                 ) AS SoTiet,
 
-                -- Lấy mức tiền từ bảng tienluong theo hệ đào tạo và học vị
-                AVG(tl.SoTien) AS TienMoiGiang,
+                -- Không lấy trung bình, sẽ tính sau dựa trên từng giảng viên
+                NULL AS TienMoiGiang,
 
-                -- Tính thành tiền, thuế, thực nhận
-                AVG(tl.SoTien) * SUM(
+                -- Tính thành tiền, thuế, thực nhận dựa trên mức tiền thực tế của từng giảng viên
+                SUM(
+                    tl.SoTien * 
                     IF(
                         INSTR(qc.GiaoVienGiangDay, ',') > 0,
                         0.7 * qc.QuyChuan,
@@ -460,21 +563,23 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     )
                 ) AS ThanhTien,
 
-                AVG(tl.SoTien) * SUM(
+                SUM(
+                    tl.SoTien * 
                     IF(
                         INSTR(qc.GiaoVienGiangDay, ',') > 0,
                         0.7 * qc.QuyChuan,
                         qc.QuyChuan
-                    )
-                ) * 0.1 AS Thue,
+                    ) * 0.1
+                ) AS Thue,
 
-                AVG(tl.SoTien) * SUM(
+                SUM(
+                    tl.SoTien * 
                     IF(
                         INSTR(qc.GiaoVienGiangDay, ',') > 0,
                         0.7 * qc.QuyChuan,
                         qc.QuyChuan
-                    )
-                ) * 0.9 AS ThucNhan,
+                    ) * 0.9
+                ) AS ThucNhan,
 
                 -- Thông tin trạng thái duyệt
                 MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
@@ -587,8 +692,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 INSTR(qc.GiaoVienGiangDay, ',') > 0,
                 0.7 * qc.QuyChuan,
                 qc.QuyChuan
-            )
-        ) * 0.9 AS ThucNhan,
+            ) * 0.9
+        ) AS ThucNhan,
         
         MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
         MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
@@ -637,17 +742,37 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 ...heDaoTao,
                 chiTietGiangVien: teacherDetails
             });
-        }
-
-        // Get SoTietDinhMuc
+        }        // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        res.json({
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
+
+        // Calculate totals for training program view
+        let totalSoTietHeDaoTao = 0;
+        let totalThanhTienHeDaoTao = 0;
+        let totalThueHeDaoTao = 0;
+        let totalThucNhanHeDaoTao = 0;
+
+        results.forEach(heDaoTao => {
+            totalSoTietHeDaoTao += parseFloat(heDaoTao.SoTiet) || 0;
+            totalThanhTienHeDaoTao += parseFloat(heDaoTao.ThanhTien) || 0;
+            totalThueHeDaoTao += parseFloat(heDaoTao.Thue) || 0;
+            totalThucNhanHeDaoTao += parseFloat(heDaoTao.ThucNhan) || 0;
+        });
+
+        res.json({
             success: true,
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
             SoTietDinhMuc: SoTietDinhMuc,
-            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho mời giảng`
+            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho mời giảng`,
+            // Include calculated totals for training program view
+            totalsByHeDaoTao: {
+                totalSoTietHeDaoTao: totalSoTietHeDaoTao,
+                totalThanhTienHeDaoTao: totalThanhTienHeDaoTao,
+                totalThueHeDaoTao: totalThueHeDaoTao,
+                totalThucNhanHeDaoTao: totalThucNhanHeDaoTao
+            }
         });
 
     } catch (error) {
@@ -780,10 +905,94 @@ const checkContractSaveStatus = async (req, res) => {
     }
 };
 
+/**
+ * Check contract finance approval status based on filter conditions
+ */
+const checkContractFinanceApprovalStatus = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+
+        // Validate required parameters
+        if (!dot || !ki || !namHoc || !loaiHopDong) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+            });
+        }
+
+        // Validate loaiHopDong values
+        if (loaiHopDong !== "Mời giảng") {
+            return res.status(400).json({
+                success: false,
+                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'"
+            });
+        }
+
+        // Check overall TaiChinhDuyet status for mời giảng
+        let statusQuery = `
+            SELECT COUNT(*) as totalRecords, 
+                   COUNT(DISTINCT TaiChinhDuyet) as distinctValues, 
+                   MIN(TaiChinhDuyet) as minValue, 
+                   MAX(TaiChinhDuyet) as maxVal 
+            FROM quychuan qc 
+            WHERE qc.NamHoc = ? 
+              AND qc.Dot = ? 
+              AND qc.KiHoc = ?
+              AND qc.MoiGiang = 1`;
+        
+        const statusParams = [namHoc, dot, ki];
+
+        if (maPhongBan && maPhongBan !== "ALL") {
+            statusQuery += " AND qc.Khoa = ?";
+            statusParams.push(maPhongBan);
+        }
+
+        const [statusResults] = await connection.query(statusQuery, statusParams);
+        const statusData = statusResults[0];
+
+        let message;
+        
+        if (statusData.totalRecords === 0) {
+            message = "Chưa duyệt";
+        } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
+            // Tất cả bản ghi đều có TaiChinhDuyet = 1
+            message = "Đã duyệt";
+        } else {
+            // Có bản ghi chưa đạt điều kiện
+            message = "Chưa duyệt";
+        }
+
+        res.json({
+            success: true,
+            message: message
+        });
+
+    } catch (error) {
+        console.error("❌ Error in checkContractFinanceApprovalStatus:");
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi kiểm tra trạng thái duyệt tài chính hợp đồng",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 module.exports = {
     getDuyetHopDongPage,
     getDuyetHopDongData,
     getDuyetHopDongTheoHeDaoTao,
     approveContracts,
-    checkContractSaveStatus
+    unapproveContracts,
+    checkContractSaveStatus,
+    checkContractFinanceApprovalStatus
 };
