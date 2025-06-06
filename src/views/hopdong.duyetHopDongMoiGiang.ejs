@@ -16,8 +16,12 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
   <!-- Note: Removed docx-preview library as we now use PDF preview -->
-
   <style>
+    /* Hide action column by default */
+    .action-col {
+      display: none;
+    }
+    
     .teacher-group {
       border: 2px solid black;
       border-collapse: separate;
@@ -376,8 +380,8 @@
 
     /* Column width styling */
     .status-col {
-      width: 150px;
-      min-width: 150px;
+      width: 100px;
+      min-width: 100px;
     }
 
     .badge-warning {
@@ -451,13 +455,13 @@
             <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên" class="form-control search"
               style="width: 300px" />
             <div class="d-flex gap-2">
-              <button id="approveContractBtn" class="btn btn-success">
+              <button id="approveContractBtn" class="btn btn-success" style="display: none;">
                 Duyệt hợp đồng
               </button>
-              <button id="unapproveContractBtn" class="btn btn-warning">
+              <button id="unapproveContractBtn" class="btn btn-warning" style="display: none;">
                 Bỏ duyệt hợp đồng
               </button>
-              <button id="saveDataMoiGiang" class="btn btn-warning" style="height: 45px;">
+              <button id="saveDataMoiGiang" class="btn btn-warning" style="height: 45px; display: none;">
                 Lưu dữ liệu hợp đồng mời giảng
               </button>
             </div>
@@ -694,9 +698,40 @@
       window.teacherTableData = []; // Store teacher table data
       window.teacherDetailData = {};
       window.enhancedTeacherData = {};
-      window.heDaoTaoDetailData = [];
+      window.heDaoTaoDetailData = [];      // Function to check user permissions and show/hide buttons and action column
+      function checkUserPermissions() {
+        const role = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        
+        if (role == "Duyệt" && MaPhongBan == "VP") {
+          // Show the 3 buttons
+          $('#approveContractBtn').show();
+          $('#unapproveContractBtn').show();
+          $('#saveDataMoiGiang').show();
+          
+          // Show action column in summary table
+          $('#summaryTable th.action-col, #summaryTable td.action-col').show();
+          
+          // Show action column in training program tables
+          $('.training-program-table th.action-col, .training-program-table td.action-col').show();
+        } else {
+          // Keep buttons hidden
+          $('#approveContractBtn').hide();
+          $('#unapproveContractBtn').hide();
+          $('#saveDataMoiGiang').hide();
+          
+          // Hide action column in summary table
+          $('#summaryTable th.action-col, #summaryTable td.action-col').hide();
+          
+          // Hide action column in training program tables
+          $('.training-program-table th.action-col, .training-program-table td.action-col').hide();
+        }
+      }
 
       $(document).ready(function () {
+        // Check user permissions on page load
+        checkUserPermissions();
+
         // Initialize Bootstrap dropdowns
         var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
         var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
@@ -1020,11 +1055,10 @@
                 <td>${formatCurrency(gv.ThucNhan)}</td>
                 <td class="contract-tcduyet-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${encodeURIComponent(heDaoTao.he_dao_tao)}">
                   Đang tải...
-                </td>
-                <td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${encodeURIComponent(heDaoTao.he_dao_tao)}">
+                </td>                <td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${encodeURIComponent(heDaoTao.he_dao_tao)}">
                   Đang tải...
                 </td>
-                <td>
+                <td class="action-col">
                   <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', '${encodeURIComponent(heDaoTao.he_dao_tao)}')">
                    Xem chi tiết
                   </button>
@@ -1059,7 +1093,12 @@
             </div>
           `);
         }        // Show training program results table 
-        $('#heDaoTaoResultsDiv').show();        // Load contract status first, then finance approval status sequentially
+        $('#heDaoTaoResultsDiv').show();
+        
+        // Check user permissions to show/hide action column after data is loaded
+        checkUserPermissions();
+
+        // Load contract status first, then finance approval status sequentially
         loadContractStatusForHeDaoTao().then(() => {
           // Load finance approval status after contract status is complete
           loadContractFinanceApprovalForHeDaoTao();
@@ -1388,11 +1427,10 @@
               <td>${formatCurrency(mergedData.ThucNhan)}</td>
               <td class="contract-tcduyet-cell" data-teacher="${encodeURIComponent(teacherName)}">
                 Đang tải...
-              </td>
-              <td class="contract-status-cell" data-teacher="${encodeURIComponent(teacherName)}">
+              </td>              <td class="contract-status-cell" data-teacher="${encodeURIComponent(teacherName)}">
                 Đang tải...
               </td>
-              <td>
+              <td class="action-col">
                 <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetail('${encodeURIComponent(teacherName)}')">
                    Xem chi tiết
                 </button>
@@ -1427,7 +1465,12 @@
           `);
         }        // Show teacher results table and hide training program table
         $('#resultsDiv').show();
-        // Note: heDaoTaoResultsDiv is already hidden by hideAllTables() call at function start        // Load contract status first, then finance approval status sequentially
+        // Note: heDaoTaoResultsDiv is already hidden by hideAllTables() call at function start
+        
+        // Check user permissions to show/hide action column after data is loaded
+        checkUserPermissions();
+
+        // Load contract status first, then finance approval status sequentially
         loadContractStatusForTeachers().then(() => {
           // Load finance approval status after contract status is complete
           loadContractFinanceApprovalForTeachers();
