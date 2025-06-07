@@ -28,7 +28,7 @@ router.get('/sodoan', soHopDongController.getDoAnPage);
 
 // API routes for thesis project number management
 router.get('/api/doan-list', soHopDongController.getDoAnList);
-router.post('/api/setup-so-qd-doan-toan-bo', soHopDongController.setupSoQDDoAnToanBo);
+router.post('/api/setup-so-hd-doan-toan-bo', soHopDongController.setupSoHDDoAnToanBo);
 router.get('/api/doan-summary', soHopDongController.getDoAnSummary);
 router.post('/api/preview-doan-setup', soHopDongController.previewDoAnSetup);
 

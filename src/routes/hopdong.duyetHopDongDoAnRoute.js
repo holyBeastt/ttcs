@@ -18,7 +18,13 @@ router.post('/api/preview-page-do-an', previewController.showPreviewPageAPI);
 // API route for approving contracts
 router.post('/api/approve-contracts-do-an', duyetHopDongController.approveContracts);
 
+// API route for unapproving contracts
+router.post('/api/unapprove-contracts-do-an', duyetHopDongController.unapproveContracts);
+
 // API route for checking contract save status
 router.post('/api/check-contract-save-status-do-an', duyetHopDongController.checkContractSaveStatus);
+
+// API route for checking contract financial approval status
+router.post('/api/check-contract-financial-approval-status-do-an', duyetHopDongController.checkContractFinancialApprovalStatus);
 
 module.exports = router;

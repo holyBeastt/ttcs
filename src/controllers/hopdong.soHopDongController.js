@@ -83,9 +83,9 @@ const setupSoHopDongToanBo = async (req, res) => {
 
     // Validate input
     if (!dot || !ki || !nam || !startingNumber) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu' 
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu'
       });
     }
 
@@ -134,19 +134,19 @@ const setupSoHopDongToanBo = async (req, res) => {
     // Xử lý từng nhóm khoa-hệ đào tạo
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         // Validate row has required fields
         if (!row.MaHopDong) {
           console.error('Row missing MaHopDong field:', row);
           throw new Error('Database row missing required MaHopDong field');
         }
-        
+
         const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
-        
+
         const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
         await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
-        
+
         currentNumber++;
         updatedCount++;
       }
@@ -154,10 +154,10 @@ const setupSoHopDongToanBo = async (req, res) => {
 
     await connection.commit();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Đã cập nhật số hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
-      updatedCount 
+      updatedCount
     });
 
   } catch (error) {
@@ -268,7 +268,7 @@ const previewSetup = async (req, res) => {
     // Xử lý từng nhóm khoa-hệ đào tạo
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         preview.push({
           ...row,
@@ -298,9 +298,9 @@ const setupSoThanhLyToanBo = async (req, res) => {
 
     // Validate input
     if (!dot || !ki || !nam || !startingNumber) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu' 
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu'
       });
     }
 
@@ -349,19 +349,19 @@ const setupSoThanhLyToanBo = async (req, res) => {
     // Xử lý từng nhóm khoa-hệ đào tạo
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         // Validate row has required fields
         if (!row.MaHopDong) {
           console.error('Row missing MaHopDong field:', row);
           throw new Error('Database row missing required MaHopDong field');
         }
-        
+
         const soThanhLy = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`;
-        
+
         const updateQuery = `UPDATE hopdonggvmoi SET SoThanhLyHopDong = ? WHERE MaHopDong = ?`;
         await connection.execute(updateQuery, [soThanhLy, row.MaHopDong]);
-        
+
         currentNumber++;
         updatedCount++;
       }
@@ -369,10 +369,10 @@ const setupSoThanhLyToanBo = async (req, res) => {
 
     await connection.commit();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Đã cập nhật số thanh lý hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
-      updatedCount 
+      updatedCount
     });
 
   } catch (error) {
@@ -483,7 +483,7 @@ const previewTerminationSetup = async (req, res) => {
     // Xử lý từng nhóm khoa-hệ đào tạo
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         preview.push({
           ...row,
@@ -566,11 +566,11 @@ const previewSynchronizedSetup = async (req, res) => {
     });
 
     let currentNumber = parseInt(startingNumber || 1);
-    
+
     // Xử lý từng nhóm khoa-hệ đào tạo
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         const numberStr = String(currentNumber).padStart(3, '0');
         preview.push({
@@ -746,7 +746,8 @@ const getUnifiedSummary = async (req, res) => {
     console.error('Error fetching unified summary:', error);
     res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan hợp nhất' });
   } finally {
-    if (connection) connection.release();  }
+    if (connection) connection.release();
+  }
 };
 
 // ===== THESIS PROJECT (ĐỒ ÁN) FUNCTIONS =====
@@ -771,69 +772,61 @@ const getDoAnList = async (req, res) => {
   try {
     connection = await createPoolConnection();
     const { dot, ki, nam, khoa } = req.query;
-
+    
     let query = `
-      SELECT 
-        ID,
-        SinhVien,
-        MaSV,
-        KhoaDaoTao,
-        SoQD,
-        TenDeTai,
-        SoNguoi,
-        isHDChinh,
-        GiangVien,
-        CCCD,
-        SoTiet,
-        NgayBatDau,
-        NgayKetThuc,
-        NamHoc,
-        isMoiGiang,
-        MaPhongBan as Khoa,
-        Dot,
-        ki,
-        TT,
-        GioiTinh,
-        NgaySinh,
-        NgayCapCCCD,
-        NoiCapCCCD,
-        DiaChi,
-        DienThoai,
-        Email,
-        MaSoThue,
-        HocVi,
-        MonGiangDayChinh,
-        HSL,
-        NganHang,
-        NoiCongTac,
-        ChucVu,
-        STK
-      FROM exportdoantotnghiep 
-      WHERE 1=1
-    `;
-    let params = [];
+SELECT 
+  ed.CCCD,
+  ed.DienThoai,
+  ed.Email,
+  ed.MaSoThue,
+  ed.GiangVien as 'HoTen',
+  ed.NgaySinh,
+  ed.NgayCapCCCD,
+  ed.GioiTinh,
+  ed.STK,
+  ed.HocVi,
+  ed.ChucVu,
+  ed.HSL,
+  ed.NoiCapCCCD,
+  ed.DiaChi,
+  ed.NganHang,
+  ed.NoiCongTac,
+  ed.Dot,
+  ed.KhoaDaoTao,
+  MIN(ed.NgayBatDau) AS NgayBatDau,
+  MAX(ed.NgayKetThuc) AS NgayKetThuc,
+  SUM(ed.SoTiet) AS SoTiet,
+  ed.NamHoc,
+  gv.MaPhongBan,
+  MAX(ed.SoHopDong) as SoHopDong,
+  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
+FROM
+  gvmoi gv
+JOIN 
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
+WHERE 
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+`;
 
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND ki = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
+    let params = [dot, ki, nam];
+
+    // Xử lý trường hợp có khoa
+    if (khoa && khoa !== "ALL") {
+      query += ` AND gv.MaPhongBan LIKE ?`;
+      params.push(`%${khoa}%`);
     }
 
-    // Sắp xếp theo khoa, rồi mới đến tên để nhóm theo khoa
-    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
-
+    query += `
+GROUP BY 
+  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
+ORDER BY gv.MaPhongBan, ed.GiangVien
+`;
+    
     const [rows] = await connection.execute(query, params);
+
+    // console.log("debug so hop dong do an : " + rows);
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('Error fetching do an list:', error);
@@ -852,9 +845,9 @@ const setupSoQDDoAnToanBo = async (req, res) => {
 
     // Validate input
     if (!dot || !ki || !nam || !startingNumber) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu' 
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu'
       });
     }
 
@@ -899,19 +892,19 @@ const setupSoQDDoAnToanBo = async (req, res) => {
     // Xử lý từng nhóm khoa
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         // Validate row has required fields
         if (!row.ID) {
           console.error('Row missing ID field:', row);
           throw new Error('Database row missing required ID field');
         }
-        
-        const soQD = `${String(currentNumber).padStart(3, '0')}/QĐ-ĐA`;
-        
-        const updateQuery = `UPDATE exportdoantotnghiep SET SoQD = ? WHERE ID = ?`;
-        await connection.execute(updateQuery, [soQD, row.ID]);
-        
+        const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐA`;
+        const soThanhLyHopDong = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐA`;
+
+        const updateQuery = `UPDATE exportdoantotnghiep SET SoHopDong = ?, SoThanhLyHopDong = ? WHERE ID = ?`;
+        await connection.execute(updateQuery, [soHopDong, soThanhLyHopDong, row.ID]);
+
         currentNumber++;
         updatedCount++;
       }
@@ -919,10 +912,10 @@ const setupSoQDDoAnToanBo = async (req, res) => {
 
     await connection.commit();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: `Đã cập nhật số quyết định đồ án cho ${updatedCount} đồ án thành công (nhóm theo khoa)`,
-      updatedCount 
+      updatedCount
     });
 
   } catch (error) {
@@ -941,16 +934,16 @@ const getDoAnSummary = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoa } = req.query;
-
-    let query = `
+    const { dot, ki, nam, khoa } = req.query; let query = `
       SELECT 
         MaPhongBan as khoa,
         COUNT(*) as count,
-        MIN(SoQD) as firstDecision,
-        MAX(SoQD) as lastDecision
+        MIN(SoHopDong) as firstContract,
+        MAX(SoHopDong) as lastContract,
+        MIN(SoThanhLyHopDong) as firstTermination,
+        MAX(SoThanhLyHopDong) as lastTermination
       FROM exportdoantotnghiep 
-      WHERE SoQD IS NOT NULL AND SoQD != ''
+      WHERE SoHopDong IS NOT NULL AND SoHopDong != ''
     `;
     let params = [];
 
@@ -977,7 +970,7 @@ const getDoAnSummary = async (req, res) => {
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('Error fetching do an summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số quyết định đồ án' });
+    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số hợp đồng & thanh lý đồ án' });
   } finally {
     if (connection) connection.release();
   }
@@ -991,19 +984,54 @@ const previewDoAnSetup = async (req, res) => {
     const { dot, ki, nam, khoa, startingNumber } = req.body;
 
     let query = `
-      SELECT ID, SinhVien, GiangVien, MaPhongBan as Khoa, TenDeTai, SoQD
-      FROM exportdoantotnghiep 
-      WHERE Dot = ? AND ki = ? AND NamHoc = ?
-    `;
+SELECT 
+  ed.CCCD,
+  ed.DienThoai,
+  ed.Email,
+  ed.MaSoThue,
+  ed.GiangVien as 'HoTen',
+  ed.NgaySinh,
+  ed.NgayCapCCCD,
+  ed.GioiTinh,
+  ed.STK,
+  ed.HocVi,
+  ed.ChucVu,
+  ed.HSL,
+  ed.NoiCapCCCD,
+  ed.DiaChi,
+  ed.NganHang,
+  ed.NoiCongTac,
+  ed.Dot,
+  ed.KhoaDaoTao,
+  MIN(ed.NgayBatDau) AS NgayBatDau,
+  MAX(ed.NgayKetThuc) AS NgayKetThuc,
+  SUM(ed.SoTiet) AS SoTiet,
+  ed.NamHoc,
+  gv.MaPhongBan as Khoa,
+  MAX(ed.SoHopDong) as SoHopDong,
+  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
+FROM
+  gvmoi gv
+JOIN 
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
+WHERE 
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+`;
     let params = [dot, ki, nam];
 
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
+    // Xử lý trường hợp có khoa
+    if (khoa && khoa !== "ALL") {
+      query += ` AND gv.MaPhongBan LIKE ?`;
+      params.push(`%${khoa}%`);
     }
 
-    // Sắp xếp theo khoa, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+    query += `
+GROUP BY 
+  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
+ORDER BY gv.MaPhongBan, ed.GiangVien
+`;
 
     const [rows] = await connection.execute(query, params);
 
@@ -1024,11 +1052,12 @@ const previewDoAnSetup = async (req, res) => {
     // Xử lý từng nhóm khoa
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         preview.push({
           ...row,
-          newSoQD: `${String(currentNumber).padStart(3, '0')}/QĐ-ĐA`,
+          newSoHopDong: `${String(currentNumber).padStart(3, '0')}/HĐ-ĐA`,
+          newSoThanhLyHopDong: `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐA`,
           groupInfo: `${row.Khoa}`
         });
         currentNumber++;
@@ -1053,47 +1082,63 @@ const previewDoAnSynchronizedSetup = async (req, res) => {
     const { dot, ki, nam, khoa, startingNumber } = req.body;
 
     let query = `
-      SELECT 
-        ID,
-        SinhVien,
-        GiangVien,
-        MaPhongBan as Khoa,
-        TenDeTai,
-        SoQD,
-        TT
-      FROM exportdoantotnghiep 
-      WHERE 1=1
-    `;
-    let params = [];
+SELECT 
+  ed.CCCD,
+  ed.DienThoai,
+  ed.Email,
+  ed.MaSoThue,
+  ed.GiangVien as 'HoTen',
+  ed.NgaySinh,
+  ed.NgayCapCCCD,
+  ed.GioiTinh,
+  ed.STK,
+  ed.HocVi,
+  ed.ChucVu,
+  ed.HSL,
+  ed.NoiCapCCCD,
+  ed.DiaChi,
+  ed.NganHang,
+  ed.NoiCongTac,
+  ed.Dot,
+  ed.KhoaDaoTao,
+  MIN(ed.NgayBatDau) AS NgayBatDau,
+  MAX(ed.NgayKetThuc) AS NgayKetThuc,
+  SUM(ed.SoTiet) AS SoTiet,
+  ed.NamHoc,
+  gv.MaPhongBan as Khoa,
+  MAX(ed.SoHopDong) as SoHopDong,
+  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
+FROM
+  gvmoi gv
+JOIN 
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
+WHERE 
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+`;
+    let params = [dot, ki, nam];
 
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND ki = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
+    // Xử lý trường hợp có khoa
+    if (khoa && khoa !== "ALL") {
+      query += ` AND gv.MaPhongBan LIKE ?`;
+      params.push(`%${khoa}%`);
     }
 
-    // Sắp xếp theo khoa, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+    query += `
+GROUP BY 
+  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
+  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
+  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
+ORDER BY gv.MaPhongBan, ed.GiangVien
+`;
 
     const [rows] = await connection.execute(query, params);
 
     let preview = [];
 
-    // Nhóm dữ liệu theo khoa
+    // Nhóm dữ liệu theo khoa (similar to contract grouping)
     const groupedData = {};
     rows.forEach(row => {
-      const key = row.Khoa;
+      const key = row.Khoa || 'Không xác định';
       if (!groupedData[key]) {
         groupedData[key] = [];
       }
@@ -1101,18 +1146,18 @@ const previewDoAnSynchronizedSetup = async (req, res) => {
     });
 
     let currentNumber = parseInt(startingNumber || 1);
-    
+
     // Xử lý từng nhóm khoa
     for (const groupKey in groupedData) {
       const group = groupedData[groupKey];
-      
+
       for (const row of group) {
         const numberStr = String(currentNumber).padStart(3, '0');
         preview.push({
           ...row,
-          newSoQD: `${numberStr}/QĐ-ĐA`,
-          newTT: currentNumber,
-          groupInfo: `${row.Khoa}`
+          newSoHopDong: `${numberStr}/HĐ-ĐA`,
+          newSoThanhLy: `${numberStr}/TLHĐ-ĐA`,
+          groupInfo: `${row.Khoa} - Đồ án tốt nghiệp`
         });
         currentNumber++;
       }
@@ -1136,44 +1181,38 @@ const setupDoAnSynchronizedNumbers = async (req, res) => {
 
     await connection.beginTransaction();
 
+    // Use the same query structure as getDoAnList for consistency
     let query = `
-      SELECT 
-        ID,
-        SinhVien,
-        GiangVien,
-        MaPhongBan,
-        TenDeTai
-      FROM exportdoantotnghiep 
-      WHERE 1=1
-    `;
-    let params = [];
+SELECT 
+  ed.CCCD,
+  ed.GiangVien as 'HoTen',
+  gv.MaPhongBan as Khoa
+FROM
+  gvmoi gv
+JOIN 
+  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
+WHERE 
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+`;
+    let params = [dot, ki, nam];
 
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND ki = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
     if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
+      query += ` AND gv.MaPhongBan LIKE ?`;
+      params.push(`%${khoa}%`);
     }
 
-    // Sắp xếp theo khoa, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+    query += `
+GROUP BY 
+  ed.CCCD, ed.GiangVien, gv.MaPhongBan
+ORDER BY gv.MaPhongBan, ed.GiangVien
+`;
 
     const [rows] = await connection.execute(query, params);
 
     // Nhóm dữ liệu theo khoa
     const groupedData = {};
     rows.forEach(row => {
-      const key = row.MaPhongBan;
+      const key = row.Khoa;
       if (!groupedData[key]) {
         groupedData[key] = [];
       }
@@ -1189,13 +1228,15 @@ const setupDoAnSynchronizedNumbers = async (req, res) => {
 
       for (const row of group) {
         const numberStr = String(currentNumber).padStart(3, '0');
-        const decisionNumber = `${numberStr}/QĐ-ĐA`;
+        const contractNumber = `${numberStr}/HĐ-ĐA`;
+        const terminationNumber = `${numberStr}/TLHĐ-ĐA`;
 
+        // Update all records for this lecturer (CCCD)
         await connection.execute(
           `UPDATE exportdoantotnghiep 
-           SET SoQD = ?, TT = ? 
-           WHERE ID = ?`,
-          [decisionNumber, currentNumber, row.ID]
+           SET SoHopDong = ?, SoThanhLyHopDong = ? 
+           WHERE CCCD = ? AND Dot = ? AND Ki = ? AND NamHoc = ?`,
+          [contractNumber, terminationNumber, row.CCCD, dot, ki, nam]
         );
 
         currentNumber++;
@@ -1207,7 +1248,7 @@ const setupDoAnSynchronizedNumbers = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Cài đặt đồng bộ thành công cho ${updatedCount} đồ án (nhóm theo khoa)`,
+      message: `Cài đặt đồng bộ thành công cho ${updatedCount} giảng viên (số hợp đồng & thanh lý theo khoa)`,
       updatedCount: updatedCount
     });
 
@@ -1216,7 +1257,7 @@ const setupDoAnSynchronizedNumbers = async (req, res) => {
       await connection.rollback();
     }
     console.error('Error setting up do an synchronized numbers:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi cài đặt đồng bộ số quyết định và TT đồ án' });
+    res.status(500).json({ success: false, message: 'Lỗi khi cài đặt đồng bộ số hợp đồng và thanh lý đồ án' });
   } finally {
     if (connection) connection.release();
   }
@@ -1227,23 +1268,21 @@ const getDoAnUnifiedSummary = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoa } = req.query;
-
-    let query = `
+    const { dot, ki, nam, khoa } = req.query; let query = `
       SELECT 
         MaPhongBan as khoa,
         COUNT(*) as count,
-        MIN(CASE WHEN SoQD IS NOT NULL AND SoQD != '' 
-            THEN CAST(SUBSTRING_INDEX(SoQD, '/', 1) AS UNSIGNED) END) as firstIndex,
-        MAX(CASE WHEN SoQD IS NOT NULL AND SoQD != '' 
-            THEN CAST(SUBSTRING_INDEX(SoQD, '/', 1) AS UNSIGNED) END) as lastIndex,
-        MIN(SoQD) as firstDecision,
-        MAX(SoQD) as lastDecision,
-        MIN(TT) as firstTT,
-        MAX(TT) as lastTT
+        MIN(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
+            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as firstIndex,
+        MAX(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
+            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as lastIndex,
+        MIN(SoHopDong) as firstContract,
+        MAX(SoHopDong) as lastContract,
+        MIN(SoThanhLyHopDong) as firstTermination,
+        MAX(SoThanhLyHopDong) as lastTermination
       FROM exportdoantotnghiep 
-      WHERE (SoQD IS NOT NULL AND SoQD != '') 
-         OR (TT IS NOT NULL AND TT != '')
+      WHERE (SoHopDong IS NOT NULL AND SoHopDong != '') 
+         OR (SoThanhLyHopDong IS NOT NULL AND SoThanhLyHopDong != '')
     `;
     let params = [];
 
@@ -1285,15 +1324,15 @@ module.exports = {
   getContractSummary,
   previewSetup,
   setupSoThanhLyToanBo,
-  getTerminationSummary,
-  previewTerminationSetup,
+  getTerminationSummary, previewTerminationSetup,
   previewSynchronizedSetup,
   setupSynchronizedNumbers,
   getUnifiedSummary,
+
   // New functions for thesis projects (đồ án)
   getDoAnPage,
   getDoAnList,
-  setupSoQDDoAnToanBo,
+  setupSoHDDoAnToanBo: setupSoQDDoAnToanBo,
   getDoAnSummary,
   previewDoAnSetup,
   previewDoAnSynchronizedSetup,
