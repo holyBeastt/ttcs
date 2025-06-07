@@ -786,6 +786,7 @@ const getInfoDoAn = async (req, res) => {
   const ki = req.body.ki;
   const NamHoc = req.body.NamHoc;
   const MaPhongBan = req.body.MaPhongBan;
+  const he_dao_tao = req.body.he_dao_tao;
 
   let connection;
   try {
@@ -793,16 +794,16 @@ const getInfoDoAn = async (req, res) => {
 
     let query, values, SoQDList;
 
-    const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
+    const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ?`;
 
     if (MaPhongBan == "ALL") {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ?";
-      values = [Dot, ki, NamHoc];
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?";
+      values = [Dot, ki, NamHoc, he_dao_tao];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?";
-      values = [Dot, ki, NamHoc, MaPhongBan];
+        "SELECT * FROM doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ?";
+      values = [Dot, ki, NamHoc, MaPhongBan, he_dao_tao];
 
       [SoQDList] = await connection.query(SoQDquery, values);
     }
@@ -908,7 +909,7 @@ function tachTenVaLoai(tenGoc) {
   }
 }
 
-const KhoaCheckAll = async (req, Dot, ki, NamHoc) => {
+const KhoaCheckAll = async (req, Dot, ki, NamHoc, he_dao_tao) => {
   let kq = ""; // Biến để lưu kết quả
   let connection;
 
@@ -921,12 +922,13 @@ const KhoaCheckAll = async (req, Dot, ki, NamHoc) => {
     for (let i = 0; i < results.length; i++) {
       const MaPhongBan = results[i].MaPhongBan;
 
-      const innerQuery = `SELECT KhoaDuyet FROM doantotnghiep WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?`;
+      const innerQuery = `SELECT KhoaDuyet FROM doantotnghiep WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?`;
       const [check, innerFields] = await connection.query(innerQuery, [
         MaPhongBan,
         NamHoc,
         Dot,
         ki,
+        he_dao_tao,
       ]);
 
       let checkAll = true;
@@ -951,7 +953,7 @@ const KhoaCheckAll = async (req, Dot, ki, NamHoc) => {
   return kq;
 };
 
-const DaoTaoCheckAll = async (req, Dot, ki, NamHoc) => {
+const DaoTaoCheckAll = async (req, Dot, ki, NamHoc, he_dao_tao) => {
   let kq = ""; // Biến để lưu kết quả
 
   const queryPhongBan = `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`;
@@ -967,7 +969,7 @@ const DaoTaoCheckAll = async (req, Dot, ki, NamHoc) => {
       const queryDuyet = `
         SELECT DaoTaoDuyet 
         FROM doantotnghiep 
-        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?
+        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?
       `;
       const connection = await createPoolConnection();
 
@@ -977,6 +979,7 @@ const DaoTaoCheckAll = async (req, Dot, ki, NamHoc) => {
           NamHoc,
           Dot,
           ki,
+          he_dao_tao,
         ]);
 
         let checkAll = true;
@@ -1001,7 +1004,7 @@ const DaoTaoCheckAll = async (req, Dot, ki, NamHoc) => {
 };
 
 // Mới
-const TaiChinhCheckAll = async (req, Dot, ki, NamHoc) => {
+const TaiChinhCheckAll = async (req, Dot, ki, NamHoc, he_dao_tao) => {
   let kq = ""; // Biến để lưu kết quả
 
   const connection = await createPoolConnection();
@@ -1016,12 +1019,13 @@ const TaiChinhCheckAll = async (req, Dot, ki, NamHoc) => {
 
       const checkQuery = `
         SELECT TaiChinhDuyet FROM doantotnghiep 
-        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ?`;
+        WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND ki = ? AND he_dao_tao = ?`;
       const [check, checkFields] = await connection.query(checkQuery, [
         MaPhongBan,
         NamHoc,
         Dot,
         ki,
+        he_dao_tao,
       ]);
 
       let checkAll = true;
@@ -1046,9 +1050,16 @@ const getCheckAllDoantotnghiep = async (req, res) => {
   const NamHoc = req.body.NamHoc;
   const ki = req.body.ki;
   const Dot = req.body.Dot;
-  const KhoaCheck = await KhoaCheckAll(req, Dot, ki, NamHoc);
-  const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, ki, NamHoc);
-  const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, ki, NamHoc);
+  const he_dao_tao = req.body.he_dao_tao;
+  const KhoaCheck = await KhoaCheckAll(req, Dot, ki, NamHoc, he_dao_tao);
+  const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, ki, NamHoc, he_dao_tao);
+  const TaiChinhCheck = await TaiChinhCheckAll(
+    req,
+    Dot,
+    ki,
+    NamHoc,
+    he_dao_tao
+  );
 
   return res.status(200).json({
     KhoaCheck: KhoaCheck,
@@ -1232,6 +1243,7 @@ const saveToExportDoAn = async (req, res) => {
   const ki = req.body.ki;
   const NamHoc = req.body.NamHoc;
   const MaKhoa = req.body.MaPhongBan;
+  const he_dao_tao = req.body.he_dao_tao;
 
   let connection;
   try {
@@ -1243,21 +1255,27 @@ const saveToExportDoAn = async (req, res) => {
     const uniqueGV = gvData.uniqueGV;
     const allGV = gvData.allGV;
 
-    const daDuyetHet = await TaiChinhCheckAll(req, Dot, NamHoc);
+    const daDuyetHet = await TaiChinhCheckAll(req, Dot, ki, NamHoc, he_dao_tao);
     const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
 
     let queryData, data;
 
     if (MaKhoa == "ALL") {
       queryData =
-        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ?";
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?";
 
-      [data] = await connection.query(queryData, [Dot, ki, NamHoc]);
+      [data] = await connection.query(queryData, [Dot, ki, NamHoc, he_dao_tao]);
     } else {
       queryData =
-        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?";
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ?";
 
-      [data] = await connection.query(queryData, [Dot, ki, NamHoc, MaKhoa]);
+      [data] = await connection.query(queryData, [
+        Dot,
+        ki,
+        NamHoc,
+        MaKhoa,
+        he_dao_tao,
+      ]);
     }
 
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
@@ -1636,6 +1654,7 @@ const getDataDoAnChinhThuc = async (req, res) => {
   const Ki = req.body.Ki;
   const NamHoc = req.body.Nam;
   const MaPhongBan = req.body.Khoa;
+  const heDaoTaoValue = req.body.heDaoTaoValue;
 
   let connection;
   try {
@@ -1644,19 +1663,20 @@ const getDataDoAnChinhThuc = async (req, res) => {
     let query, values, SoQDList;
     if (MaPhongBan == "ALL") {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ?";
-      values = [Dot, Ki, NamHoc];
+        "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ? AND he_dao_tao = ?";
+      values = [Dot, Ki, NamHoc, heDaoTaoValue];
     } else {
       query =
-        "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ? AND MaPhongBan = ?";
-      values = [Dot, Ki, NamHoc, MaPhongBan];
+        "SELECT * FROM doantotnghiep where Dot = ? AND Ki = ? AND NamHoc = ? AND he_dao_tao = ? AND MaPhongBan = ?";
+      values = [Dot, Ki, NamHoc, heDaoTaoValue, MaPhongBan];
 
       // Lấy số quyết định
-      const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
+      const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ? AND MaPhongBan = ?`;
       [SoQDList] = await connection.query(SoQDquery, [
         Dot,
         Ki,
         NamHoc,
+        heDaoTaoValue,
         MaPhongBan,
       ]);
     }

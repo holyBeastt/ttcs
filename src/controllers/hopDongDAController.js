@@ -223,7 +223,8 @@ const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName, loaiHopDong } =
+      req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
@@ -264,14 +265,14 @@ FROM
 JOIN 
   exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
 WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
   ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
 `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -305,13 +306,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
 
     // Xử lý trường hợp có teacherName
@@ -346,13 +347,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, ki, namHoc, `%${teacherName}%`];
+      params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
     const [teachers] = await connection.execute(query, params);
 
@@ -603,7 +604,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
 
-    let { dot, ki, namHoc, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -633,6 +634,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName,
       phongBanList
     );
@@ -649,6 +651,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName
     );
 
@@ -983,6 +986,7 @@ const getExportData = async (
   ki,
   namHoc,
   khoa,
+  he_dao_tao,
   teacherName,
   phongBanList
 ) => {
@@ -1019,14 +1023,14 @@ const getExportData = async (
     JOIN 
       exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
     WHERE 
-      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ?
+      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
       ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
       ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -1062,13 +1066,13 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
         ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
         ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
       `;
-      params = [dot, ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
 
     // Xử lý trường hợp có teacherName
@@ -1105,13 +1109,13 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
         ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
         ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
       `;
-      params = [dot, ki, namHoc, `%${teacherName}%`];
+      params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
 
     const [teachers] = await connection.execute(query, params);
@@ -1129,6 +1133,7 @@ const getAppendixData = async (
   ki,
   namHoc,
   khoa,
+  he_dao_tao,
   teacherName
 ) => {
   try {
@@ -1145,10 +1150,10 @@ const getAppendixData = async (
           gv.DiaChi
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
+      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     if (khoa && khoa !== "ALL") {
       query += `AND edt.MaPhongBan = ?`;
@@ -1828,7 +1833,7 @@ const exportBoSungDownloadData = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
 
-    let { dot, ki, namHoc, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -1858,6 +1863,7 @@ const exportBoSungDownloadData = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName,
       phongBanList
     );
