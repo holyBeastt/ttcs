@@ -26,11 +26,18 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy số tiết đồ án
-    const soTietDoAn = doanServices.getSoTietDoAn(heDaoTaoValue);
+    // const soTietDoAn = await doanServices.getSoTietDoAn(he_dao_tao);
+    let so_tiet_1 = 15,
+      so_tiet_2 = 10,
+      tong_tiet = 25;
 
-    let so_tiet_1 = soTietDoAn.so_tiet_1,
-      so_tiet_2 = soTietDoAn.so_tiet_2,
-      tong_tiet = soTietDoAn.tong_tiet;
+    // if (soTietDoAn && soTietDoAn.length > 0) {
+    //   ({ so_tiet_1, so_tiet_2, tong_tiet } = soTietDoAn[0]);
+
+    //   console.log({ so_tiet_1, so_tiet_2, tong_tiet });
+    // } else {
+    //   console.log("Không có dữ liệu số tiết đồ án cho hệ đào tạo:", he_dao_tao);
+    // }
 
     let query, values;
     query = `

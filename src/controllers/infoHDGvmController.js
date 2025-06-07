@@ -484,12 +484,23 @@ const getHopDongDuKienData = async (req, res) => {
     const he_dao_tao = req.query.he_dao_tao;
     let khoa = req.query.khoa;
 
-    // Lấy số tiết đồ án
-    const soTietDoAn = doanServices.getSoTietDoAn(he_dao_tao);
+    // if (!he_dao_tao) {
+    //   he_dao_tao = "Đồ án (Cao học)";
+    // }
 
-    let so_tiet_1 = soTietDoAn.so_tiet_1,
-      so_tiet_2 = soTietDoAn.so_tiet_2,
-      tong_tiet = soTietDoAn.tong_tiet;
+    // Lấy số tiết đồ án
+    // const soTietDoAn = await doanServices.getSoTietDoAn(he_dao_tao);
+    let so_tiet_1 = 15,
+      so_tiet_2 = 10,
+      tong_tiet = 25;
+
+    // if (soTietDoAn && soTietDoAn.length > 0) {
+    //   ({ so_tiet_1, so_tiet_2, tong_tiet } = soTietDoAn[0]);
+
+    //   console.log({ so_tiet_1, so_tiet_2, tong_tiet });
+    // } else {
+    //   console.log("Không có dữ liệu số tiết đồ án cho hệ đào tạo:", he_dao_tao);
+    // }
 
     // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
     if (isKhoa == 1) {
