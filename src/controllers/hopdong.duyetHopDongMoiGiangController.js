@@ -964,6 +964,8 @@ const checkContractFinanceApprovalStatus = async (req, res) => {
             // Có bản ghi chưa đạt điều kiện
             message = "Chưa duyệt";
         }
+        
+        console.log("debug tc duyet moi giang : " + message);
 
         res.json({
             success: true,

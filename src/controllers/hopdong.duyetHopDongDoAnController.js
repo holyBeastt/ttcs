@@ -994,6 +994,8 @@ const checkContractFinancialApprovalStatus = async (req, res) => {
         } else if (statusData.distinctValues === 1 && statusData.minValue === 0) {
             message = `Chưa duyệt`;
         } 
+
+        console.log("debug tc duyet do an : " + message);
         res.json({
             success: true,
             message: message,
