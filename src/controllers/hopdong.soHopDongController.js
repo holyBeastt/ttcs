@@ -826,7 +826,7 @@ ORDER BY gv.MaPhongBan, ed.GiangVien
     
     const [rows] = await connection.execute(query, params);
 
-    console.log("debug so hop dong do an : " + rows);
+    // console.log("debug so hop dong do an : " + rows);
     res.json({ success: true, data: rows });
   } catch (error) {
     console.error('Error fetching do an list:', error);

@@ -164,7 +164,7 @@
                     <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
                   </div>
                 </div>
-                <div class="dropdown-submenu" style="width: 100%">
+                <div class="dropdown-submenu" id="nav-tao-so-hop-dong" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
                     aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
@@ -370,9 +370,17 @@
       const addNewFileGvm = document.getElementById("addNewFileGvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
+      const navTaoSoHopDong = document.getElementById("nav-tao-so-hop-dong");
 
       if (isKhoa === "0" || role === "GV") {
         addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+      }
+
+      // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "Duyệt" và MaPhongBan "DAOTAO"
+      if (role === "Duyệt" && MaPhongBan === "DAOTAO") {
+        navTaoSoHopDong.style.display = "block";
+      } else {
+        navTaoSoHopDong.style.display = "none";
       }
 
       // Ẩn button import đồ án

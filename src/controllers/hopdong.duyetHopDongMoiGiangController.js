@@ -173,6 +173,7 @@ const getDuyetHopDongData = async (req, res) => {
                         STK: current.STK,
                         NganHang: current.NganHang,
                         MaPhongBan: current.MaPhongBan,
+                        NoiCapCCCD: current.NoiCapCCCD,
                         NgayCapCCCD: current.NgayCapCCCD,
                         DiaChi: current.DiaChi,
                         BangTotNghiep: current.BangTotNghiep,

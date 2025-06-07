@@ -590,6 +590,7 @@
                   <p><strong>Ngày sinh:</strong> <span id="modal-ngaysinh"></span></p>
                   <p><strong>CCCD:</strong> <span id="modal-cccd"></span></p>
                   <p><strong>Ngày cấp CCCD:</strong> <span id="modal-ngaycap"></span></p>
+                  <p><strong>Nơi cấp CCCD:</strong> <span id="modal-noicapcccd"></span></p>
                 </div>
                 <div class="col-md-6">
                   <p><strong>Học hàm/Học vị:</strong> <span id="modal-hocvi"></span></p>
@@ -1238,6 +1239,7 @@
           NgaySinh: teacherData.NgaySinh,
           CCCD: teacherData.CCCD,
           NgayCapCCCD: teacherData.NgayCapCCCD,
+          NoiCapCCCD: teacherData.NoiCapCCCD,
           HocVi: teacherData.HocVi,
           ChucVu: teacherData.ChucVu,
           DienThoai: teacherData.DienThoai,
@@ -1258,7 +1260,7 @@
           SoHopDong: teacherData.SoHopDong,
           TongTiet: teacherData.SoTiet,
           loaiHopDong: decodedHeDaoTaoName,
-          GioiTinh: teacherData.GioiTinh || 'Nam'
+          GioiTinh: teacherData.GioiTinh || 'Nam',
         };
 
         // Store in window.teacherDetailData for modal access
@@ -1358,6 +1360,7 @@
             NgaySinh: teacherData.NgaySinh,
             CCCD: teacherData.CCCD,
             NgayCapCCCD: teacherData.NgayCapCCCD,
+            NoiCapCCCD: teacherData.NoiCapCCCD,
             HocVi: teacherData.HocVi,
             ChucVu: teacherData.ChucVu,
             DienThoai: teacherData.DienThoai,
@@ -1637,6 +1640,7 @@
         $('#modal-ngaysinh').text(data.NgaySinh ? new Date(data.NgaySinh).toLocaleDateString("vi-VN") : 'Chưa có thông tin');
         $('#modal-cccd').text(data.CCCD || 'Chưa có thông tin');
         $('#modal-ngaycap').text(data.NgayCapCCCD ? new Date(data.NgayCapCCCD).toLocaleDateString("vi-VN") : 'Chưa có thông tin');
+        $('#modal-noicapcccd').text(data.NoiCapCCCD || 'Chưa có thông tin');
         $('#modal-hocvi').text(data.HocVi || 'Chưa có thông tin');
         $('#modal-chucvu').text(data.ChucVu || 'Chưa có thông tin');
         $('#modal-dienthoai').text(data.DienThoai || 'Chưa có thông tin');
