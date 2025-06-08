@@ -6,6 +6,7 @@ const mysql = require("mysql2/promise");
 const xlsx = require("xlsx");
 const path = require("path"); // Thêm dòng này
 const fs = require("fs"); // Thêm dòng này
+const doanServices = require("../services/doanServices");
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -483,6 +484,24 @@ const getHopDongDuKienData = async (req, res) => {
     const he_dao_tao = req.query.he_dao_tao;
     let khoa = req.query.khoa;
 
+    // if (!he_dao_tao) {
+    //   he_dao_tao = "Đồ án (Cao học)";
+    // }
+
+    // Lấy số tiết đồ án
+    // const soTietDoAn = await doanServices.getSoTietDoAn(he_dao_tao);
+    let so_tiet_1 = 15,
+      so_tiet_2 = 10,
+      tong_tiet = 25;
+
+    // if (soTietDoAn && soTietDoAn.length > 0) {
+    //   ({ so_tiet_1, so_tiet_2, tong_tiet } = soTietDoAn[0]);
+
+    //   console.log({ so_tiet_1, so_tiet_2, tong_tiet });
+    // } else {
+    //   console.log("Không có dữ liệu số tiết đồ án cho hệ đào tạo:", he_dao_tao);
+    // }
+
     // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -508,7 +527,7 @@ const getHopDongDuKienData = async (req, res) => {
         gv.NganHang,
         gv.MaPhongBan,
         Combined.MaPhongBan AS MaKhoaMonHoc,
-        'Đồ án' AS he_dao_tao,
+        he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
         Combined.SoTiet AS SoTiet,
@@ -531,13 +550,14 @@ const getHopDongDuKienData = async (req, res) => {
             NgayBatDau,
             NgayKetThuc,
             MaPhongBan,
+            he_dao_tao,
             TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
             Dot,
             ki,
             NamHoc,
             CASE 
-                WHEN GiangVien2 = 'không' THEN 25
-                ELSE 15
+                WHEN GiangVien2 = 'không' THEN ${tong_tiet}
+                ELSE ${so_tiet_1}
             END AS SoTiet
         FROM 
             doantotnghiep
@@ -550,11 +570,12 @@ const getHopDongDuKienData = async (req, res) => {
             NgayBatDau,
             NgayKetThuc,
             MaPhongBan,
+            he_dao_tao,
             TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
             Dot,
             ki,
             NamHoc,
-            10 AS SoTiet
+            ${so_tiet_2} AS SoTiet
         FROM 
             doantotnghiep
         WHERE 
@@ -866,7 +887,7 @@ const getHopDongDuKienData = async (req, res) => {
         SUM(Thue) AS Thue,
         SUM(ThucNhan) AS ThucNhan,
         tsgv.TongSoTiet
-    FROM 
+    FROM
         tableALL ta
     LEFT JOIN 
         TongSoTietGV tsgv 

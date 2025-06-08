@@ -273,10 +273,10 @@ const exportMultipleContracts = async (req, res) => {
     MIN(hd.NgayBatDau) AS NgayBatDau,
     MAX(hd.NgayKetThuc) AS NgayKetThuc,
     SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
+    SUM(hd.SoTien) AS SoTien,
+    SUM(hd.TruThue) AS TruThue,
     hd.NgayCap,
-    hd.ThucNhan,
+    SUM(hd.ThucNhan) AS ThucNhan,
     hd.NgayNghiemThu,
     hd.Dot,
     hd.KiHoc,
@@ -292,8 +292,8 @@ const exportMultipleContracts = async (req, res) => {
     hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap,hd.NgayNghiemThu, hd.Dot, 
+    hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
     let params = [dot, ki, namHoc, loaiHopDong];
 
@@ -318,10 +318,10 @@ const exportMultipleContracts = async (req, res) => {
       MIN(hd.NgayBatDau) AS NgayBatDau,
       MAX(hd.NgayKetThuc) AS NgayKetThuc,
       SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
+      SUM(hd.SoTien) AS SoTien,
+      SUM(hd.TruThue) AS TruThue,
       hd.NgayCap,
-      hd.ThucNhan,
+      SUM(hd.ThucNhan) AS ThucNhan,
       hd.NgayNghiemThu,
       hd.Dot,
       hd.KiHoc,
@@ -334,10 +334,10 @@ const exportMultipleContracts = async (req, res) => {
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
     WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
+      hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
+      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
       params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
     }
@@ -361,10 +361,10 @@ const exportMultipleContracts = async (req, res) => {
       MIN(hd.NgayBatDau) AS NgayBatDau,
       MAX(hd.NgayKetThuc) AS NgayKetThuc,
       SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
+      SUM(hd.SoTien) AS SoTien,
+      SUM(hd.TruThue) AS TruThue,
       hd.NgayCap,
-      hd.ThucNhan,
+      SUM(hd.ThucNhan) AS ThucNhan,
       hd.NgayNghiemThu,
       hd.Dot,
       hd.KiHoc,
@@ -380,7 +380,7 @@ const exportMultipleContracts = async (req, res) => {
               hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
+      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap,
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
       params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];

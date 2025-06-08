@@ -135,6 +135,12 @@
           <select class="form-select mx-2 selectop" style="width: max-content;" id="MaPhongBan">
             <option value="">Chọn khoa</option>
           </select>
+
+          <select class="form-select mx-1 selectop" id="he_dao_tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
+
           <input type="text" class="form-control w-200px mx-2" id="search-teacher" placeholder="Tìm kiếm giảng viên">
 
           <select id="loaiHopDong" name="loaiHopDong" class="form-select w-200px mx-2 selectop">
@@ -153,6 +159,7 @@
             const ki = document.getElementById("comboboxki").value;
             const namHoc = document.getElementById("NamHoc").value;
             const khoa = document.getElementById("MaPhongBan").value;
+            const he_dao_tao = document.getElementById("he_dao_tao").value;
             const teacherName = document.getElementById("search-teacher").value;
             const loaiHopDong = document.getElementById("loaiHopDong").value; // Lấy giá trị từ combobox "Loại hợp đồng"
         
@@ -161,7 +168,7 @@
               return;
             }
         
-            let url = `/exportHDDA/Dowload?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
+            let url = `/exportHDDA/Dowload?dot=${encodeURIComponent(dot)}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
         
             if (khoa) {
               url += `&khoa=${encodeURIComponent(khoa)}`;

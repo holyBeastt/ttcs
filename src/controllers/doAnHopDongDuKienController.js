@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
 require("dotenv").config();
+const doanServices = require("../services/doanServices");
 
 const getDoAnHopDongDuKienSite = (req, res) => {
   res.render("doAnHopDongDuKien.ejs");
@@ -12,6 +13,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
   const ki = req.body.ki;
   const NamHoc = req.body.Nam;
   let MaPhongBan = req.body.Khoa;
+  const heDaoTaoValue = req.body.heDaoTaoValue;
 
   let connection;
   try {
@@ -22,6 +24,20 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
     }
 
     connection = await createPoolConnection();
+
+    // Lấy số tiết đồ án
+    // const soTietDoAn = await doanServices.getSoTietDoAn(he_dao_tao);
+    let so_tiet_1 = 15,
+      so_tiet_2 = 10,
+      tong_tiet = 25;
+
+    // if (soTietDoAn && soTietDoAn.length > 0) {
+    //   ({ so_tiet_1, so_tiet_2, tong_tiet } = soTietDoAn[0]);
+
+    //   console.log({ so_tiet_1, so_tiet_2, tong_tiet });
+    // } else {
+    //   console.log("Không có dữ liệu số tiết đồ án cho hệ đào tạo:", he_dao_tao);
+    // }
 
     let query, values;
     query = `
@@ -42,7 +58,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
-        'Đồ án' AS he_dao_tao,
+        he_dao_tao,
         MIN(Combined.NgayBatDau) AS NgayBatDau,
         MAX(Combined.NgayKetThuc) AS NgayKetThuc,
         SUM(Combined.SoTiet) AS TongTiet,
@@ -59,13 +75,14 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         SELECT
             NgayBatDau,
             NgayKetThuc,
+            he_dao_tao,
             TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
             Dot,
             ki,
             NamHoc,
             CASE 
-                WHEN GiangVien2 = 'không' THEN 25
-                ELSE 15
+                WHEN GiangVien2 = 'không' THEN ${tong_tiet} 
+                ELSE ${so_tiet_1}
             END AS SoTiet
         FROM 
             doantotnghiep
@@ -77,11 +94,12 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         SELECT
             NgayBatDau,
             NgayKetThuc,
+            he_dao_tao,
             TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
             Dot,
             ki,
             NamHoc,
-            10 AS SoTiet
+            ${so_tiet_2} AS SoTiet
         FROM 
             doantotnghiep
         WHERE 
@@ -349,7 +367,8 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           ki,
           namhoc,
           MaPhongBan,
-          15 AS SoTiet
+          he_dao_tao,
+          ${so_tiet_1} AS SoTiet
       FROM doantotnghiep
       WHERE GiangVien1 IS NOT NULL
           AND GiangVien1 != 'không' AND GiangVien2 != 'không' AND GiangVien2 != ''
@@ -366,7 +385,8 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           ki,
           namhoc,
           MaPhongBan,
-          10 AS SoTiet
+          he_dao_tao,
+          ${so_tiet_2} AS SoTiet
       FROM doantotnghiep
       WHERE GiangVien2 IS NOT NULL
           AND GiangVien2 != 'không' 
@@ -389,7 +409,8 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
           ki,
           namhoc,
           MaPhongBan,
-          25 AS SoTiet 
+          he_dao_tao,
+          ${tong_tiet} AS SoTiet 
       FROM doantotnghiep 
       WHERE (GiangVien2 = '' OR GiangVien2 = 'không') AND GiangVien1 != ''
   ), 
@@ -411,6 +432,7 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
         gv_doan.ki,
         gv_doan.NamHoc,
         gv_doan.MaPhongBan AS MaKhoa,
+        gv_doan.he_dao_tao,
         gvmoi.*,
         tsgv.TongSoTiet AS TongSoTietCaNam
     FROM gv_doan
@@ -421,9 +443,9 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
 
   SELECT id_Gvm, HoTen, TenDeTai, SinhVien, MaSV, NoiCongTac, HocVi, SoTiet, HSL, NgayBatDau, NgayKetThuc, dot, ki, NamHoc, MaPhongBan, TongSoTietCaNam
   FROM final
-  WHERE dot = ? AND ki = ? AND namhoc = ?
+  WHERE dot = ? AND ki = ? AND namhoc = ? AND he_dao_tao = ?
     `;
-    values = [Dot, ki, NamHoc];
+    values = [Dot, ki, NamHoc, heDaoTaoValue];
 
     let SoQDList;
     if (MaPhongBan != "ALL") {
@@ -431,11 +453,12 @@ const getInfoDoAnHopDongDuKien = async (req, res) => {
       values.push(MaPhongBan);
 
       // Lấy số quyết định
-      const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?`;
+      const SoQDquery = `SELECT DISTINCT SoQD from doantotnghiep where SoQD != 'NULL' AND Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ? AND MaPhongBan = ?`;
       [SoQDList] = await connection.query(SoQDquery, [
         Dot,
         ki,
         NamHoc,
+        heDaoTaoValue,
         MaPhongBan,
       ]);
     }
