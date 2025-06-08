@@ -459,11 +459,13 @@ const exportMultipleContracts = async (req, res) => {
         ThucNhan: tienThucNhanText,
       });
 
+      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
-        Họ_và_tên: teacher.HoTen,
+        Họ_và_tên: hoTenTrim,
         CCCD: teacher.CCCD,
         Ngày_cấp: formatDate1(teacher.NgayCap),
         Nơi_cấp: teacher.NoiCapCCCD,
@@ -534,7 +536,6 @@ const exportMultipleContracts = async (req, res) => {
         compression: "DEFLATE",
       });
 
-      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
       const fileName = `HopDong_${hoTenTrim}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
