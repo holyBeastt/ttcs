@@ -20,22 +20,20 @@ const getDuyetHopDongPage = (req, res) => {
 const getDuyetHopDongData = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
-        if (!dot || !namHoc || !loaiHopDong) {
+        connection = await createPoolConnection();
+
+        const { dot, namHoc, maPhongBan, loaiHopDong, ki } = req.body; // Thêm ki vào destructure
+
+        // Validate required parameters - THÊM ki vào validation
+        if (!dot || !namHoc || !loaiHopDong || !ki) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Năm học, Kỳ, Loại hợp đồng"
             });
         }
 
-        // Validate loaiHopDong values - only support thesis contracts
-        if (loaiHopDong !== "Đồ án") {
-            return res.status(400).json({
-                success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Đồ án'",
-                receivedLoaiHopDong: loaiHopDong
-            });
-        }        // Query from doantotnghiep table with grouping by department/program
+        // ...existing validation code...
+
         let query = `
             SELECT
                 da.NgayBatDau,
@@ -55,9 +53,12 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.STK,
                 gv.NganHang,
                 gv.MaPhongBan,
-                da.MaPhongBan AS MaKhoaMonHoc,                SUM(da.SoTiet) AS SoTiet,                COALESCE('Đại học', 'Đại học') as he_dao_tao,  -- Default training program for thesis contracts
+                da.MaPhongBan AS MaKhoaMonHoc,
+                SUM(da.SoTiet) AS SoTiet,
+                COALESCE('Đại học', 'Đại học') as he_dao_tao,
                 da.NamHoc,
                 da.Dot,
+                da.ki,  -- Thêm ki vào SELECT
                 gv.NgayCapCCCD,
                 gv.DiaChi,
                 gv.BangTotNghiep,
@@ -70,20 +71,21 @@ const getDuyetHopDongData = async (req, res) => {
                 100000 AS TienMoiGiang,
                 SUM(da.SoTiet) * 100000 AS ThanhTien,
                 SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,                NULL as SoHopDong,
+                SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
+                NULL as SoHopDong,
                 'Chưa có hợp đồng' as TrangThaiHopDong,
                 pb.TenPhongBan,
-                
-                -- Thông tin trạng thái duyệt cho đồ án
-                1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
-                1 AS TaiChinhDuyet -- Placeholder, sẽ được cập nhật từ bảng doantotnghiep nếu có
+                1 AS DaoTaoDuyet,
+                1 AS TaiChinhDuyet
             FROM (
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     Dot,
                     NamHoc,
+                    ki,  -- Thêm ki vào SELECT
                     TenDeTai,
                     SinhVien,
                     MaSV,
@@ -97,15 +99,18 @@ const getDuyetHopDongData = async (req, res) => {
                     AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
                     AND NamHoc = ?
                     AND Dot = ?
+                    AND ki = ?  -- THÊM điều kiện ki
                 
                 UNION ALL
                 
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                     Dot,
                     NamHoc,
+                    ki,  -- Thêm ki vào SELECT
                     TenDeTai,
                     SinhVien,
                     MaSV,
@@ -117,11 +122,16 @@ const getDuyetHopDongData = async (req, res) => {
                     AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
                     AND NamHoc = ?
                     AND Dot = ?
+                    AND ki = ?  -- THÊM điều kiện ki
             ) da
             JOIN gvmoi gv ON da.GiangVien = gv.HoTen
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
-            WHERE 1=1        `;
-        let params = [namHoc, dot, namHoc, dot];        if (maPhongBan && maPhongBan !== "ALL") {
+            WHERE 1=1
+        `;
+
+        let params = [namHoc, dot, ki, namHoc, dot, ki]; // Cập nhật params để bao gồm ki
+
+        if (maPhongBan && maPhongBan !== "ALL") {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
         }
@@ -129,11 +139,13 @@ const getDuyetHopDongData = async (req, res) => {
         query += `
             GROUP BY
                 gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
-                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, da.NamHoc, 
-                da.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
+                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, da.NamHoc, 
+                da.Dot, da.ki, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac,  -- Thêm da.ki vào GROUP BY
                 gv.BangTotNghiepLoai, gv.MonGiangDayChinh, da.NgayBatDau, da.NgayKetThuc
             ORDER BY SoTiet DESC, gv.HoTen, pb.TenPhongBan
-        `;const [results] = await connection.query(query, params);
+        `;
+        const [results] = await connection.query(query, params);
 
         // Enhanced grouping: Group by teacher and training program to show detailed breakdown
         const groupedByTeacher = results.reduce((acc, current) => {
@@ -282,7 +294,7 @@ const getDuyetHopDongData = async (req, res) => {
         console.error("Error errno:", error.errno);
         console.error("Error sqlState:", error.sqlState);
         console.error("Error sqlMessage:", error.sqlMessage);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi lấy dữ liệu",
@@ -301,7 +313,7 @@ const getDuyetHopDongData = async (req, res) => {
 const approveContracts = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();        const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
+        connection = await createPoolConnection(); const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
 
         if (!dot || !namHoc || !loaiHopDong) {
             return res.status(400).json({
@@ -324,13 +336,13 @@ const approveContracts = async (req, res) => {
 
         // For đồ án, check specific faculty or all faculties
         const facultiesToCheck = [];
-        
+
         if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
             facultiesToCheck.push(maPhongBan);
         } else {
             const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
             facultiesToCheck.push(...faculties.map(f => f.MaPhongBan));
-        }        for (const facultyCode of facultiesToCheck) {
+        } for (const facultyCode of facultiesToCheck) {
             const [check] = await connection.query(`
                 SELECT DaoTaoDuyet FROM doantotnghiep 
                 WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ?
@@ -338,7 +350,7 @@ const approveContracts = async (req, res) => {
 
             // Check if all records in this faculty have DaoTaoDuyet = 1
             const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
-            
+
             if (hasUnapprovedDaoTao) {
                 unapprovedFaculties.push(facultyCode);
             }
@@ -358,7 +370,7 @@ const approveContracts = async (req, res) => {
 
         // Handle specific faculty or all faculties for thesis contracts
         const facultiesToUpdate = [];
-        
+
         if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
             facultiesToUpdate.push(maPhongBan);
         } else {
@@ -373,17 +385,17 @@ const approveContracts = async (req, res) => {
             `, [facultyCode, namHoc, dot]);
 
             const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
-            
+
             if (allDaoTaoApproved && check.length > 0) {
                 const [updateResult] = await connection.query(`
                     UPDATE doantotnghiep 
                     SET TaiChinhDuyet = 1 
                     WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? 
                       AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1                `, [facultyCode, namHoc, dot]);
-                
+
                 affectedRows += updateResult.affectedRows;
             }
-        }        const facultyText = (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL')
+        } const facultyText = (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL')
             ? ` của khoa ${maPhongBan}`
             : ' của tất cả khoa';
 
@@ -437,7 +449,7 @@ const unapproveContracts = async (req, res) => {
 
         // Handle specific faculty or all faculties for thesis contracts
         const facultiesToUpdate = [];
-        
+
         if (maPhongBan && maPhongBan !== '' && maPhongBan !== 'ALL') {
             // Single faculty
             facultiesToUpdate.push(maPhongBan);
@@ -449,7 +461,7 @@ const unapproveContracts = async (req, res) => {
                 WHERE NamHoc = ? AND Dot = ? 
                   AND TaiChinhDuyet = 1
             `, [namHoc, dot]);
-            
+
             facultiesToUpdate.push(...faculties.map(f => f.MaPhongBan));
         }
 
@@ -461,7 +473,7 @@ const unapproveContracts = async (req, res) => {
                 WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? 
                   AND TaiChinhDuyet = 1 AND DaLuu = 0;
             `, [facultyCode, namHoc, dot]);
-            
+
             affectedRows += updateResult.affectedRows;
         }
 
@@ -582,7 +594,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         if (maPhongBan && maPhongBan !== "ALL") {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
-        }        query += `
+        } query += `
             GROUP BY
                 da.NamHoc, da.Dot
             ORDER BY 'Đại học'
@@ -590,7 +602,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
 
         const [results] = await connection.query(query, params);        // Get detailed teacher information for the "Đại học" training program
         const enhancedResults = [];
-        
+
         for (const heDaoTao of results) {
             // Query to get detailed teacher info for all thesis contracts (since we group everything under "Đại học")
             const teacherQuery = `
@@ -661,16 +673,16 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 )
                 WHERE 1=1
             `;
-            
+
             let teacherParams = [namHoc, dot, namHoc, dot, namHoc, dot];
             let teacherQueryWithFilter = teacherQuery;
-            
+
             // Add department filter if specified
             if (maPhongBan && maPhongBan !== "ALL") {
                 teacherQueryWithFilter += " AND da.MaPhongBan = ?";
                 teacherParams.push(maPhongBan);
             }
-            
+
             teacherQueryWithFilter += `
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
@@ -678,9 +690,9 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen
             `;
-            
+
             const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
-            
+
             // Add teacher details to the training program data
             enhancedResults.push({
                 ...heDaoTao,
@@ -691,7 +703,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        res.json({
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0; res.json({
             success: true,
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
@@ -704,7 +716,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         console.error("Error name:", error.name);
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi lấy dữ liệu theo hệ đào tạo",
@@ -722,7 +734,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
  */
 const checkContractSaveStatus = async (req, res) => {
     let connection;
-    try {        connection = await createPoolConnection();
+    try {
+        connection = await createPoolConnection();
 
         const { dot, namHoc, maPhongBan, loaiHopDong } = req.body;
 
@@ -752,15 +765,16 @@ const checkContractSaveStatus = async (req, res) => {
 
         let message;
         let unmetRecords = [];
-        
+
         if (statusData.totalRecords === 0) {
             message = "Không có dữ liệu";
         } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
             // Tất cả bản ghi đều có DaLuu = 1
-            message = "Đã lưu HĐ";        } else {
+            message = "Đã lưu HĐ";
+        } else {
             // Có bản ghi chưa đạt điều kiện - lấy chi tiết
             message = "Chưa lưu HĐ";
-            
+
             let detailQuery = `
                 SELECT 
                     dt.ID,
@@ -788,7 +802,7 @@ const checkContractSaveStatus = async (req, res) => {
 
             const [detailResults] = await connection.query(detailQuery, detailParams);
             unmetRecords = detailResults;
-        }res.json({
+        } res.json({
             success: true,
             message: message,
             data: {
@@ -802,7 +816,7 @@ const checkContractSaveStatus = async (req, res) => {
         console.error("❌ Error in checkContractSaveStatus:");
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi kiểm tra trạng thái lưu hợp đồng",
@@ -906,7 +920,7 @@ const debugCompareQueries = async (req, res) => {
 
         let params1 = [namHoc, dot, ki, namHoc, dot, ki];
         let params2 = [namHoc, dot, ki, namHoc, dot, ki];
-        
+
         if (maPhongBan && maPhongBan !== "ALL") {
             params1.push(maPhongBan);
             params2.push(maPhongBan);
@@ -986,14 +1000,17 @@ const checkContractFinancialApprovalStatus = async (req, res) => {
 
         let message;
         let unmetRecords = [];
-        
+
         if (statusData.totalRecords === 0) {
             message = "Không tìm thấy dữ liệu nào phù hợp với điều kiện lọc";
         } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
             message = `Đã duyệt`;
         } else if (statusData.distinctValues === 1 && statusData.minValue === 0) {
             message = `Chưa duyệt`;
-        } 
+        } else {
+            // Trường hợp có nhiều giá trị distinct (cả 0 và 1)
+            message = `Chưa duyệt`;
+        }
 
         console.log("debug tc duyet do an : " + message);
         res.json({
@@ -1010,7 +1027,7 @@ const checkContractFinancialApprovalStatus = async (req, res) => {
         console.error("❌ Error in checkContractFinancialApprovalStatus:");
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi kiểm tra trạng thái duyệt tài chính hợp đồng",

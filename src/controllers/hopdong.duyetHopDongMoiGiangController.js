@@ -3,7 +3,7 @@ const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
 
 /**
- * Display the contract approval page
+ * Render site
  */
 const getDuyetHopDongPage = (req, res) => {
     try {
@@ -15,142 +15,223 @@ const getDuyetHopDongPage = (req, res) => {
 };
 
 /**
- * Get data for contract approval based on filters with detailed training program breakdown
+ * * Lấy data hợp đồng mời giảng
  */
 const getDuyetHopDongData = async (req, res) => {
     let connection;
     try {
-        connection = await createPoolConnection();        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;        // Validate required parameters
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        connection = await createPoolConnection();
+        const { dot, ki, namHoc, maPhongBan } = req.body;
+
+        // Validate required parameters
+        if (!dot || !ki || !namHoc) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học"
             });
         }
 
-        // Validate loaiHopDong values
-        if (loaiHopDong !== "Mời giảng") {
-            return res.status(400).json({
-                success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'",
-                receivedLoaiHopDong: loaiHopDong
-            });
-        }        let query, params;
-        // Enhanced query to show financial breakdown by training program
         query = `
-    SELECT
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc,
-        gv.id_Gvm,
-        gv.HoTen,
-        gv.GioiTinh,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        qc.Khoa AS MaKhoaMonHoc,
+        WITH DaiHocData AS (
+            SELECT
+                MIN(qc.NgayBatDau) AS NgayBatDau,
+                MAX(qc.NgayKetThuc) AS NgayKetThuc,
+                gv.id_Gvm,
+                gv.HoTen,
+                gv.GioiTinh,
+                gv.NgaySinh,
+                gv.CCCD,
+                gv.NoiCapCCCD,
+                gv.Email,
+                gv.MaSoThue,
+                gv.HocVi,
+                gv.ChucVu,
+                gv.HSL,
+                gv.DienThoai,
+                gv.STK,
+                gv.NganHang,
+                gv.MaPhongBan,
+                qc.Khoa AS MaKhoaMonHoc,
 
-        -- Số tiết đã xử lý theo điều kiện cho từng hệ đào tạo
-        SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) AS SoTiet,
+                -- Cho hệ Đại học: KHÔNG áp dụng logic 0.7
+                SUM(qc.QuyChuan) AS SoTiet,
 
-        qc.he_dao_tao,
-        qc.NamHoc,
-        qc.KiHoc,
-        qc.Dot,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep,
-        gv.NoiCongTac,
-        gv.BangTotNghiepLoai,
-        gv.MonGiangDayChinh,
-        qc.MaHocPhan AS MonHoc,
-        qc.TenLop AS Lop,
-        qc.SoSinhVien AS SiSo,
+                qc.he_dao_tao,
+                qc.NamHoc,
+                qc.KiHoc,
+                qc.Dot,
+                gv.NgayCapCCCD,
+                gv.DiaChi,
+                gv.BangTotNghiep,
+                gv.NoiCongTac,
+                gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+                qc.MaHocPhan AS MonHoc,
+                qc.TenLop AS Lop,
+                qc.SoSinhVien AS SiSo,
 
-        -- Tính tiền theo học vị và hệ đào tạo cho từng chương trình
-        tl.SoTien AS TienMoiGiang,
-        tl.SoTien * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) AS ThanhTien,
+                -- Tính tiền cho hệ Đại học
+                tl.SoTien AS TienMoiGiang,
+                tl.SoTien * SUM(qc.QuyChuan) AS ThanhTien,
+                tl.SoTien * SUM(qc.QuyChuan) * 0.1 AS Thue,
+                tl.SoTien * SUM(qc.QuyChuan) * 0.9 AS ThucNhan,        
+                
+                 pb.TenPhongBan,    -- nhớ thêm cột này
 
-        tl.SoTien * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) * 0.1 AS Thue,
+                -- Thông tin trạng thái duyệt
+                MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+                MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
 
-        tl.SoTien * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) * 0.9 AS ThucNhan,        NULL AS SoHopDong,
-        'Chưa có hợp đồng' AS TrangThaiHopDong,
-        pb.TenPhongBan,
-        
-        -- Thông tin trạng thái duyệt
-        MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-        MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
+            FROM quychuan qc
 
-    FROM 
-        quychuan qc
+            -- JOIN cho hệ Đại học: dùng dấu ' - '
+            JOIN gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
 
-    -- JOIN tên giảng viên với logic xử lý tên từ chuỗi có dấu phẩy
-    JOIN gvmoi gv 
-        ON 
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-            ) = gv.HoTen
+            -- JOIN với bảng tienluong
+            LEFT JOIN tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+            LEFT JOIN phongban pb ON gv.MaPhongBan = pb.MaPhongBan
 
-    -- JOIN với bảng tienluong để lấy mức tiền theo hệ đào tạo và học vị
-    LEFT JOIN tienluong tl 
-        ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+            WHERE
+                qc.MoiGiang = 1 
+                AND qc.NamHoc = ?
+                AND qc.Dot = ?
+                AND qc.KiHoc = ?
+                AND qc.he_dao_tao LIKE '%Đại học%'
+                ${maPhongBan && maPhongBan !== "ALL" ? "AND gv.MaPhongBan = ?" : ""}
 
-    LEFT JOIN phongban pb 
-        ON gv.MaPhongBan = pb.MaPhongBan
-
-    WHERE
-        qc.MoiGiang = 1 
-        AND qc.NamHoc = ?
-        AND qc.Dot = ?
-        AND qc.KiHoc = ?
-`;
-        params = [namHoc, dot, ki];
-
-        if (maPhongBan && maPhongBan !== "ALL") {
-            query += " AND gv.MaPhongBan = ?";
-            params.push(maPhongBan);
-        } query += `
             GROUP BY
                 gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
-                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu,
-                gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, qc.NamHoc, 
-                qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, gv.NoiCongTac, 
-                gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, tl.SoTien, pb.TenPhongBan                ORDER BY SoTiet DESC, gv.HoTen, qc.he_dao_tao
-        `;const [results] = await connection.query(query, params);
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, 
+                gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, 
+                qc.NamHoc, qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, 
+                gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, 
+                tl.SoTien, pb.TenPhongBan
+        ),
+        
+        SauDaiHocData AS (
+            SELECT
+                MIN(qc.NgayBatDau) AS NgayBatDau,
+                MAX(qc.NgayKetThuc) AS NgayKetThuc,
+                gv.id_Gvm,
+                gv.HoTen,
+                gv.GioiTinh,
+                gv.NgaySinh,
+                gv.CCCD,
+                gv.NoiCapCCCD,
+                gv.Email,
+                gv.MaSoThue,
+                gv.HocVi,
+                gv.ChucVu,
+                gv.HSL,
+                gv.DienThoai,
+                gv.STK,
+                gv.NganHang,
+                gv.MaPhongBan,
+                qc.Khoa AS MaKhoaMonHoc,
+
+                -- Cho hệ Sau đại học: CÓ áp dụng logic 0.7
+                SUM(
+                    ROUND(
+                        qc.QuyChuan * CASE 
+                            WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                            ELSE 1 
+                        END, 2
+                    )
+                ) AS SoTiet,
+
+                qc.he_dao_tao,
+                qc.NamHoc,
+                qc.KiHoc,
+                qc.Dot,
+                gv.NgayCapCCCD,
+                gv.DiaChi,
+                gv.BangTotNghiep,
+                gv.NoiCongTac,
+                gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+                qc.MaHocPhan AS MonHoc,
+                qc.TenLop AS Lop,
+                qc.SoSinhVien AS SiSo,
+
+                -- Tính tiền cho hệ Sau đại học
+                tl.SoTien AS TienMoiGiang,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan * CASE 
+                            WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                            ELSE 1 
+                        END, 2
+                    )
+                ) AS ThanhTien,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan * CASE 
+                            WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                            ELSE 1 
+                        END, 2
+                    )
+                ) * 0.1 AS Thue,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan * CASE 
+                            WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
+                            ELSE 1 
+                        END, 2
+                    )
+                ) * 0.9 AS ThucNhan,        
+               
+                pb.TenPhongBan,
+                
+                -- Thông tin trạng thái duyệt
+                MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+                MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
+
+            FROM quychuan qc
+
+            -- JOIN cho hệ Sau đại học: dùng dấu phẩy
+            JOIN gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+
+            -- JOIN với bảng tienluong
+            LEFT JOIN tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+            LEFT JOIN phongban pb ON gv.MaPhongBan = pb.MaPhongBan
+
+            WHERE
+                qc.MoiGiang = 1 
+                AND qc.NamHoc = ?
+                AND qc.Dot = ?
+                AND qc.KiHoc = ?
+                AND qc.he_dao_tao NOT LIKE '%Đại học%'
+                ${maPhongBan && maPhongBan !== "ALL" ? "AND gv.MaPhongBan = ?" : ""}
+
+            GROUP BY
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email, gv.MaSoThue, 
+                gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, 
+                qc.NamHoc, qc.KiHoc, qc.Dot, gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep, 
+                gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh, qc.Khoa, 
+                tl.SoTien, pb.TenPhongBan
+        )
+        
+        -- Kết hợp dữ liệu từ cả hai hệ
+        SELECT * FROM DaiHocData
+        UNION ALL
+        SELECT * FROM SauDaiHocData
+        ORDER BY SoTiet DESC, HoTen, he_dao_tao
+        `;
+
+        // Tạo mảng params
+        params = [namHoc, dot, ki];
+        if (maPhongBan && maPhongBan !== "ALL") {
+            params.push(maPhongBan);
+        }
+
+        // Thêm params cho CTE thứ hai
+        params.push(namHoc, dot, ki);
+        if (maPhongBan && maPhongBan !== "ALL") {
+            params.push(maPhongBan);
+        }
+
+        const [results] = await connection.query(query, params);
 
         // Enhanced grouping: Group by teacher and training program to show detailed breakdown
         const groupedByTeacher = results.reduce((acc, current) => {
@@ -164,6 +245,7 @@ const getDuyetHopDongData = async (req, res) => {
                         NgaySinh: current.NgaySinh,
                         CCCD: current.CCCD,
                         NoiCapCCCD: current.NoiCapCCCD,
+                        NgayCapCCCD: current.NgayCapCCCD,
                         Email: current.Email,
                         MaSoThue: current.MaSoThue,
                         HocVi: current.HocVi,
@@ -173,8 +255,6 @@ const getDuyetHopDongData = async (req, res) => {
                         STK: current.STK,
                         NganHang: current.NganHang,
                         MaPhongBan: current.MaPhongBan,
-                        NoiCapCCCD: current.NoiCapCCCD,
-                        NgayCapCCCD: current.NgayCapCCCD,
                         DiaChi: current.DiaChi,
                         BangTotNghiep: current.BangTotNghiep,
                         NoiCongTac: current.NoiCongTac,
@@ -183,8 +263,6 @@ const getDuyetHopDongData = async (req, res) => {
                         NgayBatDau: current.NgayBatDau,
                         NgayKetThuc: current.NgayKetThuc,
                         TenPhongBan: current.TenPhongBan,
-                        SoHopDong: current.SoHopDong,
-                        TrangThaiHopDong: current.TrangThaiHopDong
                     },
                     trainingPrograms: [],
                     totalFinancials: {
@@ -195,6 +273,7 @@ const getDuyetHopDongData = async (req, res) => {
                     }
                 };
             }
+
             // Add training program data with validation and error handling
             const programData = {
                 he_dao_tao: current.he_dao_tao || 'Không xác định',
@@ -206,7 +285,9 @@ const getDuyetHopDongData = async (req, res) => {
                 MaKhoaMonHoc: current.MaKhoaMonHoc || '',
                 MonHoc: current.MonHoc || '',
                 Lop: current.Lop || '',
-                SiSo: current.SiSo || ''
+                SiSo: current.SiSo || '',
+                DaoTaoDuyet: current.DaoTaoDuyet || 0,
+                TaiChinhDuyet: current.TaiChinhDuyet || 0,
             };
 
             // Validate program data for completeness
@@ -227,7 +308,9 @@ const getDuyetHopDongData = async (req, res) => {
             acc[teacher].totalFinancials.totalThucNhan += programData.ThucNhan;
 
             return acc;
-        }, {});        // Convert to simpler format for frontend compatibility while preserving enhanced data
+        }, {});
+
+        // Convert to simpler format for frontend compatibility while preserving enhanced data
         // First create array of teachers with their total hours for proper sorting
         const teachersWithTotals = Object.keys(groupedByTeacher).map(teacherName => {
             const teacherData = groupedByTeacher[teacherName];
@@ -274,11 +357,12 @@ const getDuyetHopDongData = async (req, res) => {
         const sortedEnhancedGroupedByTeacher = teachersWithTotals.reduce((acc, { teacherName, teacherData }) => {
             acc[teacherName] = teacherData;
             return acc;
-        }, {});        // Get SoTietDinhMuc
+        }, {});
+
+        // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;        // For Mời giảng, SoQD is not applicable
-        let SoQDList = [];
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
 
         // Calculate totals for teacher view
         let totalQC = 0;
@@ -297,7 +381,6 @@ const getDuyetHopDongData = async (req, res) => {
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher: sortedEnhancedGroupedByTeacher, // Send detailed data for enhanced display, properly sorted
             SoTietDinhMuc: SoTietDinhMuc,
-            SoQDList: SoQDList,
             // Include calculated totals for teacher view
             totalsByTeacher: {
                 totalQC: totalQC,
@@ -307,15 +390,11 @@ const getDuyetHopDongData = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("❌ Error in getDuyetHopDongData:");
         console.error("Error name:", error.name);
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        console.error("Error code:", error.code);
-        console.error("Error errno:", error.errno);
-        console.error("Error sqlState:", error.sqlState);
         console.error("Error sqlMessage:", error.sqlMessage);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi lấy dữ liệu",
@@ -364,7 +443,7 @@ const approveContracts = async (req, res) => {
         if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
             // Get all faculties
             const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-            
+
             for (const faculty of faculties) {
                 const [check] = await connection.query(`
                     SELECT DaoTaoDuyet FROM quychuan 
@@ -373,7 +452,7 @@ const approveContracts = async (req, res) => {
 
                 // Check if all records in this faculty have DaoTaoDuyet = 1
                 const hasUnapprovedDaoTao = check.some(record => record.DaoTaoDuyet != 1);
-                  if (hasUnapprovedDaoTao) {
+                if (hasUnapprovedDaoTao) {
                     unapprovedFaculties.push(faculty.MaPhongBan);
                 }
             }
@@ -395,7 +474,7 @@ const approveContracts = async (req, res) => {
         if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
             // Get all faculties and update each that has all DaoTaoDuyet = 1
             const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-            
+
             for (const faculty of faculties) {
                 // Double-check this faculty is fully approved by DaoTao
                 const [check] = await connection.query(`
@@ -404,7 +483,7 @@ const approveContracts = async (req, res) => {
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
-                
+
                 if (allDaoTaoApproved && check.length > 0) {
                     const [updateResult] = await connection.query(`
                         UPDATE quychuan 
@@ -412,15 +491,15 @@ const approveContracts = async (req, res) => {
                         WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
                           AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
-                    
+
                     affectedRows += updateResult.affectedRows;
                 }
             }
-        }        const facultyText = ' của tất cả khoa';
+        } const facultyText = ' của tất cả khoa';
 
         res.json({
             success: true,
-            message: `Đã duyệt thành công ${affectedRows} hợp đồng mời giảng${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
+            message: `Duyệt thành công`,
             affectedRows: affectedRows
         });
 
@@ -477,7 +556,7 @@ const unapproveContracts = async (req, res) => {
         if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
             // Get all faculties and update each that has TaiChinhDuyet = 1
             const [faculties] = await connection.query(`SELECT MaPhongBan FROM phongban`);
-            
+
             for (const faculty of faculties) {
                 const [updateResult] = await connection.query(`
                     UPDATE quychuan 
@@ -485,15 +564,14 @@ const unapproveContracts = async (req, res) => {
                     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0
                       AND TaiChinhDuyet = 1
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
-                
+
                 affectedRows += updateResult.affectedRows;
             }
-        }        const facultyText = ' của tất cả khoa';
+        } const facultyText = ' của tất cả khoa';
 
         res.json({
             success: true,
-            message: `Đã bỏ duyệt thành công ${affectedRows} hợp đồng mời giảng${facultyText} cho đợt ${dot}, kỳ ${ki}, năm học ${namHoc}`,
-            affectedRows: affectedRows
+            message: `Đã bỏ duyệt thành công hợp đồng`,
         });
 
     } catch (error) {
@@ -517,22 +595,15 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
     try {
         connection = await createPoolConnection();
 
-        const { dot, ki, namHoc, maPhongBan, loaiHopDong } = req.body;
+        const { dot, ki, namHoc, maPhongBan } = req.body;
 
         // Validate required parameters
-        if (!dot || !ki || !namHoc || !loaiHopDong) {
+        if (!dot || !ki || !namHoc) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học, Loại hợp đồng"
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học"
             });
         }        // Validate loaiHopDong values
-        if (loaiHopDong !== "Mời giảng") {
-            return res.status(400).json({
-                success: false,
-                message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Mời giảng'",
-                receivedLoaiHopDong: loaiHopDong
-            });
-        }        // Query for "Mời giảng" - group by he_dao_tao from quychuan table
         let query = `
             SELECT
                 MIN(qc.NgayBatDau) AS NgayBatDau,
@@ -583,8 +654,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 ) AS ThucNhan,
 
                 -- Thông tin trạng thái duyệt
-                MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-                MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet,
+                MIN(qc.DaoTaoDuyet) AS DaoTaoDuyet,
+                MIN(qc.TaiChinhDuyet) AS TaiChinhDuyet,
 
                 -- Số lượng giảng viên trong hệ đào tạo này
                 COUNT(DISTINCT 
@@ -634,9 +705,9 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
 
         // Get detailed teacher information for each training program
         const enhancedResults = [];
-          for (const heDaoTao of results) {
+        for (const heDaoTao of results) {
             // Query to get detailed teacher info for this training program
-           let teacherQuery = `
+            let teacherQuery = `
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,          -- ✅ BỔ SUNG
         MAX(qc.NgayKetThuc) AS NgayKetThuc,        -- ✅ BỔ SUNG
@@ -720,12 +791,12 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         AND qc.he_dao_tao = ?
 `;
             const teacherParams = [namHoc, dot, ki, heDaoTao.he_dao_tao];
-            
+
             if (maPhongBan && maPhongBan !== "ALL") {
                 teacherQuery += " AND qc.Khoa = ?";
                 teacherParams.push(maPhongBan);
             }
-            
+
             teacherQuery += `
               GROUP BY
         gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
@@ -735,9 +806,9 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         pb.TenPhongBan, tl.SoTien
     ORDER BY SoTiet DESC, gv.HoTen
             `;
-            
+
             const [teacherDetails] = await connection.query(teacherQuery, teacherParams);
-            
+
             // Add teacher details to the training program data
             enhancedResults.push({
                 ...heDaoTao,
@@ -766,7 +837,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
             SoTietDinhMuc: SoTietDinhMuc,
-            message: `Tải dữ liệu thành công. Tìm thấy ${results.length} hệ đào tạo cho mời giảng`,
+            message: `Tải dữ liệu thành công`,
             // Include calculated totals for training program view
             totalsByHeDaoTao: {
                 totalSoTietHeDaoTao: totalSoTietHeDaoTao,
@@ -781,7 +852,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         console.error("Error name:", error.name);
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi lấy dữ liệu theo hệ đào tạo",
@@ -840,7 +911,7 @@ const checkContractSaveStatus = async (req, res) => {
 
         let message;
         let unmetRecords = [];
-        
+
         if (statusData.totalRecords === 0) {
             message = "Không có dữ liệu";
         } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
@@ -848,7 +919,7 @@ const checkContractSaveStatus = async (req, res) => {
             message = "Đã lưu HĐ";
         } else {            // Có bản ghi chưa đạt điều kiện - lấy chi tiết
             message = "Chưa lưu HĐ";
-            
+
             const detailQuery = `
     SELECT 
         qc.ID,
@@ -879,7 +950,7 @@ const checkContractSaveStatus = async (req, res) => {
 
             const [detailResults] = await connection.query(detailQuery, detailParams);
             unmetRecords = detailResults;
-        }        res.json({
+        } res.json({
             success: true,
             message: message,
             data: {
@@ -893,7 +964,7 @@ const checkContractSaveStatus = async (req, res) => {
         console.error("❌ Error in checkContractSaveStatus:");
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi kiểm tra trạng thái lưu hợp đồng",
@@ -943,7 +1014,7 @@ const checkContractFinanceApprovalStatus = async (req, res) => {
               AND qc.Dot = ? 
               AND qc.KiHoc = ?
               AND qc.MoiGiang = 1`;
-        
+
         const statusParams = [namHoc, dot, ki];
 
         if (maPhongBan && maPhongBan !== "ALL") {
@@ -955,7 +1026,7 @@ const checkContractFinanceApprovalStatus = async (req, res) => {
         const statusData = statusResults[0];
 
         let message;
-        
+
         if (statusData.totalRecords === 0) {
             message = "Chưa duyệt";
         } else if (statusData.distinctValues === 1 && statusData.minValue === 1) {
@@ -965,7 +1036,7 @@ const checkContractFinanceApprovalStatus = async (req, res) => {
             // Có bản ghi chưa đạt điều kiện
             message = "Chưa duyệt";
         }
-        
+
         console.log("debug tc duyet moi giang : " + message);
 
         res.json({
@@ -977,7 +1048,7 @@ const checkContractFinanceApprovalStatus = async (req, res) => {
         console.error("❌ Error in checkContractFinanceApprovalStatus:");
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        
+
         res.status(500).json({
             success: false,
             message: "Đã xảy ra lỗi khi kiểm tra trạng thái duyệt tài chính hợp đồng",

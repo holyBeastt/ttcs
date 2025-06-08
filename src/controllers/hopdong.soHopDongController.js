@@ -26,15 +26,15 @@ const getHopDongList = async (req, res) => {
       SELECT 
         id_Gvm,
         HoTen,
-        SoHopDong,
-        SoThanhLyHopDong,
+        MAX(SoHopDong) as SoHopDong,
+        MAX(SoThanhLyHopDong) as SoThanhLyHopDong,
         Dot,
         KiHoc,
         NamHoc,
         MaPhongBan as Khoa,
         he_dao_tao as HeDaoTao,
-        NgayBatDau,
-        NgayKetThuc
+        MIN(NgayBatDau) as NgayBatDau,
+        MAX(NgayKetThuc) as NgayKetThuc
       FROM hopdonggvmoi 
       WHERE 1=1
     `;
@@ -61,9 +61,11 @@ const getHopDongList = async (req, res) => {
       params.push(heDaoTao);
     }
 
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên để nhóm theo khoa
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
-
+    // GROUP BY theo giảng viên để tránh trùng lặp
+    query += ` 
+      GROUP BY id_Gvm, HoTen, Dot, KiHoc, NamHoc, MaPhongBan, he_dao_tao
+      ORDER BY MaPhongBan, he_dao_tao, HoTen
+    `;
     const [rows] = await connection.execute(query, params);
     res.json({ success: true, data: rows });
   } catch (error) {
@@ -772,7 +774,7 @@ const getDoAnList = async (req, res) => {
   try {
     connection = await createPoolConnection();
     const { dot, ki, nam, khoa } = req.query;
-    
+
     let query = `
 SELECT 
   ed.CCCD,
@@ -823,7 +825,7 @@ GROUP BY
   ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
 ORDER BY gv.MaPhongBan, ed.GiangVien
 `;
-    
+
     const [rows] = await connection.execute(query, params);
 
     // console.log("debug so hop dong do an : " + rows);
