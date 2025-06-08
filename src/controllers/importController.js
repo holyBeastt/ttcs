@@ -1075,8 +1075,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-      0,
+        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+        0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1949,62 +1949,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-          .map(
-            (u) =>
-              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-          )
-          .join(" ")}
+              .map(
+                (u) =>
+                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+              )
+              .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+              .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+              .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+              .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-          .join(" ")}
+              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+              .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayBatDau
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayBatDau
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-          .map((u) =>
-            u.NgayKetThuc
-              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-              : `WHEN ${u.ID} THEN NULL`
-          )
-          .join(" ")}
+              .map((u) =>
+                u.NgayKetThuc
+                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+                  : `WHEN ${u.ID} THEN NULL`
+              )
+              .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-          .map(
-            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-          )
-          .join(" ")}
+              .map(
+                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+              )
+              .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2738,7 +2738,7 @@ const insertGiangDay = async (
             BoMon,
             he_dao_tao,
             isHdChinh,
-            DoiTuong
+            DoiTuong,
           ];
         })
     );
@@ -3168,28 +3168,33 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
 
   // Lưu hệ sau đại học
   const query = `
-    SELECT
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
-        SUM(ROUND(qc.QuyChuan * 0.7, 2)) AS TongSoTiet,
-        MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc
-    FROM
-        quychuan qc
-    JOIN
-        gvmoi ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gvmoi.HoTen
-    WHERE
-        qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.MoiGiang = 1
-        AND (gvmoi.isQuanDoi != 1 or gvmoi.isQuanDoi is null) 
-        AND he_dao_tao not like '%Đại học%'   
-        AND qc.GiaoVienGiangDay LIKE '%,%'
-    GROUP BY
-        qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
+SELECT
+    qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+    gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+    gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+    gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
+    SUM(
+        ROUND(
+            CASE 
+                WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN qc.QuyChuan * 0.7
+                ELSE qc.QuyChuan * 1
+            END, 2)
+    ) AS TongSoTiet,
+    MIN(qc.NgayBatDau) AS NgayBatDau,
+    MAX(qc.NgayKetThuc) AS NgayKetThuc
+FROM
+    quychuan qc
+JOIN
+    gvmoi ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gvmoi.HoTen
+WHERE
+    qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.MoiGiang = 1
+    AND (gvmoi.isQuanDoi != 1 OR gvmoi.isQuanDoi IS NULL) 
+    AND he_dao_tao NOT LIKE '%Đại học%'   
+GROUP BY
+    qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
+    gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
+    gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
+    gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
 `;
 
   const value = [dot, ki, namHoc];
