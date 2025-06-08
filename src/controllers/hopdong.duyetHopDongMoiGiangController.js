@@ -447,7 +447,7 @@ const approveContracts = async (req, res) => {
             for (const faculty of faculties) {
                 const [check] = await connection.query(`
                     SELECT DaoTaoDuyet FROM quychuan 
-                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0 
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 // Check if all records in this faculty have DaoTaoDuyet = 1
@@ -479,7 +479,7 @@ const approveContracts = async (req, res) => {
                 // Double-check this faculty is fully approved by DaoTao
                 const [check] = await connection.query(`
                     SELECT DaoTaoDuyet FROM quychuan 
-                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0 
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 const allDaoTaoApproved = check.every(record => record.DaoTaoDuyet == 1);
@@ -489,7 +489,7 @@ const approveContracts = async (req, res) => {
                         UPDATE quychuan 
                         SET TaiChinhDuyet = 1 
                         WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
-                          AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
+                          AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1 AND DaLuu = 0
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                     affectedRows += updateResult.affectedRows;
@@ -562,7 +562,7 @@ const unapproveContracts = async (req, res) => {
                     UPDATE quychuan 
                     SET TaiChinhDuyet = 0 
                     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0
-                      AND TaiChinhDuyet = 1
+                      AND TaiChinhDuyet = 1 AND DaLuu = 0 
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 affectedRows += updateResult.affectedRows;

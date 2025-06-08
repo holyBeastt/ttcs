@@ -24,7 +24,4 @@ router.post('/api/unapprove-contracts-do-an', duyetHopDongController.unapproveCo
 // API route for checking contract save status
 router.post('/api/check-contract-save-status-do-an', duyetHopDongController.checkContractSaveStatus);
 
-// API route for checking contract financial approval status
-router.post('/api/check-contract-financial-approval-status-do-an', duyetHopDongController.checkContractFinancialApprovalStatus);
-
 module.exports = router;
