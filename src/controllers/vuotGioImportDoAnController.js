@@ -905,6 +905,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
   const MaPhongBan = req.query.MaPhongBan;
   const Dot = req.query.Dot;
   const Ki = req.query.Ki;
+  const he_dao_tao = req.query.he_dao_tao;
   const data = req.body;
   const defaultDate = "2000-01-01"; // hoặc ngày nào bạn muốn làm mặc định
 
@@ -975,13 +976,14 @@ const saveToTableDoantotnghiep = async (req, res) => {
         Dot,
         Ki,
         DoiTuong,
+        he_dao_tao,
       ];
     });
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
     GiangVien1, GiangVien2, NamHoc, NgayBatDau, NgayKetThuc, MaPhongBan, SoQD, KhoaDuyet, DaoTaoDuyet, 
-    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong)
+    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong, he_dao_tao)
     VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
