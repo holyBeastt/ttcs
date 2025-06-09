@@ -63,7 +63,6 @@
     <div class="container-fluid my-4" style="padding-left: 20px">
       <div class="flex-grow-1">
 
-        <!-- Filter Section -->
         <div class="header-actions">
           <div class="right" style="margin-top: 0px">
             <div class="loc d-flex align-items-center">
@@ -96,347 +95,344 @@
               </button>
             </div>
           </div>
-        </div> <!-- Unified Contract & Termination Numbers Summary Section -->
-        <div class="content-section mt-4">
-          <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">
-                <i class="fas fa-chart-bar me-2"></i>Tổng hợp số hợp đồng và số thanh lý hợp đồng
-              </h5>
-              <div> <button type="button" class="btn btn-primary btn-sm" onclick="handleContractOperation('summary')">
-                  <i class="fas fa-sync me-2"></i>Xem tổng hợp
-                </button>
-              </div>
-            </div>
-            <div class="card-body">
-              <!-- Unified Summary Table -->
-              <div id="unifiedSummaryDiv" style="display: none;">
-                <!-- <div class="alert alert-info mb-3">
-                  <i class="fas fa-info-circle me-2"></i>
-                  <strong>Lưu ý:</strong> Dữ liệu được sắp xếp theo khoa và hệ đào tạo để đảm bảo số tăng dần đúng thứ tự.
-                </div> -->
-                <div class="table-responsive">
-                  <table class="table table-striped table-hover table-sm" id="unifiedSummaryTable">
-                    <thead class="table-dark">
-                      <tr>
-                        <th>STT</th>
-                        <th>Khoa</th>
-                        <th>Hệ đào tạo</th>
-                        <th>Phạm vi</th>
-                        <th>Số hợp đồng đầu tiên</th>
-                        <th>Số hợp đồng cuối cùng</th>
-                        <th>Số thanh lý đầu tiên</th>
-                        <th>Số thanh lý cuối cùng</th>
-                      </tr>
-                    </thead>
-                    <tbody id="unifiedSummaryTableBody">
-                    </tbody>
-                  </table>
+          <!-- <div class="content-section mt-4">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                  <i class="fas fa-chart-bar me-2"></i>Tổng hợp số hợp đồng và số thanh lý hợp đồng
+                </h5>
+                <div> <button type="button" class="btn btn-primary btn-sm" onclick="handleContractOperation('summary')">
+                    <i class="fas fa-sync me-2"></i>Xem tổng hợp
+                  </button>
                 </div>
               </div>
+              <div class="card-body">
+                <div id="unifiedSummaryDiv" style="display: none;">
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover table-sm" id="unifiedSummaryTable">
+                      <thead class="table-dark">
+                        <tr>
+                          <th>STT</th>
+                          <th>Khoa</th>
+                          <th>Hệ đào tạo</th>
+                          <th>Phạm vi</th>
+                          <th>Số hợp đồng đầu tiên</th>
+                          <th>Số hợp đồng cuối cùng</th>
+                          <th>Số thanh lý đầu tiên</th>
+                          <th>Số thanh lý cuối cùng</th>
+                        </tr>
+                      </thead>
+                      <tbody id="unifiedSummaryTableBody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-              <!-- No summary data message -->
-              <div id="noSummaryMessage" class="text-center py-4" style="display: block;">
-                <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Nhấn nút "Xem tổng hợp" để xem thống kê số hợp đồng và thanh lý theo khoa và hệ
-                  đào tạo</h5>
+                <div id="noSummaryMessage" class="text-center py-4" style="display: block;">
+                  <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">Nhấn nút "Xem tổng hợp" để xem thống kê số hợp đồng và thanh lý theo khoa và hệ
+                    đào tạo</h5>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </div> -->
 
-        <!-- Unified Setup Section -->
-        <div class="content-section mt-4" id="setupOptions">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="fas fa-cog me-2"></i>Tạo số hợp đồng và số thanh lý hợp đồng
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- Instruction message -->
-              <div id="setupInstruction" class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Hướng dẫn:</strong> Vui lòng chọn điều kiện lọc (Đợt, Kì, Năm) ở phần trên và nhấn "Hiển thị" để
-                xem danh sách hợp đồng trước khi tạo.
-              </div> <!-- Setup Information --> <!-- Contract Type Status Indicator -->
-              <div class="row mb-3">
-                <div class="col-12">
-                  <div class="alert" id="contractTypeAlert">
-                    <div class="d-flex align-items-center">
-                      <i id="contractTypeIcon" class="fas fa-file-contract fa-lg me-3"></i>
-                      <div>
-                        <h6 class="mb-0 fw-bold" id="contractTypeTitle">Loại hợp đồng:</h6>
-                        <span class="text-muted" id="contractTypeDescription">
-                          Chọn loại hợp đồng trong danh sách trên để quản lý số hợp đồng
-                        </span>
+          <!-- Unified Setup Section -->
+          <div class="content-section mt-4" id="setupOptions">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-cog me-2"></i>Tạo số hợp đồng và số thanh lý hợp đồng
+                </h5>
+              </div>
+              <div class="card-body">
+                <!-- Instruction message -->
+                <div id="setupInstruction" class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <strong>Hướng dẫn:</strong> Vui lòng chọn điều kiện lọc (Đợt, Kì, Năm) ở phần trên và nhấn "Hiển thị"
+                  để
+                  xem danh sách hợp đồng trước khi tạo.
+                </div> <!-- Setup Information --> <!-- Contract Type Status Indicator -->
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <div class="alert" id="contractTypeAlert">
+                      <div class="d-flex align-items-center">
+                        <i id="contractTypeIcon" class="fas fa-file-contract fa-lg me-3"></i>
+                        <div>
+                          <h6 class="mb-0 fw-bold" id="contractTypeTitle">Loại hợp đồng:</h6>
+                          <span class="text-muted" id="contractTypeDescription">
+                            Chọn loại hợp đồng trong danh sách trên để quản lý số hợp đồng
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="row mb-3">
-                <div class="col-12">
-                  <div class="alert alert-success">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="d-flex align-items-center">
-                          <i class="fas fa-file-contract text-primary me-2"></i>
-                          <span><strong>Số hợp đồng (ví dụ):</strong> <span id="contractPreview">001/HĐ-ĐT</span></span>
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <div class="alert alert-success">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center">
+                            <i class="fas fa-file-contract text-primary me-2"></i>
+                            <span><strong>Số hợp đồng (ví dụ):</strong> <span
+                                id="contractPreview">001/HĐ-ĐT</span></span>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center"> <i class="fas fa-file-times text-info me-2"></i>
+                            <span><strong>Số thanh lý tương ứng:</strong> <span
+                                id="terminationPreview">001/TLHĐ-ĐT</span></span>
+                          </div>
                         </div>
                       </div>
-                      <div class="col-md-6">
-                        <div class="d-flex align-items-center"> <i class="fas fa-file-times text-info me-2"></i>
-                          <span><strong>Số thanh lý tương ứng:</strong> <span
-                              id="terminationPreview">001/TLHĐ-ĐT</span></span>
+                      <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        Mỗi hợp đồng sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số hợp đồng và số thanh lý
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <!-- <input class="form-check-input" type="radio" name="setupMode" id="mode1" value="toan_bo" checked> -->
+                      <!-- <label class="form-check-label" for="mode1">
+                    <strong>Tự động tăng cho toàn bộ</strong>
+                    <small class="text-muted d-block">Tăng dần từ số bắt đầu cho tất cả hợp đồng trong điều kiện đã chọn</small>
+                  </label> -->
+                    </div> <!-- Starting number input -->
+                    <div id="unifiedStartingNumberDiv" class="mt-3">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label for="unifiedStartingNumber" class="form-label">
+                            <strong>Số bắt đầu</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="number" class="form-control" id="unifiedStartingNumber"
+                            name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
+                            oninput="updateNumberPreview()">
+                          <small class="text-muted">Số này sẽ được sử dụng làm chỉ số chung cho cả số hợp đồng và số
+                            thanh
+                            lý</small>
+                        </div>
+                        <div class="col-md-6">
+                          <!-- <label class="form-label">
+                        <strong>Ví dụ định dạng số</strong>
+                      </label> -->
+                          <div class="p-3 bg-light border rounded">
+                            <div class="mb-2">
+                              <strong>Hợp đồng:</strong> <span id="contractExample"
+                                class="text-primary">001/HĐ-ĐT</span>
+                            </div>
+                            <div>
+                              <strong>Thanh lý:</strong> <span id="terminationExample"
+                                class="text-info">001/TLHĐ-ĐT</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- Unified action buttons that adapt based on contract type -->
+                    <div class="d-flex gap-2 mt-4" id="unifiedContractButtons">
+                      <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
+                        onclick="handleContractOperation('previewContract')">
+                        <i class="fas fa-eye"></i> Xem trước khi tạo
+                      </button>
+                      <button type="button" class="btn btn-success" id="executeContractBtn"
+                        onclick="handleContractOperation('executeContract')">
+                        <i class="fas fa-play"></i> Tạo
+                      </button>
+                    </div>
+
                     <small class="text-muted mt-2 d-block">
-                      <i class="fas fa-arrow-right me-1"></i>
-                      Mỗi hợp đồng sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số hợp đồng và số thanh lý
+                      <i class="fas fa-info-circle me-1"></i>
+                      Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng
                     </small>
                   </div>
                 </div>
               </div>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-check">
-                    <!-- <input class="form-check-input" type="radio" name="setupMode" id="mode1" value="toan_bo" checked> -->
-                    <!-- <label class="form-check-label" for="mode1">
-                    <strong>Tự động tăng cho toàn bộ</strong>
-                    <small class="text-muted d-block">Tăng dần từ số bắt đầu cho tất cả hợp đồng trong điều kiện đã chọn</small>
-                  </label> -->
-                  </div> <!-- Starting number input -->
-                  <div id="unifiedStartingNumberDiv" class="mt-3">
-                    <div class="row">
-                      <div class="col-md-6">
-                        <label for="unifiedStartingNumber" class="form-label">
-                          <strong>Số bắt đầu</strong>
-                          <span class="text-danger">*</span>
-                        </label>
-                        <input type="number" class="form-control" id="unifiedStartingNumber"
-                          name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
-                          oninput="updateNumberPreview()">
-                        <small class="text-muted">Số này sẽ được sử dụng làm chỉ số chung cho cả số hợp đồng và số thanh
-                          lý</small>
-                      </div>
-                      <div class="col-md-6">
-                        <!-- <label class="form-label">
-                        <strong>Ví dụ định dạng số</strong>
-                      </label> -->
-                        <div class="p-3 bg-light border rounded">
-                          <div class="mb-2">
-                            <strong>Hợp đồng:</strong> <span id="contractExample" class="text-primary">001/HĐ-ĐT</span>
-                          </div>
-                          <div>
-                            <strong>Thanh lý:</strong> <span id="terminationExample"
-                              class="text-info">001/TLHĐ-ĐT</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <!-- Unified action buttons that adapt based on contract type -->
-                  <div class="d-flex gap-2 mt-4" id="unifiedContractButtons">
-                    <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
-                      onclick="handleContractOperation('previewContract')">
-                      <i class="fas fa-eye"></i> Xem trước khi tạo
-                    </button>
-                    <button type="button" class="btn btn-success" id="executeContractBtn"
-                      onclick="handleContractOperation('executeContract')">
-                      <i class="fas fa-play"></i> Tạo
-                    </button>
-                  </div>
-
-                  <small class="text-muted mt-2 d-block">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng
-                  </small>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Main content area -->
-        <div class="content-section mt-4">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- Results Table -->
-              <div id="resultsDiv" style="display: none;">
-                <div class="table-responsive">
-                  <table class="table table-striped table-hover" id="contractsTable">
-                    <thead class="table-dark">
-                      <tr>
-                        <th>STT</th>
-                        <th>Họ tên giảng viên</th>
-                        <th>Khoa - Hệ đào tạo</th>
-                        <th>Số HĐ hiện tại</th>
-                        <th>Số TL hiện tại</th>
-                        <th>Số HĐ mới</th>
-                        <th>Số TL mới</th>
-                      </tr>
-                    </thead>
-                    <tbody id="contractsTableBody">
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- No data message -->
-              <div id="noDataMessage" class="text-center py-4" style="display: block;">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Vui lòng chọn điều kiện lọc và nhấn "Hiển thị" để hiển thị danh sách hợp đồng
+          <!-- Main content area -->
+          <div class="content-section mt-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng
                 </h5>
               </div>
-
-              <!-- Loading spinner -->
-              <div id="loadingSpinner" class="text-center py-4" style="display: none;">
-                <div class="spinner-border" role="status">
-                  <span class="visually-hidden">Loading...</span>
+              <div class="card-body">
+                <!-- Results Table -->
+                <div id="resultsDiv" style="display: none;">
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="contractsTable">
+                      <thead class="table-dark">
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ tên giảng viên</th>
+                          <th>Khoa - Hệ đào tạo</th>
+                          <th>Số HĐ hiện tại</th>
+                          <th>Số TL hiện tại</th>
+                          <th>Số HĐ mới</th>
+                          <th>Số TL mới</th>
+                        </tr>
+                      </thead>
+                      <tbody id="contractsTableBody">
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <p class="mt-2">Đang tải dữ liệu...</p>
+
+                <!-- No data message -->
+                <div id="noDataMessage" class="text-center py-4" style="display: block;">
+                  <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">Vui lòng chọn điều kiện lọc và nhấn "Hiển thị" để hiển thị danh sách hợp đồng
+                  </h5>
+                </div>
+
+                <!-- Loading spinner -->
+                <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2">Đang tải dữ liệu...</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Success/Error Messages -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-success text-white">
-          <strong class="me-auto">Thành công</strong>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+      <!-- Success/Error Messages -->
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header bg-success text-white">
+            <strong class="me-auto">Thành công</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body" id="successMessage"></div>
         </div>
-        <div class="toast-body" id="successMessage"></div>
+
+        <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header bg-danger text-white">
+            <strong class="me-auto">Lỗi</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body" id="errorMessage"></div>
+        </div>
       </div>
 
-      <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-danger text-white">
-          <strong class="me-auto">Lỗi</strong>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body" id="errorMessage"></div>
-      </div>
-    </div>
+      <!-- link cá site -->
+      <script src="/js/moigiang/href.js"></script>
+      <!-- năm học, khoa -->
+      <script src="/js/moigiang/getdata.js"></script>
+      <!-- ẩn các nút theo role -->
+      <script src="/js/moigiang/hideBtn.js"></script> <!-- Contract numbers specific script -->
+      <script>
+        // Hide separate input fields on page load since we're using unified interface
+        $(document).ready(function () {
+          $('#startingNumberDiv').hide();
+          $('#terminationStartingNumberDiv').hide();
 
-    <!-- link cá site -->
-    <script src="/js/moigiang/href.js"></script>
-    <!-- năm học, khoa -->
-    <script src="/js/moigiang/getdata.js"></script>
-    <!-- ẩn các nút theo role -->
-    <script src="/js/moigiang/hideBtn.js"></script> <!-- Contract numbers specific script -->
-    <script>
-      // Hide separate input fields on page load since we're using unified interface
-      $(document).ready(function () {
-        $('#startingNumberDiv').hide();
-        $('#terminationStartingNumberDiv').hide();
+          // Initialize the interface
+          updateNumberPreview();
+        });
 
-        // Initialize the interface
-        updateNumberPreview();
-      });
+        // Update the number format preview for both contract and termination
+        function updateNumberPreview() {
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const contractNumber = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
+          const terminationNumber = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
 
-      // Update the number format preview for both contract and termination
-      function updateNumberPreview() {
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
-        const contractNumber = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
-        const terminationNumber = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
+          // Update preview examples
+          $('#contractExample').text(contractNumber);
+          $('#terminationExample').text(terminationNumber);
 
-        // Update preview examples
-        $('#contractExample').text(contractNumber);
-        $('#terminationExample').text(terminationNumber);
-
-        // Update alert preview
-        $('#contractPreview').text(contractNumber);
-        $('#terminationPreview').text(terminationNumber);
-      }
-
-      // Synchronized setup functions for both contract and termination numbers
-      function previewSynchronizedSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
-
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
-          return;
+          // Update alert preview
+          $('#contractPreview').text(contractNumber);
+          $('#terminationPreview').text(terminationNumber);
         }
 
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+        // Synchronized setup functions for both contract and termination numbers
+        function previewSynchronizedSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
 
-        if (!startingNumber || startingNumber < 1) {
-          showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
-          return;
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
+            return;
+          }
+
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
+
+          showLoading(true);
+          showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
+
+          const data = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val(),
+            mode: 'toan_bo',
+            startingNumber: startingNumber
+          };
+
+          // Call synchronized preview endpoint
+          $.post('/api/preview-synchronized-setup', data)
+            .done(function (response) {
+              if (response.success) {
+                displaySynchronizedPreviewResults(response.data);
+                showSuccess('Xem trước đồng bộ thành công. Kiểm tra kết quả bên dưới.');
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi xem trước đồng bộ');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
         }
 
-        showLoading(true);
-        showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
+        function executeSynchronizedSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
 
-        const data = {
-          dot: dot,
-          ki: ki,
-          nam: nam,
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val(),
-          mode: 'toan_bo',
-          startingNumber: startingNumber
-        };
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi thực hiện cài đặt');
+            return;
+          }
 
-        // Call synchronized preview endpoint
-        $.post('/api/preview-synchronized-setup', data)
-          .done(function (response) {
-            if (response.success) {
-              displaySynchronizedPreviewResults(response.data);
-              showSuccess('Xem trước đồng bộ thành công. Kiểm tra kết quả bên dưới.');
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi xem trước đồng bộ');
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
 
-      function executeSynchronizedSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
 
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi thực hiện cài đặt');
-          return;
-        }
+          // Enhanced confirmation dialog
+          const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
+          const terminationExample = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
 
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
-
-        if (!startingNumber || startingNumber < 1) {
-          showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
-          return;
-        }
-
-        // Enhanced confirmation dialog
-        const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
-        const terminationExample = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
-
-        Swal.fire({
-          title: 'Xác nhận tạo số hợp đồng và số thanh lý',
-          html: `<div class="text-start">
+          Swal.fire({
+            title: 'Xác nhận tạo số hợp đồng và số thanh lý',
+            html: `<div class="text-start">
                  <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
                  <div class="row mt-3">
                    <div class="col-6">
@@ -450,40 +446,40 @@
                    </div>
                  </div>
                </div>`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#0d6efd',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Thực hiện đồng bộ',
-          cancelButtonText: 'Hủy bỏ',
-          width: '500px'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            performSynchronizedSetup();
-          }
-        });
-      }
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Thực hiện đồng bộ',
+            cancelButtonText: 'Hủy bỏ',
+            width: '500px'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              performSynchronizedSetup();
+            }
+          });
+        }
 
-      // Perform the actual synchronized setup
-      function performSynchronizedSetup() {
-        showLoading(true);
+        // Perform the actual synchronized setup
+        function performSynchronizedSetup() {
+          showLoading(true);
 
-        const data = {
-          dot: $('#combobox-dot').val(),
-          ki: $('#comboboxki').val(),
-          nam: $('#NamHoc').val(),
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val(),
-          startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1
-        };
+          const data = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val(),
+            startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1
+          };
 
-        $.post('/api/setup-synchronized-numbers', data)
-          .done(function (response) {
-            if (response.success) {
-              Swal.fire({
-                title: 'Thành công!',
-                html: `<div class="text-start">
+          $.post('/api/setup-synchronized-numbers', data)
+            .done(function (response) {
+              if (response.success) {
+                Swal.fire({
+                  title: 'Thành công!',
+                  html: `<div class="text-start">
                        <p>Đã cài đặt đồng bộ thành công cho <strong>${response.updatedCount}</strong> hợp đồng</p>
                        <div class="row mt-3">
                          <div class="col-6">
@@ -499,71 +495,71 @@
                          </div>
                        </div>
                      </div>`,
-                icon: 'success',
-                confirmButtonText: 'OK'
-              }).then(() => {              // Reload contracts to show updated numbers
-                loadContracts();
-                // Also reload summary if it was displayed
-                if ($('#unifiedSummaryDiv').is(':visible')) {
-                  loadUnifiedSummary();
-                }
-              });
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi cài đặt đồng bộ');
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }      // Display synchronized preview results
-      function displaySynchronizedPreviewResults(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty();
+                  icon: 'success',
+                  confirmButtonText: 'OK'
+                }).then(() => {              // Reload contracts to show updated numbers
+                  loadContracts();
+                  // Also reload summary if it was displayed
+                  if ($('#unifiedSummaryDiv').is(':visible')) {
+                    loadUnifiedSummary();
+                  }
+                });
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi cài đặt đồng bộ');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }      // Display synchronized preview results
+        function displaySynchronizedPreviewResults(contracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
 
-        if (contracts.length === 0) {
-          tbody.append(`
+          if (contracts.length === 0) {
+            tbody.append(`
             <tr>
               <td colspan="7" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
               </td>
             </tr>
           `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty and education system for better display
-        let currentGroup = '';
-        let groupRowSpan = 0;
-
-        contracts.forEach((contract, index) => {
-          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+            $('#resultsDiv').show();
+            return;
           }
+          
+          // Group contracts by faculty and education system for better display
+          let currentGroup = '';
+          let groupRowSpan = 0;
 
-          // Old numbers: Current database values
-          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          contracts.forEach((contract, index) => {
+            const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+            const isNewGroup = groupInfo !== currentGroup;
 
-          // New numbers: Preview values with highlight
-          const newContractNumber = contract.newSoHopDong
-            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
+            if (isNewGroup) {
+              currentGroup = groupInfo;
+              // Count how many contracts in this group
+              groupRowSpan = contracts.filter((c, i) => i >= index &&
+                (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+            }
 
-          const newTerminationNumber = contract.newSoThanhLy
-            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
+            // Old numbers: Current database values
+            const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
 
-          tbody.append(`
+            // New numbers: Preview values with highlight
+            const newContractNumber = contract.newSoHopDong
+              ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+
+            const newTerminationNumber = contract.newSoThanhLy
+              ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+
+            tbody.append(`
             <tr ${isNewGroup ? 'class="table-warning"' : ''}>
               <td>${index + 1}</td>
               <td>${contract.HoTen || ''}</td>
@@ -574,152 +570,152 @@
               <td>${newTerminationNumber}</td>
             </tr>
           `);
-        });
-        $('#resultsDiv').show();
-      }
-
-      // Handle number type change (legacy function kept for compatibility)
-      function onNumberTypeChange() {
-        const selectedType = $('input[name="numberType"]:checked').val();
-        const selectedText = selectedType === 'contract' ? 'Số hợp đồng (001/HĐ-ĐT)' : 'Số thanh lý (001/TLHĐ-ĐT)';
-
-        // Update selection indicator
-        $('#selectedTypeText').text(selectedText);
-
-        // Update button colors based on selection
-        const previewBtn = $('#previewBtn');
-        const executeBtn = $('#executeBtn');
-
-        if (selectedType === 'contract') {
-          $('#numberTypeSelection').removeClass('alert-warning').addClass('alert-info');
-          previewBtn.removeClass('btn-outline-warning').addClass('btn-outline-primary');
-          executeBtn.removeClass('btn-warning').addClass('btn-success');
-          previewBtn.html('<i class="fas fa-eye"></i> Xem trước hợp đồng');
-          executeBtn.html('<i class="fas fa-play"></i> Thực hiện hợp đồng');
-        } else if (selectedType === 'termination') {
-          $('#numberTypeSelection').removeClass('alert-info').addClass('alert-warning');
-          previewBtn.removeClass('btn-outline-primary').addClass('btn-outline-warning');
-          executeBtn.removeClass('btn-success').addClass('btn-warning');
-          previewBtn.html('<i class="fas fa-eye"></i> Xem trước thanh lý');
-          executeBtn.html('<i class="fas fa-play"></i> Thực hiện thanh lý');
-        }
-
-        // Store the selection persistently (optional: could save to localStorage)
-        sessionStorage.setItem('selectedNumberType', selectedType);
-
-        // Update number preview
-        updateNumberPreview();
-      }
-
-      // Update the number format preview
-      function updateNumberPreview() {
-        const selectedType = getCurrentNumberType();
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
-        const suffix = selectedType === 'contract' ? '/HĐ-ĐT' : '/TLHĐ-ĐT';
-        const formattedNumber = String(startingNumber).padStart(3, '0') + suffix;
-
-        $('#previewFormat').text(formattedNumber);
-        // Update preview background color based on type
-        const previewDiv = $('#numberPreview');
-        if (selectedType === 'contract') {
-          previewDiv.removeClass('bg-info-subtle').addClass('bg-primary-subtle');
-          $('#previewFormat').removeClass('text-info').addClass('text-primary');
-        } else {
-          previewDiv.removeClass('bg-primary-subtle').addClass('bg-info-subtle');
-          $('#previewFormat').removeClass('text-primary').addClass('text-info');
-        }
-      }
-
-      // Get the current selected number type (with fallback to stored selection)
-      function getCurrentNumberType() {
-        let selectedType = $('input[name="numberType"]:checked').val();
-        if (!selectedType) {
-          selectedType = sessionStorage.getItem('selectedNumberType') || 'contract';
-          $(`input[name="numberType"][value="${selectedType}"]`).prop('checked', true);
-          onNumberTypeChange();
-        }
-        return selectedType;
-      }
-
-      // Load contracts based on filter criteria
-      function loadContracts() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
-
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm');
-          return;
-        }
-
-        showLoading(true);
-        $('#noDataMessage').hide();
-        $('#resultsDiv').hide();
-
-        const params = {
-          dot: dot,
-          ki: ki,
-          nam: nam,
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val()
-        }; $.get('/api/hopdong-list', params)
-          .done(function (response) {
-            if (response.success) {
-              displayContracts(response.data);
-              $('#setupInstruction').hide();
-              $('#terminationSetupInstruction').hide();
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi tải danh sách hợp đồng');
-              $('#noDataMessage').show();
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-            $('#noDataMessage').show();
-          })
-          .always(function () {
-            showLoading(false);
           });
-      }      // Display contracts in table
-      function displayContracts(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty(); if (contracts.length === 0) {
-          tbody.append(`
+          $('#resultsDiv').show();
+        }
+
+        // Handle number type change (legacy function kept for compatibility)
+        function onNumberTypeChange() {
+          const selectedType = $('input[name="numberType"]:checked').val();
+          const selectedText = selectedType === 'contract' ? 'Số hợp đồng (001/HĐ-ĐT)' : 'Số thanh lý (001/TLHĐ-ĐT)';
+
+          // Update selection indicator
+          $('#selectedTypeText').text(selectedText);
+
+          // Update button colors based on selection
+          const previewBtn = $('#previewBtn');
+          const executeBtn = $('#executeBtn');
+
+          if (selectedType === 'contract') {
+            $('#numberTypeSelection').removeClass('alert-warning').addClass('alert-info');
+            previewBtn.removeClass('btn-outline-warning').addClass('btn-outline-primary');
+            executeBtn.removeClass('btn-warning').addClass('btn-success');
+            previewBtn.html('<i class="fas fa-eye"></i> Xem trước hợp đồng');
+            executeBtn.html('<i class="fas fa-play"></i> Thực hiện hợp đồng');
+          } else if (selectedType === 'termination') {
+            $('#numberTypeSelection').removeClass('alert-info').addClass('alert-warning');
+            previewBtn.removeClass('btn-outline-primary').addClass('btn-outline-warning');
+            executeBtn.removeClass('btn-success').addClass('btn-warning');
+            previewBtn.html('<i class="fas fa-eye"></i> Xem trước thanh lý');
+            executeBtn.html('<i class="fas fa-play"></i> Thực hiện thanh lý');
+          }
+
+          // Store the selection persistently (optional: could save to localStorage)
+          sessionStorage.setItem('selectedNumberType', selectedType);
+
+          // Update number preview
+          updateNumberPreview();
+        }
+
+        // Update the number format preview
+        function updateNumberPreview() {
+          const selectedType = getCurrentNumberType();
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const suffix = selectedType === 'contract' ? '/HĐ-ĐT' : '/TLHĐ-ĐT';
+          const formattedNumber = String(startingNumber).padStart(3, '0') + suffix;
+
+          $('#previewFormat').text(formattedNumber);
+          // Update preview background color based on type
+          const previewDiv = $('#numberPreview');
+          if (selectedType === 'contract') {
+            previewDiv.removeClass('bg-info-subtle').addClass('bg-primary-subtle');
+            $('#previewFormat').removeClass('text-info').addClass('text-primary');
+          } else {
+            previewDiv.removeClass('bg-primary-subtle').addClass('bg-info-subtle');
+            $('#previewFormat').removeClass('text-primary').addClass('text-info');
+          }
+        }
+
+        // Get the current selected number type (with fallback to stored selection)
+        function getCurrentNumberType() {
+          let selectedType = $('input[name="numberType"]:checked').val();
+          if (!selectedType) {
+            selectedType = sessionStorage.getItem('selectedNumberType') || 'contract';
+            $(`input[name="numberType"][value="${selectedType}"]`).prop('checked', true);
+            onNumberTypeChange();
+          }
+          return selectedType;
+        }
+
+        // Load contracts based on filter criteria
+        function loadContracts() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm');
+            return;
+          }
+
+          showLoading(true);
+          $('#noDataMessage').hide();
+          $('#resultsDiv').hide();
+
+          const params = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val()
+          }; $.get('/api/hopdong-list', params)
+            .done(function (response) {
+              if (response.success) {
+                displayContracts(response.data);
+                $('#setupInstruction').hide();
+                $('#terminationSetupInstruction').hide();
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải danh sách hợp đồng');
+                $('#noDataMessage').show();
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+              $('#noDataMessage').show();
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }      // Display contracts in table
+        function displayContracts(contracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty(); if (contracts.length === 0) {
+            tbody.append(`
             <tr>
               <td colspan="7" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
               </td>
             </tr>
           `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty and education system for better display
-        let currentGroup = '';
-        let groupRowSpan = 0;
-
-        contracts.forEach((contract, index) => {
-          const groupInfo = `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}` === groupInfo).length;
+            $('#resultsDiv').show();
+            return;
           }
 
-          // Current contract numbers from database (old numbers)
-          const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          // Group contracts by faculty and education system for better display
+          let currentGroup = '';
+          let groupRowSpan = 0;
 
-          // New numbers: Show "Chưa có" when first loading, will be updated during preview
-          const newContractNumber = '<span class="text-muted">Chưa có</span>';
-          const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+          contracts.forEach((contract, index) => {
+            const groupInfo = `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+            const isNewGroup = groupInfo !== currentGroup;
 
-          tbody.append(`
+            if (isNewGroup) {
+              currentGroup = groupInfo;
+              // Count how many contracts in this group
+              groupRowSpan = contracts.filter((c, i) => i >= index &&
+                `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}` === groupInfo).length;
+            }
+
+            // Current contract numbers from database (old numbers)
+            const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+
+            // New numbers: Show "Chưa có" when first loading, will be updated during preview
+            const newContractNumber = '<span class="text-muted">Chưa có</span>';
+            const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+
+            tbody.append(`
             <tr ${isNewGroup ? 'class="table-warning"' : ''}>
               <td>${index + 1}</td>
               <td>${contract.HoTen || ''}</td>
@@ -730,61 +726,64 @@
               <td>${newTerminationNumber}</td>
             </tr>
           `);
-        });
-
-        $('#resultsDiv').show();
-      }// Load unified contract and termination summary
-      function loadUnifiedSummary() {
-        console.log('loadUnifiedSummary() called');
-        showLoading(true);
-        $('#noSummaryMessage').hide();
-        $('#unifiedSummaryDiv').hide();
-
-        const params = {
-          dot: $('#combobox-dot').val(),
-          ki: $('#comboboxki').val(),
-          nam: $('#NamHoc').val(),
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val()
-        };
-
-        console.log('Unified summary params:', params);
-
-        $.get('/api/unified-summary', params)
-          .done(function (response) {
-            console.log('Unified summary response:', response);
-            if (response.success) {
-              displayUnifiedSummary(response.data);
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi tải tổng quan hợp nhất');
-              $('#noSummaryMessage').show();
-            }
-          })
-          .fail(function (xhr, status, error) {
-            console.error('Unified summary failed:', error, xhr.responseText);
-            showError('Có lỗi xảy ra khi kết nối với server');
-            $('#noSummaryMessage').show();
-          })
-          .always(function () {
-            showLoading(false);
           });
-      }
 
-      // Display unified summary
-      function displayUnifiedSummary(summaryData) {
-        const tbody = $('#unifiedSummaryTableBody');
-        tbody.empty();
+          $('#resultsDiv').show();
+        }// Load unified contract and termination summary
+        function loadUnifiedSummary() {
+          /* Commented out to remove summary functionality
+          console.log('loadUnifiedSummary() called');
+          showLoading(true);
+          $('#noSummaryMessage').hide();
+          $('#unifiedSummaryDiv').hide();
 
-        if (summaryData.length === 0) {
-          tbody.append('<tr><td colspan="8" class="text-center">Không có dữ liệu tổng quan</td></tr>');
-        } else {
-          summaryData.forEach((item, index) => {
-            const indexRange = item.count > 0 ?
-              `${item.firstIndex} - ${item.lastIndex}` :
-              '<span class="text-muted">Chưa có</span>';
+          const params = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val()
+          };
 
-            tbody.append(`
+          console.log('Unified summary params:', params);
+
+          $.get('/api/unified-summary', params)
+            .done(function (response) {
+              console.log('Unified summary response:', response);
+              if (response.success) {
+                displayUnifiedSummary(response.data);
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải tổng quan hợp nhất');
+                $('#noSummaryMessage').show();
+              }
+            })
+            .fail(function (xhr, status, error) {
+              console.error('Unified summary failed:', error, xhr.responseText);
+              showError('Có lỗi xảy ra khi kết nối với server');
+              $('#noSummaryMessage').show();
+            })
+            .always(function () {
+              showLoading(false);
+            });
+          */
+        }
+
+        // Display unified summary
+        function displayUnifiedSummary(summaryData) {
+          /* Commented out to remove summary functionality
+          const tbody = $('#unifiedSummaryTableBody');
+          tbody.empty();
+
+          if (summaryData.length === 0) {
+            tbody.append('<tr><td colspan="8" class="text-center">Không có dữ liệu tổng quan</td></tr>');
+          } else {
+            summaryData.forEach((item, index) => {
+              const indexRange = item.count > 0 ?
+                `${item.firstIndex} - ${item.lastIndex}` :
+                '<span class="text-muted">Chưa có</span>';
+
+              tbody.append(`
             <tr>
               <td>${index + 1}</td>
               <td>${item.khoa || ''}</td>
@@ -796,60 +795,64 @@
               <td><span class="text-info">${item.lastTermination || '<span class="text-muted">-</span>'}</span></td>
             </tr>
           `);
-          });
+            });
+          }
+
+          $('#unifiedSummaryDiv').show();
+          */
         }
 
-        $('#unifiedSummaryDiv').show();
-      }
+        // Load contract number summary by department and education system
+        function loadContractSummary() {
+          /* Commented out to remove summary functionality
+          showLoading(true);
+          $('#noSummaryMessage').hide();
+          $('#summaryDiv').hide();
+          $('#terminationSummaryDiv').hide();
 
-      // Load contract number summary by department and education system (legacy - kept for compatibility)
-      function loadContractSummary() {
-        showLoading(true);
-        $('#noSummaryMessage').hide();
-        $('#summaryDiv').hide();
-        $('#terminationSummaryDiv').hide();
+          const params = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val()
+          };
 
-        const params = {
-          dot: $('#combobox-dot').val(),
-          ki: $('#comboboxki').val(),
-          nam: $('#NamHoc').val(),
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val()
-        };
-
-        $.get('/api/contract-summary', params)
-          .done(function (response) {
-            if (response.success) {
-              displayContractSummary(response.data);
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi tải tổng quan số hợp đồng');
+          $.get('/api/contract-summary', params)
+            .done(function (response) {
+              if (response.success) {
+                displayContractSummary(response.data);
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải tổng quan số hợp đồng');
+                $('#noSummaryMessage').show();
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
               $('#noSummaryMessage').show();
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-            $('#noSummaryMessage').show();
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }
+            })
+            .always(function () {
+              showLoading(false);
+            });
+          */
+        }
 
-      // Display contract summary
-      function displayContractSummary(summaryData) {
-        const tbody = $('#summaryTableBody');
-        tbody.empty();
+        // Display contract summary
+        function displayContractSummary(summaryData) {
+          /* Commented out to remove summary functionality
+          const tbody = $('#summaryTableBody');
+          tbody.empty();
 
-        if (summaryData.length === 0) {
-          tbody.append('<tr><td colspan="7" class="text-center">Không có dữ liệu tổng quan</td></tr>');
-        } else {
-          summaryData.forEach((item, index) => {
-            const rangeDisplay = item.count > 0 ?
-              `${item.firstContract} - ${item.lastContract}` :
-              '<span class="text-muted">Chưa có</span>';
+          if (summaryData.length === 0) {
+            tbody.append('<tr><td colspan="7" class="text-center">Không có dữ liệu tổng quan</td></tr>');
+          } else {
+            summaryData.forEach((item, index) => {
+              const rangeDisplay = item.count > 0 ?
+                `${item.firstContract} - ${item.lastContract}` :
+                '<span class="text-muted">Chưa có</span>';
 
-            tbody.append(`
+              tbody.append(`
             <tr>
               <td>${index + 1}</td>
               <td>${item.khoa || ''}</td>
@@ -860,220 +863,67 @@
               <td>${item.lastContract || '<span class="text-muted">-</span>'}</td>
             </tr>
           `);
-          });
-        }
-
-        $('#summaryDiv').show();
-      }    // Preview setup results
-      function previewSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
-
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
-          return;
-        }
-
-        showLoading(true);
-        const data = {
-          dot: dot,
-          ki: ki,
-          nam: nam,
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val(),
-          mode: 'toan_bo',
-          startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#startingNumber').val()) || 1
-        };
-
-        $.post('/api/preview-setup', data)
-          .done(function (response) {
-            if (response.success) {
-              displayPreviewResults(response.data);
-              showSuccess('Xem trước thành công. Kiểm tra kết quả bên dưới.');
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi xem trước');
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }    // Display preview results
-      function displayPreviewResults(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty();
-
-        if (contracts.length === 0) {
-          tbody.append(`
-            <tr>
-              <td colspan="7" class="text-center text-muted">
-                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
-              </td>
-            </tr>
-          `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty and education system for better display
-        let currentGroup = '';
-        let groupRowSpan = 0;
-
-        contracts.forEach((contract, index) => {
-          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
-          }          // Old numbers: Current database values
-          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
-
-          // New numbers: Show both contract and termination numbers when available
-          const newContractNumber = contract.newSoHopDong
-            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
-          const newTerminationNumber = contract.newSoThanhLy
-            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
-
-          tbody.append(`
-            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
-              <td>${index + 1}</td>
-              <td>${contract.HoTen || ''}</td>
-              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
-              <td>${oldContractNumber}</td>
-              <td>${oldTerminationNumber}</td>
-              <td>${newContractNumber}</td>
-              <td>${newTerminationNumber}</td>
-            </tr>
-          `);
-        });
-
-        $('#resultsDiv').show();
-      }// Execute setup
-      function executeSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
-
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi thực hiện cài đặt');
-          return;
-        }
-
-        Swal.fire({
-          title: 'Xác nhận',
-          text: 'Bạn có chắc chắn muốn thực hiện cài đặt số hợp đồng?',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Thực hiện',
-          cancelButtonText: 'Hủy'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            performSetup();
+            });
           }
-        });
-      }
 
-      // Perform the actual setup
-      function performSetup() {
-        showLoading(true);
-        const data = {
-          dot: $('#combobox-dot').val(),
-          ki: $('#comboboxki').val(),
-          nam: $('#NamHoc').val(),
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val(),
-          startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#startingNumber').val()) || 1
-        };
+          $('#summaryDiv').show();
+          */
+        }
 
-        $.post('/api/setup-so-hopdong-toan-bo', data)
-          .done(function (response) {
-            if (response.success) {
-              Swal.fire({
-                title: 'Thành công!',
-                text: `Đã cài đặt thành công ${response.updatedCount} hợp đồng`,
-                icon: 'success',
-                confirmButtonText: 'OK'
-              }).then(() => {              // Reload contracts to show updated numbers
-                loadContracts();
-                // Also reload summary if it was displayed
-                if ($('#unifiedSummaryDiv').is(':visible')) {
-                  loadUnifiedSummary();
-                }
-              });
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi cài đặt');
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }    // Load contract termination summary based on filter criteria
-      function loadTerminationSummary() {
-        showLoading(true);
-        $('#noTerminationSummaryMessage').hide();
-        $('#noSummaryMessage').hide();
-        $('#summaryDiv').hide();
-        $('#terminationSummaryDiv').hide();
+        // Load contract termination summary based on filter criteria
+        function loadTerminationSummary() {
+          /* Commented out to remove summary functionality
+          showLoading(true);
+          $('#noTerminationSummaryMessage').hide();
+          $('#noSummaryMessage').hide();
+          $('#summaryDiv').hide();
+          $('#terminationSummaryDiv').hide();
 
-        const params = {
-          dot: $('#combobox-dot').val(),
-          ki: $('#comboboxki').val(),
-          nam: $('#NamHoc').val(),
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val()
-        };
+          const params = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val()
+          };
 
-        $.get('/api/termination-summary', params)
-          .done(function (response) {
-            if (response.success) {
-              displayTerminationSummary(response.data);
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi tải tổng quan số thanh lý hợp đồng');
+          $.get('/api/termination-summary', params)
+            .done(function (response) {
+              if (response.success) {
+                displayTerminationSummary(response.data);
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải tổng quan số thanh lý hợp đồng');
+                $('#noTerminationSummaryMessage').show();
+                $('#noSummaryMessage').show();
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
               $('#noTerminationSummaryMessage').show();
               $('#noSummaryMessage').show();
-            }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-            $('#noTerminationSummaryMessage').show();
-            $('#noSummaryMessage').show();
-          })
-          .always(function () {
-            showLoading(false);
-          });
-      }
+            })
+            .always(function () {
+              showLoading(false);
+            });
+          */
+        }
 
-      // Display contract termination summary
-      function displayTerminationSummary(summaryData) {
-        const tbody = $('#terminationSummaryTableBody');
-        tbody.empty();
+        // Display contract termination summary
+        function displayTerminationSummary(summaryData) {
+          /* Commented out to remove summary functionality
+          const tbody = $('#terminationSummaryTableBody');
+          tbody.empty();
 
-        if (summaryData.length === 0) {
-          tbody.append('<tr><td colspan="7" class="text-center">Không có dữ liệu tổng quan</td></tr>');
-        } else {
-          summaryData.forEach((item, index) => {
-            const rangeDisplay = item.count > 0 ?
-              `${item.firstTermination} - ${item.lastTermination}` :
-              '<span class="text-muted">Chưa có</span>';
+          if (summaryData.length === 0) {
+            tbody.append('<tr><td colspan="7" class="text-center">Không có dữ liệu tổng quan</td></tr>');
+          } else {
+            summaryData.forEach((item, index) => {
+              const rangeDisplay = item.count > 0 ?
+                `${item.firstTermination} - ${item.lastTermination}` :
+                '<span class="text-muted">Chưa có</span>';
 
-            tbody.append(`
+              tbody.append(`
             <tr>
               <td>${index + 1}</td>
               <td>${item.khoa || ''}</td>
@@ -1084,89 +934,318 @@
               <td>${item.lastTermination || '<span class="text-muted">-</span>'}</td>
             </tr>
           `);
+            });
+          }
+
+          $('#terminationSummaryDiv').show();
+          */
+        }    // Preview setup results
+        function previewSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
+            return;
+          }
+
+          showLoading(true);
+          const data = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val(),
+            mode: 'toan_bo',
+            startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#startingNumber').val()) || 1
+          };
+
+          $.post('/api/preview-setup', data)
+            .done(function (response) {
+              if (response.success) {
+                displayPreviewResults(response.data);
+                showSuccess('Xem trước thành công. Kiểm tra kết quả bên dưới.');
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi xem trước');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }    // Display preview results
+        function displayPreviewResults(contracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          if (contracts.length === 0) {
+            tbody.append(`
+            <tr>
+              <td colspan="7" class="text-center text-muted">
+                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+              </td>
+            </tr>
+          `);
+            $('#resultsDiv').show();
+            return;
+          }
+
+          // Group contracts by faculty and education system for better display
+          let currentGroup = '';
+          let groupRowSpan = 0;
+
+          contracts.forEach((contract, index) => {
+            const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+            const isNewGroup = groupInfo !== currentGroup;
+
+            if (isNewGroup) {
+              currentGroup = groupInfo;
+              // Count how many contracts in this group
+              groupRowSpan = contracts.filter((c, i) => i >= index &&
+                (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+            }          // Old numbers: Current database values
+            const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+
+            // New numbers: Show both contract and termination numbers when available
+            const newContractNumber = contract.newSoHopDong
+              ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+            const newTerminationNumber = contract.newSoThanhLy
+              ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+
+            tbody.append(`
+            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
+              <td>${index + 1}</td>
+              <td>${contract.HoTen || ''}</td>
+              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
+              <td>${oldContractNumber}</td>
+              <td>${oldTerminationNumber}</td>
+              <td>${newContractNumber}</td>
+              <td>${newTerminationNumber}</td>
+            </tr>
+          `);
           });
-        }
 
-        $('#terminationSummaryDiv').show();
-      }    // Preview termination setup results
-      function previewTerminationSetup() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const nam = $('#NamHoc').val();
+          $('#resultsDiv').show();
+        }// Execute setup
+        function executeSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
 
-        if (!dot || !ki || !nam) {
-          showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
-          return;
-        }
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi thực hiện cài đặt');
+            return;
+          }
 
-        showLoading(true);
-        const data = {
-          dot: dot,
-          ki: ki,
-          nam: nam,
-          khoa: $('#MaPhongBan').val(),
-          heDaoTao: $('#he_dao_tao').val(),
-          loaiHopDong: $('#loai_hop_dong').val(),
-          mode: 'toan_bo',
-          startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#terminationStartingNumber').val()) || 1
-        };
-
-        $.post('/api/preview-termination-setup', data)
-          .done(function (response) {
-            if (response.success) {
-              displayTerminationPreviewResults(response.data);
-              showSuccess('Xem trước thanh lý thành công. Kiểm tra kết quả bên dưới.');
-            } else {
-              showError(response.message || 'Có lỗi xảy ra khi xem trước thanh lý');
+          Swal.fire({
+            title: 'Xác nhận',
+            text: 'Bạn có chắc chắn muốn thực hiện cài đặt số hợp đồng?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Thực hiện',
+            cancelButtonText: 'Hủy'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              performSetup();
             }
-          })
-          .fail(function () {
-            showError('Có lỗi xảy ra khi kết nối với server');
-          })
-          .always(function () {
-            showLoading(false);
           });
-      }      // Display termination preview results
-      function displayTerminationPreviewResults(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty();
+        }
 
-        if (contracts.length === 0) {
-          tbody.append(`
+        // Perform the actual setup
+        function performSetup() {
+          showLoading(true);
+          const data = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val(),
+            startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#startingNumber').val()) || 1
+          };
+
+          $.post('/api/setup-so-hopdong-toan-bo', data)
+            .done(function (response) {
+              if (response.success) {
+                Swal.fire({
+                  title: 'Thành công!',
+                  text: `Đã cài đặt thành công ${response.updatedCount} hợp đồng`,
+                  icon: 'success',
+                  confirmButtonText: 'OK'
+                }).then(() => {              // Reload contracts to show updated numbers
+                  loadContracts();
+                  // Also reload summary if it was displayed
+                  if ($('#unifiedSummaryDiv').is(':visible')) {
+                    loadUnifiedSummary();
+                  }
+                });
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi cài đặt');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }    // Load contract termination summary based on filter criteria
+        function loadTerminationSummary() {
+          /* Commented out to remove summary functionality
+          showLoading(true);
+          $('#noTerminationSummaryMessage').hide();
+          $('#noSummaryMessage').hide();
+          $('#summaryDiv').hide();
+          $('#terminationSummaryDiv').hide();
+
+          const params = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val()
+          };
+
+          $.get('/api/termination-summary', params)
+            .done(function (response) {
+              if (response.success) {
+                displayTerminationSummary(response.data);
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải tổng quan số thanh lý hợp đồng');
+                $('#noTerminationSummaryMessage').show();
+                $('#noSummaryMessage').show();
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+              $('#noTerminationSummaryMessage').show();
+              $('#noSummaryMessage').show();
+            })
+            .always(function () {
+              showLoading(false);
+            });
+          */
+        }
+
+        // Display contract termination summary
+        function displayTerminationSummary(summaryData) {
+          /* Commented out to remove summary functionality
+          const tbody = $('#terminationSummaryTableBody');
+          tbody.empty();
+
+          if (summaryData.length === 0) {
+            tbody.append('<tr><td colspan="7" class="text-center">Không có dữ liệu tổng quan</td></tr>');
+          } else {
+            summaryData.forEach((item, index) => {
+              const rangeDisplay = item.count > 0 ?
+                `${item.firstTermination} - ${item.lastTermination}` :
+                '<span class="text-muted">Chưa có</span>';
+
+              tbody.append(`
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.khoa || ''}</td>
+              <td>${item.heDaoTao || ''}</td>
+              <td><span class="badge bg-warning">${item.count}</span></td>
+              <td>${rangeDisplay}</td>
+              <td>${item.firstTermination || '<span class="text-muted">-</span>'}</td>
+              <td>${item.lastTermination || '<span class="text-muted">-</span>'}</td>
+            </tr>
+          `);
+            });
+          }
+
+          $('#terminationSummaryDiv').show();
+          */
+        }    // Preview termination setup results
+        function previewTerminationSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
+            return;
+          }
+
+          showLoading(true);
+          const data = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            loaiHopDong: $('#loai_hop_dong').val(),
+            mode: 'toan_bo',
+            startingNumber: parseInt($('#unifiedStartingNumber').val()) || parseInt($('#terminationStartingNumber').val()) || 1
+          };
+
+          $.post('/api/preview-termination-setup', data)
+            .done(function (response) {
+              if (response.success) {
+                displayTerminationPreviewResults(response.data);
+                showSuccess('Xem trước thanh lý thành công. Kiểm tra kết quả bên dưới.');
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi xem trước thanh lý');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }      // Display termination preview results
+        function displayTerminationPreviewResults(contracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          if (contracts.length === 0) {
+            tbody.append(`
             <tr>
               <td colspan="7" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu thanh lý hợp đồng để hiển thị
               </td>
             </tr>
           `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty for better display
-        let currentGroup = '';
-        let groupRowSpan = 0; contracts.forEach((contract, index) => {
-          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - Mời giảng`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              (c.groupInfo || `${c.Khoa || 'Không xác định'} - Mời giảng`) === groupInfo).length;
+            $('#resultsDiv').show();
+            return;
           }
 
-          // Old numbers: Current database values
-          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          // Group contracts by faculty for better display
+          let currentGroup = '';
+          let groupRowSpan = 0; contracts.forEach((contract, index) => {
+            const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - Mời giảng`;
+            const isNewGroup = groupInfo !== currentGroup;
 
-          // New numbers: For termination preview, only show new termination numbers
-          const newContractNumber = '<span class="text-muted">-</span>';
-          const newTerminationNumber = contract.newSoThanhLy
-            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
+            if (isNewGroup) {
+              currentGroup = groupInfo;
+              // Count how many contracts in this group
+              groupRowSpan = contracts.filter((c, i) => i >= index &&
+                (c.groupInfo || `${c.Khoa || 'Không xác định'} - Mời giảng`) === groupInfo).length;
+            }
 
-          tbody.append(`
+            // Old numbers: Current database values
+            const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+
+            // New numbers: For termination preview, only show new termination numbers
+            const newContractNumber = '<span class="text-muted">-</span>';
+            const newTerminationNumber = contract.newSoThanhLy
+              ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+
+            tbody.append(`
             <tr ${isNewGroup ? 'class="table-warning"' : ''}>
               <td>${index + 1}</td>
               <td>${contract.HoTen || ''}</td>
@@ -1177,168 +1256,178 @@
               <td>${newTerminationNumber}</td>
             </tr>
           `);
-        });
-        $('#resultsDiv').show();
-      }
-
-      // Unified functions for handling both contract and termination numbers
-      function previewUnifiedSetup() {
-        // Get the current number type (uses persistent storage if needed)
-        const numberType = getCurrentNumberType();
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
-
-        // Validate input
-        if (!startingNumber || startingNumber < 1) {
-          showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
-          return;
+          });
+          $('#resultsDiv').show();
         }
 
-        // Show loading with type-specific message
-        const typeText = numberType === 'contract' ? 'hợp đồng' : 'thanh lý';
-        showSuccess(`Đang xem trước cài đặt số ${typeText}...`);
+        // Unified functions for handling both contract and termination numbers
+        function previewUnifiedSetup() {
+          // Get the current number type (uses persistent storage if needed)
+          const numberType = getCurrentNumberType();
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
 
-        if (numberType === 'contract') {
-          $('#startingNumber').val(startingNumber);
-          previewSetup();
-        } else if (numberType === 'termination') {
-          $('#terminationStartingNumber').val(startingNumber);
-          previewTerminationSetup();
+          // Validate input
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
+
+          // Show loading with type-specific message
+          const typeText = numberType === 'contract' ? 'hợp đồng' : 'thanh lý';
+          showSuccess(`Đang xem trước cài đặt số ${typeText}...`);
+
+          if (numberType === 'contract') {
+            $('#startingNumber').val(startingNumber);
+            previewSetup();
+          } else if (numberType === 'termination') {
+            $('#terminationStartingNumber').val(startingNumber);
+            previewTerminationSetup();
+          }
         }
-      }
 
-      function executeUnifiedSetup() {
-        // Get the current number type (uses persistent storage if needed)
-        const numberType = getCurrentNumberType();
-        const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+        function executeUnifiedSetup() {
+          // Get the current number type (uses persistent storage if needed)
+          const numberType = getCurrentNumberType();
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
 
-        // Validate input
-        if (!startingNumber || startingNumber < 1) {
-          showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
-          return;
-        }
+          // Validate input
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
 
-        // Confirmation with type-specific message
-        const typeText = numberType === 'contract' ? 'hợp đồng' : 'thanh lý';
-        const suffix = numberType === 'contract' ? '/HĐ-ĐT' : '/TLHĐ-ĐT';
+          // Confirmation with type-specific message
+          const typeText = numberType === 'contract' ? 'hợp đồng' : 'thanh lý';
+          const suffix = numberType === 'contract' ? '/HĐ-ĐT' : '/TLHĐ-ĐT';
 
-        Swal.fire({
-          title: 'Xác nhận thực hiện',
-          html: `<p>Bạn đã chọn: <strong>${numberType === 'contract' ? 'Số hợp đồng' : 'Số thanh lý'}</strong></p>
+          Swal.fire({
+            title: 'Xác nhận thực hiện',
+            html: `<p>Bạn đã chọn: <strong>${numberType === 'contract' ? 'Số hợp đồng' : 'Số thanh lý'}</strong></p>
                <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
                <p>Định dạng: <strong>${String(startingNumber).padStart(3, '0')}${suffix}</strong></p>
                <p>Bạn có chắc chắn muốn thực hiện?</p>`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: numberType === 'contract' ? '#0d6efd' : '#fd7e14',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: `Thực hiện ${typeText}`,
-          cancelButtonText: 'Hủy bỏ'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            if (numberType === 'contract') {
-              $('#startingNumber').val(startingNumber);
-              executeSetup();
-            } else if (numberType === 'termination') {
-              $('#terminationStartingNumber').val(startingNumber);
-              executeTerminationSetup();
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: numberType === 'contract' ? '#0d6efd' : '#fd7e14',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Thực hiện ${typeText}`,
+            cancelButtonText: 'Hủy bỏ'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              if (numberType === 'contract') {
+                $('#startingNumber').val(startingNumber);
+                executeSetup();
+              } else if (numberType === 'termination') {
+                $('#terminationStartingNumber').val(startingNumber);
+                executeTerminationSetup();
+              }
             }
+          });
+        }      // Display contracts in table with group information
+        function displayContracts(grouped) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          // Kiểm tra nếu không có nhóm nào
+          const systems = Object.keys(grouped);
+          if (systems.length === 0) {
+            tbody.append(`
+      <tr>
+        <td colspan="7" class="text-center text-muted">
+          <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+        </td>
+      </tr>
+    `);
+            $('#resultsDiv').show();
+            return;
           }
-        });
-      }      // Display contracts in table with group information
-      function displayContracts(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty(); if (contracts.length === 0) {
-          tbody.append(`
+
+          let idx = 0;
+          // Duyệt từng hệ đào tạo
+          systems.forEach(system => {
+            const faculties = grouped[system];           // grouped[system] là object { MaPhongBan: [contracts] }
+            const facultyKeys = Object.keys(faculties);
+            // Duyệt từng khoa trong hệ
+            facultyKeys.forEach(faculty => {
+              const list = faculties[faculty];           // mảng các hợp đồng
+              const rowSpan = list.length;
+              // Duyệt từng hợp đồng trong nhóm này
+              list.forEach((contract, j) => {
+                idx++;
+                const isFirst = (j === 0);
+
+                // Số hợp đồng cũ / soạn trước
+                const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+                const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+                // Số hợp đồng mới (preview)
+                const newContractNumber = '<span class="text-muted">Chưa có</span>';
+                const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+
+                tbody.append(`
+          <tr ${isFirst ? 'class="table-warning"' : ''}>
+            <td>${idx}</td>
+            <td>${contract.HoTen || ''}</td>
+            ${isFirst
+                    ? `<td rowspan="${rowSpan}" class="text-center align-middle bg-light">
+                   <strong>${faculty} – ${system}</strong>
+                 </td>`
+                    : ''
+                  }
+            <td>${currentContractNumber}</td>
+            <td>${currentTerminationNumber}</td>
+            <td>${newContractNumber}</td>
+            <td>${newTerminationNumber}</td>
+          </tr>
+        `);
+              });
+            });
+          });
+
+          $('#resultsDiv').show();
+        }
+
+        function displayPreviewResults(contracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          if (contracts.length === 0) {
+            tbody.append(`
             <tr>
               <td colspan="7" class="text-center text-muted">
                 <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
               </td>
             </tr>
           `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty and education system for better display
-        let currentGroup = '';
-        let groupRowSpan = 0;
-
-        contracts.forEach((contract, index) => {
-          const groupInfo = `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}` === groupInfo).length;
+            $('#resultsDiv').show();
+            return;
           }
 
-          // Current contract numbers from database (old numbers)
-          const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+          // Group contracts by faculty and education system for better display
+          let currentGroup = '';
+          let groupRowSpan = 0;
 
-          // New numbers: Show "Chưa có" when first loading, will be updated during preview
-          const newContractNumber = '<span class="text-muted">Chưa có</span>';
-          const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
+          contracts.forEach((contract, index) => {
+            const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
+            const isNewGroup = groupInfo !== currentGroup;
 
-          tbody.append(`
-            <tr ${isNewGroup ? 'class="table-warning"' : ''}>
-              <td>${index + 1}</td>
-              <td>${contract.HoTen || ''}</td>
-              ${isNewGroup ? `<td rowspan="${groupRowSpan}" class="text-center align-middle bg-light"><strong>${groupInfo}</strong></td>` : ''}
-              <td>${currentContractNumber}</td>
-              <td>${currentTerminationNumber}</td>
-              <td>${newContractNumber}</td>
-              <td>${newTerminationNumber}</td>
-            </tr>
-          `);
-        });
+            if (isNewGroup) {
+              currentGroup = groupInfo;
+              // Count how many contracts in this group
+              groupRowSpan = contracts.filter((c, i) => i >= index &&
+                (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
+            }          // Old numbers: Current database values
+            const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
 
-        $('#resultsDiv').show();
-      }// Enhanced display preview results with group information  
-      function displayPreviewResults(contracts) {
-        const tbody = $('#contractsTableBody');
-        tbody.empty();
+            // New numbers: Show both contract and termination numbers when available
+            const newContractNumber = contract.newSoHopDong
+              ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
+            const newTerminationNumber = contract.newSoThanhLy
+              ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
+              : '<span class="text-muted">Chưa tạo</span>';
 
-        if (contracts.length === 0) {
-          tbody.append(`
-            <tr>
-              <td colspan="7" class="text-center text-muted">
-                <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
-              </td>
-            </tr>
-          `);
-          $('#resultsDiv').show();
-          return;
-        }
-
-        // Group contracts by faculty and education system for better display
-        let currentGroup = '';
-        let groupRowSpan = 0;
-
-        contracts.forEach((contract, index) => {
-          const groupInfo = contract.groupInfo || `${contract.Khoa || 'Không xác định'} - ${contract.HeDaoTao || 'Không xác định'}`;
-          const isNewGroup = groupInfo !== currentGroup;
-
-          if (isNewGroup) {
-            currentGroup = groupInfo;
-            // Count how many contracts in this group
-            groupRowSpan = contracts.filter((c, i) => i >= index &&
-              (c.groupInfo || `${c.Khoa || 'Không xác định'} - ${c.HeDaoTao || 'Không xác định'}`) === groupInfo).length;
-          }          // Old numbers: Current database values
-          const oldContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
-          const oldTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
-
-          // New numbers: Show both contract and termination numbers when available
-          const newContractNumber = contract.newSoHopDong
-            ? `<strong class="text-success">${contract.newSoHopDong}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
-          const newTerminationNumber = contract.newSoThanhLy
-            ? `<strong class="text-info">${contract.newSoThanhLy}</strong>`
-            : '<span class="text-muted">Chưa tạo</span>';
-
-          tbody.append(`
+            tbody.append(`
             <tr ${isNewGroup ? 'class="table-warning"' : ''}>
               <td>${index + 1}</td>
               <td>${contract.HoTen || ''}</td>
@@ -1349,102 +1438,105 @@
               <td>${newTerminationNumber}</td>
             </tr>
           `);
-        });
+          });
 
-        $('#resultsDiv').show();
-      }      // Utility functions
-      function showLoading(show) {
-        if (show) {
-          $('#loadingSpinner').show();
-        } else {
-          $('#loadingSpinner').hide();
+          $('#resultsDiv').show();
         }
-      }
 
-      function showSuccess(message) {
-        $('#successMessage').text(message);
-        const toast = new bootstrap.Toast($('#successToast')[0]);
-        toast.show();
-      } function showError(message) {
-        $('#errorMessage').text(message);
-        const toast = new bootstrap.Toast($('#errorToast')[0]);
-        toast.show();
-      }
-
-      // Update contract type UI for dropdown selection
-      function updateContractTypeUI() {
-        const selectedType = $('#loai_hop_dong').val() || '';
-
-        // Regular contract styling (default)
-        $('#contractTypeAlert').removeClass('alert-warning').addClass('alert-primary');
-        $('#contractTypeTitle').text('Hợp đồng mời giảng');
-        $('#contractTypeIcon').removeClass('text-warning').addClass('text-primary');
-        $('#contractTypeDescription').text('Quản lý số hợp đồng và số thanh lý cho hợp đồng mời giảng');
-
-        // Update button styling
-        $('#previewContractBtn').removeClass('btn-outline-warning').addClass('btn-outline-primary');
-        $('#executeContractBtn').removeClass('btn-warning').addClass('btn-success');
-      }
-
-      // Handle contract/termination operations based on current contract type
-      function handleContractOperation(operation) {
-        // Get current contract type from dropdown
-        const selectedContractType = $('#loai_hop_dong').val() || 'Mời giảng';
-
-        // Route to appropriate function based on type and operation
-        if (selectedContractType === 'Mời giảng' || selectedContractType === '') {
-          switch (operation) {
-            case 'load':
-              loadContracts();
-              break;
-            case 'summary':
-              loadUnifiedSummary();
-              break;
-            case 'previewContract':
-              previewSynchronizedSetup();
-              break;
-            case 'executeContract':
-              executeSynchronizedSetup();
-              break;
-            case 'previewTermination':
-              previewTerminationSetup();
-              break;
-            case 'executeTermination':
-              executeTerminationSetup();
-              break;
+        // Utility functions
+        function showLoading(show) {
+          if (show) {
+            $('#loadingSpinner').show();
+          } else {
+            $('#loadingSpinner').hide();
           }
         }
-      }        // Document ready handler to initialize interface
-      $(document).ready(function () {
-        // Existing initialization code
-        $('#startingNumberDiv').hide();
-        $('#terminationStartingNumberDiv').hide();
 
-        // Initialize the interface
-        updateNumberPreview();
+        function showSuccess(message) {
+          $('#successMessage').text(message);
+          const toast = new bootstrap.Toast($('#successToast')[0]);
+          toast.show();
+        } function showError(message) {
+          $('#errorMessage').text(message);
+          const toast = new bootstrap.Toast($('#errorToast')[0]);
+          toast.show();
+        }
 
-        // Set default contract type alert appearance
-        $('#contractTypeAlert').addClass('alert-primary');
+        // Update contract type UI for dropdown selection
+        function updateContractTypeUI() {
+          const selectedType = $('#loai_hop_dong').val() || '';
 
-        // Apply initial UI based on selected contract type
-        updateContractTypeUI();
+          // Regular contract styling (default)
+          $('#contractTypeAlert').removeClass('alert-warning').addClass('alert-primary');
+          $('#contractTypeTitle').text('Hợp đồng mời giảng');
+          $('#contractTypeIcon').removeClass('text-warning').addClass('text-primary');
+          $('#contractTypeDescription').text('Quản lý số hợp đồng và số thanh lý cho hợp đồng mời giảng');
 
-        // Add event handler for contract type dropdown
-        $('#loai_hop_dong').change(function () {
+          // Update button styling
+          $('#previewContractBtn').removeClass('btn-outline-warning').addClass('btn-outline-primary');
+          $('#executeContractBtn').removeClass('btn-warning').addClass('btn-success');
+        }
+
+        // Handle contract/termination operations based on current contract type
+        function handleContractOperation(operation) {
+          // Get current contract type from dropdown
+          const selectedContractType = $('#loai_hop_dong').val() || 'Mời giảng';
+
+          // Route to appropriate function based on type and operation
+          if (selectedContractType === 'Mời giảng' || selectedContractType === '') {
+            switch (operation) {
+              case 'load':
+                loadContracts();
+                break;
+              case 'summary':
+                // Commented out summary functionality
+                // loadUnifiedSummary();
+                break;
+              case 'previewContract':
+                previewSynchronizedSetup();
+                break;
+              case 'executeContract':
+                executeSynchronizedSetup();
+                break;
+              case 'previewTermination':
+                previewTerminationSetup();
+                break;
+              case 'executeTermination':
+                executeTerminationSetup();
+                break;
+            }
+          }
+        }        // Document ready handler to initialize interface
+        $(document).ready(function () {
+          // Existing initialization code
+          $('#startingNumberDiv').hide();
+          $('#terminationStartingNumberDiv').hide();
+
+          // Initialize the interface
+          updateNumberPreview();
+
+          // Set default contract type alert appearance
+          $('#contractTypeAlert').addClass('alert-primary');
+
+          // Apply initial UI based on selected contract type
           updateContractTypeUI();
 
-          // If viewing contracts, reload with new contract type
-          if ($('#resultsDiv').is(':visible')) {
-            handleContractOperation('load');
-          }
+          // Add event handler for contract type dropdown
+          $('#loai_hop_dong').change(function () {
+            updateContractTypeUI();
 
-          // If summary is visible, reload with new contract type
-          if ($('#unifiedSummaryDiv').is(':visible')) {
-            handleContractOperation('summary');
-          }
+            // If viewing contracts, reload with new contract type
+            if ($('#resultsDiv').is(':visible')) {
+              handleContractOperation('load');
+            }
+
+            // If summary is visible, reload with new contract type
+            if ($('#unifiedSummaryDiv').is(':visible')) {
+              handleContractOperation('summary');
+            }
+          });
         });
-      });
-    </script>
+      </script>
 </body>
 
 </html>
