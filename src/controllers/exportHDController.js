@@ -3,10 +3,11 @@ const Docxtemplater = require("docxtemplater");
 const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
-//const createConnection = require("../config/databaseAsync");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
+
+const phuLucDHController = require("../controllers/phuLucHDController");
 const {
   Document,
   Packer,
@@ -459,11 +460,13 @@ const exportMultipleContracts = async (req, res) => {
         ThucNhan: tienThucNhanText,
       });
 
+      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
-        Họ_và_tên: teacher.HoTen,
+        Họ_và_tên: hoTenTrim,
         CCCD: teacher.CCCD,
         Ngày_cấp: formatDate1(teacher.NgayCap),
         Nơi_cấp: teacher.NoiCapCCCD,
@@ -534,7 +537,6 @@ const exportMultipleContracts = async (req, res) => {
         compression: "DEFLATE",
       });
 
-      let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
       const fileName = `HopDong_${hoTenTrim}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
@@ -831,14 +833,6 @@ const exportAdditionalInfoGvm = async (req, res) => {
       Date.now().toString()
     );
 
-    // const tempDir = path.join(
-    //   __dirname,
-    //   "..",
-    //   "..",
-    //   "tmp_contract",
-    //   Date.now().toString()
-    // );
-
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
@@ -872,14 +866,26 @@ const exportAdditionalInfoGvm = async (req, res) => {
           (item) => item.GiangVien.trim() == teacher.HoTen.trim()
         );
 
-        const filePathAppendix = await generateAppendixContract(
-          connection,
-          tienLuongList,
-          phuLucTeacher,
-          req,
-          res,
-          tempDir
-        );
+        // const filePathAppendix = await generateAppendixContract(
+        //   connection,
+        //   tienLuongList,
+        //   phuLucTeacher,
+        //   req,
+        //   res,
+        //   tempDir
+        // );
+        const filePathAppendix =
+          await phuLucDHController.getExportPhuLucGiangVienMoiPath(
+            req,
+            connection,
+            dot,
+            ki,
+            namHoc,
+            loaiHopDong,
+            khoa,
+            teacherName,
+            phuLucTeacher
+          );
 
         if (
           !fs.existsSync(filePathContract) ||
@@ -916,10 +922,29 @@ const exportAdditionalInfoGvm = async (req, res) => {
             name: path.basename(filePathAdditional),
           });
         }
+        // Thêm file vào archive
         if (filePathAppendix) {
           teacherArchive.file(filePathAppendix, {
             name: path.basename(filePathAppendix),
           });
+
+          // Xóa file phụ lục ngay sau khi thêm vào archive
+          if (fs.existsSync(filePathAppendix)) {
+            fs.unlinkSync(filePathAppendix); // Xóa file
+            console.log("Đã xóa file:", filePathAppendix);
+
+            // Xóa thư mục tạm (nếu rỗng)
+            const tempDir = path.dirname(filePathAppendix);
+            try {
+              fs.rmdirSync(tempDir); // Chỉ xóa được thư mục rỗng
+              console.log("Đã xóa thư mục:", tempDir);
+            } catch (dirErr) {
+              console.log(
+                "Không thể xóa thư mục (có thể không rỗng):",
+                tempDir
+              );
+            }
+          }
         }
 
         await teacherArchive.finalize();
