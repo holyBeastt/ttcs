@@ -838,7 +838,6 @@ const exportAdditionalInfoGvm = async (req, res) => {
     }
 
     const contractFiles = [];
-
     try {
       for (const teacher of teachers) {
         let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
@@ -847,6 +846,10 @@ const exportAdditionalInfoGvm = async (req, res) => {
         const teacherArchive = archiver("zip", { zlib: { level: 9 } });
         const output = fs.createWriteStream(teacherZipPath);
         teacherArchive.pipe(output);
+
+        // Lưu các file cần xóa sau khi nén
+        const filesToDelete = [];
+        const dirsToDelete = [];
 
         // Tạo file hợp đồng
         const filePathContract = await generateContractForTeacher(
@@ -861,19 +864,12 @@ const exportAdditionalInfoGvm = async (req, res) => {
           teacher,
           tempDir
         );
+
         // Lấy file phụ lục
         const phuLucTeacher = phuLucData.filter(
-          (item) => item.GiangVien.trim() == teacher.HoTen.trim()
+          (item) => item.GiangVien.trim() === teacher.HoTen.trim()
         );
 
-        // const filePathAppendix = await generateAppendixContract(
-        //   connection,
-        //   tienLuongList,
-        //   phuLucTeacher,
-        //   req,
-        //   res,
-        //   tempDir
-        // );
         const filePathAppendix =
           await phuLucDHController.getExportPhuLucGiangVienMoiPath(
             req,
@@ -887,68 +883,85 @@ const exportAdditionalInfoGvm = async (req, res) => {
             phuLucTeacher
           );
 
+        // Kiểm tra các file
         if (
           !fs.existsSync(filePathContract) ||
           fs.statSync(filePathContract).size === 0
         ) {
           console.error(`File bị lỗi hoặc trống: ${filePathContract}`);
-          continue; // Bỏ qua file bị lỗi
+          continue;
         }
+
         if (
           filePathAdditional &&
           (!fs.existsSync(filePathAdditional) ||
             fs.statSync(filePathAdditional).size === 0)
         ) {
           console.error(`File bị lỗi hoặc trống: ${filePathAdditional}`);
-          continue; // Bỏ qua file bị lỗi
+          continue;
         }
+
         if (
           filePathAppendix &&
           (!fs.existsSync(filePathAppendix) ||
             fs.statSync(filePathAppendix).size === 0)
         ) {
           console.error(`File bị lỗi hoặc trống: ${filePathAppendix}`);
-          continue; // Bỏ qua file bị lỗi
+          continue;
         }
 
-        // Thêm cả 3 file vào file zip riêng của giảng viên
-        if (filePathContract) {
-          teacherArchive.file(filePathContract, {
-            name: path.basename(filePathContract),
-          });
-        }
+        // Thêm các file vào archive
+        teacherArchive.file(filePathContract, {
+          name: path.basename(filePathContract),
+        });
+
         if (filePathAdditional) {
           teacherArchive.file(filePathAdditional, {
             name: path.basename(filePathAdditional),
           });
         }
-        // Thêm file vào archive
+
         if (filePathAppendix) {
           teacherArchive.file(filePathAppendix, {
             name: path.basename(filePathAppendix),
           });
 
-          // Xóa file phụ lục ngay sau khi thêm vào archive
-          if (fs.existsSync(filePathAppendix)) {
-            fs.unlinkSync(filePathAppendix); // Xóa file
-            console.log("Đã xóa file:", filePathAppendix);
+          filesToDelete.push(filePathAppendix);
+          const appendixDir = path.dirname(filePathAppendix);
+          dirsToDelete.push(appendixDir);
+        }
 
-            // Xóa thư mục tạm (nếu rỗng)
-            const tempDir = path.dirname(filePathAppendix);
-            try {
-              fs.rmdirSync(tempDir); // Chỉ xóa được thư mục rỗng
-              console.log("Đã xóa thư mục:", tempDir);
-            } catch (dirErr) {
-              console.log(
-                "Không thể xóa thư mục (có thể không rỗng):",
-                tempDir
-              );
-            }
+        // Đợi quá trình nén hoàn tất
+        await new Promise((resolve, reject) => {
+          output.on("close", resolve);
+          output.on("error", reject);
+          teacherArchive.finalize();
+        });
+
+        // Lưu đường dẫn zip
+        contractFiles.push(teacherZipPath);
+
+        // Sau khi zip xong mới xóa file
+        for (const filePath of filesToDelete) {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log("Đã xóa file:", filePath);
           }
         }
 
-        await teacherArchive.finalize();
-        contractFiles.push(teacherZipPath);
+        for (const dirPath of dirsToDelete) {
+          try {
+            if (
+              fs.existsSync(dirPath) &&
+              fs.readdirSync(dirPath).length === 0
+            ) {
+              fs.rmdirSync(dirPath);
+              console.log("Đã xóa thư mục:", dirPath);
+            }
+          } catch (err) {
+            console.log("Không thể xóa thư mục (có thể không rỗng):", dirPath);
+          }
+        }
       }
     } catch (error) {
       return res
