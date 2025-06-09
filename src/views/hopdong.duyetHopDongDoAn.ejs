@@ -1767,8 +1767,8 @@
       } function editContract(contractNumber) {
         // Navigate to contract edit page
         window.location.href = `/hop-dong/sua/${contractNumber}`;
-      }      
-     
+      }
+
       function saveContractDataDoAn() {
         const params = getFilterParams();
         if (!validateParams(params)) {
@@ -1785,7 +1785,8 @@
           Dot: params.dot,
           ki: params.ki,
           NamHoc: params.namHoc,
-          MaPhongBan: params.maPhongBan || "ALL"
+          MaPhongBan: params.maPhongBan || "ALL",
+          he_dao_tao: "Đồ án (Đại học)"
         };
 
         fetch('/saveToExportDoAn', {
@@ -1815,13 +1816,7 @@
           })
           .finally(() => showLoading(false));
       }      // Contract action functions
-      function viewContract(contractNumber) {
-        window.location.href = `/hop-dong/chi-tiet/${contractNumber}`;
-      }
-
-      function editContract(contractNumber) {
-        window.location.href = `/hop-dong/sua/${contractNumber}`;
-      }
+      
 
       function closeModal() {
         const modalElement = $('#detailModal')[0];
@@ -1859,7 +1854,7 @@
             $('#unmetRecordsSection').hide();
           }
         });
-      }      function updateContractStatusForTeachers() {
+      } function updateContractStatusForTeachers() {
         const params = getFilterParams();
         if (!validateParams(params) || !params.loaiHopDong) return;
 
@@ -1880,7 +1875,7 @@
           success: (response) => {
             const message = response.success && response.message ? response.message : 'Lỗi kiểm tra';
             statusCells.forEach(cell => cell.textContent = message);
-              // For TaiChinhDuyet, we're already displaying the status correctly 
+            // For TaiChinhDuyet, we're already displaying the status correctly 
             // from the data loaded in getDuyetHopDongData
             // No need to update these cells as they already have the correct values
             // Just leave them with the values set in displayContractDataInSeparateTables
@@ -1889,16 +1884,16 @@
             statusCells.forEach(cell => cell.textContent = 'Lỗi kết nối');
           }
         });
-      }      function resetContractStatus() {
+      } function resetContractStatus() {
         $('#contractSaveStatus').text('Chưa kiểm tra');
         $('#unmetRecordsSection').hide();
 
         const statusCells = document.querySelectorAll('.contract-status-cell, .contract-status-cell-hedaotao');
-        
+
         // We only reset the contract status cells, not the TC status cells
         // since the TC status is now populated directly from the server response
         statusCells.forEach(cell => cell.textContent = 'Chưa kiểm tra');
-        
+
         // Note: We don't reset tcDuyetCells because they now show data from the server response
         // in the getDuyetHopDongData call, which already includes the TaiChinhDuyet field
       }
