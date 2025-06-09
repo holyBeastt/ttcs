@@ -183,6 +183,15 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Link script Sweet alert 2 -->
+    <!-- SweetAlert2 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- SweetAlert2 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
     <!-- Thêm jQuery và jQuery UI -->
     <link
       rel="stylesheet"
@@ -213,6 +222,16 @@
             return;
           }
 
+          // Hiển thị loading SweetAlert2
+          Swal.fire({
+            title: "Đang xử lý...",
+            text: "Vui lòng chờ trong giây lát!",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          });
+
           let url = `/api/hd-gvm/export-additional-file?dot=${encodeURIComponent(
             dot
           )}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(namHoc)}`;
@@ -230,7 +249,12 @@
             url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
           }
 
-          window.location.href = url;
+          // Delay một chút để hiển thị loading trước khi chuyển hướng
+          setTimeout(() => {
+            window.location.href = url;
+            // Sau khi chuyển trang/tải file thì SweetAlert tự đóng (hoặc bạn có thể không cần)
+            Swal.close();
+          }, 1000); // delay 1 giây (tuỳ chọn, có thể chỉnh)
         });
     </script>
     <script>
