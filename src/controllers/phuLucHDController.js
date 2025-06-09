@@ -1273,4 +1273,5 @@ const getPhuLucHDSite = async (req, res) => {
 module.exports = {
   exportPhuLucGiangVienMoi,
   getPhuLucHDSite,
+  getExportPhuLucGiangVienMoiPath,
 };
