@@ -172,7 +172,12 @@ const getExportPhuLucDAPath = async (
 
     // Tạo một sheet cho mỗi giảng viên
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
-      const worksheet = workbook.addWorksheet(giangVien);
+      const cccds = [...new Set(giangVienData.map((item) => item.CCCD))];
+      const last4CCCDs = cccds.map((cccd) => cccd.slice(-4)).join(", ");
+
+      const worksheet = workbook.addWorksheet(
+        `${giangVien.replace(/\s*\(.*?\)\s*/g, "").trim()} - ${last4CCCDs}`
+      );
 
       worksheet.addRow([]);
 
@@ -321,6 +326,7 @@ const getExportPhuLucDAPath = async (
       let totalThucNhan = 0;
 
       giangVienData.forEach((item, index) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const mucThanhToan = 100000;
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
@@ -340,7 +346,7 @@ const getExportPhuLucDAPath = async (
             : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -481,8 +487,9 @@ const getExportPhuLucDAPath = async (
         });
       }
 
-      // Tạo sheet 2 (bản sao)
-      const sheetName2 = `${giangVien} (2)`;
+      const sheetName2 = `${giangVien
+        .replace(/\s*\(.*?\)\s*/g, "")
+        .trim()} - ${last4CCCDs} (2)`;
       const worksheet2 = workbook.addWorksheet(sheetName2);
 
       // Thêm tiêu đề cho sheet 2
@@ -617,6 +624,7 @@ const getExportPhuLucDAPath = async (
       let totalThucNhan2 = 0;
 
       giangVienData.forEach((item, index) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const mucThanhToan = 100000;
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
@@ -634,7 +642,7 @@ const getExportPhuLucDAPath = async (
 
         const row = worksheet2.addRow([
           index + 1,
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -886,6 +894,7 @@ const getExportPhuLucDAPath = async (
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const soTien = item.SoTiet * 100000; // Giả sử mức thanh toán là 100000
         const truThue = soTien * 0.1; // Trừ thuế TNCN 10%
         const conLai = soTien - truThue; // Còn lại
@@ -900,7 +909,7 @@ const getExportPhuLucDAPath = async (
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
           stt,
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -1115,7 +1124,8 @@ const exportPhuLucDA = async (req, res) => {
           edt.NgayKetThuc,
           gv.HocVi,
           gv.HSL,
-          gv.DiaChi
+          gv.DiaChi,
+          gv.CCCD
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
       WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1

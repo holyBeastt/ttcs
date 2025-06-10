@@ -1179,7 +1179,7 @@ const getGVData = async () => {
         CCCD: item.CCCD,
         BienChe: "Cơ hữu",
         HoTenReal: normalizeName(item.TenNhanVien),
-        GioiTinh: null,
+        GioiTinh: item.GioiTinh,
         NgaySinh: null,
         NgayCapCCCD: null,
         NoiCapCCCD: null,
@@ -1278,6 +1278,8 @@ const saveToExportDoAn = async (req, res) => {
       ]);
     }
 
+    console.log("data = ", data);
+
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
     const values = [];
     let isHDChinh, isMoiGiang;
@@ -1313,6 +1315,13 @@ const saveToExportDoAn = async (req, res) => {
             isMoiGiang =
               item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
             matchedItem1 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
+
+            if (!matchedItem1) {
+              errors.push(
+                `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
+              );
+              return;
+            }
           } else {
             matchedItem1 = uniqueGV.find(
               (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
