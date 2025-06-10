@@ -152,7 +152,6 @@ const getDuyetHopDongData = async (req, res) => {
         gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep,
         gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
         da.NgayBatDau, da.NgayKetThuc
-      ORDER BY SoTiet DESC, gv.HoTen, pb.TenPhongBan
     `;
 
         const [results] = await connection.query(query, params);
@@ -221,34 +220,32 @@ const getDuyetHopDongData = async (req, res) => {
             return acc;
         }, {});
 
-        // 2) Sắp xếp giảng viên theo khoa, tổng số tiết, rồi tên
+        // 2) Chuyển thành mảng để sort
         const teachersArr = Object.entries(groupedByTeacher).map(([name, data]) => ({
             name,
             ...data,
             totalSoTiet: data.totalFinancials.totalSoTiet,
             maPhongBan: data.teacherInfo.MaPhongBan
         }));
-        teachersArr.sort((a, b) => {
-            if (a.maPhongBan !== b.maPhongBan) return a.maPhongBan.localeCompare(b.maPhongBan);
-            if (b.totalSoTiet !== a.totalSoTiet) return b.totalSoTiet - a.totalSoTiet;
-            return a.name.localeCompare(b.name);
-        });
 
-        // 3) Chuẩn bị output
+        // 3) MỚI: chỉ sort theo khoa
+        teachersArr.sort((a, b) =>
+            a.maPhongBan.localeCompare(b.maPhongBan)
+        );
+
+        // 4) Chuẩn bị output cho 2 UI
         const simplifiedGroupedByTeacher = {};
         const enhancedGroupedByTeacher = {};
         for (const t of teachersArr) {
-            // simplified: mỗi giảng viên mảng 1 item cho UI cũ
             simplifiedGroupedByTeacher[t.name] = [{
                 ...t.teacherInfo,
-                SoTiet: t.totalSoTiet,
+                SoTiet: t.totalFinancials.totalSoTiet,
                 ThanhTien: t.totalFinancials.totalThanhTien,
                 Thue: t.totalFinancials.totalThue,
                 ThucNhan: t.totalFinancials.totalThucNhan,
                 trainingPrograms: t.trainingPrograms,
                 totalFinancials: t.totalFinancials
             }];
-            // enhanced: giữ object gốc để UI mới
             enhancedGroupedByTeacher[t.name] = {
                 teacherInfo: t.teacherInfo,
                 trainingPrograms: t.trainingPrograms,
@@ -256,31 +253,15 @@ const getDuyetHopDongData = async (req, res) => {
             };
         }
 
-        // 4) Lấy SoTietDinhMuc
+        // 5) Lấy SoTietDinhMuc
         const [sotietResult] = await connection.query(`SELECT GiangDay FROM sotietdinhmuc LIMIT 1`);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
 
-        // 5) Lấy SoQDList nếu cần
-        let SoQDList = [];
-        if (maPhongBan && maPhongBan !== "ALL") {
-            const [qds] = await connection.query(
-                `SELECT DISTINCT SoQD FROM doantotnghiep
-         WHERE SoQD IS NOT NULL
-           AND SoQD!='NULL'
-           AND Dot=?
-           AND NamHoc=?
-           AND MaPhongBan=?`,
-                [dot, namHoc, maPhongBan]
-            );
-            SoQDList = qds;
-        }
-
-        // Trả về
+       
         return res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher,
             SoTietDinhMuc,
-            SoQDList
         });
 
     } catch (error) {
@@ -294,6 +275,7 @@ const getDuyetHopDongData = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
 
 
 /**
