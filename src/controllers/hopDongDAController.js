@@ -255,7 +255,7 @@ SELECT
   ed.NganHang,
   ed.NoiCongTac,
   ed.Dot,
-  ed.KhoaDaoTao,
+  MAX(ed.KhoaDaoTao) AS KhoaDaoTao,
   MIN(ed.NgayBatDau) AS NgayBatDau,
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
@@ -270,7 +270,7 @@ WHERE
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
+  ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
 `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
