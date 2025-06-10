@@ -446,7 +446,7 @@
               if (response.success) {
                 Swal.fire({
                   title: 'Thành công!',
-                  text: `Đã cài đặt thành công ${response.updatedCount} hợp đồng`,
+                  text: response.message,
                   icon: 'success',
                   confirmButtonText: 'OK'
                 }).then(() => {

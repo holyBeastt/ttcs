@@ -130,7 +130,7 @@ const getHopDongList = async (req, res) => {
 };
 
 // Setup số hợp đồng tự động tăng dần cho toàn bộ
-const setupSoHopDongToanBo = async (req, res) => {
+const setupSoHopDongToanBo22 = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -220,7 +220,7 @@ const setupSoHopDongToanBo = async (req, res) => {
 
       await connection.commit(); res.json({
         success: true,
-        message: `Đã cập nhật số hợp đồng cho ${updatedCount}/${contractsData.length} hợp đồng thành công từ dữ liệu bảng hiển thị (${failedCount} thất bại)`,
+        message: `Đã cập nhật số hợp đồng mời giảng thành công`,
         updatedCount,
         failedCount,
         totalProcessed: contractsData.length
@@ -297,7 +297,7 @@ const setupSoHopDongToanBo = async (req, res) => {
 
       res.json({
         success: true,
-        message: `Đã cập nhật số hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
+        message: `Đã cập nhật số hợp đồng mời giảng thành công`,
         updatedCount
       });
     }
@@ -313,24 +313,125 @@ const setupSoHopDongToanBo = async (req, res) => {
   }
 };
 
+const setupSoHopDongToanBo = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, contractsData } = req.body;
+
+    // Validate required input
+    if (!dot || !ki || !nam) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học'
+      });
+    }
+
+    // Require contract data to proceed
+    if (!contractsData || !Array.isArray(contractsData) || contractsData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu dữ liệu hợp đồng để cập nhật'
+      });
+    }
+
+    // Begin transaction
+    await connection.beginTransaction();
+    let updatedCount = 0;
+    let failedCount = 0;
+
+    for (const contract of contractsData) {
+      try {
+        // Extract training program if provided
+        let extractedHeDaoTao = '';
+        if (contract.groupInfo) {
+          const [, heDao] = contract.groupInfo.split(' - ');
+          extractedHeDaoTao = heDao || '';
+        }
+
+        // Validate required fields
+        if (!contract.HoTen || !contract.newSoHopDong || !contract.newSoThanhLy) {
+          console.warn('Missing required fields in contract data:', contract);
+          failedCount++;
+          continue;
+        }
+
+        // Build update query
+        let updateQuery = `
+          UPDATE hopdonggvmoi
+          SET SoHopDong = ?, SoThanhLyHopDong = ?
+          WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen = ?
+        `;
+        const params = [
+          contract.newSoHopDong,
+          contract.newSoThanhLy,
+          dot,
+          ki,
+          nam,
+          contract.HoTen
+        ];
+
+        // Conditionally add he_dao_tao
+        const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
+        if (heDaoTaoToUse && heDaoTaoToUse.trim() && heDaoTaoToUse !== 'Không xác định') {
+          updateQuery += ' AND he_dao_tao = ?';
+          params.push(heDaoTaoToUse);
+        }
+
+        // Conditionally add id_Gvm
+        if (contract.id_Gvm) {
+          updateQuery += ' AND id_Gvm = ?';
+          params.push(contract.id_Gvm);
+        }
+
+        const [result] = await connection.execute(updateQuery, params);
+        if (result.affectedRows > 0) {
+          updatedCount += result.affectedRows;
+        } else {
+          failedCount++;
+        }
+
+      } catch (error) {
+        console.error('Error updating contract for:', contract.HoTen, error);
+        failedCount++;
+      }
+    }
+
+    await connection.commit();
+    res.json({
+      success: true,
+      message: 'Đã cập nhật số hợp đồng mời giảng thành công',
+      updatedCount,
+      failedCount,
+      totalProcessed: contractsData.length
+    });
+
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error('Error setting up so hop dong toan bo:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi setup số hợp đồng: ' + error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
     const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
-    console.log('Previewing contract setup with params:', { dot, ki, nam, khoa, heDaoTao, startingNumber });
-    
+
     connection = await createPoolConnection();
 
     // Build query với điều kiện WHERE đúng vị trí
     let whereConditions = 'WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?';
     const params = [dot, ki, nam];
-    
+
     // Thêm điều kiện hệ đào tạo vào subquery
     if (heDaoTao && heDaoTao.trim() !== '') {
       whereConditions += ' AND he_dao_tao = ?';
       params.push(heDaoTao);
     }
-    
+
     // Thêm điều kiện khoa vào subquery
     if (khoa && khoa !== 'ALL') {
       whereConditions += ' AND MaPhongBan = ?';
@@ -358,16 +459,14 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
     `;
 
-    console.log('SQL Query:', query);
-    console.log('Parameters:', params);
 
     const [rows] = await connection.execute(query, params);
 
     if (rows.length === 0) {
-      return res.json({ 
-        success: true, 
-        data: {}, 
-        message: 'Không tìm thấy hợp đồng nào phù hợp với điều kiện đã chọn' 
+      return res.json({
+        success: true,
+        data: {},
+        message: 'Không tìm thấy hợp đồng nào phù hợp với điều kiện đã chọn'
       });
     }
 
@@ -399,14 +498,13 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       });
     });
 
-    console.log('Preview result groups:', Object.keys(result));
     return res.json({ success: true, data: result });
 
   } catch (error) {
     console.error('Error previewing synchronized setup:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Lỗi khi xem trước setup đồng bộ: ' + error.message 
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi xem trước setup đồng bộ: ' + error.message
     });
   } finally {
     if (connection) connection.release();
@@ -538,7 +636,6 @@ const previewSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
-    console.log('Previewing do an contract setup with params:', { dot, ki, nam, khoa, heDaoTao, startingNumber });
 
     connection = await createPoolConnection();
 
@@ -598,9 +695,6 @@ const previewSoHopDongDoAn = async (req, res) => {
         gv.HoTen
     `;
 
-    console.log('SQL Query for Do An:', query);
-    console.log('Parameters:', params);
-
     const [rows] = await connection.execute(query, params);
 
     if (rows.length === 0) {
@@ -632,14 +726,13 @@ const previewSoHopDongDoAn = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong:  `${str}/HĐ-ĐT`,
-            newSoThanhLy:  `${str}/TLHĐ-ĐT`
+            newSoHopDong: `${str}/HĐ-ĐT`,
+            newSoThanhLy: `${str}/TLHĐ-ĐT`
           };
         });
       });
     });
 
-    console.log('Preview do an result groups:', Object.keys(result));
     return res.json({ success: true, data: result });
 
   } catch (error) {
@@ -654,7 +747,7 @@ const previewSoHopDongDoAn = async (req, res) => {
 };
 
 // Setup số hợp đồng đồ án tự động tăng dần
-const setupSoHopDongDoAn = async (req, res) => {
+const setupSoHopDongDoAn22 = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -671,22 +764,12 @@ const setupSoHopDongDoAn = async (req, res) => {
     // Check if contractsData is provided (new approach)
     if (contractsData && Array.isArray(contractsData) && contractsData.length > 0) {
       // Use the contracts data extracted from the preview table
-      console.log('Using contracts data from preview table:', contractsData.length, 'contracts');      // Bắt đầu transaction
       await connection.beginTransaction();
       let updatedCount = 0;
       let failedCount = 0;
 
       for (const contract of contractsData) {
         try {
-          console.log('Processing đồ án contract:', {
-            HoTen: contract.HoTen,
-            CCCD: contract.CCCD,
-            he_dao_tao: contract.he_dao_tao,
-            newSoHopDong: contract.newSoHopDong,
-            newSoThanhLy: contract.newSoThanhLy,
-            groupInfo: contract.groupInfo
-          });
-
           // Extract faculty and training program from groupInfo if available
           let extractedKhoa = '';
           let extractedHeDaoTao = '';
@@ -697,14 +780,12 @@ const setupSoHopDongDoAn = async (req, res) => {
             extractedHeDaoTao = groupParts[1] || '';
           }// Validate required fields from contract data
           if (!contract.HoTen || !contract.newSoHopDong || !contract.newSoThanhLy) {
-            console.warn('Missing required fields in contract data:', contract);
             failedCount++;
             continue;
           }
 
           // Validate CCCD is not undefined
           if (!contract.CCCD) {
-            console.warn('Missing CCCD for contract:', contract.HoTen);
             failedCount++;
             continue;
           }
@@ -728,17 +809,6 @@ const setupSoHopDongDoAn = async (req, res) => {
             updateQuery += ` AND he_dao_tao = ?`;
             updateParams.push(heDaoTaoToUse || null);
           }
-
-          // Debug logging
-          console.log(`Processing contract for ${contract.HoTen}:`, {
-            newSoHopDong: contract.newSoHopDong,
-            newSoThanhLy: contract.newSoThanhLy,
-            CCCD: contract.CCCD,
-            dot, ki, nam,
-            heDaoTaoToUse,
-            updateParams
-          });
-
           // Check for undefined values in parameters
           const hasUndefined = updateParams.some(param => param === undefined);
           if (hasUndefined) {
@@ -768,7 +838,7 @@ const setupSoHopDongDoAn = async (req, res) => {
       await connection.commit();
       res.json({
         success: true,
-        message: `Đã cập nhật số hợp đồng đồ án cho ${updatedCount}/${contractsData.length} hợp đồng thành công từ dữ liệu bảng hiển thị (${failedCount} thất bại)`,
+        message: `Đã cập nhật số hợp đồng đồ án thành công`,
         updatedCount,
         failedCount,
         totalProcessed: contractsData.length
@@ -781,7 +851,7 @@ const setupSoHopDongDoAn = async (req, res) => {
       // Build query để lấy danh sách hợp đồng đồ án cần cập nhật
       const whereClauses = [
         'ed.Dot = ?',
-        'ed.ki = ?', 
+        'ed.ki = ?',
         'ed.NamHoc = ?'
       ];
       let params = [dot, ki, nam];
@@ -851,7 +921,7 @@ const setupSoHopDongDoAn = async (req, res) => {
 
       res.json({
         success: true,
-        message: `Đã cập nhật số hợp đồng đồ án cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
+        message: `Đã cập nhật số hợp đồng đồ án thành công`,
         updatedCount
       });
     }
@@ -867,6 +937,117 @@ const setupSoHopDongDoAn = async (req, res) => {
   }
 };
 
+const setupSoHopDongDoAn = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const { dot, ki, nam, contractsData } = req.body;
+
+    // Validate required input
+    if (!dot || !ki || !nam) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học'
+      });
+    }
+
+    // Require contract data to proceed
+    if (!contractsData || !Array.isArray(contractsData) || contractsData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu dữ liệu hợp đồng đồ án để cập nhật'
+      });
+    }
+
+    // Begin transaction
+    await connection.beginTransaction();
+    let updatedCount = 0;
+    let failedCount = 0;
+
+    for (const contract of contractsData) {
+      try {
+        // Extract training program if provided
+        let extractedHeDaoTao = '';
+        if (contract.groupInfo) {
+          const [, heDao] = contract.groupInfo.split(' - ');
+          extractedHeDaoTao = heDao || '';
+        }
+
+        // Validate required fields
+        if (!contract.HoTen || !contract.newSoHopDong || !contract.newSoThanhLy) {
+          console.warn('Missing required fields in contract data:', contract);
+          failedCount++;
+          continue;
+        }
+
+        // Validate CCCD
+        if (!contract.CCCD) {
+          console.warn('Missing CCCD in contract data:', contract);
+          failedCount++;
+          continue;
+        }
+
+        // Build update query
+        let updateQuery = `
+          UPDATE exportdoantotnghiep
+          SET SoHopDong = ?, SoThanhLyHopDong = ?
+          WHERE Dot = ? AND ki = ? AND NamHoc = ? AND CCCD = ?
+        `;
+        const params = [
+          contract.newSoHopDong,
+          contract.newSoThanhLy,
+          dot,
+          ki,
+          nam,
+          contract.CCCD
+        ];
+
+        // Conditionally add he_dao_tao
+        const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
+        if (heDaoTaoToUse && heDaoTaoToUse.trim() && heDaoTaoToUse !== 'Không xác định') {
+          updateQuery += ' AND he_dao_tao = ?';
+          params.push(heDaoTaoToUse);
+        }
+
+        // Check for undefined params
+        if (params.some(p => p === undefined)) {
+          console.error('Found undefined parameter for:', contract.HoTen, params);
+          failedCount++;
+          continue;
+        }
+
+        // Execute update
+        const [result] = await connection.execute(updateQuery, params);
+        if (result.affectedRows > 0) {
+          updatedCount += result.affectedRows;
+        } else {
+          console.warn(`No do an records updated for CCCD: ${contract.CCCD}`);
+          failedCount++;
+        }
+
+      } catch (error) {
+        console.error('Error updating do an contract for:', contract.HoTen, error);
+        failedCount++;
+      }
+    }
+
+    await connection.commit();
+    res.json({
+      success: true,
+      message: 'Đã cập nhật số hợp đồng đồ án thành công',
+      updatedCount,
+      failedCount,
+      totalProcessed: contractsData.length
+    });
+
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error('Error setting up so hop dong do an:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi setup số hợp đồng đồ án: ' + error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+};
 
 module.exports = {
   getSoHopDongPage,

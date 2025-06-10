@@ -47,11 +47,21 @@
       padding: 10px;
       border-radius: 8px;
       transition: all 0.3s ease;
-    }
-
-    #contractTypeIndicator {
+    }    #contractTypeIndicator {
       transition: all 0.3s ease;
       font-size: 1rem;
+    }
+
+    /* CSS cho 2 cột: Số HĐ mới và Số TL mới - làm đậm và tô màu */
+    #contractsTable td:nth-child(6),
+    #contractsTable td:nth-child(7) {
+      color: #198754;
+      font-weight: bold;
+    }
+
+    #contractsTable .text-muted {
+      color: #6c757d !important;
+      font-style: italic;
     }
   </style>
 </head>
@@ -422,7 +432,7 @@
               if (response.success) {
                 Swal.fire({
                   title: 'Thành công!',
-                  text: `Đã cài đặt thành công ${response.updatedCount} hợp đồng đồ án`,
+                  text: response.message,
                   icon: 'success',
                   confirmButtonText: 'OK'
                 }).then(() => {
