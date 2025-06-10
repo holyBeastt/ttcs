@@ -1,5 +1,3 @@
-const express = require("express");
-const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
 
 const getSoHopDongPage = async (req, res) => {
@@ -12,67 +10,6 @@ const getSoHopDongPage = async (req, res) => {
   } catch (error) {
     console.error('Error rendering so hop dong page:', error);
     res.status(500).send('Internal Server Error');
-  }
-};
-
-// Lấy danh sách hợp đồng theo điều kiện
-const getHopDongList2 = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao } = req.query;
-
-    let query = `
-      SELECT 
-        id_Gvm,
-        HoTen,
-        MAX(SoHopDong) as SoHopDong,
-        MAX(SoThanhLyHopDong) as SoThanhLyHopDong,
-        Dot,
-        KiHoc,
-        NamHoc,
-        MaPhongBan as Khoa,
-        he_dao_tao as HeDaoTao,
-        MIN(NgayBatDau) as NgayBatDau,
-        MAX(NgayKetThuc) as NgayKetThuc
-      FROM hopdonggvmoi 
-      WHERE 1=1
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao && heDaoTao !== '') {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    // GROUP BY theo giảng viên để tránh trùng lặp
-    query += ` 
-      GROUP BY id_Gvm, HoTen, Dot, KiHoc, NamHoc, MaPhongBan, he_dao_tao
-      ORDER BY MaPhongBan, he_dao_tao, HoTen
-    `;
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching hop dong list:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy danh sách hợp đồng' });
-  } finally {
-    if (connection) connection.release();
   }
 };
 
@@ -160,11 +97,11 @@ const getHopDongList = async (req, res) => {
     // GROUP BY đúng y hệt exportMultipleContracts
     query += `
       GROUP BY
-        hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung,
-        hd.NgaySinh, hd.HocVi, hd.ChucVu, hd.HSL, hd.CCCD, hd.NoiCapCCCD,
-        hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, hd.NgayNghiemThu,
-        hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac, hd.he_dao_tao
+        hd.CCCD,
+        hd.id_Gvm,
+        hd.HoTen
     `;
+
 
     const [rows] = await connection.execute(query, params);
 
@@ -197,7 +134,7 @@ const setupSoHopDongToanBo = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, startingNumber, contractsData } = req.body;
 
     // Validate input
     if (!dot || !ki || !nam || !startingNumber) {
@@ -207,76 +144,163 @@ const setupSoHopDongToanBo = async (req, res) => {
       });
     }
 
-    // Build query để lấy danh sách hợp đồng cần cập nhật, nhóm theo khoa và hệ đào tạo
-    let query = `
-      SELECT MaHopDong, id_Gvm, HoTen, MaPhongBan, he_dao_tao
-      FROM hopdonggvmoi 
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
-    `;
-    let params = [dot, ki, nam];
+    // Check if contractsData is provided (new approach)
+    if (contractsData && Array.isArray(contractsData) && contractsData.length > 0) {
+      // Use the contracts data extracted from the preview table
+      console.log('Using contracts data from preview table:', contractsData.length, 'contracts');
 
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao) {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
+      // Bắt đầu transaction
+      await connection.beginTransaction(); let updatedCount = 0;
+      let failedCount = 0;
 
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên để đảm bảo số tăng dần theo từng nhóm
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
+      for (const contract of contractsData) {
+        try {
+          // Extract faculty and training program from groupInfo if available
+          let extractedKhoa = '';
+          let extractedHeDaoTao = '';
 
-    const [rows] = await connection.execute(query, params);
+          if (contract.groupInfo) {
+            const groupParts = contract.groupInfo.split(' - ');
+            extractedKhoa = groupParts[0] || '';
+            extractedHeDaoTao = groupParts[1] || '';
+          }
 
-    if (rows.length === 0) {
-      return res.json({ success: false, message: 'Không tìm thấy hợp đồng nào phù hợp điều kiện' });
-    }
+          // Validate required fields from contract data
+          if (!contract.HoTen || !contract.newSoHopDong || !contract.newSoThanhLy) {
+            console.warn('Missing required fields in contract data:', contract);
+            failedCount++;
+            continue;
+          }
 
-    // Bắt đầu transaction
-    await connection.beginTransaction();
+          // Build UPDATE query with precise conditions: he_dao_tao, HoTen, id_Gvm
+          let updateQuery = `
+            UPDATE hopdonggvmoi 
+            SET SoHopDong = ?, SoThanhLyHopDong = ? 
+            WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen = ?
+          `;
+          let updateParams = [
+            contract.newSoHopDong,
+            contract.newSoThanhLy,
+            dot,
+            ki,
+            nam,
+            contract.HoTen
+          ];
 
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.MaPhongBan}_${row.he_dao_tao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
+          // Add he_dao_tao condition if available in contract data or extracted from groupInfo
+          const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
+          if (heDaoTaoToUse && heDaoTaoToUse.trim() !== '' && heDaoTaoToUse !== 'Không xác định') {
+            updateQuery += ` AND he_dao_tao = ?`;
+            updateParams.push(heDaoTaoToUse);
+          }
 
-    let currentNumber = parseInt(startingNumber);
-    let updatedCount = 0;
+          // Add id_Gvm condition if available - this is the most precise identifier
+          if (contract.id_Gvm) {
+            updateQuery += ` AND id_Gvm = ?`;
+            updateParams.push(contract.id_Gvm);
+          }
 
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
+          // Execute the update
+          const [updateResult] = await connection.execute(updateQuery, updateParams);
 
-      for (const row of group) {
-        // Validate row has required fields
-        if (!row.MaHopDong) {
-          console.error('Row missing MaHopDong field:', row);
-          throw new Error('Database row missing required MaHopDong field');
+          if (updateResult.affectedRows > 0) {
+            updatedCount += updateResult.affectedRows;
+            console.log(`Updated ${updateResult.affectedRows} records for teacher: ${contract.HoTen}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}, id_Gvm: ${contract.id_Gvm || 'N/A'}`);
+          } else {
+            console.warn(`No records updated for teacher: ${contract.HoTen}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}, id_Gvm: ${contract.id_Gvm || 'N/A'}`);
+            failedCount++;
+          }
+
+        } catch (error) {
+          console.error('Error updating contract for:', contract.HoTen, error);
+          failedCount++;
+          // Continue with other contracts even if one fails
         }
-
-        const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
-
-        const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
-        await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
-
-        currentNumber++;
-        updatedCount++;
       }
+
+      await connection.commit(); res.json({
+        success: true,
+        message: `Đã cập nhật số hợp đồng cho ${updatedCount}/${contractsData.length} hợp đồng thành công từ dữ liệu bảng hiển thị (${failedCount} thất bại)`,
+        updatedCount,
+        failedCount,
+        totalProcessed: contractsData.length
+      });
+
+    } else {
+      // Fallback to original approach if no contractsData provided
+      console.log('No contracts data provided, using original database query approach');
+
+      // Build query để lấy danh sách hợp đồng cần cập nhật, nhóm theo khoa và hệ đào tạo
+      let query = `
+        SELECT MaHopDong, id_Gvm, HoTen, MaPhongBan, he_dao_tao
+        FROM hopdonggvmoi 
+        WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
+      `;
+      let params = [dot, ki, nam];
+
+      if (khoa && khoa !== 'ALL') {
+        query += ` AND MaPhongBan = ?`;
+        params.push(khoa);
+      }
+      if (heDaoTao) {
+        query += ` AND he_dao_tao = ?`;
+        params.push(heDaoTao);
+      }
+
+      // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên để đảm bảo số tăng dần theo từng nhóm
+      query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
+
+      const [rows] = await connection.execute(query, params);
+
+      if (rows.length === 0) {
+        return res.json({ success: false, message: 'Không tìm thấy hợp đồng nào phù hợp điều kiện' });
+      }
+
+      // Bắt đầu transaction
+      await connection.beginTransaction();
+
+      // Nhóm dữ liệu theo khoa và hệ đào tạo
+      const groupedData = {};
+      rows.forEach(row => {
+        const key = `${row.MaPhongBan}_${row.he_dao_tao || 'null'}`;
+        if (!groupedData[key]) {
+          groupedData[key] = [];
+        }
+        groupedData[key].push(row);
+      });
+
+      let currentNumber = parseInt(startingNumber);
+      let updatedCount = 0;
+
+      // Xử lý từng nhóm khoa-hệ đào tạo
+      for (const groupKey in groupedData) {
+        const group = groupedData[groupKey];
+
+        for (const row of group) {
+          // Validate row has required fields
+          if (!row.MaHopDong) {
+            console.error('Row missing MaHopDong field:', row);
+            throw new Error('Database row missing required MaHopDong field');
+          }
+
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
+
+          const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
+          await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
+
+          currentNumber++;
+          updatedCount++;
+        }
+      }
+
+      await connection.commit();
+
+      res.json({
+        success: true,
+        message: `Đã cập nhật số hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
+        updatedCount
+      });
     }
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: `Đã cập nhật số hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
-      updatedCount
-    });
 
   } catch (error) {
     if (connection) {
@@ -289,677 +313,352 @@ const setupSoHopDongToanBo = async (req, res) => {
   }
 };
 
-// Lấy tổng quan số hợp đồng theo khoa và hệ đào tạo
-const getContractSummary = async (req, res) => {
+const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao } = req.query;
-
-    let query = `
-      SELECT 
-        MaPhongBan as khoa,
-        he_dao_tao as heDaoTao,
-        COUNT(*) as count,
-        MIN(SoHopDong) as firstContract,
-        MAX(SoHopDong) as lastContract
-      FROM hopdonggvmoi 
-      WHERE SoHopDong IS NOT NULL AND SoHopDong != ''
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao && heDaoTao !== '') {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    query += ` GROUP BY MaPhongBan, he_dao_tao ORDER BY MaPhongBan, he_dao_tao`;
-
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching contract summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số hợp đồng' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Xem trước kết quả setup
-const previewSetup = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao, mode, startingNumber } = req.body;
-
-    let query = `
-      SELECT MaHopDong, id_Gvm, HoTen, MaPhongBan as Khoa, he_dao_tao as HeDaoTao, SoHopDong
-      FROM hopdonggvmoi 
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
-    `;
-    let params = [dot, ki, nam];
-
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao && heDaoTao !== '') {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
-
-    const [rows] = await connection.execute(query, params);
-
-    let preview = [];
-
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.Khoa}_${row.HeDaoTao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
-
-    let currentNumber = parseInt(startingNumber || 1);
-
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        preview.push({
-          ...row,
-          newSoHopDong: `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`,
-          groupInfo: `${row.Khoa} - ${row.HeDaoTao || 'Không xác định'}`
-        });
-        currentNumber++;
-      }
-    }
-
-    res.json({ success: true, data: preview, total: preview.length });
-
-  } catch (error) {
-    console.error('Error previewing setup:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Setup số thanh lý hợp đồng tự động tăng dần cho toàn bộ
-const setupSoThanhLyToanBo = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
     const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
+    console.log('Previewing contract setup with params:', { dot, ki, nam, khoa, heDaoTao, startingNumber });
+    
+    connection = await createPoolConnection();
 
-    // Validate input
-    if (!dot || !ki || !nam || !startingNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học, số bắt đầu'
-      });
-    }
-
-    // Build query để lấy danh sách hợp đồng cần cập nhật, nhóm theo khoa và hệ đào tạo
-    let query = `
-      SELECT MaHopDong, id_Gvm, HoTen, MaPhongBan, he_dao_tao
-      FROM hopdonggvmoi 
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
-    `;
-    let params = [dot, ki, nam];
-
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao) {
-      query += ` AND he_dao_tao = ?`;
+    // Build query với điều kiện WHERE đúng vị trí
+    let whereConditions = 'WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?';
+    const params = [dot, ki, nam];
+    
+    // Thêm điều kiện hệ đào tạo vào subquery
+    if (heDaoTao && heDaoTao.trim() !== '') {
+      whereConditions += ' AND he_dao_tao = ?';
       params.push(heDaoTao);
     }
+    
+    // Thêm điều kiện khoa vào subquery
+    if (khoa && khoa !== 'ALL') {
+      whereConditions += ' AND MaPhongBan = ?';
+      params.push(khoa);
+    }
 
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên để đảm bảo số tăng dần theo từng nhóm
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
+    let query = `
+      SELECT
+        hd.id_Gvm,
+        hd.HoTen,
+        hd.SoHopDong,
+        hd.SoThanhLyHopDong,
+        hd.Dot,
+        hd.KiHoc,
+        hd.NamHoc,
+        hd.MaPhongBan AS Khoa,
+        hd.he_dao_tao AS HeDaoTao
+      FROM (
+        SELECT *
+        FROM hopdonggvmoi
+        ${whereConditions}
+      ) hd
+      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen
+      ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
+    `;
+
+    console.log('SQL Query:', query);
+    console.log('Parameters:', params);
 
     const [rows] = await connection.execute(query, params);
 
     if (rows.length === 0) {
-      return res.json({ success: false, message: 'Không tìm thấy hợp đồng nào phù hợp điều kiện' });
+      return res.json({ 
+        success: true, 
+        data: {}, 
+        message: 'Không tìm thấy hợp đồng nào phù hợp với điều kiện đã chọn' 
+      });
     }
 
-    // Bắt đầu transaction
-    await connection.beginTransaction();
+    // Nhóm theo HeDaoTao và MaPhongBan
+    const grouped = rows.reduce((acc, item) => {
+      const he = item.HeDaoTao || 'Không xác định';
+      const khoaKey = item.Khoa || 'Khác';
+      if (!acc[he]) acc[he] = {};
+      if (!acc[he][khoaKey]) acc[he][khoaKey] = [];
+      acc[he][khoaKey].push(item);
+      return acc;
+    }, {});
 
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.MaPhongBan}_${row.he_dao_tao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
+    // Khởi số bắt đầu 1 lần duy nhất, rồi tăng dần liên tục
+    let num = parseInt(startingNumber || 1, 10);
+    const result = {};
 
-    let currentNumber = parseInt(startingNumber);
-    let updatedCount = 0;
-
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        // Validate row has required fields
-        if (!row.MaHopDong) {
-          console.error('Row missing MaHopDong field:', row);
-          throw new Error('Database row missing required MaHopDong field');
-        }
-
-        const soThanhLy = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`;
-
-        const updateQuery = `UPDATE hopdonggvmoi SET SoThanhLyHopDong = ? WHERE MaHopDong = ?`;
-        await connection.execute(updateQuery, [soThanhLy, row.MaHopDong]);
-
-        currentNumber++;
-        updatedCount++;
-      }
-    }
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: `Đã cập nhật số thanh lý hợp đồng cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
-      updatedCount
-    });
-
-  } catch (error) {
-    if (connection) {
-      await connection.rollback();
-    }
-    console.error('Error setting up so thanh ly hop dong:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi setup số thanh lý hợp đồng: ' + error.message });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Lấy tổng quan số thanh lý hợp đồng theo khoa và hệ đào tạo
-const getTerminationSummary = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao } = req.query;
-
-    let query = `
-      SELECT 
-        MaPhongBan as khoa,
-        he_dao_tao as heDaoTao,
-        COUNT(*) as count,
-        MIN(SoThanhLyHopDong) as firstTermination,
-        MAX(SoThanhLyHopDong) as lastTermination
-      FROM hopdonggvmoi 
-      WHERE SoThanhLyHopDong IS NOT NULL AND SoThanhLyHopDong != ''
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao && heDaoTao !== '') {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    query += ` GROUP BY MaPhongBan, he_dao_tao ORDER BY MaPhongBan, he_dao_tao`;
-
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching termination summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số thanh lý hợp đồng' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Xem trước kết quả setup số thanh lý
-const previewTerminationSetup = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao, mode, startingNumber } = req.body;
-
-    let query = `
-      SELECT MaHopDong, id_Gvm, HoTen, MaPhongBan as Khoa, he_dao_tao as HeDaoTao, SoThanhLyHopDong
-      FROM hopdonggvmoi 
-      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?
-    `;
-    let params = [dot, ki, nam];
-
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao && heDaoTao !== '') {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
-
-    const [rows] = await connection.execute(query, params);
-
-    let preview = [];
-
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.Khoa}_${row.HeDaoTao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
-
-    let currentNumber = parseInt(startingNumber || 1);
-
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        preview.push({
-          ...row,
-          newSoThanhLy: `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`,
-          groupInfo: `${row.Khoa} - ${row.HeDaoTao || 'Không xác định'}`
+    Object.keys(grouped).sort().forEach(he => {
+      result[he] = {};
+      Object.keys(grouped[he]).sort().forEach(khoaKey => {
+        result[he][khoaKey] = grouped[he][khoaKey].map(item => {
+          const str = String(num++).padStart(3, '0');
+          return {
+            ...item,
+            newSoHopDong: `${str}/HĐ-ĐT`,
+            newSoThanhLy: `${str}/TLHĐ-ĐT`
+          };
         });
-        currentNumber++;
-      }
-    }
-
-    res.json({ success: true, data: preview, total: preview.length });
-
-  } catch (error) {
-    console.error('Error previewing termination setup:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup số thanh lý' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Synchronized setup functions for both contract and termination numbers
-const previewSynchronizedSetup = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
-
-    let query = `
-      SELECT 
-        MaHopDong,
-        HoTen,
-        SoHopDong,
-        SoThanhLyHopDong,
-        Dot,
-        KiHoc,
-        NamHoc,
-        MaPhongBan as Khoa,
-        he_dao_tao as HeDaoTao
-      FROM hopdonggvmoi 
-      WHERE 1=1
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao) {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
-
-    const [rows] = await connection.execute(query, params);
-
-    let preview = [];
-
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.Khoa}_${row.HeDaoTao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
+      });
     });
 
-    let currentNumber = parseInt(startingNumber || 1);
-
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        const numberStr = String(currentNumber).padStart(3, '0');
-        preview.push({
-          ...row,
-          newSoHopDong: `${numberStr}/HĐ-ĐT`,
-          newSoThanhLy: `${numberStr}/TLHĐ-ĐT`,
-          groupInfo: `${row.Khoa} - ${row.HeDaoTao || 'Không xác định'}`
-        });
-        currentNumber++;
-      }
-    }
-
-    res.json({ success: true, data: preview, total: preview.length });
+    console.log('Preview result groups:', Object.keys(result));
+    return res.json({ success: true, data: result });
 
   } catch (error) {
     console.error('Error previewing synchronized setup:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup đồng bộ' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-const setupSynchronizedNumbers = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
-
-    await connection.beginTransaction();
-
-    let query = `
-      SELECT 
-        MaHopDong,
-        HoTen,
-        MaPhongBan,
-        he_dao_tao
-      FROM hopdonggvmoi 
-      WHERE 1=1
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao) {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    // Sắp xếp theo khoa, hệ đào tạo, rồi mới đến tên
-    query += ` ORDER BY MaPhongBan, he_dao_tao, HoTen`;
-
-    const [rows] = await connection.execute(query, params);
-
-    // Nhóm dữ liệu theo khoa và hệ đào tạo
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = `${row.MaPhongBan}_${row.he_dao_tao || 'null'}`;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Lỗi khi xem trước setup đồng bộ: ' + error.message 
     });
-
-    let currentNumber = parseInt(startingNumber || 1);
-    let updatedCount = 0;
-
-    // Xử lý từng nhóm khoa-hệ đào tạo
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        const numberStr = String(currentNumber).padStart(3, '0');
-        const contractNumber = `${numberStr}/HĐ-ĐT`;
-        const terminationNumber = `${numberStr}/TLHĐ-ĐT`;
-
-        await connection.execute(
-          `UPDATE hopdonggvmoi 
-           SET SoHopDong = ?, SoThanhLyHopDong = ? 
-           WHERE MaHopDong = ?`,
-          [contractNumber, terminationNumber, row.MaHopDong]
-        );
-
-        currentNumber++;
-        updatedCount++;
-      }
-    }
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: `Cài đặt đồng bộ thành công cho ${updatedCount} hợp đồng (nhóm theo khoa và hệ đào tạo)`,
-      updatedCount: updatedCount
-    });
-
-  } catch (error) {
-    if (connection) {
-      await connection.rollback();
-    }
-    console.error('Error setting up synchronized numbers:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi cài đặt đồng bộ số hợp đồng và thanh lý' });
   } finally {
     if (connection) connection.release();
   }
 };
 
-// Lấy tổng quan hợp nhất số hợp đồng và thanh lý theo khoa và hệ đào tạo
-const getUnifiedSummary = async (req, res) => {
-  let connection;
+// Lấy site đồ án 
+const getSoHopDongDoAnPage = async (req, res) => {
   try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, heDaoTao } = req.query;
-
-    let query = `
-      SELECT 
-        MaPhongBan as khoa,
-        he_dao_tao as heDaoTao,
-        COUNT(*) as count,
-        MIN(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
-            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as firstIndex,
-        MAX(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
-            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as lastIndex,
-        MIN(SoHopDong) as firstContract,
-        MAX(SoHopDong) as lastContract,
-        MIN(SoThanhLyHopDong) as firstTermination,
-        MAX(SoThanhLyHopDong) as lastTermination
-      FROM hopdonggvmoi 
-      WHERE (SoHopDong IS NOT NULL AND SoHopDong != '') 
-         OR (SoThanhLyHopDong IS NOT NULL AND SoThanhLyHopDong != '')
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND KiHoc = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-    if (heDaoTao) {
-      query += ` AND he_dao_tao = ?`;
-      params.push(heDaoTao);
-    }
-
-    query += ` GROUP BY MaPhongBan, he_dao_tao ORDER BY MaPhongBan, he_dao_tao`;
-
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching unified summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan hợp nhất' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// ===== THESIS PROJECT (ĐỒ ÁN) FUNCTIONS =====
-
-// Lấy trang quản lý số quyết định đồ án
-const getDoAnPage = async (req, res) => {
-  try {
-    // Render the thesis project numbers page
+    // Render the contract numbers page
     res.render('hopdong.soHopDongDoAn.ejs', {
-      title: 'Quản lý Số Quyết Định Đồ Án',
+      title: 'Số đồ án',
       user: req.user || {}
     });
   } catch (error) {
-    console.error('Error rendering so do an page:', error);
+    console.error('Error rendering so hop dong do an page:', error);
     res.status(500).send('Internal Server Error');
   }
 };
 
-// Lấy danh sách đồ án theo điều kiện
-const getDoAnList = async (req, res) => {
+// Lấy data của số hợp đồng đồ án
+const getHopDongDoAnList = async (req, res) => {
   let connection;
   try {
+    const isKhoa = req.session.isKhoa;
+    // Hỗ trợ cả param nam hoặc namHoc từ client
+    let { dot, ki, namHoc: nh, nam, khoa, heDaoTao, teacherName } = req.query;
+    const namHoc = nh || nam;
+
+    // Bắt buộc
+    if (!dot || !ki || !namHoc) {
+      return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
+    }
+    // Quyền khoa
+    if (isKhoa == 1) {
+      khoa = req.session.MaPhongBan;
+    }
+
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoa } = req.query;
 
-    let query = `
-SELECT 
-  ed.CCCD,
-  ed.DienThoai,
-  ed.Email,
-  ed.MaSoThue,
-  ed.GiangVien as 'HoTen',
-  ed.NgaySinh,
-  ed.NgayCapCCCD,
-  ed.GioiTinh,
-  ed.STK,
-  ed.HocVi,
-  ed.ChucVu,
-  ed.HSL,
-  ed.NoiCapCCCD,
-  ed.DiaChi,
-  ed.NganHang,
-  ed.NoiCongTac,
-  ed.Dot,
-  ed.KhoaDaoTao,
-  MIN(ed.NgayBatDau) AS NgayBatDau,
-  MAX(ed.NgayKetThuc) AS NgayKetThuc,
-  SUM(ed.SoTiet) AS SoTiet,
-  ed.NamHoc,
-  gv.MaPhongBan,
-  MAX(ed.SoHopDong) as SoHopDong,
-  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
-FROM
-  gvmoi gv
-JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
-WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
-`;
+    // Build query cho đồ án từ bảng exportdoantotnghiep
+    const whereClauses = [
+      'ed.Dot = ?',
+      'ed.ki = ?',
+      'ed.NamHoc = ?'
+    ];
+    const params = [dot, ki, namHoc];
 
-    let params = [dot, ki, nam];
+    // Thêm filter hệ đào tạo nếu có
+    if (heDaoTao && heDaoTao.trim() !== '') {
+      whereClauses.push('ed.he_dao_tao = ?');
+      params.push(heDaoTao.trim());
+    }
 
-    // Xử lý trường hợp có khoa
-    if (khoa && khoa !== "ALL") {
-      query += ` AND gv.MaPhongBan LIKE ?`;
+    // Thêm filter khoa nếu không phải "ALL"
+    if (khoa && khoa !== 'ALL') {
+      whereClauses.push('gv.MaPhongBan LIKE ?');
       params.push(`%${khoa}%`);
     }
 
-    query += `
-GROUP BY 
-  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
-ORDER BY gv.MaPhongBan, ed.GiangVien
-`;
+    // Thêm filter theo tên giáo viên nếu có
+    if (teacherName && teacherName.trim() !== '') {
+      whereClauses.push('gv.HoTen LIKE ?');
+      params.push(`%${teacherName}%`);
+    }
+
+    const whereSQL = whereClauses.length
+      ? 'WHERE ' + whereClauses.join(' AND ')
+      : '';
+
+    let query = `
+      SELECT
+        ed.CCCD,
+        gv.id_Gvm,
+        gv.HoTen                          AS HoTen,
+        MIN(ed.SoHopDong)                 AS SoHopDong,
+        MIN(ed.SoThanhLyHopDong)          AS SoThanhLyHopDong,
+        ed.Dot,
+        ed.ki,
+        ed.NamHoc,
+        gv.MaPhongBan                     AS MaPhongBan,
+        ed.he_dao_tao                     AS he_dao_tao
+      FROM exportdoantotnghiep ed
+      JOIN gvmoi gv ON ed.CCCD = gv.CCCD
+      ${whereSQL}
+      GROUP BY
+        ed.CCCD,
+        gv.id_Gvm,
+        gv.HoTen,
+        ed.Dot,
+        ed.ki,
+        ed.NamHoc,
+        gv.MaPhongBan,
+        ed.he_dao_tao
+      ORDER BY
+        gv.MaPhongBan,
+        ed.he_dao_tao,
+        gv.HoTen
+    `;
 
     const [rows] = await connection.execute(query, params);
 
-    // console.log("debug so hop dong do an : " + rows);
-    res.json({ success: true, data: rows });
+    // Hàm nhóm theo he_dao_tao và MaPhongBan
+    const grouped = rows.reduce((acc, item) => {
+      const he = item.he_dao_tao || 'Không xác định';
+      const khoaKey = item.MaPhongBan || 'Khác';
+
+      if (!acc[he]) {
+        acc[he] = {};
+      }
+      if (!acc[he][khoaKey]) {
+        acc[he][khoaKey] = [];
+      }
+      acc[he][khoaKey].push(item);
+      return acc;
+    }, {});
+
+    return res.json({ success: true, data: grouped });
   } catch (error) {
-    console.error('Error fetching do an list:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy danh sách đồ án' });
+    console.error("Error in getHopDongDoAnList:", error);
+    return res.status(500).json({ success: false, message: "Lỗi khi lấy danh sách hợp đồng đồ án" });
   } finally {
     if (connection) connection.release();
   }
 };
 
-// Setup số quyết định đồ án tự động tăng dần cho toàn bộ
-const setupSoQDDoAnToanBo = async (req, res) => {
+// Preview số hợp đồng đồ án
+const previewSoHopDongDoAn = async (req, res) => {
+  let connection;
+  try {
+    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
+    console.log('Previewing do an contract setup with params:', { dot, ki, nam, khoa, heDaoTao, startingNumber });
+
+    connection = await createPoolConnection();
+
+    // --- Chỉ bắt buộc Dot, ki, NamHoc ---
+    const whereClauses = [
+      'ed.Dot = ?',
+      'ed.ki = ?',
+      'ed.NamHoc = ?'
+    ];
+    const params = [dot, ki, nam];
+
+    // --- Thêm filter he_dao_tao nếu có ---
+    if (heDaoTao && heDaoTao.trim() !== '') {
+      whereClauses.push('ed.he_dao_tao = ?');
+      params.push(heDaoTao.trim());
+    }
+
+    // --- Thêm filter khoa nếu không phải "ALL" ---
+    if (khoa && khoa !== 'ALL') {
+      whereClauses.push('gv.MaPhongBan LIKE ?');
+      params.push(`%${khoa}%`);
+    }
+
+    const whereSQL = whereClauses.length
+      ? 'WHERE ' + whereClauses.join(' AND ')
+      : '';
+
+    // --- Truy vấn nhóm + tổng hợp ---
+    const query = `
+      SELECT
+        ed.CCCD,
+        gv.id_Gvm,
+        gv.HoTen                          AS HoTen,
+        MIN(ed.SoHopDong)                 AS SoHopDong,
+        MIN(ed.SoThanhLyHopDong)          AS SoThanhLyHopDong,
+        ed.Dot,
+        ed.ki,
+        ed.NamHoc,
+        gv.MaPhongBan                     AS Khoa,
+        ed.he_dao_tao                     AS HeDaoTao
+      FROM exportdoantotnghiep ed
+      JOIN gvmoi gv
+        ON ed.CCCD = gv.CCCD
+      ${whereSQL}
+      GROUP BY
+        ed.CCCD,
+        gv.id_Gvm,
+        gv.HoTen,
+        ed.Dot,
+        ed.ki,
+        ed.NamHoc,
+        gv.MaPhongBan,
+        ed.he_dao_tao
+      ORDER BY
+        gv.MaPhongBan,
+        ed.he_dao_tao,
+        gv.HoTen
+    `;
+
+    console.log('SQL Query for Do An:', query);
+    console.log('Parameters:', params);
+
+    const [rows] = await connection.execute(query, params);
+
+    if (rows.length === 0) {
+      return res.json({
+        success: true,
+        data: {},
+        message: 'Không tìm thấy hợp đồng đồ án nào phù hợp với điều kiện đã chọn'
+      });
+    }
+
+    // Nhóm kết quả theo hệ đào tạo và khoa
+    const grouped = rows.reduce((acc, item) => {
+      const he = item.HeDaoTao || '';
+      const khoaKey = item.Khoa || 'Khác';
+      acc[he] = acc[he] || {};
+      acc[he][khoaKey] = acc[he][khoaKey] || [];
+      acc[he][khoaKey].push(item);
+      return acc;
+    }, {});
+
+    // Gán số hợp đồng liên tục
+    let num = parseInt(startingNumber || '1', 10);
+    const result = {};
+
+    Object.keys(grouped).sort().forEach(he => {
+      result[he] = {};
+      Object.keys(grouped[he]).sort().forEach(khoaKey => {
+        result[he][khoaKey] = grouped[he][khoaKey].map(item => {
+          const str = String(num++).padStart(3, '0');
+          return {
+            ...item,
+            newSoHopDong:  `${str}/HĐ-ĐT`,
+            newSoThanhLy:  `${str}/TLHĐ-ĐT`
+          };
+        });
+      });
+    });
+
+    console.log('Preview do an result groups:', Object.keys(result));
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.error('Error previewing do an synchronized setup:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi xem trước setup đồng bộ đồ án: ' + error.message
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Setup số hợp đồng đồ án tự động tăng dần
+const setupSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, startingNumber } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, startingNumber, contractsData } = req.body;
 
     // Validate input
     if (!dot || !ki || !nam || !startingNumber) {
@@ -969,491 +668,214 @@ const setupSoQDDoAnToanBo = async (req, res) => {
       });
     }
 
-    // Build query để lấy danh sách đồ án cần cập nhật, nhóm theo khoa
-    let query = `
-      SELECT ID, SinhVien, GiangVien, MaPhongBan, TenDeTai
-      FROM exportdoantotnghiep 
-      WHERE Dot = ? AND ki = ? AND NamHoc = ?
-    `;
-    let params = [dot, ki, nam];
+    // Check if contractsData is provided (new approach)
+    if (contractsData && Array.isArray(contractsData) && contractsData.length > 0) {
+      // Use the contracts data extracted from the preview table
+      console.log('Using contracts data from preview table:', contractsData.length, 'contracts');      // Bắt đầu transaction
+      await connection.beginTransaction();
+      let updatedCount = 0;
+      let failedCount = 0;
 
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
+      for (const contract of contractsData) {
+        try {
+          console.log('Processing đồ án contract:', {
+            HoTen: contract.HoTen,
+            CCCD: contract.CCCD,
+            he_dao_tao: contract.he_dao_tao,
+            newSoHopDong: contract.newSoHopDong,
+            newSoThanhLy: contract.newSoThanhLy,
+            groupInfo: contract.groupInfo
+          });
 
-    // Sắp xếp theo khoa, rồi mới đến tên để đảm bảo số tăng dần theo từng nhóm
-    query += ` ORDER BY MaPhongBan, GiangVien, SinhVien`;
+          // Extract faculty and training program from groupInfo if available
+          let extractedKhoa = '';
+          let extractedHeDaoTao = '';
 
-    const [rows] = await connection.execute(query, params);
+          if (contract.groupInfo) {
+            const groupParts = contract.groupInfo.split(' - ');
+            extractedKhoa = groupParts[0] || '';
+            extractedHeDaoTao = groupParts[1] || '';
+          }// Validate required fields from contract data
+          if (!contract.HoTen || !contract.newSoHopDong || !contract.newSoThanhLy) {
+            console.warn('Missing required fields in contract data:', contract);
+            failedCount++;
+            continue;
+          }
 
-    if (rows.length === 0) {
-      return res.json({ success: false, message: 'Không tìm thấy đồ án nào phù hợp điều kiện' });
-    }
+          // Validate CCCD is not undefined
+          if (!contract.CCCD) {
+            console.warn('Missing CCCD for contract:', contract.HoTen);
+            failedCount++;
+            continue;
+          }
 
-    // Bắt đầu transaction
-    await connection.beginTransaction();
+          // Build UPDATE query for exportdoantotnghiep table with precise conditions
+          let updateQuery = `
+            UPDATE exportdoantotnghiep 
+            SET SoHopDong = ?, SoThanhLyHopDong = ? 
+            WHERE Dot = ? AND ki = ? AND NamHoc = ? AND CCCD = ?
+          `;
+          let updateParams = [
+            contract.newSoHopDong || null,
+            contract.newSoThanhLy || null,
+            dot || null,
+            ki || null,
+            nam || null,
+            contract.CCCD || null
+          ];          // Add he_dao_tao condition if available in contract data or extracted from groupInfo
+          const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
+          if (heDaoTaoToUse && heDaoTaoToUse.trim() !== '' && heDaoTaoToUse !== 'Không xác định') {
+            updateQuery += ` AND he_dao_tao = ?`;
+            updateParams.push(heDaoTaoToUse || null);
+          }
 
-    // Nhóm dữ liệu theo khoa
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = row.MaPhongBan;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
+          // Debug logging
+          console.log(`Processing contract for ${contract.HoTen}:`, {
+            newSoHopDong: contract.newSoHopDong,
+            newSoThanhLy: contract.newSoThanhLy,
+            CCCD: contract.CCCD,
+            dot, ki, nam,
+            heDaoTaoToUse,
+            updateParams
+          });
 
-    let currentNumber = parseInt(startingNumber);
-    let updatedCount = 0;
+          // Check for undefined values in parameters
+          const hasUndefined = updateParams.some(param => param === undefined);
+          if (hasUndefined) {
+            console.error('Found undefined parameter for:', contract.HoTen, updateParams);
+            failedCount++;
+            continue;
+          }
 
-    // Xử lý từng nhóm khoa
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
+          // Execute the update
+          const [updateResult] = await connection.execute(updateQuery, updateParams);
 
-      for (const row of group) {
-        // Validate row has required fields
-        if (!row.ID) {
-          console.error('Row missing ID field:', row);
-          throw new Error('Database row missing required ID field');
+          if (updateResult.affectedRows > 0) {
+            updatedCount += updateResult.affectedRows;
+            console.log(`Updated ${updateResult.affectedRows} do an records for teacher: ${contract.HoTen}, CCCD: ${contract.CCCD}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}`);
+          } else {
+            console.warn(`No do an records updated for teacher: ${contract.HoTen}, CCCD: ${contract.CCCD}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}`);
+            failedCount++;
+          }
+
+        } catch (error) {
+          console.error('Error updating do an contract for:', contract.HoTen, error);
+          failedCount++;
+          // Continue with other contracts even if one fails
         }
-        const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐA`;
-        const soThanhLyHopDong = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐA`;
-
-        const updateQuery = `UPDATE exportdoantotnghiep SET SoHopDong = ?, SoThanhLyHopDong = ? WHERE ID = ?`;
-        await connection.execute(updateQuery, [soHopDong, soThanhLyHopDong, row.ID]);
-
-        currentNumber++;
-        updatedCount++;
       }
+
+      await connection.commit();
+      res.json({
+        success: true,
+        message: `Đã cập nhật số hợp đồng đồ án cho ${updatedCount}/${contractsData.length} hợp đồng thành công từ dữ liệu bảng hiển thị (${failedCount} thất bại)`,
+        updatedCount,
+        failedCount,
+        totalProcessed: contractsData.length
+      });
+
+    } else {
+      // Fallback to original approach if no contractsData provided
+      console.log('No contracts data provided, using original database query approach for do an');
+
+      // Build query để lấy danh sách hợp đồng đồ án cần cập nhật
+      const whereClauses = [
+        'ed.Dot = ?',
+        'ed.ki = ?', 
+        'ed.NamHoc = ?'
+      ];
+      let params = [dot, ki, nam];
+
+      if (khoa && khoa !== 'ALL') {
+        whereClauses.push('gv.MaPhongBan = ?');
+        params.push(khoa);
+      }
+      if (heDaoTao) {
+        whereClauses.push('ed.he_dao_tao = ?');
+        params.push(heDaoTao);
+      }
+
+      const whereSQL = 'WHERE ' + whereClauses.join(' AND ');
+
+      let query = `
+        SELECT ed.CCCD, ed.he_dao_tao, gv.HoTen, gv.MaPhongBan
+        FROM exportdoantotnghiep ed
+        JOIN gvmoi gv ON ed.CCCD = gv.CCCD
+        ${whereSQL}
+        ORDER BY gv.MaPhongBan, ed.he_dao_tao, gv.HoTen
+      `;
+
+      const [rows] = await connection.execute(query, params);
+
+      if (rows.length === 0) {
+        return res.json({ success: false, message: 'Không tìm thấy hợp đồng đồ án nào phù hợp điều kiện' });
+      }
+
+      // Bắt đầu transaction
+      await connection.beginTransaction();
+
+      // Nhóm dữ liệu theo khoa và hệ đào tạo
+      const groupedData = {};
+      rows.forEach(row => {
+        const key = `${row.MaPhongBan}_${row.he_dao_tao || 'null'}`;
+        if (!groupedData[key]) {
+          groupedData[key] = [];
+        }
+        groupedData[key].push(row);
+      });
+
+      let currentNumber = parseInt(startingNumber);
+      let updatedCount = 0;
+
+      // Xử lý từng nhóm khoa-hệ đào tạo
+      for (const groupKey in groupedData) {
+        const group = groupedData[groupKey];
+
+        for (const row of group) {
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
+          const soThanhLy = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`;
+
+          const updateQuery = `
+            UPDATE exportdoantotnghiep 
+            SET SoHopDong = ?, SoThanhLyHopDong = ? 
+            WHERE CCCD = ? AND Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?
+          `;
+          await connection.execute(updateQuery, [soHopDong, soThanhLy, row.CCCD, dot, ki, nam, row.he_dao_tao]);
+
+          currentNumber++;
+          updatedCount++;
+        }
+      }
+
+      await connection.commit();
+
+      res.json({
+        success: true,
+        message: `Đã cập nhật số hợp đồng đồ án cho ${updatedCount} hợp đồng thành công (nhóm theo khoa và hệ đào tạo)`,
+        updatedCount
+      });
     }
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: `Đã cập nhật số quyết định đồ án cho ${updatedCount} đồ án thành công (nhóm theo khoa)`,
-      updatedCount
-    });
 
   } catch (error) {
     if (connection) {
       await connection.rollback();
     }
-    console.error('Error setting up so qd do an toan bo:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi setup số quyết định đồ án: ' + error.message });
+    console.error('Error setting up so hop dong do an:', error);
+    res.status(500).json({ success: false, message: 'Lỗi khi setup số hợp đồng đồ án: ' + error.message });
   } finally {
     if (connection) connection.release();
   }
 };
-
-// Lấy tổng quan số quyết định đồ án theo khoa
-const getDoAnSummary = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa } = req.query; let query = `
-      SELECT 
-        MaPhongBan as khoa,
-        COUNT(*) as count,
-        MIN(SoHopDong) as firstContract,
-        MAX(SoHopDong) as lastContract,
-        MIN(SoThanhLyHopDong) as firstTermination,
-        MAX(SoThanhLyHopDong) as lastTermination
-      FROM exportdoantotnghiep 
-      WHERE SoHopDong IS NOT NULL AND SoHopDong != ''
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND ki = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL' && khoa !== '') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-
-    query += ` GROUP BY MaPhongBan ORDER BY MaPhongBan`;
-
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching do an summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan số hợp đồng & thanh lý đồ án' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Xem trước kết quả setup đồ án
-const previewDoAnSetup = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, startingNumber } = req.body;
-
-    let query = `
-SELECT 
-  ed.CCCD,
-  ed.DienThoai,
-  ed.Email,
-  ed.MaSoThue,
-  ed.GiangVien as 'HoTen',
-  ed.NgaySinh,
-  ed.NgayCapCCCD,
-  ed.GioiTinh,
-  ed.STK,
-  ed.HocVi,
-  ed.ChucVu,
-  ed.HSL,
-  ed.NoiCapCCCD,
-  ed.DiaChi,
-  ed.NganHang,
-  ed.NoiCongTac,
-  ed.Dot,
-  ed.KhoaDaoTao,
-  MIN(ed.NgayBatDau) AS NgayBatDau,
-  MAX(ed.NgayKetThuc) AS NgayKetThuc,
-  SUM(ed.SoTiet) AS SoTiet,
-  ed.NamHoc,
-  gv.MaPhongBan as Khoa,
-  MAX(ed.SoHopDong) as SoHopDong,
-  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
-FROM
-  gvmoi gv
-JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
-WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
-`;
-    let params = [dot, ki, nam];
-
-    // Xử lý trường hợp có khoa
-    if (khoa && khoa !== "ALL") {
-      query += ` AND gv.MaPhongBan LIKE ?`;
-      params.push(`%${khoa}%`);
-    }
-
-    query += `
-GROUP BY 
-  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
-ORDER BY gv.MaPhongBan, ed.GiangVien
-`;
-
-    const [rows] = await connection.execute(query, params);
-
-    let preview = [];
-
-    // Nhóm dữ liệu theo khoa
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = row.Khoa;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
-
-    let currentNumber = parseInt(startingNumber || 1);
-
-    // Xử lý từng nhóm khoa
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        preview.push({
-          ...row,
-          newSoHopDong: `${String(currentNumber).padStart(3, '0')}/HĐ-ĐA`,
-          newSoThanhLyHopDong: `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐA`,
-          groupInfo: `${row.Khoa}`
-        });
-        currentNumber++;
-      }
-    }
-
-    res.json({ success: true, data: preview, total: preview.length });
-
-  } catch (error) {
-    console.error('Error previewing do an setup:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup đồ án' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Synchronized setup functions for thesis projects
-const previewDoAnSynchronizedSetup = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, startingNumber } = req.body;
-
-    let query = `
-SELECT 
-  ed.CCCD,
-  ed.DienThoai,
-  ed.Email,
-  ed.MaSoThue,
-  ed.GiangVien as 'HoTen',
-  ed.NgaySinh,
-  ed.NgayCapCCCD,
-  ed.GioiTinh,
-  ed.STK,
-  ed.HocVi,
-  ed.ChucVu,
-  ed.HSL,
-  ed.NoiCapCCCD,
-  ed.DiaChi,
-  ed.NganHang,
-  ed.NoiCongTac,
-  ed.Dot,
-  ed.KhoaDaoTao,
-  MIN(ed.NgayBatDau) AS NgayBatDau,
-  MAX(ed.NgayKetThuc) AS NgayKetThuc,
-  SUM(ed.SoTiet) AS SoTiet,
-  ed.NamHoc,
-  gv.MaPhongBan as Khoa,
-  MAX(ed.SoHopDong) as SoHopDong,
-  MAX(ed.SoThanhLyHopDong) as SoThanhLyHopDong
-FROM
-  gvmoi gv
-JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
-WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
-`;
-    let params = [dot, ki, nam];
-
-    // Xử lý trường hợp có khoa
-    if (khoa && khoa !== "ALL") {
-      query += ` AND gv.MaPhongBan LIKE ?`;
-      params.push(`%${khoa}%`);
-    }
-
-    query += `
-GROUP BY 
-  ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-  ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK, ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, ed.Ki
-ORDER BY gv.MaPhongBan, ed.GiangVien
-`;
-
-    const [rows] = await connection.execute(query, params);
-
-    let preview = [];
-
-    // Nhóm dữ liệu theo khoa (similar to contract grouping)
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = row.Khoa || 'Không xác định';
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
-
-    let currentNumber = parseInt(startingNumber || 1);
-
-    // Xử lý từng nhóm khoa
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        const numberStr = String(currentNumber).padStart(3, '0');
-        preview.push({
-          ...row,
-          newSoHopDong: `${numberStr}/HĐ-ĐA`,
-          newSoThanhLy: `${numberStr}/TLHĐ-ĐA`,
-          groupInfo: `${row.Khoa} - Đồ án tốt nghiệp`
-        });
-        currentNumber++;
-      }
-    }
-
-    res.json({ success: true, data: preview, total: preview.length });
-
-  } catch (error) {
-    console.error('Error previewing do an synchronized setup:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi xem trước setup đồng bộ đồ án' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-const setupDoAnSynchronizedNumbers = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa, startingNumber } = req.body;
-
-    await connection.beginTransaction();
-
-    // Use the same query structure as getDoAnList for consistency
-    let query = `
-SELECT 
-  ed.CCCD,
-  ed.GiangVien as 'HoTen',
-  gv.MaPhongBan as Khoa
-FROM
-  gvmoi gv
-JOIN 
-  exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
-WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
-`;
-    let params = [dot, ki, nam];
-
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND gv.MaPhongBan LIKE ?`;
-      params.push(`%${khoa}%`);
-    }
-
-    query += `
-GROUP BY 
-  ed.CCCD, ed.GiangVien, gv.MaPhongBan
-ORDER BY gv.MaPhongBan, ed.GiangVien
-`;
-
-    const [rows] = await connection.execute(query, params);
-
-    // Nhóm dữ liệu theo khoa
-    const groupedData = {};
-    rows.forEach(row => {
-      const key = row.Khoa;
-      if (!groupedData[key]) {
-        groupedData[key] = [];
-      }
-      groupedData[key].push(row);
-    });
-
-    let currentNumber = parseInt(startingNumber || 1);
-    let updatedCount = 0;
-
-    // Xử lý từng nhóm khoa
-    for (const groupKey in groupedData) {
-      const group = groupedData[groupKey];
-
-      for (const row of group) {
-        const numberStr = String(currentNumber).padStart(3, '0');
-        const contractNumber = `${numberStr}/HĐ-ĐA`;
-        const terminationNumber = `${numberStr}/TLHĐ-ĐA`;
-
-        // Update all records for this lecturer (CCCD)
-        await connection.execute(
-          `UPDATE exportdoantotnghiep 
-           SET SoHopDong = ?, SoThanhLyHopDong = ? 
-           WHERE CCCD = ? AND Dot = ? AND Ki = ? AND NamHoc = ?`,
-          [contractNumber, terminationNumber, row.CCCD, dot, ki, nam]
-        );
-
-        currentNumber++;
-        updatedCount++;
-      }
-    }
-
-    await connection.commit();
-
-    res.json({
-      success: true,
-      message: `Cài đặt đồng bộ thành công cho ${updatedCount} giảng viên (số hợp đồng & thanh lý theo khoa)`,
-      updatedCount: updatedCount
-    });
-
-  } catch (error) {
-    if (connection) {
-      await connection.rollback();
-    }
-    console.error('Error setting up do an synchronized numbers:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi cài đặt đồng bộ số hợp đồng và thanh lý đồ án' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
-// Lấy tổng quan hợp nhất số quyết định đồ án theo khoa
-const getDoAnUnifiedSummary = async (req, res) => {
-  let connection;
-  try {
-    connection = await createPoolConnection();
-    const { dot, ki, nam, khoa } = req.query; let query = `
-      SELECT 
-        MaPhongBan as khoa,
-        COUNT(*) as count,
-        MIN(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
-            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as firstIndex,
-        MAX(CASE WHEN SoHopDong IS NOT NULL AND SoHopDong != '' 
-            THEN CAST(SUBSTRING_INDEX(SoHopDong, '/', 1) AS UNSIGNED) END) as lastIndex,
-        MIN(SoHopDong) as firstContract,
-        MAX(SoHopDong) as lastContract,
-        MIN(SoThanhLyHopDong) as firstTermination,
-        MAX(SoThanhLyHopDong) as lastTermination
-      FROM exportdoantotnghiep 
-      WHERE (SoHopDong IS NOT NULL AND SoHopDong != '') 
-         OR (SoThanhLyHopDong IS NOT NULL AND SoThanhLyHopDong != '')
-    `;
-    let params = [];
-
-    if (dot) {
-      query += ` AND Dot = ?`;
-      params.push(dot);
-    }
-    if (ki) {
-      query += ` AND ki = ?`;
-      params.push(ki);
-    }
-    if (nam) {
-      query += ` AND NamHoc = ?`;
-      params.push(nam);
-    }
-    if (khoa && khoa !== 'ALL') {
-      query += ` AND MaPhongBan = ?`;
-      params.push(khoa);
-    }
-
-    query += ` GROUP BY MaPhongBan ORDER BY MaPhongBan`;
-
-    const [rows] = await connection.execute(query, params);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    console.error('Error fetching do an unified summary:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi lấy tổng quan hợp nhất đồ án' });
-  } finally {
-    if (connection) connection.release();
-  }
-};
-
 
 
 module.exports = {
   getSoHopDongPage,
   getHopDongList,
   setupSoHopDongToanBo,
-  getContractSummary,
-  previewSetup,
-  setupSoThanhLyToanBo,
-  getTerminationSummary, previewTerminationSetup,
-  previewSynchronizedSetup,
-  setupSynchronizedNumbers,
-  getUnifiedSummary,
+  previewSoHopDongMoiGiang,
 
-  // New functions for thesis projects (đồ án)
-  getDoAnPage,
-  getDoAnList,
-  setupSoHDDoAnToanBo: setupSoQDDoAnToanBo,
-  getDoAnSummary,
-  previewDoAnSetup,
-  previewDoAnSynchronizedSetup,
-  setupDoAnSynchronizedNumbers,
-  getDoAnUnifiedSummary
+  getSoHopDongDoAnPage,
+  previewSoHopDongDoAn,
+  getHopDongDoAnList,
+  setupSoHopDongDoAn
 };
