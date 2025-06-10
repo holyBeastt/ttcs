@@ -3,25 +3,12 @@ const Docxtemplater = require("docxtemplater");
 const fs = require("fs");
 const path = require("path");
 const createPoolConnection = require("../config/databasePool");
-const libre = require('libreoffice-convert');
 const { exec } = require('child_process');
 const util = require('util');
 const execAsync = util.promisify(exec);
 
 // Configure LibreOffice path for Windows
 const LIBREOFFICE_PATH = 'D:\\Libre\\program\\soffice.exe';
-process.env.LIBREOFFICE_PATH = LIBREOFFICE_PATH;
-
-// Try to configure the library with custom path
-try {
-    if (libre.config) {
-        libre.config({
-            soffice: LIBREOFFICE_PATH
-        });
-    }
-} catch (configError) {
-    console.log('Could not configure libreoffice-convert, will use fallback method');
-}
 
 // Alternative LibreOffice paths to try
 const ALTERNATIVE_PATHS = [
@@ -29,6 +16,30 @@ const ALTERNATIVE_PATHS = [
     'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
     'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe'
 ];
+
+/**
+ * Lazy load and configure libreoffice-convert library
+ */
+function getLibreOfficeConverter() {
+    try {
+        const libre = require('libreoffice-convert');
+        
+        // Set environment variable for this session
+        process.env.LIBREOFFICE_PATH = LIBREOFFICE_PATH;
+        
+        // Try to configure the library with custom path
+        if (libre.config) {
+            libre.config({
+                soffice: LIBREOFFICE_PATH
+            });
+        }
+        
+        return libre;
+    } catch (error) {
+        console.log('Could not load or configure libreoffice-convert:', error.message);
+        return null;
+    }
+}
 
 /**
  * Check if LibreOffice is available at the specified path
@@ -53,8 +64,24 @@ function checkLibreOfficeAvailability() {
     }
 }
 
-// Check LibreOffice availability on module load
-checkLibreOfficeAvailability();
+/**
+ * Get the first available LibreOffice path
+ */
+function getAvailableLibreOfficePath() {
+    // Check main path first
+    if (fs.existsSync(LIBREOFFICE_PATH)) {
+        return LIBREOFFICE_PATH;
+    }
+    
+    // Try alternative paths
+    for (const altPath of ALTERNATIVE_PATHS) {
+        if (fs.existsSync(altPath)) {
+            return altPath;
+        }
+    }
+    
+    return null;
+}
 
 /**
  * Alternative PDF conversion using direct LibreOffice command
@@ -70,15 +97,8 @@ async function convertToPdfDirect(docxBuffer) {
     try {
         // Write DOCX buffer to temp file
         fs.writeFileSync(tempDocxPath, docxBuffer);
-        
-        // Try different LibreOffice paths
-        let usedPath = null;
-        for (const libreOfficePath of ALTERNATIVE_PATHS) {
-            if (fs.existsSync(libreOfficePath)) {
-                usedPath = libreOfficePath;
-                break;
-            }
-        }
+          // Try different LibreOffice paths
+        const usedPath = getAvailableLibreOfficePath();
         
         if (!usedPath) {
             throw new Error('LibreOffice executable not found at any known paths');
@@ -446,6 +466,13 @@ const previewContract = async (req, res) => {
             let pdfBuffer;
             
             try {
+                // Lazy load libreoffice-convert library
+                const libre = getLibreOfficeConverter();
+                
+                if (!libre) {
+                    throw new Error('libreoffice-convert library not available');
+                }
+                
                 // Suppress console output during library conversion
                 const originalConsole = suppressConsole();
                 

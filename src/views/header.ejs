@@ -153,19 +153,32 @@
                 aria-expanded="false">
                 Mời Giảng
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="nav-link"
+                  href="/xemCacLopGvm">Xem các lớp mời</a>
                 <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-                <a class="nav-link" href="/duyet-hop-dong" role="button">Tài chính - Duyệt hợp đồng</a>
-
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
+                    aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
+                    <a class="nav-link" href="/duyet-hop-dong">Hợp đồng mời giảng</a>
+                    <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
+                  </div>
+                </div>
+                <div class="dropdown-submenu" id="nav-tao-so-hop-dong" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
+                    aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
+                    <a class="nav-link" href="/sohopdong">Hợp đồng mời giảng</a>
+                    <a class="nav-link" href="/sohopdong-doan">Hợp đồng đồ án</a>
+                  </div>
+                </div>
                 <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <a class="nav-link" href="/phuLucHD">Phụ lục hợp đồng</a>
                 <a class="nav-link" href="/exportHD">Hợp Đồng</a>
                 <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">Phụ lục minh chứng giảng viên mời</a>
                 <a class="nav-link" href="/api/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
                 <a class="nav-link" style="display: none" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-                <a class="nav-link" href="/sohopdong">Tạo số hợp đồng</a>
               </div>
             </div>
           </div>
@@ -358,9 +371,17 @@
       const addNewFileGvm = document.getElementById("addNewFileGvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
+      const navTaoSoHopDong = document.getElementById("nav-tao-so-hop-dong");
 
       if (isKhoa === "0" || role === "GV") {
         addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+      }
+
+      // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "Duyệt" và MaPhongBan "DAOTAO"
+      if (role === "Duyệt" && MaPhongBan === "DAOTAO") {
+        navTaoSoHopDong.style.display = "block";
+      } else {
+        navTaoSoHopDong.style.display = "none";
       }
 
       // Ẩn button import đồ án

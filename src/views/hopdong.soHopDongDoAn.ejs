@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <!-- Link thư viện tabulator -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+
+  <!-- Custom CSS for better alignment -->
+  <style>
+    .loc {
+      align-items: center;
+      gap: 8px;
+    }
+
+    .selectop {
+      height: 38px;
+      /* Match button height */
+      vertical-align: middle;
+    }
+
+    .btn {
+      vertical-align: middle;
+    }
+
+    #view {
+      margin-top: 15px;
+    }
+
+    /* Styles for contract type display */
+    .contract-type-display {
+      padding: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }    #contractTypeIndicator {
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    /* CSS cho 2 cột: Số HĐ mới và Số TL mới - làm đậm và tô màu */
+    #contractsTable td:nth-child(6),
+    #contractsTable td:nth-child(7) {
+      color: #198754;
+      font-weight: bold;
+    }
+
+    #contractsTable .text-muted {
+      color: #6c757d !important;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
+    <div class="container-fluid my-4" style="padding-left: 20px">
+      <div class="flex-grow-1">
+
+        <div class="header-actions">
+          <div class="right" style="margin-top: 0px">
+            <div class="loc d-flex align-items-center">
+              <select class="selectop" id="combobox-dot" style="width: 70px">
+                <option value="">Đợt</option>
+              </select>
+              <select class="selectop" id="comboboxki" style="width: 70px">
+                <option value="">Kì</option>
+              </select>
+              <select class="selectop" id="NamHoc">
+                <option value="">Chọn năm học</option>
+              </select>
+              <select class="selectop" id="MaPhongBan">
+                <option value="ALL">Tất cả khoa</option>
+              </select> <select class="selectop" id="he_dao_tao">
+                <option value="">Tất cả hệ</option>
+                <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+                <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Unified Setup Section -->
+          <div class="content-section mt-4" id="setupOptions">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-cog me-2"></i>Tạo số hợp đồng và số thanh lý hợp đồng đồ án
+                </h5>
+              </div>
+              <div class="card-body">
+
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <div class="alert alert-success">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center">
+                            <i class="fas fa-file-contract text-primary me-2"></i>
+                            <span><strong>Số hợp đồng (ví dụ):</strong> <span
+                                id="contractPreview">001/HĐ-ĐT</span></span>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center">
+                            <i class="fas fa-file-times text-info me-2"></i>
+                            <span><strong>Số thanh lý tương ứng:</strong> <span
+                                id="terminationPreview">001/TLHĐ-ĐT</span></span>
+                          </div>
+                        </div>
+                      </div>
+                      <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-arrow-right me-1"></i>
+                        Mỗi hợp đồng sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số hợp đồng và số thanh lý
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <!-- Radio buttons for setup mode removed for simplicity -->
+                    </div>
+                    <!-- Starting number input -->
+                    <div id="unifiedStartingNumberDiv" class="mt-3">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <label for="unifiedStartingNumber" class="form-label">
+                            <strong>Số bắt đầu</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="number" class="form-control" id="unifiedStartingNumber"
+                            name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
+                            oninput="updateNumberPreview()">
+                          <small class="text-muted">Số này sẽ được sử dụng làm chỉ số chung cho cả số hợp đồng và số
+                            thanh lý</small>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="p-3 bg-light border rounded">
+                            <div class="mb-2">
+                              <strong>Hợp đồng:</strong> <span id="contractExample"
+                                class="text-primary">001/HĐ-ĐT</span>
+                            </div>
+                            <div>
+                              <strong>Thanh lý:</strong> <span id="terminationExample"
+                                class="text-info">001/TLHĐ-ĐT</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- Unified action buttons that adapt based on contract type -->
+                    <div class="d-flex gap-2 mt-4" id="unifiedContractButtons">
+                      <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
+                        onclick="handleContractOperation('previewContract')">
+                        <i class="fas fa-eye"></i> Xem trước khi tạo
+                      </button>
+                      <button type="button" class="btn btn-success" id="executeContractBtn"
+                        onclick="handleContractOperation('executeContract')">
+                        <i class="fas fa-play"></i> Tạo
+                      </button>
+                    </div>
+
+                    <small class="text-muted mt-2 d-block">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng đồ án
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- Main content area -->
+          <div class="content-section mt-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng đồ án
+                </h5>
+              </div>
+              <div class="card-body">
+                <!-- Results Table -->
+                <div id="resultsDiv" style="display: none;">
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="contractsTable">
+                      <thead class="table-dark">
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ tên giảng viên</th>
+                          <th>Khoa - Hệ đào tạo</th>
+                          <th>Số HĐ hiện tại</th>
+                          <th>Số TL hiện tại</th>
+                          <th>Số HĐ mới</th>
+                          <th>Số TL mới</th>
+                        </tr>
+                      </thead>
+                      <tbody id="contractsTableBody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Loading spinner -->
+                <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2">Đang tải dữ liệu...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success/Error Messages -->
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header bg-success text-white">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong class="me-auto">Thành công</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body" id="successMessage"></div>
+        </div>
+
+        <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header bg-danger text-white">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong class="me-auto">Lỗi</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body" id="errorMessage"></div>
+        </div>
+      </div>
+
+      <!-- Scripts -->
+      <!-- link cá site -->
+      <script src="/js/moigiang/href.js"></script>
+      <!-- năm học, khoa -->
+      <script src="/js/moigiang/getdata.js"></script>
+      <!-- ẩn các nút theo role -->
+      <script src="/js/moigiang/hideBtn.js"></script>
+      <!-- Contract numbers specific script for Đồ án -->
+      <script>
+        // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu
+        function updateNumberPreview() {
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const formattedNumber = String(startingNumber).padStart(3, '0');
+
+          $('#contractPreview').text(`${formattedNumber}/HĐ-ĐT`);
+          $('#terminationPreview').text(`${formattedNumber}/TLHĐ-ĐT`);
+          $('#contractExample').text(`${formattedNumber}/HĐ-ĐT`);
+          $('#terminationExample').text(`${formattedNumber}/TLHĐ-ĐT`);
+        }
+
+        // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý cho đồ án
+        function previewSynchronizedSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+          const khoa = $('#MaPhongBan').val();
+          const heDaoTao = $('#he_dao_tao').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
+            return;
+          }
+
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
+
+          showLoading(true);
+          showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
+
+          const data = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: khoa,
+            heDaoTao: heDaoTao,
+            startingNumber: startingNumber
+          };
+
+          // Gọi API preview đồng bộ cho đồ án
+          $.post('/api/preview-so-hop-dong-do-an', data)
+            .done(function (response) {
+              if (response.success) {
+                displaySynchronizedPreviewResults(response.data);
+                showSuccess('Xem trước đồng bộ thành công. Kiểm tra kết quả bên dưới.');
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi xem trước đồng bộ');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }        // Thực hiện cài đặt đồng bộ số hợp đồng và thanh lý cho đồ án
+        function executeSynchronizedSetup() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi thực hiện cài đặt');
+            return;
+          }
+
+          const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+
+          if (!startingNumber || startingNumber < 1) {
+            showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
+
+          // Dialog xác nhận chi tiết
+          const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
+          const terminationExample = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
+
+          Swal.fire({
+            title: 'Xác nhận tạo số hợp đồng và số thanh lý đồ án',
+            html: `<div class="text-start">
+                 <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
+                 <div class="row mt-3">
+                   <div class="col-6">
+                     <div class="d-flex align-items-center">
+                       <i class="fas fa-file-contract text-primary me-2"></i>
+                       <span>Hợp đồng: <strong class="text-primary">${contractExample}</strong></span>
+                     </div>
+                   </div>
+                   <div class="col-6">
+                     <div class="d-flex align-items-center">
+                       <i class="fas fa-file-times text-info me-2"></i>
+                       <span>Thanh lý: <strong class="text-info">${terminationExample}</strong></span>
+                     </div>
+                   </div>
+                 </div>
+               </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Thực hiện đồng bộ',
+            cancelButtonText: 'Hủy bỏ',
+            width: '500px'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              performSynchronizedSetup();
+            }
+          });
+        }        // Thực hiện cài đặt đồng bộ (gọi từ dialog xác nhận)
+        function performSynchronizedSetup() {
+          showLoading(true);
+
+          /* ────────────────────────────────────────────────────────
+             1. Trích dữ liệu từ bảng <tbody id="contractsTableBody">
+          ────────────────────────────────────────────────────────── */          const tableData = [];
+
+          $('#contractsTableBody tr').each(function () {
+            const $row = $(this);
+            
+            // Bỏ qua dòng placeholder "Không có dữ liệu…"
+            if ($row.find('td[colspan]').length > 0) return;
+            if (!$row.find('td').length) return;
+
+            // Lấy dữ liệu từ data attributes
+            const cccd = $row.data('cccd');
+            const heDaoTao = $row.data('he-dao-tao');
+            const hoTen = $row.data('hoten');
+            const newSoHopDong = $row.data('new-so-hop-dong');
+            const newSoThanhLy = $row.data('new-so-thanh-ly');
+            const khoa = $row.data('khoa');
+
+            // Chỉ giữ những dòng có đầy đủ thông tin và đã tạo số mới
+            if (hoTen && cccd && newSoHopDong && newSoThanhLy && 
+                newSoHopDong !== 'Chưa tạo' && newSoThanhLy !== 'Chưa tạo') {
+              
+              tableData.push({
+                HoTen: hoTen,
+                CCCD: cccd,
+                he_dao_tao: heDaoTao,
+                newSoHopDong: newSoHopDong,
+                newSoThanhLy: newSoThanhLy,
+                groupInfo: khoa ? `${khoa} - ${heDaoTao}` : heDaoTao
+              });
+            }
+          });
+
+          /* ────────────────────────────────────────────────────────
+             2. Gom các giá trị từ form
+          ────────────────────────────────────────────────────────── */
+          const data = {
+            dot: $('#combobox-dot').val(),
+            ki: $('#comboboxki').val(),
+            nam: $('#NamHoc').val(),
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val(),
+            startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
+            contractsData: tableData
+          };
+
+          console.log('data contract đồ án:', data.contractsData);
+
+          /* ────────────────────────────────────────────────────────
+             3. Gửi dữ liệu lên server cho đồ án
+          ────────────────────────────────────────────────────────── */
+          $.post('/api/setup-so-hopdong-do-an', data)
+            .done(function (response) {
+              if (response.success) {
+                Swal.fire({
+                  title: 'Thành công!',
+                  text: response.message,
+                  icon: 'success',
+                  confirmButtonText: 'OK'
+                }).then(() => {
+                  loadContracts();                         // refresh danh sách
+                });
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi cài đặt');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }
+
+        // Hiển thị kết quả preview đồng bộ
+        function displaySynchronizedPreviewResults(groupedContracts) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          // Flatten data để dễ xử lý
+          const rows = [];
+          Object.keys(groupedContracts).forEach(he => {
+            Object.keys(groupedContracts[he]).forEach(khoa => {
+              groupedContracts[he][khoa].forEach((contract, idx) => {
+                rows.push({
+                  ...contract,
+                  groupInfo: `${khoa} - ${he}`,
+                  index: rows.length + 1
+                });
+              });
+            });
+          });
+
+          if (rows.length === 0) {
+            tbody.append(`
+              <tr>
+                <td colspan="7" class="text-center text-muted">
+                  Không có dữ liệu để hiển thị
+                </td>
+              </tr>
+            `);
+            $('#resultsDiv').show();
+            return;
+          }
+
+          // Bây giờ render từng row, và chỉ in ô groupInfo ở lần đầu của mỗi nhóm
+          let lastGroup = null;
+
+          // Chuẩn bị spanCount cho mỗi nhóm
+          const groupSizes = {};
+          rows.forEach(r => {
+            groupSizes[r.groupInfo] = (groupSizes[r.groupInfo] || 0) + 1;
+          });          rows.forEach(r => {
+            const isNewGroup = r.groupInfo !== lastGroup;
+            const rowspan = isNewGroup ? groupSizes[r.groupInfo] : null;
+
+            const oldContractNumber = r.SoHopDong || '<span class="text-muted">Chưa có</span>';
+            const oldTerminationNumber = r.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+            const newContractNumber = r.newSoHopDong || '<span class="text-muted">Chưa tạo</span>';
+            const newTerminationNumber = r.newSoThanhLy || '<span class="text-muted">Chưa tạo</span>';
+
+            let tr = `<tr${isNewGroup ? ' class="table-warning"' : ''} 
+                           data-cccd="${r.CCCD || ''}" 
+                           data-he-dao-tao="${r.HeDaoTao || r.he_dao_tao || ''}"
+                           data-id-gvm="${r.id_Gvm || ''}"
+                           data-hoten="${r.HoTen || ''}"
+                           data-khoa="${r.Khoa || ''}"
+                           data-new-so-hop-dong="${r.newSoHopDong || ''}"
+                           data-new-so-thanh-ly="${r.newSoThanhLy || ''}">`;
+            tr += `<td>${r.index}</td>`;
+            tr += `<td>${r.HoTen}</td>`;
+
+            // chỉ in groupInfo/rowspan khi lần đầu của nhóm
+            if (isNewGroup) {
+              tr += `<td rowspan="${rowspan}">${r.groupInfo}</td>`;
+              lastGroup = r.groupInfo;
+            }
+
+            tr += `<td>${oldContractNumber}</td>`;
+            tr += `<td>${oldTerminationNumber}</td>`;
+            tr += `<td>${newContractNumber}</td>`;
+            tr += `<td>${newTerminationNumber}</td>`;
+            tr += `</tr>`;
+
+            tbody.append(tr);
+          });
+
+          $('#resultsDiv').show();
+        }        // Tải danh sách hợp đồng đồ án theo điều kiện lọc
+        function loadContracts() {
+          const dot = $('#combobox-dot').val();
+          const ki = $('#comboboxki').val();
+          const nam = $('#NamHoc').val();
+
+          if (!dot || !ki || !nam) {
+            showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm');
+            return;
+          }
+
+          showLoading(true);
+          $('#noDataMessage').hide();
+          $('#resultsDiv').hide();
+
+          const params = {
+            dot: dot,
+            ki: ki,
+            nam: nam,
+            khoa: $('#MaPhongBan').val(),
+            heDaoTao: $('#he_dao_tao').val()
+          };
+
+          $.get('/api/hopdong-doan-list', params)
+            .done(function (response) {
+              if (response.success) {
+                console.log('Contracts loaded:', response.data);
+                displayContracts(response.data);
+              } else {
+                showError(response.message || 'Có lỗi xảy ra khi tải danh sách hợp đồng đồ án');
+              }
+            })
+            .fail(function () {
+              showError('Có lỗi xảy ra khi kết nối với server');
+            })
+            .always(function () {
+              showLoading(false);
+            });
+        }        // Hiển thị danh sách hợp đồng đồ án theo nhóm khoa-hệ
+        function displayContracts(grouped) {
+          const tbody = $('#contractsTableBody');
+          tbody.empty();
+
+          // Kiểm tra nếu không có nhóm nào
+          const systems = Object.keys(grouped);
+          if (systems.length === 0) {
+            tbody.append(`
+              <tr>
+                <td colspan="7" class="text-center text-muted">
+                  <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
+                </td>
+              </tr>
+            `);
+            $('#resultsDiv').show();
+            return;
+          }
+
+          let idx = 0;
+          // Duyệt từng hệ đào tạo
+          systems.forEach(system => {
+            const faculties = grouped[system];
+            const facultyKeys = Object.keys(faculties);
+            // Duyệt từng khoa trong hệ
+            facultyKeys.forEach(faculty => {
+              const list = faculties[faculty];
+              const rowSpan = list.length;
+              // Duyệt từng hợp đồng trong nhóm này
+              list.forEach((contract, j) => {
+                idx++;
+                const isFirst = (j === 0);
+
+                // Số hợp đồng cũ / soạn trước
+                const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
+                const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
+                // Số hợp đồng mới (preview)
+                const newContractNumber = '<span class="text-muted">Chưa có</span>';
+                const newTerminationNumber = '<span class="text-muted">Chưa có</span>';                tbody.append(`
+                  <tr ${isFirst ? 'class="table-warning"' : ''} 
+                      data-cccd="${contract.CCCD || ''}" 
+                      data-he-dao-tao="${contract.he_dao_tao || ''}"
+                      data-id-gvm="${contract.id_Gvm || ''}"
+                      data-hoten="${contract.HoTen || ''}"
+                      data-khoa="${contract.MaPhongBan || ''}"
+                      data-new-so-hop-dong=""
+                      data-new-so-thanh-ly="">
+                    <td>${idx}</td>
+                    <td>${contract.HoTen || ''}</td>
+                    ${isFirst
+                    ? `<td rowspan="${rowSpan}" class="text-center align-middle bg-light">
+                         <strong>${faculty} – ${system}</strong>
+                       </td>`
+                    : ''
+                  }
+                    <td>${currentContractNumber}</td>
+                    <td>${currentTerminationNumber}</td>
+                    <td>${newContractNumber}</td>
+                    <td>${newTerminationNumber}</td>
+                  </tr>
+                `);
+              });
+            });
+          });
+
+          $('#resultsDiv').show();
+        }
+
+        // Hiển thị/ẩn loading spinner
+        function showLoading(show) {
+          if (show) {
+            $('#loadingSpinner').show();
+          } else {
+            $('#loadingSpinner').hide();
+          }
+        }
+
+        // Hiển thị thông báo thành công
+        function showSuccess(message) {
+          $('#successMessage').text(message);
+          const toast = new bootstrap.Toast($('#successToast')[0]);
+          toast.show();
+        }
+
+        // Hiển thị thông báo lỗi
+        function showError(message) {
+          $('#errorMessage').text(message);
+          const toast = new bootstrap.Toast($('#errorToast')[0]);
+          toast.show();
+        }        // Xử lý các thao tác hợp đồng theo loại
+        function handleContractOperation(operation) {
+          // Điều hướng tới hàm phù hợp dựa trên thao tác
+          switch (operation) {
+            case 'load':
+              loadContracts();
+              break;
+            case 'previewContract':
+              previewSynchronizedSetup();
+              break;
+            case 'executeContract':
+              executeSynchronizedSetup();
+              break;
+          }
+        }
+
+        // Khởi tạo giao diện khi document ready
+        $(document).ready(function () {
+          // Ẩn các phần tử không cần thiết ban đầu
+          $('#startingNumberDiv').hide();
+          $('#terminationStartingNumberDiv').hide();
+
+          // Khởi tạo giao diện
+          updateNumberPreview();
+
+          // Đặt giao diện mặc định cho loại hợp đồng đồ án
+          $('#contractTypeAlert').addClass('alert-primary');
+          $('#contractTypeIcon').addClass('text-primary');
+          $('#previewContractBtn').addClass('btn-outline-primary');
+          $('#executeContractBtn').addClass('btn-success');
+        });
+      </script>
+</body>
+
+</html>

@@ -277,6 +277,11 @@
             <option value="">Khoa</option>
           </select>
 
+          <select class="mx-1 selectop" id="he_dao_tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
+
           <button id="infoDoAn" class="btn text-nowrap mx-2">Hiển thị</button>
           <button class="btn mx-2" id="updateDoAn">Cập nhật</button>
 
@@ -550,6 +555,7 @@
             let ki = document.getElementById("combobox-ki").value;
             let NamHoc = document.getElementById("NamHoc").value;
             let MaPhongBan = document.getElementById("MaPhongBan").value;
+            const he_dao_tao = document.getElementById("he_dao_tao").value;
 
             if (isKhoa == 1) {
               MaPhongBan = MaKhoaHienTai;
@@ -560,6 +566,7 @@
               ki: ki,
               NamHoc: NamHoc,
               MaPhongBan: MaPhongBan,
+              he_dao_tao,
             };
 
             // Fetch tên giảng viên mời
@@ -1298,6 +1305,7 @@
           const MaPhongBan = document.getElementById("MaPhongBan").value;
           const Dot = document.getElementById("combobox-dot").value;
           const ki = document.getElementById("combobox-ki").value;
+          const he_dao_tao = document.getElementById("he_dao_tao").value;
 
           let data = getDataToStored();
 
@@ -1307,7 +1315,9 @@
               NamHoc
             )}&MaPhongBan=${encodeURIComponent(
               MaPhongBan
-            )}&Dot=${encodeURIComponent(Dot)}&ki=${encodeURIComponent(ki)}`,
+            )}&Dot=${encodeURIComponent(Dot)}&ki=${encodeURIComponent(
+              ki
+            )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`,
             {
               method: "POST",
               headers: {
@@ -1360,14 +1370,15 @@
           const MaPhongBan = document.getElementById("MaPhongBan").value;
           const Dot = document.getElementById("combobox-dot").value;
           const ki = document.getElementById("combobox-ki").value;
+          const he_dao_tao = document.getElementById("he_dao_tao").value;
 
           const requestData = {
             Dot: Dot,
             ki: ki,
             NamHoc: NamHoc,
             MaPhongBan: MaPhongBan,
+            he_dao_tao,
           };
-          console.log("Request Data:", requestData);
 
           // Gửi dữ liệu qua API
           fetch(`/saveToExportDoAn`, {
@@ -1845,14 +1856,18 @@
           if (MaPhongBan == "DAOTAO") {
             // Ẩn cột 'VPColumn'
             document.getElementById("VPColumn").style.display = "none";
-            document.getElementById("updateDoAn").style.display = "inline-block";
+            document.getElementById("updateDoAn").style.display =
+              "inline-block";
           } else if (MaPhongBan == "VP") {
             // Hiển thị tất cả các cột cho VP
             document.getElementById("khoaColumn").style.display = "table-cell";
-            document.getElementById("daoTaoColumn").style.display = "table-cell";
+            document.getElementById("daoTaoColumn").style.display =
+              "table-cell";
             document.getElementById("VPColumn").style.display = "table-cell";
-            document.getElementById("updateDoAn").style.display = "inline-block";
-            document.getElementById("saveDataDoAn").style.display = "inline-block";
+            document.getElementById("updateDoAn").style.display =
+              "inline-block";
+            document.getElementById("saveDataDoAn").style.display =
+              "inline-block";
           }
         }
 
