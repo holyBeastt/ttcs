@@ -38,6 +38,7 @@ const tongHopGvmExportRoute = require("./routes/tongHopGvmExportRoute");
 const soHopDong = require("./routes/hopdong.soHopDongRoute");
 const duyetHopDong = require("./routes/hopdong.duyetHopDongRoute");
 const previewHopDong = require("./routes/hopdong.previewRoute");
+const chinhSuaQuyChuanRoute = require("./routes/chinhSuaQuyChuanRoute");
 
 
 
@@ -148,7 +149,7 @@ app.use("/", tongHopGvmExportRoute);
 app.use("/", soHopDong);
 app.use("/", duyetHopDong);
 app.use("/", previewHopDong);
-
+app.use("/", chinhSuaQuyChuanRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
