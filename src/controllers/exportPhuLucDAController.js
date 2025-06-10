@@ -143,60 +143,22 @@ function formatDateDMY(date) {
   return `${day}/${month}/${year}`;
 }
 
-const exportPhuLucDA = async (req, res) => {
-  let connection;
+const getExportPhuLucDAPath = async (
+  req,
+  connection,
+  dot,
+  ki,
+  namHoc,
+  khoa,
+  he_dao_tao,
+  teacherName,
+  data
+) => {
   try {
-    connection = await createPoolConnection();
-
     const isKhoa = req.session.isKhoa;
-
-    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
-    }
-
-    if (!dot || !ki || !namHoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu thông tin đợt ,năm học",
-      });
-    }
-
-    let query = `
-      SELECT DISTINCT
-          gv.HoTen AS GiangVien,
-          edt.TenDeTai,
-          edt.SinhVien,
-          edt.SoTiet,
-          edt.NgayBatDau,
-          edt.NgayKetThuc,
-          gv.HocVi,
-          gv.HSL,
-          gv.DiaChi
-      FROM exportdoantotnghiep edt
-      JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1
-    `;
-
-    let params = [dot, ki, namHoc, he_dao_tao];
-
-    if (khoa && khoa !== "ALL") {
-      query += `AND edt.MaPhongBan = ?`;
-      params.push(khoa);
-    }
-
-    if (teacherName) {
-      query += ` AND gv.HoTen LIKE ?`;
-      params.push(`%${teacherName}%`);
-    }
-
-    const [data] = await connection.execute(query, params);
-
-    if (data.length === 0) {
-      return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportPhuLucDA';</script>"
-      );
     }
 
     // Tạo workbook mới
@@ -1084,8 +1046,21 @@ const exportPhuLucDA = async (req, res) => {
       };
     });
 
+    // Tạo thư mục tạm để lưu các file hợp đồng
+    const tempDir = path.join(
+      __dirname,
+      "..",
+      "public",
+      "temp",
+      Date.now().toString()
+    );
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
     // Tạo tên file
-    let fileName = `PhuLuc_DA${dot}_${namHoc}`;
+    let fileName = `PhuLuc_DA${dot}_${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
@@ -1094,20 +1069,135 @@ const exportPhuLucDA = async (req, res) => {
     }
     fileName += ".xlsx";
 
-    // Set headers cho response và gửi file
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(fileName)}"`
+    // Tạo đường dẫn đầy đủ tới file
+    const filePath = path.join(tempDir, fileName);
+
+    // Ghi workbook vào file
+    await workbook.xlsx.writeFile(filePath);
+
+    // Trả về đường dẫn file để dùng tiếp (nén, gửi,...)
+    return filePath;
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error exporting data",
+    });
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const exportPhuLucDA = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName, he_dao_tao } =
+      req.query;
+
+    console.log("he = ", he_dao_tao);
+
+    if (!dot || !ki || !namHoc) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu thông tin đợt, kỳ hoặc năm học",
+      });
+    }
+
+    let query = `
+      SELECT DISTINCT
+          gv.HoTen AS GiangVien,
+          edt.TenDeTai,
+          edt.SinhVien,
+          edt.SoTiet,
+          edt.NgayBatDau,
+          edt.NgayKetThuc,
+          gv.HocVi,
+          gv.HSL,
+          gv.DiaChi
+      FROM exportdoantotnghiep edt
+      JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
+      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1
+    `;
+
+    let params = [dot, ki, namHoc, he_dao_tao];
+
+    if (khoa && khoa !== "ALL") {
+      query += `AND edt.MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    if (teacherName) {
+      query += ` AND gv.HoTen LIKE ?`;
+      params.push(`%${teacherName}%`);
+    }
+
+    const [data] = await connection.execute(query, params);
+
+    if (data.length === 0) {
+      return res.send(
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportPhuLucDA';</script>"
+      );
+    }
+
+    const filePaths = await getExportPhuLucDAPath(
+      req,
+      connection,
+      dot,
+      ki,
+      namHoc,
+      loaiHopDong,
+      khoa,
+      teacherName,
+      data
     );
 
-    // Ghi workbook vào response
-    await workbook.xlsx.write(res);
+    // Kiểm tra filePaths
+    if (!filePaths) {
+      console.error("getExportPhuLucGiangVienMoiPath trả về undefined");
+      return res.status(500).json({
+        success: false,
+        message: "Không thể tạo file export",
+      });
+    }
 
-    // Không cần gọi res.end() vì workbook.xlsx.write đã tự động kết thúc response
+    // Lấy tên file từ đường dẫn
+    const fileName = path.basename(filePaths);
+
+    // Gửi file cho client
+    res.download(filePaths, fileName, (err) => {
+      if (err) {
+        console.error("Lỗi khi gửi file:", err);
+        if (!res.headersSent) {
+          return res.status(500).send("Lỗi khi gửi file");
+        }
+      }
+
+      // Xóa file và thư mục sau khi gửi
+      setTimeout(() => {
+        try {
+          if (fs.existsSync(filePaths)) {
+            fs.unlinkSync(filePaths); // Xóa file
+            console.log("Đã xóa file:", filePaths);
+
+            // Xóa thư mục tạm (nếu rỗng)
+            const tempDir = path.dirname(filePaths);
+            try {
+              fs.rmdirSync(tempDir); // Chỉ xóa được thư mục rỗng
+              console.log("Đã xóa thư mục:", tempDir);
+            } catch (dirErr) {
+              console.log(
+                "Không thể xóa thư mục (có thể không rỗng):",
+                tempDir
+              );
+            }
+          }
+        } catch (cleanupErr) {
+          console.error("Lỗi khi xóa file:", cleanupErr);
+        }
+      }, 100);
+    });
   } catch (error) {
     console.error("Error exporting data:", error);
     return res.status(500).json({
@@ -1141,5 +1231,6 @@ const getPhuLucDASite = async (req, res) => {
 
 module.exports = {
   exportPhuLucDA,
+  getExportPhuLucDAPath,
   getPhuLucDASite,
 };

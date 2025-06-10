@@ -6,6 +6,7 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
+const exportPhuLucDAController = require("../controllers/exportPhuLucDAController");
 
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
@@ -686,6 +687,10 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const output = fs.createWriteStream(teacherZipPath);
       teacherArchive.pipe(output);
 
+      // Lưu các file cần xóa sau khi nén
+      const filesToDelete = [];
+      const dirsToDelete = [];
+
       // Tạo file hợp đồng
       const filePathContract = await generateDoAnContract(
         teacher,
@@ -699,11 +704,19 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const phuLucTeacher = phuLucData.filter(
         (item) => item.GiangVien.trim() == teacher.HoTen.trim()
       );
-      const filePathAppendix = await generateAppendixContract(
-        tienLuongList,
-        phuLucTeacher,
-        tempDir
-      );
+
+      const filePathAppendix =
+        await exportPhuLucDAController.getExportPhuLucDAPath(
+          req,
+          connection,
+          dot,
+          ki,
+          namHoc,
+          khoa,
+          he_dao_tao,
+          teacherName,
+          phuLucTeacher
+        );
 
       if (
         !fs.existsSync(filePathContract) ||
@@ -743,10 +756,33 @@ const exportAdditionalDoAnGvm = async (req, res) => {
         teacherArchive.file(filePathAppendix, {
           name: path.basename(filePathAppendix),
         });
+
+        filesToDelete.push(filePathAppendix);
+        const appendixDir = path.dirname(filePathAppendix);
+        dirsToDelete.push(appendixDir);
       }
 
       await teacherArchive.finalize();
       contractFiles.push(teacherZipPath);
+
+      // Sau khi zip xong mới xóa file
+      for (const filePath of filesToDelete) {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log("Đã xóa file:", filePath);
+        }
+      }
+
+      for (const dirPath of dirsToDelete) {
+        try {
+          if (fs.existsSync(dirPath) && fs.readdirSync(dirPath).length === 0) {
+            fs.rmdirSync(dirPath);
+            console.log("Đã xóa thư mục:", dirPath);
+          }
+        } catch (err) {
+          console.log("Không thể xóa thư mục (có thể không rỗng):", dirPath);
+        }
+      }
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên

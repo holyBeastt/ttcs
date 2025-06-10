@@ -1369,6 +1369,7 @@ const saveToExportDoAn = async (req, res) => {
             matchedItem1.NganHang,
             matchedItem1.MonGiangDayChinh,
             matchedItem1.HSL,
+            item.he_dao_tao,
           ]);
 
           let matchedItem2;
@@ -1436,6 +1437,7 @@ const saveToExportDoAn = async (req, res) => {
               matchedItem2.NganHang,
               matchedItem2.MonGiangDayChinh,
               matchedItem2.HSL,
+              item.he_dao_tao,
             ]);
           }
         })
@@ -1459,7 +1461,7 @@ const saveToExportDoAn = async (req, res) => {
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
     isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, ki, Dot, TT,
     GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
-    ChucVu, STK, NganHang, MonGiangDayChinh, HSL)
+    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao)
                  VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
