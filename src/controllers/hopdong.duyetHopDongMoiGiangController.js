@@ -17,7 +17,7 @@ const getDuyetHopDongPage = (req, res) => {
 /**
  * * Lấy data hợp đồng mời giảng
  */
-const getDuyetHopDongData = async (req, res) => {
+const getDuyetHopDongData22 = async (req, res) => {
     let connection;
     try {
         connection = await createPoolConnection();
@@ -404,6 +404,351 @@ const getDuyetHopDongData = async (req, res) => {
         if (connection) {
             connection.release();
         }
+    }
+};
+
+const getDuyetHopDongData = async (req, res) => {
+    let connection;
+    try {
+        connection = await createPoolConnection();
+
+        const { dot, ki, namHoc, maPhongBan } = req.body;
+        if (!dot || !ki || !namHoc) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học"
+            });
+        }
+
+        /** ------------------------------------------------------------------
+         *  1. TRUY VẤN SQL
+         *  ------------------------------------------------------------------ */
+        const query = `
+        /* ---------- HỆ ĐẠI HỌC ---------- */
+        WITH DaiHocData AS (
+            SELECT
+                MIN(qc.NgayBatDau)                              AS NgayBatDau,
+                MAX(qc.NgayKetThuc)                              AS NgayKetThuc,
+                gv.id_Gvm,
+                gv.HoTen,
+                gv.GioiTinh,
+                gv.NgaySinh,
+                gv.CCCD,
+                gv.NoiCapCCCD,
+                gv.Email,
+                gv.MaSoThue,
+                gv.HocVi,
+                gv.ChucVu,
+                gv.HSL,
+                gv.DienThoai,
+                gv.STK,
+                gv.NganHang,
+                gv.MaPhongBan,          -- ← khoa của giảng viên
+                gv.MaPhongBan           AS MaKhoaMonHoc,        -- gán luôn làm khóa môn
+                qc.he_dao_tao,
+                qc.NamHoc,
+                qc.KiHoc,
+                qc.Dot,
+                gv.NgayCapCCCD,
+                gv.DiaChi,
+                gv.BangTotNghiep,
+                gv.NoiCongTac,
+                gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+
+                /* SỐ TIẾT & TÀI CHÍNH */
+                SUM(qc.QuyChuan)                               AS SoTiet,
+                tl.SoTien                                       AS TienMoiGiang,
+                tl.SoTien * SUM(qc.QuyChuan)                    AS ThanhTien,
+                tl.SoTien * SUM(qc.QuyChuan) * 0.1              AS Thue,
+                tl.SoTien * SUM(qc.QuyChuan) * 0.9              AS ThucNhan,
+
+                pb.TenPhongBan,
+
+                /* TRẠNG THÁI DUYỆT */
+                MAX(qc.DaoTaoDuyet)                             AS DaoTaoDuyet,
+                MAX(qc.TaiChinhDuyet)                           AS TaiChinhDuyet
+            FROM quychuan qc
+                /* MATCH GIẢNG VIÊN HỆ ĐH: lấy phần trước ' - ' */
+                JOIN gvmoi gv
+                    ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+                LEFT JOIN tienluong tl
+                    ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+                LEFT JOIN phongban pb
+                    ON gv.MaPhongBan = pb.MaPhongBan
+            WHERE
+                qc.MoiGiang = 1
+                AND qc.NamHoc = ?
+                AND qc.Dot    = ?
+                AND qc.KiHoc  = ?
+                AND qc.he_dao_tao LIKE '%Đại học%'
+                ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
+            /* Gộp THEO GIẢNG VIÊN + HỆ ĐÀO TẠO (KHÔNG gộp theo khoa học phần) */
+            GROUP BY
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
+                gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
+                gv.STK, gv.NganHang, gv.MaPhongBan,
+                qc.NamHoc, qc.KiHoc, qc.Dot,
+                gv.NgayCapCCCD, gv.DiaChi,
+                gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+                tl.SoTien, pb.TenPhongBan
+        ),
+
+        /* ---------- HỆ SAU ĐẠI HỌC ---------- */
+        SauDaiHocData AS (
+            SELECT
+                MIN(qc.NgayBatDau)                              AS NgayBatDau,
+                MAX(qc.NgayKetThuc)                              AS NgayKetThuc,
+                gv.id_Gvm,
+                gv.HoTen,
+                gv.GioiTinh,
+                gv.NgaySinh,
+                gv.CCCD,
+                gv.NoiCapCCCD,
+                gv.Email,
+                gv.MaSoThue,
+                gv.HocVi,
+                gv.ChucVu,
+                gv.HSL,
+                gv.DienThoai,
+                gv.STK,
+                gv.NganHang,
+                gv.MaPhongBan,
+                gv.MaPhongBan           AS MaKhoaMonHoc,
+                qc.he_dao_tao,
+                qc.NamHoc,
+                qc.KiHoc,
+                qc.Dot,
+                gv.NgayCapCCCD,
+                gv.DiaChi,
+                gv.BangTotNghiep,
+                gv.NoiCongTac,
+                gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+
+                /* SỐ TIẾT (có hệ số 0.7) & TÀI CHÍNH */
+                SUM(
+                    ROUND(
+                        qc.QuyChuan *
+                        CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
+                    , 2)
+                )                                             AS SoTiet,
+                tl.SoTien                                       AS TienMoiGiang,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan *
+                        CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
+                    , 2)
+                )                                             AS ThanhTien,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan *
+                        CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
+                    , 2)
+                ) * 0.1                                       AS Thue,
+                tl.SoTien * SUM(
+                    ROUND(
+                        qc.QuyChuan *
+                        CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
+                    , 2)
+                ) * 0.9                                       AS ThucNhan,
+
+                pb.TenPhongBan,
+                MAX(qc.DaoTaoDuyet)                             AS DaoTaoDuyet,
+                MAX(qc.TaiChinhDuyet)                           AS TaiChinhDuyet
+            FROM quychuan qc
+                /* MATCH GIẢNG VIÊN HỆ SĐH: lấy phần sau dấu phẩy cuối */
+                JOIN gvmoi gv
+                    ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+                LEFT JOIN tienluong tl
+                    ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
+                LEFT JOIN phongban pb
+                    ON gv.MaPhongBan = pb.MaPhongBan
+            WHERE
+                qc.MoiGiang = 1
+                AND qc.NamHoc = ?
+                AND qc.Dot    = ?
+                AND qc.KiHoc  = ?
+                AND qc.he_dao_tao NOT LIKE '%Đại học%'
+                ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
+            GROUP BY
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
+                gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
+                gv.STK, gv.NganHang, gv.MaPhongBan,
+                qc.NamHoc, qc.KiHoc, qc.Dot,
+                gv.NgayCapCCCD, gv.DiaChi,
+                gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai,
+                gv.MonGiangDayChinh,
+                tl.SoTien, pb.TenPhongBan
+        )
+
+        /* ---------- KẾT HỢP ---------- */
+        SELECT * FROM DaiHocData
+        UNION ALL
+        SELECT * FROM SauDaiHocData
+        ORDER BY SoTiet DESC, HoTen, he_dao_tao
+        `;
+
+        /* PARAMS cho 2 CTE (lặp lại) */
+        const params = [namHoc, dot, ki];
+        if (maPhongBan && maPhongBan !== 'ALL') params.push(maPhongBan);
+        params.push(namHoc, dot, ki);
+        if (maPhongBan && maPhongBan !== 'ALL') params.push(maPhongBan);
+
+        const [results] = await connection.query(query, params);
+
+        /** ------------------------------------------------------------------
+         *  2. GOM + TÍNH TOÁN TRONG JS
+         *     (từ đây không còn “double” trainingPrograms)
+         *  ------------------------------------------------------------------ */
+        const groupedByTeacher = results.reduce((acc, cur) => {
+            const teacher = cur.HoTen;
+            if (!acc[teacher]) {
+                acc[teacher] = {
+                    teacherInfo: {
+                        id_Gvm: cur.id_Gvm,
+                        HoTen: cur.HoTen,
+                        GioiTinh: cur.GioiTinh,
+                        NgaySinh: cur.NgaySinh,
+                        CCCD: cur.CCCD,
+                        NoiCapCCCD: cur.NoiCapCCCD,
+                        NgayCapCCCD: cur.NgayCapCCCD,
+                        Email: cur.Email,
+                        MaSoThue: cur.MaSoThue,
+                        HocVi: cur.HocVi,
+                        ChucVu: cur.ChucVu,
+                        HSL: cur.HSL,
+                        DienThoai: cur.DienThoai,
+                        STK: cur.STK,
+                        NganHang: cur.NganHang,
+                        MaPhongBan: cur.MaPhongBan,
+                        DiaChi: cur.DiaChi,
+                        BangTotNghiep: cur.BangTotNghiep,
+                        NoiCongTac: cur.NoiCongTac,
+                        BangTotNghiepLoai: cur.BangTotNghiepLoai,
+                        MonGiangDayChinh: cur.MonGiangDayChinh,
+                        NgayBatDau: cur.NgayBatDau,
+                        NgayKetThuc: cur.NgayKetThuc,
+                        TenPhongBan: cur.TenPhongBan
+                    },
+                    trainingPrograms: [],
+                    totalFinancials: {
+                        totalSoTiet: 0,
+                        totalThanhTien: 0,
+                        totalThue: 0,
+                        totalThucNhan: 0
+                    }
+                };
+            }
+
+            /* Gộp theo he_dao_tao (nếu trùng thì cộng dồn) */
+            const tpArr = acc[teacher].trainingPrograms;
+            const existing = tpArr.find(tp => tp.he_dao_tao === cur.he_dao_tao);
+
+            const currProgram = {
+                he_dao_tao: cur.he_dao_tao,
+                SoTiet: parseFloat(cur.SoTiet) || 0,
+                TienMoiGiang: parseFloat(cur.TienMoiGiang) || 0,
+                ThanhTien: parseFloat(cur.ThanhTien) || 0,
+                Thue: parseFloat(cur.Thue) || 0,
+                ThucNhan: parseFloat(cur.ThucNhan) || 0,
+                MaKhoaMonHoc: cur.MaKhoaMonHoc,
+                DaoTaoDuyet: cur.DaoTaoDuyet,
+                TaiChinhDuyet: cur.TaiChinhDuyet
+            };
+
+            if (existing) {
+                /* Cộng dồn trị số nếu đã có hệ này */
+                existing.SoTiet += currProgram.SoTiet;
+                existing.ThanhTien += currProgram.ThanhTien;
+                existing.Thue += currProgram.Thue;
+                existing.ThucNhan += currProgram.ThucNhan;
+            } else {
+                tpArr.push(currProgram);
+            }
+
+            /* Cộng dồn tổng */
+            acc[teacher].totalFinancials.totalSoTiet += currProgram.SoTiet;
+            acc[teacher].totalFinancials.totalThanhTien += currProgram.ThanhTien;
+            acc[teacher].totalFinancials.totalThue += currProgram.Thue;
+            acc[teacher].totalFinancials.totalThucNhan += currProgram.ThucNhan;
+
+            return acc;
+        }, {});
+
+        /** ------------------------------------------------------------------
+         *  3. SẮP XẾP & CHUẨN HÓA OUTPUT
+         *  ------------------------------------------------------------------ */
+        const teachersWithTotals = Object.keys(groupedByTeacher).map(name => ({
+            teacherName: name,
+            teacherData: groupedByTeacher[name],
+            totalSoTiet: groupedByTeacher[name].totalFinancials.totalSoTiet,
+            maPhongBan: groupedByTeacher[name].teacherInfo.MaPhongBan
+        }));
+
+        teachersWithTotals.sort((a, b) => {
+            if (a.maPhongBan !== b.maPhongBan) {
+                return (a.maPhongBan || '').localeCompare(b.maPhongBan || '', 'vi');
+            }
+            if (b.totalSoTiet !== a.totalSoTiet) return b.totalSoTiet - a.totalSoTiet;
+            return a.teacherName.localeCompare(b.teacherName, 'vi');
+        });
+
+        const simplifiedGroupedByTeacher = teachersWithTotals.reduce((acc, { teacherName, teacherData }) => {
+            acc[teacherName] = [{
+                ...teacherData.teacherInfo,
+                SoTiet: teacherData.totalFinancials.totalSoTiet,
+                ThanhTien: teacherData.totalFinancials.totalThanhTien,
+                Thue: teacherData.totalFinancials.totalThue,
+                ThucNhan: teacherData.totalFinancials.totalThucNhan,
+                trainingPrograms: teacherData.trainingPrograms,
+                totalFinancials: teacherData.totalFinancials
+            }];
+            return acc;
+        }, {});
+
+        /** ------------------------------------------------------------------
+         *  4. SỐ TIẾT ĐỊNH MỨC + TỔNG TOÀN BẢNG
+         *  ------------------------------------------------------------------ */
+        const [sotietResult] = await connection.query(
+            `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`
+        );
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
+
+        let totalQC = 0, totalThanhTienAll = 0, totalThueAll = 0, totalThucNhanAll = 0;
+        Object.values(groupedByTeacher).forEach(t => {
+            totalQC += t.totalFinancials.totalSoTiet;
+            totalThanhTienAll += t.totalFinancials.totalThanhTien;
+            totalThueAll += t.totalFinancials.totalThue;
+            totalThucNhanAll += t.totalFinancials.totalThucNhan;
+        });
+
+        /* ------------------------------------------------------------------ */
+        /*  5. TRẢ KẾT QUẢ  */
+        /* ------------------------------------------------------------------ */
+        res.json({
+            groupedByTeacher: simplifiedGroupedByTeacher,
+            enhancedGroupedByTeacher: groupedByTeacher,    // full detail
+            SoTietDinhMuc,
+            totalsByTeacher: {
+                totalQC,
+                totalThanhTienAll,
+                totalThueAll,
+                totalThucNhanAll
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Đã xảy ra lỗi khi lấy dữ liệu",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    } finally {
+        if (connection) connection.release();
     }
 };
 
