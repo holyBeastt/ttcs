@@ -32,7 +32,7 @@ const thongketonghopController = {
 
       // Execute the query
       const [moiGiangData] = await connection.query(query, params);
-      console.log("Dữ liệu mời giảng:", moiGiangData);
+      // console.log("Dữ liệu mời giảng:", moiGiangData);
 
       // Query for "Vượt giờ"
       let queryVuotGio = `
@@ -104,25 +104,29 @@ GROUP BY
 
       // Execute the query
       const [vuotGioData] = await connection.query(queryVuotGio, paramsVuotGio);
-      console.log("Dữ liệu vượt giờ:", vuotGioData);
+      // console.log("Dữ liệu vượt giờ:", vuotGioData);
 
       // Combine the data
       const allKhoa = new Set([
-        ...moiGiangData.map(item => item.Khoa),
-        ...vuotGioData.map(item => item.Khoa)
+        ...moiGiangData.map((item) => item.Khoa),
+        ...vuotGioData.map((item) => item.Khoa),
       ]);
 
-      const chartData = Array.from(allKhoa).map(khoa => {
-        const moiGiang = moiGiangData.find(item => item.Khoa === khoa) || {
-          TongSoTietMoiGiang: 0
+      const chartData = Array.from(allKhoa).map((khoa) => {
+        const moiGiang = moiGiangData.find((item) => item.Khoa === khoa) || {
+          TongSoTietMoiGiang: 0,
         };
-        const vuotGio = vuotGioData.find(item => item.Khoa === khoa) || {
+        const vuotGio = vuotGioData.find((item) => item.Khoa === khoa) || {
           TongSoTietVuotGio: 0,
-          TongSoTiet: 0
+          TongSoTiet: 0,
         };
 
-        const tongSoTietMoiGiang = parseFloat(moiGiang.TongSoTietMoiGiang).toFixed(1);
-        const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(1);
+        const tongSoTietMoiGiang = parseFloat(
+          moiGiang.TongSoTietMoiGiang
+        ).toFixed(1);
+        const tongSoTietVuotGio = parseFloat(vuotGio.TongSoTietVuotGio).toFixed(
+          1
+        );
         const tongSoTiet = parseFloat(vuotGio.TongSoTiet).toFixed(1);
         const tongso = (
           parseFloat(tongSoTietMoiGiang) + parseFloat(tongSoTiet)
@@ -137,7 +141,7 @@ GROUP BY
         };
       });
 
-      console.log("Dữ liệu biểu đồ tổng hợp:", chartData);
+      // console.log("Dữ liệu biểu đồ tổng hợp:", chartData);
       res.json(chartData);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu biểu đồ tổng hợp:", error);
@@ -152,35 +156,35 @@ GROUP BY
   getNamHocData: async (req, res) => {
     let connection;
     try {
-        connection = await createConnection();
+      connection = await createConnection();
 
-        // Lấy danh sách năm học
-        const [namHoc] = await connection.query(
-            "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
-        );
+      // Lấy danh sách năm học
+      const [namHoc] = await connection.query(
+        "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
+      );
 
-        // Lấy danh sách kỳ
-        const [ki] = await connection.query(
-            "SELECT DISTINCT kihoc as Ki FROM hopdonggvmoi ORDER BY kihoc"
-        );
+      // Lấy danh sách kỳ
+      const [ki] = await connection.query(
+        "SELECT DISTINCT kihoc as Ki FROM hopdonggvmoi ORDER BY kihoc"
+      );
 
-        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
+      const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
 
-        // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
-        namHoc.unshift({ NamHoc: "ALL" });
-        ki.unshift({ Ki: "ALL" });
+      // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
+      namHoc.unshift({ NamHoc: "ALL" });
+      ki.unshift({ Ki: "ALL" });
 
-        res.json({
-            success: true,
-            NamHoc: namHoc,
-            Ki: ki,
-            MaxNamHoc: maxNamHoc, // Trả về năm học lớn nhất
-        });
+      res.json({
+        success: true,
+        NamHoc: namHoc,
+        Ki: ki,
+        MaxNamHoc: maxNamHoc, // Trả về năm học lớn nhất
+      });
     } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu năm học:", error);
-        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+      console.error("Lỗi khi lấy dữ liệu năm học:", error);
+      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 };

@@ -143,60 +143,22 @@ function formatDateDMY(date) {
   return `${day}/${month}/${year}`;
 }
 
-const exportPhuLucDA = async (req, res) => {
-  let connection;
+const getExportPhuLucDAPath = async (
+  req,
+  connection,
+  dot,
+  ki,
+  namHoc,
+  khoa,
+  he_dao_tao,
+  teacherName,
+  data
+) => {
   try {
-    connection = await createPoolConnection();
-
     const isKhoa = req.session.isKhoa;
-
-    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
-    }
-
-    if (!dot || !ki || !namHoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu thông tin đợt ,năm học",
-      });
-    }
-
-    let query = `
-      SELECT DISTINCT
-          gv.HoTen AS GiangVien,
-          edt.TenDeTai,
-          edt.SinhVien,
-          edt.SoTiet,
-          edt.NgayBatDau,
-          edt.NgayKetThuc,
-          gv.HocVi,
-          gv.HSL,
-          gv.DiaChi
-      FROM exportdoantotnghiep edt
-      JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
-    `;
-
-    let params = [dot,ki, namHoc];
-
-    if (khoa && khoa !== "ALL") {
-      query += `AND edt.MaPhongBan = ?`;
-      params.push(khoa);
-    }
-
-    if (teacherName) {
-      query += ` AND gv.HoTen LIKE ?`;
-      params.push(`%${teacherName}%`);
-    }
-
-    const [data] = await connection.execute(query, params);
-
-    if (data.length === 0) {
-      return res.send(
-        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportPhuLucDA';</script>"
-      );
     }
 
     // Tạo workbook mới
@@ -210,22 +172,26 @@ const exportPhuLucDA = async (req, res) => {
 
     // Tạo một sheet cho mỗi giảng viên
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
-      const worksheet = workbook.addWorksheet(giangVien);
+      const cccds = [...new Set(giangVienData.map((item) => item.CCCD))];
+      const last4CCCDs = cccds.map((cccd) => cccd.slice(-4)).join(", ");
+
+      const worksheet = workbook.addWorksheet(
+        `${giangVien.replace(/\s*\(.*?\)\s*/g, "").trim()} - ${last4CCCDs}`
+      );
 
       worksheet.addRow([]);
 
-    // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
-    const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
-    titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
-    titleRow0.alignment = { horizontal: "center", vertical: "middle" };
-    worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
-  
+      // Thêm tiêu đề "Ban Cơ yếu Chính phủ" phía trên
+      const titleRow0 = worksheet.addRow(["Ban Cơ yếu Chính phủ"]);
+      titleRow0.font = { name: "Times New Roman", size: 16, bold: true };
+      titleRow0.alignment = { horizontal: "center", vertical: "middle" };
+      worksheet.mergeCells(`A${titleRow0.number}:C${titleRow0.number}`);
+
       // Cập nhật vị trí tiêu đề "Học Viện Kỹ thuật Mật Mã"
       const titleRow1 = worksheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
       titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow1.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);
-
 
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
@@ -335,7 +301,7 @@ const exportPhuLucDA = async (req, res) => {
 
       // Bật wrapText cho tiêu đề
       headerRow.eachCell((cell) => {
-        cell.font = { name: "Times New Roman", bold: true,size :11 }; // Chỉnh cỡ chữ và kiểu chữ
+        cell.font = { name: "Times New Roman", bold: true, size: 11 }; // Chỉnh cỡ chữ và kiểu chữ
 
         cell.fill = {
           type: "pattern",
@@ -360,6 +326,7 @@ const exportPhuLucDA = async (req, res) => {
       let totalThucNhan = 0;
 
       giangVienData.forEach((item, index) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const mucThanhToan = 100000;
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
@@ -379,7 +346,7 @@ const exportPhuLucDA = async (req, res) => {
             : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -409,7 +376,7 @@ const exportPhuLucDA = async (req, res) => {
           // Chỉnh cỡ chữ cho từng cột
           switch (colNumber) {
             case 1: // STT
-              cell.font = { name: "Times New Roman", size: 13};
+              cell.font = { name: "Times New Roman", size: 13 };
               break;
             case 2: // Họ tên giảng viên
               cell.font = { name: "Times New Roman", size: 13 };
@@ -520,8 +487,9 @@ const exportPhuLucDA = async (req, res) => {
         });
       }
 
-      // Tạo sheet 2 (bản sao)
-      const sheetName2 = `${giangVien} (2)`;
+      const sheetName2 = `${giangVien
+        .replace(/\s*\(.*?\)\s*/g, "")
+        .trim()} - ${last4CCCDs} (2)`;
       const worksheet2 = workbook.addWorksheet(sheetName2);
 
       // Thêm tiêu đề cho sheet 2
@@ -557,9 +525,6 @@ const exportPhuLucDA = async (req, res) => {
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4_2.alignment = { horizontal: "center", vertical: "middle" };
       worksheet2.mergeCells(`A${titleRow4_2.number}:M${titleRow4_2.number}`);
-      
-
-
 
       // Đặt vị trí cho tiêu đề "Đơn vị tính: Đồng" vào cột K đến M
       const titleRow5_2 = worksheet2.addRow([
@@ -659,11 +624,14 @@ const exportPhuLucDA = async (req, res) => {
       let totalThucNhan2 = 0;
 
       giangVienData.forEach((item, index) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const mucThanhToan = 100000;
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
         const thucNhan = soTien - truThue;
-        const thoiGianThucHien = `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(item.NgayKetThuc)}`;
+        const thoiGianThucHien = `${formatDateDMY(
+          item.NgayBatDau
+        )} - ${formatDateDMY(item.NgayKetThuc)}`;
 
         const hocViVietTat =
           item.HocVi === "Tiến sĩ"
@@ -674,7 +642,7 @@ const exportPhuLucDA = async (req, res) => {
 
         const row = worksheet2.addRow([
           index + 1,
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -844,10 +812,8 @@ const exportPhuLucDA = async (req, res) => {
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
-    
-    const titleRow3 = summarySheet.addRow([
-      `Hợp đồng số:    /HĐ-ĐT `,
-    ]);
+
+    const titleRow3 = summarySheet.addRow([`Hợp đồng số:    /HĐ-ĐT `]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow3.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
@@ -874,7 +840,7 @@ const exportPhuLucDA = async (req, res) => {
       "",
       "",
     ]);
-    titleRow5.font = { name: "Times New Roman", size: 13,italic: true };
+    titleRow5.font = { name: "Times New Roman", size: 13, italic: true };
     titleRow5.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`K${titleRow5.number}:M${titleRow5.number}`);
 
@@ -928,6 +894,7 @@ const exportPhuLucDA = async (req, res) => {
 
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       giangVienData.forEach((item) => {
+        let hoTenTrim = item.GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
         const soTien = item.SoTiet * 100000; // Giả sử mức thanh toán là 100000
         const truThue = soTien * 0.1; // Trừ thuế TNCN 10%
         const conLai = soTien - truThue; // Còn lại
@@ -942,7 +909,7 @@ const exportPhuLucDA = async (req, res) => {
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
           stt,
-          item.GiangVien,
+          hoTenTrim,
           item.TenDeTai,
           item.SinhVien,
           item.SoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
@@ -1069,7 +1036,7 @@ const exportPhuLucDA = async (req, res) => {
 
     // Định dạng cho tiêu đề cột
     headerRow.eachCell((cell) => {
-      cell.font = { name: "Times New Roman", bold: true,size :11 }; // Chỉnh cỡ chữ và kiểu chữ
+      cell.font = { name: "Times New Roman", bold: true, size: 11 }; // Chỉnh cỡ chữ và kiểu chữ
 
       cell.fill = {
         type: "pattern",
@@ -1088,8 +1055,21 @@ const exportPhuLucDA = async (req, res) => {
       };
     });
 
+    // Tạo thư mục tạm để lưu các file hợp đồng
+    const tempDir = path.join(
+      __dirname,
+      "..",
+      "public",
+      "temp",
+      Date.now().toString()
+    );
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
     // Tạo tên file
-    let fileName = `PhuLuc_DA${dot}_${namHoc}`;
+    let fileName = `PhuLuc_DA${dot}_${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
@@ -1098,20 +1078,136 @@ const exportPhuLucDA = async (req, res) => {
     }
     fileName += ".xlsx";
 
-    // Set headers cho response và gửi file
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(fileName)}"`
+    // Tạo đường dẫn đầy đủ tới file
+    const filePath = path.join(tempDir, fileName);
+
+    // Ghi workbook vào file
+    await workbook.xlsx.writeFile(filePath);
+
+    // Trả về đường dẫn file để dùng tiếp (nén, gửi,...)
+    return filePath;
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error exporting data",
+    });
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const exportPhuLucDA = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    let { dot, ki, namHoc, loaiHopDong, khoa, teacherName, he_dao_tao } =
+      req.query;
+
+    console.log("he = ", he_dao_tao);
+
+    if (!dot || !ki || !namHoc) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu thông tin đợt, kỳ hoặc năm học",
+      });
+    }
+
+    let query = `
+      SELECT DISTINCT
+          gv.HoTen AS GiangVien,
+          edt.TenDeTai,
+          edt.SinhVien,
+          edt.SoTiet,
+          edt.NgayBatDau,
+          edt.NgayKetThuc,
+          gv.HocVi,
+          gv.HSL,
+          gv.DiaChi,
+          gv.CCCD
+      FROM exportdoantotnghiep edt
+      JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
+      WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1
+    `;
+
+    let params = [dot, ki, namHoc, he_dao_tao];
+
+    if (khoa && khoa !== "ALL") {
+      query += `AND edt.MaPhongBan = ?`;
+      params.push(khoa);
+    }
+
+    if (teacherName) {
+      query += ` AND gv.HoTen LIKE ?`;
+      params.push(`%${teacherName}%`);
+    }
+
+    const [data] = await connection.execute(query, params);
+
+    if (data.length === 0) {
+      return res.send(
+        "<script>alert('Không tìm thấy giảng viên phù hợp điều kiện'); window.location.href='/exportPhuLucDA';</script>"
+      );
+    }
+
+    const filePaths = await getExportPhuLucDAPath(
+      req,
+      connection,
+      dot,
+      ki,
+      namHoc,
+      loaiHopDong,
+      khoa,
+      teacherName,
+      data
     );
 
-    // Ghi workbook vào response
-    await workbook.xlsx.write(res);
+    // Kiểm tra filePaths
+    if (!filePaths) {
+      console.error("getExportPhuLucGiangVienMoiPath trả về undefined");
+      return res.status(500).json({
+        success: false,
+        message: "Không thể tạo file export",
+      });
+    }
 
-    // Không cần gọi res.end() vì workbook.xlsx.write đã tự động kết thúc response
+    // Lấy tên file từ đường dẫn
+    const fileName = path.basename(filePaths);
+
+    // Gửi file cho client
+    res.download(filePaths, fileName, (err) => {
+      if (err) {
+        console.error("Lỗi khi gửi file:", err);
+        if (!res.headersSent) {
+          return res.status(500).send("Lỗi khi gửi file");
+        }
+      }
+
+      // Xóa file và thư mục sau khi gửi
+      setTimeout(() => {
+        try {
+          if (fs.existsSync(filePaths)) {
+            fs.unlinkSync(filePaths); // Xóa file
+            console.log("Đã xóa file:", filePaths);
+
+            // Xóa thư mục tạm (nếu rỗng)
+            const tempDir = path.dirname(filePaths);
+            try {
+              fs.rmdirSync(tempDir); // Chỉ xóa được thư mục rỗng
+              console.log("Đã xóa thư mục:", tempDir);
+            } catch (dirErr) {
+              console.log(
+                "Không thể xóa thư mục (có thể không rỗng):",
+                tempDir
+              );
+            }
+          }
+        } catch (cleanupErr) {
+          console.error("Lỗi khi xóa file:", cleanupErr);
+        }
+      }, 100);
+    });
   } catch (error) {
     console.error("Error exporting data:", error);
     return res.status(500).json({
@@ -1145,5 +1241,6 @@ const getPhuLucDASite = async (req, res) => {
 
 module.exports = {
   exportPhuLucDA,
+  getExportPhuLucDAPath,
   getPhuLucDASite,
 };

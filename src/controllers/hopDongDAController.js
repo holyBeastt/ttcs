@@ -6,6 +6,7 @@ const path = require("path");
 const createPoolConnection = require("../config/databasePool");
 const archiver = require("archiver");
 require("dotenv").config(); // Load biến môi trường
+const exportPhuLucDAController = require("../controllers/exportPhuLucDAController");
 
 function deleteFolderRecursive(folderPath) {
   if (fs.existsSync(folderPath)) {
@@ -223,7 +224,8 @@ const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    let { dot, ki, namHoc, khoa, teacherName, loaiHopDong } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName, loaiHopDong } =
+      req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
@@ -253,7 +255,7 @@ SELECT
   ed.NganHang,
   ed.NoiCongTac,
   ed.Dot,
-  ed.KhoaDaoTao,
+  MAX(ed.KhoaDaoTao) AS KhoaDaoTao,
   MIN(ed.NgayBatDau) AS NgayBatDau,
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
@@ -264,14 +266,14 @@ FROM
 JOIN 
   exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
 WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ?
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-  ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
+  ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
 `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -305,13 +307,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
 
     // Xử lý trường hợp có teacherName
@@ -346,13 +348,13 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
     ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
   `;
-      params = [dot, ki, namHoc, `%${teacherName}%`];
+      params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
     const [teachers] = await connection.execute(query, params);
 
@@ -430,11 +432,13 @@ GROUP BY
       const tienThueText1 = Math.round(tienText1 * 0.1);
       const tienThucNhanText1 = tienText1 - tienThueText1;
 
+      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
       const data = {
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: danhXung,
-        Họ_và_tên: teacher.HoTen,
+        Họ_và_tên: hoTen,
         CCCD: teacher.CCCD,
         Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
         Nơi_cấp: teacher.NoiCapCCCD,
@@ -506,7 +510,6 @@ GROUP BY
         compression: "DEFLATE",
       });
 
-      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
       const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
@@ -603,7 +606,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
 
-    let { dot, ki, namHoc, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -633,6 +636,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName,
       phongBanList
     );
@@ -649,6 +653,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName
     );
 
@@ -682,6 +687,10 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const output = fs.createWriteStream(teacherZipPath);
       teacherArchive.pipe(output);
 
+      // Lưu các file cần xóa sau khi nén
+      const filesToDelete = [];
+      const dirsToDelete = [];
+
       // Tạo file hợp đồng
       const filePathContract = await generateDoAnContract(
         teacher,
@@ -695,11 +704,19 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const phuLucTeacher = phuLucData.filter(
         (item) => item.GiangVien.trim() == teacher.HoTen.trim()
       );
-      const filePathAppendix = await generateAppendixContract(
-        tienLuongList,
-        phuLucTeacher,
-        tempDir
-      );
+
+      const filePathAppendix =
+        await exportPhuLucDAController.getExportPhuLucDAPath(
+          req,
+          connection,
+          dot,
+          ki,
+          namHoc,
+          khoa,
+          he_dao_tao,
+          teacherName,
+          phuLucTeacher
+        );
 
       if (
         !fs.existsSync(filePathContract) ||
@@ -739,10 +756,33 @@ const exportAdditionalDoAnGvm = async (req, res) => {
         teacherArchive.file(filePathAppendix, {
           name: path.basename(filePathAppendix),
         });
+
+        filesToDelete.push(filePathAppendix);
+        const appendixDir = path.dirname(filePathAppendix);
+        dirsToDelete.push(appendixDir);
       }
 
       await teacherArchive.finalize();
       contractFiles.push(teacherZipPath);
+
+      // Sau khi zip xong mới xóa file
+      for (const filePath of filesToDelete) {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log("Đã xóa file:", filePath);
+        }
+      }
+
+      for (const dirPath of dirsToDelete) {
+        try {
+          if (fs.existsSync(dirPath) && fs.readdirSync(dirPath).length === 0) {
+            fs.rmdirSync(dirPath);
+            console.log("Đã xóa thư mục:", dirPath);
+          }
+        } catch (err) {
+          console.log("Không thể xóa thư mục (có thể không rỗng):", dirPath);
+        }
+      }
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
@@ -983,6 +1023,7 @@ const getExportData = async (
   ki,
   namHoc,
   khoa,
+  he_dao_tao,
   teacherName,
   phongBanList
 ) => {
@@ -1019,14 +1060,14 @@ const getExportData = async (
     JOIN 
       exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
     WHERE 
-      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ?
+      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
       ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
       ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     // Xử lý trường hợp có khoa
     if (khoa && khoa !== "ALL") {
@@ -1062,13 +1103,13 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
         ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
         ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
       `;
-      params = [dot, ki, namHoc, `%${khoa}%`];
+      params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
 
     // Xử lý trường hợp có teacherName
@@ -1105,13 +1146,13 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
         ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
         ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
       `;
-      params = [dot, ki, namHoc, `%${teacherName}%`];
+      params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
 
     const [teachers] = await connection.execute(query, params);
@@ -1129,6 +1170,7 @@ const getAppendixData = async (
   ki,
   namHoc,
   khoa,
+  he_dao_tao,
   teacherName
 ) => {
   try {
@@ -1145,10 +1187,10 @@ const getAppendixData = async (
           gv.DiaChi
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.isMoiGiang = 1
+      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1
     `;
 
-    let params = [dot, ki, namHoc];
+    let params = [dot, ki, namHoc, he_dao_tao];
 
     if (khoa && khoa !== "ALL") {
       query += `AND edt.MaPhongBan = ?`;
@@ -1828,7 +1870,7 @@ const exportBoSungDownloadData = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
 
-    let { dot, ki, namHoc, khoa, teacherName } = req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (isKhoa == 1) {
       khoa = req.session.MaPhongBan;
@@ -1858,6 +1900,7 @@ const exportBoSungDownloadData = async (req, res) => {
       ki,
       namHoc,
       khoa,
+      he_dao_tao,
       teacherName,
       phongBanList
     );
