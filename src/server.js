@@ -39,6 +39,7 @@ const soHopDong = require("./routes/hopdong.soHopDongRoute");
 const duyetHopDongMoiGiang = require("./routes/hopdong.duyetHopDongMoiGiangRoute");
 const duyetHopDongDoAn = require("./routes/hopdong.duyetHopDongDoAnRoute");
 const previewHopDong = require("./routes/hopdong.previewRoute");
+const chinhSuaQuyChuanRoute = require("./routes/chinhSuaQuyChuanRoute");
 
 
 
@@ -150,7 +151,7 @@ app.use("/", soHopDong);
 app.use("/", duyetHopDongMoiGiang);
 app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
-
+app.use("/", chinhSuaQuyChuanRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
