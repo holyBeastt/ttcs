@@ -260,7 +260,9 @@ SELECT
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
   ed.NamHoc,
-  gv.MaPhongBan
+  gv.MaPhongBan,
+  ed.SoHopDong,
+  ed.SoThanhLyHopDong
 FROM
   gvmoi gv
 JOIN 
@@ -270,7 +272,8 @@ WHERE
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-  ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
+  ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
+  ed.SoThanhLyHopDong
 `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -301,7 +304,9 @@ GROUP BY
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
     ed.NamHoc,
-    gv.MaPhongBan
+    gv.MaPhongBan,
+    ed.SoHopDong,
+    ed.SoThanhLyHopDong
   FROM 
     gvmoi gv
   JOIN 
@@ -311,7 +316,8 @@ GROUP BY
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
+    ed.SoThanhLyHopDong
   `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
@@ -342,7 +348,9 @@ GROUP BY
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
     ed.NamHoc,
-  gv.MaPhongBan
+    gv.MaPhongBan,
+    ed.SoHopDong,
+    ed.SoThanhLyHopDong
   FROM 
     gvmoi gv
   JOIN 
@@ -352,7 +360,8 @@ GROUP BY
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki
+    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
+    ed.SoThanhLyHopDong
   `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
@@ -435,6 +444,8 @@ GROUP BY
       let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       const data = {
+        Số_hợp_đồng: teacher.SoHopDong,
+        Số_thanh_lý: teacher.SoThanhLyHopDong,
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: danhXung,
