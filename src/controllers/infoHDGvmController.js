@@ -490,83 +490,98 @@ const getHopDongDuKienData = async (req, res) => {
     let params = [];
 
     let query = `
-    WITH DoAnHopDongDuKien AS (
+WITH DoAnHopDongDuKien AS (
+  SELECT
+    gv.id_Gvm,
+    gv.HoTen AS GiangVien,
+    gv.GioiTinh,
+    gv.Email,
+    gv.NgaySinh,
+    gv.CCCD,
+    gv.NoiCapCCCD,
+    gv.MaSoThue,
+    gv.HocVi,
+    gv.ChucVu,
+    gv.HSL,
+    gv.DienThoai,
+    gv.STK,
+    gv.NganHang,
+    gv.MaPhongBan,
+    Combined.MaPhongBan AS MaKhoaMonHoc,
+    Combined.he_dao_tao,
+    NgayBatDau,
+    NgayKetThuc,
+    CASE 
+      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+      ELSE std.so_tiet_2
+    END AS SoTiet,
+    Dot,
+    ki AS KiHoc,
+    NamHoc,
+    gv.NgayCapCCCD,
+    gv.DiaChi,
+    gv.BangTotNghiep, 
+    gv.NoiCongTac,
+    gv.BangTotNghiepLoai,
+    gv.MonGiangDayChinh,
+    100000 AS TienMoiGiang,
+    CASE 
+      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+      ELSE std.so_tiet_2
+    END * 100000 AS ThanhTien,
+    CASE 
+      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+      ELSE std.so_tiet_2
+    END * 100000 * 0.1 AS Thue,
+    CASE 
+      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+      ELSE std.so_tiet_2
+    END * 100000 * 0.9 AS ThucNhan
+
+  FROM (
     SELECT
-        gv.id_Gvm,
-        gv.HoTen AS GiangVien,
-        gv.GioiTinh,
-        gv.Email,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        Combined.MaPhongBan AS MaKhoaMonHoc,
-        'Đồ án' AS he_dao_tao,
-        NgayBatDau,
-        NgayKetThuc,
-        Combined.SoTiet AS SoTiet,
-        dot,
-        ki AS KiHoc,
-        NamHoc,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep, 
-		  gv.NoiCongTac,
-		  gv.BangTotNghiepLoai,
-		  gv.MonGiangDayChinh,
-      100000 AS TienMoiGiang,
-      Combined.SoTiet * 100000 AS ThanhTien,
-      Combined.SoTiet * 100000 * 0.1 AS Thue,
-      Combined.SoTiet * 100000 * 0.9 AS ThucNhan
+      NgayBatDau,
+      NgayKetThuc,
+      MaPhongBan,
+      he_dao_tao,
+      TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+      GiangVien2,
+      'GV1' AS Nguon,
+      Dot,
+      ki,
+      NamHoc
+    FROM doantotnghiep
+    WHERE 
+      GiangVien1 IS NOT NULL
+      AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
 
-    FROM (
-        SELECT
-            NgayBatDau,
-            NgayKetThuc,
-            MaPhongBan,
-            TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-            Dot,
-            ki,
-            NamHoc,
-            CASE 
-                WHEN GiangVien2 = 'không' THEN 25
-                ELSE 15
-            END AS SoTiet
-        FROM 
-            doantotnghiep
-        WHERE 
-            GiangVien1 IS NOT NULL
-            AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-        UNION ALL
+    UNION ALL
 
-        SELECT
-            NgayBatDau,
-            NgayKetThuc,
-            MaPhongBan,
-            TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-            Dot,
-            ki,
-            NamHoc,
-            10 AS SoTiet
-        FROM 
-            doantotnghiep
-        WHERE 
-            GiangVien2 IS NOT NULL 
-            AND GiangVien2 != 'không'
-            AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-    ) AS Combined
-    JOIN 
-        gvmoi gv ON Combined.GiangVien = gv.HoTen
-    WHERE Combined.NamHoc = '${namHoc}'
-    ), 
-    
+    SELECT
+      NgayBatDau,
+      NgayKetThuc,
+      MaPhongBan,
+      he_dao_tao,
+      TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+      GiangVien2,
+      'GV2' AS Nguon,
+      Dot,
+      ki,
+      NamHoc
+    FROM doantotnghiep
+    WHERE 
+      GiangVien2 IS NOT NULL 
+      AND GiangVien2 != 'không'
+      AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+  ) AS Combined
+  JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
+  JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
+  WHERE Combined.NamHoc = '${namHoc}'
+),
    DaiHocHopDongDuKien AS (
     SELECT
         NgayBatDau,
@@ -866,7 +881,7 @@ const getHopDongDuKienData = async (req, res) => {
         SUM(Thue) AS Thue,
         SUM(ThucNhan) AS ThucNhan,
         tsgv.TongSoTiet
-    FROM 
+    FROM
         tableALL ta
     LEFT JOIN 
         TongSoTietGV tsgv 
@@ -938,7 +953,6 @@ const getHopDongDuKienData = async (req, res) => {
 
     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
     const result = { dataDuKien: rows, SoTietDinhMuc };
-    console.log(rows);
     // Trả dữ liệu về client dưới dạng JSON
     res.status(200).json(result);
   } catch (error) {

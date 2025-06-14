@@ -159,6 +159,11 @@
             <option value="">Khoa</option>
           </select>
 
+          <select class="mx-1 selectop" id="he_dao_tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
+
           <button class="btn mx-2" id="import">Thêm</button>
         </div>
 
@@ -682,12 +687,19 @@
     <!-- Import vào csdl -->
     <script>
       // Hàm kiểm tra dữ liệu tồn tại trên server
-      function checkDataExistence(khoaValue, dotValue, kiValue, namValue) {
+      function checkDataExistence(
+        khoaValue,
+        dotValue,
+        kiValue,
+        namValue,
+        he_dao_tao
+      ) {
         const body = {
           Khoa: khoaValue,
           Dot: dotValue,
           Ki: kiValue,
           Nam: namValue,
+          he_dao_tao,
         };
         fetch("/checkExistDataFile", {
           method: "POST",
@@ -704,9 +716,15 @@
           })
           .then((data) => {
             if (data.exists) {
-              showModal(khoaValue, dotValue, kiValue, namValue);
+              showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao);
             } else {
-              saveDataDoAnDuKien(khoaValue, dotValue, kiValue, namValue);
+              saveDataDoAnDuKien(
+                khoaValue,
+                dotValue,
+                kiValue,
+                namValue,
+                he_dao_tao
+              );
             }
           })
           .catch((error) => {
@@ -716,9 +734,9 @@
       }
 
       // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
-      function showModal(khoaValue, dotValue, kiValue, namValue) {
+      function showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao) {
         const modal = document.getElementById("action-modal");
-        const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
+        const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}, hệ ${he_dao_tao}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
         Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
         document.getElementById("modal-message").innerText = message;
         modal.style.display = "block";
@@ -727,8 +745,14 @@
         const deleteButton = document.getElementById("btn-delete");
         deleteButton.onclick = function handleDeleteClick() {
           modal.style.display = "none";
-          deleteFile(khoaValue, dotValue, kiValue, namValue);
-          saveDataDoAnDuKien(khoaValue, dotValue, kiValue, namValue);
+          deleteFile(khoaValue, dotValue, kiValue, namValue, he_dao_tao);
+          saveDataDoAnDuKien(
+            khoaValue,
+            dotValue,
+            kiValue,
+            namValue,
+            he_dao_tao
+          );
           //appendData(khoaValue, dotValue, namValue, dataTam);
           // alert("Xóa thành công!");
           //location.reload();
@@ -739,7 +763,13 @@
         appendButton.onclick = function handleAppendClick() {
           modal.style.display = "none";
           //appendData(khoaValue, dotValue, namValue, dataTam);
-          saveDataDoAnDuKien(khoaValue, dotValue, kiValue, namValue);
+          saveDataDoAnDuKien(
+            khoaValue,
+            dotValue,
+            kiValue,
+            namValue,
+            he_dao_tao
+          );
           //location.reload();
         };
 
@@ -750,12 +780,13 @@
       }
 
       // Hàm gửi yêu cầu xóa dữ liệu
-      function deleteFile(khoaValue, dotValue, kiValue, namValue) {
+      function deleteFile(khoaValue, dotValue, kiValue, namValue, he_dao_tao) {
         const body = {
           Khoa: khoaValue,
           Dot: dotValue,
           Ki: kiValue,
           Nam: namValue,
+          he_dao_tao,
         };
 
         fetch("/deleteDataDoAnExist", {
@@ -777,7 +808,13 @@
       }
 
       // Hàm chèn thêm dữ liệu
-      function saveDataDoAnDuKien(khoaValue, dotValue, kiValue, namValue) {
+      function saveDataDoAnDuKien(
+        khoaValue,
+        dotValue,
+        kiValue,
+        namValue,
+        he_dao_tao
+      ) {
         const namHoc = namValue;
         const MaPhongBan = khoaValue;
         const Dot = dotValue;
@@ -791,7 +828,9 @@
             namHoc
           )}&MaPhongBan=${encodeURIComponent(
             MaPhongBan
-          )}&Dot=${encodeURIComponent(Dot)}&Ki=${encodeURIComponent(Ki)}`,
+          )}&Dot=${encodeURIComponent(Dot)}&Ki=${encodeURIComponent(
+            Ki
+          )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`,
           {
             method: "POST",
             headers: {
@@ -854,9 +893,16 @@
         const dotValue = document.getElementById("combobox-dot").value;
         const kiValue = document.getElementById("combobox-ki").value;
         const namValue = document.getElementById("NamHoc").value;
+        const he_dao_tao = document.getElementById("he_dao_tao").value;
 
         if (khoaValue !== "ALL") {
-          checkDataExistence(khoaValue, dotValue, kiValue, namValue);
+          checkDataExistence(
+            khoaValue,
+            dotValue,
+            kiValue,
+            namValue,
+            he_dao_tao
+          );
         }
       });
     </script>

@@ -37,8 +37,10 @@ const thongkeChiTietMGRoute = require('./routes/thongkeChiTietMGRoute');
 const backupRoute = require("./routes/backupRoute");
 const tongHopGvmExportRoute = require("./routes/tongHopGvmExportRoute");
 const soHopDong = require("./routes/hopdong.soHopDongRoute");
-const duyetHopDong = require("./routes/hopdong.duyetHopDongRoute");
+const duyetHopDongMoiGiang = require("./routes/hopdong.duyetHopDongMoiGiangRoute");
+const duyetHopDongDoAn = require("./routes/hopdong.duyetHopDongDoAnRoute");
 const previewHopDong = require("./routes/hopdong.previewRoute");
+const chinhSuaQuyChuanRoute = require("./routes/chinhSuaQuyChuanRoute");
 
 
 
@@ -147,10 +149,12 @@ app.use('/', thongkeChiTietMGRoute);
 app.use("/", backupRoute);
 app.use("/", tongHopGvmExportRoute);
 app.use("/", soHopDong);
-app.use("/", duyetHopDong);
+app.use("/", duyetHopDongMoiGiang);
+app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
 app.use("/", vuotGioCuoiKyRoute);
 
+app.use("/", chinhSuaQuyChuanRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);

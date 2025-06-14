@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const duyetHopDongController = require('../controllers/hopdong.duyetHopDongController');
+const duyetHopDongController = require('../controllers/hopdong.duyetHopDongMoiGiangController');
 const previewController = require('../controllers/hopdong.previewController');
 
 // Route to display contract approval page
@@ -18,7 +18,13 @@ router.post('/api/preview-page', previewController.showPreviewPageAPI);
 // API route for approving contracts
 router.post('/api/approve-contracts', duyetHopDongController.approveContracts);
 
+// API route for unapproving contracts
+router.post('/api/unapprove-contracts', duyetHopDongController.unapproveContracts);
+
 // API route for checking contract save status
 router.post('/api/check-contract-save-status', duyetHopDongController.checkContractSaveStatus);
+
+// API route for checking contract finance approval status
+router.post('/api/check-contract-finance-approval-status', duyetHopDongController.checkContractFinanceApprovalStatus);
 
 module.exports = router;

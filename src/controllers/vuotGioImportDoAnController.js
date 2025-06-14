@@ -90,7 +90,6 @@ function cleanName(name) {
     "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
     "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
     "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
-
   ];
 
   // Chỉnh regex để loại bỏ cả trường hợp có hoặc không có dấu cách sau học hàm/học vị
@@ -906,8 +905,9 @@ const saveToTableDoantotnghiep = async (req, res) => {
   const MaPhongBan = req.query.MaPhongBan;
   const Dot = req.query.Dot;
   const Ki = req.query.Ki;
+  const he_dao_tao = req.query.he_dao_tao;
   const data = req.body;
-  const defaultDate = '2000-01-01'; // hoặc ngày nào bạn muốn làm mặc định
+  const defaultDate = "2000-01-01"; // hoặc ngày nào bạn muốn làm mặc định
 
   let connection;
   try {
@@ -923,15 +923,20 @@ const saveToTableDoantotnghiep = async (req, res) => {
       const match = row.MaSV.match(/^([A-Za-z]+)(\d{2})/);
       const KhoaDaoTao = match ? match[1] + match[2] : null;
 
-
       const KhoaDuyet = 0,
         DaoTaoDuyet = 0,
         TaiChinhDuyet = 0,
         DaLuu = 0,
         DaBanHanh = 0;
 
-      const startDate = !row.NgayBatDau || row.NgayBatDau.trim() === '' ? defaultDate : row.NgayBatDau;
-      const endDate = !row.NgayKetThuc || row.NgayKetThuc.trim() === '' ? defaultDate : row.NgayKetThuc;
+      const startDate =
+        !row.NgayBatDau || row.NgayBatDau.trim() === ""
+          ? defaultDate
+          : row.NgayBatDau;
+      const endDate =
+        !row.NgayKetThuc || row.NgayKetThuc.trim() === ""
+          ? defaultDate
+          : row.NgayKetThuc;
 
       // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
       let DoiTuong = "Việt Nam"; // Mặc định là "Việt Nam"
@@ -939,7 +944,10 @@ const saveToTableDoantotnghiep = async (req, res) => {
       for (const kitubatdau of rows) {
         const prefix = kitubatdau.viet_tat; // Lấy giá trị viet_tat
         // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
-        if (row.MaSV.startsWith(prefix) && row.MaSV[prefix.length]?.match(/^\d$/)) {
+        if (
+          row.MaSV.startsWith(prefix) &&
+          row.MaSV[prefix.length]?.match(/^\d$/)
+        ) {
           DoiTuong = kitubatdau.doi_tuong;
         }
       }
@@ -954,8 +962,8 @@ const saveToTableDoantotnghiep = async (req, res) => {
         row.GiangVien1,
         row.GiangVien2,
         namHoc,
-        startDate,     // Sử dụng giá trị đã chuyển đổi cho NgayBatDau
-        endDate,       // Sử dụng giá trị đã chuyển đổi cho NgayKetThuc
+        startDate, // Sử dụng giá trị đã chuyển đổi cho NgayBatDau
+        endDate, // Sử dụng giá trị đã chuyển đổi cho NgayKetThuc
         MaPhongBan,
         row.SoQD || null,
         KhoaDuyet,
@@ -968,14 +976,14 @@ const saveToTableDoantotnghiep = async (req, res) => {
         Dot,
         Ki,
         DoiTuong,
+        he_dao_tao,
       ];
     });
-
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
     GiangVien1, GiangVien2, NamHoc, NgayBatDau, NgayKetThuc, MaPhongBan, SoQD, KhoaDuyet, DaoTaoDuyet, 
-    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong)
+    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong, he_dao_tao)
     VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
@@ -1002,7 +1010,7 @@ const getImportDoAn = (req, res) => {
 
 const checkExistDataFile = async (req, res) => {
   console.log("Thực hiện kiểm tra dữ liệu trong đồ án");
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, he_dao_tao } = req.body;
 
   let connection;
 
@@ -1011,10 +1019,16 @@ const checkExistDataFile = async (req, res) => {
     connection = await createPoolConnection();
 
     // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
-    const queryCheck = `SELECT EXISTS(SELECT 1 FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND Ki = ? AND NamHoc = ?) AS exist;`;
+    const queryCheck = `SELECT EXISTS(SELECT 1 FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND Ki = ? AND NamHoc = ? AND he_dao_tao = ?) AS exist;`;
 
     // Thực hiện truy vấn
-    const [results] = await connection.query(queryCheck, [Khoa, Dot, Ki, Nam]);
+    const [results] = await connection.query(queryCheck, [
+      Khoa,
+      Dot,
+      Ki,
+      Nam,
+      he_dao_tao,
+    ]);
 
     // Kết quả trả về từ cơ sở dữ liệu
     const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
@@ -1041,7 +1055,7 @@ const checkExistDataFile = async (req, res) => {
 
 const deleteDataDoAnExist = async (req, res) => {
   const tableName = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { Khoa, Dot, Ki, Nam, he_dao_tao } = req.body;
 
   let connection;
 
@@ -1050,10 +1064,16 @@ const deleteDataDoAnExist = async (req, res) => {
     connection = await createPoolConnection();
 
     // Query SQL để xóa row
-    const sql = `DELETE FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND Ki = ? AND NamHoc = ?`;
+    const sql = `DELETE FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND Ki = ? AND NamHoc = ? AND he_dao_tao = ?`;
 
     // Thực hiện truy vấn
-    const [results] = await connection.query(sql, [Khoa, Dot, Ki, Nam]);
+    const [results] = await connection.query(sql, [
+      Khoa,
+      Dot,
+      Ki,
+      Nam,
+      he_dao_tao,
+    ]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
