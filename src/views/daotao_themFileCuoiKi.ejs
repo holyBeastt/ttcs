@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/themFileCuoiKi.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+  
+</head>
+<body>
+  <!-- Phần header - không bị ảnh hưởng bởi CSS mới -->
+  <%- include('header') %>
+
+  <!-- Phần nội dung với design mới -->
+  <div class="main-content">
+    <div class="content-card">
+      <h1 class="page-title">
+        <i class="fas fa-upload"></i>
+        Quản Lý File Cuối Kỳ
+      </h1>
+      
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <div class="control-row">
+          <button class="modern-btn btn-primary-custom" id="chooseFile">
+            <i class="fas fa-file-excel"></i>
+            Chọn file Excel
+          </button>
+          
+          <select class="modern-select" id="comboboxki">
+            <option value="">Chọn kỳ</option>
+          </select>
+          
+          <select class="modern-select" id="NamHoc">
+            <option value="">Chọn năm học</option>
+          </select>
+          
+          <button class="modern-btn btn-info-custom" id="import">
+            <i class="fas fa-plus"></i>
+            Thêm dữ liệu
+          </button>
+          
+          <button class="modern-btn btn-warning-custom" id="viewtam">
+            <i class="fas fa-table"></i>
+            Xem dữ liệu
+          </button>
+        </div>
+      </div>
+
+      
+
+      <!-- Tabs Container -->
+      <div class="tabs-container">
+        <ul class="nav nav-tabs custom-nav-tabs" id="workloadTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="rade-tab" data-bs-toggle="tab" data-bs-target="#rade" type="button" role="tab">
+              <i class="fas fa-edit"></i> Ra Đề
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="coithi-tab" data-bs-toggle="tab" data-bs-target="#coithi" type="button" role="tab">
+              <i class="fas fa-eye"></i> Coi Thi
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="chamthi-tab" data-bs-toggle="tab" data-bs-target="#chamthi" type="button" role="tab">
+              <i class="fas fa-check-circle"></i> Chấm Thi
+            </button>
+          </li>
+        </ul>
+        
+        <div class="tab-content" id="workloadTabContent">
+          <div class="tab-pane fade show active" id="rade" role="tabpanel">
+            <div id="raDeTableContainer" class="data-table-wrapper">
+              <div class="empty-state">
+                <i class="fas fa-table"></i>
+                <h3>Chưa có dữ liệu</h3>
+                <p>Vui lòng tải lên file Excel hoặc thêm dữ liệu thủ công</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="coithi" role="tabpanel">
+            <div id="coiThiTableContainer" class="data-table-wrapper">
+              <div class="empty-state">
+                <i class="fas fa-table"></i>
+                <h3>Chưa có dữ liệu</h3>
+                <p>Vui lòng tải lên file Excel hoặc thêm dữ liệu thủ công</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="chamthi" role="tabpanel" style="background-color: #ffffff;">
+            <div id="chamThiTableContainer" class="data-table-wrapper">
+              <div class="empty-state">
+                <i class="fas fa-table"></i>
+                <h3>Chưa có dữ liệu</h3>
+                <p>Vui lòng tải lên file Excel hoặc thêm dữ liệu thủ công</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form thêm dữ liệu thủ công -->
+      <div class="form-card">
+        <h3>
+          <i class="fas fa-plus-circle"></i>
+          Thêm Dữ Liệu Thủ Công
+        </h3>
+        <form id="addEntryForm">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label for="section" class="form-label">Phân loại:</label>
+              <select id="section" class="form-select modern-form-control" style="margin: 0px; height: max-content; background-color: white !important;">
+                <option value="raDe">Ra Đề</option>
+                <option value="coiThi">Coi Thi</option>
+                <option value="chamThi">Chấm Thi</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="hoVaTen" class="form-label">Họ và tên:</label>
+              <input type="text" id="hoVaTen" class="form-control modern-form-control" required placeholder="Nhập họ và tên">
+            </div>
+            <div class="col-md-6">
+              <label for="khoa" class="form-label">Khoa:</label>
+              <input type="text" id="khoa" class="form-control modern-form-control" required placeholder="Nhập tên khoa">
+            </div>
+            <div class="col-md-6">
+              <label for="tenHocPhan" class="form-label">Tên học phần:</label>
+              <input type="text" id="tenHocPhan" class="form-control modern-form-control" required placeholder="Nhập tên học phần">
+            </div>
+            <div class="col-md-6">
+              <label for="lopHocPhan" class="form-label">Lớp học phần:</label>
+              <input type="text" id="lopHocPhan" class="form-control modern-form-control" required placeholder="Nhập lớp học phần">
+            </div>
+            <div class="col-md-6">
+              <label for="doiTuong" class="form-label">Đối tượng:</label>
+              <input type="text" id="doiTuong" class="form-control modern-form-control" required placeholder="Nhập đối tượng">
+            </div>
+            <div class="col-md-4">
+              <label for="soDe" class="form-label">Số đề (Ra Đề):</label>
+              <input type="number" id="soDe" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="soCa" class="form-label">Số ca (Coi Thi):</label>
+              <input type="number" id="soCa" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="soTietQC" class="form-label">Số tiết QC:</label>
+              <input type="number" id="soTietQC" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="soBaiCham1" class="form-label">Số bài chấm 1 (Chấm Thi):</label>
+              <input type="number" id="soBaiCham1" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="soBaiCham2" class="form-label">Số bài chấm 2 (Chấm Thi):</label>
+              <input type="number" id="soBaiCham2" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="tongSoBai" class="form-label">Tổng số bài (Chấm Thi):</label>
+              <input type="number" id="tongSoBai" class="form-control modern-form-control" value="0" required min="0">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="modern-btn btn-success-custom">
+                <i class="fas fa-save"></i>
+                Thêm Dữ Liệu
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal -->
+      <div id="action-modal" style="display: none">
+        <div class="modal-overlay">
+          <div class="modal-content-custom">
+            <div style="font-size: 4rem; margin-bottom: 1.5rem;">
+              <i class="fas fa-exclamation-triangle" style="background: var(--warning-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+            </div>
+            <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-weight: 700;">Xác nhận thao tác</h3>
+            <p id="modal-message" style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+              Đây là nội dung của modal.
+            </p>
+            <div class="modal-buttons">
+              <button id="btn-delete" class="modal-btn btn-delete-modal">
+                <i class="fas fa-trash"></i> Xóa
+              </button>
+              <button id="btn-append" class="modal-btn btn-append-modal">
+                <i class="fas fa-plus"></i> Chèn
+              </button>
+              <button id="btn-cancel" class="modal-btn btn-cancel-modal">
+                <i class="fas fa-times"></i> Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="/js/ketthuchocphan/themfilecuoiki.js"></script>
+  <script src="/js/moigiang/href.js"></script>
+  <script src="/js/moigiang/getdata.js"></script>
+  <script src="/js/moigiang/hideBtn.js"></script>
+</body>
+</html>
