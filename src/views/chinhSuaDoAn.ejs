@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+    <style>
+      /* CSS cho bảng */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+      }
+
+      .table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      .table tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      .table td {
+        vertical-align: middle;
+      }
+
+      .bg-custom {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .spinner-border {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+      }
+
+      /* Style cho checkbox */
+      .approval-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+
+      /* Style cho nút */
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+      }
+
+      /* Style cho cell có nội dung dài */
+      .table td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+
+      .table td:hover {
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
+
+    <!-- Phần nội dung -->
+    <div class="container-fluid box m-4">
+      <div class="mx-5 flex-grow-1">
+        <!-- Filter section -->
+        <div class="d-flex justify-content-start align-items-end mb-3">
+          <!-- Combo box Đợt -->
+          <select class="form-select w-100px mx-1 selectop" id="filter-dot">
+          </select>
+
+          <!-- Combo box kì -->
+          <select class="form-select w-100px mx-1 selectop" id="filter-ki">
+          </select>
+
+          <!-- Combo box Năm -->
+          <select class="form-select mx-1 selectop" id="filter-nam" style="width: max-content">
+          </select>
+
+          <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
+          <select class="form-select w-100px mx-1 selectop" id="filter-khoa">
+          </select>
+
+          <!-- Thêm combobox hệ đào tạo -->
+          <select class="form-select w-100px mx-1 selectop" id="filter-he-dao-tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
+
+          <button class="btn btn-primary mx-1" id="filter-btn" style="margin-bottom: 0px; height: 45px">
+            Hiển thị
+          </button>
+
+          <button class="btn btn-success mx-1" id="export-adjusted-btn" style="margin-bottom: 0px; height: 45px;">
+            Xuất dữ liệu chỉnh sửa
+          </button>
+
+          <button class="btn btn-warning mx-1" id="show-edit-form-btn" style="margin-bottom: 0px; height: 45px;">
+            Chỉnh sửa đồ án
+          </button>
+        </div>
+
+        <!-- Edit requests list container -->
+        <div id="edit-requests-container">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th>Khoa</th>
+                  <th>Đợt</th>
+                  <th>Kì</th>
+                  <th>Năm</th>
+                  <th>Lớp học phần</th>
+                  <th>Hệ đào tạo</th>
+                  <th>Giảng viên theo TKB</th>
+                  <th>Giảng viên điều chỉnh</th>
+                  <th>Khoa duyệt</th>
+                  <th>Đào tạo duyệt</th>
+                  <th>BGD duyệt</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="edit-requests-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal chỉnh sửa đồ án -->
+    <div class="modal fade" id="editDoAnModal" tabindex="-1" aria-labelledby="editDoAnModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editDoAnModalLabel">Chỉnh sửa đồ án</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-start align-items-end mb-3">
+              <!-- Combo box Đợt -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-dot">
+              </select>
+
+              <!-- Combo box kì -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-ki">
+              </select>
+
+              <!-- Combo box Năm -->
+              <select class="form-select mx-1 selectop" id="modal-nam" style="width: max-content">
+              </select>
+
+              <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-khoa">
+              </select>
+
+              <!-- Thêm combobox hệ đào tạo -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-he-dao-tao">
+                <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+                <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+              </select>
+
+              <button class="btn btn-primary mx-1" id="modal-render" style="margin-bottom: 0px; height: 45px">
+                Hiển thị
+              </button>
+
+              <button class="btn btn-warning mx-1" id="modal-request-edit" style="margin-bottom: 0px; height: 45px;">
+                Yêu cầu chỉnh sửa
+              </button>
+            </div>
+
+            <div id="modal-loading" style="display: none">Loading...</div>
+            <div class="overflow-auto">
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr id="modal-table-header"></tr>
+                </thead>
+                <tbody id="modal-data-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add jQuery before other scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        // Initialize all comboboxes once
+        initializeAllComboboxes();
+        
+        // Load edit requests by default
+        loadEditRequests();
+
+        // Add click handler for the show edit form button
+        $("#show-edit-form-btn").click(function() {
+          const modal = new bootstrap.Modal(document.getElementById('editDoAnModal'));
+          modal.show();
+        });
+
+        // Add click handler for filter button
+        $("#filter-btn").click(function() {
+          loadEditRequests();
+        });
+      });
+
+      // Function to initialize all comboboxes
+      function initializeAllComboboxes() {
+        // Initialize NamHoc data for both filter and modal
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function(response) {
+            if (response.success) {
+              // Initialize NamHoc for filter
+              $("#filter-nam").empty();
+              response.NamHoc.forEach(function(item) {
+                $("#filter-nam").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              // Initialize NamHoc for modal
+              $("#modal-nam").empty();
+              response.NamHoc.forEach(function(item) {
+                $("#modal-nam").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              // Initialize Ki for filter
+              $("#filter-ki").empty();
+              response.Ki.forEach(function(item) {
+                $("#filter-ki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+
+              // Initialize Ki for modal
+              $("#modal-ki").empty();
+              response.Ki.forEach(function(item) {
+                $("#modal-ki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+
+              // Initialize Dot for filter
+              $("#filter-dot").empty();
+              response.Dot.forEach(function(item) {
+                $("#filter-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+
+              // Initialize Dot for modal
+              $("#modal-dot").empty();
+              response.Dot.forEach(function(item) {
+                $("#modal-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+            } else {
+              console.error("Failed to load NamHoc data:", response.message);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error("Error loading NamHoc data:", error);
+          }
+        });
+
+        // Initialize faculty data for both filter and modal
+        $.ajax({
+          url: "/api/shared/faculty-code-list",
+          method: "GET",
+          success: function(response) {
+            if (response.success) {
+              const userRole = localStorage.getItem("userRole");
+              const MaPhongBan = localStorage.getItem("MaPhongBan");
+              
+              // Initialize faculty for filter
+              $("#filter-khoa").empty();
+              if (userRole === "Thường" || userRole === "Duyệt") {
+                $("#filter-khoa").append('<option value="ALL">ALL</option>');
+                response.MaPhongBan.forEach(function(item) {
+                  $("#filter-khoa").append(
+                    `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                  );
+                });
+              } else {
+                response.MaPhongBan.forEach(function(item) {
+                  if (item.MaPhongBan === MaPhongBan) {
+                    $("#filter-khoa").append(
+                      `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                    );
+                  }
+                });
+              }
+
+              // Initialize faculty for modal
+              $("#modal-khoa").empty();
+              if (userRole === "Thường" || userRole === "Duyệt") {
+                $("#modal-khoa").append('<option value="ALL">ALL</option>');
+                response.MaPhongBan.forEach(function(item) {
+                  $("#modal-khoa").append(
+                    `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                  );
+                });
+              } else {
+                response.MaPhongBan.forEach(function(item) {
+                  if (item.MaPhongBan === MaPhongBan) {
+                    $("#modal-khoa").append(
+                      `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                    );
+                  }
+                });
+              }
+            } else {
+              console.error("Failed to load faculty data:", response.message);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error("Error loading faculty data:", error);
+          }
+        });
+
+        // Xử lý sự kiện nút "Hiển thị" trong modal
+        $("#modal-render").click(async function() {
+          try {
+            const dotValue = $("#modal-dot").val();
+            const kiValue = $("#modal-ki").val();
+            const namValue = $("#modal-nam").val();
+            const khoaValue = $("#modal-khoa").val();
+            const heDaoTaoValue = $("#modal-he-dao-tao").val();
+
+            $("#modal-loading").show();
+
+            const response = await fetch("/get-do-an-chinh-thuc", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                Khoa: khoaValue,
+                Dot: dotValue,
+                Ki: kiValue,
+                Nam: namValue,
+                he_dao_tao: heDaoTaoValue
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Lỗi khi lấy dữ liệu đồ án");
+            }
+
+            const data = await response.json();
+            renderDoAnTable(data);
+          } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+              title: "Lỗi",
+              text: error.message,
+              icon: "error"
+            });
+          } finally {
+            $("#modal-loading").hide();
+          }
+        });
+
+        // Hàm render bảng đồ án trong modal
+        function renderDoAnTable(data) {
+          const headerRow = document.getElementById("modal-table-header");
+          const tbody = document.getElementById("modal-data-table-body");
+          
+          // Xóa dữ liệu cũ
+          headerRow.innerHTML = "";
+          tbody.innerHTML = "";
+
+          if (data.length === 0) {
+            Swal.fire({
+              title: "Thông báo",
+              text: "Không có dữ liệu đồ án",
+              icon: "info"
+            });
+            return;
+          }
+
+          // Tạo header
+          const headers = [
+            "Sinh viên", "Mã SV", "Khoa", "Tên đề tài", "Giảng viên",
+            "Ngày bắt đầu", "Ngày kết thúc", "Số người", "Số tiết",
+            "Học vị", "Chức vụ"
+          ];
+
+          headers.forEach(header => {
+            const th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+
+          // Tạo rows
+          data.forEach(row => {
+            const tr = document.createElement("tr");
+            
+            // Thêm các cột dữ liệu
+            const columns = [
+              row.SinhVien,
+              row.MaSV,
+              row.MaPhongBan,
+              row.TenDeTai,
+              row.GiangVien,
+              row.NgayBatDau,
+              row.NgayKetThuc,
+              row.SoNguoi,
+              row.SoTiet,
+              row.HocVi,
+              row.ChucVu
+            ];
+
+            columns.forEach((value, index) => {
+              const td = document.createElement("td");
+              if (index === 4) { // Cột giảng viên
+                const input = document.createElement("input");
+                input.type = "text";
+                input.className = "form-control";
+                input.value = value || "";
+                input.dataset.originalValue = value || "";
+                input.dataset.column = "GiangVien";
+                input.dataset.row = JSON.stringify({
+                  ID: row.ID,
+                  MaPhongBan: row.MaPhongBan,
+                  Dot: row.Dot,
+                  ki: row.ki,
+                  NamHoc: row.NamHoc,
+                  he_dao_tao: row.he_dao_tao
+                });
+                td.appendChild(input);
+              } else if (index === 5 || index === 6) { // Cột ngày
+                td.textContent = value ? new Date(value).toLocaleDateString('vi-VN') : "";
+              } else {
+                td.textContent = value || "";
+              }
+              tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+          });
+        }
+
+        // Xử lý sự kiện nút "Yêu cầu chỉnh sửa"
+        $("#modal-request-edit").click(async function() {
+          const updates = [];
+          const inputs = document.querySelectorAll("#modal-data-table-body input");
+          
+          inputs.forEach(input => {
+            if (input.value !== input.dataset.originalValue) {
+              updates.push({
+                data: JSON.parse(input.dataset.row),
+                colName: input.dataset.column,
+                newValue: input.value,
+                originalValue: input.dataset.originalValue
+              });
+            }
+          });
+
+          if (updates.length === 0) {
+            Swal.fire({
+              title: "Thông báo",
+              text: "Không có thay đổi nào được thực hiện",
+              icon: "info"
+            });
+            return;
+          }
+
+          try {
+            const response = await fetch("/request-do-an-edit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ updates }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Lỗi khi gửi yêu cầu chỉnh sửa");
+            }
+
+            const result = await response.json();
+            if (result.success) {
+              Swal.fire({
+                title: "Thành công",
+                text: "Yêu cầu chỉnh sửa đã được gửi",
+                icon: "success"
+              });
+              loadEditRequests(); // Refresh danh sách yêu cầu
+            } else {
+              throw new Error(result.message);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+              title: "Lỗi",
+              text: error.message,
+              icon: "error"
+            });
+          }
+        });
+
+        // Xử lý sự kiện nút "Xuất dữ liệu chỉnh sửa"
+        $("#export-adjusted-btn").click(async function() {
+          try {
+            const dotValue = $("#filter-dot").val();
+            const kiValue = $("#filter-ki").val();
+            const namValue = $("#filter-nam").val();
+            const khoaValue = $("#filter-khoa").val();
+            const heDaoTaoValue = $("#filter-he-dao-tao").val();
+
+            const response = await fetch("/export-adjusted-do-an", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                dot: dotValue,
+                ki_hoc: kiValue,
+                nam_hoc: namValue,
+                khoa: khoaValue,
+                he_dao_tao: heDaoTaoValue
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Lỗi khi xuất dữ liệu");
+            }
+
+            // Tạo blob từ response
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "do_an_dieu_chinh.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+          } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+              title: "Lỗi",
+              text: error.message,
+              icon: "error"
+            });
+          }
+        });
+      }
+
+      // Function to load edit requests
+      async function loadEditRequests() {
+        try {
+          const dotValue = document.getElementById("filter-dot").value;
+          const kiValue = document.getElementById("filter-ki").value;
+          const namValue = document.getElementById("filter-nam").value;
+          const khoaValue = document.getElementById("filter-khoa").value;
+          const heDaoTaoValue = document.getElementById("filter-he-dao-tao").value;
+
+          const response = await fetch("/get-do-an-edit-requests", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              Khoa: khoaValue,
+              Dot: dotValue,
+              Ki: kiValue,
+              Nam: namValue,
+              he_dao_tao: heDaoTaoValue
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi lấy danh sách yêu cầu chỉnh sửa");
+          }
+
+          const data = await response.json();
+          renderEditRequests(data.requests);
+        } catch (error) {
+          console.error("Error in loadEditRequests:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Function to render edit requests
+      function renderEditRequests(requests) {
+        const tbody = document.getElementById("edit-requests-body");
+        tbody.innerHTML = "";
+
+        requests.forEach(request => {
+          const row = document.createElement("tr");
+          const status = getStatusText(request);
+          const canApproveKhoa = canApprove(request, "khoa");
+          const canApproveDaoTao = canApprove(request, "daotao");
+          const canApproveBGD = canApprove(request, "bgd");
+          const canUpdate = canUpdateRequest(request);
+          const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+          const isPublished = request.is_published;
+
+          row.innerHTML = `
+            <td>${request.khoa}</td>
+            <td>${request.dot}</td>
+            <td>${request.ki}</td>
+            <td>${request.nam}</td>
+            <td>${request.lop_hoc_phan}</td>
+            <td>${request.he_dao_tao}</td>
+            <td>${request.giang_vien_tkb}</td>
+            <td>${request.giang_vien_dieu_chinh}</td>
+            <td>
+              <input type="checkbox" 
+                class="approval-checkbox" 
+                data-request-id="${request.id}" 
+                data-type="khoa"
+                ${request.khoa_duyet ? 'checked' : ''}
+                ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
+                onchange="handleApproval(this)">
+            </td>
+            <td>
+              <input type="checkbox" 
+                class="approval-checkbox" 
+                data-request-id="${request.id}" 
+                data-type="daotao"
+                ${request.daotao_duyet ? 'checked' : ''}
+                ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
+                onchange="handleApproval(this)">
+            </td>
+            <td>
+              <input type="checkbox" 
+                class="approval-checkbox" 
+                data-request-id="${request.id}" 
+                data-type="bgd"
+                ${request.bgd_duyet ? 'checked' : ''}
+                ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
+                onchange="handleApproval(this)">
+            </td>
+            <td>${status}</td>
+            <td>
+              ${canUpdate ? `
+                <button 
+                  class="btn btn-primary btn-sm update-request-btn" 
+                  data-request-id="${request.id}"
+                  onclick="updateRequest(${request.id})"
+                  ${(!allApproved || isPublished) ? 'disabled' : ''}
+                  style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
+                >
+                  Ban Hành
+                </button>
+              ` : ''}
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Helper functions for permissions and status
+      function getStatusText(request) {
+        if (request.is_published) return "Đã ban hành";
+        if (request.bgd_duyet) return "Đã duyệt BGD";
+        if (request.daotao_duyet) return "Đã duyệt Đào tạo";
+        if (request.khoa_duyet) return "Đã duyệt Khoa";
+        return "Chờ duyệt";
+      }
+
+      function canApprove(request, type) {
+        const userRole = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+        if (type === "khoa") {
+          return userRole === "Duyệt" && MaPhongBan === request.khoa;
+        }
+        if (type === "daotao") {
+          return userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+        }
+        if (type === "bgd") {
+          return userRole === "Duyệt" && MaPhongBan === "BGD";
+        }
+        return false;
+      }
+
+      function canUpdateRequest(request) {
+        const userRole = localStorage.getItem("userRole");
+        return userRole === "Duyệt";
+      }
+
+      // Handle approval changes
+      async function handleApproval(checkbox) {
+        const requestId = checkbox.getAttribute("data-request-id");
+        const type = checkbox.getAttribute("data-type");
+        const isChecked = checkbox.checked;
+
+        try {
+          const response = await fetch("/approve-do-an-edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              requestId,
+              type,
+              approved: isChecked
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi cập nhật trạng thái duyệt");
+          }
+
+          const result = await response.json();
+          if (result.success) {
+            loadEditRequests(); // Refresh the list
+          } else {
+            throw new Error(result.message || "Lỗi khi cập nhật trạng thái duyệt");
+          }
+        } catch (error) {
+          checkbox.checked = !isChecked; // Revert the checkbox
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Handle request updates
+      async function updateRequest(requestId) {
+        try {
+          const response = await fetch("/update-do-an-edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              requestId
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi cập nhật yêu cầu");
+          }
+
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire({
+              title: "Thành công",
+              text: "Đã cập nhật yêu cầu thành công!",
+              icon: "success"
+            });
+            loadEditRequests(); // Refresh the list
+          } else {
+            throw new Error(result.message || "Lỗi khi cập nhật yêu cầu");
+          }
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
