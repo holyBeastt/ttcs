@@ -162,55 +162,120 @@
 
     <div class="container-fluid box m-4">
       <div class="mx-5 flex-grow-1">
+        <!-- Filter section -->
         <div class="d-flex justify-content-start align-items-end mb-3">
           <!-- Combo box Đợt -->
-          <select class="form-select w-100px mx-1 selectop" id="combobox-dot">
+          <select class="form-select w-100px mx-1 selectop" id="filter-dot">
             <option value="">Đợt</option>
           </select>
 
           <!-- Combo box kì -->
-          <select class="form-select w-100px mx-1 selectop" id="comboboxki">
+          <select class="form-select w-100px mx-1 selectop" id="filter-ki">
             <option value="">Kì</option>
           </select>
 
           <!-- Combo box Năm -->
-          <select
-            class="form-select mx-1 selectop"
-            id="NamHoc"
-            style="width: max-content"
-          >
+          <select class="form-select mx-1 selectop" id="filter-nam" style="width: max-content">
             <option value="">Chọn năm học</option>
           </select>
 
           <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
-          <select class="form-select w-100px mx-1 selectop" id="MaPhongBan">
+          <select class="form-select w-100px mx-1 selectop" id="filter-khoa">
             <option value="">Chọn khoa</option>
           </select>
 
-          <button
-            class="btn mx-1"
-            id="render"
-            style="margin-bottom: 0px; height: 45px"
-          >
+          <button class="btn btn-primary mx-1" id="filter-btn" style="margin-bottom: 0px; height: 45px">
             Hiển thị
           </button>
 
-          <button
-            class="btn btn-primary mx-1"
-            id="update-btn"
-            style="margin-bottom: 0px; height: 45px; display: none;"
-          >
-            Cập nhật chỉnh sửa
+          <button class="btn btn-success mx-1" id="export-adjusted-btn" style="margin-bottom: 0px; height: 45px;">
+            Xuất dữ liệu chỉnh sửa
+          </button>
+
+          <button class="btn btn-warning mx-1" id="show-edit-form-btn" style="margin-bottom: 0px; height: 45px;">
+            Chỉnh sửa quy chuẩn
           </button>
         </div>
-        <div id="loading" style="display: none">Loading...</div>
-        <div class="overflow-auto">
-          <table class="table table-bordered">
-            <thead>
-              <tr id="table-header"></tr>
-            </thead>
-            <tbody id="data-table-body"></tbody>
-          </table>
+
+        <!-- Edit requests list container -->
+        <div id="edit-requests-container">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Khoa</th>
+                  <th>Đợt</th>
+                  <th>Kì</th>
+                  <th>Năm</th>
+                  <th>Lớp học phần</th>
+                  <th>Giảng viên theo TKB</th>
+                  <th>Giảng viên điều chỉnh</th>
+                  <th>Khoa duyệt</th>
+                  <th>Đào tạo duyệt</th>
+                  <th>BGD duyệt</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="edit-requests-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add this modal for editing quy chuan -->
+    <div class="modal fade" id="editQuyChuanModal" tabindex="-1" aria-labelledby="editQuyChuanModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editQuyChuanModalLabel">Chỉnh sửa quy chuẩn</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-start align-items-end mb-3">
+              <!-- Combo box Đợt -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-dot">
+                <option value="">Đợt</option>
+              </select>
+
+              <!-- Combo box kì -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-ki">
+                <option value="">Kì</option>
+              </select>
+
+              <!-- Combo box Năm -->
+              <select class="form-select mx-1 selectop" id="modal-nam" style="width: max-content">
+                <option value="">Chọn năm học</option>
+              </select>
+
+              <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
+              <select class="form-select w-100px mx-1 selectop" id="modal-khoa">
+                <option value="">Chọn khoa</option>
+              </select>
+
+              <button class="btn mx-1" id="modal-render" style="margin-bottom: 0px; height: 45px">
+                Hiển thị
+              </button>
+
+              <button class="btn btn-warning mx-1" id="modal-request-edit" style="margin-bottom: 0px; height: 45px;">
+                Yêu cầu chỉnh sửa
+              </button>
+            </div>
+
+            <div id="modal-loading" style="display: none">Loading...</div>
+            <div class="overflow-auto">
+              <table class="table table-bordered">
+                <thead>
+                  <tr id="modal-table-header"></tr>
+                </thead>
+                <tbody id="modal-data-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
         </div>
       </div>
     </div>
@@ -421,18 +486,18 @@
       });
 
       // Add event listener for update button
-      document.getElementById("update-btn").addEventListener("click", async function() {
+      document.getElementById("request-edit-btn").addEventListener("click", async function() {
         if (editedData.size === 0) {
           Swal.fire({
             title: "Thông báo",
-            text: "Không có thay đổi nào để cập nhật!",
+            text: "Không có thay đổi nào để yêu cầu chỉnh sửa!",
             icon: "info"
           });
           return;
         }
 
         try {
-          const response = await fetch("/update-quy-chuan", {
+          const response = await fetch("/request-quy-chuan-edit", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -443,7 +508,7 @@
           });
 
           if (!response.ok) {
-            throw new Error("Lỗi khi cập nhật dữ liệu");
+            throw new Error("Lỗi khi gửi yêu cầu chỉnh sửa");
           }
 
           const result = await response.json();
@@ -451,13 +516,13 @@
           if (result.success) {
             Swal.fire({
               title: "Thành công",
-              text: "Dữ liệu đã được cập nhật!",
+              text: "Yêu cầu chỉnh sửa đã được gửi!",
               icon: "success"
             });
             editedData.clear();
-            loadData(); // Reload data after successful update
+            loadData(); // Reload data after successful request
           } else {
-            throw new Error(result.message || "Lỗi khi cập nhật dữ liệu");
+            throw new Error(result.message || "Lỗi khi gửi yêu cầu chỉnh sửa");
           }
         } catch (error) {
           Swal.fire({
@@ -471,10 +536,10 @@
       async function loadData() {
         try {
           // Lấy giá trị từ các combobox khi người dùng nhấn nút
-          let dotValue = document.getElementById("combobox-dot").value;
-          let kiValue = document.getElementById("comboboxki").value;
-          let namValue = document.getElementById("NamHoc").value;
-          let khoaValue = document.getElementById("MaPhongBan").value;
+          let dotValue = document.getElementById("filter-dot").value;
+          let kiValue = document.getElementById("filter-ki").value;
+          let namValue = document.getElementById("filter-nam").value;
+          let khoaValue = document.getElementById("filter-khoa").value;
 
           // Đối tượng dữ liệu gửi đi
           const requestData = {
@@ -601,7 +666,19 @@
                 }
 
                 // Make cells editable except for certain columns
-                const nonEditableColumns = ["Khoa", "Dot", "KiHoc", "NamHoc", "LopHocPhan", "MoiGiang", "SoTinChi", "TenLop", "LL", "QuyChuan"];
+                const nonEditableColumns = [
+                  "Khoa", 
+                  "Dot", 
+                  "KiHoc", 
+                  "NamHoc", 
+                  "LopHocPhan", 
+                  "MoiGiang", 
+                  "SoTinChi", 
+                  "TenLop", 
+                  "LL", 
+                  "QuyChuan",
+                  "GiaoVienGiangDay" // Add this to make GiaoVienGiangDay non-editable
+                ];
                 const isEditable = !nonEditableColumns.includes(key);
                 
                 if (isEditable) {
@@ -617,9 +694,6 @@
 
         document.getElementById("data-table-body").innerHTML = tableRows;
 
-        // Show update button
-        document.getElementById("update-btn").style.display = "block";
-
         // Remove spinner
         loadingSpinner.remove();
       }
@@ -631,6 +705,12 @@
         const newValue = cell.textContent.trim();
         const originalValue = renderData[rowIndex][colName];
 
+        // Chỉ cho phép chỉnh sửa cột GiaoVienDieuChinh
+        if (colName !== "GiaoVienDieuChinh") {
+          cell.textContent = originalValue; // Khôi phục giá trị cũ
+          return;
+        }
+
         // Don't track if value hasn't changed
         if (newValue === originalValue) {
           return;
@@ -640,9 +720,9 @@
         const editKey = `${rowIndex}-${colName}`;
         editedData.set(editKey, {
           rowIndex: parseInt(rowIndex),
-          colName: colName,
+          colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
           newValue: newValue,
-          originalValue: originalValue,
+          originalValue: renderData[rowIndex].GiaoVien, // Lấy giá trị từ cột GiaoVien
           data: renderData[rowIndex]
         });
 
@@ -707,9 +787,9 @@
     </script>
     <script>
       $(document).ready(function () {
-        $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
-        $('#combobox-dot option[value=""]').remove();
+        $('#filter-nam option[value=""]').remove();
+        $('#filter-ki option[value=""]').remove();
+        $('#filter-dot option[value=""]').remove();
 
         $.ajax({
           url: "/getNamHoc",
@@ -718,20 +798,20 @@
             if (response.success) {
               response.NamHoc.forEach(function (item) {
                 console.log(item.NamHoc);
-                $("#NamHoc").append(
+                $("#filter-nam").append(
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
 
               response.Ki.forEach(function (item) {
                 console.log(item.Ki);
-                $("#comboboxki").append(
+                $("#filter-ki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
                 );
               });
               response.Dot.forEach(function (item) {
                 console.log(item.Dot);
-                $("#combobox-dot").append(
+                $("#filter-dot").append(
                   `<option value="${item.value}">${item.Dot}</option>`
                 );
               });
@@ -750,7 +830,7 @@
     </script>
     <script>
       $(document).ready(function () {
-        $('#MaPhongBan option[value=""]').remove();
+        $('#filter-khoa option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
           url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
@@ -759,19 +839,19 @@
             // Kiểm tra nếu response thành công
             const MaPhongBan = response.MaPhongBan;
             if (response.success) {
-              $("#MaPhongBan").prepend('<option value="ALL">ALL</option>');
+              $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
               // Lặp qua từng mục trong mảng MaPhongBan
               response.MaPhongBan.forEach(function (item) {
                 // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
                 console.log(item);
-                $("#MaPhongBan").append(
+                $("#filter-khoa").append(
                   `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
                 );
               });
 
               // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-              if (!$("#MaPhongBan option:selected").length) {
-                $("#MaPhongBan").prepend(
+              if (!$("#filter-khoa option:selected").length) {
+                $("#filter-khoa").prepend(
                   '<option value="">Chọn Phòng Ban</option>'
                 );
               }
@@ -841,6 +921,985 @@
             alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
         });
+    </script>
+
+    <!-- Add this function to show edit requests -->
+    <script>
+      async function showEditRequests() {
+        try {
+          const response = await fetch("/get-quy-chuan-edit-requests");
+          if (!response.ok) {
+            throw new Error("Lỗi khi lấy danh sách yêu cầu chỉnh sửa");
+          }
+
+          const requests = await response.json();
+          const userRole = localStorage.getItem("userRole");
+          const isKhoa = localStorage.getItem("isKhoa");
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
+          
+          // Lọc requests dựa trên quyền
+          let filteredRequests = requests;
+          if (userRole !== "Thường" && userRole !== "Duyệt") {
+            filteredRequests = requests.filter(request => request.khoa === MaPhongBan);
+          }
+          
+          // Create modal content
+          let modalContent = `
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Khoa</th>
+                    <th>Đợt</th>
+                    <th>Kì</th>
+                    <th>Năm</th>
+                    <th>Lớp học phần</th>
+                    <th>Giảng viên theo TKB</th>
+                    <th>Giảng viên điều chỉnh</th>
+                    <th>Khoa duyệt</th>
+                    <th>Đào tạo duyệt</th>
+                    <th>BGD duyệt</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+              `;
+
+          filteredRequests.forEach(request => {
+            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
+            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+            const canUpdate = userRole === "Duyệt";
+            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
+            const isPublished = request.status === 'Cập nhật thành công';
+
+            modalContent += `
+              <tr>
+                <td>${request.khoa || ''}</td>
+                <td>${request.dot || ''}</td>
+                <td>${request.ki_hoc || ''}</td>
+                <td>${request.nam_hoc || ''}</td>
+                <td>${request.lop_hoc_phan || ''}</td>
+                <td>${request.old_value || ''}</td>
+                <td>${request.new_value || ''}</td>
+                <td>
+                  <input type="checkbox" 
+                    class="approval-checkbox" 
+                    data-request-id="${request.id}" 
+                    data-type="khoa"
+                    ${request.khoa_duyet ? 'checked' : ''}
+                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
+                    onchange="handleApproval(this)">
+                </td>
+                <td>
+                  <input type="checkbox" 
+                    class="approval-checkbox" 
+                    data-request-id="${request.id}" 
+                    data-type="daotao"
+                    ${request.daotao_duyet ? 'checked' : ''}
+                    ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
+                    onchange="handleApproval(this)">
+                </td>
+                <td>
+                  <input type="checkbox" 
+                    class="approval-checkbox" 
+                    data-request-id="${request.id}" 
+                    data-type="bgd"
+                    ${request.bgd_duyet ? 'checked' : ''}
+                    ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
+                    onchange="handleApproval(this)">
+                </td>
+                <td>${status}</td>
+                <td>
+                  ${canUpdate ? `
+                    <button 
+                      class="btn btn-primary btn-sm update-request-btn" 
+                      data-request-id="${request.id}"
+                      onclick="updateRequest(${request.id})"
+                      ${(!allApproved || isPublished) ? 'disabled' : ''}
+                      style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
+                    >
+                      Ban Hành
+                    </button>
+                  ` : ''}
+                </td>
+              </tr>
+            `;
+          });
+
+          modalContent += `
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          // Show modal
+          Swal.fire({
+            title: 'Danh sách yêu cầu chỉnh sửa',
+            html: modalContent,
+            width: '90%',
+            showCloseButton: true,
+            showConfirmButton: false
+          });
+
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Add function to handle approval changes
+      async function handleApproval(checkbox) {
+        const requestId = checkbox.dataset.requestId;
+        const approvalType = checkbox.dataset.type;
+        const isChecked = checkbox.checked;
+
+        try {
+          const response = await fetch("/update-quy-chuan-approval", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              requestId,
+              approvalType,
+              isApproved: isChecked
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi cập nhật trạng thái duyệt");
+          }
+
+          const result = await response.json();
+          
+          if (result.success) {
+            // Get all checkboxes for this request
+            const checkboxes = document.querySelectorAll(`.approval-checkbox[data-request-id="${requestId}"]`);
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            // Find the update button for this request
+            const updateButton = document.querySelector(`.update-request-btn[data-request-id="${requestId}"]`);
+            if (updateButton) {
+              updateButton.disabled = !allChecked;
+            }
+          } else {
+            throw new Error(result.message || "Lỗi khi cập nhật trạng thái duyệt");
+          }
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+          // Revert checkbox state on error
+          checkbox.checked = !isChecked;
+        }
+      }
+
+      // Function to update the actual data when all approvals are granted
+      async function updateQuyChuanData(requestId) {
+        try {
+          const response = await fetch("/apply-quy-chuan-edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ requestId }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi áp dụng chỉnh sửa");
+          }
+
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              title: "Thành công",
+              text: "Chỉnh sửa đã được áp dụng!",
+              icon: "success"
+            });
+            // Refresh the data
+            loadData();
+          } else {
+            throw new Error(result.message || "Lỗi khi áp dụng chỉnh sửa");
+          }
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Add function to handle request update
+      async function updateRequest(requestId) {
+        try {
+          // Hiển thị loading
+          Swal.fire({
+            title: 'Đang xử lý...',
+            text: 'Vui lòng chờ trong giây lát',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          const response = await fetch("/apply-quy-chuan-edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ requestId }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi cập nhật chỉnh sửa");
+          }
+
+          const result = await response.json();
+          
+          if (result.success) {
+            // Đóng loading
+            Swal.close();
+
+            // Hiển thị thông báo thành công
+            await Swal.fire({
+              title: "Thành công",
+              text: "Chỉnh sửa đã được ban hành thành công!",
+              icon: "success",
+              confirmButtonText: "OK"
+            });
+
+            // Đóng modal nếu đang mở
+            const modal = Swal.getPopup();
+            if (modal) {
+              Swal.close();
+            }
+
+            // Load lại danh sách yêu cầu chỉnh sửa mà không hiển thị thông báo lỗi
+            try {
+              const dot = document.getElementById("filter-dot").value;
+              const ki = document.getElementById("filter-ki").value;
+              const namHoc = document.getElementById("filter-nam").value;
+              const khoa = document.getElementById("filter-khoa").value;
+
+              const loadResponse = await fetch("/get-quy-chuan-edit-requests", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  dot,
+                  ki_hoc: ki,
+                  nam_hoc: namHoc,
+                  khoa
+                })
+              });
+
+              if (loadResponse.ok) {
+                const loadResult = await loadResponse.json();
+                if (loadResult.success) {
+                  // Cập nhật bảng với dữ liệu mới
+                  const tbody = document.getElementById("edit-requests-body");
+                  tbody.innerHTML = "";
+
+                  if (!loadResult.data || loadResult.data.length === 0) {
+                    tbody.innerHTML = `
+                      <tr>
+                        <td colspan="12" class="text-center">Không có yêu cầu chỉnh sửa nào</td>
+                      </tr>
+                    `;
+                    return;
+                  }
+
+                  // Render lại bảng với dữ liệu mới
+                  loadResult.data.forEach(request => {
+                    const userRole = localStorage.getItem("userRole");
+                    const isKhoa = localStorage.getItem("isKhoa");
+                    
+                    const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+                    const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
+                    const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+                    const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+                    const canUpdate = userRole === "Duyệt";
+                    const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
+                    const isPublished = request.status === 'Cập nhật thành công';
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                      <td>${request.khoa || ''}</td>
+                      <td>${request.dot || ''}</td>
+                      <td>${request.ki_hoc || ''}</td>
+                      <td>${request.nam_hoc || ''}</td>
+                      <td>${request.lop_hoc_phan || ''}</td>
+                      <td>${request.old_value || ''}</td>
+                      <td>${request.new_value || ''}</td>
+                      <td>
+                        <input type="checkbox" 
+                          class="approval-checkbox" 
+                          data-request-id="${request.id}" 
+                          data-type="khoa"
+                          ${request.khoa_duyet ? 'checked' : ''}
+                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
+                          onchange="handleApproval(this)">
+                      </td>
+                      <td>
+                        <input type="checkbox" 
+                          class="approval-checkbox" 
+                          data-request-id="${request.id}" 
+                          data-type="daotao"
+                          ${request.daotao_duyet ? 'checked' : ''}
+                          ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
+                          onchange="handleApproval(this)">
+                      </td>
+                      <td>
+                        <input type="checkbox" 
+                          class="approval-checkbox" 
+                          data-request-id="${request.id}" 
+                          data-type="bgd"
+                          ${request.bgd_duyet ? 'checked' : ''}
+                          ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
+                          onchange="handleApproval(this)">
+                      </td>
+                      <td>${status}</td>
+                      <td>
+                        ${canUpdate ? `
+                          <button 
+                            class="btn btn-primary btn-sm update-request-btn" 
+                            data-request-id="${request.id}"
+                            onclick="updateRequest(${request.id})"
+                            ${(!allApproved || isPublished) ? 'disabled' : ''}
+                            style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
+                          >
+                            Ban Hành
+                          </button>
+                        ` : ''}
+                      </td>
+                    `;
+                    tbody.appendChild(row);
+                  });
+                }
+              }
+            } catch (loadError) {
+              console.error("Error loading updated list:", loadError);
+              // Không hiển thị thông báo lỗi khi load lại danh sách
+            }
+          } else {
+            throw new Error(result.message || "Lỗi khi cập nhật chỉnh sửa");
+          }
+        } catch (error) {
+          console.error("Error in updateRequest:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Add click handler for the request edit button
+      document.getElementById("request-edit-btn").addEventListener("click", showEditRequests);
+    </script>
+
+    <!-- Add this to your existing DOMContentLoaded event listener -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        // Show/hide request edit button based on role
+        const requestEditBtn = document.getElementById("request-edit-btn");
+        if (role === "Lãnh đạo khoa" || role === "GV" || role === "Duyệt") {
+          requestEditBtn.style.display = "block";
+        } else {
+          requestEditBtn.style.display = "none";
+        }
+
+        // ... rest of your existing DOMContentLoaded code ...
+      });
+    </script>
+
+    <!-- Add event listener for export button -->
+    <script>
+      document.getElementById("export-adjusted-btn").addEventListener("click", async function() {
+        // Get current filter values
+        const dot = document.getElementById("filter-dot").value;
+        const ki = document.getElementById("filter-ki").value;
+        const namHoc = document.getElementById("filter-nam").value;
+        const khoa = document.getElementById("filter-khoa").value;
+
+        if (!dot || !ki || !namHoc) {
+          Swal.fire({
+            title: "Thông báo",
+            text: "Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học!",
+            icon: "warning"
+          });
+          return;
+        }
+
+        try {
+          const response = await fetch("/export-adjusted-quy-chuan", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              khoa,
+              dot,
+              ki_hoc: ki,
+              nam_hoc: namHoc
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi xuất file");
+          }
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `quy_chuan_dieu_chinh_${dot}_${ki}_${namHoc}_${khoa}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      });
+    </script>
+
+    <!-- Add this script after your existing scripts -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Initialize filter comboboxes
+        initializeFilterComboboxes();
+        
+        // Load edit requests by default
+        loadEditRequests();
+
+        // Add click handler for the show edit form button
+        document.getElementById("show-edit-form-btn").addEventListener("click", () => {
+          // Initialize modal comboboxes when modal is shown
+          initializeModalComboboxes();
+          
+          const modal = new bootstrap.Modal(document.getElementById('editQuyChuanModal'));
+          modal.show();
+        });
+
+        // Add click handler for filter button
+        document.getElementById("filter-btn").addEventListener("click", () => {
+          loadEditRequests();
+        });
+      });
+
+      // Function to initialize filter comboboxes
+      function initializeFilterComboboxes() {
+        // Copy the same initialization code from your existing combobox initialization
+        // but use the new IDs (filter-dot, filter-ki, filter-nam, filter-khoa)
+        $('#filter-nam option[value=""]').remove();
+        $('#filter-ki option[value=""]').remove();
+        $('#filter-dot option[value=""]').remove();
+
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.NamHoc.forEach(function (item) {
+                $("#filter-nam").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              response.Ki.forEach(function (item) {
+                $("#filter-ki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+              response.Dot.forEach(function (item) {
+                $("#filter-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+            }
+          }
+        });
+
+        // Khởi tạo combobox khoa với phân quyền
+        $('#filter-khoa option[value=""]').remove();
+        $.ajax({
+          url: "/api/shared/faculty-code-list",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              const userRole = localStorage.getItem("userRole");
+              const MaPhongBan = localStorage.getItem("MaPhongBan");
+              
+              // Nếu là giảng viên thường hoặc có quyền Duyệt, hiển thị tất cả khoa
+              if (userRole === "Thường" || userRole === "Duyệt") {
+                $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
+                response.MaPhongBan.forEach(function (item) {
+                  $("#filter-khoa").append(
+                    `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                  );
+                });
+              } else {
+                // Nếu là giảng viên, chỉ hiển thị khoa của họ
+                response.MaPhongBan.forEach(function (item) {
+                  if (item.MaPhongBan === MaPhongBan) {
+                    $("#filter-khoa").append(
+                      `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                    );
+                  }
+                });
+              }
+            }
+          }
+        });
+      }
+
+      // Modified function to load edit requests with filters
+      async function loadEditRequests() {
+        try {
+          const dot = document.getElementById("filter-dot").value;
+          const ki = document.getElementById("filter-ki").value;
+          const namHoc = document.getElementById("filter-nam").value;
+          const khoa = document.getElementById("filter-khoa").value;
+          
+          // Lấy role và isKhoa từ localStorage
+          const userRole = localStorage.getItem("userRole");
+          const isKhoa = localStorage.getItem("isKhoa");
+
+          console.log("Loading edit requests with filters:", { dot, ki, namHoc, khoa });
+
+          const response = await fetch("/get-quy-chuan-edit-requests", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              dot,
+              ki_hoc: ki,
+              nam_hoc: namHoc,
+              khoa
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi lấy danh sách yêu cầu chỉnh sửa");
+          }
+
+          const result = await response.json();
+          console.log("Server response:", result);
+
+          if (!result.success) {
+            throw new Error(result.message || "Lỗi khi lấy danh sách yêu cầu chỉnh sửa");
+          }
+
+          const requests = result.data;
+          const tbody = document.getElementById("edit-requests-body");
+          tbody.innerHTML = "";
+
+          if (!requests || requests.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="12" class="text-center">Không có yêu cầu chỉnh sửa nào</td>
+              </tr>
+            `;
+            return;
+          }
+
+          requests.forEach(request => {
+            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
+            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+            const canUpdate = userRole === "Duyệt";
+            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
+            const isPublished = request.status === 'Cập nhật thành công';
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${request.khoa || ''}</td>
+              <td>${request.dot || ''}</td>
+              <td>${request.ki_hoc || ''}</td>
+              <td>${request.nam_hoc || ''}</td>
+              <td>${request.lop_hoc_phan || ''}</td>
+              <td>${request.old_value || ''}</td>
+              <td>${request.new_value || ''}</td>
+              <td>
+                <input type="checkbox" 
+                  class="approval-checkbox" 
+                  data-request-id="${request.id}" 
+                  data-type="khoa"
+                  ${request.khoa_duyet ? 'checked' : ''}
+                  ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
+                  onchange="handleApproval(this)">
+              </td>
+              <td>
+                <input type="checkbox" 
+                  class="approval-checkbox" 
+                  data-request-id="${request.id}" 
+                  data-type="daotao"
+                  ${request.daotao_duyet ? 'checked' : ''}
+                  ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
+                  onchange="handleApproval(this)">
+              </td>
+              <td>
+                <input type="checkbox" 
+                  class="approval-checkbox" 
+                  data-request-id="${request.id}" 
+                  data-type="bgd"
+                  ${request.bgd_duyet ? 'checked' : ''}
+                  ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
+                  onchange="handleApproval(this)">
+              </td>
+              <td>${status}</td>
+              <td>
+                ${canUpdate ? `
+                  <button 
+                    class="btn btn-primary btn-sm update-request-btn" 
+                    data-request-id="${request.id}"
+                    onclick="updateRequest(${request.id})"
+                    ${(!allApproved || isPublished) ? 'disabled' : ''}
+                    style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
+                  >
+                    Ban Hành
+                  </button>
+                ` : ''}
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+
+        } catch (error) {
+          console.error("Error in loadEditRequests:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      }
+
+      // Add this function to initialize modal comboboxes
+      function initializeModalComboboxes() {
+        $('#modal-nam option[value=""]').remove();
+        $('#modal-ki option[value=""]').remove();
+        $('#modal-dot option[value=""]').remove();
+        $('#modal-khoa option[value=""]').remove();
+
+        $.ajax({
+          url: "/getNamHoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              response.NamHoc.forEach(function (item) {
+                $("#modal-nam").append(
+                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
+                );
+              });
+
+              response.Ki.forEach(function (item) {
+                $("#modal-ki").append(
+                  `<option value="${item.value}">${item.Ki}</option>`
+                );
+              });
+              response.Dot.forEach(function (item) {
+                $("#modal-dot").append(
+                  `<option value="${item.value}">${item.Dot}</option>`
+                );
+              });
+            }
+          }
+        });
+
+        // Khởi tạo combobox khoa trong modal với phân quyền
+        $.ajax({
+          url: "/api/shared/faculty-code-list",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              const userRole = localStorage.getItem("userRole");
+              const MaPhongBan = localStorage.getItem("MaPhongBan");
+              
+              // Nếu là giảng viên thường hoặc có quyền Duyệt, hiển thị tất cả khoa
+              if (userRole === "Thường" || userRole === "Duyệt") {
+                $("#modal-khoa").prepend('<option value="ALL">ALL</option>');
+                response.MaPhongBan.forEach(function (item) {
+                  $("#modal-khoa").append(
+                    `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                  );
+                });
+              } else {
+                // Nếu là giảng viên, chỉ hiển thị khoa của họ
+                response.MaPhongBan.forEach(function (item) {
+                  if (item.MaPhongBan === MaPhongBan) {
+                    $("#modal-khoa").append(
+                      `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                    );
+                  }
+                });
+              }
+            }
+          }
+        });
+      }
+
+      // Modify the modal request edit button click handler
+      document.getElementById("modal-request-edit").addEventListener("click", async function() {
+        if (editedData.size === 0) {
+          Swal.fire({
+            title: "Thông báo",
+            text: "Không có thay đổi nào để yêu cầu chỉnh sửa!",
+            icon: "info"
+          });
+          return;
+        }
+
+        try {
+          // Lấy giá trị từ các combobox
+          const dotValue = document.getElementById("modal-dot").value;
+          const kiValue = document.getElementById("modal-ki").value;
+          const namValue = document.getElementById("modal-nam").value;
+          const khoaValue = document.getElementById("modal-khoa").value;
+
+          // Kiểm tra dữ liệu đầu vào
+          if (!dotValue || !kiValue || !namValue) {
+            Swal.fire({
+              title: "Thông báo",
+              text: "Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học!",
+              icon: "warning"
+            });
+            return;
+          }
+
+          const response = await fetch("/request-quy-chuan-edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              updates: Array.from(editedData.values())
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi gửi yêu cầu chỉnh sửa");
+          }
+
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              title: "Thành công",
+              text: "Yêu cầu chỉnh sửa đã được gửi!",
+              icon: "success"
+            });
+            editedData.clear();
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editQuyChuanModal'));
+            modal.hide();
+            
+            // Refresh the requests list with current filters
+            loadEditRequests();
+          } else {
+            throw new Error(result.message || "Lỗi khi gửi yêu cầu chỉnh sửa");
+          }
+        } catch (error) {
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        }
+      });
+    </script>
+
+    <!-- Thêm xử lý sự kiện cho nút Hiển thị trong modal -->
+    <script>
+      document.getElementById("modal-render").addEventListener("click", async function() {
+        try {
+          // Lấy giá trị từ các combobox
+          const dotValue = document.getElementById("modal-dot").value;
+          const kiValue = document.getElementById("modal-ki").value;
+          const namValue = document.getElementById("modal-nam").value;
+          const khoaValue = document.getElementById("modal-khoa").value;
+
+          // Kiểm tra dữ liệu đầu vào
+          if (!dotValue || !kiValue || !namValue) {
+            Swal.fire({
+              title: "Thông báo",
+              text: "Vui lòng chọn đầy đủ thông tin đợt, kỳ và năm học!",
+              icon: "warning"
+            });
+            return;
+          }
+
+          // Hiển thị loading
+          document.getElementById("modal-loading").style.display = "block";
+
+          // Gửi request lấy dữ liệu
+          const response = await fetch("/quy-chuan-chinh-thuc", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              Khoa: khoaValue,
+              Dot: dotValue,
+              Ki: kiValue,
+              Nam: namValue,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Lỗi khi lấy dữ liệu quy chuẩn");
+          }
+
+          // Lưu dữ liệu và render bảng
+          renderData = await response.json();
+          renderModalTable(renderData);
+
+        } catch (error) {
+          console.error("Lỗi:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: error.message,
+            icon: "error"
+          });
+        } finally {
+          // Ẩn loading
+          document.getElementById("modal-loading").style.display = "none";
+        }
+      });
+
+      // Hàm render bảng trong modal
+      function renderModalTable(data) {
+        const columnsToDisplay = [
+          "Khoa",
+          "Dot",
+          "KiHoc",
+          "NamHoc",
+          "LopHocPhan",
+          "GiaoVien",
+          "GiaoVienDieuChinh",
+          "MoiGiang",
+          "SoTinChi",
+          "TenLop",
+          "LL",
+          "QuyChuan",
+        ];
+
+        const headersMap = {
+          Khoa: "Khoa",
+          Dot: "Đợt",
+          KiHoc: "Kì",
+          NamHoc: "Năm",
+          LopHocPhan: "Lớp học phần",
+          GiaoVien: "Giảng viên theo TKB",
+          GiaoVienDieuChinh: "Giảng viên điều chỉnh",
+          MoiGiang: "Mời giảng?",
+          SoTinChi: "Số tín chỉ",
+          TenLop: "Tên lớp",
+          LL: "Số tiết lên lớp",
+          QuyChuan: "Số tiết quy chuẩn",
+        };
+
+        // Render header
+        let headerHtml = "";
+        columnsToDisplay.forEach((col) => {
+          headerHtml += `<th>${headersMap[col] || col}</th>`;
+        });
+        document.getElementById("modal-table-header").innerHTML = headerHtml;
+
+        // Render body
+        let bodyHtml = "";
+        data.forEach((item, rowIndex) => {
+          let rowHtml = columnsToDisplay.map((key) => {
+            let cellValue = item[key] !== null ? item[key] : "";
+
+            if (key === "MoiGiang") {
+              cellValue = cellValue === 1 ? "Có" : "Không";
+            }
+
+            // Danh sách các cột không được phép chỉnh sửa
+            const nonEditableColumns = [
+              "Khoa", 
+              "Dot", 
+              "KiHoc", 
+              "NamHoc", 
+              "LopHocPhan", 
+              "MoiGiang", 
+              "SoTinChi", 
+              "TenLop", 
+              "LL", 
+              "QuyChuan",
+              "GiaoVien" // Thêm GiaoVien vào danh sách không được chỉnh sửa
+            ];
+            
+            const isEditable = !nonEditableColumns.includes(key);
+            
+            if (isEditable) {
+              return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
+            } else {
+              return `<td>${cellValue}</td>`;
+            }
+          }).join("");
+          
+          bodyHtml += `<tr>${rowHtml}</tr>`;
+        });
+
+        document.getElementById("modal-data-table-body").innerHTML = bodyHtml;
+      }
+
+      // Hàm xử lý sự kiện khi cell được edit
+      function handleCellEdit(cell) {
+        const rowIndex = cell.getAttribute("data-row");
+        const colName = cell.getAttribute("data-col");
+        const newValue = cell.textContent.trim();
+        const originalValue = renderData[rowIndex][colName];
+
+        // Chỉ cho phép chỉnh sửa cột GiaoVienDieuChinh
+        if (colName !== "GiaoVienDieuChinh") {
+          cell.textContent = originalValue; // Khôi phục giá trị cũ
+          return;
+        }
+
+        // Don't track if value hasn't changed
+        if (newValue === originalValue) {
+          return;
+        }
+
+        // Store the edit
+        const editKey = `${rowIndex}-${colName}`;
+        editedData.set(editKey, {
+          rowIndex: parseInt(rowIndex),
+          colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
+          newValue: newValue,
+          originalValue: renderData[rowIndex].GiaoVien, // Lấy giá trị từ cột GiaoVien
+          data: renderData[rowIndex]
+        });
+
+        // Highlight edited cell
+        cell.style.backgroundColor = "#fff3cd";
+      }
     </script>
   </body>
 </html>
