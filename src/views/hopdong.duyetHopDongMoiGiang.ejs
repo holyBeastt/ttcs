@@ -1259,8 +1259,13 @@
 
         // Use existing viewTeacherDetail function
         viewTeacherDetail(encodeURIComponent(decodedTeacherName));
-      }// Enhanced display function with training program breakdown
+      }
+      // Enhanced display function with training program breakdown
       function displayContractDataInSeparateTables(groupedByTeacher, enhancedGroupedByTeacher, SoTietDinhMuc, serverTotals) {
+        
+        console.log("Grouped by teacher data: ", groupedByTeacher);
+        console.log("Enhanced grouped by teacher data: ", enhancedGroupedByTeacher);
+
         // Hide training program table and show only teacher table
         hideAllTables(); // Use helper function
 
@@ -1327,9 +1332,9 @@
           }
           
           // Debugging TaiChinhDuyet value
-          console.log(`Teacher ${teacherName}, TaiChinhDuyet from teacherData: ${teacherData.TaiChinhDuyet}`);
+          // console.log(`Teacher ${teacherName}, TaiChinhDuyet from teacherData: ${teacherData.TaiChinhDuyet}`);
           if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length > 0) {
-            console.log(`Teacher ${teacherName}, TaiChinhDuyet from first program: ${enhancedData.trainingPrograms[0].TaiChinhDuyet}`);
+            // console.log(`Teacher ${teacherName}, TaiChinhDuyet from first program: ${enhancedData.trainingPrograms[0].TaiChinhDuyet}`);
           }
 
           // Only add to grand totals if server totals not provided (fallback)
@@ -1395,7 +1400,7 @@
 
           // Create approval status display
           const getApprovalStatus = (taiChinhDuyet) => {
-            console.log("Giá trị TaiChinhDuyet:", taiChinhDuyet, "Kiểu:", typeof taiChinhDuyet);
+            // console.log("Giá trị TaiChinhDuyet:", taiChinhDuyet, "Kiểu:", typeof taiChinhDuyet);
             if (taiChinhDuyet == 1) {
               return 'Đã duyệt';
             } else {
@@ -1756,27 +1761,6 @@
             </div>
           `);
         }
-      }
-
-      // Export contract data
-      function exportContractData() {
-        const dot = $('#combobox-dot').val();
-        const ki = $('#comboboxki').val();
-        const namHoc = $('#NamHoc').val();
-
-        if (!dot || !ki || !namHoc) {
-          showError('Vui lòng chọn điều kiện lọc trước khi xuất dữ liệu');
-          return;
-        } const params = new URLSearchParams({
-          dot: dot,
-          ki: ki,
-          namHoc: namHoc,
-          maPhongBan: $('#MaPhongBan').val() || '',
-          loaiHopDong: $('#loaiHopDong').val() || ''
-        });
-
-        // Open export URL in new window
-        window.open(`/api/export-duyet-hop-dong?${params.toString()}`, '_blank');
       }
 
       // Utility functions for showing messages and loading state

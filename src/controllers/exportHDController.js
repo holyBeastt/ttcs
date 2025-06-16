@@ -284,7 +284,9 @@ const exportMultipleContracts = async (req, res) => {
     hd.NamHoc,
     hd.MaPhongBan,
     hd.MaBoMon,
-    hd.NoiCongTac
+    hd.NoiCongTac,
+    hd.SoHopDong,
+    hd.SoThanhLyHopDong
   FROM
     hopdonggvmoi hd
   JOIN
@@ -293,8 +295,9 @@ const exportMultipleContracts = async (req, res) => {
     hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap,hd.NgayNghiemThu, hd.Dot, 
-    hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, hd.NgayNghiemThu, hd.Dot, 
+    hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+    hd.SoHopDong, hd.SoThanhLyHopDong`;
 
     let params = [dot, ki, namHoc, loaiHopDong];
 
@@ -329,7 +332,9 @@ const exportMultipleContracts = async (req, res) => {
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      hd.NoiCongTac  
+      hd.NoiCongTac,
+      hd.SoHopDong,
+      hd.SoThanhLyHopDong 
     FROM
       hopdonggvmoi hd
     JOIN
@@ -339,7 +344,8 @@ const exportMultipleContracts = async (req, res) => {
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+      hd.SoHopDong, hd.SoThanhLyHopDong`;
       params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
     }
     if (teacherName) {
@@ -372,17 +378,20 @@ const exportMultipleContracts = async (req, res) => {
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      hd.NoiCongTac
+      hd.NoiCongTac,
+      hd.SoHopDong,
+      hd.SoThanhLyHopDong
     FROM
       hopdonggvmoi hd
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
     WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
+      hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap,
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+      hd.SoHopDong, hd.SoThanhLyHopDong`;
 
       params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
     }
@@ -458,11 +467,14 @@ const exportMultipleContracts = async (req, res) => {
         STK: teacher.STK,
         NganHang: teacher.NganHang,
         ThucNhan: tienThucNhanText,
+        SoHopDong: teacher.SoHopDong,
       });
 
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       const data = {
+        Số_hợp_đồng: teacher.SoHopDong,
+        Số_thanh_lý: teacher.SoThanhLyHopDong,
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
@@ -486,11 +498,11 @@ const exportMultipleContracts = async (req, res) => {
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
-        Kỳ: convertToRoman(teacher.KiHoc), // Thêm trường KiHoc
-        Năm_học: teacher.NamHoc, // Thêm trường NamHocs
-        Thời_gian_thực_hiện: thoiGianThucHien, // Thêm trường Thời_gian_thực_hiện
+        Kỳ: convertToRoman(teacher.KiHoc),
+        Năm_học: teacher.NamHoc,
+        Thời_gian_thực_hiện: thoiGianThucHien,
         Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
-        Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
+        Nơi_công_tác: teacher.NoiCongTac,
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
@@ -552,9 +564,8 @@ const exportMultipleContracts = async (req, res) => {
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
+      }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
 
@@ -595,6 +606,7 @@ const exportMultipleContracts = async (req, res) => {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
+
 
 const updateSoTienThucNhan = async (
   connection,
@@ -1361,8 +1373,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1687,8 +1699,8 @@ const generateAppendixContract = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -2264,7 +2276,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
               text,
               bold: isBold,
               font: "Times New Roman",
-              size: 24,
+              size: 22,
               color: "000000",
             }),
           ],
@@ -2298,7 +2310,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
               text,
               bold: isBold,
               font: "Times New Roman",
-              size: 24,
+              size: 22,
               color: "000000",
             }),
           ],
@@ -2349,33 +2361,33 @@ function createTransferDetailDocument(data = [], noiDung = "") {
 
     const dataRows = data.length
       ? data.map(
-          (row, idx) =>
-            new TableRow({
-              children: [
-                createCell((idx + 1).toString()),
-                createCell("", false, 1200), // Ô Số HĐ với width cố định
-                createCell(row.HoTen || ""),
-                createCell(row.MaSoThue || ""),
-                createCell(row.STK || ""),
-                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
-                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
-              ],
-            })
-        )
+        (row, idx) =>
+          new TableRow({
+            children: [
+              createCell((idx + 1).toString()),
+              createCell(row.SoHopDong, false, 1200), // Ô Số HĐ với width cố định
+              createCell(row.HoTen || ""),
+              createCell(row.MaSoThue || ""),
+              createCell(row.STK || ""),
+              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
+              createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+            ],
+          })
+      )
       : Array.from({ length: 4 }).map(
-          () =>
-            new TableRow({
-              children: [
-                createCell(""), // STT
-                createCell("", false, 1200), // Số HĐ với width cố định
-                createCell(""), // Đơn vị thụ hưởng
-                createCell(""), // Mã số thuế
-                createCell(""), // Số tài khoản
-                createCell("", false, 4800), // Tại ngân hàng với width cố định
-                createCell(""), // Số tiền
-              ],
-            })
-        );
+        () =>
+          new TableRow({
+            children: [
+              createCell(""), // STT
+              createCell("", false, 1200), // Số HĐ với width cố định
+              createCell(""), // Đơn vị thụ hưởng
+              createCell(""), // Mã số thuế
+              createCell(""), // Số tài khoản
+              createCell("", false, 4800), // Tại ngân hàng với width cố định
+              createCell(""), // Số tiền
+            ],
+          })
+      );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2390,7 +2402,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                   text: "Tổng cộng",
                   bold: true,
                   font: "Times New Roman",
-                  size: 24,
+                  size: 22,
                   color: "000000",
                 }),
               ],
@@ -2413,7 +2425,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                 new TextRun({
                   text: formattedTotalAmount,
                   font: "Times New Roman",
-                  size: 24,
+                  size: 22,
                   color: "000000",
                 }),
               ],
@@ -2450,7 +2462,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
       default: {
         document: {
           font: "Times New Roman",
-          size: 24,
+          size: 22,
           color: "000000",
         },
         paragraph: {
@@ -2546,13 +2558,13 @@ function createTransferDetailDocument(data = [], noiDung = "") {
               new TextRun({
                 text: `Nội dung: `,
                 font: "Times New Roman",
-                size: 26,
+                size: 22,
                 color: "000000",
               }),
               new TextRun({
                 text: `${noiDung}`,
                 font: "Times New Roman",
-                size: 26,
+                size: 22,
                 color: "000000",
               }),
             ],
@@ -2566,7 +2578,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
               new TextRun({
                 text: "Ghi chú: Số tiền chuyển khoản là số tiền sau thuế",
                 font: "Times New Roman",
-                size: 26,
+                size: 22,
                 color: "000000",
                 italics: true,
               }),

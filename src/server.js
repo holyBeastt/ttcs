@@ -26,6 +26,7 @@ const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
 const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
+const vuotGioCuoiKyRoute = require("./routes/vuotGioCuoiKyRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
 const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
@@ -151,6 +152,8 @@ app.use("/", soHopDong);
 app.use("/", duyetHopDongMoiGiang);
 app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
+app.use("/", vuotGioCuoiKyRoute);
+
 app.use("/", chinhSuaQuyChuanRoute);
 
 // Phần admin
