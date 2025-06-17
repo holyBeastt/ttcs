@@ -115,7 +115,11 @@
                     <a class="nav-link" href="/import" id="addNewFileQCDK" style="width: 100%">Thêm file quy chuẩn dự
                       kiến</a>
                     <a class="nav-link" id="" href="/importDoAn">Thêm file ĐATN chính thức</a>
+                    
                   </div>
+                </div>
+                <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
+                  <a class="nav-link" id="" href="/importkthp">Thêm file kết thúc hp</a>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
@@ -143,8 +147,16 @@
                     <a class="nav-link" id="" href="/thongTinDoAnTotNghiep">Thông tin đồ án tốt nghiệp</a>
                   </div>
                 </div>
-                <a class="nav-link" id="" href="/chinhSuaQuyChuan">Chỉnh sửa quy chuẩn chính thức</a>
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
+                    aria-expanded="false">Yêu cầu chỉnh sửa</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
+                    <a class="nav-link" id="" href="/chinhSuaQuyChuan">Yêu cầu chỉnh sửa quy chuẩn chính thức</a>
+                    <a class="nav-link" id="" href="/chinhSuaDoAn">Yêu cầu chỉnh sửa đồ án chính thức</a>
 
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="navbar-nav" id="nav-moigiang">
@@ -191,7 +203,9 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="" href="/vuotGioCuoiKi">Thông tin cuối kì của tôi</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a>
+                <a class="nav-link" id="" href="/vuotGioDanhGiaCuoiKi">Đánh giá cuối học phần</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH
@@ -455,6 +469,7 @@
     // phần này cho các thẻ links
     let nckhNavChild = document.getElementById("nckhNav");
     let links = nckhNavChild.getElementsByClassName("nav-link");
+    let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
     if (maPhongBan === "NC&HTPT" && userRole === "Duyệt") {
@@ -502,6 +517,10 @@
     if (maPhongBan === "VP") {
       tkbNav.style.display = "none";
       navLink_addFileQC.style.display = "none";
+    }
+
+    if (maPhongBan !== "KT&DBCL") {
+      themFileKTHP.style.display = "none";
     }
   });
 </script>

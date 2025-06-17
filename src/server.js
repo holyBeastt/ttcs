@@ -26,6 +26,7 @@ const xemCacLopMoiRoute = require("./routes/xemCacLopMoiRoute");
 const vuotGioAddClassRoute = require("./routes/vuotGioAddClassRoute");
 const vuotGioExportRoute = require("./routes/vuotGioExportRoute");
 const vuotGioSoTietDMRouter = require("./routes/vuotGioSoTietDMRoute");
+const vuotGioCuoiKyRoute = require("./routes/vuotGioCuoiKyRoute");
 const thongkemgRoute = require("./routes/thongkemgRoute");
 const thongkenckhRoute = require("./routes/thongkenckhRoute");
 const thongkedoanRoute = require("./routes/thongkedoanRoute");
@@ -40,6 +41,7 @@ const duyetHopDongMoiGiang = require("./routes/hopdong.duyetHopDongMoiGiangRoute
 const duyetHopDongDoAn = require("./routes/hopdong.duyetHopDongDoAnRoute");
 const previewHopDong = require("./routes/hopdong.previewRoute");
 const chinhSuaQuyChuanRoute = require("./routes/chinhSuaQuyChuanRoute");
+const chinhSuaDoAnRoute = require("./routes/chinhSuaDoAnRoute");
 
 
 
@@ -151,7 +153,10 @@ app.use("/", soHopDong);
 app.use("/", duyetHopDongMoiGiang);
 app.use("/", duyetHopDongDoAn);
 app.use("/", previewHopDong);
+app.use("/", vuotGioCuoiKyRoute);
+
 app.use("/", chinhSuaQuyChuanRoute);
+app.use("/", chinhSuaDoAnRoute);
 
 // Phần admin
 app.use("/", adminThemFileHocPhanRoute);
