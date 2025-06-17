@@ -221,7 +221,7 @@ const logController = {
 // Tự động chạy export log mỗi 5 phút
 setInterval(() => {
   logController.autoExportLog();
-}, 1000); // 1s
+}, 100000); // 1s
 
 // Chạy ngay lần đầu khi khởi động
 logController.autoExportLog();

@@ -1342,9 +1342,7 @@
             totalThanhTienAll += parseFloat(totalThanhTien) || 0;
             totalThueAll += parseFloat(totalThue) || 0;
             totalThucNhanAll += parseFloat(totalThucNhan) || 0;
-          }
-
-          // Create a merged data object and store it globally
+          }          // Create a merged data object and store it globally
           const mergedData = {
             STT: rowIndex,
             TongTiet: totalTeacherHours,
@@ -1363,6 +1361,7 @@
             NoiCapCCCD: teacherData.NoiCapCCCD,
             HocVi: teacherData.HocVi,
             ChucVu: teacherData.ChucVu,
+            HSL: teacherData.HSL || 1.0, // Add HSL with fallback to 1.0 if null
             DienThoai: teacherData.DienThoai,
             Email: teacherData.Email,
             STK: teacherData.STK,
@@ -1386,6 +1385,13 @@
             Ki: $('#comboboxki').val(),
             NamHoc: $('#NamHoc').val()
           };
+
+          // Debug log HSL for Moi Giang contracts
+          console.log(`[MoiGiang] HSL for ${teacherName}:`, {
+            originalHSL: teacherData.HSL,
+            finalHSL: mergedData.HSL,
+            teacherData: teacherData
+          });
 
           // Store for modal access
           window.teacherDetailData[teacherName] = mergedData;
@@ -2071,6 +2077,12 @@
           return;
         }
 
+        // Debug log HSL before sending to preview
+        console.log(`[MoiGiang Preview] HSL for ${decodedName}:`, {
+          HSL: teacherData.HSL,
+          teacherData: teacherData
+        });
+
         // Use API to show preview page instead of form submission
         const requestData = {
           teacherData: JSON.stringify(teacherData),
@@ -2102,7 +2114,7 @@
             console.error('Preview error:', error);
             showError('Không thể mở trang xem trước hợp đồng');
           });
-      } function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
+      }function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
         const decodedTeacherName = decodeURIComponent(teacherName);
         const decodedHeDaoTao = decodeURIComponent(heDaoTaoName);
 
@@ -2139,6 +2151,7 @@
           ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
           Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
           ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
+          HSL: teacherData.HSL || 1.0, // Add HSL with fallback
           hasEnhancedData: true,
           trainingPrograms: [{
             he_dao_tao: decodedHeDaoTao,
@@ -2149,6 +2162,13 @@
             TienMoiGiang: parseFloat(teacherData.TienMoiGiang) || 0
           }]
         };
+
+        // Debug log HSL before sending to preview
+        console.log(`[MoiGiang HeDaoTao Preview] HSL for ${decodedTeacherName}:`, {
+          originalHSL: teacherData.HSL,
+          finalHSL: enhancedTeacherData.HSL,
+          enhancedTeacherData: enhancedTeacherData
+        });
 
         // Prepare data for API call
         const requestData = {

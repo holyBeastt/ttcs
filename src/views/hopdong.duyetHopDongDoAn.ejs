@@ -1155,6 +1155,7 @@
           NgayCapCCCD: teacherData.NgayCapCCCD,
           HocVi: teacherData.HocVi,
           ChucVu: teacherData.ChucVu,
+          HSL: teacherData.HSL,
           DienThoai: teacherData.DienThoai,
           Email: teacherData.Email,
           TienMoiGiang: teacherData.TienMoiGiang,
@@ -1252,9 +1253,7 @@
           // Add to grand totals
           totalThanhTienAll += parseFloat(totalThanhTien) || 0;
           totalThueAll += parseFloat(totalThue) || 0;
-          totalThucNhanAll += parseFloat(totalThucNhan) || 0;
-
-          // Create a merged data object and store it globally
+          totalThucNhanAll += parseFloat(totalThucNhan) || 0;          // Create a merged data object and store it globally
           const mergedData = {
             STT: rowIndex,
             TongTiet: totalTeacherHours,
@@ -1269,10 +1268,9 @@
             ThucNhan: totalThucNhan,
             NgaySinh: teacherData.NgaySinh,
             CCCD: teacherData.CCCD,
-            NgayCapCCCD: teacherData.NgayCapCCCD,
-            NoiCapCCCD: teacherData.NoiCapCCCD,
-            HocVi: teacherData.HocVi,
+            NgayCapCCCD: teacherData.NgayCapCCCD,            NoiCapCCCD: teacherData.NoiCapCCCD,            HocVi: teacherData.HocVi,
             ChucVu: teacherData.ChucVu,
+            HSL: teacherData.HSL || 1.0,
             DienThoai: teacherData.DienThoai,
             Email: teacherData.Email,
             STK: teacherData.STK,
@@ -1295,10 +1293,18 @@
             Dot: $('#combobox-dot').val(),
             Ki: $('#comboboxki').val(),
             NamHoc: $('#NamHoc').val()
-          };
-
-          // Store for modal access
-          window.teacherDetailData[teacherName] = mergedData;
+          };          // Store for modal access
+          window.teacherDetailData[teacherName] = mergedData;          // Debug: Log TienMoiGiang to verify data integrity
+          if (rowIndex <= 3) { // Log first 3 records for debugging
+            console.log(`Teacher ${teacherName} HSL Debug:`, {
+              rawHSL: teacherData.HSL,
+              mergedHSL: mergedData.HSL,
+              typeHSL: typeof teacherData.HSL,
+              rawTienMoiGiang: teacherData.TienMoiGiang,
+              mergedTienMoiGiang: mergedData.TienMoiGiang,
+              courses: courses.map(c => ({ HSL: c.HSL, TienMoiGiang: c.TienMoiGiang }))
+            });
+          }
 
           // Add to teacher table data array
           window.teacherTableData.push(mergedData);
@@ -1926,7 +1932,12 @@
           dot: dot,
           ki: ki,
           namHoc: namHoc
-        };
+        };        // Debug: Log TienMoiGiang for verification
+        console.log('HSL and TienMoiGiang in teacher preview data:', {
+          originalHSL: teacherData.HSL,
+          originalTienMoiGiang: teacherData.TienMoiGiang,
+          stringified: JSON.stringify(teacherData).includes('HSL')
+        });
 
         // Call API to get preview page with teacher data
         fetch('/api/preview-page-do-an', {
@@ -2006,6 +2017,9 @@
           ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
           Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
           ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
+          // Ensure TienMoiGiang is properly included in the main data
+          TienMoiGiang: parseFloat(teacherData.TienMoiGiang) || 0,          // Ensure HSL is properly included
+          HSL: teacherData.HSL || 1.0,
           hasEnhancedData: true,
           trainingPrograms: [{
             he_dao_tao: decodedHeDaoTao,
@@ -2015,7 +2029,15 @@
             ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
             TienMoiGiang: parseFloat(teacherData.TienMoiGiang) || 0
           }]
-        };        // Prepare data for API call
+        };        // Debug: Log TienMoiGiang to console for verification
+        console.log('HSL and TienMoiGiang in preview data:', {
+          originalHSL: teacherData.HSL,
+          parsedHSL: teacherData.HSL,
+          enhancedHSL: enhancedTeacherData.HSL,
+          originalTienMoiGiang: teacherData.TienMoiGiang,
+          enhancedTienMoiGiang: enhancedTeacherData.TienMoiGiang,
+          trainingProgramTienMoiGiang: enhancedTeacherData.trainingPrograms[0].TienMoiGiang
+        });// Prepare data for API call
         const requestData = {
           teacherData: JSON.stringify(enhancedTeacherData),
           dot: dot,

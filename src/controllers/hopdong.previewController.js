@@ -142,10 +142,16 @@ const showPreviewPageAPI = async (req, res) => {
                 success: false,
                 message: "Thiếu thông tin bắt buộc để hiển thị preview"
             });
-        }
+        }        const parsedTeacherData = JSON.parse(teacherData);
+        const teacherId = parsedTeacherData.GiangVien;
 
-        const parsedTeacherData = JSON.parse(teacherData);
-        const teacherId = parsedTeacherData.GiangVien;        // Get contract types from teacher data
+        // Debug log received HSL data
+        console.log('[Preview Controller] Received HSL data:', {
+            teacher: teacherId,
+            HSL: parsedTeacherData.HSL,
+            hasEnhancedData: parsedTeacherData.hasEnhancedData,
+            dataKeys: Object.keys(parsedTeacherData)
+        });// Get contract types from teacher data
         let contractTypes = [];
         if (parsedTeacherData.hasEnhancedData && parsedTeacherData.trainingPrograms && parsedTeacherData.trainingPrograms.length > 0) {
             contractTypes = parsedTeacherData.trainingPrograms.map(program => ({
@@ -326,9 +332,7 @@ const previewContract = async (req, res) => {
             }
 
             teacher = teachers[0];
-        }
-
-        // Calculate financial data based on heHopDong
+        }        // Calculate financial data based on heHopDong
         let soTiet, tienText, tienThueText, tienThucNhanText, tienMoiGiang;
 
         if (teacher.hasEnhancedData && teacher.trainingPrograms) {
@@ -340,6 +344,14 @@ const previewContract = async (req, res) => {
                 tienThueText = programData.Thue;
                 tienThucNhanText = programData.ThucNhan;
                 tienMoiGiang = programData.TienMoiGiang;
+                  // Debug log for enhanced data
+                console.log('Preview Contract Enhanced Data:', {
+                    teacher: teacher.GiangVien || teacher.HoTen,
+                    heHopDong: heHopDong,
+                    tienMoiGiang: tienMoiGiang,
+                    HSL: teacher.HSL,
+                    programData: programData
+                });
             } else {
                 // Use total data if specific program not found
                 soTiet = teacher.TongTiet || 0;
@@ -347,6 +359,12 @@ const previewContract = async (req, res) => {
                 tienThueText = teacher.Thue || 0;
                 tienThucNhanText = teacher.ThucNhan || 0;
                 tienMoiGiang = teacher.TienMoiGiang || 0;
+                  console.log('Preview Contract Total Data (program not found):', {
+                    teacher: teacher.GiangVien || teacher.HoTen,
+                    heHopDong: heHopDong,
+                    tienMoiGiang: tienMoiGiang,
+                    HSL: teacher.HSL
+                });
             }
         } else {
             // Use teacher's total data
@@ -354,7 +372,14 @@ const previewContract = async (req, res) => {
             tienText = teacher.ThanhTien || 0;
             tienThueText = teacher.Thue || 0;
             tienThucNhanText = teacher.ThucNhan || 0;
-            tienMoiGiang = teacher.TienMoiGiang || 0;
+            tienMoiGiang = teacher.TienMoiGiang || 0;            console.log('Preview Contract Regular Data:', {
+                teacher: teacher.GiangVien || teacher.HoTen,
+                heHopDong: heHopDong,
+                tienMoiGiang: tienMoiGiang,
+                teacherTienMoiGiang: teacher.TienMoiGiang,
+                HSL: teacher.HSL,
+                teacherHSL: teacher.HSL
+            });
 
             // If no financial data in teacher object, calculate from tieuluong table
             if (!tienText && connection) {
@@ -397,14 +422,21 @@ const previewContract = async (req, res) => {
             Tiền_text: tienText.toLocaleString("vi-VN"),
             Bằng_chữ_số_tiền: numberToWords(tienText),
             Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
-            Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
-            Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
+            Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),            Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
             Kỳ: convertToRoman(parseInt(ki)),
             Năm_học: namHoc,
             Thời_gian_thực_hiện: formatDateRange(teacher.NgayBatDau, teacher.NgayKetThuc),
             Mức_tiền: tienMoiGiang.toLocaleString("vi-VN"),
             Nơi_công_tác: teacher.NoiCongTac || '',
-        };
+        };        // Debug: Log final template data for TienMoiGiang
+        console.log('Final template data HSL and TienMoiGiang:', {
+            teacher: teacher.GiangVien || teacher.HoTen,
+            heHopDong: heHopDong,
+            rawHSL: teacher.HSL,
+            formattedHSL: data.Hệ_số_lương,
+            rawTienMoiGiang: tienMoiGiang,
+            formattedMucTien: data.Mức_tiền
+        });
 
         // Choose template based on contract type
         let templateFileName;
