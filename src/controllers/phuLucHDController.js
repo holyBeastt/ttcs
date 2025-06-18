@@ -314,22 +314,20 @@ const getExportPhuLucGiangVienMoiPath = async (
             ? "TS"
             : item.HocVi === "Thạc sĩ"
             ? "ThS"
-            : item.HocVi;
-
-        // Thêm hàng dữ liệu vào sheet tổng hợp
+            : item.HocVi;        // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
           stt,
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(
             item.NgayKetThuc
           )}`,
           convertToRoman(item.HocKy),
           item.DiaChi,
           hocViVietTat,
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
           soTien.toLocaleString("vi-VN"), // Định dạng số tiền
           truThue.toLocaleString("vi-VN"), // Định dạng số tiền
@@ -397,15 +395,13 @@ const getExportPhuLucGiangVienMoiPath = async (
 
         stt++; // Tăng số thứ tự
       });
-    }
-
-    // Thêm hàng tổng cộng vào cuối bảng
+    }    // Thêm hàng tổng cộng vào cuối bảng
     const totalRow = summarySheet.addRow([
       "Tổng cộng",
       "",
       "",
       "",
-      totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalSoTiet.toLocaleString("vi-VN"),
       "",
       "",
       "",
@@ -629,18 +625,17 @@ const getExportPhuLucGiangVienMoiPath = async (
         const hocKyLaMa = convertToRoman(item.HocKy);
         // Viết tắt Học vị
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;
-        const row = worksheet.addRow([
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           thoiGianThucHien,
           hocKyLaMa, // Sử dụng số La Mã cho Học kỳ
           item.DiaChi,
           hocViVietTat, // Sử dụng viết tắt cho Học vị
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
           soTien.toLocaleString("vi-VN"), // Định dạng số tiền
           truThue.toLocaleString("vi-VN"),
@@ -710,15 +705,13 @@ const getExportPhuLucGiangVienMoiPath = async (
         totalSoTien += soTien;
         totalTruThue += truThue;
         totalThucNhan += thucNhan;
-      });
-
-      // Thêm hàng tổng cộng
+      });      // Thêm hàng tổng cộng
       const totalRow = worksheet.addRow([
         "Tổng cộng",
         "",
         "",
         "",
-        totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
+        totalSoTiet.toLocaleString("vi-VN"),
         "",
         "",
         "",
@@ -914,19 +907,17 @@ const getExportPhuLucGiangVienMoiPath = async (
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
         const hocKyLaMa = convertToRoman(item.HocKy);
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;
-
-        const row = worksheet2.addRow([
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet2.addRow([
           index + 1,
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           thoiGianThucHien,
           hocKyLaMa,
           item.DiaChi,
           hocViVietTat,
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"),
           soTien.toLocaleString("vi-VN"),
           truThue.toLocaleString("vi-VN"),
@@ -999,15 +990,13 @@ const getExportPhuLucGiangVienMoiPath = async (
         totalSoTien2 += soTien;
         totalTruThue2 += truThue;
         totalThucNhan2 += thucNhan;
-      });
-
-      // Thêm hàng tổng cộng cho sheet 2
+      });      // Thêm hàng tổng cộng cho sheet 2
       const totalRow2 = worksheet2.addRow([
         "Tổng cộng",
         "",
         "",
         "",
-        totalSoTiet2.toLocaleString("vi-VN").replace(/\./g, ","),
+        totalSoTiet2.toLocaleString("vi-VN"),
         "",
         "",
         "",

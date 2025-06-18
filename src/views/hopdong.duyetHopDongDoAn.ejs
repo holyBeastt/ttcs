@@ -915,7 +915,7 @@
                   <span class="summary-value">${giangVienList.length}</span> giảng viên
                 </div>                <div class="summary-item">
                   <i class="fas fa-clock me-1"></i>
-                  <span class="summary-value">${parseFloat(heDaoTao.SoTiet || 0).toFixed(2)}</span> tiết
+                  <span class="summary-value">${formatSoTiet(heDaoTao.SoTiet || 0)}</span> tiết
                 </div>
                 <div class="summary-item">
                   <i class="fas fa-money-bill-wave me-1"></i>
@@ -966,7 +966,7 @@
                 <td><strong>${gv.HoTen}</strong></td>
                 <td>${gv.MaPhongBan || gv.TenPhongBan || 'N/A'}</td>
                 <td>${gv.HocVi || 'N/A'}</td>                <td>${gv.TienMoiGiang ? formatCurrency(parseFloat(gv.TienMoiGiang)) : 'N/A'}</td>
-                <td>${parseFloat(gv.SoTiet || 0).toFixed(2)}</td>
+                <td>${formatSoTiet(gv.SoTiet || 0)}</td>
                 <td>${formatCurrency(parseFloat(gv.ThanhTien || 0))}</td>
                 <td>${formatCurrency(parseFloat(gv.Thue || 0) || (parseFloat(gv.ThanhTien || 0) * 0.1))}</td>
                 <td>${formatCurrency(parseFloat(gv.ThucNhan || 0))}</td>                <td class="contract-tcduyet-cell-hedaotao"></td>
@@ -985,14 +985,12 @@
           });
 
           container.append(groupContainer);
-        });
-
-        // Update total display
+        });        // Update total display
         const totalElement = document.getElementById("totalHeDaoTao");
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
@@ -1068,9 +1066,7 @@
                         </tr>
                       </thead>
                       <tbody>
-        `;
-
-        let tableRows = '';
+        `;        let tableRows = '';
         heDaoTaoData.chiTietGiangVien.forEach((gv, index) => {
           tableRows += `
             <tr>
@@ -1080,7 +1076,7 @@
               <td>${gv.TenPhongBan || 'N/A'}</td>
               <td>${gv.HocVi || 'N/A'}</td>
               <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
-              <td>${Number.parseFloat(gv.SoTiet).toFixed(2)}</td>
+              <td>${formatSoTiet(gv.SoTiet)}</td>
               <td>${formatCurrency(gv.ThanhTien)}</td>
               <td>${formatCurrency(gv.ThucNhan)}</td>
               <td>
@@ -1330,17 +1326,16 @@
               if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length > 1) {
                 return 'Xem ở chi tiết';
               } else if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length === 1) {
-                return formatCurrency(enhancedData.trainingPrograms[0].TienMoiGiang);
-              } else if (mergedData.TienMoiGiang && mergedData.TienMoiGiang > 0) {
+                return formatCurrency(enhancedData.trainingPrograms[0].TienMoiGiang);              } else if (mergedData.TienMoiGiang && mergedData.TienMoiGiang > 0) {
                 return formatCurrency(mergedData.TienMoiGiang);
               } else {
                 return 'N/A';
               }
             })()}</td>
-              <td>${Number.parseFloat(mergedData.TongTiet).toFixed(2)}</td>
+              <td>${formatSoTiet(mergedData.TongTiet)}</td>
               <td>${formatCurrency(mergedData.ThanhTien)}</td>
               <td>${formatCurrency(mergedData.Thue)}</td>
-              <td>${formatCurrency(mergedData.ThucNhan)}</td>              <td class="contract-tcduyet-cell">${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>
+              <td>${formatCurrency(mergedData.ThucNhan)}</td><td class="contract-tcduyet-cell">${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>
               <td class="contract-status-cell">${getApprovalStatus(mergedData.DaoTaoDuyet, mergedData.TaiChinhDuyet)}</td>
               <td class="action-cell-content" id="action-cell-1-${rowIndex}">
                 <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetail('${encodeURIComponent(teacherName)}')">
@@ -1363,12 +1358,12 @@
         });        // Update total display
         const totalElement = document.getElementById("totalQC");
         totalElement.innerHTML = `
-          <div class="row">            <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+          <div class="row">            <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
             <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
             <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
             <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
           </div>
-        `;        // Display quota information
+        `;// Display quota information
         if (SoTietDinhMuc > 0) {
           $('#quotaInfo').html(`
             <div class="alert alert-info">
@@ -1388,6 +1383,21 @@
         const numValue = typeof value === "string" ? parseFloat(value) : value;
         return typeof numValue === "number" && !isNaN(numValue) ?
           numValue.toLocaleString("vi-VN", { style: "currency", currency: "VND" }) : "0 ₫";
+      }
+
+      // Function to format "Số tiết" according to requirements
+      function formatSoTiet(value) {
+        const numValue = typeof value === "string" ? parseFloat(value) : value;
+        if (typeof numValue !== "number" || isNaN(numValue)) return "0.00";
+        
+        // Check if number is whole (even)
+        if (numValue % 1 === 0) {
+          // Whole number - use dot format
+          return numValue.toFixed(2);
+        } else {
+          // Decimal number - use comma format
+          return numValue.toFixed(2).replace('.', ',');
+        }
       }
 
       function showLoading(show) {
@@ -1545,7 +1555,7 @@
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
@@ -1606,13 +1616,12 @@
             group.show();
           } else {
             group.hide();
-          }
-        });        // Update total display for training program view
+          }        });        // Update total display for training program view
         const totalElement = document.getElementById("totalHeDaoTao");
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
@@ -1657,10 +1666,8 @@
         $('#modal-bomon').text(data.MonGiangDayChinh || 'Chưa có thông tin');
         $('#modal-khoa').text(data.MaPhongBan || 'Chưa xác định');        // Contract information
         const hasContract = data.SoHopDong && data.SoHopDong.trim() !== '';
-        const contractStatus = hasContract ? 'Đã có hợp đồng' : 'Chưa có hợp đồng';
-
-        $('#modal-trangthai').text(contractStatus); $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
-        $('#modal-tongtiet').text(Number.parseFloat(data.TongTiet).toFixed(2));
+        const contractStatus = hasContract ? 'Đã có hợp đồng' : 'Chưa có hợp đồng';        $('#modal-trangthai').text(contractStatus); $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
+        $('#modal-tongtiet').text(formatSoTiet(data.TongTiet));
         $('#modal-loaihopdong').text(data.loaiHopDong || 'Chưa xác định');
 
         // Enhanced: Display training program breakdown if available
@@ -1724,11 +1731,10 @@
                 <tbody>
           `;
 
-          enhancedData.trainingPrograms.forEach(program => {
-            tableHtml += `
+          enhancedData.trainingPrograms.forEach(program => {            tableHtml += `
               <tr>
                 <td><strong>${program.he_dao_tao}</strong></td>
-                <td>${program.SoTiet.toFixed(2)}</td>
+                <td>${formatSoTiet(program.SoTiet)}</td>
                 <td>${formatCurrency(program.TienMoiGiang)}</td>
                 <td>${formatCurrency(program.ThanhTien)}</td>
                 <td>${formatCurrency(program.Thue)}</td>
@@ -1740,8 +1746,7 @@
           // Add totals row
           tableHtml += `
                 <tr class="table-warning">
-                  <td><strong>Tổng cộng</strong></td>
-                  <td><strong>${enhancedData.totalFinancials.totalSoTiet.toFixed(2)}</strong></td>
+                  <td><strong>Tổng cộng</strong></td>                  <td><strong>${formatSoTiet(enhancedData.totalFinancials.totalSoTiet)}</strong></td>
                   <td>-</td>
                   <td><strong>${formatCurrency(enhancedData.totalFinancials.totalThanhTien)}</strong></td>
                   <td><strong>${formatCurrency(enhancedData.totalFinancials.totalThue)}</strong></td>
@@ -1756,8 +1761,7 @@
         } else {
           // Fallback: show simple summary when detailed data is not available
           tableContainer.html(`
-            <div class="alert alert-info">
-              Chi tiết theo chương trình đào tạo không khả dụng. Hiển thị tổng hợp:              <br><strong>Tổng số tiết:</strong> ${Number.parseFloat(fallbackData.TongTiet || 0).toFixed(2)}
+            <div class="alert alert-info">              Chi tiết theo chương trình đào tạo không khả dụng. Hiển thị tổng hợp:              <br><strong>Tổng số tiết:</strong> ${formatSoTiet(fallbackData.TongTiet || 0)}
               <br><strong>Tổng số tiền:</strong> ${formatCurrency(fallbackData.ThanhTien)}
               <br><strong>Tổng thuế:</strong> ${formatCurrency(fallbackData.Thue)}
               <br><strong>Tổng thực nhận:</strong> ${formatCurrency(fallbackData.ThucNhan)}

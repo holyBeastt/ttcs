@@ -208,11 +208,10 @@
                 <div class="teacher-detail">
                     <strong>Thời gian:</strong>
                     Đợt <%= dot %> - Kỳ <%= ki %> - Năm học <%= namHoc %>
-                </div>
-                <% if (teacherData.TongTiet) { %>
+                </div>                <% if (teacherData.TongTiet) { %>
                 <div class="teacher-detail">
                     <strong>Tổng số tiết:</strong>
-                    <%= teacherData.TongTiet.toFixed(2) %> tiết
+                    <%= teacherData.TongTiet % 1 === 0 ? teacherData.TongTiet.toFixed(2) : teacherData.TongTiet.toFixed(2).replace('.', ',') %> tiết
                 </div>
                 <% } %>
                 <% if (teacherData.ThucNhan) { %>
@@ -321,11 +320,10 @@
                         <div class="d-flex align-items-start">
                             <div class="flex-shrink-0">
                                 <i class="fas fa-file-alt fa-lg text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
+                            </div>                            <div class="flex-grow-1 ms-3">
                                 <h6 class="mb-1">Đồ án</h6>
                                 <div class="contract-meta">
-                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? teacherData.TongTiet.toFixed(2) : '0'} tiết</div>
+                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? formatSoTiet(teacherData.TongTiet) : '0'} tiết</div>
                                     <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
                                 </div>
                             </div>
@@ -344,11 +342,10 @@
                             <div class="d-flex align-items-start">
                                 <div class="flex-shrink-0">
                                     <i class="fas fa-graduation-cap fa-lg text-primary"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
+                                </div>                                <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1">${program.he_dao_tao}</h6>
                                     <div class="contract-meta">
-                                        <div><i class="fas fa-clock me-1"></i>${program.SoTiet ? program.SoTiet.toFixed(2) : '0'} tiết</div>
+                                        <div><i class="fas fa-clock me-1"></i>${program.SoTiet ? formatSoTiet(program.SoTiet) : '0'} tiết</div>
                                         <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(program.ThucNhan || 0)}</div>
                                     </div>
                                 </div>
@@ -369,11 +366,10 @@
                         <div class="d-flex align-items-start">
                             <div class="flex-shrink-0">
                                 <i class="fas fa-file-contract fa-lg text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
+                            </div>                            <div class="flex-grow-1 ms-3">
                                 <h6 class="mb-1">${contractType}</h6>
                                 <div class="contract-meta">
-                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? teacherData.TongTiet.toFixed(2) : '0'} tiết</div>
+                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? formatSoTiet(teacherData.TongTiet) : '0'} tiết</div>
                                     <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
                                 </div>
                             </div>
@@ -563,8 +559,7 @@
                 $(this).remove();
             });
         }
-        
-        // Currency formatting function
+          // Currency formatting function
         function formatCurrency(value) {
             if (typeof value === "number" && !isNaN(value)) {
                 return value.toLocaleString("vi-VN", {
@@ -573,6 +568,21 @@
                 });
             }
             return "0 ₫";
+        }
+
+        // Function to format "Số tiết" according to requirements
+        function formatSoTiet(value) {
+            const numValue = typeof value === "string" ? parseFloat(value) : value;
+            if (typeof numValue !== "number" || isNaN(numValue)) return "0.00";
+            
+            // Check if number is whole (even)
+            if (numValue % 1 === 0) {
+                // Whole number - use dot format
+                return numValue.toFixed(2);
+            } else {
+                // Decimal number - use comma format
+                return numValue.toFixed(2).replace('.', ',');
+            }
         }
     </script>
 </body>
