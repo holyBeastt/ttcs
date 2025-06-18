@@ -492,7 +492,7 @@ const previewSoHopDongMoiGiang = async (req, res) => {
           return {
             ...item,
             newSoHopDong: `${str}/HĐ-ĐT`,
-            newSoThanhLy: `${str}/TLHĐ-ĐT`
+            newSoThanhLy: `${str}/HĐNT-ĐT`
           };
         });
       });
@@ -727,7 +727,7 @@ const previewSoHopDongDoAn = async (req, res) => {
           return {
             ...item,
             newSoHopDong: `${str}/HĐ-ĐT`,
-            newSoThanhLy: `${str}/TLHĐ-ĐT`
+            newSoThanhLy: `${str}/HĐNT-ĐT`
           };
         });
       });

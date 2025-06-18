@@ -119,7 +119,7 @@
                           <div class="d-flex align-items-center">
                             <i class="fas fa-file-times text-info me-2"></i>
                             <span><strong>Số thanh lý tương ứng:</strong> <span
-                                id="terminationPreview">001/TLHĐ-ĐT</span></span>
+                                id="terminationPreview">001/HĐNT-ĐT</span></span>
                           </div>
                         </div>
                       </div>
@@ -158,7 +158,7 @@
                             </div>
                             <div>
                               <strong>Thanh lý:</strong> <span id="terminationExample"
-                                class="text-info">001/TLHĐ-ĐT</span>
+                                class="text-info">001/HĐNT-ĐT</span>
                             </div>
                           </div>
                         </div>
@@ -265,9 +265,9 @@
           const formattedNumber = String(startingNumber).padStart(3, '0');
 
           $('#contractPreview').text(`${formattedNumber}/HĐ-ĐT`);
-          $('#terminationPreview').text(`${formattedNumber}/TLHĐ-ĐT`);
+          $('#terminationPreview').text(`${formattedNumber}/HĐNT-ĐT`);
           $('#contractExample').text(`${formattedNumber}/HĐ-ĐT`);
-          $('#terminationExample').text(`${formattedNumber}/TLHĐ-ĐT`);
+          $('#terminationExample').text(`${formattedNumber}/HĐNT-ĐT`);
         }
 
         // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý cho đồ án
@@ -338,7 +338,7 @@
 
           // Dialog xác nhận chi tiết
           const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
-          const terminationExample = String(startingNumber).padStart(3, '0') + '/TLHĐ-ĐT';
+          const terminationExample = String(startingNumber).padStart(3, '0') + '/HĐNT-ĐT';
 
           Swal.fire({
             title: 'Xác nhận tạo số hợp đồng và số thanh lý đồ án',
