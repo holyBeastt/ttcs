@@ -283,7 +283,7 @@ const setupSoHopDongToanBo22 = async (req, res) => {
             throw new Error('Database row missing required MaHopDong field');
           }
 
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
 
           const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
           await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
@@ -491,7 +491,7 @@ const previewSoHopDongMoiGiang = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}/HĐ-ĐT`,
+            newSoHopDong: `${str}`,
             newSoThanhLy: `${str}/HĐNT-ĐT`
           };
         });
@@ -726,8 +726,8 @@ const previewSoHopDongDoAn = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}/HĐ-ĐT`,
-            newSoThanhLy: `${str}/HĐNT-ĐT`
+            newSoHopDong: `${str}`,
+            newSoThanhLy: `${str}`
           };
         });
       });
@@ -902,8 +902,8 @@ const setupSoHopDongDoAn22 = async (req, res) => {
         const group = groupedData[groupKey];
 
         for (const row of group) {
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
-          const soThanhLy = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
+          const soThanhLy = `${String(currentNumber).padStart(3, '0')}`;
 
           const updateQuery = `
             UPDATE exportdoantotnghiep 

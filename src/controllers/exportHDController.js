@@ -984,7 +984,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    let zipFileName = `TongHopHopDong_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
+    let zipFileName = `TongHopHopDong_GiangDay_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
 
     if (teacherName) {
       zipFileName += `_${teacherName}.zip`;
@@ -2273,7 +2273,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new Paragraph({
           children: [
             new TextRun({
-              text,
+              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
               bold: isBold,
               font: "Times New Roman",
               size: 22,
@@ -2299,7 +2299,6 @@ function createTransferDetailDocument(data = [], noiDung = "") {
 
     return new TableCell(cellConfig);
   }
-
   // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
     const cellConfig = {
@@ -2307,7 +2306,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new Paragraph({
           children: [
             new TextRun({
-              text,
+              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
               bold: isBold,
               font: "Times New Roman",
               size: 22,
@@ -2365,7 +2364,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell(row.SoHopDong, false, 1200), // Ô Số HĐ với width cố định
+              createCell((row.SoHopDong || '') + '/HĐ-ĐT', false, 1200), // Ô Số HĐ với width cố định
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
@@ -2421,9 +2420,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new TableCell({
           children: [
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: formattedTotalAmount,
+              children: [                new TextRun({
+                  text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
                   font: "Times New Roman",
                   size: 22,
                   color: "000000",
@@ -2560,9 +2558,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
-              }),
-              new TextRun({
-                text: `${noiDung}`,
+              }),              new TextRun({
+                text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",

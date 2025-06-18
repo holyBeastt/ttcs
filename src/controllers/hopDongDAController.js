@@ -557,7 +557,7 @@ GROUP BY
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
+    const zipFileName = `HopDong_DoAn_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
 
@@ -825,7 +825,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    let zipFileName = `TongHopHopDong_Dot${dot}_Ki${ki}_${namHoc}_DoAn`;
+    let zipFileName = `TongHopHopDong_DoAn_Dot${dot}_Ki${ki}_${namHoc}_DoAn`;
     if (teacherName) {
       zipFileName += `_${teacherName}.zip`;
     } else {
@@ -2028,15 +2028,14 @@ const exportBoSungDownloadData = async (req, res) => {
 };
 
 // Hàm tạo file thống kê chuyển khoản
-function createTransferDetailDocument(data = [], noiDung = "") {
-  // Hàm phụ trợ: tạo ô header
+function createTransferDetailDocument(data = [], noiDung = "") {  // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
     const cellConfig = {
       children: [
         new Paragraph({
           children: [
             new TextRun({
-              text,
+              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
               bold: isBold,
               font: "Times New Roman",
               size: 22,
@@ -2062,7 +2061,6 @@ function createTransferDetailDocument(data = [], noiDung = "") {
 
     return new TableCell(cellConfig);
   }
-
   // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
     const cellConfig = {
@@ -2070,7 +2068,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new Paragraph({
           children: [
             new TextRun({
-              text,
+              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
               bold: isBold,
               font: "Times New Roman",
               size: 22,
@@ -2128,7 +2126,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell(row.SoHopDong, false, 1200), // Ô Số HĐ với width cố định
+              createCell((row.SoHopDong || '') + '/HĐ-ĐT', false, 1200), // Ô Số HĐ với width cố định
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
@@ -2184,9 +2182,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new TableCell({
           children: [
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: formattedTotalAmount,
+              children: [                new TextRun({
+                  text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
                   font: "Times New Roman",
                   size: 22,
                   color: "000000",
@@ -2323,9 +2320,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
-              }),
-              new TextRun({
-                text: `${noiDung}`,
+              }),              new TextRun({
+                text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
