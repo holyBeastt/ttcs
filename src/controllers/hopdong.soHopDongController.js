@@ -92,14 +92,13 @@ const getHopDongList = async (req, res) => {
     if (teacherName && teacherName.trim() !== "") {
       query += ` AND hd.HoTen LIKE ?`;
       params.push(`%${teacherName}%`);
-    }
-
-    // GROUP BY đúng y hệt exportMultipleContracts
+    }    // GROUP BY đúng y hệt exportMultipleContracts
     query += `
       GROUP BY
         hd.CCCD,
         hd.id_Gvm,
-        hd.HoTen
+        hd.HoTen,
+        hd.he_dao_tao
     `;
 
 
@@ -453,9 +452,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
         SELECT *
         FROM hopdonggvmoi
         ${whereConditions}
-      ) hd
-      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
-      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen
+      ) hd      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen, hd.he_dao_tao
       ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
     `;
 
@@ -492,7 +490,7 @@ const previewSoHopDongMoiGiang = async (req, res) => {
           return {
             ...item,
             newSoHopDong: `${str}`,
-            newSoThanhLy: `${str}/HĐNT-ĐT`
+            newSoThanhLy: `${str}`
           };
         });
       });

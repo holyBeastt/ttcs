@@ -220,9 +220,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     const titleRow2 = summarySheet.addRow(["Phụ lục"]);
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
-
-    const titleRow3 = summarySheet.addRow([`Hợp đồng số:    /HĐ-ĐT `]);
+    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);    const titleRow3 = summarySheet.addRow([`Hợp đồng số:     /HĐ-ĐT `]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow3.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
@@ -482,19 +480,19 @@ const getExportPhuLucGiangVienMoiPath = async (
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
-
-      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
+      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
       const earliestDate = giangVienData.reduce((minDate, item) => {
         const currentStartDate = new Date(item.NgayBatDau);
         return currentStartDate < minDate ? currentStartDate : minDate;
       }, new Date(giangVienData[0].NgayBatDau));
 
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate = formatVietnameseDate(earliestDate);
+      const formattedEarliestDate = formatVietnameseDate(earliestDate);      // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
+      const soHopDong = giangVienData[0]?.SoHopDong || '';
+      const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       const titleRow3 = worksheet.addRow([
-        `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate}`,
+        `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`,
       ]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
@@ -781,16 +779,16 @@ const getExportPhuLucGiangVienMoiPath = async (
       const titleRow2_2 = worksheet2.addRow(["Phụ lục"]);
       titleRow2_2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2_2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);
-
-      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
+      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
       const earliestDate_2 = giangVienData.reduce((minDate, item) => {
         const currentStartDate = new Date(item.NgayBatDau);
         return currentStartDate < minDate ? currentStartDate : minDate;
       }, new Date(giangVienData[0].NgayBatDau));
 
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);
+      const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);      // Lấy SoHopDong từ dữ liệu giảng viên
+      const soHopDong_2 = giangVienData[0]?.SoHopDong || '';
+      const soThanhLyHopDong_2 = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // const titleRow3_2 = worksheet2.addRow([
       //   `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate_2}`,
@@ -800,7 +798,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
 
       const titleRow4_2 = worksheet2.addRow([
-        `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate_2}`,
+        `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}/HĐ-ĐT ${formattedEarliestDate_2}`,
       ]);
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4_2.alignment = { horizontal: "center", vertical: "middle" };
@@ -1092,9 +1090,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         success: false,
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
-    }
-
-    let query = `
+    }    let query = `
       WITH 
     phuLucSauDH AS (
         SELECT DISTINCT
@@ -1105,6 +1101,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc AS HocKy,
             gv.HocVi, 
             gv.HSL,
+            gv.CCCD,
             qc.NgayBatDau, 
             qc.NgayKetThuc,
             gv.DiaChi,
@@ -1127,6 +1124,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc AS HocKy,
             gv.HocVi, 
             gv.HSL,
+            gv.CCCD,
             qc.NgayBatDau, 
             qc.NgayKetThuc,
             gv.DiaChi,
@@ -1144,20 +1142,23 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         SELECT * FROM phuLucSauDH
         UNION
         SELECT * FROM phuLucDH
-    )
-
-    SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao=?
+    )    SELECT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
+    FROM table_ALL t
+    LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
+        AND t.Dot = hd.Dot 
+        AND t.KiHoc = hd.KiHoc 
+        AND t.NamHoc = hd.NamHoc
+        AND t.he_dao_tao = hd.he_dao_tao
+    WHERE t.Dot = ? AND t.KiHoc = ? AND t.NamHoc = ? AND t.he_dao_tao = ?
     `;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
-
-    if (khoa && khoa !== "ALL") {
-      query += ` AND Khoa = ?`;
+    let params = [dot, ki, namHoc, loaiHopDong];    if (khoa && khoa !== "ALL") {
+      query += ` AND t.Khoa = ?`;
       params.push(khoa);
     }
 
     if (teacherName) {
-      query += ` AND GiangVien LIKE ?`;
+      query += ` AND t.GiangVien LIKE ?`;
       params.push(`%${teacherName}%`);
     }
 
