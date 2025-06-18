@@ -564,7 +564,7 @@ const exportMultipleContracts = async (req, res) => {
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
+    const zipFileName = `HopDong_GiangDay_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
       }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);

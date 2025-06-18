@@ -1059,7 +1059,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       fs.mkdirSync(tempDir, { recursive: true });
     }
     // Tạo tên file
-    let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc}`;
+    let fileName = `PhuLuc_GiangDay_Dot${dot}_Ki${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
