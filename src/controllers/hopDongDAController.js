@@ -721,6 +721,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const filePathAppendix =
         await exportPhuLucDAController.getExportPhuLucDAPath(
           req,
+          res,
           connection,
           dot,
           ki,
@@ -878,7 +879,10 @@ const generateAdditionalFile = async (teacher, tempDir) => {
 
   const documentFile = files.find((f) => {
     const baseName = path.parse(f).name; // Lấy tên file không có phần mở rộng
-    const ext = path.extname(f).toLowerCase().slice(1); // Lấy phần mở rộng không có dấu chấm
+    // const ext = path.extname(f).toLowerCase().slice(1); // Lấy phần mở rộng không có dấu chấm
+    const ext =
+      f && typeof f === "string" ? path.extname(f).toLowerCase().slice(1) : "";
+
     return (
       baseName === `${teacher.MaPhongBan}_${teacher.HoTen}` &&
       allowedExtensions.includes(ext)
