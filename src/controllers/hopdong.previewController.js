@@ -427,6 +427,8 @@ const previewContract = async (req, res) => {
 
     // Prepare data for template
     const data = {
+      Số_hợp_đồng: "       ",
+      Số_thanh_lý: "       ",
       Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: teacher.GioiTinh === "Nam" ? "Ông" : "Bà",

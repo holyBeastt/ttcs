@@ -2268,18 +2268,28 @@ const exportImageDownloadData = async (req, res) => {
 function createTransferDetailDocument(data = [], noiDung = "") {
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
+    // Xử lý xuống dòng bằng cách tách text theo \n
+    const textLines = (text || '').split('\n');
+    const textRuns = [];
+    
+    textLines.forEach((line, index) => {
+      if (index > 0) {
+        // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
+        textRuns.push(new TextRun({ break: 1 }));
+      }
+      textRuns.push(new TextRun({
+        text: line,
+        bold: isBold,
+        font: "Times New Roman",
+        size: 22,
+        color: "000000",
+      }));
+    });
+
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [
-            new TextRun({
-              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
-              bold: isBold,
-              font: "Times New Roman",
-              size: 22,
-              color: "000000",
-            }),
-          ],
+          children: textRuns,
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2298,21 +2308,30 @@ function createTransferDetailDocument(data = [], noiDung = "") {
     }
 
     return new TableCell(cellConfig);
-  }
-  // Hàm phụ trợ: tạo ô bình thường
+  }  // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
+    // Xử lý xuống dòng bằng cách tách text theo \n
+    const textLines = (text || '').split('\n');
+    const textRuns = [];
+    
+    textLines.forEach((line, index) => {
+      if (index > 0) {
+        // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
+        textRuns.push(new TextRun({ break: 1 }));
+      }
+      textRuns.push(new TextRun({
+        text: line,
+        bold: isBold,
+        font: "Times New Roman",
+        size: 22,
+        color: "000000",
+      }));
+    });
+
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [
-            new TextRun({
-              text: text || '',  // Thay thế null/undefined bằng chuỗi rỗng
-              bold: isBold,
-              font: "Times New Roman",
-              size: 22,
-              color: "000000",
-            }),
-          ],
+          children: textRuns,
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2344,27 +2363,24 @@ function createTransferDetailDocument(data = [], noiDung = "") {
   }
 
   // Hàm tạo bảng chi tiết
-  function createDetailTable(data) {
-    const headerRow = new TableRow({
+  function createDetailTable(data) {    const headerRow = new TableRow({
       tableHeader: true,
       children: [
         createHeaderCell("STT", true),
-        createHeaderCell("Số HĐ", true, 1200), // Đặt width cố định 1200 twips cho cột Số HĐ
+        createHeaderCell("Số HĐ", true, 1950), // Đặt width cố định 1950 twips cho cột Số HĐ (tăng 50px)
         createHeaderCell("Đơn vị thụ hưởng\n(hoặc cá nhân)", true),
         createHeaderCell("Mã số thuế", true),
         createHeaderCell("Số tài khoản", true),
         createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
         createHeaderCell("Số tiền (VNĐ)", true),
       ],
-    });
-
-    const dataRows = data.length
+    });    const dataRows = data.length
       ? data.map(
         (row, idx) =>
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '/HĐ-ĐT', false, 1200), // Ô Số HĐ với width cố định
+              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
@@ -2378,7 +2394,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
           new TableRow({
             children: [
               createCell(""), // STT
-              createCell("", false, 1200), // Số HĐ với width cố định
+              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
               createCell(""), // Đơn vị thụ hưởng
               createCell(""), // Mã số thuế
               createCell(""), // Số tài khoản
