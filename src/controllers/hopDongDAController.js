@@ -468,8 +468,8 @@ GROUP BY
       });
 
       const data = {
-        Số_hợp_đồng: teacher.SoHopDong,
-        Số_thanh_lý: teacher.SoThanhLyHopDong,
+        Số_hợp_đồng: teacher.SoHopDong || "    ",
+        Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: danhXung,

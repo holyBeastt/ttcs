@@ -473,8 +473,8 @@ const exportMultipleContracts = async (req, res) => {
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       const data = {
-        Số_hợp_đồng: teacher.SoHopDong,
-        Số_thanh_lý: teacher.SoThanhLyHopDong,
+        Số_hợp_đồng: teacher.SoHopDong || "    ",
+        Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
