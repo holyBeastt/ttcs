@@ -473,8 +473,8 @@ const exportMultipleContracts = async (req, res) => {
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
       const data = {
-        Số_hợp_đồng: teacher.SoHopDong,
-        Số_thanh_lý: teacher.SoThanhLyHopDong,
+        Số_hợp_đồng: teacher.SoHopDong || "    ",
+        Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
         Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
         Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
         Danh_xưng: teacher.DanhXung,
@@ -564,7 +564,7 @@ const exportMultipleContracts = async (req, res) => {
       zlib: { level: 9 },
     });
 
-    const zipFileName = `HopDong_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
+    const zipFileName = `HopDong_GiangDay_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"
       }.zip`;
     const zipPath = path.join(tempDir, zipFileName);
     const output = fs.createWriteStream(zipPath);
@@ -984,7 +984,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
     }
 
     // Tạo file ZIP tổng hợp chứa tất cả file ZIP của giảng viên
-    let zipFileName = `TongHopHopDong_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
+    let zipFileName = `TongHopHopDong_GiangDay_Dot${dot}_Ki${ki}_${namHoc}_${loaiHopDong}`;
 
     if (teacherName) {
       zipFileName += `_${teacherName}.zip`;
@@ -2268,18 +2268,28 @@ const exportImageDownloadData = async (req, res) => {
 function createTransferDetailDocument(data = [], noiDung = "") {
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
+    // Xử lý xuống dòng bằng cách tách text theo \n
+    const textLines = (text || '').split('\n');
+    const textRuns = [];
+    
+    textLines.forEach((line, index) => {
+      if (index > 0) {
+        // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
+        textRuns.push(new TextRun({ break: 1 }));
+      }
+      textRuns.push(new TextRun({
+        text: line,
+        bold: isBold,
+        font: "Times New Roman",
+        size: 22,
+        color: "000000",
+      }));
+    });
+
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [
-            new TextRun({
-              text,
-              bold: isBold,
-              font: "Times New Roman",
-              size: 22,
-              color: "000000",
-            }),
-          ],
+          children: textRuns,
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2298,25 +2308,30 @@ function createTransferDetailDocument(data = [], noiDung = "") {
     }
 
     return new TableCell(cellConfig);
-  }
-
-  // Hàm phụ trợ: tạo ô bình thường
+  }  // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
-    // Đảm bảo text không bao giờ là null hoặc undefined
-    const safeText = text || "";
+    // Xử lý xuống dòng bằng cách tách text theo \n
+    const textLines = (text || '').split('\n');
+    const textRuns = [];
     
+    textLines.forEach((line, index) => {
+      if (index > 0) {
+        // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
+        textRuns.push(new TextRun({ break: 1 }));
+      }
+      textRuns.push(new TextRun({
+        text: line,
+        bold: isBold,
+        font: "Times New Roman",
+        size: 22,
+        color: "000000",
+      }));
+    });
+
     const cellConfig = {
       children: [
         new Paragraph({
-          children: [
-            new TextRun({
-              text: safeText, // Sử dụng safeText thay vì text
-              bold: isBold,
-              font: "Times New Roman",
-              size: 22,
-              color: "000000",
-            }),
-          ],
+          children: textRuns,
           alignment: AlignmentType.CENTER,
         }),
       ],
@@ -2348,27 +2363,24 @@ function createTransferDetailDocument(data = [], noiDung = "") {
   }
 
   // Hàm tạo bảng chi tiết
-  function createDetailTable(data) {
-    const headerRow = new TableRow({
+  function createDetailTable(data) {    const headerRow = new TableRow({
       tableHeader: true,
       children: [
         createHeaderCell("STT", true),
-        createHeaderCell("Số HĐ", true, 1200), // Đặt width cố định 1200 twips cho cột Số HĐ
+        createHeaderCell("Số HĐ", true, 1950), // Đặt width cố định 1950 twips cho cột Số HĐ (tăng 50px)
         createHeaderCell("Đơn vị thụ hưởng\n(hoặc cá nhân)", true),
         createHeaderCell("Mã số thuế", true),
         createHeaderCell("Số tài khoản", true),
         createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
         createHeaderCell("Số tiền (VNĐ)", true),
       ],
-    });
-
-    const dataRows = data.length
+    });    const dataRows = data.length
       ? data.map(
         (row, idx) =>
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell(row.SoHopDong || "", false, 1200),
+              createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
@@ -2382,7 +2394,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
           new TableRow({
             children: [
               createCell(""), // STT
-              createCell("", false, 1200), // Số HĐ với width cố định
+              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
               createCell(""), // Đơn vị thụ hưởng
               createCell(""), // Mã số thuế
               createCell(""), // Số tài khoản
@@ -2424,9 +2436,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new TableCell({
           children: [
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: formattedTotalAmount,
+              children: [                new TextRun({
+                  text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
                   font: "Times New Roman",
                   size: 22,
                   color: "000000",
@@ -2563,9 +2574,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
-              }),
-              new TextRun({
-                text: `${noiDung}`,
+              }),              new TextRun({
+                text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",

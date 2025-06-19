@@ -257,7 +257,7 @@ const getDuyetHopDongData = async (req, res) => {
         const [sotietResult] = await connection.query(`SELECT GiangDay FROM sotietdinhmuc LIMIT 1`);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
 
-       
+        // console.log(enhancedGroupedByTeacher);
         return res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher,
@@ -631,9 +631,18 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
                     gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen
-            `;
+            `;            const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
 
-            const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
+            // Debug: Check HSL in database results
+            if (teacherDetails.length > 0) {
+                console.log('Database HSL Debug for first teacher:', {
+                    teacher: teacherDetails[0].HoTen,
+                    HSL: teacherDetails[0].HSL,
+                    HSLType: typeof teacherDetails[0].HSL,
+                    HSLNull: teacherDetails[0].HSL === null,
+                    HSLUndefined: teacherDetails[0].HSL === undefined
+                });
+            }
 
             // Add teacher details to the training program data
             enhancedResults.push({

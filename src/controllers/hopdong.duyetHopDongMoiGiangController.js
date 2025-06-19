@@ -236,8 +236,7 @@ const getDuyetHopDongData22 = async (req, res) => {
         // Enhanced grouping: Group by teacher and training program to show detailed breakdown
         const groupedByTeacher = results.reduce((acc, current) => {
             const teacher = current.HoTen;
-            if (!acc[teacher]) {
-                acc[teacher] = {
+            if (!acc[teacher]) {                acc[teacher] = {
                     teacherInfo: {
                         id_Gvm: current.id_Gvm,
                         HoTen: current.HoTen,
@@ -368,14 +367,18 @@ const getDuyetHopDongData22 = async (req, res) => {
         let totalQC = 0;
         let totalThanhTienAll = 0;
         let totalThueAll = 0;
-        let totalThucNhanAll = 0;
-
-        Object.values(sortedEnhancedGroupedByTeacher).forEach(teacherData => {
+        let totalThucNhanAll = 0;        Object.values(sortedEnhancedGroupedByTeacher).forEach(teacherData => {
             totalQC += teacherData.totalFinancials.totalSoTiet;
             totalThanhTienAll += teacherData.totalFinancials.totalThanhTien;
             totalThueAll += teacherData.totalFinancials.totalThue;
             totalThucNhanAll += teacherData.totalFinancials.totalThucNhan;
         });
+
+        // Debug log HSL data for MoiGiang contracts
+        console.log('[MoiGiang Backend] HSL data sample:', Object.keys(sortedEnhancedGroupedByTeacher).slice(0, 3).map(teacherName => ({
+            teacher: teacherName,
+            HSL: sortedEnhancedGroupedByTeacher[teacherName].teacherInfo.HSL
+        })));
 
         res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,

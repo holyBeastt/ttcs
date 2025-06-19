@@ -92,14 +92,13 @@ const getHopDongList = async (req, res) => {
     if (teacherName && teacherName.trim() !== "") {
       query += ` AND hd.HoTen LIKE ?`;
       params.push(`%${teacherName}%`);
-    }
-
-    // GROUP BY đúng y hệt exportMultipleContracts
+    }    // GROUP BY đúng y hệt exportMultipleContracts
     query += `
       GROUP BY
         hd.CCCD,
         hd.id_Gvm,
-        hd.HoTen
+        hd.HoTen,
+        hd.he_dao_tao
     `;
 
 
@@ -283,7 +282,7 @@ const setupSoHopDongToanBo22 = async (req, res) => {
             throw new Error('Database row missing required MaHopDong field');
           }
 
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
 
           const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
           await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
@@ -453,9 +452,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
         SELECT *
         FROM hopdonggvmoi
         ${whereConditions}
-      ) hd
-      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
-      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen
+      ) hd      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen, hd.he_dao_tao
       ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
     `;
 
@@ -491,8 +489,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}/HĐ-ĐT`,
-            newSoThanhLy: `${str}/TLHĐ-ĐT`
+            newSoHopDong: `${str}`,
+            newSoThanhLy: `${str}`
           };
         });
       });
@@ -726,8 +724,8 @@ const previewSoHopDongDoAn = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}/HĐ-ĐT`,
-            newSoThanhLy: `${str}/TLHĐ-ĐT`
+            newSoHopDong: `${str}`,
+            newSoThanhLy: `${str}`
           };
         });
       });
@@ -902,8 +900,8 @@ const setupSoHopDongDoAn22 = async (req, res) => {
         const group = groupedData[groupKey];
 
         for (const row of group) {
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
-          const soThanhLy = `${String(currentNumber).padStart(3, '0')}/TLHĐ-ĐT`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
+          const soThanhLy = `${String(currentNumber).padStart(3, '0')}`;
 
           const updateQuery = `
             UPDATE exportdoantotnghiep 

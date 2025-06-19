@@ -999,11 +999,10 @@
                 <div class="summary-item">
                   <i class="fas fa-users me-1"></i>
                   <span class="summary-value">${giangVienList.length}</span> giảng viên
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-clock me-1"></i>
-                  <span class="summary-value">${Number.parseFloat(heDaoTao.SoTiet).toFixed(2)}</span> tiết
                 </div>                <div class="summary-item">
+                  <i class="fas fa-clock me-1"></i>
+                  <span class="summary-value">${formatSoTiet(heDaoTao.SoTiet)}</span> tiết
+                </div><div class="summary-item">
                   <i class="fas fa-money-bill-wave me-1"></i>
                   Số tiền: <span class="summary-value">${formatCurrency(heDaoTao.ThanhTien)}</span>
                 </div>
@@ -1050,12 +1049,11 @@
                 <td>${index + 1}</td>
                 <td>${gv.GioiTinh && gv.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà"}</td>
                 <td><strong>${gv.HoTen}</strong></td>
-                <td>${gv.MaPhongBan || gv.TenPhongBan || 'N/A'}</td>
-                <td>${gv.HocVi || 'N/A'}</td>
+                <td>${gv.MaPhongBan || gv.TenPhongBan || 'N/A'}</td>                <td>${gv.HocVi || 'N/A'}</td>
                 <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
-                <td>${Number.parseFloat(gv.SoTiet).toFixed(2)}</td>
+                <td>${formatSoTiet(gv.SoTiet)}</td>
                 <td>${formatCurrency(gv.ThanhTien)}</td>                <td>${formatCurrency(gv.Thue || (parseFloat(gv.ThanhTien) || 0) * 0.1)}</td>
-                <td>${formatCurrency(gv.ThucNhan)}</td>                <td class="contract-tcduyet-cell-hedaotao">
+                <td>${formatCurrency(gv.ThucNhan)}</td><td class="contract-tcduyet-cell-hedaotao">
                   ${getApprovalStatus(gv.TaiChinhDuyet)}
                 </td><td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${encodeURIComponent(heDaoTao.he_dao_tao)}">
                   Đang tải...
@@ -1073,13 +1071,12 @@
             tbody.append(teacherRow);
           });
 
-          container.append(groupContainer);
-        });        // Update total display
+          container.append(groupContainer);        });        // Update total display
         const totalElement = document.getElementById("totalHeDaoTao");
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
@@ -1163,9 +1160,8 @@
               <td>${gv.GioiTinh && gv.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà"}</td>
               <td><strong>${gv.HoTen}</strong></td>
               <td>${gv.TenPhongBan || 'N/A'}</td>
-              <td>${gv.HocVi || 'N/A'}</td>
-              <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
-              <td>${Number.parseFloat(gv.SoTiet).toFixed(2)}</td>
+              <td>${gv.HocVi || 'N/A'}</td>              <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
+              <td>${formatSoTiet(gv.SoTiet)}</td>
               <td>${formatCurrency(gv.ThanhTien)}</td>
               <td>${formatCurrency(gv.ThucNhan)}</td>
               <td>
@@ -1342,9 +1338,7 @@
             totalThanhTienAll += parseFloat(totalThanhTien) || 0;
             totalThueAll += parseFloat(totalThue) || 0;
             totalThucNhanAll += parseFloat(totalThucNhan) || 0;
-          }
-
-          // Create a merged data object and store it globally
+          }          // Create a merged data object and store it globally
           const mergedData = {
             STT: rowIndex,
             TongTiet: totalTeacherHours,
@@ -1363,6 +1357,7 @@
             NoiCapCCCD: teacherData.NoiCapCCCD,
             HocVi: teacherData.HocVi,
             ChucVu: teacherData.ChucVu,
+            HSL: teacherData.HSL || 1.0, // Add HSL with fallback to 1.0 if null
             DienThoai: teacherData.DienThoai,
             Email: teacherData.Email,
             STK: teacherData.STK,
@@ -1386,6 +1381,13 @@
             Ki: $('#comboboxki').val(),
             NamHoc: $('#NamHoc').val()
           };
+
+          // Debug log HSL for Moi Giang contracts
+          console.log(`[MoiGiang] HSL for ${teacherName}:`, {
+            originalHSL: teacherData.HSL,
+            finalHSL: mergedData.HSL,
+            teacherData: teacherData
+          });
 
           // Store for modal access
           window.teacherDetailData[teacherName] = mergedData;
@@ -1419,13 +1421,12 @@
               } else if (enhancedData && enhancedData.trainingPrograms && enhancedData.trainingPrograms.length === 1) {
                 return formatCurrency(enhancedData.trainingPrograms[0].TienMoiGiang);
               } else if (mergedData.TienMoiGiang && mergedData.TienMoiGiang > 0) {
-                return formatCurrency(mergedData.TienMoiGiang);
-              } else {
+                return formatCurrency(mergedData.TienMoiGiang);              } else {
                 return 'N/A';
               }
             })()}</td>
-              <td>${Number.parseFloat(mergedData.TongTiet).toFixed(2)}</td>
-              <td>${formatCurrency(mergedData.ThanhTien)}</td>              <td>${formatCurrency(mergedData.Thue)}</td>
+              <td>${formatSoTiet(mergedData.TongTiet)}</td>
+              <td>${formatCurrency(mergedData.ThanhTien)}</td><td>${formatCurrency(mergedData.Thue)}</td>
               <td>${formatCurrency(mergedData.ThucNhan)}</td>              <td class="contract-tcduyet-cell">
                 ${getApprovalStatus(mergedData.TaiChinhDuyet)}
               </td><td class="contract-status-cell" data-teacher="${encodeURIComponent(teacherName)}">
@@ -1450,14 +1451,13 @@
           summaryTbody.append(summaryRow);
           rowIndex++;
         });        // Update total display
-        const totalElement = document.getElementById("totalQC");
-        totalElement.innerHTML = `
-          <div class="row">            <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+        const totalElement = document.getElementById("totalQC");        totalElement.innerHTML = `
+          <div class="row">            <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
             <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
             <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
             <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
           </div>
-        `;        // Display quota information
+        `;// Display quota information
         if (SoTietDinhMuc > 0) {
           $('#quotaInfo').html(`
             <div class="alert alert-info">
@@ -1470,9 +1470,7 @@
         // Check user permissions to show/hide action column after data is loaded
         checkUserPermissions();        // Load only contract status - use TaiChinhDuyet from loaded data
         loadContractStatusForTeachers();
-      }
-
-      // Currency formatting function
+      }      // Currency formatting function
       function formatCurrency(value) {
         if (typeof value === "number" && !isNaN(value)) {
           return value.toLocaleString("vi-VN", {
@@ -1481,7 +1479,22 @@
           });
         }
         return "0 ₫";
-      }      // Filter table based on search input - for teacher view
+      }
+
+      // Function to format "Số tiết" according to requirements
+      function formatSoTiet(value) {
+        const numValue = typeof value === "string" ? parseFloat(value) : value;
+        if (typeof numValue !== "number" || isNaN(numValue)) return "0.00";
+        
+        // Check if number is whole (even)
+        if (numValue % 1 === 0) {
+          // Whole number - use dot format
+          return numValue.toFixed(2);
+        } else {
+          // Decimal number - use comma format
+          return numValue.toFixed(2).replace('.', ',');
+        }
+      }// Filter table based on search input - for teacher view
       function filterTable() {
         const searchText = $('#searchGiangVien').val().toLowerCase();
 
@@ -1531,14 +1544,12 @@
           } else {
             row.hide();
           }
-        });
-
-        // Update total display for teacher view
+        });        // Update total display for teacher view
         const totalElement = document.getElementById("totalQC");
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết QC: ${totalQC.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
@@ -1598,14 +1609,12 @@
           } else {
             group.hide();
           }
-        });
-
-        // Update total display for training program view
+        });        // Update total display for training program view
         const totalElement = document.getElementById("totalHeDaoTao");
         if (totalElement) {
           totalElement.innerHTML = `
             <div class="row">
-              <div class="col-md-3">Tổng số tiết: ${totalSoTiet.toFixed(2)}</div>
+              <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
               <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
@@ -1653,10 +1662,8 @@
         const hasContract = data.SoHopDong && data.SoHopDong.trim() !== '';
         const contractStatus = hasContract ?
           '<span class="badge bg-success">Đã có hợp đồng</span>' :
-          '<span class="badge bg-warning">Chưa có hợp đồng</span>';
-
-        $('#modal-trangthai').html(contractStatus); $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
-        $('#modal-tongtiet').text(Number.parseFloat(data.TongTiet).toFixed(2));
+          '<span class="badge bg-warning">Chưa có hợp đồng</span>';        $('#modal-trangthai').html(contractStatus); $('#modal-sohopdong').text(data.SoHopDong || 'Chưa có');
+        $('#modal-tongtiet').text(formatSoTiet(data.TongTiet));
         $('#modal-loaihopdong').text(data.loaiHopDong || 'Chưa xác định');
 
         // Enhanced: Display training program breakdown if available
@@ -1721,24 +1728,21 @@
                 <tbody>
           `;
 
-          enhancedData.trainingPrograms.forEach(program => {
-            tableHtml += `
+          enhancedData.trainingPrograms.forEach(program => {            tableHtml += `
               <tr>
                 <td><strong>${program.he_dao_tao}</strong></td>
-                <td>${program.SoTiet.toFixed(2)}</td>
+                <td>${formatSoTiet(program.SoTiet)}</td>
                 <td>${formatCurrency(program.TienMoiGiang)}</td>
                 <td>${formatCurrency(program.ThanhTien)}</td>
                 <td>${formatCurrency(program.Thue)}</td>
                 <td>${formatCurrency(program.ThucNhan)}</td>
               </tr>
             `;
-          });
-
-          // Add totals row
+          });          // Add totals row
           tableHtml += `
                 <tr class="table-warning">
                   <td><strong>Tổng cộng</strong></td>
-                  <td><strong>${enhancedData.totalFinancials.totalSoTiet.toFixed(2)}</strong></td>
+                  <td><strong>${formatSoTiet(enhancedData.totalFinancials.totalSoTiet)}</strong></td>
                   <td>-</td>
                   <td><strong>${formatCurrency(enhancedData.totalFinancials.totalThanhTien)}</strong></td>
                   <td><strong>${formatCurrency(enhancedData.totalFinancials.totalThue)}</strong></td>
@@ -1750,11 +1754,10 @@
           `;
 
           tableContainer.html(tableHtml);
-        } else {
-          // Fallback: show simple summary when detailed data is not available
+        } else {          // Fallback: show simple summary when detailed data is not available
           tableContainer.html(`
             <div class="alert alert-info">
-              Chi tiết theo chương trình đào tạo không khả dụng. Hiển thị tổng hợp:              <br><strong>Tổng số tiết:</strong> ${Number.parseFloat(fallbackData.TongTiet || 0).toFixed(2)}
+              Chi tiết theo chương trình đào tạo không khả dụng. Hiển thị tổng hợp:              <br><strong>Tổng số tiết:</strong> ${formatSoTiet(fallbackData.TongTiet || 0)}
               <br><strong>Tổng số tiền:</strong> ${formatCurrency(fallbackData.ThanhTien)}
               <br><strong>Tổng thuế:</strong> ${formatCurrency(fallbackData.Thue)}
               <br><strong>Tổng thực nhận:</strong> ${formatCurrency(fallbackData.ThucNhan)}
@@ -2071,6 +2074,12 @@
           return;
         }
 
+        // Debug log HSL before sending to preview
+        console.log(`[MoiGiang Preview] HSL for ${decodedName}:`, {
+          HSL: teacherData.HSL,
+          teacherData: teacherData
+        });
+
         // Use API to show preview page instead of form submission
         const requestData = {
           teacherData: JSON.stringify(teacherData),
@@ -2102,7 +2111,7 @@
             console.error('Preview error:', error);
             showError('Không thể mở trang xem trước hợp đồng');
           });
-      } function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
+      }function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
         const decodedTeacherName = decodeURIComponent(teacherName);
         const decodedHeDaoTao = decodeURIComponent(heDaoTaoName);
 
@@ -2139,6 +2148,7 @@
           ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
           Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
           ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
+          HSL: teacherData.HSL || 1.0, // Add HSL with fallback
           hasEnhancedData: true,
           trainingPrograms: [{
             he_dao_tao: decodedHeDaoTao,
@@ -2149,6 +2159,13 @@
             TienMoiGiang: parseFloat(teacherData.TienMoiGiang) || 0
           }]
         };
+
+        // Debug log HSL before sending to preview
+        console.log(`[MoiGiang HeDaoTao Preview] HSL for ${decodedTeacherName}:`, {
+          originalHSL: teacherData.HSL,
+          finalHSL: enhancedTeacherData.HSL,
+          enhancedTeacherData: enhancedTeacherData
+        });
 
         // Prepare data for API call
         const requestData = {
