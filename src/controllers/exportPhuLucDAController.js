@@ -203,13 +203,16 @@ const getExportPhuLucDAPath = async (
       }, new Date(giangVienData[0].NgayBatDau));
 
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate = formatVietnameseDate(earliestDate);
-
-      // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
+      const formattedEarliestDate = formatVietnameseDate(earliestDate);      // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
       const soHopDong = giangVienData[0]?.SoHopDong || '';
 
+      // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+        ? `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+        : `Hợp đồng số:      /HĐ-ĐT ${formattedEarliestDate}`;
+
       const titleRow3 = worksheet.addRow([
-        `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`,
+        contractNumber,
       ]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
@@ -516,13 +519,16 @@ const getExportPhuLucDAPath = async (
       // ]);
       // titleRow3_2.font = { name: "Times New Roman", bold: true, size: 16 };
       // titleRow3_2.alignment = { horizontal: "center", vertical: "middle" };
-      // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
-
-      // Lấy SoThanhLyHopDong từ dữ liệu giảng viên
+      // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);      // Lấy SoThanhLyHopDong từ dữ liệu giảng viên
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
+      // Xử lý soThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const verificationContractNumber = soThanhLyHopDong && soThanhLyHopDong.trim() !== '' 
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+        : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate}`;
+
       const titleRow4_2 = worksheet2.addRow([
-        `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong}/HĐ-ĐT ${formattedEarliestDate}`,
+        verificationContractNumber,
       ]);
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4_2.alignment = { horizontal: "center", vertical: "middle" };
@@ -811,19 +817,25 @@ const getExportPhuLucDAPath = async (
     summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
-
-    // Lấy SoHopDong từ dữ liệu đầu tiên để hiển thị trong tổng hợp
+    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);    // Lấy SoHopDong từ dữ liệu đầu tiên để hiển thị trong tổng hợp
     const firstSoHopDong = data[0]?.SoHopDong || '';
     const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
 
-    const titleRow3 = summarySheet.addRow([`Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `]);
+    // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+      ? `Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `
+      : `Hợp đồng số:             /HĐ-ĐT `;    const titleRow3 = summarySheet.addRow([summaryContractNumber]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow3.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
+    // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+      ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}/HĐ-ĐT `
+      : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT `;
+
     const titleRow4 = summarySheet.addRow([
-      `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}/HĐ-ĐT `,
+      summaryVerificationNumber,
     ]);
     titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow4.alignment = { horizontal: "center", vertical: "middle" };

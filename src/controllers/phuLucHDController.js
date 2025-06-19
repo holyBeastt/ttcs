@@ -215,18 +215,32 @@ const getExportPhuLucGiangVienMoiPath = async (
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
     titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle", horizontal: "center" };
-    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);
-
-    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
+    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);    const titleRow3 = summarySheet.addRow([`Hợp đồng số:     /HĐ-ĐT `]);
+    summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
+
+    // Lấy SoHopDong và SoThanhLyHopDong từ dữ liệu đầu tiên để hiển thị trong tổng hợp
+    const firstSoHopDong = data[0]?.SoHopDong || '';
+    const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
+
+    // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+      ? `Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `
+      : `Hợp đồng số:             /HĐ-ĐT `;
+
+    const titleRow3 = summarySheet.addRow([summaryContractNumber]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow3.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
+    // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+      ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}/HĐ-ĐT `
+      : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT `;
+
     const titleRow4 = summarySheet.addRow([
-      `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT `,
+      summaryVerificationNumber,
     ]);
     titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow4.alignment = { horizontal: "center", vertical: "middle" };
@@ -491,8 +505,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soHopDong = giangVienData[0]?.SoHopDong || '';
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
+      // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+        ? `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+        : `Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate}`;
+
       const titleRow3 = worksheet.addRow([
-        `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`,
+        contractNumber,
       ]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
@@ -797,8 +816,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       // titleRow3_2.alignment = { horizontal: "center", vertical: "middle" };
       // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
 
+      // Xử lý soThanhLyHopDong_2: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== '' 
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}/HĐ-ĐT ${formattedEarliestDate_2}`
+        : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate_2}`;
+
       const titleRow4_2 = worksheet2.addRow([
-        `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}/HĐ-ĐT ${formattedEarliestDate_2}`,
+        contractNumberWithVerification,
       ]);
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4_2.alignment = { horizontal: "center", vertical: "middle" };
