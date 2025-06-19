@@ -174,7 +174,10 @@ const getExportPhuLucDAPath = async (
     // Tạo một sheet cho mỗi giảng viên
     for (const [giangVien, giangVienData] of Object.entries(groupedData)) {
       const cccds = [...new Set(giangVienData.map((item) => item.CCCD))];
-      const last4CCCDs = cccds.map((cccd) => cccd.slice(-4)).join(", ");
+      // const last4CCCDs = cccds.map((cccd) => cccd.slice(-4)).join(", ");
+      const last4CCCDs = cccds
+        .map((cccd) => cccd?.slice?.(-4) || "")
+        .join(", ");
 
       const worksheet = workbook.addWorksheet(
         `${giangVien.replace(/\s*\(.*?\)\s*/g, "").trim()} - ${last4CCCDs}`
