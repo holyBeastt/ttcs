@@ -215,20 +215,32 @@ const getExportPhuLucGiangVienMoiPath = async (
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
     titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle", horizontal: "center" };
-    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);
-
-    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
+    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
 
-    const titleRow3 = summarySheet.addRow([`Hợp đồng số:    /HĐ-ĐT `]);
+    // Lấy SoHopDong và SoThanhLyHopDong từ dữ liệu đầu tiên để hiển thị trong tổng hợp
+    const firstSoHopDong = data[0]?.SoHopDong || '';
+    const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
+
+    // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+      ? `Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `
+      : `Hợp đồng số:             /HĐ-ĐT `;
+
+    const titleRow3 = summarySheet.addRow([summaryContractNumber]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow3.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
+    // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+      ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}/HĐ-ĐT `
+      : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT `;
+
     const titleRow4 = summarySheet.addRow([
-      `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT `,
+      summaryVerificationNumber,
     ]);
     titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow4.alignment = { horizontal: "center", vertical: "middle" };
@@ -314,22 +326,20 @@ const getExportPhuLucGiangVienMoiPath = async (
             ? "TS"
             : item.HocVi === "Thạc sĩ"
             ? "ThS"
-            : item.HocVi;
-
-        // Thêm hàng dữ liệu vào sheet tổng hợp
+            : item.HocVi;        // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
           stt,
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           `${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(
             item.NgayKetThuc
           )}`,
           convertToRoman(item.HocKy),
           item.DiaChi,
           hocViVietTat,
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
           soTien.toLocaleString("vi-VN"), // Định dạng số tiền
           truThue.toLocaleString("vi-VN"), // Định dạng số tiền
@@ -397,15 +407,13 @@ const getExportPhuLucGiangVienMoiPath = async (
 
         stt++; // Tăng số thứ tự
       });
-    }
-
-    // Thêm hàng tổng cộng vào cuối bảng
+    }    // Thêm hàng tổng cộng vào cuối bảng
     const totalRow = summarySheet.addRow([
       "Tổng cộng",
       "",
       "",
       "",
-      totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
+      totalSoTiet.toLocaleString("vi-VN"),
       "",
       "",
       "",
@@ -486,19 +494,24 @@ const getExportPhuLucGiangVienMoiPath = async (
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
-
-      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
+      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
       const earliestDate = giangVienData.reduce((minDate, item) => {
         const currentStartDate = new Date(item.NgayBatDau);
         return currentStartDate < minDate ? currentStartDate : minDate;
       }, new Date(giangVienData[0].NgayBatDau));
 
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate = formatVietnameseDate(earliestDate);
+      const formattedEarliestDate = formatVietnameseDate(earliestDate);      // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
+      const soHopDong = giangVienData[0]?.SoHopDong || '';
+      const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
+
+      // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+        ? `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+        : `Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate}`;
 
       const titleRow3 = worksheet.addRow([
-        `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate}`,
+        contractNumber,
       ]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
@@ -629,18 +642,17 @@ const getExportPhuLucGiangVienMoiPath = async (
         const hocKyLaMa = convertToRoman(item.HocKy);
         // Viết tắt Học vị
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;
-        const row = worksheet.addRow([
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           thoiGianThucHien,
           hocKyLaMa, // Sử dụng số La Mã cho Học kỳ
           item.DiaChi,
           hocViVietTat, // Sử dụng viết tắt cho Học vị
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
           soTien.toLocaleString("vi-VN"), // Định dạng số tiền
           truThue.toLocaleString("vi-VN"),
@@ -710,15 +722,13 @@ const getExportPhuLucGiangVienMoiPath = async (
         totalSoTien += soTien;
         totalTruThue += truThue;
         totalThucNhan += thucNhan;
-      });
-
-      // Thêm hàng tổng cộng
+      });      // Thêm hàng tổng cộng
       const totalRow = worksheet.addRow([
         "Tổng cộng",
         "",
         "",
         "",
-        totalSoTiet.toLocaleString("vi-VN").replace(/\./g, ","),
+        totalSoTiet.toLocaleString("vi-VN"),
         "",
         "",
         "",
@@ -788,16 +798,16 @@ const getExportPhuLucGiangVienMoiPath = async (
       const titleRow2_2 = worksheet2.addRow(["Phụ lục"]);
       titleRow2_2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2_2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);
-
-      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
+      worksheet2.mergeCells(`A${titleRow2_2.number}:L${titleRow2_2.number}`);      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
       const earliestDate_2 = giangVienData.reduce((minDate, item) => {
         const currentStartDate = new Date(item.NgayBatDau);
         return currentStartDate < minDate ? currentStartDate : minDate;
       }, new Date(giangVienData[0].NgayBatDau));
 
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);
+      const formattedEarliestDate_2 = formatVietnameseDate(earliestDate_2);      // Lấy SoHopDong từ dữ liệu giảng viên
+      const soHopDong_2 = giangVienData[0]?.SoHopDong || '';
+      const soThanhLyHopDong_2 = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // const titleRow3_2 = worksheet2.addRow([
       //   `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate_2}`,
@@ -806,8 +816,13 @@ const getExportPhuLucGiangVienMoiPath = async (
       // titleRow3_2.alignment = { horizontal: "center", vertical: "middle" };
       // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
 
+      // Xử lý soThanhLyHopDong_2: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== '' 
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}/HĐ-ĐT ${formattedEarliestDate_2}`
+        : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate_2}`;
+
       const titleRow4_2 = worksheet2.addRow([
-        `Kèm theo biên bản nghiệm thu Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate_2}`,
+        contractNumberWithVerification,
       ]);
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4_2.alignment = { horizontal: "center", vertical: "middle" };
@@ -914,19 +929,17 @@ const getExportPhuLucGiangVienMoiPath = async (
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
         const hocKyLaMa = convertToRoman(item.HocKy);
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;
-
-        const row = worksheet2.addRow([
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet2.addRow([
           index + 1,
           item.GiangVien,
           item.TenHocPhan,
           item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN").replace(/\./g, ","),
+          (item.SoTiet || 0).toLocaleString("vi-VN"),
           thoiGianThucHien,
           hocKyLaMa,
           item.DiaChi,
           hocViVietTat,
-          item.HSL.toLocaleString("vi-VN").replace(/\./g, ","),
+          item.HSL.toLocaleString("vi-VN"),
           mucThanhToan.toLocaleString("vi-VN"),
           soTien.toLocaleString("vi-VN"),
           truThue.toLocaleString("vi-VN"),
@@ -999,15 +1012,13 @@ const getExportPhuLucGiangVienMoiPath = async (
         totalSoTien2 += soTien;
         totalTruThue2 += truThue;
         totalThucNhan2 += thucNhan;
-      });
-
-      // Thêm hàng tổng cộng cho sheet 2
+      });      // Thêm hàng tổng cộng cho sheet 2
       const totalRow2 = worksheet2.addRow([
         "Tổng cộng",
         "",
         "",
         "",
-        totalSoTiet2.toLocaleString("vi-VN").replace(/\./g, ","),
+        totalSoTiet2.toLocaleString("vi-VN"),
         "",
         "",
         "",
@@ -1070,7 +1081,7 @@ const getExportPhuLucGiangVienMoiPath = async (
       fs.mkdirSync(tempDir, { recursive: true });
     }
     // Tạo tên file
-    let fileName = `PhuLuc_GiangVien_Moi_Dot${dot}_Ki${ki}_${namHoc}`;
+    let fileName = `PhuLuc_GiangDay_Dot${dot}_Ki${ki}_${namHoc}`;
     if (khoa && khoa !== "ALL") {
       fileName += `_${sanitizeFileName(khoa)}`;
     }
@@ -1103,9 +1114,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         success: false,
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
-    }
-
-    let query = `
+    }    let query = `
       WITH 
     phuLucSauDH AS (
         SELECT DISTINCT
@@ -1116,6 +1125,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc AS HocKy,
             gv.HocVi, 
             gv.HSL,
+            gv.CCCD,
             qc.NgayBatDau, 
             qc.NgayKetThuc,
             gv.DiaChi,
@@ -1138,6 +1148,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
             qc.KiHoc AS HocKy,
             gv.HocVi, 
             gv.HSL,
+            gv.CCCD,
             qc.NgayBatDau, 
             qc.NgayKetThuc,
             gv.DiaChi,
@@ -1155,20 +1166,23 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         SELECT * FROM phuLucSauDH
         UNION
         SELECT * FROM phuLucDH
-    )
-
-    SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao=?
+    )    SELECT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
+    FROM table_ALL t
+    LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
+        AND t.Dot = hd.Dot 
+        AND t.KiHoc = hd.KiHoc 
+        AND t.NamHoc = hd.NamHoc
+        AND t.he_dao_tao = hd.he_dao_tao
+    WHERE t.Dot = ? AND t.KiHoc = ? AND t.NamHoc = ? AND t.he_dao_tao = ?
     `;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
-
-    if (khoa && khoa !== "ALL") {
-      query += ` AND Khoa = ?`;
+    let params = [dot, ki, namHoc, loaiHopDong];    if (khoa && khoa !== "ALL") {
+      query += ` AND t.Khoa = ?`;
       params.push(khoa);
     }
 
     if (teacherName) {
-      query += ` AND GiangVien LIKE ?`;
+      query += ` AND t.GiangVien LIKE ?`;
       params.push(`%${teacherName}%`);
     }
 

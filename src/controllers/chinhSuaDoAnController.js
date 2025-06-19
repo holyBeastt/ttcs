@@ -13,13 +13,13 @@ const updateDoAn = async (req, res) => {
       const { data, colName, newValue } = update;
       
       const query = `
-        UPDATE doan 
+        UPDATE doantotnghiep 
         SET ${colName} = ? 
-        WHERE Khoa = ? 
+        WHERE MaPhongBan = ? 
         AND Dot = ? 
-        AND KiHoc = ? 
+        AND ki = ? 
         AND NamHoc = ? 
-        AND LopHocPhan = ?
+        AND TenDeTai = ?
         AND he_dao_tao = ?
       `;
 
@@ -67,8 +67,10 @@ const requestDoAnEdit = async (req, res) => {
     for (const update of updates) {
       const { data, colName, newValue, originalValue } = update;
       
+      // Kiểm tra xem có yêu cầu chỉnh sửa nào đang chờ duyệt cho cùng một lớp học phần không
       const checkQuery = `
-        SELECT id FROM do_an_edit_requests 
+        SELECT id, new_value 
+        FROM do_an_edit_requests 
         WHERE khoa = ? 
         AND dot = ? 
         AND ki_hoc = ? 
@@ -76,6 +78,8 @@ const requestDoAnEdit = async (req, res) => {
         AND lop_hoc_phan = ?
         AND he_dao_tao = ?
         AND status IS NULL
+        ORDER BY created_at DESC
+        LIMIT 1
       `;
       
       const [existingRequests] = await connection.query(checkQuery, [
@@ -87,21 +91,26 @@ const requestDoAnEdit = async (req, res) => {
         data.he_dao_tao
       ]);
 
+      // Nếu có yêu cầu đang chờ duyệt, cập nhật yêu cầu đó
       if (existingRequests.length > 0) {
-        const updateQuery = `
-          UPDATE do_an_edit_requests 
-          SET old_value = ?, 
-              new_value = ?,
-              created_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `;
-        
-        await connection.query(updateQuery, [
-          originalValue,
-          newValue,
-          existingRequests[0].id
-        ]);
+        // Kiểm tra xem giá trị mới có khác với giá trị đã yêu cầu trước đó không
+        if (existingRequests[0].new_value !== newValue) {
+          const updateQuery = `
+            UPDATE do_an_edit_requests 
+            SET old_value = ?, 
+                new_value = ?,
+                created_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `;
+          
+          await connection.query(updateQuery, [
+            existingRequests[0].new_value, // Lấy giá trị mới của lần chỉnh sửa trước làm giá trị cũ
+            newValue,
+            existingRequests[0].id
+          ]);
+        }
       } else {
+        // Nếu không có yêu cầu đang chờ duyệt, tạo yêu cầu mới
         const insertQuery = `
           INSERT INTO do_an_edit_requests 
           (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, he_dao_tao, column_name, old_value, new_value)
@@ -197,7 +206,11 @@ const getDoAnEditRequests = async (req, res) => {
 
     query += " ORDER BY created_at DESC";
 
+    console.log("Executing query:", query);
+    console.log("With params:", queryParams);
+
     const [requests] = await connection.query(query, queryParams);
+    console.log("Query result:", requests);
 
     res.json({
       success: true,
@@ -219,27 +232,38 @@ const getDoAnEditRequests = async (req, res) => {
 };
 
 const updateDoAnApproval = async (req, res) => {
-  const { requestId, approvalType, isApproved } = req.body;
+  const { requestId, type, approved } = req.body;
   let connection;
 
   try {
     connection = await createPoolConnection();
     await connection.beginTransaction();
 
+    // Chuyển đổi type thành tên cột trong database
+    const approvalColumn = `${type}_duyet`;
+
+    // Update the approval status
     const updateQuery = `
       UPDATE do_an_edit_requests 
-      SET ${approvalType}_duyet = ? 
+      SET ${approvalColumn} = ? 
       WHERE id = ?
     `;
-    await connection.query(updateQuery, [isApproved, requestId]);
+    
+    await connection.query(updateQuery, [approved, requestId]);
 
+    // Check if all approvals are granted
     const checkQuery = `
       SELECT khoa_duyet, daotao_duyet, bgd_duyet 
       FROM do_an_edit_requests 
       WHERE id = ?
     `;
+    
     const [approvals] = await connection.query(checkQuery, [requestId]);
     
+    if (!approvals || approvals.length === 0) {
+      throw new Error("Không tìm thấy yêu cầu chỉnh sửa");
+    }
+
     const allApproved = approvals[0].khoa_duyet && 
                        approvals[0].daotao_duyet && 
                        approvals[0].bgd_duyet;
@@ -285,14 +309,15 @@ const applyDoAnEdit = async (req, res) => {
       throw new Error("Không tìm thấy yêu cầu chỉnh sửa");
     }
 
+    // Cập nhật cột GiangVien1 trong bảng doantotnghiep
     const updateQuery = `
-      UPDATE doan 
-      SET ${request[0].column_name} = ? 
-      WHERE Khoa = ? 
+      UPDATE doantotnghiep 
+      SET GiangVien1 = ? 
+      WHERE MaPhongBan = ? 
       AND Dot = ? 
-      AND KiHoc = ? 
+      AND ki = ? 
       AND NamHoc = ? 
-      AND LopHocPhan = ?
+      AND TenDeTai = ?
       AND he_dao_tao = ?
     `;
 
@@ -306,6 +331,7 @@ const applyDoAnEdit = async (req, res) => {
       request[0].he_dao_tao
     ]);
 
+    // Cập nhật trạng thái trong bảng do_an_edit_requests
     await connection.query(
       "UPDATE do_an_edit_requests SET status = 'Cập nhật thành công' WHERE id = ?",
       [requestId]
@@ -382,55 +408,172 @@ const exportAdjustedDoAn = async (req, res) => {
     worksheet.getCell('A4').alignment = { horizontal: 'center', vertical: 'middle' };
     worksheet.getCell('A4').font = { bold: true, size: 14, name: 'Times New Roman' };
 
-    // Thêm dữ liệu
-    const headers = [
-      'Khoa', 'Đợt', 'Kì', 'Năm', 'Lớp học phần', 'Hệ đào tạo',
-      'Giảng viên theo TKB', 'Giảng viên điều chỉnh',
-      'Khoa duyệt', 'Đào tạo duyệt', 'BGD duyệt', 'Trạng thái'
-    ];
+    worksheet.mergeCells('A5:D5');
+    worksheet.getCell('A5').value = '(V/v: thay đổi tên giáo viên hướng dẫn đồ án học kỳ ' + ki_hoc + ' năm học ' + nam_hoc + ')';
+    worksheet.getCell('A5').alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getCell('A5').font = { italic: true, size: 14, name: 'Times New Roman' };
 
-    worksheet.addRow(headers);
+    // Thêm phần kính gửi
+    worksheet.mergeCells('A7:D7');
+    worksheet.getCell('A7').value = 'Kính gửi: Phòng Đào Tạo';
+    worksheet.getCell('A7').font = { size: 14, name: 'Times New Roman' };
+    worksheet.getCell('A7').alignment = { horizontal: 'center', vertical: 'middle' };
 
-    rows.forEach(row => {
-      worksheet.addRow([
-        row.khoa,
-        row.dot,
-        row.ki_hoc,
-        row.nam_hoc,
-        row.lop_hoc_phan,
-        row.he_dao_tao,
-        row.old_value,
-        row.new_value,
-        row.khoa_duyet ? 'Đã duyệt' : 'Chưa duyệt',
-        row.daotao_duyet ? 'Đã duyệt' : 'Chưa duyệt',
-        row.bgd_duyet ? 'Đã duyệt' : 'Chưa duyệt',
-        row.status || 'Chưa ban hành'
-      ]);
+    // Thêm nội dung đơn
+    worksheet.mergeCells('A9:D9');
+    worksheet.getCell('A9').value = 'Theo kế hoạch giảng dạy học kỳ ' + ki_hoc + ' năm học ' + nam_hoc + 
+      ', Khoa ' + khoa + ' có mời một số giảng viên tham gia hướng dẫn đồ án cho Khoa và đã có thời khóa biểu phát hành.';
+    worksheet.getCell('A9').alignment = { wrapText: true, vertical: 'middle' };
+    worksheet.getCell('A9').font = { size: 14, name: 'Times New Roman' };
+    worksheet.getRow(9).height = 50;
+
+    worksheet.mergeCells('A10:D10');
+    worksheet.getCell('A10').value = 'Tuy nhiên, trong quá trình thực hiện hướng dẫn, một số giáo viên vì lí do riêng không thể thực hiện đúng theo thời khóa biểu nên khoa xin phép được điều chỉnh lại tên các giáo viên hướng dẫn trên thời khóa biếu như sau:';
+    worksheet.getCell('A10').alignment = { wrapText: true, vertical: 'middle' };
+    worksheet.getCell('A10').font = { size: 14, name: 'Times New Roman' };
+    worksheet.getRow(10).height = 50;
+
+    // Thêm khoảng trống
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+
+    // Thêm header cho bảng dữ liệu
+    const headerRow = worksheet.addRow(['STT', 'Tên đề tài', 'Giảng viên theo TKB', 'Giảng viên điều chỉnh']);
+    headerRow.height = 40;
+
+    // Định dạng header
+    headerRow.eachCell(cell => {
+      cell.alignment = { 
+        horizontal: 'center', 
+        vertical: 'middle',
+        wrapText: true
+      };
+      cell.font = { 
+        bold: true, 
+        size: 12,
+        name: 'Times New Roman'
+      };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
     });
+
+    // Thêm dữ liệu
+    rows.forEach((row, index) => {
+      const dataRow = worksheet.addRow([
+        index + 1,
+        row.lop_hoc_phan,
+        row.old_value,
+        row.new_value
+      ]);
+
+      // Định dạng từng ô trong hàng dữ liệu
+      dataRow.eachCell(cell => {
+        cell.alignment = { 
+          horizontal: 'center', 
+          vertical: 'middle',
+          wrapText: true
+        };
+        cell.font = { 
+          size: 12,
+          name: 'Times New Roman'
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Tính toán chiều cao hàng dựa trên nội dung
+      const maxLines = Math.max(
+        Math.ceil((row.lop_hoc_phan?.length || 0) / 40),
+        Math.ceil((row.old_value?.length || 0) / 30),
+        Math.ceil((row.new_value?.length || 0) / 30)
+      );
+      
+      dataRow.height = Math.max(40, maxLines * 20);
+    });
+
+    // Định dạng độ rộng cột
+    worksheet.columns.forEach((column, index) => {
+      if (index === 0) {
+        column.width = 8;
+      } else if (index === 1) {
+        column.width = 50;
+      } else {
+        column.width = 35;
+      }
+    });
+
+    // Thêm viền cho toàn bộ bảng
+    const lastRow = worksheet.lastRow;
+    const lastCol = worksheet.lastColumn;
+    
+    for (let i = 13; i <= lastRow.number; i++) {
+      for (let j = 1; j <= lastCol.number; j++) {
+        const cell = worksheet.getCell(i, j);
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        cell.alignment = {
+          ...cell.alignment,
+          wrapText: true
+        };
+      }
+    }
+
+    worksheet.addRow([]);
+    
+    // Thêm phần kết thúc
+    worksheet.mergeCells('A' + (lastRow.number + 2) + ':D' + (lastRow.number + 2));
+    worksheet.getCell('A' + (lastRow.number + 2)).value = 'Kính đề nghị Phòng Đào tạo xem xét.';
+    worksheet.getCell('A' + (lastRow.number + 2)).alignment = { horizontal: 'left', vertical: 'middle' };
+    worksheet.getCell('A' + (lastRow.number + 2)).font = { size: 14, name: 'Times New Roman' };
+    worksheet.getRow(lastRow.number + 2).height = 20;
+
+    worksheet.mergeCells('A' + (lastRow.number + 3) + ':D' + (lastRow.number + 3));
+    worksheet.getCell('A' + (lastRow.number + 3)).value = 'Trân trọng cảm ơn!';
+    worksheet.getCell('A' + (lastRow.number + 3)).alignment = { horizontal: 'left', vertical: 'middle' };
+    worksheet.getCell('A' + (lastRow.number + 3)).font = { size: 14, name: 'Times New Roman' };
+    worksheet.getRow(lastRow.number + 3).height = 20;
+
+    worksheet.mergeCells('A' + (lastRow.number + 4) + ':D' + (lastRow.number + 4));
+    worksheet.getCell('A' + (lastRow.number + 4)).value = 'Hà Nội, ngày    tháng    năm   ';
+    worksheet.getCell('A' + (lastRow.number + 4)).alignment = { horizontal: 'right', vertical: 'middle' };
+    worksheet.getCell('A' + (lastRow.number + 4)).font = { size: 14, name: 'Times New Roman' };
+    worksheet.getRow(lastRow.number + 4).height = 20;
+
+    // Tạo buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Set headers cho response
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=do_an_dieu_chinh.xlsx');
 
     // Gửi file
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename=do_an_dieu_chinh.xlsx'
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
+    res.send(buffer);
 
   } catch (error) {
-    console.error("Lỗi khi xuất file:", error);
-    res.status(500).json({
-      success: false,
-      message: "Có lỗi xảy ra khi xuất file!"
+    console.error('Error in exportAdjustedDoAn:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Lỗi khi xuất file Excel' 
     });
   } finally {
-    if (connection) {
-      connection.release();
-    }
+    connection.release();
   }
 };
 
@@ -448,18 +591,17 @@ const getDoAnChinhThuc = async (req, res) => {
         MaSV,
         MaPhongBan,
         TenDeTai,
-        GiangVien,
+        GiangVien1,
+        GiangVien2,
         NgayBatDau,
         NgayKetThuc,
         NamHoc,
         Dot,
         ki,
-        he_dao_tao,
-        SoNguoi,
-        SoTiet,
-        HocVi,
-        ChucVu
-      FROM exportdoantotnghiep 
+        GiangVienDefault,
+        he_dao_tao
+        
+     FROM doantotnghiep 
       WHERE 1=1
     `;
     const queryParams = [];
@@ -486,7 +628,11 @@ const getDoAnChinhThuc = async (req, res) => {
     }
 
     const [rows] = await connection.query(query, queryParams);
-    res.json(rows);
+    const data = rows.map(row => ({
+      ...row,
+      GiangVienDefault: [row.GiangVien1, row.GiangVien2].filter(Boolean).join(', ')
+    }));
+    res.json(data);
 
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu đồ án:", error);

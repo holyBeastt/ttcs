@@ -1306,25 +1306,27 @@ const saveToExportDoAn = async (req, res) => {
 
           isHDChinh = 1;
           let GiangVien, CCCD;
-          let matchedItem1;
-
-          // Xử lý giảng viên 1
+          let matchedItem1;          // Xử lý giảng viên 1
           if (item.GiangVien1.includes("-")) {
             GiangVien = item.GiangVien1.split("-")[0].trim();
             CCCD = item.GiangVien1.split("-")[2].trim();
             isMoiGiang =
               item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
-            matchedItem1 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
+            
+            // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
+            const normalizedGV1 = GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
+            matchedItem1 = allGV.find((arr) => arr.HoTenReal.trim() == normalizedGV1);
 
             if (!matchedItem1) {
               errors.push(
                 `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
               );
               return;
-            }
-          } else {
+            }} else {
+            // Chuẩn hóa tên giảng viên để so sánh (loại bỏ ngoặc)
+            const normalizedGV1 = item.GiangVien1.replace(/\s*\(.*?\)\s*/g, "").trim();
             matchedItem1 = uniqueGV.find(
-              (arr) => arr.HoTen.trim() == item.GiangVien1.trim()
+              (arr) => arr.HoTenReal.trim() == normalizedGV1
             );
             if (!matchedItem1) {
               errors.push(
@@ -1379,9 +1381,7 @@ const saveToExportDoAn = async (req, res) => {
             matchedItem1.MonGiangDayChinh,
             matchedItem1.HSL,
             item.he_dao_tao,
-          ]);
-
-          let matchedItem2;
+          ]);          let matchedItem2;
           count++;
           // Nếu có giảng viên thứ 2, xử lý giảng viên 2 và thêm bản ghi thứ hai
           if (SoNguoi == 2) {
@@ -1393,10 +1393,14 @@ const saveToExportDoAn = async (req, res) => {
               isMoiGiang =
                 item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
-              matchedItem2 = allGV.find((arr) => arr.HoTen.trim() == GiangVien);
+              // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
+              const normalizedGV2 = GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
+              matchedItem2 = allGV.find((arr) => arr.HoTenReal.trim() == normalizedGV2);
             } else {
+              // Chuẩn hóa tên giảng viên 2 để so sánh (loại bỏ ngoặc)
+              const normalizedGV2 = item.GiangVien2.replace(/\s*\(.*?\)\s*/g, "").trim();
               matchedItem2 = uniqueGV.find(
-                (arr) => arr.HoTen.trim() == item.GiangVien2.trim()
+                (arr) => arr.HoTenReal.trim() == normalizedGV2
               );
               if (!matchedItem2) {
                 errors.push(
