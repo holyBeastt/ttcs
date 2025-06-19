@@ -356,7 +356,7 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
+    ed.Dot = ? AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
