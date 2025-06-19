@@ -954,11 +954,13 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
     const tienThueText1 = Math.round(tienText1 * 0.1);
     const tienThucNhanText1 = tienText1 - tienThueText1;
 
+    let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
     const data = {
       Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: danhXung,
-      Họ_và_tên: teacher.HoTen,
+      Họ_và_tên: hoTen,
       CCCD: teacher.CCCD,
       Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
       Nơi_cấp: teacher.NoiCapCCCD,
