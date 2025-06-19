@@ -2302,12 +2302,15 @@ function createTransferDetailDocument(data = [], noiDung = "") {
 
   // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
+    // Đảm bảo text không bao giờ là null hoặc undefined
+    const safeText = text || "";
+    
     const cellConfig = {
       children: [
         new Paragraph({
           children: [
             new TextRun({
-              text,
+              text: safeText, // Sử dụng safeText thay vì text
               bold: isBold,
               font: "Times New Roman",
               size: 22,
@@ -2365,11 +2368,11 @@ function createTransferDetailDocument(data = [], noiDung = "") {
           new TableRow({
             children: [
               createCell((idx + 1).toString()),
-              createCell(row.SoHopDong, false, 1200), // Ô Số HĐ với width cố định
+              createCell(row.SoHopDong || "", false, 1200),
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
-              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
+              createCell(row.NganHang || "", false, 4800),
               createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
             ],
           })

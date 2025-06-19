@@ -24,6 +24,9 @@ router.post("/apply-quy-chuan-edit", chinhSuaQuyChuanController.applyQuyChuanEdi
 // Add this new route
 router.post("/export-adjusted-quy-chuan", chinhSuaQuyChuanController.exportAdjustedQuyChuan);
 
+// API lấy danh sách giảng viên cho suggest autocomplete
+router.get("/api/giangvien", chinhSuaQuyChuanController.getGiangVienList);
+
 // Cấu hình các route
 
 

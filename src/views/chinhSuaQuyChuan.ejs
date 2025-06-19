@@ -152,6 +152,23 @@
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .ui-autocomplete {
+        background: white;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
+        padding: 5px;
+        width: 200px;
+        font-size: 12px !important;
+      }
+      .ui-menu-item {
+        padding: 8px;
+        cursor: default;
+      }
+    </style>
   </head>
 
   <body>
@@ -682,7 +699,19 @@
                 const isEditable = !nonEditableColumns.includes(key);
                 
                 if (isEditable) {
-                  return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
+                  if (key === "GiaoVienDieuChinh") {
+                    return `<td>
+                      <input type="text" 
+                             class="input-gv-dieuchinh" 
+                             data-row="${rowIndex}" 
+                             value="${cellValue || ""}" 
+                             placeholder="Nhập hoặc chọn giảng viên..."
+                             autocomplete="off"
+                             style="width: 100%;"/>
+                    </td>`;
+                  } else {
+                    return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
+                  }
                 } else {
                   return `<td>${cellValue}</td>`;
                 }
@@ -696,6 +725,67 @@
 
         // Remove spinner
         loadingSpinner.remove();
+
+        // Add this section to apply autocomplete
+        $(".input-gv-dieuchinh").each(function () {
+          $(this).autocomplete({
+            source: function (request, response) {
+              const value = request.term.toLowerCase();
+              const gvmList = JSON.parse(localStorage.getItem("gvmList")) || [];
+              let suggestions = gvmList.map(
+                (item) => `${item.TenNhanVien} - ${item.MaPhongBan}`
+              );
+              if (value) {
+                suggestions = suggestions.filter((name) =>
+                  name.toLowerCase().includes(value)
+                );
+              }
+              response(suggestions);
+            },
+            minLength: 0,
+            select: function (event, ui) {
+              let parts = ui.item.value.split("-");
+              let processedName = parts[0].trim();
+              $(this).val(processedName);
+              // Cập nhật editedData như logic cũ
+              const rowIndex = $(this).data("row");
+              const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"];
+              if (processedName !== originalValue) {
+                const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+                editedData.set(editKey, {
+                  rowIndex: parseInt(rowIndex),
+                  colName: "GiaoVien",
+                  newValue: processedName,
+                  originalValue: renderData[rowIndex].GiaoVien,
+                  data: renderData[rowIndex]
+                });
+                $(this).css("background-color", "#fff3cd");
+              }
+              return false;
+            },
+          });
+          // Hiển thị toàn bộ gợi ý khi focus
+          $(this).on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
+          // Sự kiện cập nhật dữ liệu chỉnh sửa
+          $(this).on("change blur", function () {
+            const rowIndex = $(this).data("row");
+            const newValue = $(this).val().trim();
+            const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"];
+            if (newValue !== originalValue) {
+              const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+              editedData.set(editKey, {
+                rowIndex: parseInt(rowIndex),
+                colName: "GiaoVien",
+                newValue: newValue,
+                originalValue: renderData[rowIndex].GiaoVien,
+                data: renderData[rowIndex]
+              });
+              $(this).css("background-color", "#fff3cd");
+            }
+          });
+        });
       }
 
       // Handle cell edit
@@ -785,7 +875,7 @@
           }
         });
     </script>
-    <script>
+    <!-- <script>
       $(document).ready(function () {
         $('#filter-nam option[value=""]').remove();
         $('#filter-ki option[value=""]').remove();
@@ -827,8 +917,8 @@
           },
         });
       });
-    </script>
-    <script>
+    </script> -->
+    <!-- <script>
       $(document).ready(function () {
         $('#filter-khoa option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
@@ -867,7 +957,7 @@
           },
         });
       });
-    </script>
+    </script> -->
     <script>
       document
         .getElementById("infome")
@@ -967,11 +1057,10 @@
               `;
 
           filteredRequests.forEach(request => {
-            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+            const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
             const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-            const canUpdate = userRole === "Duyệt";
+            const canApproveBGD = userRole === "Thường";
+            const canUpdate = userRole === "Thường";
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1225,11 +1314,10 @@
                     const userRole = localStorage.getItem("userRole");
                     const isKhoa = localStorage.getItem("isKhoa");
                     
-                    const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+                    const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
                     const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-                    const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-                    const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-                    const canUpdate = userRole === "Duyệt";
+                    const canApproveBGD = userRole === "Thường";
+                    const canUpdate = userRole === "Thường";
                     const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
                     const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1405,6 +1493,11 @@
         document.getElementById("filter-btn").addEventListener("click", () => {
           loadEditRequests();
         });
+
+        // Tự động bấm nút Hiển thị khi vào trang
+        setTimeout(function() {
+          $("#filter-btn").trigger("click");
+        }, 200); // Đợi 200ms cho chắc chắn combobox đã khởi tạo xong
       });
 
       // Function to initialize filter comboboxes
@@ -1525,11 +1618,10 @@
           }
 
           requests.forEach(request => {
-            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+            const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
             const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-            const canUpdate = userRole === "Duyệt";
+            const canApproveBGD = userRole === "Thường";
+            const canUpdate = userRole === "Thường";
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1900,6 +1992,64 @@
         // Highlight edited cell
         cell.style.backgroundColor = "#fff3cd";
       }
+    </script>
+    <script>
+      // Hàm để lấy danh sách giảng viên từ API
+      async function fetchGiangVienList() {
+        try {
+          const response = await fetch("/api/giangvien"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const gvmList = await response.json(); // Chuyển đổi dữ liệu thành JSON
+          return gvmList;
+        } catch (error) {
+          console.error("Error fetching giang vien list:", error);
+          return []; // Trả về mảng rỗng nếu có lỗi
+        }
+      }
+
+      $(document).ready(async function () {
+        const gvmList = await fetchGiangVienList();
+        localStorage.setItem("gvmList", JSON.stringify(gvmList)); // Lưu vào localStorage
+        // Sau đó mới render bảng/modal
+      });
+
+      // $(document).ready(function () {
+      //   // Cấu hình autocomplete
+      //   $("#search-teacher").autocomplete({
+      //     source: function (request, response) {
+      //       const value = request.term.toLowerCase();
+
+      //       const gvmList = JSON.parse(localStorage.getItem("gvmList"));
+
+      //       let suggestions = gvmList.map(
+      //         (item) => `${item.TenNhanVien} - ${item.MaPhongBan}`
+      //       );
+
+      //       // Nếu có giá trị nhập vào thì lọc
+      //       if (value) {
+      //         suggestions = suggestions.filter((name) =>
+      //           name.toLowerCase().includes(value)
+      //         );
+      //       }
+
+      //       response(suggestions);
+      //     },
+      //     minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+      //     select: function (event, ui) {
+      //       let parts = ui.item.value.split("-");
+      //       let processedName = parts[0].trim();
+      //       $("#search-teacher").val(processedName);
+      //       return false;
+      //     },
+      //   });
+
+      //   // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+      //   $("#search-teacher").on("focus", function () {
+      //     $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+      //   });
+      // });
     </script>
   </body>
 </html>
