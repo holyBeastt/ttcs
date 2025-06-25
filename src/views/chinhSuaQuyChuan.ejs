@@ -212,7 +212,17 @@
           <button class="btn btn-warning mx-1" id="show-edit-form-btn" style="margin-bottom: 0px; height: 45px;">
             Chỉnh sửa quy chuẩn
           </button>
+          <button class="btn btn-primary mx-1" id="save-approval-btn" style="margin-bottom: 0px; height: 45px;">
+            Cập nhật 
+          </button>
+          <button class="btn btn-success mx-1" id="publish-all-btn" style="margin-bottom: 0px; height: 45px;">
+            Ban Hành
+          </button>
         </div>
+
+        <h4 class="text-center text-primary fw-bold my-3">
+          DANH SÁCH CÁC MÔN YÊU CẦU THAY ĐỔI THÔNG TIN GIẢNG VIÊN
+        </h4>
 
         <!-- Edit requests list container -->
         <div id="edit-requests-container">
@@ -227,11 +237,19 @@
                   <th>Lớp học phần</th>
                   <th>Giảng viên theo TKB</th>
                   <th>Giảng viên điều chỉnh</th>
-                  <th>Khoa duyệt</th>
-                  <th>Đào tạo duyệt</th>
-                  <th>BGD duyệt</th>
+                  <th>
+                    Khoa duyệt<br>
+                    <input type="checkbox" id="check-all-khoa-duyet" />
+                  </th>
+                  <th>
+                    Đào tạo duyệt<br>
+                    <input type="checkbox" id="check-all-daotao-duyet" />
+                  </th>
+                  <th>
+                    BGD duyệt<br>
+                    <input type="checkbox" id="check-all-bgd-duyet" />
+                  </th>
                   <th>Trạng thái</th>
-                  <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody id="edit-requests-body"></tbody>
@@ -675,7 +693,7 @@
           .map((item, rowIndex) => {
             let rowHtml = columnsToDisplay
               .map((key, colIndex) => {
-                let cellValue = item[key] !== null ? item[key] : "";
+                let cellValue = (item[key] !== null && item[key] !== undefined) ? item[key] : "";
 
                 // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
                 if (key === "MoiGiang") {
@@ -773,8 +791,13 @@
             const rowIndex = $(this).data("row");
             const newValue = $(this).val().trim();
             const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"];
+            const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+            if (newValue === "") {
+              editedData.delete(editKey);
+              $(this).css("background-color", "");
+              return;
+            }
             if (newValue !== originalValue) {
-              const editKey = `${rowIndex}-GiaoVienDieuChinh`;
               editedData.set(editKey, {
                 rowIndex: parseInt(rowIndex),
                 colName: "GiaoVien",
@@ -783,6 +806,9 @@
                 data: renderData[rowIndex]
               });
               $(this).css("background-color", "#fff3cd");
+            } else {
+              editedData.delete(editKey);
+              $(this).css("background-color", "");
             }
           });
         });
@@ -801,13 +827,22 @@
           return;
         }
 
+        // Nếu giá trị mới là rỗng thì xóa khỏi editedData (nếu có)
+        const editKey = `${rowIndex}-${colName}`;
+        if (newValue === "") {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = ""; // Bỏ highlight
+          return;
+        }
+
         // Don't track if value hasn't changed
         if (newValue === originalValue) {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = "";
           return;
         }
 
         // Store the edit
-        const editKey = `${rowIndex}-${colName}`;
         editedData.set(editKey, {
           rowIndex: parseInt(rowIndex),
           colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
@@ -1046,11 +1081,19 @@
                     <th>Lớp học phần</th>
                     <th>Giảng viên theo TKB</th>
                     <th>Giảng viên điều chỉnh</th>
-                    <th>Khoa duyệt</th>
-                    <th>Đào tạo duyệt</th>
-                    <th>BGD duyệt</th>
+                    <th>
+                      Khoa duyệt<br>
+                      <input type="checkbox" id="check-all-khoa-duyet" />
+                    </th>
+                    <th>
+                      Đào tạo duyệt<br>
+                      <input type="checkbox" id="check-all-daotao-duyet" />
+                    </th>
+                    <th>
+                      BGD duyệt<br>
+                      <input type="checkbox" id="check-all-bgd-duyet" />
+                    </th>
                     <th>Trạng thái</th>
-                    <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1063,6 +1106,9 @@
             const canUpdate = userRole === "Thường";
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
+
+            // Thêm dòng này để tính toán allApproved
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
 
             modalContent += `
               <tr>
@@ -1079,8 +1125,7 @@
                     data-request-id="${request.id}" 
                     data-type="khoa"
                     ${request.khoa_duyet ? 'checked' : ''}
-                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                    onchange="handleApproval(this)">
+                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
                 </td>
                 <td>
                   <input type="checkbox" 
@@ -1101,19 +1146,6 @@
                     onchange="handleApproval(this)">
                 </td>
                 <td>${status}</td>
-                <td>
-                  ${canUpdate ? `
-                    <button 
-                      class="btn btn-primary btn-sm update-request-btn" 
-                      data-request-id="${request.id}"
-                      onclick="updateRequest(${request.id})"
-                      ${(!allApproved || isPublished) ? 'disabled' : ''}
-                      style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                    >
-                      Ban Hành
-                    </button>
-                  ` : ''}
-                </td>
               </tr>
             `;
           });
@@ -1321,6 +1353,9 @@
                     const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
                     const isPublished = request.status === 'Cập nhật thành công';
 
+                    // Thêm dòng này để tính toán allApproved
+                    const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+
                     const row = document.createElement("tr");
                     row.innerHTML = `
                       <td>${request.khoa || ''}</td>
@@ -1336,8 +1371,7 @@
                           data-request-id="${request.id}" 
                           data-type="khoa"
                           ${request.khoa_duyet ? 'checked' : ''}
-                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                          onchange="handleApproval(this)">
+                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
                       </td>
                       <td>
                         <input type="checkbox" 
@@ -1358,19 +1392,6 @@
                           onchange="handleApproval(this)">
                       </td>
                       <td>${status}</td>
-                      <td>
-                        ${canUpdate ? `
-                          <button 
-                            class="btn btn-primary btn-sm update-request-btn" 
-                            data-request-id="${request.id}"
-                            onclick="updateRequest(${request.id})"
-                            ${(!allApproved || isPublished) ? 'disabled' : ''}
-                            style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                          >
-                            Ban Hành
-                          </button>
-                        ` : ''}
-                      </td>
                     `;
                     tbody.appendChild(row);
                   });
@@ -1625,6 +1646,9 @@
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
+            // Thêm dòng này để tính toán allApproved
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
+
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${request.khoa || ''}</td>
@@ -1640,8 +1664,7 @@
                   data-request-id="${request.id}" 
                   data-type="khoa"
                   ${request.khoa_duyet ? 'checked' : ''}
-                  ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
+                  ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
               </td>
               <td>
                 <input type="checkbox" 
@@ -1650,7 +1673,6 @@
                   data-type="daotao"
                   ${request.daotao_duyet ? 'checked' : ''}
                   ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
               </td>
               <td>
                 <input type="checkbox" 
@@ -1659,22 +1681,8 @@
                   data-type="bgd"
                   ${request.bgd_duyet ? 'checked' : ''}
                   ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
               </td>
               <td>${status}</td>
-              <td>
-                ${canUpdate ? `
-                  <button 
-                    class="btn btn-primary btn-sm update-request-btn" 
-                    data-request-id="${request.id}"
-                    onclick="updateRequest(${request.id})"
-                    ${(!allApproved || isPublished) ? 'disabled' : ''}
-                    style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                  >
-                    Ban Hành
-                  </button>
-                ` : ''}
-              </td>
             `;
             tbody.appendChild(row);
           });
@@ -1925,7 +1933,7 @@
         let bodyHtml = "";
         data.forEach((item, rowIndex) => {
           let rowHtml = columnsToDisplay.map((key) => {
-            let cellValue = item[key] !== null ? item[key] : "";
+            let cellValue = (item[key] !== null && item[key] !== undefined) ? item[key] : "";
 
             if (key === "MoiGiang") {
               cellValue = cellValue === 1 ? "Có" : "Không";
@@ -1974,13 +1982,22 @@
           return;
         }
 
+        // Nếu giá trị mới là rỗng thì xóa khỏi editedData (nếu có)
+        const editKey = `${rowIndex}-${colName}`;
+        if (newValue === "") {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = ""; // Bỏ highlight
+          return;
+        }
+
         // Don't track if value hasn't changed
         if (newValue === originalValue) {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = "";
           return;
         }
 
         // Store the edit
-        const editKey = `${rowIndex}-${colName}`;
         editedData.set(editKey, {
           rowIndex: parseInt(rowIndex),
           colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
@@ -2051,5 +2068,156 @@
       //   });
       // });
     </script>
+
+    <!-- Sự kiện check all cho từng cột duyệt -->
+    <script>
+      // Lưu các thay đổi duyệt tạm thời
+      let pendingApprovalChanges = {};
+
+      // Khi tick vào checkbox duyệt
+      $(document).on('change', '.approval-checkbox', function() {
+        const requestId = $(this).data('request-id');
+        const approvalType = $(this).data('type');
+        const isChecked = $(this).is(':checked');
+
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+      });
+
+      // Khi tick vào "check all"
+      $(document).on('change', '#check-all-khoa-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="khoa"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+      $(document).on('change', '#check-all-daotao-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="daotao"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+      $(document).on('change', '#check-all-bgd-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="bgd"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+    </script>
+
+    <script>
+      function setApprovalHeaderCheckboxesPermission() {
+        const userRole = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
+        const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
+        const canApproveBGD = userRole === "Thường";
+
+        $('#check-all-khoa-duyet').prop('disabled', !canApproveKhoa);
+        $('#check-all-daotao-duyet').prop('disabled', !canApproveDaoTao);
+        $('#check-all-bgd-duyet').prop('disabled', !canApproveBGD);
+      }
+
+      $(document).ready(function() {
+        setApprovalHeaderCheckboxesPermission();
+      });
+    </script>
+
+    <script>
+      $('#save-approval-btn').on('click', async function() {
+        const updates = [];
+        for (const requestId in pendingApprovalChanges) {
+          for (const approvalType in pendingApprovalChanges[requestId]) {
+            updates.push({
+              requestId,
+              approvalType,
+              isApproved: pendingApprovalChanges[requestId][approvalType]
+            });
+          }
+        }
+        if (updates.length === 0) {
+          Swal.fire({title: "Thông báo", text: "Không có thay đổi nào để cập nhật!", icon: "info"});
+          return;
+        }
+
+        try {
+          for (const update of updates) {
+            await fetch('/update-quy-chuan-approval', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(update)
+            });
+          }
+          Swal.fire({title: "Thành công", text: "Đã cập nhật duyệt!", icon: "success"});
+          pendingApprovalChanges = {};
+          loadEditRequests(); // reload lại bảng để lấy trạng thái mới nhất từ server
+        } catch (error) {
+          Swal.fire({title: "Lỗi", text: "Có lỗi khi cập nhật duyệt!", icon: "error"});
+        }
+      });
+    </script>
+
+    <script>
+      document.getElementById("publish-all-btn").addEventListener("click", async function() {
+        // Lấy tất cả các request đã đủ duyệt và chưa ban hành
+        const rows = document.querySelectorAll("#edit-requests-body tr");
+        const requestsToPublish = [];
+        for (const row of rows) {
+          // Lấy các cell
+          const cells = row.querySelectorAll("td");
+          if (cells.length < 11) continue; // bỏ qua dòng không hợp lệ
+
+          // Lấy trạng thái duyệt
+          const khoaDuyet = cells[7].querySelector("input")?.checked;
+          const daotaoDuyet = cells[8].querySelector("input")?.checked;
+          const bgdDuyet = cells[9].querySelector("input")?.checked;
+          const status = cells[10].textContent.trim();
+          // Lấy requestId từ 1 trong các checkbox
+          const requestId = cells[7].querySelector("input")?.dataset.requestId;
+
+          if (khoaDuyet && daotaoDuyet && bgdDuyet && status !== "Đã ban hành") {
+            requestsToPublish.push(requestId);
+          }
+        }
+
+        if (requestsToPublish.length === 0) {
+          Swal.fire({title: "Thông báo", text: "Không có yêu cầu nào đủ điều kiện ban hành!", icon: "info"});
+          return;
+        }
+
+        // Xác nhận
+        const confirm = await Swal.fire({
+          title: "Xác nhận",
+          text: `Bạn có chắc chắn muốn ban hành ${requestsToPublish.length} yêu cầu đã đủ duyệt?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Ban Hành",
+          cancelButtonText: "Hủy"
+        });
+        if (!confirm.isConfirmed) return;
+
+        // Gọi API cho từng requestId
+        let successCount = 0;
+        for (const requestId of requestsToPublish) {
+          try {
+            const response = await fetch("/apply-quy-chuan-edit", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({ requestId })
+            });
+            if (response.ok) successCount++;
+          } catch (e) {}
+        }
+
+        Swal.fire({
+          title: "Kết quả",
+          text: `Đã ban hành thành công ${successCount}/${requestsToPublish.length} yêu cầu.`,
+          icon: "success"
+        });
+        loadEditRequests();
+      });
+    </script>
+
   </body>
 </html>
