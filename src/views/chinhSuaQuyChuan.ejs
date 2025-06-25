@@ -215,7 +215,7 @@
           <button class="btn btn-primary mx-1" id="save-approval-btn" style="margin-bottom: 0px; height: 45px;">
             Cập nhật 
           </button>
-          <button class="btn btn-success mx-1" id="publish-all-btn" style="margin-bottom: 0px; height: 45px;">
+          <button class="btn btn-success mx-1" id="publish-all-btn" style="margin-bottom: 0px; height: 45px; display: none;">
             Ban Hành
           </button>
         </div>
@@ -910,89 +910,7 @@
           }
         });
     </script>
-    <!-- <script>
-      $(document).ready(function () {
-        $('#filter-nam option[value=""]').remove();
-        $('#filter-ki option[value=""]').remove();
-        $('#filter-dot option[value=""]').remove();
-
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                $("#filter-nam").append(
-                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                );
-              });
-
-              response.Ki.forEach(function (item) {
-                console.log(item.Ki);
-                $("#filter-ki").append(
-                  `<option value="${item.value}">${item.Ki}</option>`
-                );
-              });
-              response.Dot.forEach(function (item) {
-                console.log(item.Dot);
-                $("#filter-dot").append(
-                  `<option value="${item.value}">${item.Dot}</option>`
-                );
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
-      });
-    </script> -->
-    <!-- <script>
-      $(document).ready(function () {
-        $('#filter-khoa option[value=""]').remove();
-        // Gọi AJAX để lấy dữ liệu JSON từ API
-        $.ajax({
-          url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
-          method: "GET",
-          success: function (response) {
-            // Kiểm tra nếu response thành công
-            const MaPhongBan = response.MaPhongBan;
-            if (response.success) {
-              $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
-              // Lặp qua từng mục trong mảng MaPhongBan
-              response.MaPhongBan.forEach(function (item) {
-                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
-                $("#filter-khoa").append(
-                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                );
-              });
-
-              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-              if (!$("#filter-khoa option:selected").length) {
-                $("#filter-khoa").prepend(
-                  '<option value="">Chọn Phòng Ban</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu phongBan:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-          },
-        });
-      });
-    </script> -->
+   
     <script>
       document
         .getElementById("infome")
@@ -1598,6 +1516,7 @@
           // Lấy role và isKhoa từ localStorage
           const userRole = localStorage.getItem("userRole");
           const isKhoa = localStorage.getItem("isKhoa");
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
 
           console.log("Loading edit requests with filters:", { dot, ki, namHoc, khoa });
 
@@ -1639,10 +1558,13 @@
           }
 
           requests.forEach(request => {
-            const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Thường";
-            const canUpdate = userRole === "Thường";
+            const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
+            const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+            const isThuongBGD = userRole === "Thường";
+
+            const canApproveKhoa = isLanhDaoKhoa || isDuyetDaoTao || isThuongBGD;
+            const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
+            const canApproveBGD = isThuongBGD;
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1927,7 +1849,8 @@
         // Render header
         let headerHtml = "";
         columnsToDisplay.forEach((col) => {
-          headerHtml += `<th>${headersMap[col] || col}</th>`;
+          const style = col === 'GiaoVienDieuChinh' ? 'style="color: yellow;"' : '';
+          headerHtml += `<th ${style}>${headersMap[col] || col}</th>`;
         });
         document.getElementById("modal-table-header").innerHTML = headerHtml;
 
@@ -2035,41 +1958,7 @@
         // Sau đó mới render bảng/modal
       });
 
-      // $(document).ready(function () {
-      //   // Cấu hình autocomplete
-      //   $("#search-teacher").autocomplete({
-      //     source: function (request, response) {
-      //       const value = request.term.toLowerCase();
-
-      //       const gvmList = JSON.parse(localStorage.getItem("gvmList"));
-
-      //       let suggestions = gvmList.map(
-      //         (item) => `${item.TenNhanVien} - ${item.MaPhongBan}`
-      //       );
-
-      //       // Nếu có giá trị nhập vào thì lọc
-      //       if (value) {
-      //         suggestions = suggestions.filter((name) =>
-      //           name.toLowerCase().includes(value)
-      //         );
-      //       }
-
-      //       response(suggestions);
-      //     },
-      //     minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
-      //     select: function (event, ui) {
-      //       let parts = ui.item.value.split("-");
-      //       let processedName = parts[0].trim();
-      //       $("#search-teacher").val(processedName);
-      //       return false;
-      //     },
-      //   });
-
-      //   // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
-      //   $("#search-teacher").on("focus", function () {
-      //     $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
-      //   });
-      // });
+      
     </script>
 
     <!-- Sự kiện check all cho từng cột duyệt -->
@@ -2112,10 +2001,15 @@
       function setApprovalHeaderCheckboxesPermission() {
         const userRole = localStorage.getItem("userRole");
         const isKhoa = localStorage.getItem("isKhoa");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-        const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-        const canApproveBGD = userRole === "Thường";
+        const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
+        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+        const isThuongBGD = userRole === "Thường";
+
+        const canApproveKhoa = isLanhDaoKhoa || isDuyetDaoTao || isThuongBGD;
+        const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
+        const canApproveBGD = isThuongBGD;
 
         $('#check-all-khoa-duyet').prop('disabled', !canApproveKhoa);
         $('#check-all-daotao-duyet').prop('disabled', !canApproveDaoTao);
@@ -2124,6 +2018,11 @@
 
       $(document).ready(function() {
         setApprovalHeaderCheckboxesPermission();
+
+        const userRole = localStorage.getItem("userRole");
+        if (userRole === "Thường") {
+          document.getElementById("publish-all-btn").style.display = "inline-block";
+        }
       });
     </script>
 
