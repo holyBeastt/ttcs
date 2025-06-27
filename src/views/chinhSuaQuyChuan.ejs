@@ -235,6 +235,7 @@
                   <th>Kì</th>
                   <th>Năm</th>
                   <th>Lớp học phần</th>
+                  <th>Tên lớp</th>
                   <th>Giảng viên theo TKB</th>
                   <th>Giảng viên điều chỉnh</th>
                   <th>
@@ -997,6 +998,7 @@
                     <th>Kì</th>
                     <th>Năm</th>
                     <th>Lớp học phần</th>
+                    <th>Tên lớp</th>
                     <th>Giảng viên theo TKB</th>
                     <th>Giảng viên điều chỉnh</th>
                     <th>
@@ -1035,6 +1037,7 @@
                 <td>${request.ki_hoc || ''}</td>
                 <td>${request.nam_hoc || ''}</td>
                 <td>${request.lop_hoc_phan || ''}</td>
+                <td>${request.ten_lop || ''}</td>
                 <td>${request.old_value || ''}</td>
                 <td>${request.new_value || ''}</td>
                 <td>
@@ -1281,6 +1284,7 @@
                       <td>${request.ki_hoc || ''}</td>
                       <td>${request.nam_hoc || ''}</td>
                       <td>${request.lop_hoc_phan || ''}</td>
+                      <td>${request.ten_lop || ''}</td>
                       <td>${request.old_value || ''}</td>
                       <td>${request.new_value || ''}</td>
                       <td>
@@ -1341,13 +1345,10 @@
       document.addEventListener("DOMContentLoaded", () => {
         const role = localStorage.getItem("userRole");
         const isKhoa = localStorage.getItem("isKhoa");
-
-        // Show/hide request edit button based on role
-        const requestEditBtn = document.getElementById("request-edit-btn");
-        if (role === "Lãnh đạo khoa" || role === "GV" || role === "Duyệt") {
-          requestEditBtn.style.display = "block";
-        } else {
-          requestEditBtn.style.display = "none";
+        const editBtn = document.getElementById("show-edit-form-btn");
+        // Ẩn nút nếu không phải Lãnh đạo khoa
+        if (!(role === "Lãnh đạo khoa" && isKhoa === "1")) {
+          editBtn.style.display = "none";
         }
 
         // ... rest of your existing DOMContentLoaded code ...
@@ -1568,6 +1569,11 @@
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
+            // Logic mới để vô hiệu hóa checkbox dựa trên quyền và tuần tự duyệt
+            const khoaDisabled = !(canApproveKhoa && !isPublished);
+            const daotaoDisabled = !(canApproveDaoTao && !isPublished && request.khoa_duyet);
+            const bgdDisabled = !(canApproveBGD && !isPublished && request.khoa_duyet && request.daotao_duyet);
+
             // Thêm dòng này để tính toán allApproved
             const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
 
@@ -1578,6 +1584,7 @@
               <td>${request.ki_hoc || ''}</td>
               <td>${request.nam_hoc || ''}</td>
               <td>${request.lop_hoc_phan || ''}</td>
+              <td>${request.ten_lop || ''}</td>
               <td>${request.old_value || ''}</td>
               <td>${request.new_value || ''}</td>
               <td>
@@ -1586,7 +1593,7 @@
                   data-request-id="${request.id}" 
                   data-type="khoa"
                   ${request.khoa_duyet ? 'checked' : ''}
-                  ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
+                  ${khoaDisabled ? 'disabled' : ''}>
               </td>
               <td>
                 <input type="checkbox" 
@@ -1594,7 +1601,7 @@
                   data-request-id="${request.id}" 
                   data-type="daotao"
                   ${request.daotao_duyet ? 'checked' : ''}
-                  ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
+                  ${daotaoDisabled ? 'disabled' : ''}>
               </td>
               <td>
                 <input type="checkbox" 
@@ -1602,7 +1609,7 @@
                   data-request-id="${request.id}" 
                   data-type="bgd"
                   ${request.bgd_duyet ? 'checked' : ''}
-                  ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
+                  ${bgdDisabled ? 'disabled' : ''}>
               </td>
               <td>${status}</td>
             `;
@@ -1777,7 +1784,7 @@
           // Hiển thị loading
           document.getElementById("modal-loading").style.display = "block";
 
-          // Gửi request lấy dữ liệu
+          // Gửi request lấy dữ liệu quy chuẩn
           const response = await fetch("/quy-chuan-chinh-thuc", {
             method: "POST",
             headers: {
@@ -1796,7 +1803,55 @@
           }
 
           // Lưu dữ liệu và render bảng
-          renderData = await response.json();
+          let renderDataRaw = await response.json();
+
+          // Lấy danh sách request chờ duyệt
+          const reqRes = await fetch("/get-quy-chuan-edit-requests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dot: dotValue,
+              ki_hoc: kiValue,
+              nam_hoc: namValue,
+              khoa: khoaValue
+            })
+          });
+          let reqList = [];
+          if (reqRes.ok) {
+            const reqJson = await reqRes.json();
+            if (reqJson.success) reqList = reqJson.data;
+          }
+
+          // Merge new_value vào renderDataRaw
+          renderDataRaw.forEach(item => {
+            const found = reqList.find(r =>
+              r.khoa == item.Khoa &&
+              r.dot == item.Dot &&
+              r.ki_hoc == item.KiHoc &&
+              r.nam_hoc == item.NamHoc &&
+              r.lop_hoc_phan == item.LopHocPhan &&
+              r.status == null
+            );
+            console.log('So khop:', {
+              item: {Khoa: item.Khoa, Dot: item.Dot, KiHoc: item.KiHoc, NamHoc: item.NamHoc, LopHocPhan: item.LopHocPhan},
+              found
+            });
+            if (found) {
+              item.GiaoVienDieuChinh = found.new_value;
+              item.khoa_duyet = found.khoa_duyet;
+              // Nếu đã khoa duyệt thì đánh dấu readonly
+              item.isKhoaDuyet = found.khoa_duyet == 1;
+            } else {
+              item.GiaoVienDieuChinh = item.GiaoVienDieuChinh || '';
+              item.isKhoaDuyet = false;
+            }
+          });
+
+          // Thêm log để debug
+          console.log('renderDataRaw after merge:', renderDataRaw);
+          console.log('reqList:', reqList);
+
+          renderData = renderDataRaw;
           renderModalTable(renderData);
 
         } catch (error) {
@@ -1880,19 +1935,49 @@
               "GiaoVien" // Thêm GiaoVien vào danh sách không được chỉnh sửa
             ];
             
+            if (key === "GiaoVienDieuChinh") {
+              // Nếu đã khoa duyệt thì readonly
+              const isReadonly = item.isKhoaDuyet ? 'readonly' : '';
+              return `<td><input type=\"text\" class=\"input-gv-dieuchinh-modal\" data-row=\"${rowIndex}\" value=\"${cellValue}\" style=\"width:100%;\" ${isReadonly} /></td>`;
+            }
             const isEditable = !nonEditableColumns.includes(key);
-            
             if (isEditable) {
               return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
             } else {
               return `<td>${cellValue}</td>`;
             }
           }).join("");
-          
           bodyHtml += `<tr>${rowHtml}</tr>`;
         });
 
         document.getElementById("modal-data-table-body").innerHTML = bodyHtml;
+
+        // Gán sự kiện cho input giảng viên điều chỉnh trong modal
+        document.querySelectorAll('.input-gv-dieuchinh-modal').forEach(input => {
+          input.addEventListener('input', function() {
+            const rowIndex = this.dataset.row;
+            const newValue = this.value.trim();
+            const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"] || "";
+            const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+
+            // Nếu giá trị không thay đổi so với ban đầu, xóa khỏi danh sách chỉnh sửa
+            if (newValue === originalValue) {
+              editedData.delete(editKey);
+              this.style.backgroundColor = "";
+              return;
+            }
+
+            // Nếu có thay đổi (kể cả xóa thành rỗng), lưu vào editedData
+            editedData.set(editKey, {
+              rowIndex: parseInt(rowIndex),
+              colName: "GiaoVien",
+              newValue: newValue,
+              originalValue: renderData[rowIndex].GiaoVien,
+              data: renderData[rowIndex]
+            });
+            this.style.backgroundColor = "#fff3cd"; // Highlight thay đổi
+          });
+        });
       }
 
       // Hàm xử lý sự kiện khi cell được edit
@@ -1966,6 +2051,55 @@
       // Lưu các thay đổi duyệt tạm thời
       let pendingApprovalChanges = {};
 
+      // Hàm cập nhật trạng thái các checkbox trong cùng một dòng
+      function updateRowApprovalState(row) {
+        const userRole = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+        const isThuongBGD = userRole === "Thường";
+        
+        const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
+        const canApproveBGD = isThuongBGD;
+
+        const khoaCheckbox = row.find('input[data-type="khoa"]');
+        const daotaoCheckbox = row.find('input[data-type="daotao"]');
+        const bgdCheckbox = row.find('input[data-type="bgd"]');
+        
+        const requestId = khoaCheckbox.data('request-id');
+
+        const khoaIsChecked = khoaCheckbox.is(':checked');
+        const daotaoIsChecked = daotaoCheckbox.is(':checked');
+
+        // Cập nhật checkbox Đào tạo
+        if (canApproveDaoTao) {
+          if (!khoaIsChecked) {
+            daotaoCheckbox.prop('disabled', true);
+            if (daotaoCheckbox.is(':checked')) {
+              daotaoCheckbox.prop('checked', false);
+              if (pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId]['daotao'] = false;
+            }
+          } else {
+            daotaoCheckbox.prop('disabled', false);
+          }
+        }
+        
+        // Cập nhật checkbox BGD
+        if (canApproveBGD) {
+          // Lấy lại trạng thái của checkbox đào tạo sau khi có thể đã bị thay đổi
+          const finalDaotaoIsChecked = daotaoCheckbox.is(':checked');
+          if (!khoaIsChecked || !finalDaotaoIsChecked) {
+            bgdCheckbox.prop('disabled', true);
+            if (bgdCheckbox.is(':checked')) {
+              bgdCheckbox.prop('checked', false);
+              if (pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId]['bgd'] = false;
+            }
+          } else {
+            bgdCheckbox.prop('disabled', false);
+          }
+        }
+      }
+
       // Khi tick vào checkbox duyệt
       $(document).on('change', '.approval-checkbox', function() {
         const requestId = $(this).data('request-id');
@@ -1974,6 +2108,9 @@
 
         if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
         pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
       });
 
       // Khi tick vào "check all"
@@ -2071,12 +2208,12 @@
           if (cells.length < 11) continue; // bỏ qua dòng không hợp lệ
 
           // Lấy trạng thái duyệt
-          const khoaDuyet = cells[7].querySelector("input")?.checked;
-          const daotaoDuyet = cells[8].querySelector("input")?.checked;
-          const bgdDuyet = cells[9].querySelector("input")?.checked;
-          const status = cells[10].textContent.trim();
+          const khoaDuyet = cells[8].querySelector("input")?.checked;
+          const daotaoDuyet = cells[9].querySelector("input")?.checked;
+          const bgdDuyet = cells[10].querySelector("input")?.checked;
+          const status = cells[11].textContent.trim();
           // Lấy requestId từ 1 trong các checkbox
-          const requestId = cells[7].querySelector("input")?.dataset.requestId;
+          const requestId = cells[8].querySelector("input")?.dataset.requestId;
 
           if (khoaDuyet && daotaoDuyet && bgdDuyet && status !== "Đã ban hành") {
             requestsToPublish.push(requestId);

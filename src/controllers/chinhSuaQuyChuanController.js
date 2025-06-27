@@ -97,6 +97,21 @@ const requestQuyChuanEdit = async (req, res) => {
         data.LopHocPhan
       ]);
 
+      // Nếu giá trị chỉnh sửa là rỗng, xóa request khỏi bảng quy_chuan_edit_requests
+      if (!newValue || newValue.trim() === "") {
+        await connection.query(
+          `DELETE FROM quy_chuan_edit_requests WHERE khoa = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND lop_hoc_phan = ? AND status IS NULL`,
+          [
+            data.Khoa,
+            data.Dot,
+            data.KiHoc,
+            data.NamHoc,
+            data.LopHocPhan
+          ]
+        );
+        continue;
+      }
+
       // Nếu có yêu cầu đang chờ duyệt, cập nhật yêu cầu đó
       if (existingRequests.length > 0) {
         const updateQuery = `
@@ -114,10 +129,22 @@ const requestQuyChuanEdit = async (req, res) => {
         ]);
       } else {
         // Nếu không có yêu cầu đang chờ duyệt, tạo yêu cầu mới
+        // Lấy ten_lop từ bảng quychuan
+        const [rows] = await connection.query(
+          `SELECT TenLop FROM quychuan WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND LopHocPhan = ? LIMIT 1`,
+          [
+            data.Khoa,
+            data.Dot,
+            data.KiHoc,
+            data.NamHoc,
+            data.LopHocPhan
+          ]
+        );
+        const tenLop = rows[0]?.TenLop || '';
         const insertQuery = `
           INSERT INTO quy_chuan_edit_requests 
-          (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, column_name, old_value, new_value)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, ten_lop, column_name, old_value, new_value)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         await connection.query(insertQuery, [
@@ -126,6 +153,7 @@ const requestQuyChuanEdit = async (req, res) => {
           data.KiHoc,
           data.NamHoc,
           data.LopHocPhan,
+          tenLop,
           colName,
           originalValue,
           newValue
@@ -175,6 +203,7 @@ const getQuyChuanEditRequests = async (req, res) => {
         ki_hoc,
         nam_hoc,
         lop_hoc_phan,
+        ten_lop,
         column_name,
         old_value,
         new_value,
