@@ -1346,8 +1346,10 @@
         const role = localStorage.getItem("userRole");
         const isKhoa = localStorage.getItem("isKhoa");
         const editBtn = document.getElementById("show-edit-form-btn");
-        // Ẩn nút nếu không phải Lãnh đạo khoa
-        if (!(role === "Lãnh đạo khoa" && isKhoa === "1")) {
+        
+        // Hiển thị nút cho Lãnh đạo khoa, GV, và GV_CNBM
+        const allowedRoles = ["Lãnh đạo khoa", "GV", "GV_CNBM"];
+        if (!(allowedRoles.includes(role) && isKhoa === "1")) {
           editBtn.style.display = "none";
         }
 
