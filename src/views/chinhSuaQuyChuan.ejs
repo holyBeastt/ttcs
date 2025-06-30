@@ -2166,6 +2166,7 @@
           });
           if (uncheckedRows.length > 0) {
             $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
             Swal.fire({
               title: "Bạn phải duyệt hết tất cả ở cột Khoa duyệt trước!",
               html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
@@ -2191,6 +2192,7 @@
           });
           if (uncheckedRows.length > 0) {
             $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Thêm dòng này để disable luôn ô BGD duyệt
             Swal.fire({
               title: "Bạn phải duyệt hết tất cả ở cột Đào tạo duyệt trước!",
               html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
@@ -2360,6 +2362,129 @@
           icon: "success"
         });
         loadEditRequests();
+      });
+    </script>
+
+    <script>
+      function updateAllDaoTaoCheckboxState() {
+        // Nếu tất cả Khoa duyệt đã tick thì enable hết Đào tạo duyệt, ngược lại disable các ô chưa được tick
+        const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+          if (allKhoaChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            // Nếu ô này chưa được tick thì disable
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+    </script>
+
+    <script>
+      // Thêm hàm này vào script
+      function updateAllDaoTaoCheckboxState() {
+        const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+          if (allKhoaChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+
+      // Trong sự kiện change:
+      $(document).on('change', '.approval-checkbox', function() {
+        // ... các code kiểm tra như cũ ...
+
+        if (approvalType === "daotao" && isChecked) {
+          // ... kiểm tra ...
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Khoa duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // ... các code kiểm tra khác ...
+
+        // ĐẾN ĐÂY MỚI CẬP NHẬT pendingApprovalChanges
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
+
+        // Nếu là tick vào Khoa duyệt thì cập nhật lại trạng thái Đào tạo duyệt
+        if (approvalType === "khoa") {
+          updateAllDaoTaoCheckboxState();
+        }
+        // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
+        if (approvalType === "daotao") {
+          updateAllBgdCheckboxState();
+        }
+      });
+    </script>
+
+    <script>
+      // Thêm hàm này
+      function updateAllBgdCheckboxState() {
+        const allDaoTaoChecked = $('input.approval-checkbox[data-type="daotao"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="bgd"]').each(function() {
+          if (allDaoTaoChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+
+      // Trong sự kiện change:
+      $(document).on('change', '.approval-checkbox', function() {
+        // ... các code kiểm tra như cũ ...
+
+        if (approvalType === "bgd" && isChecked) {
+          // ... kiểm tra ...
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Đào tạo duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // ... các code kiểm tra khác ...
+
+        // ĐẾN ĐÂY MỚI CẬP NHẬT pendingApprovalChanges
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
+
+        // Nếu là tick vào Khoa duyệt thì cập nhật lại trạng thái Đào tạo duyệt
+        if (approvalType === "khoa") {
+          updateAllDaoTaoCheckboxState();
+        }
+        // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
+        if (approvalType === "daotao") {
+          updateAllBgdCheckboxState();
+        }
       });
     </script>
 
