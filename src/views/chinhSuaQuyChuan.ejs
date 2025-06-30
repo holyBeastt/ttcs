@@ -262,7 +262,7 @@
 
     <!-- Add this modal for editing quy chuan -->
     <div class="modal fade" id="editQuyChuanModal" tabindex="-1" aria-labelledby="editQuyChuanModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl">
+      <div class="modal-dialog" style="max-width: 90vw;">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="editQuyChuanModalLabel">Chỉnh sửa quy chuẩn</h5>
@@ -1564,17 +1564,35 @@
             const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
             const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
             const isThuongBGD = userRole === "Thường";
-
-            const canApproveKhoa = isLanhDaoKhoa || isDuyetDaoTao || isThuongBGD;
-            const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
-            const canApproveBGD = isThuongBGD;
-            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
-            // Logic mới để vô hiệu hóa checkbox dựa trên quyền và tuần tự duyệt
-            const khoaDisabled = !(canApproveKhoa && !isPublished);
-            const daotaoDisabled = !(canApproveDaoTao && !isPublished && request.khoa_duyet);
-            const bgdDisabled = !(canApproveBGD && !isPublished && request.khoa_duyet && request.daotao_duyet);
+            // Logic phân quyền cho từng checkbox
+            let khoaDisabled = true;
+            if (!isPublished) {
+              if (isLanhDaoKhoa) {
+                khoaDisabled = false; // Lãnh đạo khoa có toàn quyền
+              } else if ((isDuyetDaoTao || isThuongBGD) && request.khoa_duyet) {
+                khoaDisabled = false; // Đào tạo và BGD có thể bỏ duyệt của Khoa
+              }
+            }
+            
+            let daotaoDisabled = true;
+            if (!isPublished) {
+              if (isDuyetDaoTao && request.khoa_duyet) {
+                daotaoDisabled = false; // Đào tạo có thể duyệt khi Khoa đã duyệt
+              } else if (isThuongBGD && request.daotao_duyet) {
+                daotaoDisabled = false; // BGD có thể bỏ duyệt của Đào tạo
+              }
+            }
+
+            let bgdDisabled = true;
+            if (!isPublished) {
+              if (isThuongBGD && request.khoa_duyet && request.daotao_duyet) {
+                bgdDisabled = false; // BGD có thể duyệt khi cả Khoa và Đào tạo đã duyệt
+              }
+            }
+
+            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
 
             // Thêm dòng này để tính toán allApproved
             const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
@@ -1887,6 +1905,21 @@
           "QuyChuan",
         ];
 
+        const customWidths = {
+          Khoa: "5%",
+          Dot: "5%",
+          KiHoc: "5%",
+          NamHoc: "8%",
+          LopHocPhan: "14%",
+          TenLop: "14%",
+          GiaoVien: "15%",
+          GiaoVienDieuChinh: "18%",
+          MoiGiang: "4%",
+          SoTinChi: "4%",
+          LL: "4%",
+          QuyChuan: "4%",
+        };
+
         const headersMap = {
           Khoa: "Khoa",
           Dot: "Đợt",
@@ -1906,8 +1939,11 @@
         // Render header
         let headerHtml = "";
         columnsToDisplay.forEach((col) => {
-          const style = col === 'GiaoVienDieuChinh' ? 'style="color: yellow;"' : '';
-          headerHtml += `<th ${style}>${headersMap[col] || col}</th>`;
+          let style = `width: ${customWidths[col] || 'auto'};`;
+          if (col === 'GiaoVienDieuChinh') {
+            style += ' color: yellow;';
+          }
+          headerHtml += `<th style="${style}">${headersMap[col] || col}</th>`;
         });
         document.getElementById("modal-table-header").innerHTML = headerHtml;
 
@@ -2201,25 +2237,36 @@
 
     <script>
       document.getElementById("publish-all-btn").addEventListener("click", async function() {
-        // Lấy tất cả các request đã đủ duyệt và chưa ban hành
         const rows = document.querySelectorAll("#edit-requests-body tr");
         const requestsToPublish = [];
-        for (const row of rows) {
-          // Lấy các cell
-          const cells = row.querySelectorAll("td");
-          if (cells.length < 11) continue; // bỏ qua dòng không hợp lệ
+        let pendingBgdApprovalCount = 0;
 
-          // Lấy trạng thái duyệt
-          const khoaDuyet = cells[8].querySelector("input")?.checked;
-          const daotaoDuyet = cells[9].querySelector("input")?.checked;
-          const bgdDuyet = cells[10].querySelector("input")?.checked;
+        for (const row of rows) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length < 12 || !cells[8].querySelector("input")) continue;
+
+          const khoaDuyet = cells[8].querySelector("input").checked;
+          const daotaoDuyet = cells[9].querySelector("input").checked;
+          const bgdDuyet = cells[10].querySelector("input").checked;
           const status = cells[11].textContent.trim();
-          // Lấy requestId từ 1 trong các checkbox
-          const requestId = cells[8].querySelector("input")?.dataset.requestId;
+          const requestId = cells[8].querySelector("input").dataset.requestId;
+
+          if (khoaDuyet && daotaoDuyet && !bgdDuyet && status !== "Đã ban hành") {
+            pendingBgdApprovalCount++;
+          }
 
           if (khoaDuyet && daotaoDuyet && bgdDuyet && status !== "Đã ban hành") {
             requestsToPublish.push(requestId);
           }
+        }
+
+        if (pendingBgdApprovalCount > 0) {
+          Swal.fire({
+            title: "Thông báo",
+            text: `Cần phải duyệt hết ${pendingBgdApprovalCount} yêu cầu còn lại trước khi ban hành!`,
+            icon: "warning"
+          });
+          return;
         }
 
         if (requestsToPublish.length === 0) {
