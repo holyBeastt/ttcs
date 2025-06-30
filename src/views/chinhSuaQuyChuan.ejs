@@ -2149,6 +2149,56 @@
 
         // Cập nhật trạng thái của các checkbox khác trong cùng dòng
         updateRowApprovalState($(this).closest('tr'));
+
+        // Chỉ cho tick Đào tạo duyệt khi tất cả Khoa duyệt đã được tick
+        if (approvalType === "daotao" && isChecked) {
+          const uncheckedRows = [];
+          $('#edit-requests-body tr').each(function() {
+            const khoaCheckbox = $(this).find('input.approval-checkbox[data-type="khoa"]');
+            if (khoaCheckbox.length && !khoaCheckbox.is(':checked')) {
+              const tds = $(this).find('td');
+              const dot = tds.eq(1).text().trim();
+              const ki = tds.eq(2).text().trim();
+              const nam = tds.eq(3).text().trim();
+              const khoa = tds.eq(0).text().trim();
+              uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
+            }
+          });
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Khoa duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // Chỉ cho tick BGD duyệt khi tất cả Đào tạo duyệt đã được tick
+        if (approvalType === "bgd" && isChecked) {
+          const uncheckedRows = [];
+          $('#edit-requests-body tr').each(function() {
+            const daotaoCheckbox = $(this).find('input.approval-checkbox[data-type="daotao"]');
+            if (daotaoCheckbox.length && !daotaoCheckbox.is(':checked')) {
+              const tds = $(this).find('td');
+              const dot = tds.eq(1).text().trim();
+              const ki = tds.eq(2).text().trim();
+              const nam = tds.eq(3).text().trim();
+              const khoa = tds.eq(0).text().trim();
+              uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
+            }
+          });
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Đào tạo duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
       });
 
       // Khi tick vào "check all"
@@ -2239,7 +2289,7 @@
       document.getElementById("publish-all-btn").addEventListener("click", async function() {
         const rows = document.querySelectorAll("#edit-requests-body tr");
         const requestsToPublish = [];
-        let pendingBgdApprovalCount = 0;
+        const uncheckedRows = [];
 
         for (const row of rows) {
           const cells = row.querySelectorAll("td");
@@ -2251,8 +2301,13 @@
           const status = cells[11].textContent.trim();
           const requestId = cells[8].querySelector("input").dataset.requestId;
 
-          if (khoaDuyet && daotaoDuyet && !bgdDuyet && status !== "Đã ban hành") {
-            pendingBgdApprovalCount++;
+          // Nếu chưa duyệt BGD thì thêm vào danh sách chưa duyệt
+          if (!bgdDuyet && status !== "Đã ban hành") {
+            const khoa = cells[0].textContent.trim();
+            const dot = cells[1].textContent.trim();
+            const ki = cells[2].textContent.trim();
+            const nam = cells[3].textContent.trim();
+            uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
           }
 
           if (khoaDuyet && daotaoDuyet && bgdDuyet && status !== "Đã ban hành") {
@@ -2260,10 +2315,11 @@
           }
         }
 
-        if (pendingBgdApprovalCount > 0) {
+        // Nếu còn dòng chưa duyệt BGD thì báo lỗi và liệt kê
+        if (uncheckedRows.length > 0) {
           Swal.fire({
-            title: "Thông báo",
-            text: `Cần phải duyệt hết ${pendingBgdApprovalCount} yêu cầu còn lại trước khi ban hành!`,
+            title: "Bạn phải duyệt hết tất cả ở cột BGD duyệt trước khi ban hành!",
+            html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
             icon: "warning"
           });
           return;
