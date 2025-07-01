@@ -396,12 +396,14 @@ GROUP BY
       "public",
       "temp",
       Date.now().toString()
-    );    if (!fs.existsSync(tempDir)) {
+    ); if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
     // Dữ liệu để tạo file thống kê chuyển khoản
     const summaryData = [];
+    const summaryData2 = [];
+
 
     // Lấy dữ liệu phòng ban
     const [phongBanList] = await connection.query("SELECT * FROM phongban");
@@ -445,7 +447,7 @@ GROUP BY
         tenNganh = phongBan.TenPhongBan; // Lấy từ object tìm được
       } else {
         tenNganh = "Không xác định";
-      }      const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
+      } const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
@@ -464,6 +466,15 @@ GROUP BY
         STK: teacher.STK,
         NganHang: teacher.NganHang,
         ThucNhan: tienThucNhanText, // Sử dụng số tiền thực nhận cố định 100k/tiết (như trong hợp đồng)
+        SoHopDong: teacher.SoHopDong,
+      });
+
+      summaryData2.push({
+        HoTen: hoTen,
+        MaSoThue: teacher.MaSoThue,
+        STK: teacher.STK,
+        NganHang: teacher.NganHang,
+        ThucNhan: tienText, //
         SoHopDong: teacher.SoHopDong,
       });
 
@@ -487,7 +498,7 @@ GROUP BY
         Email: teacher.Email,
         Tại_ngân_hàng: teacher.NganHang,
         Số_tiết: teacher.SoTiet.toString().replace(".", ","),
-        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),        Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
+        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi), Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
         Bằng_chữ_số_tiền: numberToWords(tienText), // Sử dụng tienText (100k/tiết)
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"), // Sử dụng tienThueText (từ 100k/tiết)
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"), // Sử dụng tienThucNhanText (từ 100k/tiết)
@@ -505,6 +516,7 @@ GROUP BY
         Khóa: teacher.KhoaDaoTao,
         Ngành: tenNganh,
       };
+
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
       switch (loaiHopDong) {
@@ -542,16 +554,24 @@ GROUP BY
       const buf = doc.getZip().generate({
         type: "nodebuffer",
         compression: "DEFLATE",
-      });      const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
+      }); const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
-    // Tạo file thống kê chuyển khoản
+    // Tạo file thống kê chuyển khoản sau thuế
     const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
     const summaryDoc = createTransferDetailDocument(summaryData, noiDung);
     const summaryBuf = await Packer.toBuffer(summaryDoc);
-    const summaryName = `File_Thong_Ke_Chuyen_Khoan.docx`;
+    const summaryName = `ĐATN_Daihoc_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
+
+    // Tạo file thống kê chuyển khoản trước thuế
+    const noiDung2 = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
+    const summaryDoc2 = createTransferDetailDocument(summaryData2, noiDung2);
+    const summaryBuf2 = await Packer.toBuffer(summaryDoc2);
+    const summaryName2 = `ĐATN_Daihoc_Thongke_chuyenkhoan_truocthue.docx`;
+    fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
+
 
     const archive = archiver("zip", {
       zlib: { level: 9 },
@@ -1374,8 +1394,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1690,8 +1710,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -2022,19 +2042,20 @@ const exportBoSungDownloadData = async (req, res) => {
     await archive.finalize();
   } catch (error) {
     console.error("Error in exportMultipleContracts:", error);
-    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);  } finally {
+    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+  } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
 
 // Hàm tạo file thống kê chuyển khoản
-function createTransferDetailDocument(data = [], noiDung = "") {  
+function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_sauthue) {
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
     // Xử lý xuống dòng bằng cách tách text theo \n
     const textLines = (text || '').split('\n');
     const textRuns = [];
-    
+
     textLines.forEach((line, index) => {
       if (index > 0) {
         // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
@@ -2076,7 +2097,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
     // Xử lý xuống dòng bằng cách tách text theo \n
     const textLines = (text || '').split('\n');
     const textRuns = [];
-    
+
     textLines.forEach((line, index) => {
       if (index > 0) {
         // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
@@ -2126,7 +2147,8 @@ function createTransferDetailDocument(data = [], noiDung = "") {
   }
 
   // Hàm tạo bảng chi tiết
-  function createDetailTable(data) {    const headerRow = new TableRow({
+  function createDetailTable(data) {
+    const headerRow = new TableRow({
       tableHeader: true,
       children: [
         createHeaderCell("STT", true),
@@ -2137,7 +2159,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 4800 twips cho cột Tại ngân hàng
         createHeaderCell("Số tiền (VNĐ)", true),
       ],
-    });    const dataRows = data.length
+    }); const dataRows = data.length
       ? data.map(
         (row, idx) =>
           new TableRow({
@@ -2199,12 +2221,12 @@ function createTransferDetailDocument(data = [], noiDung = "") {
         new TableCell({
           children: [
             new Paragraph({
-              children: [                new TextRun({
-                  text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
-                  font: "Times New Roman",
-                  size: 22,
-                  color: "000000",
-                }),
+              children: [new TextRun({
+                text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
+                font: "Times New Roman",
+                size: 22,
+                color: "000000",
+              }),
               ],
               alignment: AlignmentType.CENTER,
             }),
@@ -2337,7 +2359,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
-              }),              new TextRun({
+              }), new TextRun({
                 text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",
                 size: 22,
@@ -2352,14 +2374,14 @@ function createTransferDetailDocument(data = [], noiDung = "") {
             spacing: { before: 200 },
             children: [
               new TextRun({
-                text: "Ghi chú: Số tiền chuyển khoản là số tiền sau thuế",
+                text: `Ghi chú: Số tiền chuyển khoản là số tiền ${truocthue_or_sauthue}`,
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
                 italics: true,
               }),
             ],
-          }),        ],
+          }),],
       },
     ],
   });
