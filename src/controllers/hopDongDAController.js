@@ -568,6 +568,8 @@ GROUP BY
     const summaryName = `ĐATN_Daihoc_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
+    console.log("Tạo file thống kê chuyển khoản sau thuế thành công");
+
     // Tạo file thống kê chuyển khoản trước thuế
     const noiDung2 = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
     const summaryDoc2 = createTransferDetailDocument(summaryData2, noiDung2, "trước thuế");
@@ -575,44 +577,48 @@ GROUP BY
     const summaryName2 = `ĐATN_Daihoc_Thongke_chuyenkhoan_truocthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
-    const archive = archiver("zip", {
-      zlib: { level: 9 },
-    });
+    console.log("Tạo file thống kê chuyển khoản trước thuế thành công");
 
-    const zipFileName = `HopDong_DoAn_Dot${dot}_${namHoc}_${khoa || "all"}.zip`;
-    const zipPath = path.join(tempDir, zipFileName);
+    // === Phần fix: lưu ZIP ra ngoài tempDir ===
+    const zipOutputDir = path.join(__dirname, '..', 'public', 'tempZips');
+    fs.mkdirSync(zipOutputDir, { recursive: true });
+
+    const zipName = `HopDong_DoAn_Dot${dot}_${namHoc}_${khoa || 'all'}.zip`;
+    const zipPath = path.join(zipOutputDir, zipName);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);
-
     archive.pipe(output);
     archive.directory(tempDir, false);
 
     await new Promise((resolve, reject) => {
-      output.on("close", resolve);
-      archive.on("error", reject);
+      archive.on('error', reject);
+      output.on('close', resolve);
       archive.finalize();
     });
 
-    res.download(zipPath, zipFileName, (err) => {
+    // Gửi file và XÓA sau khi tải
+    res.download(zipPath, zipName, err => {
       if (err) {
-        console.error("Error sending zip file:", err);
+        console.error('Error sending zip file:', err);
         return;
       }
-
+      // Dọn dẹp tempDir và file ZIP
       setTimeout(() => {
-        try {
-          if (fs.existsSync(tempDir)) {
-            const files = fs.readdirSync(tempDir);
-            for (const file of files) {
-              const filePath = path.join(tempDir, file);
-              fs.unlinkSync(filePath);
-            }
-            fs.rmdirSync(tempDir);
-          }
-        } catch (error) {
-          console.error("Error cleaning up temporary directory:", error);
+        // Xóa các file trong tempDir
+        if (fs.existsSync(tempDir)) {
+          fs.readdirSync(tempDir).forEach(f => {
+            fs.unlinkSync(path.join(tempDir, f));
+          });
+          fs.rmdirSync(tempDir);
+        }
+        // Xóa file ZIP
+        if (fs.existsSync(zipPath)) {
+          fs.unlinkSync(zipPath);
         }
       }, 1000);
     });
+
   } catch (error) {
     console.error("Error in exportMultipleContracts:", error);
     res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
