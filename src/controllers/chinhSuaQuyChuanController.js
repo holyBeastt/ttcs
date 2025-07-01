@@ -97,6 +97,21 @@ const requestQuyChuanEdit = async (req, res) => {
         data.LopHocPhan
       ]);
 
+      // Nếu giá trị chỉnh sửa là rỗng, xóa request khỏi bảng quy_chuan_edit_requests
+      if (!newValue || newValue.trim() === "") {
+        await connection.query(
+          `DELETE FROM quy_chuan_edit_requests WHERE khoa = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND lop_hoc_phan = ? AND status IS NULL`,
+          [
+            data.Khoa,
+            data.Dot,
+            data.KiHoc,
+            data.NamHoc,
+            data.LopHocPhan
+          ]
+        );
+        continue;
+      }
+
       // Nếu có yêu cầu đang chờ duyệt, cập nhật yêu cầu đó
       if (existingRequests.length > 0) {
         const updateQuery = `
@@ -114,10 +129,22 @@ const requestQuyChuanEdit = async (req, res) => {
         ]);
       } else {
         // Nếu không có yêu cầu đang chờ duyệt, tạo yêu cầu mới
+        // Lấy ten_lop từ bảng quychuan
+        const [rows] = await connection.query(
+          `SELECT TenLop FROM quychuan WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND LopHocPhan = ? LIMIT 1`,
+          [
+            data.Khoa,
+            data.Dot,
+            data.KiHoc,
+            data.NamHoc,
+            data.LopHocPhan
+          ]
+        );
+        const tenLop = rows[0]?.TenLop || '';
         const insertQuery = `
           INSERT INTO quy_chuan_edit_requests 
-          (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, column_name, old_value, new_value)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, ten_lop, column_name, old_value, new_value)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         await connection.query(insertQuery, [
@@ -126,6 +153,7 @@ const requestQuyChuanEdit = async (req, res) => {
           data.KiHoc,
           data.NamHoc,
           data.LopHocPhan,
+          tenLop,
           colName,
           originalValue,
           newValue
@@ -175,6 +203,7 @@ const getQuyChuanEditRequests = async (req, res) => {
         ki_hoc,
         nam_hoc,
         lop_hoc_phan,
+        ten_lop,
         column_name,
         old_value,
         new_value,
@@ -361,7 +390,8 @@ const exportAdjustedQuyChuan = async (req, res) => {
     const [rows] = await connection.query(
       `SELECT * FROM quy_chuan_edit_requests 
        WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ? 
-       ${khoa && khoa !== 'ALL' ? 'AND khoa = ?' : ''}`,
+       ${khoa && khoa !== 'ALL' ? 'AND khoa = ?' : ''}
+       AND status = 'Cập nhật thành công'`,
       khoa && khoa !== 'ALL' ? [dot, ki_hoc, nam_hoc, khoa] : [dot, ki_hoc, nam_hoc]
     );
 
@@ -550,7 +580,7 @@ const exportAdjustedQuyChuan = async (req, res) => {
     worksheet.getRow(lastRow.number + 3).height = 20;
 
     worksheet.mergeCells('A' + (lastRow.number + 4) + ':D' + (lastRow.number + 4));
-    worksheet.getCell('A' + (lastRow.number + 4)).value = 'Hà Nội, ngày    tháng    năm   ';
+    worksheet.getCell('A' + (lastRow.number + 4)).value = 'Hà Nội , ngày    tháng    năm   ';
     worksheet.getCell('A' + (lastRow.number + 4)).alignment = { horizontal: 'right', vertical: 'middle' };
     worksheet.getCell('A' + (lastRow.number + 4)).font = { size: 14, name: 'Times New Roman' };
     worksheet.getRow(lastRow.number + 4).height = 20;
@@ -558,37 +588,6 @@ const exportAdjustedQuyChuan = async (req, res) => {
     // Thêm dòng chữ ký
     const signatureRow = worksheet.getRow(lastRow.number + 6);
     signatureRow.height = 40;
-
-    // // Thêm text cho từng cột với alignment khác nhau
-    // worksheet.getCell('A' + (lastRow.number + 6)).value = 'PHÓ GIÁM ĐỐC PHỤ TRÁCH ĐÀO TẠO';
-    // worksheet.getCell('A' + (lastRow.number + 6)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('A' + (lastRow.number + 6)).font = { size: 14, name: 'Times New Roman' };
-
-    // worksheet.getCell('B' + (lastRow.number + 6)).value = 'PHÒNG ĐÀO TẠO';
-    // worksheet.getCell('B' + (lastRow.number + 6)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('B' + (lastRow.number + 6)).font = { size: 14, name: 'Times New Roman' };
-
-    // worksheet.getCell('D' + (lastRow.number + 6)).value = 'CHỦ NHIỆM KHOA';
-    // worksheet.getCell('D' + (lastRow.number + 6)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('D' + (lastRow.number + 6)).font = { size: 14, name: 'Times New Roman' };
-
-    // // Thêm dòng trống cho chữ ký
-    // worksheet.addRow([]);
-    // const signatureSpaceRow = worksheet.getRow(lastRow.number + 7);
-    // signatureSpaceRow.height = 60;
-
-    // // Thêm dấu chấm cho chữ ký
-    // worksheet.getCell('A' + (lastRow.number + 7)).value = '........................';
-    // worksheet.getCell('A' + (lastRow.number + 7)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('A' + (lastRow.number + 7)).font = { size: 14, name: 'Times New Roman' };
-
-    // worksheet.getCell('B' + (lastRow.number + 7)).value = '........................';
-    // worksheet.getCell('B' + (lastRow.number + 7)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('B' + (lastRow.number + 7)).font = { size: 14, name: 'Times New Roman' };
-
-    // worksheet.getCell('D' + (lastRow.number + 7)).value = '........................';
-    // worksheet.getCell('D' + (lastRow.number + 7)).alignment = { horizontal: 'center', vertical: 'middle' };
-    // worksheet.getCell('D' + (lastRow.number + 7)).font = { size: 14, name: 'Times New Roman' };
 
     // Tạo buffer
     const buffer = await workbook.xlsx.writeBuffer();
@@ -611,11 +610,34 @@ const exportAdjustedQuyChuan = async (req, res) => {
   }
 };
 
+// API lấy danh sách giảng viên cho suggest autocomplete
+const getGiangVienList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = `SELECT TenNhanVien, MaPhongBan 
+                    FROM nhanvien 
+                    WHERE MaPhongBan IN (
+                      SELECT DISTINCT MaPhongBan 
+                      FROM role 
+                      WHERE isKhoa = 1
+                    );`;
+    const [results] = await connection.query(query);
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 module.exports = {
   updateQuyChuan,
   requestQuyChuanEdit,
   getQuyChuanEditRequests,
   updateQuyChuanApproval,
   applyQuyChuanEdit,
-  exportAdjustedQuyChuan
+  exportAdjustedQuyChuan,
+  getGiangVienList,
 };

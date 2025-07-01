@@ -2384,7 +2384,7 @@ function createTransferDetailDocument(data = [], noiDung = "") {
               createCell(row.HoTen || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
-              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định 3600 twips
+              createCell(row.NganHang || "", false, 4800),
               createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
             ],
           })

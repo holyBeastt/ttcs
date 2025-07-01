@@ -152,6 +152,23 @@
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .ui-autocomplete {
+        background: white;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
+        padding: 5px;
+        width: 200px;
+        font-size: 12px !important;
+      }
+      .ui-menu-item {
+        padding: 8px;
+        cursor: default;
+      }
+    </style>
   </head>
 
   <body>
@@ -195,7 +212,17 @@
           <button class="btn btn-warning mx-1" id="show-edit-form-btn" style="margin-bottom: 0px; height: 45px;">
             Chỉnh sửa quy chuẩn
           </button>
+          <button class="btn btn-primary mx-1" id="save-approval-btn" style="margin-bottom: 0px; height: 45px;">
+            Cập nhật 
+          </button>
+          <button class="btn btn-success mx-1" id="publish-all-btn" style="margin-bottom: 0px; height: 45px; display: none;">
+            Ban Hành
+          </button>
         </div>
+
+        <h4 class="text-center text-primary fw-bold my-3">
+          DANH SÁCH CÁC MÔN YÊU CẦU THAY ĐỔI THÔNG TIN GIẢNG VIÊN
+        </h4>
 
         <!-- Edit requests list container -->
         <div id="edit-requests-container">
@@ -208,13 +235,22 @@
                   <th>Kì</th>
                   <th>Năm</th>
                   <th>Lớp học phần</th>
+                  <th>Tên lớp</th>
                   <th>Giảng viên theo TKB</th>
                   <th>Giảng viên điều chỉnh</th>
-                  <th>Khoa duyệt</th>
-                  <th>Đào tạo duyệt</th>
-                  <th>BGD duyệt</th>
+                  <th>
+                    Khoa duyệt<br>
+                    <input type="checkbox" id="check-all-khoa-duyet" />
+                  </th>
+                  <th>
+                    Đào tạo duyệt<br>
+                    <input type="checkbox" id="check-all-daotao-duyet" />
+                  </th>
+                  <th>
+                    BGD duyệt<br>
+                    <input type="checkbox" id="check-all-bgd-duyet" />
+                  </th>
                   <th>Trạng thái</th>
-                  <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody id="edit-requests-body"></tbody>
@@ -226,7 +262,7 @@
 
     <!-- Add this modal for editing quy chuan -->
     <div class="modal fade" id="editQuyChuanModal" tabindex="-1" aria-labelledby="editQuyChuanModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl">
+      <div class="modal-dialog" style="max-width: 90vw;">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="editQuyChuanModalLabel">Chỉnh sửa quy chuẩn</h5>
@@ -658,7 +694,7 @@
           .map((item, rowIndex) => {
             let rowHtml = columnsToDisplay
               .map((key, colIndex) => {
-                let cellValue = item[key] !== null ? item[key] : "";
+                let cellValue = (item[key] !== null && item[key] !== undefined) ? item[key] : "";
 
                 // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
                 if (key === "MoiGiang") {
@@ -682,7 +718,19 @@
                 const isEditable = !nonEditableColumns.includes(key);
                 
                 if (isEditable) {
-                  return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
+                  if (key === "GiaoVienDieuChinh") {
+                    return `<td>
+                      <input type="text" 
+                             class="input-gv-dieuchinh" 
+                             data-row="${rowIndex}" 
+                             value="${cellValue || ""}" 
+                             placeholder="Nhập hoặc chọn giảng viên..."
+                             autocomplete="off"
+                             style="width: 100%;"/>
+                    </td>`;
+                  } else {
+                    return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
+                  }
                 } else {
                   return `<td>${cellValue}</td>`;
                 }
@@ -696,6 +744,75 @@
 
         // Remove spinner
         loadingSpinner.remove();
+
+        // Add this section to apply autocomplete
+        $(".input-gv-dieuchinh").each(function () {
+          $(this).autocomplete({
+            source: function (request, response) {
+              const value = request.term.toLowerCase();
+              const gvmList = JSON.parse(localStorage.getItem("gvmList")) || [];
+              let suggestions = gvmList.map(
+                (item) => `${item.TenNhanVien} - ${item.MaPhongBan}`
+              );
+              if (value) {
+                suggestions = suggestions.filter((name) =>
+                  name.toLowerCase().includes(value)
+                );
+              }
+              response(suggestions);
+            },
+            minLength: 0,
+            select: function (event, ui) {
+              let parts = ui.item.value.split("-");
+              let processedName = parts[0].trim();
+              $(this).val(processedName);
+              // Cập nhật editedData như logic cũ
+              const rowIndex = $(this).data("row");
+              const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"];
+              if (processedName !== originalValue) {
+                const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+                editedData.set(editKey, {
+                  rowIndex: parseInt(rowIndex),
+                  colName: "GiaoVien",
+                  newValue: processedName,
+                  originalValue: renderData[rowIndex].GiaoVien,
+                  data: renderData[rowIndex]
+                });
+                $(this).css("background-color", "#fff3cd");
+              }
+              return false;
+            },
+          });
+          // Hiển thị toàn bộ gợi ý khi focus
+          $(this).on("focus", function () {
+            $(this).autocomplete("search", "");
+          });
+          // Sự kiện cập nhật dữ liệu chỉnh sửa
+          $(this).on("change blur", function () {
+            const rowIndex = $(this).data("row");
+            const newValue = $(this).val().trim();
+            const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"];
+            const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+            if (newValue === "") {
+              editedData.delete(editKey);
+              $(this).css("background-color", "");
+              return;
+            }
+            if (newValue !== originalValue) {
+              editedData.set(editKey, {
+                rowIndex: parseInt(rowIndex),
+                colName: "GiaoVien",
+                newValue: newValue,
+                originalValue: renderData[rowIndex].GiaoVien,
+                data: renderData[rowIndex]
+              });
+              $(this).css("background-color", "#fff3cd");
+            } else {
+              editedData.delete(editKey);
+              $(this).css("background-color", "");
+            }
+          });
+        });
       }
 
       // Handle cell edit
@@ -711,13 +828,22 @@
           return;
         }
 
+        // Nếu giá trị mới là rỗng thì xóa khỏi editedData (nếu có)
+        const editKey = `${rowIndex}-${colName}`;
+        if (newValue === "") {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = ""; // Bỏ highlight
+          return;
+        }
+
         // Don't track if value hasn't changed
         if (newValue === originalValue) {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = "";
           return;
         }
 
         // Store the edit
-        const editKey = `${rowIndex}-${colName}`;
         editedData.set(editKey, {
           rowIndex: parseInt(rowIndex),
           colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
@@ -785,89 +911,7 @@
           }
         });
     </script>
-    <script>
-      $(document).ready(function () {
-        $('#filter-nam option[value=""]').remove();
-        $('#filter-ki option[value=""]').remove();
-        $('#filter-dot option[value=""]').remove();
-
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                $("#filter-nam").append(
-                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                );
-              });
-
-              response.Ki.forEach(function (item) {
-                console.log(item.Ki);
-                $("#filter-ki").append(
-                  `<option value="${item.value}">${item.Ki}</option>`
-                );
-              });
-              response.Dot.forEach(function (item) {
-                console.log(item.Dot);
-                $("#filter-dot").append(
-                  `<option value="${item.value}">${item.Dot}</option>`
-                );
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
-      });
-    </script>
-    <script>
-      $(document).ready(function () {
-        $('#filter-khoa option[value=""]').remove();
-        // Gọi AJAX để lấy dữ liệu JSON từ API
-        $.ajax({
-          url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
-          method: "GET",
-          success: function (response) {
-            // Kiểm tra nếu response thành công
-            const MaPhongBan = response.MaPhongBan;
-            if (response.success) {
-              $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
-              // Lặp qua từng mục trong mảng MaPhongBan
-              response.MaPhongBan.forEach(function (item) {
-                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
-                $("#filter-khoa").append(
-                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                );
-              });
-
-              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-              if (!$("#filter-khoa option:selected").length) {
-                $("#filter-khoa").prepend(
-                  '<option value="">Chọn Phòng Ban</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu phongBan:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-          },
-        });
-      });
-    </script>
+   
     <script>
       document
         .getElementById("infome")
@@ -954,26 +998,37 @@
                     <th>Kì</th>
                     <th>Năm</th>
                     <th>Lớp học phần</th>
+                    <th>Tên lớp</th>
                     <th>Giảng viên theo TKB</th>
                     <th>Giảng viên điều chỉnh</th>
-                    <th>Khoa duyệt</th>
-                    <th>Đào tạo duyệt</th>
-                    <th>BGD duyệt</th>
+                    <th>
+                      Khoa duyệt<br>
+                      <input type="checkbox" id="check-all-khoa-duyet" />
+                    </th>
+                    <th>
+                      Đào tạo duyệt<br>
+                      <input type="checkbox" id="check-all-daotao-duyet" />
+                    </th>
+                    <th>
+                      BGD duyệt<br>
+                      <input type="checkbox" id="check-all-bgd-duyet" />
+                    </th>
                     <th>Trạng thái</th>
-                    <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
               `;
 
           filteredRequests.forEach(request => {
-            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+            const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
             const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-            const canUpdate = userRole === "Duyệt";
+            const canApproveBGD = userRole === "Thường";
+            const canUpdate = userRole === "Thường";
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
+
+            // Thêm dòng này để tính toán allApproved
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
 
             modalContent += `
               <tr>
@@ -982,6 +1037,7 @@
                 <td>${request.ki_hoc || ''}</td>
                 <td>${request.nam_hoc || ''}</td>
                 <td>${request.lop_hoc_phan || ''}</td>
+                <td>${request.ten_lop || ''}</td>
                 <td>${request.old_value || ''}</td>
                 <td>${request.new_value || ''}</td>
                 <td>
@@ -990,8 +1046,7 @@
                     data-request-id="${request.id}" 
                     data-type="khoa"
                     ${request.khoa_duyet ? 'checked' : ''}
-                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                    onchange="handleApproval(this)">
+                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
                 </td>
                 <td>
                   <input type="checkbox" 
@@ -1012,19 +1067,6 @@
                     onchange="handleApproval(this)">
                 </td>
                 <td>${status}</td>
-                <td>
-                  ${canUpdate ? `
-                    <button 
-                      class="btn btn-primary btn-sm update-request-btn" 
-                      data-request-id="${request.id}"
-                      onclick="updateRequest(${request.id})"
-                      ${(!allApproved || isPublished) ? 'disabled' : ''}
-                      style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                    >
-                      Ban Hành
-                    </button>
-                  ` : ''}
-                </td>
               </tr>
             `;
           });
@@ -1225,13 +1267,15 @@
                     const userRole = localStorage.getItem("userRole");
                     const isKhoa = localStorage.getItem("isKhoa");
                     
-                    const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
+                    const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
                     const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-                    const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-                    const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-                    const canUpdate = userRole === "Duyệt";
+                    const canApproveBGD = userRole === "Thường";
+                    const canUpdate = userRole === "Thường";
                     const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
                     const isPublished = request.status === 'Cập nhật thành công';
+
+                    // Thêm dòng này để tính toán allApproved
+                    const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
 
                     const row = document.createElement("tr");
                     row.innerHTML = `
@@ -1240,6 +1284,7 @@
                       <td>${request.ki_hoc || ''}</td>
                       <td>${request.nam_hoc || ''}</td>
                       <td>${request.lop_hoc_phan || ''}</td>
+                      <td>${request.ten_lop || ''}</td>
                       <td>${request.old_value || ''}</td>
                       <td>${request.new_value || ''}</td>
                       <td>
@@ -1248,8 +1293,7 @@
                           data-request-id="${request.id}" 
                           data-type="khoa"
                           ${request.khoa_duyet ? 'checked' : ''}
-                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                          onchange="handleApproval(this)">
+                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
                       </td>
                       <td>
                         <input type="checkbox" 
@@ -1270,19 +1314,6 @@
                           onchange="handleApproval(this)">
                       </td>
                       <td>${status}</td>
-                      <td>
-                        ${canUpdate ? `
-                          <button 
-                            class="btn btn-primary btn-sm update-request-btn" 
-                            data-request-id="${request.id}"
-                            onclick="updateRequest(${request.id})"
-                            ${(!allApproved || isPublished) ? 'disabled' : ''}
-                            style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                          >
-                            Ban Hành
-                          </button>
-                        ` : ''}
-                      </td>
                     `;
                     tbody.appendChild(row);
                   });
@@ -1314,13 +1345,12 @@
       document.addEventListener("DOMContentLoaded", () => {
         const role = localStorage.getItem("userRole");
         const isKhoa = localStorage.getItem("isKhoa");
-
-        // Show/hide request edit button based on role
-        const requestEditBtn = document.getElementById("request-edit-btn");
-        if (role === "Lãnh đạo khoa" || role === "GV" || role === "Duyệt") {
-          requestEditBtn.style.display = "block";
-        } else {
-          requestEditBtn.style.display = "none";
+        const editBtn = document.getElementById("show-edit-form-btn");
+        
+        // Hiển thị nút cho Lãnh đạo khoa, GV, và GV_CNBM
+        const allowedRoles = ["Lãnh đạo khoa", "GV", "GV_CNBM"];
+        if (!(allowedRoles.includes(role) && isKhoa === "1")) {
+          editBtn.style.display = "none";
         }
 
         // ... rest of your existing DOMContentLoaded code ...
@@ -1405,6 +1435,11 @@
         document.getElementById("filter-btn").addEventListener("click", () => {
           loadEditRequests();
         });
+
+        // Tự động bấm nút Hiển thị khi vào trang
+        setTimeout(function() {
+          $("#filter-btn").trigger("click");
+        }, 200); // Đợi 200ms cho chắc chắn combobox đã khởi tạo xong
       });
 
       // Function to initialize filter comboboxes
@@ -1484,6 +1519,7 @@
           // Lấy role và isKhoa từ localStorage
           const userRole = localStorage.getItem("userRole");
           const isKhoa = localStorage.getItem("isKhoa");
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
 
           console.log("Loading edit requests with filters:", { dot, ki, namHoc, khoa });
 
@@ -1525,13 +1561,41 @@
           }
 
           requests.forEach(request => {
-            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
-            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
-            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-            const canUpdate = userRole === "Duyệt";
-            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
+            const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
+            const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+            const isThuongBGD = userRole === "Thường";
             const isPublished = request.status === 'Cập nhật thành công';
+
+            // Logic phân quyền cho từng checkbox
+            let khoaDisabled = true;
+            if (!isPublished) {
+              if (isLanhDaoKhoa) {
+                khoaDisabled = false; // Lãnh đạo khoa có toàn quyền
+              } else if ((isDuyetDaoTao || isThuongBGD) && request.khoa_duyet) {
+                khoaDisabled = false; // Đào tạo và BGD có thể bỏ duyệt của Khoa
+              }
+            }
+            
+            let daotaoDisabled = true;
+            if (!isPublished) {
+              if (isDuyetDaoTao && request.khoa_duyet) {
+                daotaoDisabled = false; // Đào tạo có thể duyệt khi Khoa đã duyệt
+              } else if (isThuongBGD && request.daotao_duyet) {
+                daotaoDisabled = false; // BGD có thể bỏ duyệt của Đào tạo
+              }
+            }
+
+            let bgdDisabled = true;
+            if (!isPublished) {
+              if (isThuongBGD && request.khoa_duyet && request.daotao_duyet) {
+                bgdDisabled = false; // BGD có thể duyệt khi cả Khoa và Đào tạo đã duyệt
+              }
+            }
+
+            const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
+
+            // Thêm dòng này để tính toán allApproved
+            const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
 
             const row = document.createElement("tr");
             row.innerHTML = `
@@ -1540,6 +1604,7 @@
               <td>${request.ki_hoc || ''}</td>
               <td>${request.nam_hoc || ''}</td>
               <td>${request.lop_hoc_phan || ''}</td>
+              <td>${request.ten_lop || ''}</td>
               <td>${request.old_value || ''}</td>
               <td>${request.new_value || ''}</td>
               <td>
@@ -1548,8 +1613,7 @@
                   data-request-id="${request.id}" 
                   data-type="khoa"
                   ${request.khoa_duyet ? 'checked' : ''}
-                  ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
+                  ${khoaDisabled ? 'disabled' : ''}>
               </td>
               <td>
                 <input type="checkbox" 
@@ -1557,8 +1621,7 @@
                   data-request-id="${request.id}" 
                   data-type="daotao"
                   ${request.daotao_duyet ? 'checked' : ''}
-                  ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
+                  ${daotaoDisabled ? 'disabled' : ''}>
               </td>
               <td>
                 <input type="checkbox" 
@@ -1566,23 +1629,9 @@
                   data-request-id="${request.id}" 
                   data-type="bgd"
                   ${request.bgd_duyet ? 'checked' : ''}
-                  ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
-                  onchange="handleApproval(this)">
+                  ${bgdDisabled ? 'disabled' : ''}>
               </td>
               <td>${status}</td>
-              <td>
-                ${canUpdate ? `
-                  <button 
-                    class="btn btn-primary btn-sm update-request-btn" 
-                    data-request-id="${request.id}"
-                    onclick="updateRequest(${request.id})"
-                    ${(!allApproved || isPublished) ? 'disabled' : ''}
-                    style="padding: 2px 5px; font-size: 12px; line-height: 1.2;"
-                  >
-                    Ban Hành
-                  </button>
-                ` : ''}
-              </td>
             `;
             tbody.appendChild(row);
           });
@@ -1755,7 +1804,7 @@
           // Hiển thị loading
           document.getElementById("modal-loading").style.display = "block";
 
-          // Gửi request lấy dữ liệu
+          // Gửi request lấy dữ liệu quy chuẩn
           const response = await fetch("/quy-chuan-chinh-thuc", {
             method: "POST",
             headers: {
@@ -1774,7 +1823,55 @@
           }
 
           // Lưu dữ liệu và render bảng
-          renderData = await response.json();
+          let renderDataRaw = await response.json();
+
+          // Lấy danh sách request chờ duyệt
+          const reqRes = await fetch("/get-quy-chuan-edit-requests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dot: dotValue,
+              ki_hoc: kiValue,
+              nam_hoc: namValue,
+              khoa: khoaValue
+            })
+          });
+          let reqList = [];
+          if (reqRes.ok) {
+            const reqJson = await reqRes.json();
+            if (reqJson.success) reqList = reqJson.data;
+          }
+
+          // Merge new_value vào renderDataRaw
+          renderDataRaw.forEach(item => {
+            const found = reqList.find(r =>
+              r.khoa == item.Khoa &&
+              r.dot == item.Dot &&
+              r.ki_hoc == item.KiHoc &&
+              r.nam_hoc == item.NamHoc &&
+              r.lop_hoc_phan == item.LopHocPhan &&
+              r.status == null
+            );
+            console.log('So khop:', {
+              item: {Khoa: item.Khoa, Dot: item.Dot, KiHoc: item.KiHoc, NamHoc: item.NamHoc, LopHocPhan: item.LopHocPhan},
+              found
+            });
+            if (found) {
+              item.GiaoVienDieuChinh = found.new_value;
+              item.khoa_duyet = found.khoa_duyet;
+              // Nếu đã khoa duyệt thì đánh dấu readonly
+              item.isKhoaDuyet = found.khoa_duyet == 1;
+            } else {
+              item.GiaoVienDieuChinh = item.GiaoVienDieuChinh || '';
+              item.isKhoaDuyet = false;
+            }
+          });
+
+          // Thêm log để debug
+          console.log('renderDataRaw after merge:', renderDataRaw);
+          console.log('reqList:', reqList);
+
+          renderData = renderDataRaw;
           renderModalTable(renderData);
 
         } catch (error) {
@@ -1798,14 +1895,30 @@
           "KiHoc",
           "NamHoc",
           "LopHocPhan",
+          "TenLop", // Thêm TenLop vào đây
           "GiaoVien",
           "GiaoVienDieuChinh",
           "MoiGiang",
           "SoTinChi",
-          "TenLop",
+          // "TenLop", // Xóa dòng này đi nếu có
           "LL",
           "QuyChuan",
         ];
+
+        const customWidths = {
+          Khoa: "5%",
+          Dot: "5%",
+          KiHoc: "5%",
+          NamHoc: "8%",
+          LopHocPhan: "14%",
+          TenLop: "14%",
+          GiaoVien: "15%",
+          GiaoVienDieuChinh: "18%",
+          MoiGiang: "4%",
+          SoTinChi: "4%",
+          LL: "4%",
+          QuyChuan: "4%",
+        };
 
         const headersMap = {
           Khoa: "Khoa",
@@ -1813,11 +1926,12 @@
           KiHoc: "Kì",
           NamHoc: "Năm",
           LopHocPhan: "Lớp học phần",
+          TenLop: "Tên lớp", // Thêm dòng này
           GiaoVien: "Giảng viên theo TKB",
           GiaoVienDieuChinh: "Giảng viên điều chỉnh",
           MoiGiang: "Mời giảng?",
           SoTinChi: "Số tín chỉ",
-          TenLop: "Tên lớp",
+          // TenLop: "Tên lớp", // Xóa dòng này đi nếu có
           LL: "Số tiết lên lớp",
           QuyChuan: "Số tiết quy chuẩn",
         };
@@ -1825,7 +1939,11 @@
         // Render header
         let headerHtml = "";
         columnsToDisplay.forEach((col) => {
-          headerHtml += `<th>${headersMap[col] || col}</th>`;
+          let style = `width: ${customWidths[col] || 'auto'};`;
+          if (col === 'GiaoVienDieuChinh') {
+            style += ' color: yellow;';
+          }
+          headerHtml += `<th style="${style}">${headersMap[col] || col}</th>`;
         });
         document.getElementById("modal-table-header").innerHTML = headerHtml;
 
@@ -1833,7 +1951,7 @@
         let bodyHtml = "";
         data.forEach((item, rowIndex) => {
           let rowHtml = columnsToDisplay.map((key) => {
-            let cellValue = item[key] !== null ? item[key] : "";
+            let cellValue = (item[key] !== null && item[key] !== undefined) ? item[key] : "";
 
             if (key === "MoiGiang") {
               cellValue = cellValue === 1 ? "Có" : "Không";
@@ -1846,27 +1964,58 @@
               "KiHoc", 
               "NamHoc", 
               "LopHocPhan", 
+              "TenLop", // Thêm TenLop vào đây để không cho sửa
               "MoiGiang", 
               "SoTinChi", 
-              "TenLop", 
+              // "TenLop", // Xóa dòng này đi nếu có
               "LL", 
               "QuyChuan",
               "GiaoVien" // Thêm GiaoVien vào danh sách không được chỉnh sửa
             ];
             
+            if (key === "GiaoVienDieuChinh") {
+              // Nếu đã khoa duyệt thì readonly
+              const isReadonly = item.isKhoaDuyet ? 'readonly' : '';
+              return `<td><input type=\"text\" class=\"input-gv-dieuchinh-modal\" data-row=\"${rowIndex}\" value=\"${cellValue}\" style=\"width:100%;\" ${isReadonly} /></td>`;
+            }
             const isEditable = !nonEditableColumns.includes(key);
-            
             if (isEditable) {
               return `<td contenteditable="true" data-row="${rowIndex}" data-col="${key}" onblur="handleCellEdit(this)" style="cursor: pointer;">${cellValue}</td>`;
             } else {
               return `<td>${cellValue}</td>`;
             }
           }).join("");
-          
           bodyHtml += `<tr>${rowHtml}</tr>`;
         });
 
         document.getElementById("modal-data-table-body").innerHTML = bodyHtml;
+
+        // Gán sự kiện cho input giảng viên điều chỉnh trong modal
+        document.querySelectorAll('.input-gv-dieuchinh-modal').forEach(input => {
+          input.addEventListener('input', function() {
+            const rowIndex = this.dataset.row;
+            const newValue = this.value.trim();
+            const originalValue = renderData[rowIndex]["GiaoVienDieuChinh"] || "";
+            const editKey = `${rowIndex}-GiaoVienDieuChinh`;
+
+            // Nếu giá trị không thay đổi so với ban đầu, xóa khỏi danh sách chỉnh sửa
+            if (newValue === originalValue) {
+              editedData.delete(editKey);
+              this.style.backgroundColor = "";
+              return;
+            }
+
+            // Nếu có thay đổi (kể cả xóa thành rỗng), lưu vào editedData
+            editedData.set(editKey, {
+              rowIndex: parseInt(rowIndex),
+              colName: "GiaoVien",
+              newValue: newValue,
+              originalValue: renderData[rowIndex].GiaoVien,
+              data: renderData[rowIndex]
+            });
+            this.style.backgroundColor = "#fff3cd"; // Highlight thay đổi
+          });
+        });
       }
 
       // Hàm xử lý sự kiện khi cell được edit
@@ -1882,13 +2031,22 @@
           return;
         }
 
+        // Nếu giá trị mới là rỗng thì xóa khỏi editedData (nếu có)
+        const editKey = `${rowIndex}-${colName}`;
+        if (newValue === "") {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = ""; // Bỏ highlight
+          return;
+        }
+
         // Don't track if value hasn't changed
         if (newValue === originalValue) {
+          editedData.delete(editKey);
+          cell.style.backgroundColor = "";
           return;
         }
 
         // Store the edit
-        const editKey = `${rowIndex}-${colName}`;
         editedData.set(editKey, {
           rowIndex: parseInt(rowIndex),
           colName: "GiaoVien", // Sửa lại tên cột để lưu vào database
@@ -1901,5 +2059,434 @@
         cell.style.backgroundColor = "#fff3cd";
       }
     </script>
+    <script>
+      // Hàm để lấy danh sách giảng viên từ API
+      async function fetchGiangVienList() {
+        try {
+          const response = await fetch("/api/giangvien"); // Gọi API
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const gvmList = await response.json(); // Chuyển đổi dữ liệu thành JSON
+          return gvmList;
+        } catch (error) {
+          console.error("Error fetching giang vien list:", error);
+          return []; // Trả về mảng rỗng nếu có lỗi
+        }
+      }
+
+      $(document).ready(async function () {
+        const gvmList = await fetchGiangVienList();
+        localStorage.setItem("gvmList", JSON.stringify(gvmList)); // Lưu vào localStorage
+        // Sau đó mới render bảng/modal
+      });
+
+      
+    </script>
+
+    <!-- Sự kiện check all cho từng cột duyệt -->
+    <script>
+      // Lưu các thay đổi duyệt tạm thời
+      let pendingApprovalChanges = {};
+
+      // Hàm cập nhật trạng thái các checkbox trong cùng một dòng
+      function updateRowApprovalState(row) {
+        const userRole = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+        const isThuongBGD = userRole === "Thường";
+        
+        const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
+        const canApproveBGD = isThuongBGD;
+
+        const khoaCheckbox = row.find('input[data-type="khoa"]');
+        const daotaoCheckbox = row.find('input[data-type="daotao"]');
+        const bgdCheckbox = row.find('input[data-type="bgd"]');
+        
+        const requestId = khoaCheckbox.data('request-id');
+
+        const khoaIsChecked = khoaCheckbox.is(':checked');
+        const daotaoIsChecked = daotaoCheckbox.is(':checked');
+
+        // Cập nhật checkbox Đào tạo
+        if (canApproveDaoTao) {
+          if (!khoaIsChecked) {
+            daotaoCheckbox.prop('disabled', true);
+            if (daotaoCheckbox.is(':checked')) {
+              daotaoCheckbox.prop('checked', false);
+              if (pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId]['daotao'] = false;
+            }
+          } else {
+            daotaoCheckbox.prop('disabled', false);
+          }
+        }
+        
+        // Cập nhật checkbox BGD
+        if (canApproveBGD) {
+          // Lấy lại trạng thái của checkbox đào tạo sau khi có thể đã bị thay đổi
+          const finalDaotaoIsChecked = daotaoCheckbox.is(':checked');
+          if (!khoaIsChecked || !finalDaotaoIsChecked) {
+            bgdCheckbox.prop('disabled', true);
+            if (bgdCheckbox.is(':checked')) {
+              bgdCheckbox.prop('checked', false);
+              if (pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId]['bgd'] = false;
+            }
+          } else {
+            bgdCheckbox.prop('disabled', false);
+          }
+        }
+      }
+
+      // Khi tick vào checkbox duyệt
+      $(document).on('change', '.approval-checkbox', function() {
+        const requestId = $(this).data('request-id');
+        const approvalType = $(this).data('type');
+        const isChecked = $(this).is(':checked');
+
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
+
+        // Chỉ cho tick Đào tạo duyệt khi tất cả Khoa duyệt đã được tick
+        if (approvalType === "daotao" && isChecked) {
+          const uncheckedRows = [];
+          $('#edit-requests-body tr').each(function() {
+            const khoaCheckbox = $(this).find('input.approval-checkbox[data-type="khoa"]');
+            if (khoaCheckbox.length && !khoaCheckbox.is(':checked')) {
+              const tds = $(this).find('td');
+              const dot = tds.eq(1).text().trim();
+              const ki = tds.eq(2).text().trim();
+              const nam = tds.eq(3).text().trim();
+              const khoa = tds.eq(0).text().trim();
+              uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
+            }
+          });
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Khoa duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // Chỉ cho tick BGD duyệt khi tất cả Đào tạo duyệt đã được tick
+        if (approvalType === "bgd" && isChecked) {
+          const uncheckedRows = [];
+          $('#edit-requests-body tr').each(function() {
+            const daotaoCheckbox = $(this).find('input.approval-checkbox[data-type="daotao"]');
+            if (daotaoCheckbox.length && !daotaoCheckbox.is(':checked')) {
+              const tds = $(this).find('td');
+              const dot = tds.eq(1).text().trim();
+              const ki = tds.eq(2).text().trim();
+              const nam = tds.eq(3).text().trim();
+              const khoa = tds.eq(0).text().trim();
+              uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
+            }
+          });
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Thêm dòng này để disable luôn ô BGD duyệt
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Đào tạo duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+      });
+
+      // Khi tick vào "check all"
+      $(document).on('change', '#check-all-khoa-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="khoa"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+      $(document).on('change', '#check-all-daotao-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="daotao"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+      $(document).on('change', '#check-all-bgd-duyet', function() {
+        const checked = this.checked;
+        $('input.approval-checkbox[data-type="bgd"]:not(:disabled)').each(function() {
+          $(this).prop('checked', checked).trigger('change');
+        });
+      });
+    </script>
+
+    <script>
+      function setApprovalHeaderCheckboxesPermission() {
+        const userRole = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+        const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
+        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
+        const isThuongBGD = userRole === "Thường";
+
+        const canApproveKhoa = isLanhDaoKhoa || isDuyetDaoTao || isThuongBGD;
+        const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
+        const canApproveBGD = isThuongBGD;
+
+        $('#check-all-khoa-duyet').prop('disabled', !canApproveKhoa);
+        $('#check-all-daotao-duyet').prop('disabled', !canApproveDaoTao);
+        $('#check-all-bgd-duyet').prop('disabled', !canApproveBGD);
+      }
+
+      $(document).ready(function() {
+        setApprovalHeaderCheckboxesPermission();
+
+        const userRole = localStorage.getItem("userRole");
+        if (userRole === "Thường") {
+          document.getElementById("publish-all-btn").style.display = "inline-block";
+        }
+      });
+    </script>
+
+    <script>
+      $('#save-approval-btn').on('click', async function() {
+        const updates = [];
+        for (const requestId in pendingApprovalChanges) {
+          for (const approvalType in pendingApprovalChanges[requestId]) {
+            updates.push({
+              requestId,
+              approvalType,
+              isApproved: pendingApprovalChanges[requestId][approvalType]
+            });
+          }
+        }
+        if (updates.length === 0) {
+          Swal.fire({title: "Thông báo", text: "Không có thay đổi nào để cập nhật!", icon: "info"});
+          return;
+        }
+
+        try {
+          for (const update of updates) {
+            await fetch('/update-quy-chuan-approval', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(update)
+            });
+          }
+          Swal.fire({title: "Thành công", text: "Đã cập nhật duyệt!", icon: "success"});
+          pendingApprovalChanges = {};
+          loadEditRequests(); // reload lại bảng để lấy trạng thái mới nhất từ server
+        } catch (error) {
+          Swal.fire({title: "Lỗi", text: "Có lỗi khi cập nhật duyệt!", icon: "error"});
+        }
+      });
+    </script>
+
+    <script>
+      document.getElementById("publish-all-btn").addEventListener("click", async function() {
+        const rows = document.querySelectorAll("#edit-requests-body tr");
+        const requestsToPublish = [];
+        const uncheckedRows = [];
+
+        for (const row of rows) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length < 12 || !cells[8].querySelector("input")) continue;
+
+          const khoaDuyet = cells[8].querySelector("input").checked;
+          const daotaoDuyet = cells[9].querySelector("input").checked;
+          const bgdDuyet = cells[10].querySelector("input").checked;
+          const status = cells[11].textContent.trim();
+          const requestId = cells[8].querySelector("input").dataset.requestId;
+
+          // Nếu chưa duyệt BGD thì thêm vào danh sách chưa duyệt
+          if (!bgdDuyet && status !== "Đã ban hành") {
+            const khoa = cells[0].textContent.trim();
+            const dot = cells[1].textContent.trim();
+            const ki = cells[2].textContent.trim();
+            const nam = cells[3].textContent.trim();
+            uncheckedRows.push(`- Khoa: ${khoa}, Đợt: ${dot}, Kì: ${ki}, Năm: ${nam}`);
+          }
+
+          if (khoaDuyet && daotaoDuyet && bgdDuyet && status !== "Đã ban hành") {
+            requestsToPublish.push(requestId);
+          }
+        }
+
+        // Nếu còn dòng chưa duyệt BGD thì báo lỗi và liệt kê
+        if (uncheckedRows.length > 0) {
+          Swal.fire({
+            title: "Bạn phải duyệt hết tất cả ở cột BGD duyệt trước khi ban hành!",
+            html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+            icon: "warning"
+          });
+          return;
+        }
+
+        if (requestsToPublish.length === 0) {
+          Swal.fire({title: "Thông báo", text: "Không có yêu cầu nào đủ điều kiện ban hành!", icon: "info"});
+          return;
+        }
+
+        // Xác nhận
+        const confirm = await Swal.fire({
+          title: "Xác nhận",
+          text: `Bạn có chắc chắn muốn ban hành ${requestsToPublish.length} yêu cầu đã đủ duyệt?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Ban Hành",
+          cancelButtonText: "Hủy"
+        });
+        if (!confirm.isConfirmed) return;
+
+        // Gọi API cho từng requestId
+        let successCount = 0;
+        for (const requestId of requestsToPublish) {
+          try {
+            const response = await fetch("/apply-quy-chuan-edit", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({ requestId })
+            });
+            if (response.ok) successCount++;
+          } catch (e) {}
+        }
+
+        Swal.fire({
+          title: "Kết quả",
+          text: `Đã ban hành thành công ${successCount}/${requestsToPublish.length} yêu cầu.`,
+          icon: "success"
+        });
+        loadEditRequests();
+      });
+    </script>
+
+    <script>
+      function updateAllDaoTaoCheckboxState() {
+        // Nếu tất cả Khoa duyệt đã tick thì enable hết Đào tạo duyệt, ngược lại disable các ô chưa được tick
+        const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+          if (allKhoaChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            // Nếu ô này chưa được tick thì disable
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+    </script>
+
+    <script>
+      // Thêm hàm này vào script
+      function updateAllDaoTaoCheckboxState() {
+        const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+          if (allKhoaChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+
+      // Trong sự kiện change:
+      $(document).on('change', '.approval-checkbox', function() {
+        // ... các code kiểm tra như cũ ...
+
+        if (approvalType === "daotao" && isChecked) {
+          // ... kiểm tra ...
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Khoa duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // ... các code kiểm tra khác ...
+
+        // ĐẾN ĐÂY MỚI CẬP NHẬT pendingApprovalChanges
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
+
+        // Nếu là tick vào Khoa duyệt thì cập nhật lại trạng thái Đào tạo duyệt
+        if (approvalType === "khoa") {
+          updateAllDaoTaoCheckboxState();
+        }
+        // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
+        if (approvalType === "daotao") {
+          updateAllBgdCheckboxState();
+        }
+      });
+    </script>
+
+    <script>
+      // Thêm hàm này
+      function updateAllBgdCheckboxState() {
+        const allDaoTaoChecked = $('input.approval-checkbox[data-type="daotao"]').toArray().every(cb => cb.checked);
+        $('input.approval-checkbox[data-type="bgd"]').each(function() {
+          if (allDaoTaoChecked) {
+            $(this).prop('disabled', false);
+          } else {
+            if (!$(this).is(':checked')) {
+              $(this).prop('disabled', true);
+            }
+          }
+        });
+      }
+
+      // Trong sự kiện change:
+      $(document).on('change', '.approval-checkbox', function() {
+        // ... các code kiểm tra như cũ ...
+
+        if (approvalType === "bgd" && isChecked) {
+          // ... kiểm tra ...
+          if (uncheckedRows.length > 0) {
+            $(this).prop('checked', false);
+            $(this).prop('disabled', true); // Disable luôn ô này
+            Swal.fire({
+              title: "Bạn phải duyệt hết tất cả ở cột Đào tạo duyệt trước!",
+              html: "Các dòng chưa duyệt:<br>" + uncheckedRows.join("<br>"),
+              icon: "warning"
+            });
+            return;
+          }
+        }
+
+        // ... các code kiểm tra khác ...
+
+        // ĐẾN ĐÂY MỚI CẬP NHẬT pendingApprovalChanges
+        if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+        pendingApprovalChanges[requestId][approvalType] = isChecked;
+
+        // Cập nhật trạng thái của các checkbox khác trong cùng dòng
+        updateRowApprovalState($(this).closest('tr'));
+
+        // Nếu là tick vào Khoa duyệt thì cập nhật lại trạng thái Đào tạo duyệt
+        if (approvalType === "khoa") {
+          updateAllDaoTaoCheckboxState();
+        }
+        // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
+        if (approvalType === "daotao") {
+          updateAllBgdCheckboxState();
+        }
+      });
+    </script>
+
   </body>
 </html>

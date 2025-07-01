@@ -372,7 +372,7 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ?AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
+    ed.Dot = ? AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
@@ -396,6 +396,8 @@ GROUP BY
       "public",
       "temp",
       Date.now().toString()
+    );
+    if (!fs.existsSync(tempDir)) {
     ); if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
@@ -447,6 +449,8 @@ GROUP BY
         tenNganh = phongBan.TenPhongBan; // Lấy từ object tìm được
       } else {
         tenNganh = "Không xác định";
+      }
+      const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
       } const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
@@ -459,7 +463,7 @@ GROUP BY
       const tienThueText1 = Math.round(tienText1 * 0.1);
       const tienThucNhanText1 = tienText1 - tienThueText1;
 
-      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();      // Ghi dữ liệu cho thống kê chuyển khoản
+      let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim(); // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
         HoTen: hoTen,
         MaSoThue: teacher.MaSoThue,
@@ -498,6 +502,8 @@ GROUP BY
         Email: teacher.Email,
         Tại_ngân_hàng: teacher.NganHang,
         Số_tiết: teacher.SoTiet.toString().replace(".", ","),
+        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
+        Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
         Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi), Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
         Bằng_chữ_số_tiền: numberToWords(tienText), // Sử dụng tienText (100k/tiết)
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"), // Sử dụng tienThueText (từ 100k/tiết)
@@ -554,6 +560,8 @@ GROUP BY
       const buf = doc.getZip().generate({
         type: "nodebuffer",
         compression: "DEFLATE",
+      });
+      const fileName = `HopDong_DoAnDaiHoc_${hoTen}_${teacher.CCCD}.docx`;
       }); const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
@@ -767,6 +775,7 @@ const exportAdditionalDoAnGvm = async (req, res) => {
       const filePathAppendix =
         await exportPhuLucDAController.getExportPhuLucDAPath(
           req,
+          res,
           connection,
           dot,
           ki,
@@ -996,11 +1005,13 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
     const tienThueText1 = Math.round(tienText1 * 0.1);
     const tienThucNhanText1 = tienText1 - tienThueText1;
 
+    let hoTen = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
+
     const data = {
       Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: danhXung,
-      Họ_và_tên: teacher.HoTen,
+      Họ_và_tên: hoTen,
       CCCD: teacher.CCCD,
       Ngày_cấp: formatDate1(teacher.NgayCapCCCD),
       Nơi_cấp: teacher.NoiCapCCCD,
@@ -2044,6 +2055,8 @@ const exportBoSungDownloadData = async (req, res) => {
     console.error("Error in exportMultipleContracts:", error);
     res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
   } finally {
+    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
+  } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
@@ -2053,21 +2066,24 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
     // Xử lý xuống dòng bằng cách tách text theo \n
-    const textLines = (text || '').split('\n');
+    const textLines = (text || "").split("\n");
     const textRuns = [];
+
 
     textLines.forEach((line, index) => {
       if (index > 0) {
         // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
         textRuns.push(new TextRun({ break: 1 }));
       }
-      textRuns.push(new TextRun({
-        text: line,
-        bold: isBold,
-        font: "Times New Roman",
-        size: 22,
-        color: "000000",
-      }));
+      textRuns.push(
+        new TextRun({
+          text: line,
+          bold: isBold,
+          font: "Times New Roman",
+          size: 22,
+          color: "000000",
+        })
+      );
     });
 
     const cellConfig = {
@@ -2092,24 +2108,27 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
     }
 
     return new TableCell(cellConfig);
-  }  // Hàm phụ trợ: tạo ô bình thường
+  } // Hàm phụ trợ: tạo ô bình thường
   function createCell(text, isBold = false, width = null) {
     // Xử lý xuống dòng bằng cách tách text theo \n
-    const textLines = (text || '').split('\n');
+    const textLines = (text || "").split("\n");
     const textRuns = [];
+
 
     textLines.forEach((line, index) => {
       if (index > 0) {
         // Thêm line break trước mỗi dòng (trừ dòng đầu tiên)
         textRuns.push(new TextRun({ break: 1 }));
       }
-      textRuns.push(new TextRun({
-        text: line,
-        bold: isBold,
-        font: "Times New Roman",
-        size: 22,
-        color: "000000",
-      }));
+      textRuns.push(
+        new TextRun({
+          text: line,
+          bold: isBold,
+          font: "Times New Roman",
+          size: 22,
+          color: "000000",
+        })
+      );
     });
 
     const cellConfig = {
@@ -2149,6 +2168,8 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
   // Hàm tạo bảng chi tiết
   function createDetailTable(data) {
     const headerRow = new TableRow({
+  function createDetailTable(data) {
+    const headerRow = new TableRow({
       tableHeader: true,
       children: [
         createHeaderCell("STT", true),
@@ -2159,35 +2180,37 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
         createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 4800 twips cho cột Tại ngân hàng
         createHeaderCell("Số tiền (VNĐ)", true),
       ],
+    });
+    const dataRows = data.length
     }); const dataRows = data.length
       ? data.map(
-        (row, idx) =>
-          new TableRow({
-            children: [
-              createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || '') + '  /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
-              createCell(row.HoTen || ""),
-              createCell(row.MaSoThue || ""),
-              createCell(row.STK || ""),
-              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
-              createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
-            ],
-          })
-      )
+          (row, idx) =>
+            new TableRow({
+              children: [
+                createCell((idx + 1).toString()),
+                createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+                createCell(row.HoTen || ""),
+                createCell(row.MaSoThue || ""),
+                createCell(row.STK || ""),
+                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
+                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+              ],
+            })
+        )
       : Array.from({ length: 4 }).map(
-        () =>
-          new TableRow({
-            children: [
-              createCell(""), // STT
-              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
-              createCell(""), // Đơn vị thụ hưởng
-              createCell(""), // Mã số thuế
-              createCell(""), // Số tài khoản
-              createCell("", false, 4800), // Tại ngân hàng với width cố định
-              createCell(""), // Số tiền
-            ],
-          })
-      );
+          () =>
+            new TableRow({
+              children: [
+                createCell(""), // STT
+                createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
+                createCell(""), // Đơn vị thụ hưởng
+                createCell(""), // Mã số thuế
+                createCell(""), // Số tài khoản
+                createCell("", false, 4800), // Tại ngân hàng với width cố định
+                createCell(""), // Số tiền
+              ],
+            })
+        );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2359,6 +2382,9 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
+              }),
+              new TextRun({
+                text: `${noiDung || ""}`, // Thay thế null/undefined bằng chuỗi rỗng
               }), new TextRun({
                 text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",

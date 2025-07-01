@@ -8,10 +8,10 @@ const thongkedoanController = {
     const params = [];
 
     try {
-        connection = await createConnection();
+      connection = await createConnection();
 
-        // Truy vấn dữ liệu cho cả cơ hữu và mời giảng
-        query = `
+      // Truy vấn dữ liệu cho cả cơ hữu và mời giảng
+      query = `
             SELECT 
                 GiangVien, 
                 SUM(SoTiet) AS soTiet, 
@@ -22,84 +22,90 @@ const thongkedoanController = {
             WHERE 1=1
         `;
 
-        if (khoa && khoa !== "ALL") {
-            query += " AND MaPhongBan = ?";
-            params.push(khoa);
-        }
-
-        if (namhoc && namhoc !== "ALL") {
-            query += " AND NamHoc = ?";
-            params.push(namhoc);
-        }
-
-        if (dot && dot !== "ALL") {
-            query += " AND Dot = ?";
-            params.push(dot);
-        }
-
-        if (ki && ki !== "ALL") {
-          query += " AND ki = ?";
-          params.push(ki);
+      if (khoa && khoa !== "ALL") {
+        query += " AND MaPhongBan = ?";
+        params.push(khoa);
       }
 
-        query += `
+      if (namhoc && namhoc !== "ALL") {
+        query += " AND NamHoc = ?";
+        params.push(namhoc);
+      }
+
+      if (dot && dot !== "ALL") {
+        query += " AND Dot = ?";
+        params.push(dot);
+      }
+
+      if (ki && ki !== "ALL") {
+        query += " AND ki = ?";
+        params.push(ki);
+      }
+
+      query += `
             GROUP BY GiangVien, isMoiGiang, MaPhongBan
             ORDER BY soDoAn DESC
         `;
 
-        const [result] = await connection.query(query, params);
+      const [result] = await connection.query(query, params);
 
-        // Phân loại dữ liệu theo Cơ hữu và Mời giảng
-        const coHuu = result.filter((item) => item.isMoiGiang === 0);
-        const moiGiang = result.filter((item) => item.isMoiGiang === 1);
+      // Phân loại dữ liệu theo Cơ hữu và Mời giảng
+      const coHuu = result.filter((item) => item.isMoiGiang === 0);
+      const moiGiang = result.filter((item) => item.isMoiGiang === 1);
 
-        // Tính tổng số tiết
-        const totalCoHuu = coHuu.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
-        const totalMoiGiang = moiGiang.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
-        const totalSoTiet = totalCoHuu + totalMoiGiang;
+      // Tính tổng số tiết
+      const totalCoHuu = coHuu.reduce(
+        (sum, item) => sum + parseFloat(item.soTiet || 0),
+        0
+      );
+      const totalMoiGiang = moiGiang.reduce(
+        (sum, item) => sum + parseFloat(item.soTiet || 0),
+        0
+      );
+      const totalSoTiet = totalCoHuu + totalMoiGiang;
 
-        // Trả về dữ liệu
-        res.json({
-            success: true,
-            coHuu,
-            moiGiang,
-            totalCoHuu,
-            totalMoiGiang,
-            totalSoTiet,
-        });
+      // Trả về dữ liệu
+      res.json({
+        success: true,
+        coHuu,
+        moiGiang,
+        totalCoHuu,
+        totalMoiGiang,
+        totalSoTiet,
+      });
     } catch (err) {
-        console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
-        res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+      console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
-},
-  
-  getFilterOptions: async (req, res) => {
+  },
+
+  getNamHocOptions: async (req, res) => {
     let connection;
     try {
-        connection = await createConnection();
-        const [namHoc] = await connection.query(`
+      connection = await createConnection();
+      const [namHoc] = await connection.query(`
             SELECT DISTINCT namhoc AS NamHoc 
             FROM exportdoantotnghiep 
             ORDER BY namhoc DESC
         `);
 
-        const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
+      const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL"; // Lấy năm học lớn nhất
 
-        // Chỉ thêm "Tất cả năm" một lần
-        namHoc.unshift({ NamHoc: "ALL" });
+      // Chỉ thêm "Tất cả năm" một lần
+      namHoc.unshift({ NamHoc: "ALL" });
 
-        res.json({
-            success: true,
-            NamHoc: namHoc,
-            MaxNamHoc: maxNamHoc,
-        });
+      res.json({
+        success: true,
+        NamHoc: namHoc,
+        MaxNamHoc: maxNamHoc,
+      });
     } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu filter:", error);
-        res.status(500).json({ success: false, message: "Lỗi server" });
+      console.error("Lỗi khi lấy dữ liệu filter:", error);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 
@@ -113,8 +119,9 @@ const thongkedoanController = {
         ORDER BY MaPhongBan
       `);
 
-      const uniquePhongBan = Array.from(new Set(phongBan.map((item) => item.MaPhongBan)))
-        .map((maPB) => ({ MaPhongBan: maPB }));
+      const uniquePhongBan = Array.from(
+        new Set(phongBan.map((item) => item.MaPhongBan))
+      ).map((maPB) => ({ MaPhongBan: maPB }));
 
       res.json({ success: true, MaPhongBan: uniquePhongBan });
     } catch (error) {
@@ -150,22 +157,23 @@ const thongkedoanController = {
   getKiOptions: async (req, res) => {
     let connection;
     try {
-        connection = await createConnection();
-        const [ki] = await connection.query(`
+      connection = await createConnection();
+      const [ki] = await connection.query(`
             SELECT DISTINCT Ki 
             FROM exportdoantotnghiep 
+            WHERE Ki IS NOT NULL
             ORDER BY Ki
         `);
 
-        res.json({
-            success: true,
-            Ki: ki,
-        });
+      res.json({
+        success: true,
+        Ki: ki,
+      });
     } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu Kì:", error);
-        res.status(500).json({ success: false, message: "Lỗi server" });
+      console.error("Lỗi khi lấy dữ liệu Kì:", error);
+      res.status(500).json({ success: false, message: "Lỗi server" });
     } finally {
-        if (connection) connection.release();
+      if (connection) connection.release();
     }
   },
 };
