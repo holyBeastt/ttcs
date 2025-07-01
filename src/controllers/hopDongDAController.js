@@ -398,7 +398,6 @@ GROUP BY
       Date.now().toString()
     );
     if (!fs.existsSync(tempDir)) {
-    ); if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
@@ -451,7 +450,6 @@ GROUP BY
         tenNganh = "Không xác định";
       }
       const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
-      } const tienText = soTiet * 100000; // Tính tổng tiền cố định 100,000 VNĐ/tiết cho đồ án
       const tienThueText = Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
@@ -504,7 +502,6 @@ GROUP BY
         Số_tiết: teacher.SoTiet.toString().replace(".", ","),
         Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
         Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
-        Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi), Tiền_text: tienText.toLocaleString("vi-VN"), // Sử dụng tienText (100k/tiết)
         Bằng_chữ_số_tiền: numberToWords(tienText), // Sử dụng tienText (100k/tiết)
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"), // Sử dụng tienThueText (từ 100k/tiết)
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"), // Sử dụng tienThucNhanText (từ 100k/tiết)
@@ -522,7 +519,6 @@ GROUP BY
         Khóa: teacher.KhoaDaoTao,
         Ngành: tenNganh,
       };
-
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
       switch (loaiHopDong) {
@@ -562,24 +558,22 @@ GROUP BY
         compression: "DEFLATE",
       });
       const fileName = `HopDong_DoAnDaiHoc_${hoTen}_${teacher.CCCD}.docx`;
-      }); const fileName = `HopDong_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
-    // Tạo file thống kê chuyển khoản sau thuế
+    // Tạo file thống kê chuyển khoản
     const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
-    const summaryDoc = createTransferDetailDocument(summaryData, noiDung);
+    const summaryDoc = createTransferDetailDocument(summaryData, noiDung, "sau thuế");
     const summaryBuf = await Packer.toBuffer(summaryDoc);
     const summaryName = `ĐATN_Daihoc_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
     // Tạo file thống kê chuyển khoản trước thuế
     const noiDung2 = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
-    const summaryDoc2 = createTransferDetailDocument(summaryData2, noiDung2);
+    const summaryDoc2 = createTransferDetailDocument(summaryData2, noiDung2, "trước thuế");
     const summaryBuf2 = await Packer.toBuffer(summaryDoc2);
     const summaryName2 = `ĐATN_Daihoc_Thongke_chuyenkhoan_truocthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
-
 
     const archive = archiver("zip", {
       zlib: { level: 9 },
@@ -2055,8 +2049,6 @@ const exportBoSungDownloadData = async (req, res) => {
     console.error("Error in exportMultipleContracts:", error);
     res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
   } finally {
-    res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
-  } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
@@ -2068,7 +2060,6 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
     // Xử lý xuống dòng bằng cách tách text theo \n
     const textLines = (text || "").split("\n");
     const textRuns = [];
-
 
     textLines.forEach((line, index) => {
       if (index > 0) {
@@ -2113,7 +2104,6 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
     // Xử lý xuống dòng bằng cách tách text theo \n
     const textLines = (text || "").split("\n");
     const textRuns = [];
-
 
     textLines.forEach((line, index) => {
       if (index > 0) {
@@ -2168,8 +2158,6 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
   // Hàm tạo bảng chi tiết
   function createDetailTable(data) {
     const headerRow = new TableRow({
-  function createDetailTable(data) {
-    const headerRow = new TableRow({
       tableHeader: true,
       children: [
         createHeaderCell("STT", true),
@@ -2182,35 +2170,34 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
       ],
     });
     const dataRows = data.length
-    }); const dataRows = data.length
       ? data.map(
-          (row, idx) =>
-            new TableRow({
-              children: [
-                createCell((idx + 1).toString()),
-                createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
-                createCell(row.HoTen || ""),
-                createCell(row.MaSoThue || ""),
-                createCell(row.STK || ""),
-                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
-                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
-              ],
-            })
-        )
+        (row, idx) =>
+          new TableRow({
+            children: [
+              createCell((idx + 1).toString()),
+              createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell(row.HoTen || ""),
+              createCell(row.MaSoThue || ""),
+              createCell(row.STK || ""),
+              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
+              createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+            ],
+          })
+      )
       : Array.from({ length: 4 }).map(
-          () =>
-            new TableRow({
-              children: [
-                createCell(""), // STT
-                createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
-                createCell(""), // Đơn vị thụ hưởng
-                createCell(""), // Mã số thuế
-                createCell(""), // Số tài khoản
-                createCell("", false, 4800), // Tại ngân hàng với width cố định
-                createCell(""), // Số tiền
-              ],
-            })
-        );
+        () =>
+          new TableRow({
+            children: [
+              createCell(""), // STT
+              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
+              createCell(""), // Đơn vị thụ hưởng
+              createCell(""), // Mã số thuế
+              createCell(""), // Số tài khoản
+              createCell("", false, 4800), // Tại ngân hàng với width cố định
+              createCell(""), // Số tiền
+            ],
+          })
+      );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2244,12 +2231,13 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
         new TableCell({
           children: [
             new Paragraph({
-              children: [new TextRun({
-                text: formattedTotalAmount || '',  // Thay thế null/undefined bằng chuỗi rỗng
-                font: "Times New Roman",
-                size: 22,
-                color: "000000",
-              }),
+              children: [
+                new TextRun({
+                  text: formattedTotalAmount || "", // Thay thế null/undefined bằng chuỗi rỗng
+                  font: "Times New Roman",
+                  size: 22,
+                  color: "000000",
+                }),
               ],
               alignment: AlignmentType.CENTER,
             }),
@@ -2385,8 +2373,6 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
               }),
               new TextRun({
                 text: `${noiDung || ""}`, // Thay thế null/undefined bằng chuỗi rỗng
-              }), new TextRun({
-                text: `${noiDung || ''}`,  // Thay thế null/undefined bằng chuỗi rỗng
                 font: "Times New Roman",
                 size: 22,
                 color: "000000",
@@ -2407,7 +2393,8 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
                 italics: true,
               }),
             ],
-          }),],
+          }),
+        ],
       },
     ],
   });
