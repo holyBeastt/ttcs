@@ -386,6 +386,17 @@ const exportAdjustedQuyChuan = async (req, res) => {
   try {
     const { khoa, dot, ki_hoc, nam_hoc } = req.body;
 
+    // Kiểm tra còn yêu cầu chỉnh sửa nào chưa ban hành không
+    let checkQuery = `SELECT COUNT(*) as cnt FROM quy_chuan_edit_requests WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ? ${khoa && khoa !== 'ALL' ? 'AND khoa = ?' : ''} AND (status IS NULL OR status != 'Cập nhật thành công')`;
+    let checkParams = khoa && khoa !== 'ALL' ? [dot, ki_hoc, nam_hoc, khoa] : [dot, ki_hoc, nam_hoc];
+    const [checkRows] = await connection.query(checkQuery, checkParams);
+    if (checkRows[0].cnt > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bạn phải ban hành tất cả các yêu cầu chỉnh sửa trước khi xuất dữ liệu!'
+      });
+    }
+
     // Lấy dữ liệu từ database
     const [rows] = await connection.query(
       `SELECT * FROM quy_chuan_edit_requests 
