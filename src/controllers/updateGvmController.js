@@ -7,6 +7,7 @@ const appRoot = require("app-root-path");
 
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
+const LogService = require("../services/logService"); // Import LogService for logging
 
 const getUpdateGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id);
@@ -166,6 +167,23 @@ const postUpdateGvm = async (req, res) => {
   }
 
   //let tinhTrangGiangDay = req.body.tinhTrangGiangDay ? 1 : 0;
+
+  // Get the original data from the database for logging changes
+  let originalGvmData = null;
+  try {
+    const [origResults] = await pool.query(
+      "SELECT * FROM gvmoi WHERE id_Gvm = ?",
+      [IdGvm]
+    );
+    if (origResults && origResults.length > 0) {
+      originalGvmData = origResults[0];
+      console.log(`Fetched original data for GVM ID: ${IdGvm}`);
+    } else {
+      console.log(`No original data found for GVM ID: ${IdGvm}`);
+    }
+  } catch (err) {
+    console.error(`Error fetching original data for GVM ID: ${IdGvm}`, err);
+  }
 
   upload(req, res, async function (err) {
     if (err) {
@@ -328,6 +346,70 @@ const postUpdateGvm = async (req, res) => {
         QrCode,
         IdGvm,
       ]);
+      
+      // Log changes if original data is available
+      if (originalGvmData) {
+        try {
+          console.log("Bắt đầu ghi log thay đổi thông tin giảng viên mời");
+          // Prepare new data object for comparison
+          const newData = {
+            HoTen,
+            GioiTinh,
+            NgaySinh,
+            CCCD,
+            NgayCapCCCD,
+            NoiCapCCCD,
+            NoiCongTac,
+            DiaChi,
+            DienThoai,
+            Email: email,
+            MaSoThue,
+            HocVi,
+            ChucVu,
+            HSL: HeSoLuong,
+            STK,
+            NganHang,
+            BangTotNghiepLoai,
+            MatTruocCCCD: truocCCCD,
+            MatSauCCCD: sauCCCD,
+            BangTotNghiep: bangTotNghiep,
+            FileLyLich,
+            MaPhongBan,
+            TinhTrangGiangDay: tinhTrangGiangDay,
+            MonGiangDayChinh,
+            isQuanDoi,
+            fileBoSung,
+            QrCode
+          };
+          
+          // Generate change message
+          const changeMessage = generateGvmChangeMessage(originalGvmData, newData);
+          
+          // Log changes if there are any
+          if (changeMessage) {
+            const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+            const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+            
+            console.log('Thông tin session:', { userId, userName });
+            console.log('Nội dung thay đổi:', changeMessage);
+            
+            await LogService.logChange(
+              userId,
+              userName,
+              'Thay đổi thông tin giảng viên mời',
+              changeMessage
+            );
+            
+            console.log(`Đã ghi log thay đổi thông tin giảng viên mời: ${changeMessage}`);
+          } else {
+            console.log('Không phát hiện thay đổi để ghi log');
+          }
+        } catch (logError) {
+          console.error('Error logging guest lecturer changes:', logError);
+          // Continue with the response even if logging fails
+        }
+      }
+      
       res.redirect("/api/gvm/waiting-list/render?message=insertSuccess");
     } catch (err) {
       console.error("Error executing query: ", err);
@@ -341,4 +423,140 @@ module.exports = {
   getUpdateGvm,
   postUpdateGvm,
   getViewGvm,
+};
+
+/**
+ * Generate a message describing changes between old and new guest lecturer data
+ * @param {Object} oldData - Previous state of the guest lecturer
+ * @param {Object} newData - New state of the guest lecturer
+ * @returns {string} - Description of changes or empty string if no changes
+ */
+const generateGvmChangeMessage = (oldData, newData) => {
+  if (!oldData || !newData) {
+    console.log('Thiếu dữ liệu để so sánh', { oldDataExists: !!oldData, newDataExists: !!newData });
+    return '';
+  }
+
+  console.log('Đang so sánh dữ liệu cũ và mới...');
+  let changeMessage = '';
+  
+  // Hàm hỗ trợ so sánh an toàn (xử lý undefined/null)
+  const isDifferent = (val1, val2) => {
+    // Nếu cả hai đều là null hoặc undefined, chúng bằng nhau
+    if ((val1 === null || val1 === undefined) && (val2 === null || val2 === undefined)) {
+      return false;
+    }
+    // Nếu chỉ một trong hai là null/undefined, chúng khác nhau
+    if ((val1 === null || val1 === undefined) || (val2 === null || val2 === undefined)) {
+      return true;
+    }
+    // Chuyển đổi thành chuỗi để so sánh để tránh vấn đề về kiểu dữ liệu
+    return String(val1) !== String(val2);
+  };
+  
+  // Kiểm tra thay đổi tên
+  if (isDifferent(oldData.HoTen, newData.HoTen)) {
+    console.log('Tên đã thay đổi', { cũ: oldData.HoTen, mới: newData.HoTen });
+    changeMessage += `Tên giảng viên mời được đổi từ "${oldData.HoTen || ''}" thành "${newData.HoTen || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi tình trạng giảng dạy
+  if (isDifferent(oldData.TinhTrangGiangDay, newData.TinhTrangGiangDay)) {
+    const oldStatus = parseInt(oldData.TinhTrangGiangDay || '0');
+    const newStatus = parseInt(newData.TinhTrangGiangDay || '0');
+    
+    console.log('Tình trạng giảng dạy đã thay đổi', { cũ: oldStatus, mới: newStatus });
+    
+    if (oldStatus === 0 && newStatus === 1) {
+      changeMessage += `Thay đổi tình trạng giảng dạy "${newData.HoTen}": Đang giảng dạy. `;
+    } else if (oldStatus === 1 && newStatus === 0) {
+      changeMessage += `Thay đổi tình trạng giảng dạy "${newData.HoTen}": Đã ngừng giảng dạy. `;
+    }
+  }
+  // Kiểm tra thay đổi ảnh CCCD
+  if (isDifferent(oldData.MatTruocCCCD, newData.MatTruocCCCD) || isDifferent(oldData.MatSauCCCD, newData.MatSauCCCD)) {
+    console.log('Ảnh CCCD đã thay đổi');
+    changeMessage += `Cập nhật ảnh CCCD của giảng viên "${newData.HoTen} - ${newData.CCCD || ''}". `;
+  }
+
+  // Kiểm tra thay đổi số CCCD
+  if (isDifferent(oldData.CCCD, newData.CCCD)) {
+    console.log('Số CCCD đã thay đổi', { cũ: oldData.CCCD, mới: newData.CCCD });
+    changeMessage += `Thay đổi số CCCD của giảng viên "${newData.HoTen}": từ "${oldData.CCCD || ''}" thành "${newData.CCCD || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi số tài khoản
+  if (isDifferent(oldData.STK, newData.STK)) {
+    console.log('STK đã thay đổi', { cũ: oldData.STK, mới: newData.STK });
+    changeMessage += `Thay đổi STK của giảng viên mời "${newData.HoTen} - ${newData.CCCD || ''}": từ "${oldData.STK || ''}" thành "${newData.STK || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi số điện thoại
+  if (isDifferent(oldData.DienThoai, newData.DienThoai)) {
+    console.log('SĐT đã thay đổi', { cũ: oldData.DienThoai, mới: newData.DienThoai });
+    changeMessage += `Thay đổi SĐT của giảng viên mời "${newData.HoTen} - ${newData.CCCD || ''}": từ "${oldData.DienThoai || ''}" thành "${newData.DienThoai || ''}". `;
+  }
+  // Kiểm tra thay đổi email
+  if (isDifferent(oldData.Email, newData.Email)) {
+    console.log('Email đã thay đổi', { cũ: oldData.Email, mới: newData.Email });
+    changeMessage += `Thay đổi Email của giảng viên mời "${newData.HoTen} - ${newData.CCCD || ''}": từ "${oldData.Email || ''}" thành "${newData.Email || ''}". `;
+  }
+  
+  // Kiểm tra các trường bổ sung
+  
+  // Kiểm tra thay đổi địa chỉ
+  if (isDifferent(oldData.DiaChi, newData.DiaChi)) {
+    console.log('Địa chỉ đã thay đổi', { cũ: oldData.DiaChi, mới: newData.DiaChi });
+    changeMessage += `Thay đổi địa chỉ của giảng viên mời "${newData.HoTen}": từ "${oldData.DiaChi || ''}" thành "${newData.DiaChi || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi nơi công tác
+  if (isDifferent(oldData.NoiCongTac, newData.NoiCongTac)) {
+    console.log('Nơi công tác đã thay đổi', { cũ: oldData.NoiCongTac, mới: newData.NoiCongTac });
+    changeMessage += `Thay đổi nơi công tác của giảng viên mời "${newData.HoTen}": từ "${oldData.NoiCongTac || ''}" thành "${newData.NoiCongTac || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi mã số thuế
+  if (isDifferent(oldData.MaSoThue, newData.MaSoThue)) {
+    console.log('Mã số thuế đã thay đổi', { cũ: oldData.MaSoThue, mới: newData.MaSoThue });
+    changeMessage += `Thay đổi mã số thuế của giảng viên mời "${newData.HoTen}": từ "${oldData.MaSoThue || ''}" thành "${newData.MaSoThue || ''}". `;
+  }
+  // Kiểm tra thay đổi học vị
+  if (isDifferent(oldData.HocVi, newData.HocVi)) {
+    console.log('Học vị đã thay đổi', { cũ: oldData.HocVi, mới: newData.HocVi });
+    changeMessage += `Thay đổi học vị của giảng viên mời "${newData.HoTen}": từ "${oldData.HocVi || ''}" thành "${newData.HocVi || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi chức vụ
+  if (isDifferent(oldData.ChucVu, newData.ChucVu)) {
+    console.log('Chức vụ đã thay đổi', { cũ: oldData.ChucVu, mới: newData.ChucVu });
+    changeMessage += `Thay đổi chức vụ của giảng viên mời "${newData.HoTen}": từ "${oldData.ChucVu || ''}" thành "${newData.ChucVu || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi hệ số lương
+  if (isDifferent(oldData.HSL, newData.HSL)) {
+    console.log('Hệ số lương đã thay đổi', { cũ: oldData.HSL, mới: newData.HSL });
+    changeMessage += `Thay đổi hệ số lương của giảng viên mời "${newData.HoTen}": từ "${oldData.HSL || ''}" thành "${newData.HSL || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi ngân hàng
+  if (isDifferent(oldData.NganHang, newData.NganHang)) {
+    console.log('Ngân hàng đã thay đổi', { cũ: oldData.NganHang, mới: newData.NganHang });
+    changeMessage += `Thay đổi ngân hàng của giảng viên mời "${newData.HoTen}": từ "${oldData.NganHang || ''}" thành "${newData.NganHang || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi phòng ban
+  if (isDifferent(oldData.MaPhongBan, newData.MaPhongBan)) {
+    console.log('Phòng ban đã thay đổi', { cũ: oldData.MaPhongBan, mới: newData.MaPhongBan });
+    changeMessage += `Thay đổi phòng ban của giảng viên mời "${newData.HoTen}": từ "${oldData.MaPhongBan || ''}" thành "${newData.MaPhongBan || ''}". `;
+  }
+  
+  // Kiểm tra thay đổi môn giảng dạy chính
+  if (isDifferent(oldData.MonGiangDayChinh, newData.MonGiangDayChinh)) {
+    console.log('Môn giảng dạy chính đã thay đổi', { cũ: oldData.MonGiangDayChinh, mới: newData.MonGiangDayChinh });
+    changeMessage += `Thay đổi môn giảng dạy chính của giảng viên mời "${newData.HoTen}": từ "${oldData.MonGiangDayChinh || ''}" thành "${newData.MonGiangDayChinh || ''}". `;
+  }
+  
+  console.log(changeMessage ? 'Đã phát hiện thay đổi' : 'Không có thay đổi');
+  return changeMessage;
 };

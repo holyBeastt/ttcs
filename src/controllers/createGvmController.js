@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
+const LogService = require("../services/logService"); // Import LogService for logging
 
 //const gvmList = require("../services/gvmServices");
 const router = express.Router();
@@ -165,6 +166,34 @@ let createGvm = async (req, res) => {
           fileBoSung,
           QrCode,
         ]);
+
+        // Log the creation of a new guest lecturer
+        try {
+          const userId = req.session.userId || 0; // Lấy đúng userId từ session
+          const userName = req.session.TenNhanVien || req.session.username || 'Unknown User';
+          
+          console.log('Thông tin session khi thêm GVM mới:', { 
+            userId, 
+            userName, 
+            sessionData: { 
+              userId: req.session.userId,
+              TenNhanVien: req.session.TenNhanVien,
+              username: req.session.username
+            } 
+          });
+          
+          await LogService.logChange(
+            userId,
+            userName,
+            'Thêm giảng viên mời',
+            `Thêm giảng viên mời mới: ${HoTen} - ${MaGvm}`
+          );
+          
+          console.log(`Đã ghi log thêm mới giảng viên mời: ${HoTen} - ${MaGvm}`);
+        } catch (logError) {
+          console.error('Error logging new guest lecturer:', logError);
+          // Continue with the response even if logging fails
+        }
 
         if (duplicateName.length > 0) {
           const message = "Tên giảng viên bị trùng sẽ được lưu như sau";
