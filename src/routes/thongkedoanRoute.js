@@ -6,7 +6,7 @@ const thongkedoanController = require("../controllers/thongkedoanController");
 router.get("/data", thongkedoanController.getData);
 
 // API lấy danh sách năm học, khoa, đợt
-router.get("/getNamHocDoAn", thongkedoanController.getFilterOptions);
+router.get("/getNamHocDoAn", thongkedoanController.getNamHocOptions);
 router.get("/getPhongBanDoAn", thongkedoanController.getPhongBanOptions);
 router.get("/getDot", thongkedoanController.getDotOptions);
 router.get("/getKiDoAn", thongkedoanController.getKiOptions);

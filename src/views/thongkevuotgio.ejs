@@ -166,18 +166,31 @@
    
   <div class="container-fluid box m-4  "></div>
     <div class="mx-5 flex-grow-1">
-      <div class="d-flex justify-content-start align-items-end mb-3">
-
-        <!-- Combo box -->
-        <select class="form-select mx-1 selectop" style="width: 170px;" id="NamHoc">
-          <option value="ALL">Tất cả năm</option>
-      </select>
-      
-      <select class="form-select mx-1 selectop" style="width: 150px;" id="Khoa">
-          <option value="ALL">Tất cả khoa</option>
-      </select>
-
-      </div>
+        <!-- Nút chuyển đổi -->
+        <div class="d-flex justify-content-start align-items-center mb-3">
+            <div class="btn-group me-3" role="group" aria-label="Toggle statistics">
+                <button id="toggleKhoa" class="btn btn-primary active">
+                    <i class="bi bi-building"></i> Thống kê theo Khoa
+                </button>
+                <button id="toggleHeDaoTao" class="btn btn-outline-primary">
+                    <i class="bi bi-mortarboard"></i> Thống kê theo Hệ đào tạo
+                </button>
+            </div>
+        </div>
+        <div class="d-flex justify-content-start align-items-end mb-3">
+            <!-- Combo box Năm -->
+            <select class="form-select mx-1 selectop" style="width: 170px;" id="NamHoc">
+                <option value="ALL">Tất cả năm</option>
+            </select>
+            <!-- Combo box Khoa -->
+            <select class="form-select mx-1 selectop" style="width: 150px;" id="Khoa">
+                <option value="ALL">Tất cả khoa</option>
+            </select>
+            <!-- Combo box Hệ đào tạo (ẩn mặc định) -->
+            <select class="form-select mx-1 selectop" id="HeDaoTao" style="width: fit-content; display: none;">
+                <option value="ALL">Tất cả hệ</option>
+            </select>
+        </div>
       <div class="overflow-auto">
         <table class="table table-bordered">
           <thead>
@@ -240,439 +253,439 @@
 
 <script>
 $(document).ready(function () {
-            // Biến để theo dõi số lượng combobox đã được khởi tạo
-            let initializedComboboxes = 0;
-            const totalComboboxes = 2; // Tổng số combobox cần khởi tạo
+    let currentType = "khoa"; // "khoa" hoặc "hedaotao"
 
-           function checkAndFetchData() {
-                initializedComboboxes++;
-                if (initializedComboboxes === totalComboboxes) {
-                    fetchThongkevuotgioData();
+    // Hàm lấy danh sách hệ đào tạo
+    function loadHeDaoTaoCombobox(selectedValue = "ALL", callback) {
+        $('#HeDaoTao').empty();
+        $.ajax({
+            url: '/getHeDaoTaoVG',
+            method: 'GET',
+            success: function (response) {
+                if (response.success) {
+                    $('#HeDaoTao').append('<option value="ALL">Tất cả hệ</option>');
+                    response.HeDaoTao.forEach(function (item) {
+                        $('#HeDaoTao').append(
+                            `<option value="${item.HeDaoTao}">${item.HeDaoTao}</option>`
+                        );
+                    });
+                    $('#HeDaoTao').val(selectedValue);
+                    if (typeof callback === 'function') callback();
                 }
             }
-
-            // Xóa các option mặc định
-            $('#NamHoc option').remove();
-            $('#Khoa option').remove();
-
-            // Chỉ gọi một lần để khởi tạo combobox Khoa
-            $.ajax({
-                url: '/getPhongBanVG',
-                method: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        // Thêm option "Tất cả khoa"
-                        $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
-                        
-                        // Thêm các option khoa không trùng lặp
-                        response.MaPhongBan.forEach(function (item) {
-                            $('#Khoa').append(
-                                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                            );
-                        });
-
-                        // Kiểm tra nếu người dùng có MaPhongBan cụ thể
-                        const MaPhongBan = localStorage.getItem("MaPhongBan");
-                        const isKhoa = localStorage.getItem("isKhoa");
-
-                        if (isKhoa == 0) {
-                            $('#Khoa').val('ALL'); // Đặt giá trị Khoa thành "ALL" nếu isKhoa == 0
-                        } else if (isKhoa == 1) {
-                            $('#Khoa').val(MaPhongBan); // Đặt giá trị Khoa thành MaPhongBan nếu isKhoa == 1
-                            $('#Khoa').prop('disabled', true); // Vô hiệu hóa combobox Khoa
-                        }
-
-                        checkAndFetchData();
-                    }
-                },
-                error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
-                    checkAndFetchData();
-                }
-            });
-
-            // Khởi tạo các combobox khác
-            $.ajax({
-                url: '/getNamHocVG',
-                method: 'GET',
-                success: function (response) {
-                    if (response.success) {
-                        // Thêm dữ liệu năm học
-                        
-                        response.NamHoc.forEach(function (item) {
-                $('#NamHoc').append(
-                    `<option value="${item.NamHoc}">${
-                        item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
-                    }</option>`
-                );
-            });
-
-            // Đặt giá trị mặc định là năm lớn nhất
-            if (response.MaxNamHoc) {
-                $('#NamHoc').val(response.MaxNamHoc).trigger('change');
-            }
-                        checkAndFetchData();
-                    }
-                },
-                error: function (error) {
-                    console.error("Lỗi khi lấy dữ liệu:", error);
-                    // Đảm bảo fetchThongkevuotgioData vẫn được gọi ngay cả khi có lỗi
-                    checkAndFetchData();
-                    checkAndFetchData();
-                }
-            });
-
         });
+    }
 
-        let myChart = null;
+    // Sửa lại sự kiện chuyển đổi
+    document.getElementById("toggleKhoa").onclick = function () {
+        currentType = "khoa";
+        this.classList.add("active");
+        document.getElementById("toggleHeDaoTao").classList.remove("active");
+        $('#Khoa').show();
+        $('#HeDaoTao').hide();
+        fetchThongkevuotgioData();
+    };
 
-        async function fetchThongkevuotgioData() {
-    try {
-        const nam = document.getElementById('NamHoc').value;
-        const khoa = document.getElementById('Khoa').value;
+    document.getElementById("toggleHeDaoTao").onclick = function () {
+        currentType = "hedaotao";
+        this.classList.add("active");
+        document.getElementById("toggleKhoa").classList.remove("active");
+        $('#Khoa').hide();
+        $('#HeDaoTao').show();
+        loadHeDaoTaoCombobox('ALL', function() {
+            document.getElementById('HeDaoTao').value = 'ALL';
+            fetchThongkevuotgioData();
+        });
+    };
 
-        console.log("Nam hoc:", nam);
-        console.log("Khoa:", khoa);
+    // Sửa fetchThongkevuotgioData để lấy đúng giá trị lọc
+    async function fetchThongkevuotgioData() {
+        try {
+            const nam = document.getElementById('NamHoc').value;
+            let khoa = "";
+            let hedaotao = "";
 
-        let url = '/api/thongkevuotgio-data';
-        const params = new URLSearchParams();
-        
-        // Chỉ thêm namhoc vào params nếu không phải 'ALL'
-        if (nam && nam !== 'ALL') {
-            params.append('namhoc', nam);
-        }
-        
-        // Luôn thêm khoa vào params
-        if (khoa === 'ALL' || khoa) {
-            params.append('khoa', khoa);
-        }
+            if (currentType === "khoa") {
+                khoa = document.getElementById('Khoa').value;
+            } else {
+                hedaotao = document.getElementById('HeDaoTao').value;
+            }
 
-        if (params.toString()) {
-            url += '?' + params.toString();
-        }
+            let url = '/api/thongkevuotgio-data';
+            const params = new URLSearchParams();
 
-        console.log("URL:", url);
+            if (nam && nam !== 'ALL') params.append('namhoc', nam);
+            if (currentType === "khoa" && khoa) params.append('khoa', khoa);
+            if (currentType === "hedaotao" && hedaotao) params.append('hedaotao', hedaotao);
+            params.append('type', currentType);
 
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API Lỗi: ${response.status} ${response.statusText}`);
-        }
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
 
-        const data = await response.json();
-        console.log('Phản hồi từ API:', data);
+            console.log('Requesting URL:', url);
 
-        if (!Array.isArray(data)) {
-            throw new Error('Dữ liệu không hợp lệ từ API');
-        }
+            const response = await fetch(url);
+            const data = await response.json();
 
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
+            // Cập nhật bảng
+            const tableBody = document.getElementById('tableBody');
+            if (!tableBody) {
+                console.error('Không tìm thấy element tableBody');
+                return;
+            }
 
-        if (data.length === 0 || data === null || data.some(item => item.SoTietVuotGio === null || isNaN(item.SoTietVuotGio))) {
-            const row = tableBody.insertRow();
-            const cell = row.insertCell(0);
-            cell.colSpan = khoa === 'ALL' ? 3 : 6; // Điều chỉnh colspan dựa vào chế độ hiển thị
-            cell.style.textAlign = 'center';
-            cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
-            document.getElementById('totalSoTietGiangDay').textContent = '0';
-            document.getElementById('totalSTPHT').textContent = '0';
-            document.getElementById('totalSTMG').textContent = '0';
-            document.getElementById('total').textContent = '0';
-            document.getElementById('khoa-chart-container').style.display = 'none';
-            document.getElementById('all-khoa-charts').style.display = 'none';
-            return;
-        }
+            // Xóa dữ liệu cũ
+            tableBody.innerHTML = '';
 
-        // Cập nhật header và nội dung bảng
-        const tableHeader = document.querySelector('#thongkevuotgioTable thead tr');
-        if (tableHeader) {
-            tableHeader.innerHTML = (khoa === 'ALL') ?
-                `<th>Khoa</th>
-                <th>Số tiết tính vượt giờ</th>
-                <th>Số tiết vượt giờ(được thanh toán)</th>
-                <th>Số lượng giảng viên</th>` :
-                `<th>STT</th>
-                <th>Họ tên</th>
-                <th>Số tiết tính vượt giờ</th>
-                <th>Số tiết phải hoàn thành</th>
-                <th>Số tiết miễn giảm</th>
-                <th>Số tiết vượt giờ(được thanh toán)</th>`;
-        }
-
-        if (khoa === 'ALL') {
-            const finalResult = data.map((item) => ({
-                Khoa: item.Khoa,
-                TongSoTiet: parseFloat(item.TongSoTietall || 0).toFixed(2),
-                SoTietVuotGio: parseFloat(item.SoTietVuotGio || 0).toFixed(2),
-                SoLuongGiangVien: item.SoLuongGiangVien
-            }));
-
-            finalResult.forEach((item, index) => {
+            if (!data || data.length === 0) {
+                console.log('Không có dữ liệu');
                 const row = tableBody.insertRow();
-                row.insertCell(0).textContent = item.Khoa || 'Không xác định';
-                row.insertCell(1).textContent = item.TongSoTiet;
-                row.insertCell(2).textContent = item.SoTietVuotGio;
-                row.insertCell(3).textContent = item.SoLuongGiangVien;
-            });
-        } else {
+                const cell = row.insertCell(0);
+                cell.style.textAlign = 'center';
+                cell.textContent = 'Không có dữ liệu cho khoảng thời gian này';
+
+                // Ẩn biểu đồ và cập nhật tổng số tiết
+                document.getElementById('total').textContent = '0';
+                document.getElementById('khoa-chart-container').style.display = 'none';
+                document.getElementById('all-khoa-charts').style.display = 'none';
+                return;
+            }
+
+            // Cập nhật header của bảng dựa vào chế độ thống kê
+            const tableHeader = document.querySelector('#thongkevuotgioTable thead tr');
+            if (tableHeader) {
+                if (currentType === "khoa") {
+                    if (khoa === 'ALL') {
+                        tableHeader.innerHTML = `
+                            <th>Khoa</th>
+                            <th>Số tiết tính vượt giờ</th>
+                            <th>Số tiết vượt giờ(được thanh toán)</th>
+                            <th>Số lượng giảng viên</th>
+                        `;
+                    } else {
+                        tableHeader.innerHTML = `
+                            <th>STT</th>
+                            <th>Họ tên</th>
+                            <th>Số tiết tính vượt giờ</th>
+                            <th>Số tiết phải hoàn thành</th>
+                            <th>Số tiết miễn giảm</th>
+                            <th>Số tiết vượt giờ(được thanh toán)</th>
+                        `;
+                    }
+                } else if (currentType === "hedaotao") {
+                    if (hedaotao === 'ALL') {
+                        tableHeader.innerHTML = `
+                            <th>Hệ đào tạo</th>
+                            <th>Số tiết tính vượt giờ</th>
+                            <th>Số tiết vượt giờ(được thanh toán)</th>
+                            <th>Số lượng giảng viên</th>
+                        `;
+                    } else {
+                        tableHeader.innerHTML = `
+                            <th>STT</th>
+                            <th>Họ tên</th>
+                            <th>Học vị</th>
+                            <th>Số tiết tính vượt giờ</th>
+                            <th>Số tiết phải hoàn thành</th>
+                            <th>Số tiết miễn giảm</th>
+                            <th>Số tiết vượt giờ(được thanh toán)</th>
+                        `;
+                    }
+                }
+            }
+
+            // Thêm dữ liệu mới
             data.forEach((item, index) => {
                 const row = tableBody.insertRow();
-                if (parseFloat(item.SoTietVuotGio) === 0) {
-                    row.style.backgroundColor = '#ffcccc';
-                }
-                row.insertCell(0).textContent = index + 1;
-                row.insertCell(1).textContent = item.GiangVien || 'Không xác định';
-                row.insertCell(2).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
-                row.insertCell(3).textContent = parseFloat(item.STPHT || 0).toFixed(2);
-                row.insertCell(4).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
-                row.insertCell(5).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-            });
-        }
+                let cellIdx = 0;
 
-        // Tính tổng số tiết vượt giờ
-        const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
-        document.getElementById('total').textContent = total.toFixed(2);
-
-        // Cập nhật tổng số tiết giảng dạy
-        let totalSoTietGiangDay;
-        if (khoa === 'ALL') {
-            totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
-        } else {
-            totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
-        }
-        document.getElementById('totalSoTietGiangDay').textContent = totalSoTietGiangDay.toFixed(2);
-
-        // Cập nhật số tiết phải hoàn thành
-        if (khoa !== 'ALL') {
-            const totalSTPHT = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(item.STPHT) : 0), 0);
-            document.getElementById('totalSTPHT').textContent = totalSTPHT.toFixed(2);
-            document.getElementById('totalSTPHTContainer').style.display = 'block'; // Hiện phần tử
-        } else {
-            document.getElementById('totalSTPHTContainer').style.display = 'none'; // Ẩn toàn bộ khung
-        }
-
-        // Cập nhật số tiết miễn giảm
-        if (khoa !== 'ALL') {
-            const totalSTMG = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(300-item.STPHT) : 0), 0);
-            document.getElementById('totalSTMG').textContent = totalSTMG.toFixed(2);
-            document.getElementById('totalSTMGContainer').style.display = 'block'; // Hiện phần tử
-        } else {
-            document.getElementById('totalSTMGContainer').style.display = 'none'; // Ẩn toàn bộ khung
-        }
-        // Cập nhật biểu đồ
-        updateCharts(data, khoa);
-
-    } catch (error) {
-        console.error('Lỗi trong fetchThongkevuotgioData:', error);
-        document.getElementById('tableBody').innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align: center; color: red;">
-                    Lỗi tải dữ liệu: ${error.message}
-                </td>
-            </tr>
-        `;
-    }
-}
-
-function updateCharts(data, khoa) {
-    console.log("Dữ liệu biểu đồ:", data);
-    if (data.length === 0) {
-        console.log("Không có dữ liệu để vẽ biểu đồ.");
-        return;
-    }
-
-    try {
-        if (khoa === 'ALL') {
-            // Hiển thị 2 biểu đồ tất cả khoa
-            document.getElementById('khoa-chart-container').style.display = 'none';
-            document.getElementById('all-khoa-charts').style.display = 'flex';
-
-            // Vẽ biểu đồ tròn
-            const ctxPie = document.getElementById('pieChart');
-            if (!ctxPie) {
-                console.error('Không tìm thấy element pieChart');
-                return;
-            }
-            if (window.pieChart instanceof Chart) {
-                window.pieChart.destroy();
-            }
-
-            // Tính tổng số tiết
-            const totalHours = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
-            console.log('Tổng số tiết:', totalHours); // Kiểm tra tổng số tiết
-            window.pieChart = new Chart(ctxPie, {
-                type: 'pie',
-                data: {
-                    labels: data.map(item => item.Khoa || 'Không xác định'),
-                    datasets: [{
-                        data: data.map(item => (parseFloat(item.TongSoTietall)).toFixed(2) || 0),
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56',
-                            '#4BC0C0', '#9966FF', '#FF9F40'
-                        ]
-                    }]
-                },
-                options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 1.5,
-        plugins: {
-            legend: {
-                position: 'right',
-                labels: {
-                    generateLabels: function(chart) {
-                        const data = chart.data;
-                        if (data.labels.length && data.datasets.length) {
-                            return data.labels.map((label, i) => {
-                                const value = data.datasets[0].data[i];
-                                const percentage = totalHours > 0 ? ((value / totalHours) * 100).toFixed(1) : 0; // Tránh chia cho 0
-                                return {
-                                    text: `${label} (${percentage}%)`,
-                                    fillStyle: data.datasets[0].backgroundColor[i],
-                                    hidden: isNaN(value) || value === 0,
-                                    index: i
-                                };
-                            });
-                        }
-                        return [];
+                if (currentType === "khoa") {
+                    if (khoa === 'ALL') {
+                        row.insertCell(cellIdx++).textContent = item.Khoa || "";
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTietall || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
+                    } else {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
                     }
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const value = context.raw;
-                        const percentage = totalHours > 0 ? ((value / totalHours) * 100).toFixed(1) : 0; // Tránh chia cho 0
-                        return `${context.label}: ${value} tiết (${percentage}%)`;
-                    }
-                }
-            },
-            title: {
-                display: true,
-                text: 'Phân bố số tiết giảng dạy theo khoa'
-                        }
+                } else if (currentType === "hedaotao") {
+                    if (hedaotao === 'ALL') {
+                        row.insertCell(cellIdx++).textContent = item.HeDaoTao || "";
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
+                    } else {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
+                        row.insertCell(cellIdx++).textContent = item.HocVi || "";
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
                     }
                 }
             });
 
-            // Vẽ biểu đồ cột số tiết giảng viên
-            const ctxBar = document.getElementById('barChart');
-            if (!ctxBar) {
-                console.error('Không tìm thấy element barChart');
-                return;
+            // Cập nhật tổng số tiết
+            const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
+            document.getElementById('total').textContent = total.toFixed(2);
+
+            // Cập nhật tổng số tiết giảng dạy
+            let totalSoTietGiangDay;
+            if (currentType === "khoa" && khoa === 'ALL') {
+                totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
+            } else {
+                totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
             }
-            if (window.barChart instanceof Chart) {
-                window.barChart.destroy();
+            document.getElementById('totalSoTietGiangDay').textContent = totalSoTietGiangDay.toFixed(2);
+
+            // Cập nhật số tiết phải hoàn thành và miễn giảm
+            if (currentType === "khoa" && khoa !== 'ALL' || currentType === "hedaotao" && hedaotao !== 'ALL') {
+                const totalSTPHT = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(item.STPHT) : 0), 0);
+                document.getElementById('totalSTPHT').textContent = totalSTPHT.toFixed(2);
+                document.getElementById('totalSTPHTContainer').style.display = 'block';
+
+                const totalSTMG = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(300-item.STPHT) : 0), 0);
+                document.getElementById('totalSTMG').textContent = totalSTMG.toFixed(2);
+                document.getElementById('totalSTMGContainer').style.display = 'block';
+            } else {
+                document.getElementById('totalSTPHTContainer').style.display = 'none';
+                document.getElementById('totalSTMGContainer').style.display = 'none';
             }
-            window.barChart = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: data.map(item => item.Khoa || 'Không xác định'),
-                    datasets: [
-                        {
-                            label: 'Số tiết vượt giờ(được thanh toán)',
-                            data: data.map(item => parseFloat(item.SoTietVuotGio) || 0),
+
+            // Cập nhật biểu đồ
+            updateCharts(data, currentType, khoa, hedaotao);
+
+        } catch (error) {
+            console.error('Error in fetchThongkevuotgioData:', error);
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: red;">
+                            Đã xảy ra lỗi khi tải dữ liệu: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    // Cập nhật hàm updateCharts để hỗ trợ cả hai chế độ
+    function updateCharts(data, type, khoa, hedaotao) {
+        try {
+            // Map lại dữ liệu: nếu có TongSoTietall thì gán vào TongSoTiet để vẽ biểu đồ như thongkemg
+            const chartData = data.map(item => {
+                if (item.TongSoTietall !== undefined) {
+                    return { ...item, TongSoTiet: item.TongSoTietall };
+                }
+                return item;
+            });
+            // Luôn hiển thị biểu đồ, kể cả khi chọn từng khoa
+            if ((type === "khoa" && khoa === 'ALL') || (type === "hedaotao" && hedaotao === 'ALL')) {
+                document.getElementById('khoa-chart-container').style.display = 'none';
+                document.getElementById('all-khoa-charts').style.display = 'flex';
+
+                // Vẽ biểu đồ tròn
+                const ctxPie = document.getElementById('pieChart');
+                if (window.pieChart instanceof Chart) {
+                    window.pieChart.destroy();
+                }
+
+                const totalHours = chartData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+                if (chartData.length === 0 || totalHours === 0) {
+                    $('#pieChart').hide();
+                    $('#barChart').hide();
+                    return;
+                } else {
+                    $('#pieChart').show();
+                    $('#barChart').show();
+                }
+
+                window.pieChart = new Chart(ctxPie, {
+                    type: 'pie',
+                    data: {
+                        labels: chartData.map(item => type === "hedaotao" ? item.HeDaoTao : item.Khoa),
+                        datasets: [{
+                            data: chartData.map(item => parseFloat(item.TongSoTiet || 0)),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56',
+                                '#4BC0C0', '#9966FF', '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1.5,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    generateLabels: function(chart) {
+                                        const data = chart.data;
+                                        if (data.labels.length && data.datasets.length) {
+                                            return data.labels.map((label, i) => {
+                                                const value = data.datasets[0].data[i];
+                                                const percentage = ((value / totalHours) * 100).toFixed(1);
+                                                return {
+                                                    text: `${label} (${percentage}%)`,
+                                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                                    hidden: isNaN(value) || value === 0,
+                                                    index: i
+                                                };
+                                            });
+                                        }
+                                        return [];
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        const percentage = ((value / totalHours) * 100).toFixed(1);
+                                        return `${context.label}: ${value} tiết (${percentage}%)`;
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: type === "hedaotao" ? 'Phân bố số tiết theo hệ đào tạo' : 'Phân bố số tiết theo khoa'
+                            }
+                        }
+                    }
+                });
+
+                // Vẽ biểu đồ cột
+                const ctxBar = document.getElementById('barChart');
+                if (window.barChart instanceof Chart) {
+                    window.barChart.destroy();
+                }
+
+                window.barChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.map(item => type === "hedaotao" ? item.HeDaoTao : item.Khoa),
+                        datasets: [{
+                            label: 'Số tiết vượt giờ',
+                            data: chartData.map(item => parseFloat(item.SoTietVuotGio || 0)),
                             backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1.5,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Số tiết giảng dạy theo khoa'
-                        }
+                            borderWidth: 1
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            stacked: true // Enable stacking
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1.5,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: type === "hedaotao" ? 'Số tiết vượt giờ theo hệ đào tạo' : 'Số tiết vượt giờ theo khoa'
+                            }
                         },
-                        x: {
-                            stacked: true // Enable stacking
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
+                });
+            } else {
+                document.getElementById('khoa-chart-container').style.display = 'block';
+                document.getElementById('all-khoa-charts').style.display = 'none';
+                const ctxKhoa = document.getElementById('khoaChart');
+                if (window.khoaChart instanceof Chart) {
+                    window.khoaChart.destroy();
                 }
-            });
-        } else {
-            // Hiển thị biểu đồ cho một khoa
-            document.getElementById('khoa-chart-container').style.display = 'block';
-            document.getElementById('all-khoa-charts').style.display = 'none';
-
-            // Vẽ biểu đồ cột cho khoa được chọn
-            const ctxKhoa = document.getElementById('khoaChart');
-            if (!ctxKhoa) {
-                console.error('Không tìm thấy element khoaChart');
-                return;
-            }
-            if (window.khoaChart instanceof Chart) {
-                window.khoaChart.destroy();
-            }
-            window.khoaChart = new Chart(ctxKhoa, {
-                type: 'bar',
-                data: {
-                    labels: data.map(item => item.GiangVien || 'Không xác định'),
-                    datasets: [
-                        {
+                window.khoaChart = new Chart(ctxKhoa, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(item => item.GiangVien),
+                        datasets: [{
                             label: 'Số tiết vượt giờ',
-                            data: data.map(item => parseFloat(item.SoTietVuotGio) || 0),
+                            data: data.map(item => parseFloat(item.SoTietVuotGio || 0)),
                             backgroundColor: 'blue',
                             borderColor: 'black',
                             borderWidth: 1
-                        },
-                        {
-                            label: 'Số tiết đã hoàn thành',
-                            data: data.map(item => {
-                                const tongSoTiet = parseFloat(item.TongSoTiet || 0);
-                                const stpht = parseFloat(item.STPHT || 0);
-                                return stpht > tongSoTiet ? tongSoTiet : stpht;
-                            }),
-                            backgroundColor: 'rgba(255, 99, 132, 0.5)', 
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 2,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Số tiết vượt giờ của giảng viên'
-                        }
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            stacked: true // Enable stacking
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 2,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Số tiết vượt giờ của giảng viên'
+                            }
                         },
-                        x: {
-                            stacked: true // Enable stacking
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+        } catch (error) {
+            console.error('Error in updateCharts:', error);
         }
-    } catch (error) {
-        console.error('Error in updateCharts:', error);
     }
-}
 
-      // Đảm bảo hàm được định nghĩa trước khi gọi
-      window.onload = async () => {
-          await fetchThongkevuotgioData();
-      };
+    // Thêm event listeners
+    document.getElementById('NamHoc').addEventListener('change', fetchThongkevuotgioData);
+    document.getElementById('Khoa').addEventListener('change', fetchThongkevuotgioData);
+    document.getElementById('HeDaoTao').addEventListener('change', fetchThongkevuotgioData);
 
-      // Thêm event listeners
-      document.getElementById('NamHoc').addEventListener('change', fetchThongkevuotgioData);
-      document.getElementById('Khoa').addEventListener('change', fetchThongkevuotgioData);
+    // Lấy danh sách năm học
+    $.ajax({
+        url: '/getNamHocVG',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                $('#NamHoc').empty();
+                response.NamHoc.forEach(function (item) {
+                    $('#NamHoc').append(
+                        `<option value="${item.NamHoc}">${item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc}</option>`
+                    );
+                });
+                // Đặt giá trị mặc định là năm lớn nhất nếu có
+                if (response.MaxNamHoc) {
+                    $('#NamHoc').val(response.MaxNamHoc).trigger('change');
+                }
+            }
+        }
+    });
+
+    // Lấy danh sách khoa
+    $.ajax({
+        url: '/getPhongBanVG',
+        method: 'GET',
+        success: function (response) {
+            if (response.success) {
+                $('#Khoa').empty();
+                $('#Khoa').append('<option value="ALL">Tất cả khoa</option>');
+                response.MaPhongBan.forEach(function (item) {
+                    if(item.MaPhongBan && item.MaPhongBan !== 'ALL') {
+                        $('#Khoa').append(
+                            `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                        );
+                    }
+                });
+            }
+        }
+    });
+
+    fetchThongkevuotgioData();
+});
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {

@@ -402,19 +402,17 @@ const totalNumberOfPeriods = async (connection, data) => {
         tongTietDetail[gvLabel] =
           (parseFloat(tongTietDetail[gvLabel]) || 0) + quyChuan;
       }
-    });
-
-    // Phân loại lại để thống kê chi tiết
+    });    // Phân loại lại để thống kê chi tiết
     for (const tenGV in tongTietDetail) {
       const tiet = parseFloat(tongTietDetail[tenGV]) || 0;
       tongTietAll += tiet;
 
       gvInfo = tachTenVaLoai(tenGV);
 
-      if (gvInfo.loai.includes("giảng viên mời")) {
+      if (gvInfo.loai && gvInfo.loai.includes("giảng viên mời")) {
         tongTietMoiGiang += tiet;
         detailMoiGiang[gvInfo.ten] = tiet;
-      } else if (gvInfo.loai.includes("cơ hữu")) {
+      } else if (gvInfo.loai && gvInfo.loai.includes("cơ hữu")) {
         tongTietCoHuu += tiet;
         detailCoHuu[gvInfo.ten] = tiet;
       }

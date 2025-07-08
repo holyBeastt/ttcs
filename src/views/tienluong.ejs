@@ -52,10 +52,14 @@
         <div class="col-md-4" id="hocViContainer">
           <label for="HocVi">Học Vị:</label>
           <select name="HocVi" id="HocVi" class="form-control" required>
+            <option value="Cử nhân">Cử nhân</option>
+            <option value="Kỹ sư">Kỹ sư</option>
             <option value="Thạc sĩ" selected>Thạc sĩ</option>
             <option value="Tiến sĩ">Tiến sĩ</option>
             <option value="Phó giáo sư">Phó giáo sư</option>
             <option value="Giáo sư">Giáo sư</option>
+            <option value="Tiếng khơ-me">Tiếng khơ-me</option>
+            <option value="Võ sư">Võ sư</option>
           </select>
         </div>
         <div class="col-md-4">
@@ -80,7 +84,7 @@
           <thead>
             <tr>
               <th>STT</th>
-              <th id="sortHeDaoTao" style="cursor:pointer;">
+              <th id="sortHeDaoTao" style="cursor: pointer">
                 Hệ Đào Tạo <span id="sortIcon">⇅</span>
               </th>
               <th>Học Vị</th>
@@ -101,7 +105,7 @@
                 <%= new Intl.NumberFormat('vi-VN', { style: 'currency',
                 currency: 'VND' }).format(tienluong[i].SoTien) %>
               </td>
-              <td class="d-flex justify-content-center" style="border: none;">
+              <td class="d-flex justify-content-center" style="border: none">
                 <button class="bi bi-pencil action-button edit-btn"></button>
                 <button
                   class="bi bi-trash3 action-button me-2"
@@ -170,7 +174,9 @@
                       originalValues[STT].HocVi === "Tiến sĩ" ? "selected" : ""
                     }>Tiến sĩ</option>
                     <option value="Phó giáo sư" ${
-                      originalValues[STT].HocVi === "Phó giáo sư" ? "selected" : ""
+                      originalValues[STT].HocVi === "Phó giáo sư"
+                        ? "selected"
+                        : ""
                     }>Phó giáo sư</option>
                     <option value="Giáo sư" ${
                       originalValues[STT].HocVi === "Giáo sư" ? "selected" : ""
@@ -215,14 +221,12 @@
               // Cập nhật giao diện
               row.find(".he_dao_tao-cell").text(updatedData.he_dao_tao);
               row.find(".HocVi-cell").text(updatedData.HocVi);
-              row
-                .find(".SoTien-cell")
-                .text(
-                  new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(updatedData.SoTien)
-                );
+              row.find(".SoTien-cell").text(
+                new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(updatedData.SoTien)
+              );
 
               const actionCell = row.find("td:last-child");
               actionCell.html(`
@@ -363,16 +367,18 @@
         let sortAsc = true;
         $("#sortHeDaoTao").click(function () {
           let rows = $("#data-table-body tr").get();
-          rows.sort(function(a, b) {
+          rows.sort(function (a, b) {
             let keyA = $(a).find(".he_dao_tao-cell").text().toUpperCase();
             let keyB = $(b).find(".he_dao_tao-cell").text().toUpperCase();
             if (keyA < keyB) return sortAsc ? -1 : 1;
             if (keyA > keyB) return sortAsc ? 1 : -1;
             return 0;
           });
-          $.each(rows, function(index, row) {
+          $.each(rows, function (index, row) {
             $("#data-table-body").append(row);
-            $(row).find("td:first").text(index + 1); // cập nhật lại STT
+            $(row)
+              .find("td:first")
+              .text(index + 1); // cập nhật lại STT
           });
           sortAsc = !sortAsc;
           $("#sortIcon").text(sortAsc ? "⇅" : "⇵");

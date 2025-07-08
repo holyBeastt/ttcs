@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= teacherName %></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    
+    <style>
+        .preview-container {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        
+        .preview-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .left-sidebar {
+            width: 400px;
+            min-width: 400px;
+            background: white;
+            border-right: 1px solid #dee2e6;
+            padding: 0;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        
+        .right-content {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 0;
+            position: relative;
+            height: 100vh;
+        }
+        
+        .teacher-info-card {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .contract-selection {
+            padding: 20px;
+        }
+        
+        .contract-option {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .contract-option:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0,123,255,0.15);
+        }
+        
+        .contract-option.selected {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        
+        .preview-content {
+            background: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-header-content {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+        
+        .preview-body {
+            flex: 1;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #pdf-preview-container {
+            flex: 1;
+            padding: 0;
+        }
+        
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+            min-height: calc(100vh - 80px);
+            border: none;
+        }
+        
+        .loading-spinner, .error-message {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+        
+        .btn-group-custom {
+            gap: 10px;
+        }
+        
+        .contract-meta {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 8px;
+        }
+        
+        .teacher-detail {
+            margin-bottom: 15px;
+        }
+        
+        .teacher-detail strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .section-title {
+            background: #f8f9fa;
+            margin: 0 -20px 20px -20px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
+                min-height: 100vh;
+            }
+            
+            .left-sidebar {
+                width: 100%;
+                min-width: 100%;
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+            
+            .right-content {
+                height: auto;
+                min-height: 50vh;
+            }
+            
+            .preview-content {
+                height: auto;
+                min-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body class="preview-container">
+    <div class="main-content">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <!-- Teacher Info -->
+            <div class="teacher-info-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                    Thông tin giảng viên
+                </h5>
+                <div class="teacher-detail">
+                    <strong>Họ và tên:</strong>
+                    <%= teacherName %>
+                </div>
+                <div class="teacher-detail">
+                    <strong>Thời gian:</strong>
+                    Đợt <%= dot %> - Kỳ <%= ki %> - Năm học <%= namHoc %>
+                </div>                <% if (teacherData.TongTiet) { %>
+                <div class="teacher-detail">
+                    <strong>Tổng số tiết:</strong>
+                    <%= teacherData.TongTiet % 1 === 0 ? teacherData.TongTiet.toFixed(2) : teacherData.TongTiet.toFixed(2).replace('.', ',') %> tiết
+                </div>
+                <% } %>
+                <% if (teacherData.ThucNhan) { %>
+                <div class="teacher-detail">
+                    <strong>Thực nhận:</strong>
+                    <span class="text-success fw-bold">
+                        <%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(teacherData.ThucNhan) %>
+                    </span>
+                </div>
+                <% } %>
+                
+                <!-- Action Buttons -->
+                <div class="mt-3 pt-3 border-top" id="action-buttons" style="display: none;">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="closePreview()">
+                            <i class="fas fa-times me-1"></i>Đóng
+                        </button>
+                        <!-- <button type="button" class="btn btn-primary btn-sm flex-fill" id="download-btn" onclick="downloadContract()">
+                            <i class="fas fa-download me-1"></i>Tải xuống
+                        </button> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Selection -->
+            <div class="contract-selection">
+                <div class="section-title">
+                    <i class="fas fa-list-check me-2"></i>
+                    Chọn hệ đào tạo
+                </div>
+                
+                <div id="contract-options">
+                    <!-- Contract options will be populated by JavaScript -->
+                </div>
+                
+               
+            </div>
+        </div>
+
+        <!-- Right Content -->
+        <div class="right-content">
+            <div class="preview-content">
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state">
+                    <i class="fas fa-file-contract fa-4x mb-3 text-muted"></i>
+                    <h5>Chưa chọn hệ đào tạo</h5>
+                    <p>Vui lòng chọn một hệ đào tạo bên trái để xem trước hợp đồng.</p>
+                </div>
+                
+                <!-- Preview Body -->
+                <div class="preview-body">
+                    <!-- Loading State -->
+                    <div id="loading-state" class="loading-spinner" style="display: none;">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <h5 class="mt-3">Đang tạo hợp đồng...</h5>
+                        <p class="text-muted">Vui lòng đợi trong giây lát</p>
+                    </div>
+                    
+                    <!-- Error State -->
+                    <div id="error-state" class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-danger"></i>
+                        <h5>Không thể tạo hợp đồng</h5>
+                        <p id="error-message-text">Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.</p>
+                        <button type="button" class="btn btn-primary" onclick="retryGeneration()">
+                            <i class="fas fa-redo me-2"></i>Thử lại
+                        </button>
+                    </div>
+                    
+                    <!-- PDF Preview Container -->
+                    <div id="pdf-preview-container" style="display: none;">
+                        <iframe id="pdf-viewer" type="application/pdf"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let currentContractBuffer = null;
+        let currentContractType = '';
+        const teacherData = <%- JSON.stringify(teacherData || {}) %>;
+        
+        $(document).ready(function() {
+            // Initialize contract options
+            initializeContractOptions();
+        });
+          function initializeContractOptions() {
+            const optionsContainer = $('#contract-options');
+            optionsContainer.empty();
+            
+            // Get current contract type from URL parameters or teacherData
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án
+            if (currentLoaiHopDong === 'Đồ án') {
+                // Với đồ án, luôn hiển thị hệ đào tạo "Đồ án" (set cứng)
+                const optionHtml = `
+                    <div class="contract-option" onclick="selectContract('${encodeURIComponent('Đồ án')}')">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-file-alt fa-lg text-primary"></i>
+                            </div>                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">Đồ án</h6>
+                                <div class="contract-meta">
+                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? formatSoTiet(teacherData.TongTiet) : '0'} tiết</div>
+                                    <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                optionsContainer.append(optionHtml);
+                return;
+            }
+            
+            // Check if teacher has training programs data (cho các loại hợp đồng khác)
+            if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
+                teacherData.trainingPrograms.forEach((program, index) => {
+                    const optionHtml = `
+                        <div class="contract-option" onclick="selectContract('${encodeURIComponent(program.he_dao_tao)}')">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-graduation-cap fa-lg text-primary"></i>
+                                </div>                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">${program.he_dao_tao}</h6>
+                                    <div class="contract-meta">
+                                        <div><i class="fas fa-clock me-1"></i>${program.SoTiet ? formatSoTiet(program.SoTiet) : '0'} tiết</div>
+                                        <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(program.ThucNhan || 0)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    optionsContainer.append(optionHtml);
+                });
+            } else {
+                // Fallback to contract type if no training programs data
+                let contractType = teacherData.loaiHopDong;
+                if (!contractType || contractType === 'AllHe') {
+                    contractType = currentLoaiHopDong;
+                }
+                
+                const optionHtml = `
+                    <div class="contract-option" onclick="selectContract('${encodeURIComponent(contractType)}')">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-file-contract fa-lg text-primary"></i>
+                            </div>                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">${contractType}</h6>
+                                <div class="contract-meta">
+                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? formatSoTiet(teacherData.TongTiet) : '0'} tiết</div>
+                                    <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                optionsContainer.append(optionHtml);
+            }
+        }
+        
+        function selectContract(contractType) {
+            // Remove previous selections
+            $('.contract-option').removeClass('selected');
+            
+            // Add selection to clicked option
+            event.currentTarget.classList.add('selected');
+            
+            currentContractType = decodeURIComponent(contractType);
+            
+            // Hide empty state
+            $('#empty-state').hide();
+            
+            // Show preview header and action buttons
+            $('#preview-header').show();
+            $('#action-buttons').show();
+            
+            // Generate preview
+            generatePreview(currentContractType);
+        }
+        
+        function closePreview() {
+            $('.contract-option').removeClass('selected');
+            $('#preview-header').hide();
+            $('#action-buttons').hide();
+            $('#loading-state').hide();
+            $('#error-state').hide();
+            $('#pdf-preview-container').hide();
+            $('#empty-state').show();
+            currentContractType = '';
+        }
+        
+        function showError(message) {
+            $('#loading-state').hide();
+            $('#pdf-preview-container').hide();
+            $('#error-message-text').text(message);
+            $('#error-state').show();
+        }
+        
+        function retryGeneration() {
+            if (currentContractType) {
+                generatePreview(currentContractType);
+            }
+        }
+          function generatePreview(heHopDong) {
+            // Reset states
+            $('#loading-state').show();
+            $('#error-state').hide();
+            $('#pdf-preview-container').hide();
+            
+            // Get current contract type from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
+            let actualHeHopDong = heHopDong;
+            if (currentLoaiHopDong === 'Đồ án') {
+                actualHeHopDong = 'Đồ án';
+            }
+            
+            // Prepare data for API call - include teacherData if available
+            const previewData = {
+                teacherId: '<%= teacherId || "" %>',
+                heHopDong: actualHeHopDong,
+                dot: '<%= dot || "" %>',
+                ki: '<%= ki || "" %>',
+                namHoc: '<%= namHoc || "" %>',
+                teacherData: JSON.stringify(teacherData)
+            };
+            
+            // Call preview API
+            $.ajax({
+                url: '/api/preview-contract',
+                type: 'POST',
+                data: previewData,
+                xhrFields: {
+                    responseType: 'arraybuffer'
+                },
+                success: function(data, textStatus, xhr) {
+                    try {
+                        // Hide loading
+                        $('#loading-state').hide();
+                        
+                        // Store buffer for download (DOCX)
+                        currentContractBuffer = data;
+                        
+                        // Show PDF preview in iframe
+                        const pdfViewer = document.getElementById('pdf-viewer');
+                        const blob = new Blob([data], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        pdfViewer.src = url;
+                        
+                        $('#pdf-preview-container').show();
+                            
+                    } catch (error) {
+                        console.error('Preview error:', error);
+                        showError('Có lỗi xảy ra khi xử lý hợp đồng: ' + error.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('API error:', error);
+                    $('#loading-state').hide();
+                    
+                    let errorMessage = 'Có lỗi xảy ra khi tạo hợp đồng';
+                    if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            errorMessage = xhr.responseText;
+                        }
+                    }
+                    showError(errorMessage);
+                }
+            });
+        }        function downloadContract() {
+            if (!currentContractType) {
+                alert('Vui lòng chọn và xem trước hợp đồng trước khi tải xuống');
+                return;
+            }
+            
+            // Get current contract type from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            
+            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
+            let actualHeHopDong = currentContractType;
+            if (currentLoaiHopDong === 'Đồ án') {
+                actualHeHopDong = 'Đồ án';
+            }
+            
+            // Prepare data for download API call - include teacherData
+            const downloadData = {
+                teacherId: '<%= teacherId || "" %>',
+                heHopDong: actualHeHopDong,
+                dot: '<%= dot || "" %>',
+                ki: '<%= ki || "" %>',
+                namHoc: '<%= namHoc || "" %>',
+                teacherData: JSON.stringify(teacherData)
+            };
+            
+            // Create a form to submit download request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/download-contract';
+            form.style.display = 'none';
+            
+            // Add form data
+            for (const key in downloadData) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = downloadData[key];
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            // Show success message
+            const toast = $(`
+                <div class="toast position-fixed bottom-0 end-0 m-3" role="alert">
+                    <div class="toast-header bg-success text-white">
+                        <strong class="me-auto">Thành công</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Đang tải xuống hợp đồng...
+                    </div>
+                </div>
+            `);
+            $('body').append(toast);
+            new bootstrap.Toast(toast[0]).show();
+            
+            // Remove toast after it's hidden
+            toast.on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }
+          // Currency formatting function
+        function formatCurrency(value) {
+            if (typeof value === "number" && !isNaN(value)) {
+                return value.toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                });
+            }
+            return "0 ₫";
+        }
+
+        // Function to format "Số tiết" according to requirements
+        function formatSoTiet(value) {
+            const numValue = typeof value === "string" ? parseFloat(value) : value;
+            if (typeof numValue !== "number" || isNaN(numValue)) return "0.00";
+            
+            // Check if number is whole (even)
+            if (numValue % 1 === 0) {
+                // Whole number - use dot format
+                return numValue.toFixed(2);
+            } else {
+                // Decimal number - use comma format
+                return numValue.toFixed(2).replace('.', ',');
+            }
+        }
+    </script>
+</body>
+</html>

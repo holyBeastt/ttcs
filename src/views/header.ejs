@@ -115,7 +115,11 @@
                     <a class="nav-link" href="/import" id="addNewFileQCDK" style="width: 100%">Thêm file quy chuẩn dự
                       kiến</a>
                     <a class="nav-link" id="" href="/importDoAn">Thêm file ĐATN chính thức</a>
+                    
                   </div>
+                </div>
+                <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
+                  <a class="nav-link" id="" href="/importkthp">Thêm file kết thúc hp</a>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
@@ -143,6 +147,15 @@
                     <a class="nav-link" id="" href="/thongTinDoAnTotNghiep">Thông tin đồ án tốt nghiệp</a>
                   </div>
                 </div>
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
+                    aria-expanded="false">Yêu cầu chỉnh sửa</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
+                    <a class="nav-link" id="" href="/chinhSuaQuyChuan">Yêu cầu chỉnh sửa quy chuẩn chính thức</a>
+                    <a class="nav-link" id="" href="/chinhSuaDoAn">Yêu cầu chỉnh sửa đồ án chính thức</a>
+
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -152,19 +165,32 @@
                 aria-expanded="false">
                 Mời Giảng
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="nav-link"
+                  href="/xemCacLopGvm">Xem các lớp mời</a>
                 <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
-                <a class="nav-link" href="/duyet-hop-dong" role="button">Duyệt hợp đồng</a>
-
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
+                    aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
+                    <a class="nav-link" href="/duyet-hop-dong">Hợp đồng mời giảng</a>
+                    <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
+                  </div>
+                </div>
+                <div class="dropdown-submenu" id="nav-tao-so-hop-dong" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
+                    aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
+                    <a class="nav-link" href="/sohopdong">Hợp đồng mời giảng</a>
+                    <a class="nav-link" href="/sohopdong-doan">Hợp đồng đồ án</a>
+                  </div>
+                </div>
                 <a class="nav-link" href="/infoHDGvm" role="button">Thông tin hợp đồng</a>
                 <a class="nav-link" href="/phuLucHD">Phụ lục hợp đồng</a>
                 <a class="nav-link" href="/exportHD">Hợp Đồng</a>
                 <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">Phụ lục minh chứng giảng viên mời</a>
                 <a class="nav-link" href="/api/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
                 <a class="nav-link" style="display: none" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
-                <a class="nav-link" href="/sohopdong">Tạo số hợp đồng</a>
               </div>
             </div>
           </div>
@@ -177,7 +203,9 @@
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="nav-link" id="" href="/infoclassvuotgio">Thông tin lớp vượt giờ của tôi</a>
                 <a class="nav-link" href="/addclass">Thêm lớp giảng dạy</a>
-                <a class="nav-link" id="" href="/addclassgiuaky">Thêm lớp kiểm tra giữa kỳ</a>
+                <a class="nav-link" id="" href="/vuotGioCuoiKi">Thông tin cuối kì của tôi</a>
+                <a class="nav-link" id="" href="/addclassgiuaky">Đánh giá giữa học phần</a>
+                <a class="nav-link" id="" href="/vuotGioDanhGiaCuoiKi">Đánh giá cuối học phần</a>
                 <a class="nav-link" id="actionButton3" href="/duyetgk">Duyệt các lớp giữa kì</a>
                 <a class="nav-link" id="" href="/infovuotgio">Thông tin vượt giờ và NCKH</a>
                 <a class="nav-link" id="" href="/vuotGioExport">Xuất thông tin vượt giờ và NCKH
@@ -357,9 +385,17 @@
       const addNewFileGvm = document.getElementById("addNewFileGvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
+      const navTaoSoHopDong = document.getElementById("nav-tao-so-hop-dong");
 
       if (isKhoa === "0" || role === "GV") {
         addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
+      }
+
+      // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "Duyệt" và MaPhongBan "DAOTAO"
+      if (role === "Duyệt" && MaPhongBan === "DAOTAO") {
+        navTaoSoHopDong.style.display = "block";
+      } else {
+        navTaoSoHopDong.style.display = "none";
       }
 
       // Ẩn button import đồ án
@@ -433,6 +469,7 @@
     // phần này cho các thẻ links
     let nckhNavChild = document.getElementById("nckhNav");
     let links = nckhNavChild.getElementsByClassName("nav-link");
+    let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
     if (maPhongBan === "NC&HTPT" && userRole === "Duyệt") {
@@ -480,6 +517,10 @@
     if (maPhongBan === "VP") {
       tkbNav.style.display = "none";
       navLink_addFileQC.style.display = "none";
+    }
+
+    if (maPhongBan !== "KT&DBCL") {
+      themFileKTHP.style.display = "none";
     }
   });
 </script>

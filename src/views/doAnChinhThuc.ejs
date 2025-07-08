@@ -124,6 +124,11 @@
             <option value="">Chọn khoa</option>
           </select>
 
+          <select class="mx-1 selectop" id="he_dao_tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
+
           <button class="btn mx-1" id="render" style="margin-bottom: 0px; height: 45px;">Hiển thị</button>
 
           <button class="btn mx-1" id="export" onclick="exportDoAnChinhThuc()"
@@ -256,6 +261,7 @@
           let kiValue = document.getElementById('combobox-ki').value;
           let namValue = document.getElementById('NamHoc').value;
           let khoaValue = document.getElementById('MaPhongBan').value;
+          let heDaoTaoValue = document.getElementById('he_dao_tao').value;
 
           // Hàm cập nhật giá trị từ comboboxes
           const updateValues = () => {
@@ -277,6 +283,7 @@
               Dot: dotValue,
               Ki: kiValue,
               Nam: namValue,
+              heDaoTaoValue,
             };
 
             // Fetch thông tin giảng dạy
