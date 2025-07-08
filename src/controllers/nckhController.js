@@ -1,5 +1,6 @@
 const express = require("express");
 const createPoolConnection = require("../config/databasePool");
+const LogService = require("../services/logService");
 
 // render site quy định số giờ nckh cho admin dùng thư viện ejs
 const getQuyDinhSoGioNCKH = async (req, res) => {
@@ -233,6 +234,10 @@ const quyDoiSoGioDeTaiDuAn = async (body, MaBang) => {
 
 // Thêm đề tài dự án
 const saveDeTaiDuAn = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   const data = await quyDoiSoGioDeTaiDuAn(req.body, "detaiduan");
   // Lấy dữ liệu từ body
   const {
@@ -272,6 +277,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ketQua
       ]
     );
+
+    // Ghi log thêm đề tài mới
+    try {
+      const logMessage = `Thêm đề tài dự án "${tenDeTai}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm đề tài "${tenDeTai}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm đề tài:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
 
     // Trả về phản hồi thành công cho client
     console.log("Thêm đề tài dự án thành công");
@@ -472,6 +492,10 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
 
 // Thêm bài báo khoa học
 const saveBaiBaoKhoaHoc = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     namHoc,
@@ -529,6 +553,22 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
     // Trả về phản hồi thành công cho client
     console.log("Thêm bài báo khoa học thành công");
+    
+    // Ghi log thêm bài báo mới
+    try {
+      const logMessage = `Thêm bài báo khoa học "${tenBaiBao}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm bài báo "${tenBaiBao}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm bài báo:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
+    
     res.status(200).json({
       success: true,
       message: "Thêm bài báo khoa học thành công!",
@@ -547,6 +587,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
 // Thêm bằng sáng chế và giải thưởng
 const saveBangSangCheVaGiaiThuong = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     phanLoai, // Phân loại
@@ -595,6 +639,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         khoa,
       ]
     );
+
+    // Ghi log thêm bằng sáng chế/giải thưởng mới
+    try {
+      const logMessage = `Thêm bằng sáng chế/giải thưởng "${tenBangSangCheVaGiaiThuong}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm bằng sáng chế/giải thưởng "${tenBangSangCheVaGiaiThuong}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm bằng sáng chế/giải thưởng:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
 
     // Trả về phản hồi thành công cho client
     console.log("Thêm bằng sáng chế và giải thưởng thành công");
@@ -743,6 +802,10 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
 
 // Thêm sách và giáo trình
 const saveSachVaGiaoTrinh = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     phanLoai,
@@ -805,6 +868,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ketQua,
       ]
     );
+
+    // Ghi log thêm sách/giáo trình mới
+    try {
+      const logMessage = `Thêm sách/giáo trình "${tenSachVaGiaoTrinh}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm sách/giáo trình "${tenSachVaGiaoTrinh}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm sách/giáo trình:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
 
     // Trả về phản hồi thành công cho client
     console.log("Thêm sách và giáo trình thành công");
@@ -1052,6 +1130,10 @@ const getTableSachVaGiaoTrinh = async (req, res) => {
 };
 
 const saveNckhVaHuanLuyenDoiTuyen = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     phanLoai, // Phân loại
@@ -1112,6 +1194,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ketQuaCapHocVien
       ]
     );
+
+    // Ghi log thêm NCKH và huấn luyện đội tuyển mới
+    try {
+      const logMessage = `Thêm đề tài NCKH/huấn luyện "${tenDeTai}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm đề tài NCKH/huấn luyện "${tenDeTai}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm đề tài NCKH/huấn luyện:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
 
     // Trả về phản hồi thành công cho client
     console.log("Thêm NCKH và huấn luyện đội tuyển thành công");
@@ -1309,6 +1406,10 @@ const getTableNckhVaHuanLuyenDoiTuyen = async (req, res) => {
 };
 
 const saveXayDungCTDT = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     phanLoai, // Phân loại
@@ -1359,6 +1460,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ]
     );
 
+    // Ghi log thêm xây dựng CTĐT mới
+    try {
+      const logMessage = `Thêm xây dựng CTĐT "${tenChuongTrinh}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm xây dựng CTĐT "${tenChuongTrinh}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm xây dựng CTĐT:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
+    
     // Trả về phản hồi thành công cho client
     console.log("Thêm xây dựng CTĐT thành công");
     res.status(200).json({
@@ -1480,6 +1596,10 @@ const getTableXayDungCTDT = async (req, res) => {
 };
 
 const saveBienSoanGiaoTrinhBaiGiang = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   // Lấy dữ liệu từ body
   const {
     phanLoai, // Phân loại
@@ -1534,6 +1654,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ]
     );
 
+    // Ghi log thêm biên soạn giáo trình/bài giảng mới
+    try {
+      const logMessage = `Thêm biên soạn giáo trình/bài giảng "${tenGiaoTrinhBaiGiang}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm biên soạn giáo trình/bài giảng "${tenGiaoTrinhBaiGiang}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm biên soạn giáo trình/bài giảng:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
+    
     // Trả về phản hồi thành công cho client
     console.log("Thêm biên soạn giáo trình/bài giảng thành công");
     res.status(200).json({
@@ -2128,7 +2263,9 @@ function convertDateFormat(dateStr) {
 const editNckh = async (req, res) => {
   const { ID, MaBang } = req.params;
   const namHoc = req.body.namHoc; // Default năm học nếu không có
-
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
 
   if (!ID) {
     return res.status(400).json({ message: "Thiếu ID cần cập nhật." });
@@ -2151,8 +2288,20 @@ const editNckh = async (req, res) => {
   let dongChuBien = "";
   let phanBien = "";
   let uyVien = "";
-
-  switch (MaBang) {
+  let oldData = null;
+  
+  const connection = await createPoolConnection();
+  
+  try {
+    // Lấy dữ liệu cũ dựa vào MaBang
+    const [oldRows] = await connection.execute(`SELECT * FROM ${MaBang} WHERE ID = ?`, [ID]);
+    if (oldRows.length > 0) {
+      oldData = oldRows[0];
+    } else {
+      return res.status(404).json({ message: "Không tìm thấy bản ghi để cập nhật." });
+    }
+    
+    switch (MaBang) {
     case "detaiduan":
       data = {
         CapDeTai: req.body.CapDeTai,
@@ -2457,9 +2606,6 @@ const editNckh = async (req, res) => {
       return res.status(400).json({ message: "Loại bảng không hợp lệ." });
   }
 
-  const connection = await createPoolConnection();
-
-  try {
     // Thực hiện câu truy vấn cập nhật bảng gốc
     const [result] = await connection.execute(updateQuery, queryParams);
 
@@ -2516,6 +2662,67 @@ const editNckh = async (req, res) => {
     await processLecturerIfNeeded(extractLecturerName(tacGia));
     await processLecturerIfNeeded(extractLecturerName(tacGiaCtn));
     await processLecturerIfNeeded(extractLecturerName(dongChuBien));
+
+    // Ghi log thay đổi vào bảng lichsunhaplieu nếu có thay đổi về DaoTaoDuyet
+    if (oldData && oldData.DaoTaoDuyet !== data.DaoTaoDuyet) {
+      try {
+        // Chuẩn bị nội dung log tương ứng với loại bảng
+        let entityName = '';
+        let entityType = '';
+        
+        switch (MaBang) {
+          case "detaiduan":
+            entityName = data.TenDeTai;
+            entityType = "đề tài dự án";
+            break;
+          case "baibaokhoahoc":
+            entityName = data.TenBaiBao;
+            entityType = "bài báo khoa học";
+            break;
+          case "bangsangchevagiaithuong":
+            entityName = data.TenBangSangCheVaGiaiThuong;
+            entityType = "bằng sáng chế/giải thưởng";
+            break;
+          case "biensoangiaotrinhbaigiang":
+            entityName = data.TenGiaoTrinhBaiGiang;
+            entityType = "biên soạn giáo trình/bài giảng";
+            break;
+          case "nckhvahuanluyendoituyen":
+            entityName = data.TenDeTai;
+            entityType = "NCKH/huấn luyện đội tuyển";
+            break;
+          case "sachvagiaotrinh":
+            entityName = data.TenSachVaGiaoTrinh;
+            entityType = "sách/giáo trình";
+            break;
+          case "xaydungctdt":
+            entityName = data.TenChuongTrinh;
+            entityType = "xây dựng CTĐT";
+            break;
+          case "nhiemvukhoahoccongnghe":
+            entityName = data.TenNhiemVu;
+            entityType = "nhiệm vụ khoa học công nghệ";
+            break;
+          default:
+            entityName = `ID:${ID}`;
+            entityType = MaBang;
+            break;
+        }
+        
+        // Gọi LogService để ghi log thay đổi
+        await LogService.logNCKHChange(oldData, data, {
+          id: userId,
+          name: userName
+        });
+        
+        // Ghi log thay đổi vào lichsunhaplieu
+        
+        console.log(`Đã ghi log thay đổi trạng thái duyệt ${entityType} "${entityName}"`);
+      } catch (logError) {
+        console.error("Lỗi khi ghi log thay đổi:", logError);
+        // Không cần trả về lỗi, vẫn tiếp tục xử lý
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -2779,6 +2986,9 @@ const updateLecturerNCKH = async (connection, tenGiangVien, namHoc) => {
 
 const deleteNckh = async (req, res) => {
   const { ID, MaBang, namHoc } = req.params;
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
 
   if (!ID) {
     return res.status(400).json({ message: "Thiếu ID cần xóa." });
@@ -2786,53 +2996,94 @@ const deleteNckh = async (req, res) => {
 
   let deleteQuery = "";
   let queryParams = [];
+  let entityName = "";
 
-  // Xác định câu lệnh xóa dựa trên loại bảng (MaBang)
-  switch (MaBang) {
-    case "detaiduan":
-      deleteQuery = `DELETE FROM detaiduan WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "baibaokhoahoc":
-      deleteQuery = `DELETE FROM baibaokhoahoc WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "bangsangchevagiaithuong":
-      deleteQuery = `DELETE FROM bangsangchevagiaithuong WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "biensoangiaotrinhbaigiang":
-      deleteQuery = `DELETE FROM biensoangiaotrinhbaigiang WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "nckhvahuanluyendoituyen":
-      deleteQuery = `DELETE FROM nckhvahuanluyendoituyen WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "sachvagiaotrinh":
-      deleteQuery = `DELETE FROM sachvagiaotrinh WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "xaydungctdt":
-      deleteQuery = `DELETE FROM xaydungctdt WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "sotietnckhbaoluusangnam":
-      deleteQuery = `DELETE FROM sotietnckhbaoluusangnam WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    case "nhiemvukhoahoccongnghe":
-      deleteQuery = `DELETE FROM nhiemvukhoahoccongnghe WHERE ID = ?`;
-      queryParams = [ID];
-      break;
-    default:
-      return res.status(400).json({ message: "Loại bảng không hợp lệ." });
-  }
-
-  // Kết nối đến cơ sở dữ liệu (giả sử bạn đã định nghĩa hàm createPoolConnection)
+  // Kết nối đến cơ sở dữ liệu
   const connection = await createPoolConnection();
-
+  
   try {
+    // Lấy thông tin bản ghi trước khi xóa để ghi log
+    let oldData = null;
+    const [oldRows] = await connection.execute(`SELECT * FROM ${MaBang} WHERE ID = ?`, [ID]);
+    if (oldRows.length > 0) {
+      oldData = oldRows[0];
+      // Xác định tên thực thể dựa vào loại bảng
+      switch (MaBang) {
+        case "detaiduan":
+          entityName = oldData.TenDeTai;
+          break;
+        case "baibaokhoahoc":
+          entityName = oldData.TenBaiBao;
+          break;
+        case "bangsangchevagiaithuong":
+          entityName = oldData.TenBangSangCheVaGiaiThuong;
+          break;
+        case "biensoangiaotrinhbaigiang":
+          entityName = oldData.TenGiaoTrinhBaiGiang;
+          break;
+        case "nckhvahuanluyendoituyen":
+          entityName = oldData.TenDeTai;
+          break;
+        case "sachvagiaotrinh":
+          entityName = oldData.TenSachVaGiaoTrinh;
+          break;
+        case "xaydungctdt":
+          entityName = oldData.TenChuongTrinh;
+          break;
+        case "sotietnckhbaoluusangnam":
+          entityName = `Số tiết NCKH bảo lưu ID:${ID}`;
+          break;
+        case "nhiemvukhoahoccongnghe":
+          entityName = oldData.TenNhiemVu;
+          break;
+        default:
+          entityName = `ID:${ID}`;
+          break;
+      }
+    }
+
+    // Xác định câu lệnh xóa dựa trên loại bảng (MaBang)
+    switch (MaBang) {
+      case "detaiduan":
+        deleteQuery = `DELETE FROM detaiduan WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "baibaokhoahoc":
+        deleteQuery = `DELETE FROM baibaokhoahoc WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "bangsangchevagiaithuong":
+        deleteQuery = `DELETE FROM bangsangchevagiaithuong WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "biensoangiaotrinhbaigiang":
+        deleteQuery = `DELETE FROM biensoangiaotrinhbaigiang WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "nckhvahuanluyendoituyen":
+        deleteQuery = `DELETE FROM nckhvahuanluyendoituyen WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "sachvagiaotrinh":
+        deleteQuery = `DELETE FROM sachvagiaotrinh WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "xaydungctdt":
+        deleteQuery = `DELETE FROM xaydungctdt WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "sotietnckhbaoluusangnam":
+        deleteQuery = `DELETE FROM sotietnckhbaoluusangnam WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      case "nhiemvukhoahoccongnghe":
+        deleteQuery = `DELETE FROM nhiemvukhoahoccongnghe WHERE ID = ?`;
+        queryParams = [ID];
+        break;
+      default:
+        return res.status(400).json({ message: "Loại bảng không hợp lệ." });
+    }
+
     const [result] = await connection.execute(deleteQuery, queryParams);
 
     if (result.affectedRows === 0) {
@@ -2845,6 +3096,59 @@ const deleteNckh = async (req, res) => {
 
     await saveSoTietNCKHBaoLuuSangNamAfterDelete(ID, MaBang, namHoc);
 
+    // Ghi log xóa thông tin NCKH
+    if (oldData && entityName) {
+      try {
+        let logMessage = '';
+        let logType = 'Xóa thông tin NCKH';
+        
+        // Xác định nội dung log dựa vào loại bảng
+        switch (MaBang) {
+          case "detaiduan":
+            logMessage = `Xóa đề tài dự án "${entityName}"`;
+            break;
+          case "baibaokhoahoc":
+            logMessage = `Xóa bài báo khoa học "${entityName}"`;
+            break;
+          case "bangsangchevagiaithuong":
+            logMessage = `Xóa bằng sáng chế/giải thưởng "${entityName}"`;
+            break;
+          case "biensoangiaotrinhbaigiang":
+            logMessage = `Xóa biên soạn giáo trình/bài giảng "${entityName}"`;
+            break;
+          case "nckhvahuanluyendoituyen":
+            logMessage = `Xóa NCKH/huấn luyện đội tuyển "${entityName}"`;
+            break;
+          case "sachvagiaotrinh":
+            logMessage = `Xóa sách/giáo trình "${entityName}"`;
+            break;
+          case "xaydungctdt":
+            logMessage = `Xóa xây dựng CTĐT "${entityName}"`;
+            break;
+          case "sotietnckhbaoluusangnam":
+            logMessage = `Xóa số tiết NCKH bảo lưu ${entityName}`;
+            break;
+          case "nhiemvukhoahoccongnghe":
+            logMessage = `Xóa nhiệm vụ khoa học công nghệ "${entityName}"`;
+            break;
+          default:
+            logMessage = `Xóa thông tin NCKH ${MaBang} - ${entityName}`;
+            break;
+        }
+        
+        await LogService.logChange(
+          userId,
+          userName,
+          logType,
+          logMessage
+        );
+        console.log(`Đã ghi log xóa "${entityName}" từ bảng ${MaBang}`);
+      } catch (logError) {
+        console.error(`Lỗi khi ghi log xóa thông tin từ bảng ${MaBang}:`, logError);
+        // Không cần trả về lỗi, vẫn tiếp tục xử lý
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Xóa thành công!",
@@ -2856,7 +3160,7 @@ const deleteNckh = async (req, res) => {
       error: error.message,
     });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 };
 
@@ -3562,6 +3866,10 @@ const getTableSoTietNCKHBaoLuuSangNam = async (req, res) => {
 };
 
 const saveNhiemVuKhoaHocCongNghe = async (req, res) => {
+  // Lấy thông tin người dùng từ session hoặc request
+  const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
+  const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+  
   const data = await quyDoiSoGioNhiemVuKhoaHocCongNghe(req.body, "nhiemvukhoahoccongnghe");
   // Lấy dữ liệu từ body
   const {
@@ -3607,6 +3915,21 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ]
     );
 
+    // Ghi log thêm nhiệm vụ khoa học công nghệ mới
+    try {
+      const logMessage = `Thêm nhiệm vụ khoa học công nghệ "${tenNhiemVu}"`;
+      await LogService.logChange(
+        userId,
+        userName,
+        'Thêm thông tin NCKH',
+        logMessage
+      );
+      console.log(`Đã ghi log thêm nhiệm vụ khoa học công nghệ "${tenNhiemVu}"`);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log thêm nhiệm vụ khoa học công nghệ:", logError);
+      // Không cần trả về lỗi, vẫn tiếp tục xử lý
+    }
+    
     // Trả về phản hồi thành công cho client
     console.log("Thêm nhiệm vụ khoa học công nghệ thành công");
     res.status(200).json({
