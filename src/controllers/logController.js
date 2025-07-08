@@ -8,7 +8,11 @@ const logController = {
   // Phương thức để hiển thị trang log
   showLogTable: async (req, res) => {
     try {
-      // Không tự động xuất log nữa, chỉ hiển thị trang
+      // Tự động xuất file log khi truy cập trang log (fire-and-forget)
+      logController.autoExportLog()
+        .then(result => console.log('Auto export log completed:', result))
+        .catch(err => console.error('Lỗi tự động xuất file log:', err));
+      // Hiển thị trang log
       res.render("log"); // Render trang log.ejs
     } catch (err) {
       console.error("Lỗi khi hiển thị trang log:", err);
@@ -271,11 +275,15 @@ const logController = {
         console.log("Kết quả xuất log:", result);
         
         if (!result.success) {
-          return res.status(500).json({ 
-            success: false, 
-            message: 'Không thể tạo file log', 
-            error: result.error 
-          });
+          // Nếu không có dữ liệu log, bỏ qua mà không lỗi
+          if (result.error !== 'Không có dữ liệu log để xuất') {
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Không thể tạo file log', 
+              error: result.error 
+            });
+          }
+          console.log('Không có dữ liệu log để xuất, bỏ qua tạo file mới');
         }
       }
       
