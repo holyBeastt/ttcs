@@ -3,7 +3,7 @@ const multer = require("multer");
 const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
 const XLSX = require('xlsx');
-const { get } = require("../routes/vuotGioCuoiKyRoute");
+// const { get } = require("../routes/vuotGioCuoiKyRoute");
 
 // Dữ liệu lưu tạm trong bộ nhớ (có thể thay bằng MySQL, MongoDB, v.v.)
 let workloadData = {
