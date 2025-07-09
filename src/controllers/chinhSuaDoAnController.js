@@ -6,14 +6,6 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
   try {
     let changeMessage = '';
     const loaiThongTin = 'Thay đổi thông tin đồ án';
-    
-    console.log("So sánh dữ liệu cho ID:", oldData.ID);
-    console.log("GiangVien1 - Cũ:", oldData.GiangVien1, "Mới:", newData.GiangVien1, "Giống nhau:", String(oldData.GiangVien1 || '') === String(newData.GiangVien1 || ''));
-    console.log("GiangVien2 - Cũ:", oldData.GiangVien2, "Mới:", newData.GiangVien2, "Giống nhau:", String(oldData.GiangVien2 || '') === String(newData.GiangVien2 || ''));
-    console.log("KhoaDuyet - Cũ:", oldData.KhoaDuyet, "Mới:", newData.KhoaDuyet, "Giống nhau:", Number(oldData.KhoaDuyet) === Number(newData.KhoaDuyet));
-    console.log("NgayBatDau - Cũ:", oldData.NgayBatDau, "Mới:", newData.NgayBatDau);
-    console.log("NgayKetThuc - Cũ:", oldData.NgayKetThuc, "Mới:", newData.NgayKetThuc);
-
     // Kiểm tra cột GiangVien1
     if (String(oldData.GiangVien1 || '') !== String(newData.GiangVien1 || '')) {
       changeMessage = changeMessage + `Giảng Viên 1 cho đồ án "${newData.TenDeTai}": từ "${oldData.GiangVien1 || ''}" thành "${newData.GiangVien1 || ''}". `;
@@ -77,9 +69,6 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
         }
       }
     }
-    
-    console.log("Ngày bắt đầu sau khi chuẩn hóa - Cũ:", oldStartDate, "Mới:", newStartDate);
-    
     if (oldStartDate !== newStartDate) {
       changeMessage = changeMessage + `Thay đổi ngày bắt đầu cho đồ án "${newData.TenDeTai}": từ "${oldStartDate}" thành "${newStartDate}". `;
     }
@@ -110,8 +99,6 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
         }
       }
     }
-    
-    console.log("Ngày kết thúc sau khi chuẩn hóa - Cũ:", oldEndDate, "Mới:", newEndDate);
     
     if (oldEndDate !== newEndDate) {
       changeMessage = changeMessage + `Thay đổi ngày kết thúc cho đồ án "${newData.TenDeTai}": từ "${oldEndDate}" thành "${newEndDate}". `;
