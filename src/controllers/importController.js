@@ -1659,12 +1659,22 @@ const updateDateAll = async (req, res) => {
 
 const updateQC = async (req, res) => {
   const jsonData = req.body;
+  
+  // Lấy ID người dùng và tên người dùng từ session
+  const userId = req.session?.userId || 1;  
+  const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+  
+  console.log("User ID:", userId);
+  console.log("User Name:", tenNhanVien);
 
   let connection;
 
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
+    
+    // Import utility function để ghi log
+    const { logQuyChuanChanges } = require('../utils/logChanges');
 
     const [gvmList] = await connection.query("SELECT HoTen AS name FROM gvmoi");
     const [coHuuList] = await connection.query(
@@ -1781,7 +1791,24 @@ const updateQC = async (req, res) => {
           ? null
           : NgayKetThuc,
         he_dao_tao,
+        LopHocPhan,
+        TenLop
       });
+    }
+    
+    // Lấy dữ liệu cũ trước khi cập nhật để ghi log
+    const oldDataMap = {};
+    if (updateIDs.length > 0) {
+      const selectQuery = `
+        SELECT * FROM quychuan
+        WHERE ID IN (${updateIDs.join(', ')})
+      `;
+      const [oldDataRows] = await connection.query(selectQuery);
+      
+      // Tạo map từ ID đến dữ liệu cũ
+      for (const row of oldDataRows) {
+        oldDataMap[row.ID] = row;
+      }
     }
 
     if (updates.length > 0) {
@@ -1851,6 +1878,21 @@ const updateQC = async (req, res) => {
       `;
 
       await connection.query(updateQuery);
+      
+      // Lấy dữ liệu mới sau khi cập nhật và ghi log thay đổi
+      const [updatedRows] = await connection.query(`
+        SELECT * FROM quychuan
+        WHERE ID IN (${updateIDs.join(', ')})
+      `);
+      
+      // Ghi log cho từng dòng dữ liệu đã cập nhật
+      for (const updatedRow of updatedRows) {
+        const oldData = oldDataMap[updatedRow.ID];
+        if (oldData) {
+          // Gọi hàm ghi log thay đổi từ utils/logChanges.js
+          await logQuyChuanChanges(connection, oldData, updatedRow, userId, tenNhanVien);
+        }
+      }
     }
 
     let mess = "";
@@ -1879,6 +1921,13 @@ const capNhatTen_BoMon = async (req, res) => {
 
   // Nhận dữ liệu từ client
   const { GiaoVienGiangDay, BoMon, ID } = req.body;
+  
+  // Lấy ID người dùng và tên người dùng từ session
+  const userId = req.session?.userId || 1;  
+  const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+  
+  console.log("User ID:", userId);
+  console.log("User Name:", tenNhanVien);
 
   // Kiểm tra dữ liệu đầu vào
   if (!ID || !GiaoVienGiangDay || !BoMon) {
@@ -1892,6 +1941,24 @@ const capNhatTen_BoMon = async (req, res) => {
   try {
     // Lấy kết nối từ pool
     connection = await createPoolConnection();
+    
+    // Import utility function để ghi log
+    const { logQuyChuanChanges } = require('../utils/logChanges');
+    
+    // Lấy dữ liệu cũ TRƯỚC khi cập nhật
+    const [oldDataRows] = await connection.query(
+      "SELECT * FROM quychuan WHERE ID = ?",
+      [ID]
+    );
+    
+    const oldData = oldDataRows[0];
+    
+    // Nếu không tìm thấy dữ liệu cũ, trả về lỗi
+    if (!oldData) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy giảng viên với ID này!" });
+    }
 
     // Câu lệnh SQL để cập nhật dữ liệu
     const sql = `
@@ -1906,6 +1973,17 @@ const capNhatTen_BoMon = async (req, res) => {
 
     // Kiểm tra xem có dòng nào được cập nhật không
     if (result.affectedRows > 0) {
+      // Lấy dữ liệu mới SAU khi cập nhật
+      const [newDataRows] = await connection.query(
+        "SELECT * FROM quychuan WHERE ID = ?",
+        [ID]
+      );
+      
+      const newData = newDataRows[0];
+      
+      // Ghi log thay đổi
+      await logQuyChuanChanges(connection, oldData, newData, userId, tenNhanVien);
+      
       return res.status(200).json({ message: "Cập nhật thành công!" });
     } else {
       return res
@@ -2993,4 +3071,15 @@ module.exports = {
   phongBanDuyet,
   updateBanHanh,
   updateDateAll,
+  
+  // Debug endpoint để kiểm tra session
+  checkSession: (req, res) => {
+    console.log("Full Session Info:", req.session);
+    return res.json({
+      sessionInfo: req.session,
+      userInfo: req.session?.userInfo || 'No userInfo in session',
+      userId: req.session?.userInfo?.ID || 'No ID in userInfo',
+      userName: req.session?.userInfo?.TenNhanVien || 'No TenNhanVien in userInfo'
+    });
+  }
 };
