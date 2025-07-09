@@ -447,13 +447,6 @@ const updateDoAn = async (req, res) => {
           newData.KhoaDuyet = update.KhoaDuyet;
           newData.NgayBatDau = update.NgayBatDau;
           newData.NgayKetThuc = update.NgayKetThuc;
-          
-          // Debug: In ra để kiểm tra
-          console.log("Update data for ID:", update.ID);
-          console.log("Original GiangVien1:", originalData.GiangVien1, "New GiangVien1:", newData.GiangVien1);
-          console.log("Original GiangVien2:", originalData.GiangVien2, "New GiangVien2:", newData.GiangVien2);
-          console.log("Original KhoaDuyet:", originalData.KhoaDuyet, "New KhoaDuyet:", newData.KhoaDuyet);
-          
           // Gọi hàm ghi log từ chinhSuaDoAnController
           await chinhSuaDoAnController.logDoAnChanges(
             connection, 
