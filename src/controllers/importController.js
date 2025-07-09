@@ -675,7 +675,7 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
-const importTableQC = async (jsonData) => {
+const importTableQC = async (jsonData, req) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
   const dataGiangVien = await tongHopDuLieuGiangVien(jsonData);
@@ -780,12 +780,41 @@ const importTableQC = async (jsonData) => {
   let results = false;
   try {
     // Thực hiện chèn tất cả giá trị cùng lúc
-    await connection.query(queryInsert, [allValues]);
+    const [insertResult] = await connection.query(queryInsert, [allValues]);
     results = true;
 
     // Thực hiện cập nhật sau khi chèn
     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
     await connection.execute(queryUpdate);
+    
+    // Ghi log việc import file quy chuẩn thành công
+    if (req && req.session) {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+      
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const loaiThongTin = 'Import file quy chuẩn';
+      
+      // Lấy thông tin từ dữ liệu đầu tiên nếu có
+      const dot = jsonData[0]?.Dot || '';
+      const ki = jsonData[0]?.Ki || '';
+      const nam = jsonData[0]?.Nam || '';
+      
+      const changeMessage = `${tenNhanVien} đã thêm mới ${insertResult.affectedRows} môn học từ file quy chuẩn vào cơ sở dữ liệu. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
+      
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
+      ]);
+      
+      console.log("Đã ghi log import file quy chuẩn thành công");
+    }
   } catch (error) {
     console.error("Error while inserting data:", error);
   } finally {
