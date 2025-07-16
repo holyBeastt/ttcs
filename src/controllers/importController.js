@@ -502,12 +502,12 @@ const checkDataQC = async (req, res) => {
 
 function tachLopHocPhan(chuoi) {
   // Kiểm tra đầu vào
-  if (typeof chuoi !== 'string' || chuoi.trim() === '') {
+  if (typeof chuoi !== "string" || chuoi.trim() === "") {
     return {
-      TenLop: '',
+      TenLop: "",
       HocKi: null,
       NamHoc: null,
-      Lop: '',
+      Lop: "",
     };
   }
 
@@ -515,19 +515,19 @@ function tachLopHocPhan(chuoi) {
   const infoMatch = chuoi.match(/-(\d+)-(\d+)\s*\(/);
   const HocKi = infoMatch ? infoMatch[1] : null;
   const namHoc2 = infoMatch ? infoMatch[2] : null;
-  const NamHoc = namHoc2 ? '20' + namHoc2 : null;
+  const NamHoc = namHoc2 ? "20" + namHoc2 : null;
 
   // Lấy mã lớp từ dấu ngoặc đầu tiên
   const lopMatch = chuoi.match(/\(\s*([^()]+?)\s*\)/);
-  const Lop = lopMatch ? lopMatch[1].trim() : '';
+  const Lop = lopMatch ? lopMatch[1].trim() : "";
 
   // Xây dựng TenLop: loại bỏ phần '-HocKi-NamHoc(MaLop)', sau đó xóa cặp ngoặc chứa mã lớp, rồi loại bỏ dấu '-'
-  let temp = chuoi.replace(/-\d+-\d+\s*\([^()]+\)/, '');
+  let temp = chuoi.replace(/-\d+-\d+\s*\([^()]+\)/, "");
   if (Lop) {
     const lopRegex = new RegExp(`\\(\\s*${Lop}\\s*\\)`);
-    temp = temp.replace(lopRegex, '');
+    temp = temp.replace(lopRegex, "");
   }
-  const TenLop = temp.replace(/\s*-\s*/g, ' ').trim();
+  const TenLop = temp.replace(/\s*-\s*/g, " ").trim();
 
   return {
     TenLop,
@@ -536,7 +536,6 @@ function tachLopHocPhan(chuoi) {
     Lop,
   };
 }
-
 
 function processLecturerInfo(input, dataGiangVien, soGiangVien) {
   // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi
@@ -786,7 +785,7 @@ const importTableQC = async (jsonData, req) => {
     // Thực hiện cập nhật sau khi chèn
     const queryUpdate = `UPDATE ${tableName} SET MaHocPhan = CONCAT(Khoa, id);`;
     await connection.execute(queryUpdate);
-    
+
     // Ghi log việc import file quy chuẩn thành công
     if (req && req.session) {
       const logQuery = `
@@ -794,25 +793,25 @@ const importTableQC = async (jsonData, req) => {
         (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
-      const loaiThongTin = 'Import file quy chuẩn';
-      
+      const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+      const loaiThongTin = "Import file quy chuẩn";
+
       // Lấy thông tin từ dữ liệu đầu tiên nếu có
-      const dot = jsonData[0]?.Dot || '';
-      const ki = jsonData[0]?.Ki || '';
-      const nam = jsonData[0]?.Nam || '';
-      
+      const dot = jsonData[0]?.Dot || "";
+      const ki = jsonData[0]?.Ki || "";
+      const nam = jsonData[0]?.Nam || "";
+
       const changeMessage = `${tenNhanVien} đã thêm mới ${insertResult.affectedRows} môn học từ file quy chuẩn vào cơ sở dữ liệu. Kì ${ki}, đợt ${dot}, năm học ${nam}.`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
         loaiThongTin,
-        changeMessage
+        changeMessage,
       ]);
-      
+
       console.log("Đã ghi log import file quy chuẩn thành công");
     }
   } catch (error) {
@@ -1688,11 +1687,11 @@ const updateDateAll = async (req, res) => {
 
 const updateQC = async (req, res) => {
   const jsonData = req.body;
-  
+
   // Lấy ID người dùng và tên người dùng từ session
-  const userId = req.session?.userId || 1;  
-  const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
-  
+  const userId = req.session?.userId || 1;
+  const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+
   console.log("User ID:", userId);
   console.log("User Name:", tenNhanVien);
 
@@ -1701,9 +1700,9 @@ const updateQC = async (req, res) => {
   try {
     // Lấy kết nối từ createPoolConnection
     connection = await createPoolConnection();
-    
+
     // Import utility function để ghi log
-    const { logQuyChuanChanges } = require('../utils/logChanges');
+    const { logQuyChuanChanges } = require("../utils/logChanges");
 
     const [gvmList] = await connection.query("SELECT HoTen AS name FROM gvmoi");
     const [coHuuList] = await connection.query(
@@ -1801,6 +1800,14 @@ const updateQC = async (req, res) => {
               );
               continue;
             }
+          } else {
+            // Nếu chỉ có 1 giảng viên
+            if (!gvmListSet.has(GiaoVienGiangDay.trim())) {
+              error_gv_rows.push(
+                `${LopHocPhan} (${TenLop}) - Giảng viên mời không hợp lệ: ${GiaoVienGiangDay}`
+              );
+              continue;
+            }
           }
         }
       }
@@ -1821,19 +1828,19 @@ const updateQC = async (req, res) => {
           : NgayKetThuc,
         he_dao_tao,
         LopHocPhan,
-        TenLop
+        TenLop,
       });
     }
-    
+
     // Lấy dữ liệu cũ trước khi cập nhật để ghi log
     const oldDataMap = {};
     if (updateIDs.length > 0) {
       const selectQuery = `
         SELECT * FROM quychuan
-        WHERE ID IN (${updateIDs.join(', ')})
+        WHERE ID IN (${updateIDs.join(", ")})
       `;
       const [oldDataRows] = await connection.query(selectQuery);
-      
+
       // Tạo map từ ID đến dữ liệu cũ
       for (const row of oldDataRows) {
         oldDataMap[row.ID] = row;
@@ -1907,19 +1914,25 @@ const updateQC = async (req, res) => {
       `;
 
       await connection.query(updateQuery);
-      
+
       // Lấy dữ liệu mới sau khi cập nhật và ghi log thay đổi
       const [updatedRows] = await connection.query(`
         SELECT * FROM quychuan
-        WHERE ID IN (${updateIDs.join(', ')})
+        WHERE ID IN (${updateIDs.join(", ")})
       `);
-      
+
       // Ghi log cho từng dòng dữ liệu đã cập nhật
       for (const updatedRow of updatedRows) {
         const oldData = oldDataMap[updatedRow.ID];
         if (oldData) {
           // Gọi hàm ghi log thay đổi từ utils/logChanges.js
-          await logQuyChuanChanges(connection, oldData, updatedRow, userId, tenNhanVien);
+          await logQuyChuanChanges(
+            connection,
+            oldData,
+            updatedRow,
+            userId,
+            tenNhanVien
+          );
         }
       }
     }
@@ -1950,11 +1963,11 @@ const capNhatTen_BoMon = async (req, res) => {
 
   // Nhận dữ liệu từ client
   const { GiaoVienGiangDay, BoMon, ID } = req.body;
-  
+
   // Lấy ID người dùng và tên người dùng từ session
-  const userId = req.session?.userId || 1;  
-  const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
-  
+  const userId = req.session?.userId || 1;
+  const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+
   console.log("User ID:", userId);
   console.log("User Name:", tenNhanVien);
 
@@ -1970,18 +1983,18 @@ const capNhatTen_BoMon = async (req, res) => {
   try {
     // Lấy kết nối từ pool
     connection = await createPoolConnection();
-    
+
     // Import utility function để ghi log
-    const { logQuyChuanChanges } = require('../utils/logChanges');
-    
+    const { logQuyChuanChanges } = require("../utils/logChanges");
+
     // Lấy dữ liệu cũ TRƯỚC khi cập nhật
     const [oldDataRows] = await connection.query(
       "SELECT * FROM quychuan WHERE ID = ?",
       [ID]
     );
-    
+
     const oldData = oldDataRows[0];
-    
+
     // Nếu không tìm thấy dữ liệu cũ, trả về lỗi
     if (!oldData) {
       return res
@@ -2007,12 +2020,18 @@ const capNhatTen_BoMon = async (req, res) => {
         "SELECT * FROM quychuan WHERE ID = ?",
         [ID]
       );
-      
+
       const newData = newDataRows[0];
-      
+
       // Ghi log thay đổi
-      await logQuyChuanChanges(connection, oldData, newData, userId, tenNhanVien);
-      
+      await logQuyChuanChanges(
+        connection,
+        oldData,
+        newData,
+        userId,
+        tenNhanVien
+      );
+
       return res.status(200).json({ message: "Cập nhật thành công!" });
     } else {
       return res
@@ -2564,7 +2583,6 @@ const insertGiangDay = async (
   }
 };
 
-
 const joinData = (dataArray, nhanvienList, gvmList) => {
   // Mảng kết quả chứa các đối tượng sau khi gộp thông tin
   const result = [];
@@ -2603,6 +2621,9 @@ const joinData = (dataArray, nhanvienList, gvmList) => {
 
           // Thêm vào mảng kết quả
           result.push(newItem);
+        } else {
+          // Nếu không tìm thấy giảng viên trong danh sách, có thể ghi log hoặc xử lý theo cách khác
+          console.warn(`Không tìm thấy giảng viên: ${tenGiangVien}`);
         }
       } else {
         const tenGiangVien = gv.trim().split("(")[0].trim();
@@ -3100,15 +3121,16 @@ module.exports = {
   phongBanDuyet,
   updateBanHanh,
   updateDateAll,
-  
+
   // Debug endpoint để kiểm tra session
   checkSession: (req, res) => {
     console.log("Full Session Info:", req.session);
     return res.json({
       sessionInfo: req.session,
-      userInfo: req.session?.userInfo || 'No userInfo in session',
-      userId: req.session?.userInfo?.ID || 'No ID in userInfo',
-      userName: req.session?.userInfo?.TenNhanVien || 'No TenNhanVien in userInfo'
+      userInfo: req.session?.userInfo || "No userInfo in session",
+      userId: req.session?.userInfo?.ID || "No ID in userInfo",
+      userName:
+        req.session?.userInfo?.TenNhanVien || "No TenNhanVien in userInfo",
     });
-  }
+  },
 };
