@@ -3085,8 +3085,14 @@ const submitData2 = async (req, res) => {
     } else {
       const DaLuu = 1;
       const placeholders = daDuyetHetArray.map(() => "?").join(", ");
-      const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Khoa IN (${placeholders});`;
-      await pool.query(updateQuery, [DaLuu, ...daDuyetHetArray]);
+      const updateQuery = `UPDATE quychuan SET DaLuu = ? WHERE Dot = ? and KiHoc = ? and NamHoc = ? AND Khoa IN (${placeholders});`;
+      await pool.query(updateQuery, [
+        DaLuu,
+        dot,
+        ki,
+        namHoc,
+        ...daDuyetHetArray,
+      ]);
     }
 
     // Đặt lại giá trị cho req.session.tmp
