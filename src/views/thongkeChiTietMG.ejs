@@ -222,7 +222,9 @@
             <tbody id="dataGiangDayTable"></tbody>
             <tfoot>
               <tr class="table-secondary">
-                <td colspan="8" class="text-end"><strong>Tổng số tiết:</strong></td>
+                <td colspan="8" class="text-end">
+                  <strong>Tổng số tiết:</strong>
+                </td>
                 <td id="totalSoTiet" class="text-end">0</td>
                 <td></td>
               </tr>
@@ -267,7 +269,7 @@
         loadFilterOptions();
 
         // Event listeners for filter changes
-        $("#namHoc, #khoa").change(function () {
+        $("#ki,#namHoc, #khoa").change(function () {
           loadGiangVien();
           loadData();
         });
@@ -330,40 +332,42 @@
         }
 
         function loadFilterOptions() {
-    $.ajax({
-        url: "/api/thongkeChiTietMG/filter-options",
-        type: "GET",
-        dataType: "json",
-        success: function (response) {
-            if (response.success) {
+          $.ajax({
+            url: "/api/thongkeChiTietMG/filter-options",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+              if (response.success) {
                 // Populate kỳ
                 $("#ki").empty();
                 response.ki.forEach(function (item) {
-                    $("#ki").append(
-                        `<option value="${item.ki}">${
-                            item.ki === "ALL" ? "Tất cả kỳ" : item.ki
-                        }</option>`
-                    );
+                  $("#ki").append(
+                    `<option value="${item.ki}">${
+                      item.ki === "ALL" ? "Tất cả kỳ" : item.ki
+                    }</option>`
+                  );
                 });
 
                 // Populate năm học
                 $("#namHoc").empty();
                 response.namHoc.forEach(function (item) {
-                    $("#namHoc").append(
-                        `<option value="${item.namhoc}">${
-                            item.namhoc === "ALL" ? "Tất cả năm" : item.namhoc
-                        }</option>`
-                    );
+                  $("#namHoc").append(
+                    `<option value="${item.namhoc}">${
+                      item.namhoc === "ALL" ? "Tất cả năm" : item.namhoc
+                    }</option>`
+                  );
                 });
 
                 // Populate khoa
                 $("#khoa").empty();
                 response.khoa.forEach(function (item) {
-                    $("#khoa").append(
-                        `<option value="${item.MaPhongBan}">${
-                            item.MaPhongBan === "ALL" ? "Tất cả khoa" : item.MaPhongBan
-                        }</option>`
-                    );
+                  $("#khoa").append(
+                    `<option value="${item.MaPhongBan}">${
+                      item.MaPhongBan === "ALL"
+                        ? "Tất cả khoa"
+                        : item.MaPhongBan
+                    }</option>`
+                  );
                 });
                 // Set initial values based on user role
                 const isKhoa = localStorage.getItem("isKhoa");
@@ -376,28 +380,29 @@
 
                 loadGiangVien();
                 loadData();
-            } else {
+              } else {
                 showError("Không thể tải dữ liệu bộ lọc");
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Error:", xhr, status, error);
-            showError(
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("Error:", xhr, status, error);
+              showError(
                 "Lỗi khi tải dữ liệu bộ lọc: " +
-                    (xhr.responseJSON?.message || error)
-            );
-        },
-    });
-}
+                  (xhr.responseJSON?.message || error)
+              );
+            },
+          });
+        }
 
         function loadGiangVien() {
+          const ki = $("#ki").val();
           const namhoc = $("#namHoc").val();
           const khoa = $("#khoa").val();
 
           $.ajax({
             url: "/api/thongkeChiTietMG/giang-vien",
             type: "GET",
-            data: { namhoc, khoa },
+            data: { ki, namhoc, khoa },
             dataType: "json",
             success: function (response) {
               if (response.success) {
@@ -432,54 +437,54 @@
 
           // Nếu chưa chọn giảng viên, không hiển thị dữ liệu
           if (!giangvien) {
-              $("#giangDayContainer").hide();
-              $("#doAnContainer").hide();
-              return;
+            $("#giangDayContainer").hide();
+            $("#doAnContainer").hide();
+            return;
           }
 
           // Hiển thị loading
           $("#giangDayContainer").show();
           $("#doAnContainer").show();
           $("#dataGiangDayTable").html(
-              '<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu giảng dạy...</td></tr>'
+            '<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu giảng dạy...</td></tr>'
           );
           $("#dataDoAnTable").html(
-              '<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu đồ án...</td></tr>'
+            '<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu đồ án...</td></tr>'
           );
 
           $.ajax({
-              url: "/api/thongkeChiTietMG/data",
-              type: "GET",
-              data: { namhoc, khoa, giangvien, ki }, // Gửi giá trị kỳ đến API
-              dataType: "json",
-              success: function (response) {
-                  if (response.success) {
-                      updateGiangDayTable(response.dataGiangDay);
-                      updateDoAnTable(response.dataDoAn);
-                  } else {
-                      showError(response.message || "Không thể tải dữ liệu");
-                      $("#dataGiangDayTable").html(
-                          '<tr><td colspan="9" class="text-center text-danger">Không thể tải dữ liệu giảng dạy</td></tr>'
-                      );
-                      $("#dataDoAnTable").html(
-                          '<tr><td colspan="7" class="text-center text-danger">Không thể tải dữ liệu đồ án</td></tr>'
-                      );
-                  }
-              },
-              error: function (xhr, status, error) {
-                  console.error("Error:", xhr, status, error);
-                  showError(
-                      "Lỗi khi tải dữ liệu: " + (xhr.responseJSON?.message || error)
-                  );
-                  $("#dataGiangDayTable").html(
-                      '<tr><td colspan="9" class="text-center text-danger">Lỗi khi tải dữ liệu giảng dạy</td></tr>'
-                  );
-                  $("#dataDoAnTable").html(
-                      '<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu đồ án</td></tr>'
-                  );
-              },
+            url: "/api/thongkeChiTietMG/data",
+            type: "GET",
+            data: { namhoc, khoa, giangvien, ki }, // Gửi giá trị kỳ đến API
+            dataType: "json",
+            success: function (response) {
+              if (response.success) {
+                updateGiangDayTable(response.dataGiangDay);
+                updateDoAnTable(response.dataDoAn);
+              } else {
+                showError(response.message || "Không thể tải dữ liệu");
+                $("#dataGiangDayTable").html(
+                  '<tr><td colspan="9" class="text-center text-danger">Không thể tải dữ liệu giảng dạy</td></tr>'
+                );
+                $("#dataDoAnTable").html(
+                  '<tr><td colspan="7" class="text-center text-danger">Không thể tải dữ liệu đồ án</td></tr>'
+                );
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("Error:", xhr, status, error);
+              showError(
+                "Lỗi khi tải dữ liệu: " + (xhr.responseJSON?.message || error)
+              );
+              $("#dataGiangDayTable").html(
+                '<tr><td colspan="9" class="text-center text-danger">Lỗi khi tải dữ liệu giảng dạy</td></tr>'
+              );
+              $("#dataDoAnTable").html(
+                '<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu đồ án</td></tr>'
+              );
+            },
           });
-      }
+        }
 
         function updateGiangDayTable(data) {
           const tbody = $("#dataGiangDayTable");
