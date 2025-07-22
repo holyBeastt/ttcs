@@ -163,14 +163,14 @@
               placeholder="Tìm kiếm giảng viên"
             />
 
-            <select
+            <!-- <select
               id="loaiHopDong"
               name="loaiHopDong"
               class="form-select w-200px mx-2 selectop"
               style="display: none"
             >
               <option value="Đồ án">Đồ án</option>
-            </select>
+            </select> -->
 
             <button type="button" class="btn mx-2" id="exportButton2">
               <i class="fas fa-file-export me-2"></i>Xuất Hợp Đồng
@@ -216,7 +216,6 @@
           const khoa = document.getElementById("MaPhongBan").value;
           const he_dao_tao = document.getElementById("he_dao_tao").value;
           const teacherName = document.getElementById("search-teacher").value;
-          const loaiHopDong = document.getElementById("loaiHopDong").value; // Lấy giá trị từ combobox "Loại hợp đồng"
 
           if (!dot || !ki || !namHoc) {
             alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
@@ -245,11 +244,6 @@
 
           if (teacherName) {
             url += `&teacherName=${encodeURIComponent(teacherName)}`;
-          }
-
-          // Thêm loại hợp đồng vào URL
-          if (loaiHopDong) {
-            url += `&loaiHopDong=${encodeURIComponent(loaiHopDong)}`;
           }
 
           // Delay một chút để hiển thị loading trước khi chuyển hướng
