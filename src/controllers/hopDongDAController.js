@@ -235,13 +235,88 @@ const formatDateRange = (startDate, endDate) => {
 
   return `Từ ngày ${startDay}/${startMonth}/${startYear} đến ngày ${endDay}/${endMonth}/${endYear}`;
 };
+
+/**
+ * Hàm chuyển đổi date cho Excel
+ * Excel lưu trữ date dưới dạng serial number (số ngày kể từ 1/1/1900)
+ * Nhưng ExcelJS có thể nhận Date object hoặc string ISO
+ * @param {*} dateValue - Giá trị date từ database (có thể là Date, string YYYY-MM-DD, null, undefined)
+ * @returns {string|null} - String định dạng DD/MM/YYYY hoặc null
+ */
+const formatDateForExcel = (dateValue) => {
+  try {
+    // Nếu null, undefined hoặc chuỗi rỗng
+    if (!dateValue || dateValue === '') {
+      return null;
+    }
+
+    // Nếu đã là Date object hợp lệ
+    if (dateValue instanceof Date) {
+      if (isNaN(dateValue.getTime())) return null;
+      const day = String(dateValue.getDate()).padStart(2, '0');
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+      const year = dateValue.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Nếu là string
+    if (typeof dateValue === 'string') {
+      // Loại bỏ khoảng trắng
+      const trimmed = dateValue.trim();
+      if (trimmed === '' || trimmed === '0000-00-00') {
+        return null;
+      }
+      
+      // Xử lý định dạng YYYY-MM-DD từ database
+      if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const parts = trimmed.split('-');
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+        
+        // Kiểm tra giá trị hợp lệ
+        if (year < 1900 || month < 1 || month > 12 || day < 1 || day > 31) {
+          return null;
+        }
+        
+        // Trả về string định dạng DD/MM/YYYY
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Fallback cho các định dạng khác
+      const parsed = new Date(trimmed);
+      if (isNaN(parsed.getTime())) return null;
+      
+      const day = String(parsed.getDate()).padStart(2, '0');
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const year = parsed.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Nếu là number (timestamp)
+    if (typeof dateValue === 'number') {
+      const parsed = new Date(dateValue);
+      if (isNaN(parsed.getTime())) return null;
+      const day = String(parsed.getDate()).padStart(2, '0');
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const year = parsed.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Các trường hợp khác
+    return null;
+  } catch (error) {
+    console.error('Error in formatDateForExcel:', error);
+    return null;
+  }
+};
+
 // Controller xuất nhiều hợp đồng
 const exportMultipleContracts = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName, loaiHopDong } =
-      req.query;
+    let { dot, ki, namHoc, khoa, he_dao_tao, teacherName } = req.query;
 
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt hoặc năm học");
@@ -405,7 +480,6 @@ GROUP BY
     const summaryData = [];
     const summaryData2 = [];
 
-
     // Lấy dữ liệu phòng ban
     const [phongBanList] = await connection.query("SELECT * FROM phongban");
 
@@ -521,14 +595,17 @@ GROUP BY
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
-      switch (loaiHopDong) {
+      switch (he_dao_tao) {
         case "Hệ học phí":
           templateFileName = "HopDongHP.docx";
           break;
         case "Mật mã":
           templateFileName = "HopDongMM.docx";
           break;
-        case "Đồ án":
+        case "Đồ án (Đại học)":
+          templateFileName = "HopDongDA.docx";
+          break;
+        case "Đồ án (Cao học)":
           templateFileName = "HopDongDA.docx";
           break;
         default:
@@ -557,57 +634,94 @@ GROUP BY
         type: "nodebuffer",
         compression: "DEFLATE",
       });
-      const fileName = `HopDong_DoAnDaiHoc_${hoTen}_${teacher.CCCD}.docx`;
+      const fileName = `HopDong_${he_dao_tao}_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
     // Tạo file thống kê chuyển khoản
-    const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
-    const summaryDoc = createTransferDetailDocument(summaryData, noiDung, "sau thuế");
+    const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - ${he_dao_tao}`;
+    const summaryDoc = createTransferDetailDocument(
+      summaryData,
+      noiDung,
+      "sau thuế"
+    );
     const summaryBuf = await Packer.toBuffer(summaryDoc);
-    const summaryName = `ĐATN_Daihoc_Thongke_chuyenkhoan_sauthue.docx`;
+    const summaryName = `ĐATN_${he_dao_tao}_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
     console.log("Tạo file thống kê chuyển khoản sau thuế thành công");
 
     // Tạo file thống kê chuyển khoản trước thuế
-    const noiDung2 = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - Đồ án`;
-    const summaryDoc2 = createTransferDetailDocument(summaryData2, noiDung2, "trước thuế");
+    const summaryDoc2 = createTransferDetailDocument(
+      summaryData2,
+      noiDung,
+      "trước thuế"
+    );
     const summaryBuf2 = await Packer.toBuffer(summaryDoc2);
-    const summaryName2 = `ĐATN_Daihoc_Thongke_chuyenkhoan_truocthue.docx`;
+    const summaryName2 = `ĐATN_${he_dao_tao}_Thongke_chuyenkhoan_truocthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
     console.log("Tạo file thống kê chuyển khoản trước thuế thành công");
 
+    // Tạo file Excel báo cáo thuế
+    const taxReportData = summaryData.map((item, index) => {
+      // Tính toán chính xác: nếu ThucNhan là tiền sau thuế (90%), thì tiền trước thuế = ThucNhan / 0.9
+      const tienTruocThue = Math.round(item.ThucNhan / 0.9);
+      const thuePhaiTra = tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế
+      
+      return {
+        stt: index + 1,
+        contractNumber: item.SoHopDong,
+        executor: item.HoTen,
+        expenseDescription: `Hợp đồng giao khoán công việc`,
+        idNumber: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.CCCD || '',
+        issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCapCCCD),
+        issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
+        idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
+        taxCode: item.MaSoThue,
+        amount: tienTruocThue, // Tổng tiền trước thuế
+        taxDeducted: thuePhaiTra, // Thuế 10%
+        netAmount: item.ThucNhan // Tiền sau thuế
+      };
+    });
+
+    const taxReportWorkbook = createTaxReportWorkbook(taxReportData);
+    const taxReportName = `ĐATN_Daihoc_BangKeTongHopThue.xlsx`;
+    await taxReportWorkbook.xlsx.writeFile(path.join(tempDir, taxReportName));
+
+    console.log("Tạo file bảng kê tổng hợp thuế thành công");
+
     // === Phần fix: lưu ZIP ra ngoài tempDir ===
-    const zipOutputDir = path.join(__dirname, '..', 'public', 'tempZips');
+    const zipOutputDir = path.join(__dirname, "..", "public", "tempZips");
     fs.mkdirSync(zipOutputDir, { recursive: true });
 
-    const zipName = `HopDong_DoAn_Dot${dot}_${namHoc}_${khoa || 'all'}.zip`;
+    const zipName = `HopDong_${he_dao_tao}_Dot${dot}_${namHoc}_${
+      khoa || "all"
+    }.zip`;
     const zipPath = path.join(zipOutputDir, zipName);
 
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = archiver("zip", { zlib: { level: 9 } });
     const output = fs.createWriteStream(zipPath);
     archive.pipe(output);
     archive.directory(tempDir, false);
 
     await new Promise((resolve, reject) => {
-      archive.on('error', reject);
-      output.on('close', resolve);
+      archive.on("error", reject);
+      output.on("close", resolve);
       archive.finalize();
     });
 
     // Gửi file và XÓA sau khi tải
-    res.download(zipPath, zipName, err => {
+    res.download(zipPath, zipName, (err) => {
       if (err) {
-        console.error('Error sending zip file:', err);
+        console.error("Error sending zip file:", err);
         return;
       }
       // Dọn dẹp tempDir và file ZIP
       setTimeout(() => {
         // Xóa các file trong tempDir
         if (fs.existsSync(tempDir)) {
-          fs.readdirSync(tempDir).forEach(f => {
+          fs.readdirSync(tempDir).forEach((f) => {
             fs.unlinkSync(path.join(tempDir, f));
           });
           fs.rmdirSync(tempDir);
@@ -618,7 +732,6 @@ GROUP BY
         }
       }, 1000);
     });
-
   } catch (error) {
     console.error("Error in exportMultipleContracts:", error);
     res.status(500).send(`Lỗi khi tạo file hợp đồng: ${error.message}`);
@@ -1405,8 +1518,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1721,8 +1834,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-              ? "ThS"
-              : item.HocVi;
+            ? "ThS"
+            : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -2060,7 +2173,11 @@ const exportBoSungDownloadData = async (req, res) => {
 };
 
 // Hàm tạo file thống kê chuyển khoản
-function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_sauthue) {
+function createTransferDetailDocument(
+  data = [],
+  noiDung = "",
+  truocthue_or_sauthue
+) {
   // Hàm phụ trợ: tạo ô header
   function createHeaderCell(text, isBold, width = null) {
     // Xử lý xuống dòng bằng cách tách text theo \n
@@ -2177,33 +2294,33 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
     });
     const dataRows = data.length
       ? data.map(
-        (row, idx) =>
-          new TableRow({
-            children: [
-              createCell((idx + 1).toString()),
-              createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
-              createCell(row.HoTen || ""),
-              createCell(row.MaSoThue || ""),
-              createCell(row.STK || ""),
-              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
-              createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
-            ],
-          })
-      )
+          (row, idx) =>
+            new TableRow({
+              children: [
+                createCell((idx + 1).toString()),
+                createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+                createCell(row.HoTen || ""),
+                createCell(row.MaSoThue || ""),
+                createCell(row.STK || ""),
+                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
+                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+              ],
+            })
+        )
       : Array.from({ length: 4 }).map(
-        () =>
-          new TableRow({
-            children: [
-              createCell(""), // STT
-              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
-              createCell(""), // Đơn vị thụ hưởng
-              createCell(""), // Mã số thuế
-              createCell(""), // Số tài khoản
-              createCell("", false, 4800), // Tại ngân hàng với width cố định
-              createCell(""), // Số tiền
-            ],
-          })
-      );
+          () =>
+            new TableRow({
+              children: [
+                createCell(""), // STT
+                createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
+                createCell(""), // Đơn vị thụ hưởng
+                createCell(""), // Mã số thuế
+                createCell(""), // Số tài khoản
+                createCell("", false, 4800), // Tại ngân hàng với width cố định
+                createCell(""), // Số tiền
+              ],
+            })
+        );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2404,6 +2521,146 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
       },
     ],
   });
+}
+
+/**
+ * Tạo và trả về Workbook cho bảng kê trừ thuế
+ * @param {Array<Object>} records Mảng đối tượng chứa dữ liệu dòng (stt, contractNumber, executor, expenseDescription, idNumber, issueDate, issuePlace, idAddress, taxCode, amount, taxDeducted, netAmount)
+ * @returns {ExcelJS.Workbook}
+ */
+function createTaxReportWorkbook(records) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Bảng kê tổng hợp thuế');
+
+  // Banner & tiêu đề
+  worksheet.addRow(['BAN CƠ YẾU CHÍNH PHỦ']);
+  worksheet.addRow(['HỌC VIỆN KỸ THUẬT MẬT MÃ']);
+  worksheet.addRow([]);
+  worksheet.addRow(['BẢNG KÊ TỔNG HỢP THUẾ']);
+  worksheet.addRow(['Hợp đồng hướng dẫn đồ án tốt nghiệp']);
+  worksheet.addRow([]);
+
+  [1, 2, 4, 5].forEach(rowNum => {
+    worksheet.mergeCells(`A${rowNum}:L${rowNum}`);
+    worksheet.getRow(rowNum).font = { bold: true, size: rowNum === 4 ? 13 : 11 };
+    worksheet.getRow(rowNum).alignment = { horizontal: 'center' };
+  });
+
+  // Cột header
+  worksheet.addRow(['STT', 'Số HĐ', 'Người thực hiện', 'Nội dung chi tiêu', 'Số CCCD', 'Ngày cấp', 'Nơi cấp', 'Địa chỉ CCCD', 'Mã số thuế', 'Số tiền', 'Trừ thuế', 'Còn lại']);
+  
+  // Cài đặt độ rộng cột vừa đủ với nội dung
+  worksheet.columns = [
+    { key: 'stt', width: 5 },                    // STT - chỉ cần vừa số
+    { key: 'contractNumber', width: 6 },        // Số hợp đồng - vừa với format "123/HĐ-ĐT"
+    { key: 'executor', width: 22 },              // Người thực hiện - tên đầy đủ
+    { key: 'expenseDescription', width: 28 },    // Nội dung chi tiêu - mô tả dài
+    { key: 'idNumber', width: 14 },              // Số CCCD - 12 chữ số + buffer
+    { key: 'issueDate', width: 12 },             // Ngày cấp - DD/MM/YYYY
+    { key: 'issuePlace', width: 25 },            // Nơi cấp - tên cơ quan
+    { key: 'idAddress', width: 40 },             // Địa chỉ CCCD - địa chỉ đầy đủ
+    { key: 'taxCode', width: 14 },               // Mã số thuế - 10-13 chữ số
+    { key: 'amount', width: 16 },                // Số tiền - định dạng #,##0
+    { key: 'taxDeducted', width: 16 },           // Trừ thuế - định dạng #,##0
+    { key: 'netAmount', width: 16 }              // Còn lại - định dạng #,##0
+  ];
+  
+  worksheet.getRow(7).font = { bold: true, size: 11 };
+  worksheet.autoFilter = 'A7:L7';
+  worksheet.views = [{ state: 'frozen', ySplit: 7 }];
+
+  // Chèn dữ liệu bắt đầu từ hàng 8
+  // Đảm bảo dữ liệu được chèn đúng thứ tự cột bằng cách chuyển đổi object thành array
+  const dataRows = records.map(record => [
+    record.stt,
+    record.contractNumber,
+    record.executor,
+    record.expenseDescription,
+    record.idNumber,
+    record.issueDate,
+    record.issuePlace,
+    record.idAddress,
+    record.taxCode,
+    record.amount,
+    record.taxDeducted,
+    record.netAmount
+  ]);
+  
+  dataRows.forEach(row => {
+    worksheet.addRow(row);
+  });
+
+  // Áp dụng định dạng số có dấu phẩy cho các cột tiền tệ
+  const dataStartRow = 8;
+  const dataEndRow = worksheet.lastRow.number; // Dòng cuối của dữ liệu (không bao gồm tổng cộng)
+  
+  // Định dạng cột F (Ngày cấp CCCD) - định dạng ngày DD/MM/YYYY
+  for (let row = dataStartRow; row <= dataEndRow; row++) {
+    const cell = worksheet.getCell(`F${row}`);
+    if (cell.value && cell.value instanceof Date) {
+      cell.numFmt = 'dd/mm/yyyy';
+    }
+  }
+  
+  // Định dạng cột J (Số tiền), K (Trừ thuế), L (Còn lại)
+  for (let row = dataStartRow; row <= dataEndRow; row++) {
+    ['J', 'K', 'L'].forEach(col => {
+      const cell = worksheet.getCell(`${col}${row}`);
+      if (cell.value && typeof cell.value === 'number') {
+        cell.numFmt = '#,##0';
+      }
+    });
+  }
+
+  // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
+  worksheet.addRow([
+    'Tổng cộng:', '', '', '', '', '', '', '', '',
+    { formula: `SUM(J${dataStartRow}:J${dataEndRow})` },
+    { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
+    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` }
+  ]);
+  const totalRow = worksheet.lastRow.number;
+  worksheet.mergeCells(`A${totalRow}:I${totalRow}`);
+  worksheet.getRow(totalRow).font = { bold: true };
+  worksheet.getRow(totalRow).alignment = { horizontal: 'right' };
+  
+  // Áp dụng định dạng số có dấu phẩy cho dòng tổng cộng
+  ['J', 'K', 'L'].forEach(col => {
+    worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
+  });
+
+  // Tính tổng số tiền để chuyển thành chữ
+  let totalAmount = 0;
+  if (records && records.length > 0) {
+    totalAmount = records.reduce((sum, record) => {
+      const amount = typeof record.amount === 'number' ? record.amount : 0;
+      return sum + amount;
+    }, 0);
+  }
+
+  // Bằng chữ
+  const textRowVal = `Bằng chữ: ${numberToWords(totalAmount)} đồng chẵn.`;
+  worksheet.addRow([textRowVal]);
+  const textRow = worksheet.lastRow.number;
+  worksheet.mergeCells(`A${textRow}:L${textRow}`);
+  worksheet.getRow(textRow).font = { italic: true, size: 10 };
+
+  // Ngày tháng năm
+  worksheet.addRow([]);
+  worksheet.addRow(['', '', '', '', '', '', '', `Ngày ... tháng ... năm 2025`, '', '', '']);
+  const dateRow = worksheet.lastRow.number;
+  worksheet.mergeCells(`I${dateRow}:L${dateRow}`);
+  worksheet.getRow(dateRow).font = { size: 10 };
+  worksheet.getRow(dateRow).alignment = { horizontal: 'center' };
+
+  // Ký tên
+  worksheet.addRow([]);
+  worksheet.addRow(['', '', '', 'Người lập bảng', '', '', '', 'Trưởng phòng Đào tạo', '', '', '', '']);
+  const signRow = worksheet.lastRow.number;
+  worksheet.getRow(signRow).font = { bold: true, size: 10 };
+  worksheet.getRow(signRow).alignment = { horizontal: 'center' };
+
+  return workbook;
 }
 
 module.exports = {

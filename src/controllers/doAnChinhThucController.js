@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../config/Pool");
 const createPoolConnection = require("../config/databasePool");
+const chinhSuaDoAnController = require("./chinhSuaDoAnController");
 require("dotenv").config();
 const {
   Document,
@@ -377,6 +378,16 @@ const updateDoAn = async (req, res) => {
     }
 
     if (updates.length > 0) {
+      // Lấy dữ liệu hiện tại trước khi cập nhật để ghi log
+      const originalDataQuery = `SELECT * FROM doantotnghiep WHERE ID IN (${updateIDs.join(", ")})`;
+      const [originalDataRows] = await connection.query(originalDataQuery);
+      
+      // Tạo map để dễ dàng tìm kiếm dữ liệu theo ID
+      const originalDataMap = new Map();
+      originalDataRows.forEach(row => {
+        originalDataMap.set(row.ID, row);
+      });
+
       const updateQuery = `
         UPDATE doantotnghiep
         SET
@@ -424,6 +435,28 @@ const updateDoAn = async (req, res) => {
       `;
 
       await connection.query(updateQuery);
+      
+      // Ghi log cho mỗi hàng đã cập nhật
+      for (const update of updates) {
+        const originalData = originalDataMap.get(update.ID);
+        if (originalData) {
+          // Tạo đối tượng dữ liệu mới để ghi log
+          const newData = {...originalData};
+          newData.GiangVien1 = update.GiangVien1;
+          newData.GiangVien2 = update.GiangVien2;
+          newData.KhoaDuyet = update.KhoaDuyet;
+          newData.NgayBatDau = update.NgayBatDau;
+          newData.NgayKetThuc = update.NgayKetThuc;
+          // Gọi hàm ghi log từ chinhSuaDoAnController
+          await chinhSuaDoAnController.logDoAnChanges(
+            connection, 
+            originalData, 
+            newData, 
+            req.session?.userId || 1, 
+            req.session?.TenNhanVien || 'ADMIN'
+          );
+        }
+      }
     }
 
     // Nếu có lỗi, trả về thông báo lỗi

@@ -989,6 +989,25 @@ const saveToTableDoantotnghiep = async (req, res) => {
     // Thực thi câu lệnh SQL với mảng values
     const [result] = await connection.query(sql, [values]);
 
+    // Ghi log việc import file đồ án thành công
+    const logQuery = `
+      INSERT INTO lichsunhaplieu 
+      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+
+    const userId = req.session?.userId || 1;
+    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const loaiThongTin = 'Import đồ án';
+    const changeMessage = `${tenNhanVien} đã thêm mới ${result.affectedRows} đồ án từ file vào cơ sở dữ liệu. Học kỳ ${Ki}, đợt ${Dot}, năm học ${namHoc}, khoa ${MaPhongBan}, hệ đào tạo ${he_dao_tao}.`;
+    
+    await connection.query(logQuery, [
+      userId,
+      tenNhanVien,
+      loaiThongTin,
+      changeMessage
+    ]);
+
     // Gửi phản hồi thành công
     res.status(200).json({
       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",

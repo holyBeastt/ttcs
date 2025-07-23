@@ -66,8 +66,8 @@ router.post("/ban-hanh",
   // role.checkDaotaoRoleThiHanh, 
   async (req, res) => {
   try {
-    // Gọi hàm xử lý dữ liệu import
-    const result = await obj.importTableQC(req.body);
+    // Gọi hàm xử lý dữ liệu import - truyền cả req để có thể ghi log với thông tin người dùng
+    const result = await obj.importTableQC(req.body, req);
 
     // Kiểm tra kết quả trả về và phản hồi cho client
     if (result == true) {
@@ -92,8 +92,8 @@ router.post("/ban-hanh",
 // Định tuyến cho POST request tới /index / save - data
 router.post("/viewtam", role.checkDaotaoRoleThiHanh, async (req, res) => {
   try {
-    // Gọi hàm xử lý dữ liệu import
-    const result = await obj.importTableQC(req.body);
+    // Gọi hàm xử lý dữ liệu import - truyền cả req để có thể ghi log với thông tin người dùng
+    const result = await obj.importTableQC(req.body, req);
 
     // Kiểm tra kết quả trả về và phản hồi cho client
     if (result === true) {

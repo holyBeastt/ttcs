@@ -468,40 +468,69 @@
       // Hàm hiển thị danh sách file log
       async function showLogFiles() {
         try {
-          const response = await fetch('/api/log/files');
-          const files = await response.json();
-          const filesList = document.getElementById('logFilesList');
-          filesList.innerHTML = '';
-
-          if (files.length === 0) {
-            filesList.innerHTML = '<div class="list-group-item text-center">Không có file log nào</div>';
-            return;
-          }
-
-          files.forEach(file => {
-            const fileSize = (file.size / 1024).toFixed(2); // Convert to KB
-            const item = document.createElement('a');
-            item.href = '#';
-            item.className = 'list-group-item list-group-item-action';
-            item.innerHTML = `
-              <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">${file.name}</h6>
-                <small>${fileSize} KB</small>
-              </div>
-              <small>Click để tải về</small>
-            `;
-            item.addEventListener('click', () => {
-              window.location.href = `/api/log/download/${file.name}`;
-            });
-            filesList.appendChild(item);
+          // Hiển thị một thông báo đang tải
+          Swal.fire({
+            title: 'Đang xử lý...',
+            text: 'Vui lòng đợi trong khi tạo và tải danh sách file log',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
           });
 
-          // Hiển thị modal
-          const modal = new bootstrap.Modal(document.getElementById('logFilesModal'));
-          modal.show();
+          try {
+            // Gọi API để tạo file log mới
+            const response = await fetch('/api/log/files?export=true');
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Không thể tạo file log');
+            }
+            
+            const files = await response.json();
+            
+            // Đóng thông báo đang tải
+            Swal.close();
+            
+            if (files.length === 0) {
+              Swal.fire('Thông báo', 'Không có file log nào', 'info');
+              return;
+            }
+
+            const filesList = document.getElementById('logFilesList');
+            filesList.innerHTML = '';
+
+            files.forEach(file => {
+              const fileSize = (file.size / 1024).toFixed(2); // Convert to KB
+              const createdDate = new Date(file.createdAt).toLocaleString('vi-VN'); // Format date to Vietnamese locale
+              const item = document.createElement('a');
+              item.href = '#';
+              item.className = 'list-group-item list-group-item-action';
+              item.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">${file.name}</h6>
+                  <small>${fileSize} KB</small>
+                </div>
+                <small>Tạo lúc: ${createdDate}</small><br>
+                <small>Click để tải về</small>
+              `;
+              item.addEventListener('click', () => {
+                window.location.href = `/api/log/download/${file.name}`;
+              });
+              filesList.appendChild(item);
+            });
+
+            // Hiển thị modal
+            const logFilesModal = new bootstrap.Modal(document.getElementById('logFilesModal'));
+            logFilesModal.show();
+          } catch (error) {
+            Swal.close();
+            console.error('Lỗi khi tạo hoặc lấy danh sách file log:', error);
+            Swal.fire('Lỗi', 'Không thể tạo file log. Vui lòng thử lại sau.', 'error');
+          }
         } catch (error) {
-          console.error('Lỗi khi lấy danh sách file log:', error);
-          Swal.fire('Lỗi', 'Không thể lấy danh sách file log', 'error');
+          console.error('Lỗi khi hiển thị danh sách file log:', error);
+          Swal.fire('Lỗi', 'Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
         }
       }
 

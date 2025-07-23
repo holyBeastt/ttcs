@@ -91,7 +91,7 @@
                 class="form-control"
                 id="PhanTramMienGiam"
                 name="PhanTramMienGiam"
-                style="text-align: center;"
+                style="text-align: center"
                 readonly
               />
             </div>
@@ -125,7 +125,12 @@
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="LyDo">Lý do miễn giảm:</label>
-            <select class="form-control" name="LyDo" id="LyDo" onchange="layPhanTramTuLyDo()"></select>
+            <select
+              class="form-control"
+              name="LyDo"
+              id="LyDo"
+              onchange="layPhanTramTuLyDo()"
+            ></select>
           </div>
           <div class="col-md-4 input-wrapper">
             <label for="MonGiangDayChinh" class="form-label">Bộ môn</label>
@@ -170,14 +175,26 @@
           <div class="col-md-4 input-wrapper d-flex justify-content-between">
             <div>
               <label for="gioitinh" class="form-label">Giới tính:</label>
-              <select class="form-control" name="GioiTinh" id="gioitinh" style="width: auto;">
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
+              <select
+                class="form-control"
+                name="GioiTinh"
+                id="gioitinh"
+                style="width: auto"
+              >
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
               </select>
             </div>
             <div>
               <label for="CCCD" class="form-label">CCCD*</label>
-              <input type="text" class="form-control" id="CCCD" name="CCCD" style="width: 300px;" required>
+              <input
+                type="text"
+                class="form-control"
+                id="CCCD"
+                name="CCCD"
+                style="width: 300px"
+                required
+              />
             </div>
           </div>
           <div class="col-md-4 input-wrapper">
@@ -292,7 +309,19 @@
             />
           </div>
         </div>
-        <div class="row mb-3"></div>
+        <div class="row mb-3">
+          <div class="col-md-4 input-wrapper">
+            <label for="tinhTrang">Tình trạng giảng dạy:</label>
+            <select
+              class="form-control"
+              name="tinhTrangGiangDay"
+              id="tinhTrang"
+            >
+              <option value="true">Đang giảng dạy</option>
+              <option value="false">Đã ngừng giảng dạy</option>
+            </select>
+          </div>
+        </div>
         <button type="submit" class="btn" id="btnThemNhanVien">
           Thêm Nhân Viên
         </button>
@@ -330,7 +359,6 @@
               }).then(() => {
                 window.location.href = "/nhanVien"; // Chuyển hướng sau khi người dùng nhấn "Đồng ý"
               });
-
             },
             error: function (xhr, status, error) {
               try {
@@ -346,7 +374,7 @@
                 // Nếu không parse được, hiển thị toàn bộ nội dung
                 Swal.fire({
                   title: "Thông báo",
-                  text: "Đã xảy ra lỗi: "+ xhr.responseText,
+                  text: "Đã xảy ra lỗi: " + xhr.responseText,
                   icon: "error",
                   confirmButtonText: "Đồng ý",
                 });
@@ -441,7 +469,7 @@
             }
           })
           .catch((error) => console.error("Error:", error));
-          fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
+        fetchLyDo(); // Gọi hàm này để lấy lý do miễn giảm khi trang được tải
       });
     </script>
     <script>
@@ -481,44 +509,42 @@
     <script>
       function fetchLyDo() {
         fetch(`/getmiengiam`)
-          .then(response => response.json())
-          .then(data => {
-            const lyDoSelect = document.getElementById('LyDo');
-            lyDoSelect.innerHTML = ''; // Xóa các option cũ
-  
-            data.lydo.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.LyDo;      // hoặc item.LyDo tuỳ bạn muốn lưu gì
+          .then((response) => response.json())
+          .then((data) => {
+            const lyDoSelect = document.getElementById("LyDo");
+            lyDoSelect.innerHTML = ""; // Xóa các option cũ
+
+            data.lydo.forEach((item) => {
+              const option = document.createElement("option");
+              option.value = item.LyDo; // hoặc item.LyDo tuỳ bạn muốn lưu gì
               option.textContent = item.LyDo;
               lyDoSelect.appendChild(option);
             });
             layPhanTramTuLyDo(); // Gọi hàm này để lấy phần trăm miễn giảm khi trang được tải
-              
-            }
-          )
-          .catch(error => console.error('Error:', error));
-  
-        }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
     </script>
     <script>
       function layPhanTramTuLyDo() {
-        const lyDoValue = document.getElementById('LyDo').value;
-    
+        const lyDoValue = document.getElementById("LyDo").value;
+
         if (!lyDoValue) {
-          document.getElementById('PhanTramMienGiam').value = '';
+          document.getElementById("PhanTramMienGiam").value = "";
           return;
         }
-    
+
         fetch(`/getphantram/${lyDoValue}`)
-          .then(response => response.json())
-          .then(data => {
-            document.getElementById('PhanTramMienGiam').value = data.phanTram[0].PhanTramMienGiam + ' %';
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("PhanTramMienGiam").value =
+              data.phanTram[0].PhanTramMienGiam + " %";
           })
-          .catch(error => {
-            console.error('Lỗi khi lấy phần trăm miễn giảm:', error);
-            document.getElementById('PhanTramMienGiam').value = '';
+          .catch((error) => {
+            console.error("Lỗi khi lấy phần trăm miễn giảm:", error);
+            document.getElementById("PhanTramMienGiam").value = "";
           });
       }
-    </script>  
+    </script>
   </body>
 </html>

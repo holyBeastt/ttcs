@@ -42,6 +42,8 @@ const login = async (req, res) => {
         req.session.role = role;
         req.session.MaPhongBan = MaPhongBan;
         req.session.isKhoa = isKhoa;
+        req.session.TenNhanVien = TenNhanVien; // Lưu tên nhân viên vào session
+        req.session.username = username; // Lưu tên đăng nhập vào session
 
         // Tạo 1 req.session để dùng làm mẫu
         req.session.tmp = 0;

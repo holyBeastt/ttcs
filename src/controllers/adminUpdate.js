@@ -29,6 +29,7 @@ const postUpdateNV = async (req, res) => {
     PhanTramMienGiam,
     Luong,
     LyDo,
+    tinhTrangGiangDay,
   } = req.body;
 
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
@@ -83,7 +84,7 @@ const postUpdateNV = async (req, res) => {
         message: "Lương phải là một dãy số hợp lệ. Vui lòng kiểm tra lại.",
       });
     }
-    const cleanedPhanTram = PhanTramMienGiam.replace('%', '').trim(); // Xóa dấu %
+    const cleanedPhanTram = PhanTramMienGiam.replace("%", "").trim(); // Xóa dấu %
     const phanTram = parseFloat(cleanedPhanTram); // Chuyển thành số thực
     if (isNaN(phanTram) || phanTram < 0 || phanTram > 100) {
       connection.release();
@@ -118,7 +119,8 @@ const postUpdateNV = async (req, res) => {
       HSL = ?,
       PhanTramMienGiam = ?,
       Luong = ?,
-      LyDoMienGiam = ?
+      LyDoMienGiam = ?,
+      TinhTrangGiangDay = ?
       WHERE id_User = ?`;
 
     const params = [
@@ -146,10 +148,11 @@ const postUpdateNV = async (req, res) => {
       phanTram,
       Luong,
       LyDo,
+      tinhTrangGiangDay,
       Id_User,
     ];
-        
-    await connection.execute(query, params);      
+
+    await connection.execute(query, params);
 
     await connection.execute(
       "UPDATE taikhoannguoidung SET TenDangNhap = ? WHERE id_User = ?",

@@ -1,6 +1,135 @@
 const createPoolConnection = require("../config/databasePool");
 const ExcelJS = require("exceljs");
 
+// Hàm ghi log thay đổi thông tin đồ án
+const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanVien = 'ADMIN') => {
+  try {
+    let changeMessage = '';
+    const loaiThongTin = 'Thay đổi thông tin đồ án';
+    // Kiểm tra cột GiangVien1
+    if (String(oldData.GiangVien1 || '') !== String(newData.GiangVien1 || '')) {
+      changeMessage = changeMessage + `Giảng Viên 1 cho đồ án "${newData.TenDeTai}": từ "${oldData.GiangVien1 || ''}" thành "${newData.GiangVien1 || ''}". `;
+    }
+
+    // Kiểm tra cột GiangVien2
+    if (String(oldData.GiangVien2 || '') !== String(newData.GiangVien2 || '')) {
+      changeMessage = changeMessage + `Giảng Viên 2 cho đồ án "${newData.TenDeTai}": từ "${oldData.GiangVien2 || ''}" thành "${newData.GiangVien2 || ''}". `;
+    }
+
+    // Kiểm tra trạng thái duyệt khoa
+    if (Number(oldData.KhoaDuyet) !== Number(newData.KhoaDuyet)) {
+      if (Number(oldData.KhoaDuyet) === 0 && Number(newData.KhoaDuyet) === 1) {
+        changeMessage = changeMessage + `Khoa thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
+      } else if (Number(oldData.KhoaDuyet) === 1 && Number(newData.KhoaDuyet) === 0) {
+        changeMessage = changeMessage + `Khoa thay đổi duyệt đồ án "${newData.TenDeTai}": Hủy duyệt. `;
+      }
+    }
+
+    // Kiểm tra trạng thái duyệt đào tạo
+    if (Number(oldData.DaoTaoDuyet) !== Number(newData.DaoTaoDuyet)) {
+      if (Number(oldData.DaoTaoDuyet) === 0 && Number(newData.DaoTaoDuyet) === 1) {
+        changeMessage = changeMessage + `Đào tạo thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
+      } else if (Number(oldData.DaoTaoDuyet) === 1 && Number(newData.DaoTaoDuyet) === 0) {
+        changeMessage = changeMessage + `Đào tạo thay đổi duyệt đồ án "${newData.TenDeTai}": Hủy duyệt. `;
+      }
+    }
+
+    // Kiểm tra trạng thái duyệt tài chính
+    if (Number(oldData.TaiChinhDuyet) !== Number(newData.TaiChinhDuyet)) {
+      if (Number(oldData.TaiChinhDuyet) === 0 && Number(newData.TaiChinhDuyet) === 1) {
+        changeMessage = changeMessage + `Tài chính thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
+      } else if (Number(oldData.TaiChinhDuyet) === 1 && Number(newData.TaiChinhDuyet) === 0) {
+        changeMessage = changeMessage + `Tài chính thay đổi duyệt đồ án "${newData.TenDeTai}": Hủy duyệt. `;
+      }
+    }
+    
+    // Kiểm tra ngày bắt đầu - xử lý chuẩn hóa định dạng trước khi so sánh
+    let oldStartDate = '';
+    let newStartDate = '';
+    
+    if (oldData.NgayBatDau) {
+      const oldStartDateObj = new Date(oldData.NgayBatDau);
+      if (!isNaN(oldStartDateObj.getTime())) {
+        // Cộng thêm 1 ngày để bù trừ sự khác biệt múi giờ
+        oldStartDateObj.setDate(oldStartDateObj.getDate() + 1);
+        oldStartDate = oldStartDateObj.toISOString().split('T')[0];
+      }
+    }
+    
+    if (newData.NgayBatDau) {
+      // Kiểm tra nếu newData.NgayBatDau đã là chuỗi ngày 'YYYY-MM-DD'
+      if (typeof newData.NgayBatDau === 'string' && newData.NgayBatDau.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        newStartDate = newData.NgayBatDau;
+      } else {
+        const newStartDateObj = new Date(newData.NgayBatDau);
+        if (!isNaN(newStartDateObj.getTime())) {
+          // Cộng thêm 1 ngày để bù trừ sự khác biệt múi giờ
+          newStartDateObj.setDate(newStartDateObj.getDate() + 1);
+          newStartDate = newStartDateObj.toISOString().split('T')[0];
+        }
+      }
+    }
+    if (oldStartDate !== newStartDate) {
+      changeMessage = changeMessage + `Thay đổi ngày bắt đầu cho đồ án "${newData.TenDeTai}": từ "${oldStartDate}" thành "${newStartDate}". `;
+    }
+    
+    // Kiểm tra ngày kết thúc - xử lý chuẩn hóa định dạng trước khi so sánh
+    let oldEndDate = '';
+    let newEndDate = '';
+    
+    if (oldData.NgayKetThuc) {
+      const oldEndDateObj = new Date(oldData.NgayKetThuc);
+      if (!isNaN(oldEndDateObj.getTime())) {
+        // Cộng thêm 1 ngày để bù trừ sự khác biệt múi giờ
+        oldEndDateObj.setDate(oldEndDateObj.getDate() + 1);
+        oldEndDate = oldEndDateObj.toISOString().split('T')[0];
+      }
+    }
+    
+    if (newData.NgayKetThuc) {
+      // Kiểm tra nếu newData.NgayKetThuc đã là chuỗi ngày 'YYYY-MM-DD'
+      if (typeof newData.NgayKetThuc === 'string' && newData.NgayKetThuc.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        newEndDate = newData.NgayKetThuc;
+      } else {
+        const newEndDateObj = new Date(newData.NgayKetThuc);
+        if (!isNaN(newEndDateObj.getTime())) {
+          // Cộng thêm 1 ngày để bù trừ sự khác biệt múi giờ
+          newEndDateObj.setDate(newEndDateObj.getDate() + 1);
+          newEndDate = newEndDateObj.toISOString().split('T')[0];
+        }
+      }
+    }
+    
+    if (oldEndDate !== newEndDate) {
+      changeMessage = changeMessage + `Thay đổi ngày kết thúc cho đồ án "${newData.TenDeTai}": từ "${oldEndDate}" thành "${newEndDate}". `;
+    }
+
+    // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+    if (changeMessage !== '') {
+      const insertQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+
+      await connection.query(insertQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
+      ]);
+
+      console.log("Đã ghi log thay đổi thông tin đồ án:", changeMessage);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Lỗi khi ghi log thay đổi:", error);
+    return false;
+  }
+};
+
 const updateDoAn = async (req, res) => {
   const { updates } = req.body;
   let connection;
@@ -12,6 +141,30 @@ const updateDoAn = async (req, res) => {
     for (const update of updates) {
       const { data, colName, newValue } = update;
       
+      // Lấy dữ liệu hiện tại trước khi cập nhật để so sánh
+      const [currentDataRows] = await connection.query(
+        `SELECT * FROM doantotnghiep WHERE MaPhongBan = ? AND Dot = ? AND ki = ? AND NamHoc = ? AND TenDeTai = ? AND he_dao_tao = ? LIMIT 1`,
+        [
+          data.Khoa,
+          data.Dot,
+          data.KiHoc,
+          data.NamHoc,
+          data.LopHocPhan,
+          data.he_dao_tao
+        ]
+      );
+      
+      if (currentDataRows.length === 0) {
+        continue; // Bỏ qua nếu không tìm thấy bản ghi
+      }
+      
+      const oldData = currentDataRows[0];
+      
+      // Tạo bản sao của dữ liệu cũ để cập nhật giá trị mới
+      const newData = {...oldData};
+      newData[colName] = newValue;
+      
+      // Cập nhật dữ liệu
       const query = `
         UPDATE doantotnghiep 
         SET ${colName} = ? 
@@ -32,6 +185,9 @@ const updateDoAn = async (req, res) => {
         data.LopHocPhan,
         data.he_dao_tao
       ]);
+      
+      // Ghi log thay đổi
+      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
     }
 
     await connection.commit();
@@ -242,6 +398,16 @@ const updateDoAnApproval = async (req, res) => {
     // Chuyển đổi type thành tên cột trong database
     const approvalColumn = `${type}_duyet`;
 
+    // Lấy thông tin yêu cầu chỉnh sửa
+    const [requestInfo] = await connection.query(
+      "SELECT * FROM do_an_edit_requests WHERE id = ?",
+      [requestId]
+    );
+    
+    if (!requestInfo || requestInfo.length === 0) {
+      throw new Error("Không tìm thấy yêu cầu chỉnh sửa");
+    }
+    
     // Update the approval status
     const updateQuery = `
       UPDATE do_an_edit_requests 
@@ -267,6 +433,42 @@ const updateDoAnApproval = async (req, res) => {
     const allApproved = approvals[0].khoa_duyet && 
                        approvals[0].daotao_duyet && 
                        approvals[0].bgd_duyet;
+    
+    // Lấy thông tin đồ án từ database để ghi log
+    const [doAnInfo] = await connection.query(
+      `SELECT * FROM doantotnghiep 
+       WHERE MaPhongBan = ? AND Dot = ? AND ki = ? AND NamHoc = ? AND TenDeTai = ? AND he_dao_tao = ? LIMIT 1`,
+      [
+        requestInfo[0].khoa,
+        requestInfo[0].dot,
+        requestInfo[0].ki_hoc,
+        requestInfo[0].nam_hoc,
+        requestInfo[0].lop_hoc_phan,
+        requestInfo[0].he_dao_tao
+      ]
+    );
+    
+    if (doAnInfo && doAnInfo.length > 0) {
+      // Tạo dữ liệu cũ và mới cho việc ghi log
+      const oldData = {...doAnInfo[0]};
+      const newData = {...doAnInfo[0]};
+      
+      // Đặt giá trị duyệt theo loại
+      if (type === 'khoa') {
+        oldData.KhoaDuyet = approved ? 0 : 1;
+        newData.KhoaDuyet = approved ? 1 : 0;
+      } else if (type === 'daotao') {
+        oldData.DaoTaoDuyet = approved ? 0 : 1;
+        newData.DaoTaoDuyet = approved ? 1 : 0;
+      } else if (type === 'bgd') {
+        // Thay thế tên cột nếu cần
+        oldData.TaiChinhDuyet = approved ? 0 : 1;
+        newData.TaiChinhDuyet = approved ? 1 : 0;
+      }
+      
+      // Ghi log thay đổi
+      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
+    }
 
     await connection.commit();
 
@@ -300,42 +502,8 @@ const applyDoAnEdit = async (req, res) => {
     connection = await createPoolConnection();
     await connection.beginTransaction();
 
-    const [request] = await connection.query(
-      "SELECT * FROM do_an_edit_requests WHERE id = ?",
-      [requestId]
-    );
-
-    if (!request[0]) {
-      throw new Error("Không tìm thấy yêu cầu chỉnh sửa");
-    }
-
-    // Cập nhật cột GiangVien1 trong bảng doantotnghiep
-    const updateQuery = `
-      UPDATE doantotnghiep 
-      SET GiangVien1 = ? 
-      WHERE MaPhongBan = ? 
-      AND Dot = ? 
-      AND ki = ? 
-      AND NamHoc = ? 
-      AND TenDeTai = ?
-      AND he_dao_tao = ?
-    `;
-
-    await connection.query(updateQuery, [
-      request[0].new_value,
-      request[0].khoa,
-      request[0].dot,
-      request[0].ki_hoc,
-      request[0].nam_hoc,
-      request[0].lop_hoc_phan,
-      request[0].he_dao_tao
-    ]);
-
-    // Cập nhật trạng thái trong bảng do_an_edit_requests
-    await connection.query(
-      "UPDATE do_an_edit_requests SET status = 'Cập nhật thành công' WHERE id = ?",
-      [requestId]
-    );
+    // Sử dụng hàm updateRequest để cập nhật dữ liệu và ghi log
+    await updateRequest(requestId);
 
     await connection.commit();
 
@@ -647,6 +815,111 @@ const getDoAnChinhThuc = async (req, res) => {
   }
 };
 
+const updateRequest = async (requestId) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    // Lấy thông tin của request từ bảng do_an_edit_requests
+    const [request] = await connection.query(
+      "SELECT * FROM do_an_edit_requests WHERE id = ?",
+      [requestId]
+    );
+
+    if (!request[0]) {
+      throw new Error("Không tìm thấy yêu cầu chỉnh sửa");
+    }
+
+    // Lấy dữ liệu hiện tại của đồ án từ bảng doantotnghiep
+    const [currentDoAn] = await connection.query(
+      `SELECT * FROM doantotnghiep 
+       WHERE MaPhongBan = ? 
+       AND Dot = ? 
+       AND ki = ? 
+       AND NamHoc = ? 
+       AND TenDeTai = ?
+       AND he_dao_tao = ?
+       LIMIT 1`,
+      [
+        request[0].khoa,
+        request[0].dot,
+        request[0].ki_hoc,
+        request[0].nam_hoc,
+        request[0].lop_hoc_phan,
+        request[0].he_dao_tao
+      ]
+    );
+
+    if (!currentDoAn || currentDoAn.length === 0) {
+      throw new Error("Không tìm thấy đồ án tương ứng");
+    }
+
+    // Tạo bản sao của dữ liệu cũ và mới để ghi log
+    const oldData = { ...currentDoAn[0] };
+    const newData = { ...currentDoAn[0] };
+    
+    // Cập nhật giá trị mới cho trường cần thay đổi
+    if (request[0].column_name === 'GiangVien1') {
+      newData.GiangVien1 = request[0].new_value;
+    } else if (request[0].column_name === 'GiangVien2') {
+      newData.GiangVien2 = request[0].new_value;
+    }
+
+    // Cập nhật thực tế vào bảng doantotnghiep
+    const updateQuery = `
+      UPDATE doantotnghiep 
+      SET ${request[0].column_name} = ? 
+      WHERE MaPhongBan = ? 
+      AND Dot = ? 
+      AND ki = ? 
+      AND NamHoc = ? 
+      AND TenDeTai = ?
+      AND he_dao_tao = ?
+    `;
+
+    await connection.query(updateQuery, [
+      request[0].new_value,
+      request[0].khoa,
+      request[0].dot,
+      request[0].ki_hoc,
+      request[0].nam_hoc,
+      request[0].lop_hoc_phan,
+      request[0].he_dao_tao
+    ]);
+
+    // Ghi log thay đổi vào bảng lichsunhaplieu
+    const changeMessage = `Giảng viên hướng dẫn cho đồ án "${request[0].lop_hoc_phan}": từ "${request[0].old_value}" thành "${request[0].new_value}".`;
+    
+    const logQuery = `
+      INSERT INTO lichsunhaplieu 
+      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+    
+    await connection.query(logQuery, [
+      1, // Thay bằng req.user?.id nếu có
+      'ADMIN', // Thay bằng req.user?.TenNhanVien nếu có
+      'Thay đổi thông tin đồ án',
+      changeMessage
+    ]);
+
+    // Cập nhật trạng thái trong bảng do_an_edit_requests
+    await connection.query(
+      "UPDATE do_an_edit_requests SET status = 'Cập nhật thành công' WHERE id = ?",
+      [requestId]
+    );
+
+    return true;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật yêu cầu:", error);
+    return false;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+};
+
 module.exports = {
   updateDoAn,
   requestDoAnEdit,
@@ -654,5 +927,7 @@ module.exports = {
   updateDoAnApproval,
   applyDoAnEdit,
   exportAdjustedDoAn,
-  getDoAnChinhThuc
+  getDoAnChinhThuc,
+  updateRequest,
+  logDoAnChanges
 };

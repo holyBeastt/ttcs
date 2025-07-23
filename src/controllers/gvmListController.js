@@ -4,6 +4,7 @@ const pool = require("../config/Pool");
 const ExcelJS = require("exceljs");
 const path = require("path"); // Thêm dòng này
 const fs = require("fs"); // Thêm dòng này
+const LogService = require("../services/logService"); // Import LogService for logging
 
 let gvmLists;
 const getGvmList = async (req, res) => {
@@ -258,6 +259,39 @@ const updateWaitingList = async (req, res) => {
       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
 
+    // Lấy thông tin người dùng từ session để ghi log
+    const userId = req.session?.userId || 0;
+    const userName = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+    const userRole = req.session?.role || '';
+    const maPhongBan = req.session?.MaPhongBan || '';
+    
+    console.log('Thông tin session khi duyệt GVM:', { 
+      userId, 
+      userName, 
+      userRole,
+      maPhongBan,
+      sessionData: { 
+        userId: req.session.userId,
+        TenNhanVien: req.session.TenNhanVien,
+        username: req.session.username,
+        role: req.session.role,
+        MaPhongBan: req.session.MaPhongBan
+      } 
+    });
+
+    // Lấy thông tin giảng viên trước khi cập nhật để so sánh
+    const gvmIds = updatedData.map(item => item.id_Gvm);
+    const [originalData] = await pool.query(
+      `SELECT id_Gvm, MaGvm, HoTen, khoa_duyet, dao_tao_duyet, hoc_vien_duyet FROM gvmoi WHERE id_Gvm IN (?)`,
+      [gvmIds]
+    );
+    
+    // Tạo map để dễ dàng tra cứu
+    const originalGvmMap = {};
+    originalData.forEach(gvm => {
+      originalGvmMap[gvm.id_Gvm] = gvm;
+    });
+
     // Giới hạn số lượng bản ghi mỗi batch (để tránh quá tải query)
     const batchSize = 100;
     const batches = [];
@@ -311,6 +345,55 @@ const updateWaitingList = async (req, res) => {
 
       // Thực hiện truy vấn cập nhật hàng loạt
       await pool.query(updateQuery, updateValues);
+    }
+
+    // Ghi log các thay đổi
+    try {
+      for (const item of updatedData) {
+        const original = originalGvmMap[item.id_Gvm];
+        if (!original) continue;
+        
+        // Xác định loại phê duyệt dựa trên role và trạng thái thay đổi
+        let logMessages = [];
+        
+        // Log khoa duyệt
+        if (original.khoa_duyet !== item.khoa_duyet) {
+          const action = item.khoa_duyet === 1 ? 'đã duyệt' : 'đã hủy duyệt';
+          if (req.session.isKhoa === 1) {
+            logMessages.push(`Khoa ${action} giảng viên mời: ${original.HoTen} (${original.MaGvm})`);
+          }
+        }
+        
+        // Log đào tạo duyệt
+        if (original.dao_tao_duyet !== item.dao_tao_duyet) {
+          const action = item.dao_tao_duyet === 1 ? 'đã duyệt' : 'đã hủy duyệt';
+          if (maPhongBan === 'DAOTAO') {
+            logMessages.push(`Đào tạo ${action} giảng viên mời: ${original.HoTen} (${original.MaGvm})`);
+          }
+        }
+        
+        // Log học viện duyệt
+        if (original.hoc_vien_duyet !== item.hoc_vien_duyet) {
+          const action = item.hoc_vien_duyet === 1 ? 'đã duyệt' : 'đã hủy duyệt';
+          if (maPhongBan === 'BGĐ') {
+            logMessages.push(`Ban giám đốc ${action} giảng viên mời: ${original.HoTen} (${original.MaGvm})`);
+          }
+        }
+        
+        // Ghi log nếu có thay đổi
+        for (const message of logMessages) {
+          await LogService.logChange(
+            userId,
+            userName,
+            'Duyệt giảng viên mời',
+            message
+          );
+          console.log(`Đã ghi log: ${message}`);
+        }
+      }
+    } catch (logError) {
+      console.error('Lỗi khi ghi log duyệt giảng viên mời:', logError);
+      // Tiếp tục với phản hồi ngay cả khi ghi log thất bại
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });
@@ -421,6 +504,32 @@ const unCheckedLecturers = async (req, res) => {
     if (!updatedData || updatedData.length === 0) {
       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
+    
+    // Lấy thông tin người dùng từ session để ghi log
+    const userId = req.session?.userId || 0;
+    const userName = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+    const userRole = req.session?.role || '';
+    const maPhongBan = req.session?.MaPhongBan || '';
+    
+    console.log('Thông tin session khi bỏ duyệt GVM:', { 
+      userId, 
+      userName, 
+      userRole,
+      maPhongBan
+    });
+
+    // Lấy thông tin giảng viên trước khi cập nhật để so sánh
+    const gvmIds = updatedData.map(item => item.id_Gvm);
+    const [originalData] = await pool.query(
+      `SELECT id_Gvm, MaGvm, HoTen, khoa_duyet, dao_tao_duyet, hoc_vien_duyet FROM gvmoi WHERE id_Gvm IN (?)`,
+      [gvmIds]
+    );
+    
+    // Tạo map để dễ dàng tra cứu
+    const originalGvmMap = {};
+    originalData.forEach(gvm => {
+      originalGvmMap[gvm.id_Gvm] = gvm;
+    });
 
     // Giới hạn số lượng bản ghi mỗi batch (để tránh quá tải query)
     const batchSize = 50;
@@ -475,6 +584,39 @@ const unCheckedLecturers = async (req, res) => {
 
       // Thực hiện truy vấn cập nhật hàng loạt
       await pool.query(updateQuery, updateValues);
+    }
+    
+    // Ghi log các thay đổi
+    try {
+      for (const item of updatedData) {
+        const original = originalGvmMap[item.id_Gvm];
+        if (!original) continue;
+        
+        // Xác định người hủy duyệt dựa trên role
+        let actionType = 'Hủy phê duyệt';
+        let message = '';
+        
+        if (req.session.isKhoa === 1) {
+          message = `Khoa hủy tất cả phê duyệt giảng viên mời: ${original.HoTen} (${original.MaGvm})`;
+        } else if (maPhongBan === 'DAOTAO') {
+          message = `Đào tạo hủy tất cả phê duyệt giảng viên mời: ${original.HoTen} (${original.MaGvm})`;
+        } else if (maPhongBan === 'BGĐ') {
+          message = `Ban giám đốc hủy tất cả phê duyệt giảng viên mời: ${original.HoTen} (${original.MaGvm})`;
+        } else {
+          message = `${userName} hủy tất cả phê duyệt giảng viên mời: ${original.HoTen} (${original.MaGvm})`;
+        }
+        
+        await LogService.logChange(
+          userId,
+          userName,
+          'Hủy duyệt giảng viên mời',
+          message
+        );
+        console.log(`Đã ghi log: ${message}`);
+      }
+    } catch (logError) {
+      console.error('Lỗi khi ghi log hủy duyệt giảng viên mời:', logError);
+      // Tiếp tục với phản hồi ngay cả khi ghi log thất bại
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });
