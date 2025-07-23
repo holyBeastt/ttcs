@@ -1046,7 +1046,7 @@
                     data-request-id="${request.id}" 
                     data-type="khoa"
                     ${request.khoa_duyet ? 'checked' : ''}
-                    ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
+                    ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                 </td>
                 <td>
                   <input type="checkbox" 
@@ -1054,8 +1054,7 @@
                     data-request-id="${request.id}" 
                     data-type="daotao"
                     ${request.daotao_duyet ? 'checked' : ''}
-                    ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
-                    onchange="handleApproval(this)">
+                    ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                 </td>
                 <td>
                   <input type="checkbox" 
@@ -1063,8 +1062,7 @@
                     data-request-id="${request.id}" 
                     data-type="bgd"
                     ${request.bgd_duyet ? 'checked' : ''}
-                    ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
-                    onchange="handleApproval(this)">
+                    ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                 </td>
                 <td>${status}</td>
               </tr>
@@ -1293,7 +1291,7 @@
                           data-request-id="${request.id}" 
                           data-type="khoa"
                           ${request.khoa_duyet ? 'checked' : ''}
-                          ${(canApproveKhoa && !isPublished) ? '' : 'disabled'}>
+                          ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                       </td>
                       <td>
                         <input type="checkbox" 
@@ -1301,8 +1299,7 @@
                           data-request-id="${request.id}" 
                           data-type="daotao"
                           ${request.daotao_duyet ? 'checked' : ''}
-                          ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
-                          onchange="handleApproval(this)">
+                          ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                       </td>
                       <td>
                         <input type="checkbox" 
@@ -1310,8 +1307,7 @@
                           data-request-id="${request.id}" 
                           data-type="bgd"
                           ${request.bgd_duyet ? 'checked' : ''}
-                          ${(canApproveBGD && !isPublished) ? '' : 'disabled'}
-                          onchange="handleApproval(this)">
+                          ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                       </td>
                       <td>${status}</td>
                     `;
@@ -2104,17 +2100,26 @@
         const userRole = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
+        // Lấy status từ cột cuối cùng (hoặc từ data attribute nếu có)
+        const status = row.find('td').last().text().trim();
+
+        const khoaCheckbox = row.find('input[data-type="khoa"]');
+        const daotaoCheckbox = row.find('input[data-type="daotao"]');
+        const bgdCheckbox = row.find('input[data-type="bgd"]');
+
+        // Nếu đã ban hành thì luôn disabled
+        if (status === "Đã ban hành" || status === "Cập nhật thành công") {
+          khoaCheckbox.prop('disabled', true);
+          daotaoCheckbox.prop('disabled', true);
+          bgdCheckbox.prop('disabled', true);
+          return;
+        }
+
         const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
         const isThuongBGD = userRole === "Thường";
         
         const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
         const canApproveBGD = isThuongBGD;
-
-        const khoaCheckbox = row.find('input[data-type="khoa"]');
-        const daotaoCheckbox = row.find('input[data-type="daotao"]');
-        const bgdCheckbox = row.find('input[data-type="bgd"]');
-        
-        const requestId = khoaCheckbox.data('request-id');
 
         const khoaIsChecked = khoaCheckbox.is(':checked');
         const daotaoIsChecked = daotaoCheckbox.is(':checked');
@@ -2231,12 +2236,14 @@
       // Khi tick vào "check all"
       $(document).on('change', '#check-all-khoa-duyet', function() {
         const checked = this.checked;
-        $('input.approval-checkbox[data-type="khoa"]:not(:disabled)').each(function() {
-          $(this).prop('checked', checked);
-          // Cập nhật pendingApprovalChanges
-          const requestId = $(this).data('request-id');
-          if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
-          pendingApprovalChanges[requestId]['khoa'] = checked;
+        $('input.approval-checkbox[data-type="khoa"]').each(function() {
+          if (!$(this).prop('disabled')) {
+            $(this).prop('checked', checked);
+            // Cập nhật pendingApprovalChanges
+            const requestId = $(this).data('request-id');
+            if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+            pendingApprovalChanges[requestId]['khoa'] = checked;
+          }
         });
         // Sau khi tick xong, cập nhật trạng thái enable/disable cho các cột liên quan
         $('#edit-requests-body tr').each(function() {
@@ -2245,16 +2252,19 @@
       });
       $(document).on('change', '#check-all-daotao-duyet', function() {
         const checked = this.checked;
-        $('input.approval-checkbox[data-type="daotao"]:not(:disabled)').each(function() {
-          // Chỉ tick nếu Khoa duyệt đã được tick
-          const row = $(this).closest('tr');
-          const khoaCheckbox = row.find('input.approval-checkbox[data-type="khoa"]');
-          if (khoaCheckbox.is(':checked')) {
-            $(this).prop('checked', checked);
-            // Cập nhật pendingApprovalChanges
-            const requestId = $(this).data('request-id');
-            if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
-            pendingApprovalChanges[requestId]['daotao'] = checked;
+        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+          // Chỉ tick nếu chưa disabled (tức là chưa ban hành)
+          if (!$(this).prop('disabled')) {
+            // Chỉ tick nếu Khoa duyệt đã được tick
+            const row = $(this).closest('tr');
+            const khoaCheckbox = row.find('input.approval-checkbox[data-type="khoa"]');
+            if (khoaCheckbox.is(':checked')) {
+              $(this).prop('checked', checked);
+              // Cập nhật pendingApprovalChanges
+              const requestId = $(this).data('request-id');
+              if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+              pendingApprovalChanges[requestId]['daotao'] = checked;
+            }
           }
         });
         $('#edit-requests-body tr').each(function() {
@@ -2263,17 +2273,20 @@
       });
       $(document).on('change', '#check-all-bgd-duyet', function() {
         const checked = this.checked;
-        $('input.approval-checkbox[data-type="bgd"]:not(:disabled)').each(function() {
-          // Chỉ tick nếu Khoa và Đào tạo duyệt đã được tick
-          const row = $(this).closest('tr');
-          const khoaCheckbox = row.find('input.approval-checkbox[data-type="khoa"]');
-          const daotaoCheckbox = row.find('input.approval-checkbox[data-type="daotao"]');
-          if (khoaCheckbox.is(':checked') && daotaoCheckbox.is(':checked')) {
-            $(this).prop('checked', checked);
-            // Cập nhật pendingApprovalChanges
-            const requestId = $(this).data('request-id');
-            if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
-            pendingApprovalChanges[requestId]['bgd'] = checked;
+        $('input.approval-checkbox[data-type="bgd"]').each(function() {
+          // Chỉ tick nếu chưa disabled (tức là chưa ban hành)
+          if (!$(this).prop('disabled')) {
+            // Chỉ tick nếu Khoa và Đào tạo duyệt đã được tick
+            const row = $(this).closest('tr');
+            const khoaCheckbox = row.find('input.approval-checkbox[data-type="khoa"]');
+            const daotaoCheckbox = row.find('input.approval-checkbox[data-type="daotao"]');
+            if (khoaCheckbox.is(':checked') && daotaoCheckbox.is(':checked')) {
+              $(this).prop('checked', checked);
+              // Cập nhật pendingApprovalChanges
+              const requestId = $(this).data('request-id');
+              if (!pendingApprovalChanges[requestId]) pendingApprovalChanges[requestId] = {};
+              pendingApprovalChanges[requestId]['bgd'] = checked;
+            }
           }
         });
         $('#edit-requests-body tr').each(function() {
