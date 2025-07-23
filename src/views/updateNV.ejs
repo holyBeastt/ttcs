@@ -172,6 +172,16 @@
                 <input type="text" class="form-control" id="CacMonLienQuan" name="CacMonLienQuan" value="<%= value.CacMonLienQuan %>">
             </div>
         </div>
+        <div class="row mb-3">
+            <div class="col-md-4 input-wrapper">
+              <label for="tinhTrang" style="margin-bottom: 3px;">Tình trạng giảng dạy:</label>
+              <select class="form-control" name="tinhTrangGiangDay" id="tinhTrang">
+                <option value="true" <%=value.TinhTrangGiangDay==1 ? 'selected' : '' %>>Đang giảng dạy</option>
+                <option value="false" <%=value.TinhTrangGiangDay==0 ? 'selected' : '' %>>Đã ngừng giảng dạy</option>
+              </select>
+            </div>
+        </div>
+        <br>
         <button type="submit" class="btn" id="btnUpdateNV">Cập nhật</button>
         <button class="btn mx-5" type="button" onclick="window.location.href='/nhanVien'">Trở về</button>
         <h6 class="p-2">Ghi chú: Những ô có dấu * là thông tin bắt buộc.</h6>
