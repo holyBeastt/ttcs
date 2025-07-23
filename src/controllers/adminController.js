@@ -53,6 +53,7 @@ const AdminController = {
       Luong,
       PhanTramMienGiam,
       LyDo,
+      tinhTrangGiangDay,
     } = req.body;
     let TenDangNhap = req.body.TenDangNhap;
 
@@ -145,7 +146,7 @@ const AdminController = {
             TenNhanVien, NgaySinh, GioiTinh, DienThoai, HocVi, CCCD,
             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
-            MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam, LyDoMienGiam
+            MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam, LyDoMienGiam, TinhTrangGiangDay
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
@@ -173,6 +174,7 @@ const AdminController = {
         Luong,
         phanTram,
         LyDo,
+        tinhTrangGiangDay,
       ];
 
       console.log("value = ", valuesInsert);
