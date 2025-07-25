@@ -402,7 +402,7 @@ const totalNumberOfPeriods = async (connection, data) => {
         tongTietDetail[gvLabel] =
           (parseFloat(tongTietDetail[gvLabel]) || 0) + quyChuan;
       }
-    });    // Phân loại lại để thống kê chi tiết
+    }); // Phân loại lại để thống kê chi tiết
     for (const tenGV in tongTietDetail) {
       const tiet = parseFloat(tongTietDetail[tenGV]) || 0;
       tongTietAll += tiet;
@@ -528,7 +528,8 @@ const getNameGV = async (req, res) => {
     connection = await createPoolConnection();
 
     // Truy vấn để lấy danh sách giảng viên mời
-    const query = "SELECT DISTINCT TenNhanVien, MaPhongBan FROM nhanvien;";
+    const query =
+      "SELECT DISTINCT TenNhanVien, MaPhongBan FROM nhanvien where TinhTrangGiangDay != 0";
     const [results] = await connection.query(query);
 
     if (results.length === 0) {

@@ -32,8 +32,6 @@ const postUpdateNV = async (req, res) => {
     tinhTrangGiangDay,
   } = req.body;
 
-  console.log("tinhTrangGiangDay:", tinhTrangGiangDay);
-
   const MaNhanVien = `${MaPhongBan}${Id_User}`;
   try {
     // Kiểm tra giá trị của HSL và PhanTramMienGiam
