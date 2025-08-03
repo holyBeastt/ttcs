@@ -159,14 +159,13 @@
               <tr>
                 <th>Loại tạp chí</th>
                 <th>Chỉ số tạp chí</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row
-              => { %>
+              <% data.filter(row=> row.MaBang === 'baibaokhoahoc').forEach(row => { %>
               <tr>
                 <td><%= row.LoaiTapChi %></td>
                 <td><%= row.ChiSoTapChi %></td>
@@ -203,14 +202,13 @@
             <thead>
               <tr>
                 <th>Phân loại</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang ===
-              'bangsangchevagiaithuong').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'bangsangchevagiaithuong').forEach(row => { %>
               <tr>
                 <td><%= row.BangSangCheGiaiThuong %></td>
                 <td><%= row.SoGio %></td>
@@ -245,14 +243,13 @@
             <thead>
               <tr>
                 <th>Phân loại</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row
-              => { %>
+              <% data.filter(row=> row.MaBang === 'sachvagiaotrinh').forEach(row => { %>
               <tr>
                 <td><%= row.SachGiaoTrinh %></td>
                 <td><%= row.SoGio %></td>
@@ -287,14 +284,13 @@
             <thead>
               <tr>
                 <th>Phân loại</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang ===
-              'nckhvahuanluyendoituyen').forEach(row => { %>
+              <% data.filter(row=> row.MaBang === 'nckhvahuanluyendoituyen').forEach(row => { %>
               <tr>
                 <td><%= row.NCKHHuanLuyenDoiTuyen %></td>
                 <td><%= row.SoGio %></td>
@@ -329,14 +325,13 @@
             <thead>
               <tr>
                 <th>Phân loại</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
             </thead>
             <tbody>
-              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row =>
-              { %>
+              <% data.filter(row=> row.MaBang === 'xaydungctdt').forEach(row => { %>
               <tr>
                 <td><%= row.XayDungCTDT %></td>
                 <td><%= row.SoGio %></td>
@@ -371,7 +366,7 @@
             <thead>
               <tr>
                 <th>Phân loại</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
@@ -415,7 +410,7 @@
                 <th>Phân loại</th>
                 <th>Chủ tịch, phản biện</th>
                 <th>Thư ký khoa học, ủy viên</th>
-                <th>Số giờ</th>
+                <th>Số tiết</th>
                 <th>Sửa</th>
                 <th>Xóa</th>
               </tr>
@@ -635,7 +630,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioBaiBaoKhoaHoc" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
@@ -745,7 +740,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioBangSangCheGiaiThuong" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
@@ -860,7 +855,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioSachVaGiaoTrinh" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
@@ -970,7 +965,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioNCKHVaHuanLuyenDoiTuyen" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
@@ -1084,7 +1079,7 @@
                 />
               </div>
               <div class="mb-3">
-                <label for="SoGioXayDungCTDT" class="form-label">Số giờ</label>
+                <label for="SoGioXayDungCTDT" class="form-label">Số tiết</label>
                 <input
                   type="text"
                   class="form-control"
@@ -1193,7 +1188,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioBienSoanGiaoTrinhBaiGiang" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
@@ -1334,7 +1329,7 @@
               </div>
               <div class="mb-3">
                 <label for="SoGioNhiemVuKhoaHocCongNghe" class="form-label"
-                  >Số giờ</label
+                  >Số tiết</label
                 >
                 <input
                   type="text"
