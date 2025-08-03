@@ -111,7 +111,7 @@ const getInfoGiangVien = async (req, res) => {
     const [gvms] = await connection.query(query);
 
     // Lấy dữ liệu giảng viên cơ hữu
-    query = `SELECT TenNhanVien, CCCD FROM nhanvien`;
+    query = `SELECT TenNhanVien, CCCD FROM nhanvien where TinhTrangGiangDay != 0`;
     const [nvs] = await connection.query(query);
 
     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
@@ -379,12 +379,14 @@ const updateDoAn = async (req, res) => {
 
     if (updates.length > 0) {
       // Lấy dữ liệu hiện tại trước khi cập nhật để ghi log
-      const originalDataQuery = `SELECT * FROM doantotnghiep WHERE ID IN (${updateIDs.join(", ")})`;
+      const originalDataQuery = `SELECT * FROM doantotnghiep WHERE ID IN (${updateIDs.join(
+        ", "
+      )})`;
       const [originalDataRows] = await connection.query(originalDataQuery);
-      
+
       // Tạo map để dễ dàng tìm kiếm dữ liệu theo ID
       const originalDataMap = new Map();
-      originalDataRows.forEach(row => {
+      originalDataRows.forEach((row) => {
         originalDataMap.set(row.ID, row);
       });
 
@@ -435,13 +437,13 @@ const updateDoAn = async (req, res) => {
       `;
 
       await connection.query(updateQuery);
-      
+
       // Ghi log cho mỗi hàng đã cập nhật
       for (const update of updates) {
         const originalData = originalDataMap.get(update.ID);
         if (originalData) {
           // Tạo đối tượng dữ liệu mới để ghi log
-          const newData = {...originalData};
+          const newData = { ...originalData };
           newData.GiangVien1 = update.GiangVien1;
           newData.GiangVien2 = update.GiangVien2;
           newData.KhoaDuyet = update.KhoaDuyet;
@@ -449,11 +451,11 @@ const updateDoAn = async (req, res) => {
           newData.NgayKetThuc = update.NgayKetThuc;
           // Gọi hàm ghi log từ chinhSuaDoAnController
           await chinhSuaDoAnController.logDoAnChanges(
-            connection, 
-            originalData, 
-            newData, 
-            req.session?.userId || 1, 
-            req.session?.TenNhanVien || 'ADMIN'
+            connection,
+            originalData,
+            newData,
+            req.session?.userId || 1,
+            req.session?.TenNhanVien || "ADMIN"
           );
         }
       }
@@ -1339,25 +1341,34 @@ const saveToExportDoAn = async (req, res) => {
 
           isHDChinh = 1;
           let GiangVien, CCCD;
-          let matchedItem1;          // Xử lý giảng viên 1
+          let matchedItem1; // Xử lý giảng viên 1
           if (item.GiangVien1.includes("-")) {
             GiangVien = item.GiangVien1.split("-")[0].trim();
             CCCD = item.GiangVien1.split("-")[2].trim();
             isMoiGiang =
               item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
-            
+
             // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-            const normalizedGV1 = GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
-            matchedItem1 = allGV.find((arr) => arr.HoTenReal.trim() == normalizedGV1);
+            const normalizedGV1 = GiangVien.replace(
+              /\s*\(.*?\)\s*/g,
+              ""
+            ).trim();
+            matchedItem1 = allGV.find(
+              (arr) => arr.HoTenReal.trim() == normalizedGV1
+            );
 
             if (!matchedItem1) {
               errors.push(
                 `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
               );
               return;
-            }} else {
+            }
+          } else {
             // Chuẩn hóa tên giảng viên để so sánh (loại bỏ ngoặc)
-            const normalizedGV1 = item.GiangVien1.replace(/\s*\(.*?\)\s*/g, "").trim();
+            const normalizedGV1 = item.GiangVien1.replace(
+              /\s*\(.*?\)\s*/g,
+              ""
+            ).trim();
             matchedItem1 = uniqueGV.find(
               (arr) => arr.HoTenReal.trim() == normalizedGV1
             );
@@ -1414,7 +1425,8 @@ const saveToExportDoAn = async (req, res) => {
             matchedItem1.MonGiangDayChinh,
             matchedItem1.HSL,
             item.he_dao_tao,
-          ]);          let matchedItem2;
+          ]);
+          let matchedItem2;
           count++;
           // Nếu có giảng viên thứ 2, xử lý giảng viên 2 và thêm bản ghi thứ hai
           if (SoNguoi == 2) {
@@ -1427,11 +1439,19 @@ const saveToExportDoAn = async (req, res) => {
                 item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
               // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-              const normalizedGV2 = GiangVien.replace(/\s*\(.*?\)\s*/g, "").trim();
-              matchedItem2 = allGV.find((arr) => arr.HoTenReal.trim() == normalizedGV2);
+              const normalizedGV2 = GiangVien.replace(
+                /\s*\(.*?\)\s*/g,
+                ""
+              ).trim();
+              matchedItem2 = allGV.find(
+                (arr) => arr.HoTenReal.trim() == normalizedGV2
+              );
             } else {
               // Chuẩn hóa tên giảng viên 2 để so sánh (loại bỏ ngoặc)
-              const normalizedGV2 = item.GiangVien2.replace(/\s*\(.*?\)\s*/g, "").trim();
+              const normalizedGV2 = item.GiangVien2.replace(
+                /\s*\(.*?\)\s*/g,
+                ""
+              ).trim();
               matchedItem2 = uniqueGV.find(
                 (arr) => arr.HoTenReal.trim() == normalizedGV2
               );
