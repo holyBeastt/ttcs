@@ -2,7 +2,7 @@ const express = require("express");
 const createPoolConnection = require("../config/databasePool");
 const LogService = require("../services/logService");
 
-// render site quy định số giờ nckh cho admin dùng thư viện ejs
+// render site quy định số tiết nckh cho admin dùng thư viện ejs
 const getQuyDinhSoGioNCKH = async (req, res) => {
   let connection;
   try {
@@ -206,28 +206,28 @@ const quyDoiSoGioDeTaiDuAn = async (body, MaBang) => {
       const { name, unit } = extractNameAndUnit(chuNhiem);
       body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem
         .toFixed(2)
-        .replace(",", ".")} giờ)`.trim();
+        .replace(",", ".")} tiết)`.trim();
     }
 
     if (thuKy) {
       const { name, unit } = extractNameAndUnit(thuKy);
       body.thuKy = `${name} (${unit} - ${soGioThuKy
         .toFixed(2)
-        .replace(",", ".")} giờ)`.trim();
+        .replace(",", ".")} tiết)`.trim();
     }
 
     if (thanhVien && Array.isArray(thanhVien)) {
       body.thanhVien = thanhVien
         .map((member, index) => {
           const { name, unit } = extractNameAndUnit(member);
-          return `${name} (${unit} - ${soGioThanhVien[index]} giờ)`.trim();
+          return `${name} (${unit} - ${soGioThanhVien[index]} tiết)`.trim();
         })
         .join(", ");
     }
 
     return body;
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ:", error);
+    console.error("Lỗi khi quy đổi số tiết:", error);
     throw error;
   }
 };
@@ -378,20 +378,20 @@ const getTableBaiBaoKhoaHoc = async (req, res) => {
 const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
   const { loaiTapChi, tacGia, tacGiaCtn, danhSachThanhVien } = body;
 
-  let SoGio = 0; // Số giờ lấy từ cơ sở dữ liệu
+  let SoGio = 0; // Số tiết lấy từ cơ sở dữ liệu
   let SoGioTacGia = 0;
   let SoGioTacGiaCtn = 0;
   let SoGioThanhVien = [];
   let connection;
 
-  // Hàm định dạng số giờ: làm tròn đến 2 chữ số thập phân và đảm bảo sử dụng dấu chấm
+  // Hàm định dạng số tiết: làm tròn đến 2 chữ số thập phân và đảm bảo sử dụng dấu chấm
   const formatHours = (num) => num.toFixed(2).replace(/,/g, ".");
 
   try {
     // Tạo kết nối từ pool
     connection = await createPoolConnection();
 
-    // Truy vấn số giờ từ cơ sở dữ liệu
+    // Truy vấn số tiết từ cơ sở dữ liệu
     const [rows] = await connection.execute(
       `SELECT SoGio FROM quydinhsogionckh WHERE LoaiTapChi = ? AND MaBang = ?`,
       [loaiTapChi, MaBang]
@@ -401,10 +401,10 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
       // Chuyển giá trị lấy về thành chuỗi, thay dấu phẩy bằng dấu chấm, sau đó parseFloat
       SoGio = parseFloat(String(rows[0].SoGio).replace(/,/g, ".")) || 0;
     } else {
-      throw new Error("Không tìm thấy thông tin số giờ cho loại tạp chí này.");
+      throw new Error("Không tìm thấy thông tin số tiết cho loại tạp chí này.");
     }
 
-    // Xử lý quy đổi số giờ dựa trên các trường hợp:
+    // Xử lý quy đổi số tiết dựa trên các trường hợp:
     // Trường hợp chỉ có tác giả chính
     if (tacGia && !tacGiaCtn && !danhSachThanhVien) {
       SoGioTacGia = SoGio;
@@ -444,7 +444,7 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
       SoGioTacGia += SoGioPerMember;
     }
 
-    // Làm tròn số giờ đến 2 chữ số sau dấu phẩy (dưới dạng số)
+    // Làm tròn số tiết đến 2 chữ số sau dấu phẩy (dưới dạng số)
     SoGioTacGia = parseFloat(SoGioTacGia.toFixed(2));
     SoGioTacGiaCtn = parseFloat(SoGioTacGiaCtn.toFixed(2));
     SoGioThanhVien = SoGioThanhVien.map((soGio) =>
@@ -456,7 +456,7 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
       const { name, unit } = extractNameAndUnit(tacGia);
       body.tacGia = `${name} (${unit} - ${formatHours(
         SoGioTacGia
-      )} giờ)`.trim();
+      )} tiết)`.trim();
     }
 
     // Tách và format thông tin của tác giả chịu trách nhiệm
@@ -464,7 +464,7 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
       const { name, unit } = extractNameAndUnit(tacGiaCtn);
       body.tacGiaCtn = `${name} (${unit} - ${formatHours(
         SoGioTacGiaCtn
-      )} giờ)`.trim();
+      )} tiết)`.trim();
     }
 
     // Tách và format thông tin của các thành viên
@@ -474,14 +474,14 @@ const quyDoiSoGioBaiBaoKhoaHoc = async (body, MaBang) => {
           const { name, unit } = extractNameAndUnit(member);
           return `${name} (${unit} - ${formatHours(
             SoGioThanhVien[index]
-          )} giờ)`.trim();
+          )} tiết)`.trim();
         })
         .join(", ");
     }
 
     return body;
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ bài báo khoa học:", error);
+    console.error("Lỗi khi quy đổi số tiết bài báo khoa học:", error);
     throw error;
   } finally {
     if (connection) {
@@ -511,7 +511,7 @@ const saveBaiBaoKhoaHoc = async (req, res) => {
   // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
   const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
 
-  // Gọi hàm quy đổi số giờ cho bài báo khoa học
+  // Gọi hàm quy đổi số tiết cho bài báo khoa học
   const body = {
     loaiTapChi,
     tacGia,
@@ -721,7 +721,7 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
     // Tạo kết nối từ pool
     connection = await createPoolConnection();
 
-    // Truy vấn số giờ tương ứng với loại bằng sáng chế hoặc giải thưởng từ cơ sở dữ liệu
+    // Truy vấn số tiết tương ứng với loại bằng sáng chế hoặc giải thưởng từ cơ sở dữ liệu
     const [rows] = await connection.execute(
       `SELECT SoGio FROM quydinhsogionckh WHERE BangSangCheGiaiThuong = ? AND MaBang = ?`,
       [loaiBangSangChe, MaBang]
@@ -732,7 +732,7 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
       SoGio = parseFloat(String(rows[0].SoGio).replace(/,/g, ".")) || 0;
     } else {
       throw new Error(
-        "Không tìm thấy thông tin số giờ cho loại bằng sáng chế hoặc giải thưởng này."
+        "Không tìm thấy thông tin số tiết cho loại bằng sáng chế hoặc giải thưởng này."
       );
     }
 
@@ -752,7 +752,7 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
     ) {
       let totalParticipants = 1 + danhSachThanhVien.length; // Tổng số người tham gia
 
-      // Tác giả chính nhận 40% số giờ
+      // Tác giả chính nhận 40% số tiết
       SoGioTacGia = parseFloat((SoGio * 0.4).toFixed(2));
 
       // 60% còn lại chia đều cho tất cả thành viên (kể cả tác giả)
@@ -760,30 +760,30 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
         ((SoGio * 0.6) / totalParticipants).toFixed(2)
       );
 
-      // Gán số giờ cho các thành viên
+      // Gán số tiết cho các thành viên
       SoGioThanhVien = Array(danhSachThanhVien.length).fill(SoGioPerMember);
 
-      // Cộng số giờ cho tác giả chính
+      // Cộng số tiết cho tác giả chính
       SoGioTacGia += SoGioPerMember;
     }
 
-    // Tách và format thông tin của tác giả chính với định dạng số giờ sử dụng dấu chấm
+    // Tách và format thông tin của tác giả chính với định dạng số tiết sử dụng dấu chấm
     if (tacGia) {
       const { name, unit } = extractNameAndUnit(tacGia);
       body.tacGia = `${name} (${unit} - ${SoGioTacGia.toFixed(2).replace(
         /,/g,
         "."
-      )} giờ)`.trim();
+      )} tiết)`.trim();
     }
 
-    // Tách và format thông tin của các thành viên với định dạng số giờ sử dụng dấu chấm
+    // Tách và format thông tin của các thành viên với định dạng số tiết sử dụng dấu chấm
     if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
       body.thanhVien = danhSachThanhVien
         .map((member, index) => {
           const { name, unit } = extractNameAndUnit(member);
           return `${name} (${unit} - ${SoGioThanhVien[index]
             .toFixed(2)
-            .replace(/,/g, ".")} giờ)`.trim();
+            .replace(/,/g, ".")} tiết)`.trim();
         })
         .join(", ");
     }
@@ -791,7 +791,7 @@ const quyDoiSoGioBangSangCheVaGiaiThuong = async (body, MaBang) => {
     return body;
   } catch (error) {
     console.error(
-      "Lỗi khi quy đổi số giờ bằng sáng chế và giải thưởng:",
+      "Lỗi khi quy đổi số tiết bằng sáng chế và giải thưởng:",
       error
     );
     throw error;
@@ -824,7 +824,7 @@ const saveSachVaGiaoTrinh = async (req, res) => {
   // Xử lý: ghép danh sách thành viên thành chuỗi cách nhau bởi dấu phẩy
   const danhSachThanhVien = thanhVien ? thanhVien.join(",") : "";
 
-  // Tính toán số giờ quy đổi
+  // Tính toán số tiết quy đổi
   const body = {
     phanLoai,
     tacGia,
@@ -910,7 +910,7 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
   let soGioDongChuBien = 0;
   let soGioThanhVien = [];
 
-  // Hàm định dạng số giờ: ép về chuỗi với 2 số thập phân và đảm bảo sử dụng dấu chấm
+  // Hàm định dạng số tiết: ép về chuỗi với 2 số thập phân và đảm bảo sử dụng dấu chấm
   const formatHour = (num) => {
     return num.toFixed(2).replace(",", ".");
   };
@@ -920,7 +920,7 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
     // Tạo kết nối từ pool
     connection = await createPoolConnection();
 
-    // Truy vấn số giờ từ cơ sở dữ liệu
+    // Truy vấn số tiết từ cơ sở dữ liệu
     const [rows] = await connection.execute(
       `SELECT SoGio FROM quydinhsogionckh WHERE SachGiaoTrinh = ? AND MaBang = ?`,
       [phanLoai, MaBang]
@@ -932,7 +932,7 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
       soGio = parseFloat(String(rows[0].SoGio).replace(",", ".")) || 0;
     } else {
       throw new Error(
-        "Không tìm thấy thông tin số giờ cho loại sách/giáo trình này."
+        "Không tìm thấy thông tin số tiết cho loại sách/giáo trình này."
       );
     }
 
@@ -950,19 +950,19 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
     ) {
       let totalParticipants = 2 + danhSachThanhVien.length;
 
-      // Tác giả chính và đồng chủ biên nhận mỗi người 20% số giờ ban đầu
+      // Tác giả chính và đồng chủ biên nhận mỗi người 20% số tiết ban đầu
       soGioTacGia = parseFloat((soGio * 0.2).toFixed(2));
       soGioDongChuBien = parseFloat((soGio * 0.2).toFixed(2));
 
-      // 60% số giờ còn lại chia đều cho tất cả (bao gồm cả tác giả chính và đồng chủ biên)
+      // 60% số tiết còn lại chia đều cho tất cả (bao gồm cả tác giả chính và đồng chủ biên)
       let soGioPerMember = parseFloat(
         ((soGio * 0.6) / totalParticipants).toFixed(2)
       );
 
-      // Gán số giờ cho thành viên
+      // Gán số tiết cho thành viên
       soGioThanhVien = Array(danhSachThanhVien.length).fill(soGioPerMember);
 
-      // Cộng thêm số giờ từ phần chia đều cho tác giả chính và đồng chủ biên
+      // Cộng thêm số tiết từ phần chia đều cho tác giả chính và đồng chủ biên
       soGioTacGia += soGioPerMember;
       soGioDongChuBien += soGioPerMember;
     }
@@ -976,22 +976,22 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
     ) {
       soGioTacGia = parseFloat((soGio * 0.4).toFixed(2));
 
-      // 60% số giờ còn lại chia đều cho tất cả (bao gồm cả tác giả chính)
+      // 60% số tiết còn lại chia đều cho tất cả (bao gồm cả tác giả chính)
       let soGioPerMember = parseFloat(
         ((soGio * 0.6) / (danhSachThanhVien.length + 1)).toFixed(2)
       );
 
-      // Gán số giờ cho thành viên
+      // Gán số tiết cho thành viên
       soGioThanhVien = Array(danhSachThanhVien.length).fill(soGioPerMember);
 
-      // Cộng thêm số giờ cho tác giả chính
+      // Cộng thêm số tiết cho tác giả chính
       soGioTacGia += soGioPerMember;
     }
 
     // Tách và format thông tin của tác giả chính
     if (tacGia) {
       const { name, unit } = extractNameAndUnit(tacGia);
-      body.tacGia = `${name} (${unit} - ${formatHour(soGioTacGia)} giờ)`.trim();
+      body.tacGia = `${name} (${unit} - ${formatHour(soGioTacGia)} tiết)`.trim();
     }
 
     // Tách và format thông tin của đồng chủ biên
@@ -999,7 +999,7 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
       const { name, unit } = extractNameAndUnit(dongChuBien);
       body.dongChuBien = `${name} (${unit} - ${formatHour(
         soGioDongChuBien
-      )} giờ)`.trim();
+      )} tiết)`.trim();
     }
 
     // Tách và format thông tin của thành viên
@@ -1009,14 +1009,14 @@ const quyDoiSachVaGiaoTrinh = async (body, MaBang) => {
           const { name, unit } = extractNameAndUnit(member);
           return `${name} (${unit} - ${formatHour(
             soGioThanhVien[index]
-          )} giờ)`.trim();
+          )} tiết)`.trim();
         })
         .join(", ");
     }
 
     return body;
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ sách và giáo trình:", error);
+    console.error("Lỗi khi quy đổi số tiết sách và giáo trình:", error);
     throw error;
   } finally {
     if (connection) connection.release();
@@ -1231,7 +1231,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
   const { phanLoai, danhSachThanhVien } = body;
 
-  let totalHours = 0; // Số giờ quy đổi từ cơ sở dữ liệu
+  let totalHours = 0; // Số tiết quy đổi từ cơ sở dữ liệu
   let thanhVienResult = "";
 
   let connection;
@@ -1240,7 +1240,7 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
     // Tạo kết nối từ pool
     connection = await createPoolConnection();
 
-    // Truy vấn số giờ tương ứng với loại NCKH và Huấn luyện từ cơ sở dữ liệu
+    // Truy vấn số tiết tương ứng với loại NCKH và Huấn luyện từ cơ sở dữ liệu
     const [rows] = await connection.execute(
       `SELECT SoGio FROM quydinhsogionckh WHERE NCKHHuanLuyenDoiTuyen = ? AND MaBang = ?`,
       [phanLoai, MaBang]
@@ -1248,10 +1248,10 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
 
     // Kiểm tra nếu có dữ liệu trả về
     if (rows.length > 0) {
-      totalHours = parseFloat(rows[0].SoGio.toString().replace(",", ".")) || 0; // Chuyển đổi số giờ
+      totalHours = parseFloat(rows[0].SoGio.toString().replace(",", ".")) || 0; // Chuyển đổi số tiết
     } else {
       throw new Error(
-        "Không tìm thấy thông tin số giờ cho loại NCKH và Huấn luyện này."
+        "Không tìm thấy thông tin số tiết cho loại NCKH và Huấn luyện này."
       );
     }
 
@@ -1260,7 +1260,7 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
       ? danhSachThanhVien
       : [];
 
-    // Tính số giờ chia đều cho các thành viên, làm tròn đến 2 chữ số
+    // Tính số tiết chia đều cho các thành viên, làm tròn đến 2 chữ số
     const hoursPerMember =
       participants.length > 0
         ? parseFloat((totalHours / participants.length).toFixed(2))
@@ -1277,9 +1277,9 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
         unit = split[1].trim();
       }
 
-      // Chuyển đổi số giờ về chuỗi có dấu `.`
+      // Chuyển đổi số tiết về chuỗi có dấu `.`
       const formattedHours = hoursPerMember.toFixed(2).replace(",", ".");
-      const formatted = `${name} (${unit} - ${formattedHours} giờ)`;
+      const formatted = `${name} (${unit} - ${formattedHours} tiết)`;
 
       // Gán vào danh sách thành viên
       thanhVienResult += (thanhVienResult ? ", " : "") + formatted;
@@ -1290,7 +1290,7 @@ const quyDoiSoGioNckhVaHuanLuyen = async (body, MaBang) => {
       thanhVien: thanhVienResult || null,
     };
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ NCKH và Huấn luyện:", error);
+    console.error("Lỗi khi quy đổi số tiết NCKH và Huấn luyện:", error);
     throw error;
   } finally {
     if (connection) connection.release(); // Trả lại kết nối cho pool
@@ -1508,7 +1508,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
     // Tạo kết nối từ pool
     connection = await createPoolConnection();
 
-    // Truy vấn số giờ từ cơ sở dữ liệu
+    // Truy vấn số tiết từ cơ sở dữ liệu
     const [rows] = await connection.execute(
       `SELECT SoGio FROM quydinhsogionckh WHERE XayDungCTDT = ? AND MaBang = ?`,
       [phanLoai, MaBang]
@@ -1520,11 +1520,11 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
       totalHours = parseFloat(String(rows[0].SoGio).replace(/,/g, ".")) || 0;
     } else {
       throw new Error(
-        "Không tìm thấy thông tin số giờ cho loại công việc này."
+        "Không tìm thấy thông tin số tiết cho loại công việc này."
       );
     }
 
-    // Nếu loại công việc có số tín chỉ hợp lệ, nhân với số giờ quy đổi (không làm tròn)
+    // Nếu loại công việc có số tín chỉ hợp lệ, nhân với số tiết quy đổi (không làm tròn)
     if (validSoTC > 0) {
       totalHours = totalHours * validSoTC;
     }
@@ -1535,7 +1535,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
         ? danhSachThanhVien
         : [];
 
-    // Tính số giờ chia đều cho các thành viên (không làm tròn)
+    // Tính số tiết chia đều cho các thành viên (không làm tròn)
     const hoursPerMember =
       participants.length > 0 ? parseFloat((totalHours / participants.length).toFixed(2)) : 0;
 
@@ -1543,7 +1543,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
     // Xử lý format đầu ra cho từng thành viên
     participants.forEach((participant) => {
       const { name, unit } = extractNameAndUnit(participant);
-      const formatted = `${name} (${unit} - ${hoursPerMember} giờ)`;
+      const formatted = `${name} (${unit} - ${hoursPerMember} tiết)`;
       thanhVienResult += (thanhVienResult ? ", " : "") + formatted;
     });
 
@@ -1551,7 +1551,7 @@ const quyDoiSoGioXayDungChuongTrinhDaoTao = async (body, MaBang) => {
       thanhVien: thanhVienResult || null,
     };
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ xây dựng chương trình đào tạo:", error);
+    console.error("Lỗi khi quy đổi số tiết xây dựng chương trình đào tạo:", error);
     throw error;
   } finally {
     if (connection) connection.release();
@@ -1708,7 +1708,7 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
       totalHours = parseFloat(rows[0].SoGio) || 0;
     } else {
       throw new Error(
-        "Không tìm thấy thông tin số giờ cho loại công việc này."
+        "Không tìm thấy thông tin số tiết cho loại công việc này."
       );
     }
 
@@ -1740,7 +1740,7 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
       const { name, unit } = extractNameAndUnit(tacGia);
       body.tacGia = `${name} (${unit} - ${soTietTacGia
         .toFixed(2)
-        .replace(",", ".")} giờ)`;
+        .replace(",", ".")} tiết)`;
     }
 
     if (danhSachThanhVien && Array.isArray(danhSachThanhVien)) {
@@ -1749,7 +1749,7 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
           const { name, unit } = extractNameAndUnit(member);
           return `${name} (${unit} - ${soTietThanhVien[index]
             .toFixed(2)
-            .replace(",", ".")} giờ)`.trim();
+            .replace(",", ".")} tiết)`.trim();
         })
         .join(", ");
     }
@@ -1757,7 +1757,7 @@ const quyDoiSoGioBienSoanGiaoTrinhBaiGiang = async (body, MaBang) => {
     return body;
   } catch (error) {
     console.error(
-      "Lỗi khi quy đổi số giờ biên soạn giáo trình/bài giảng:",
+      "Lỗi khi quy đổi số tiết biên soạn giáo trình/bài giảng:",
       error
     );
     throw error;
@@ -2618,7 +2618,7 @@ const editNckh = async (req, res) => {
     // Tạo một Set để theo dõi các giảng viên đã được xử lý tránh trùng lặp
     const processedLecturers = new Set();
 
-    // Hàm trích xuất tên giảng viên từ chuỗi có định dạng "Nguyễn Văn A ( KMA - 10 giờ )"
+    // Hàm trích xuất tên giảng viên từ chuỗi có định dạng "Nguyễn Văn A ( KMA - 10 tiết )"
     const extractLecturerName = (str) => {
       if (!str || typeof str !== 'string') return null;
       const tenMatch = str.match(/^([^(]+)/);
@@ -2824,7 +2824,7 @@ const saveSoTietNCKHBaoLuuSangNamAfterDelete = async (ID, MaBang, namHoc) => {
       // Set để theo dõi các giảng viên đã được xử lý
       const processedLecturers = new Set();
 
-      // Trích xuất tên giảng viên từ chuỗi dạng "Nguyễn Văn A ( KMA - 10 giờ )"
+      // Trích xuất tên giảng viên từ chuỗi dạng "Nguyễn Văn A ( KMA - 10 tiết )"
       const extractLecturerName = (str) => {
         if (!str || typeof str !== 'string') return null;
         const tenMatch = str.match(/^([^(]+)/);
@@ -3953,7 +3953,7 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
 
   let soGioChuNhiem = 0;
   let soGioThuKy = 0;
-  // Sử dụng biến string cho số giờ của thanhVien (và dùng chung cho phanBien, uyVien)
+  // Sử dụng biến string cho số tiết của thanhVien (và dùng chung cho phanBien, uyVien)
   let soGioThanhVienStr = "";
 
   try {
@@ -3976,7 +3976,7 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
       body.thanhVien = thanhVien
         .map(member => {
           const { name, unit } = extractNameAndUnit(member);
-          return `${name} (${unit} - ${soGioThanhVienStr} giờ)`.trim();
+          return `${name} (${unit} - ${soGioThanhVienStr} tiết)`.trim();
         })
         .join(", ");
     } else {
@@ -3985,12 +3985,12 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
       if (chuNhiem) {
         const { name, unit } = extractNameAndUnit(chuNhiem);
         soGioChuNhiem = parseFloat(data.ChuNhiem) || 0;
-        body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2).replace(",", ".")} giờ)`.trim();
+        body.chuNhiem = `${name} (${unit} - ${soGioChuNhiem.toFixed(2).replace(",", ".")} tiết)`.trim();
       }
       if (thuKy) {
         const { name, unit } = extractNameAndUnit(thuKy);
         soGioThuKy = parseFloat(data.ThuKy) || 0;
-        body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2).replace(",", ".")} giờ)`.trim();
+        body.thuKy = `${name} (${unit} - ${soGioThuKy.toFixed(2).replace(",", ".")} tiết)`.trim();
       }
       body.thanhVien = "";
 
@@ -4001,7 +4001,7 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
         body.phanBien = phanBien
           .map(member => {
             const { name, unit } = extractNameAndUnit(member);
-            return `${name} (${unit} - ${soGioStr} giờ)`.trim();
+            return `${name} (${unit} - ${soGioStr} tiết)`.trim();
           })
           .join(", ");
       } else {
@@ -4015,7 +4015,7 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
         body.uyVien = uyVien
           .map(member => {
             const { name, unit } = extractNameAndUnit(member);
-            return `${name} (${unit} - ${soGioStr} giờ)`.trim();
+            return `${name} (${unit} - ${soGioStr} tiết)`.trim();
           })
           .join(", ");
       } else {
@@ -4026,7 +4026,7 @@ const quyDoiSoGioNhiemVuKhoaHocCongNghe = async (body, MaBang) => {
     connection.release();
     return body;
   } catch (error) {
-    console.error("Lỗi khi quy đổi số giờ:", error);
+    console.error("Lỗi khi quy đổi số tiết:", error);
     throw error;
   }
 };
