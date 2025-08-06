@@ -78,39 +78,56 @@ const requestQuyChuanEdit = async (req, res) => {
     for (const update of updates) {
       const { data, colName, newValue, originalValue } = update;
       
-      // Kiểm tra xem có yêu cầu chỉnh sửa nào đang chờ duyệt cho cùng một lớp học phần không
-      const checkQuery = `
-        SELECT id FROM quy_chuan_edit_requests 
-        WHERE khoa = ? 
-        AND dot = ? 
-        AND ki_hoc = ? 
-        AND nam_hoc = ? 
-        AND lop_hoc_phan = ? 
-        AND status IS NULL
-      `;
+      // Lấy ten_lop từ dữ liệu gốc
+      const tenLop = data.TenLop || '';
       
-      const [existingRequests] = await connection.query(checkQuery, [
-        data.Khoa,
-        data.Dot,
-        data.KiHoc,
-        data.NamHoc,
-        data.LopHocPhan
-      ]);
+             // Kiểm tra xem có yêu cầu chỉnh sửa nào đang chờ duyệt cho cùng một lớp học phần và tên lớp không
+       const checkQuery = `
+         SELECT id FROM quy_chuan_edit_requests 
+         WHERE khoa = ? 
+         AND dot = ? 
+         AND ki_hoc = ? 
+         AND nam_hoc = ? 
+         AND lop_hoc_phan = ? 
+         AND ten_lop = ?
+         AND status IS NULL
+       `;
+       
+       const [existingRequests] = await connection.query(checkQuery, [
+         data.Khoa,
+         data.Dot,
+         data.KiHoc,
+         data.NamHoc,
+         data.LopHocPhan,
+         tenLop
+       ]);
 
-      // Nếu giá trị chỉnh sửa là rỗng, xóa request khỏi bảng quy_chuan_edit_requests
-      if (!newValue || newValue.trim() === "") {
-        await connection.query(
-          `DELETE FROM quy_chuan_edit_requests WHERE khoa = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND lop_hoc_phan = ? AND status IS NULL`,
-          [
-            data.Khoa,
-            data.Dot,
-            data.KiHoc,
-            data.NamHoc,
-            data.LopHocPhan
-          ]
-        );
-        continue;
-      }
+       // Debug log
+       console.log('Checking for existing requests:', {
+         khoa: data.Khoa,
+         dot: data.Dot,
+         ki_hoc: data.KiHoc,
+         nam_hoc: data.NamHoc,
+         lop_hoc_phan: data.LopHocPhan,
+         ten_lop: tenLop,
+         existingRequestsCount: existingRequests.length
+       });
+
+             // Nếu giá trị chỉnh sửa là rỗng, xóa request khỏi bảng quy_chuan_edit_requests
+       if (!newValue || newValue.trim() === "") {
+         await connection.query(
+           `DELETE FROM quy_chuan_edit_requests WHERE khoa = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ? AND lop_hoc_phan = ? AND ten_lop = ? AND status IS NULL`,
+           [
+             data.Khoa,
+             data.Dot,
+             data.KiHoc,
+             data.NamHoc,
+             data.LopHocPhan,
+             tenLop
+           ]
+         );
+         continue;
+       }
 
       // Nếu có yêu cầu đang chờ duyệt, cập nhật yêu cầu đó
       if (existingRequests.length > 0) {
@@ -129,23 +146,24 @@ const requestQuyChuanEdit = async (req, res) => {
         ]);
       } else {
         // Nếu không có yêu cầu đang chờ duyệt, tạo yêu cầu mới
-        // Lấy ten_lop từ bảng quychuan
-        const [rows] = await connection.query(
-          `SELECT TenLop FROM quychuan WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND LopHocPhan = ? LIMIT 1`,
-          [
-            data.Khoa,
-            data.Dot,
-            data.KiHoc,
-            data.NamHoc,
-            data.LopHocPhan
-          ]
-        );
-        const tenLop = rows[0]?.TenLop || '';
         const insertQuery = `
           INSERT INTO quy_chuan_edit_requests 
           (khoa, dot, ki_hoc, nam_hoc, lop_hoc_phan, ten_lop, column_name, old_value, new_value)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
+
+        // Debug log
+        console.log('Creating new request:', {
+          khoa: data.Khoa,
+          dot: data.Dot,
+          ki_hoc: data.KiHoc,
+          nam_hoc: data.NamHoc,
+          lop_hoc_phan: data.LopHocPhan,
+          ten_lop: tenLop,
+          colName,
+          old_value: originalValue,
+          new_value: newValue
+        });
 
         await connection.query(insertQuery, [
           data.Khoa,
@@ -341,6 +359,7 @@ const applyQuyChuanEdit = async (req, res) => {
       AND KiHoc = ? 
       AND NamHoc = ? 
       AND LopHocPhan = ?
+      AND TenLop = ?
     `;
 
     await connection.query(updateQuery, [
@@ -349,7 +368,8 @@ const applyQuyChuanEdit = async (req, res) => {
       request[0].dot,
       request[0].ki_hoc,
       request[0].nam_hoc,
-      request[0].lop_hoc_phan
+      request[0].lop_hoc_phan,
+      request[0].ten_lop
     ]);
 
     // Update the status instead of deleting
