@@ -147,7 +147,7 @@ const AdminController = {
             NgayCapCCCD, NoiCapCCCD, DiaChiHienNay, DiaChiCCCD, ChucVu, NoiCongTac,
             MaPhongBan, MaSoThue, SoTaiKhoan, NganHang, ChiNhanh,
             MonGiangDayChinh, CacMonLienQuan, HSL, Luong, PhanTramMienGiam, LyDoMienGiam, TinhTrangGiangDay
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const valuesInsert = [

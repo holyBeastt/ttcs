@@ -199,8 +199,12 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const khoa = <%= role.isKhoa %>;
+    const khoa = "<%= role.isKhoa %>"
+    const maPhongBan = "<%= role.MaPhongBan %>";
     const quyenSelect = document.getElementById('Quyen');
+
+    // Biến để xác định phòng Khảo Thí
+    const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && khoa === 0);
 
     // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
     if (khoa === 1) {
@@ -208,7 +212,14 @@
         <option value="GV">Giảng Viên</option>
         <option value="GV_CNBM">Giáo vụ - Chủ nhiệm bộ môn</option>
         <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+    } else if (phongKhaoThi) {
+      // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
+      quyenSelect.innerHTML = `
+        <option value="Lãnh đạo">Lãnh đạo</option>
+        <option value="Trợ lý">Trợ lý</option>
+        <option value="Thường">Thường</option>`;
     } else {
+      // Các phòng ban hành chính khác
       quyenSelect.innerHTML = `
         <option value="Duyệt">Duyệt</option>
         <option value="Thường">Thường</option>`;
@@ -336,13 +347,23 @@ fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
     const quyenSelect = document.getElementById('Quyen');
     quyenSelect.innerHTML = ''; // Xóa các option cũ
 
+    // Biến để xác định phòng Khảo Thí
+    const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && data.isKhoa === 0);
+
     // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
     if (data.isKhoa === 1) {
       quyenSelect.innerHTML = `
         <option value="GV">Giảng Viên</option>
         <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
         <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+    } else if (phongKhaoThi) {
+      // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
+      quyenSelect.innerHTML = `
+        <option value="Lãnh đạo">Lãnh đạo</option>
+        <option value="Trợ lý">Trợ lý</option>
+        <option value="Thường">Thường</option>`;
     } else {
+      // Các phòng ban hành chính khác
         quyenSelect.innerHTML = `
         <option value="Thường">Thường</option>
         <option value="Duyệt">Duyệt</option>`;
