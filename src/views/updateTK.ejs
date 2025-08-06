@@ -146,27 +146,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      // Helper function để decode HTML entities
+      function decodeHTMLEntities(text) {
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
-        const khoa = "<%= id.isKhoa %>";
-        const maPhongBan = "<%= id.MaPhongBan %>";
+        const khoa = parseInt("<%= id.isKhoa %>");
+        const maPhongBan = decodeHTMLEntities("<%= id.MaPhongBan %>");
         const quyenSelect = document.getElementById('Quyen');
+
+        // Debug: In ra giá trị để kiểm tra
+        console.log("khoa:", khoa, "maPhongBan:", maPhongBan);
 
         // Biến để xác định phòng Khảo Thí
         const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && khoa === 0);
+        console.log("phongKhaoThi:", phongKhaoThi);
 
         // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
         if (khoa === 1) {
+          console.log("Applying khoa = 1 permissions");
           quyenSelect.innerHTML = `
               <option value="GV">Giảng Viên</option>
               <option value="GV_CNBM">Giáo vụ - Chủ nhiệm bộ môn</option>
               <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
         } else if (phongKhaoThi) {
+          console.log("Applying KT&ĐBCL permissions");
           // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
           quyenSelect.innerHTML = `
               <option value="Lãnh đạo">Lãnh đạo</option>
               <option value="Trợ lý">Trợ lý</option>
               <option value="Thường">Thường</option>`;
         } else {
+          console.log("Applying default permissions");
           // Các phòng ban hành chính khác
           quyenSelect.innerHTML = `
               <option value="Duyệt">Duyệt</option>
@@ -214,7 +228,7 @@
             return response.json();
           })
           .then((data) => {
-            alert("Dữ liệu trả về từ server: " + JSON.stringify(data)); // Kiểm tra dữ liệu trả về từ server
+            console.log("Dữ liệu trả về từ server:", data); // Kiểm tra dữ liệu trả về từ server
             // Cập nhật giá trị vào các thẻ input
             document.getElementById("MaPhongBan").value =
               data.MaPhongBan || "Không có dữ liệu";
@@ -225,22 +239,29 @@
             const quyenSelect = document.getElementById("Quyen");
             quyenSelect.innerHTML = ""; // Xóa các option cũ
 
+            // Debug: In ra giá trị để kiểm tra
+            console.log("data.MaPhongBan:", data.MaPhongBan, "data.isKhoa:", data.isKhoa);
+
             // Biến để xác định phòng Khảo Thí
             const phongKhaoThi = (data.MaPhongBan === "KT&ĐBCL" && data.isKhoa === 0);
+            console.log("phongKhaoThi in fetchPhongBan:", phongKhaoThi);
 
             // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
             if (data.isKhoa === 1) {
+              console.log("Applying khoa = 1 permissions in fetchPhongBan");
               quyenSelect.innerHTML = `
           <option value="GV">Giảng Viên</option>
           <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
           <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
             } else if (phongKhaoThi) {
+              console.log("Applying KT&ĐBCL permissions in fetchPhongBan");
               // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
               quyenSelect.innerHTML = `
           <option value="Lãnh đạo">Lãnh đạo</option>
           <option value="Trợ lý">Trợ lý</option>
           <option value="Thường">Thường</option>`;
             } else {
+              console.log("Applying default permissions in fetchPhongBan");
               // Các phòng ban hành chính khác
               quyenSelect.innerHTML = `
           <option value="Duyệt">Duyệt</option>
@@ -255,7 +276,7 @@
             }
           })
           .catch((error) => {
-            alert("Lỗi khi lấy dữ liệu: " + error.message); // Xử lý lỗi nếu có
+            console.error("Lỗi khi lấy dữ liệu:", error.message); // Xử lý lỗi nếu có
           });
       }
     </script>

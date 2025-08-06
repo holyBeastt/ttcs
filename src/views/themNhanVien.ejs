@@ -244,8 +244,15 @@
     </script>
 
     <script>
+      // Helper function để decode HTML entities
+      function decodeHTMLEntities(text) {
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+      }
+
       function fetchQuyen() {
-        const maPhongBan = document.getElementById("MaPhongBan").value;
+        const maPhongBan = decodeHTMLEntities(document.getElementById("MaPhongBan").value);
         // Gọi API để lấy thông tin isKhoa
         fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
           .then((response) => response.json())

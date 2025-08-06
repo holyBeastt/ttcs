@@ -212,8 +212,8 @@
             const quyenSelect = document.getElementById("Quyen");
             quyenSelect.innerHTML = ""; // Xóa các option cũ
 
-            // Biến để xác định phòng Khảo Thí
-            const phongKhaoThi = (data.MaPhongBan === "KT&ĐBCL" && data.isKhoa === 0);
+            // Biến để xác định phòng Khảo Thí - xử lý cả trường hợp HTML encode
+            const phongKhaoThi = ((data.MaPhongBan === "KT&ĐBCL" || data.MaPhongBan === "KT&amp;ĐBCL") && data.isKhoa === 0);
 
             // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
             if (data.isKhoa === 1) {

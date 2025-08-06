@@ -198,9 +198,17 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
   <script>
+    // Helper function để decode HTML entities
+    function decodeHTMLEntities(text) {
+      const textArea = document.createElement('textarea');
+      textArea.innerHTML = text;
+      return textArea.value;
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
-    const khoa = "<%= role.isKhoa %>"
-    const maPhongBan = "<%= role.MaPhongBan %>";
+    const khoa = parseInt("<%= role.isKhoa %>");
+    // Decode HTML entities để xử lý trường hợp &amp; -> &
+    const maPhongBan = decodeHTMLEntities("<%= role.MaPhongBan %>");
     const quyenSelect = document.getElementById('Quyen');
 
     // Biến để xác định phòng Khảo Thí
@@ -339,7 +347,7 @@
   </script>
   <script>
     function fetchQuyen() {
-const maPhongBan = document.getElementById('MaPhongBan').value;
+const maPhongBan = decodeHTMLEntities(document.getElementById('MaPhongBan').value);
 // Gọi API để lấy thông tin isKhoa
 fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
   .then(response => response.json())
