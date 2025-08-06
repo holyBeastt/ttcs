@@ -519,7 +519,8 @@
       navLink_addFileQC.style.display = "none";
     }
 
-    if (maPhongBan !== "KT&ĐBCL" && (userRole !== "Lãnh đạo" || userRole !== "Trợ lý")) {
+    console.log(maPhongBan)
+    if (maPhongBan !== "KT&ĐBCL" || (userRole !== "Lãnh đạo" && userRole !== "Trợ lý")) {
       themFileKTHP.style.display = "none";
     }
   });
