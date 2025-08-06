@@ -45,6 +45,10 @@ function initializeRoleBasedUI() {
 
   if (isKhoa == 1) {
     hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+    if (role !== "Lãnh đạo khoa" && role !== "GV_CNBM") {
+      hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
+      document.getElementById("update-qc").style.display = "none"
+    }
   } else if (MaPhongBan === "KT&DBCL") {
   } else {
     hideTableHeadersByIds([
@@ -272,7 +276,7 @@ function renderSingleTable(tableBodyId, data, examType, role, MaPhongBan, isKhoa
     }
     tableRowData.push(rowWithId)
 
-    tableRow.setAttribute("data-id", row.MaGiangDay || `${examType}_${index}`)
+    tableRow.setAttribute("data-id", row.id || `${examType}_${index}`)
     tableRow.setAttribute("data-exam-type", examType)
 
     // Create table cells based on exam type
@@ -282,10 +286,32 @@ function renderSingleTable(tableBodyId, data, examType, role, MaPhongBan, isKhoa
   })
 }
 
+function createCellWithEditSupport(value, editable, fieldName, rowId = null) {
+  const td = document.createElement("td")
+  if (!editable) {
+    td.textContent = value
+  } else {
+    const input = document.createElement("input")
+    input.type = "text"
+    input.value = value
+    input.name = fieldName
+    input.className = "form-control form-control-sm"
+    if (rowId) input.dataset.id = rowId // nếu bạn cần track ID dòng
+    td.appendChild(input)
+  }
+  return td
+}
+
 // Create table cells based on exam type
 function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, index) {
   // Common cells
   const cells = []
+  let editable;
+  if (role === "Lãnh đạo khoa" || role === "GV_CNBM" || role === "Lãnh đạo" || role === "Trợ lý") {
+    editable = row.khoaduyet === 0;
+  } else {
+    editable = false; // Non-editable for other roles
+  }
   // STT
   const sttCell = document.createElement("td")
   sttCell.textContent = index + 1 // Use the passed index for STT
@@ -304,54 +330,51 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   cells.push(khoaCell)
 
   // tenHocPhan name
-  const tenHocPhanCell = document.createElement("td")
-  tenHocPhanCell.textContent = row.tenhocphan
-  cells.push(tenHocPhanCell)
+  cells.push(createCellWithEditSupport(row.tenhocphan, editable, "tenhocphan", row.id))
 
   //Lớp học phần
-    const lopHocPhanCell = document.createElement("td")
-    lopHocPhanCell.textContent = row.lophocphan
-    cells.push(lopHocPhanCell)
+  cells.push(createCellWithEditSupport(row.lophocphan, editable, "lophocphan", row.id))
 
-    // Đối tượng
-    const doiTuongCell = document.createElement("td")
-    doiTuongCell.textContent = row.doituong 
-    cells.push(doiTuongCell)
+  // Đối tượng
+  const doiTuongCell = document.createElement("td")
+  doiTuongCell.textContent = row.doituong
+  cells.push(doiTuongCell)
 
   // Exam type specific cells
   if (examType === "RaDe") {
     //Số đề
-    const soDeCell = document.createElement("td")
-    soDeCell.textContent = row.tongso 
-    cells.push(soDeCell)
+    cells.push(createCellWithEditSupport(row.tongso, editable, "tongso", row.id))
   } else if (examType === "CoiThi") {
     //Số ca thi
-    const soCaThiCell = document.createElement("td")
-    soCaThiCell.textContent = row.tongso 
-    cells.push(soCaThiCell)
+    cells.push(createCellWithEditSupport(row.tongso, editable, "tongso", row.id))
   } else if (examType === "ChamThi") {
     //Số bài chấm 1
-    const soBaiCham1Cell = document.createElement("td")
-    soBaiCham1Cell.textContent = row.baicham1 
-    cells.push(soBaiCham1Cell)
+    cells.push(createCellWithEditSupport(row.baicham1, editable, "baicham1", row.id))
     //Số bài chấm 2
-    const soBaiCham2Cell = document.createElement("td")
-    soBaiCham2Cell.textContent = row.baicham2 
-    cells.push(soBaiCham2Cell)
+    cells.push(createCellWithEditSupport(row.baicham2, editable, "baicham2", row.id))
     //Tổng số bài chấm
-    const tongSoBaiChamCell = document.createElement("td")
-    tongSoBaiChamCell.textContent = row.tongso 
-    cells.push(tongSoBaiChamCell)
+    cells.push(createCellWithEditSupport(row.tongso, editable, "tongso", row.id))
   }
 
   // Số tiết quy chuẩn
-  const qcCell = document.createElement("td")
-  qcCell.textContent = row.sotietqc
-  cells.push(qcCell)
+  cells.push(createCellWithEditSupport(row.sotietqc, editable, "sotietqc", row.id))
 
   // Notes
   const noteCell = createNoteCell(row, role, tableRow)
   cells.push(noteCell)
+
+  // Action cell
+  const actionCell = document.createElement("td")
+
+  actionCell.innerHTML = `
+    <button class="btn btn-sm btn-danger" 
+            onclick="deleteRow(${row.id})" 
+            ${editable ? '' : 'disabled'}>
+      <i class="bi bi-trash"></i>
+    </button>
+  `;
+
+  cells.push(actionCell)
 
   // Checkboxes
   const checkboxCells = createCheckboxCells(examType, row, tableRow, isKhoa, MaPhongBan)
@@ -360,7 +383,6 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   // Append all cells to row
   cells.forEach((cell) => tableRow.appendChild(cell))
 }
-
 // Create note cell
 function createNoteCell(row, role, tableRow) {
   const ghiChuTd = document.createElement("td")
@@ -392,6 +414,7 @@ function createNoteCell(row, role, tableRow) {
 
 // Create checkbox cells
 function createCheckboxCells(tab, row, tableRow, isKhoa, MaPhongBan) {
+  const userRole = localStorage.getItem("userRole")
   const cells = []
 
   // Khoa approval checkbox
@@ -421,8 +444,11 @@ function createCheckboxCells(tab, row, tableRow, isKhoa, MaPhongBan) {
   // Ẩn ô nếu là khoa
   if (isKhoa === "1") {
     khaoThiCell.style.display = "none"
+    if (userRole !== "Lãnh đạo khoa" && userRole !== "GV_CNBM") {
+      khoaCell.style.display = "none"
+    }
   } else {
-    if (MaPhongBan !== "KT&DBCL") {
+    if (MaPhongBan !== "KT&ĐBCL") {
       khaoThiCell.style.display = "none"
       khoaCell.style.display = "none"
     }
@@ -434,8 +460,6 @@ function createCheckboxCells(tab, row, tableRow, isKhoa, MaPhongBan) {
     khaoThiCheckbox.disabled = true
   }
 
-  updateCheckAll(tab,"KhaoThi")
-  updateCheckAll(tab,"Khoa")
   return cells
 }
 
@@ -505,16 +529,16 @@ function checkAll(tab, type) {
 function getColumnIndex(tab, type) {
   const columnMap = {
     RaDe: {
-      Khoa: 10,
-      KhaoThi: 11,
+      Khoa: 11,
+      KhaoThi: 12,
     },
     CoiThi: {
-      Khoa: 10,
-      KhaoThi: 11,
+      Khoa: 11,
+      KhaoThi: 12,
     },
     ChamThi: {
-      Khoa: 12,
-      KhaoThi: 13,
+      Khoa: 13,
+      KhaoThi: 14,
     },
   }
 
@@ -646,6 +670,82 @@ async function updateDuyet() {
     showAlert("Có lỗi xảy ra khi cập nhật dữ liệu", "error")
     console.error(error)
   }
+}
+
+const columnDefs = {
+  raDe: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC'],
+  coiThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC'],
+  chamThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC']
+};
+
+async function saveDataToServer() {
+  try {
+    let dataTam = []
+
+    const kiValue = document.getElementById('comboboxki').value;
+    const namValue = document.getElementById('NamHoc').value;
+    const raDeData = extractEditedData('raDeTableContainer', columnDefs.raDe, 'Ra Đề');
+    const coiThiData = extractEditedData('coiThiTableContainer', columnDefs.coiThi, 'Coi Thi');
+    const chamThiData = extractEditedData('chamThiTableContainer', columnDefs.chamThi, 'Chấm Thi');
+
+    // Cập nhật lại dataTam
+    dataTam = [...raDeData, ...coiThiData, ...chamThiData];
+
+    console.log('Data to be sent:', dataTam);
+
+    const response = await fetch('/vuotGioCuoiKi/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Ki: kiValue,
+        Nam: namValue,
+        data: dataTam // Truyền thêm dataTam
+      })
+    });
+
+    if (!response.ok) throw new Error('Thêm dữ liệu thất bại');
+      const data = await response.json();
+      showAlert('Dữ liệu đã được thêm thành công!', 'success');
+
+    if (data.success) location.reload();
+  } catch (error) {
+    showAlert( error.message || messages.error, 'error');
+    console.error('Error:', error);
+  }
+}
+
+function extractEditedData(containerId, columnList, examType) {
+  const tbody = document.querySelector(`#${containerId} tbody`);
+  if (!tbody) return [];
+
+  const rows = tbody.querySelectorAll('tr');
+  console.log(`Extracting data for ${examType}...`, rows);
+  const data = [];
+
+  rows.forEach((row) => {
+    const rowData = { loai: examType };
+    const cells = row.querySelectorAll('td');
+
+    columnList.forEach((colName, index) => {
+      const cell = cells[index];
+      if (!cell) return;
+
+      const input = cell.querySelector('input');
+      if (input) {
+        rowData[colName] = input.value.trim();
+      } else {
+        rowData[colName] = cell.textContent.trim();
+      }
+    });
+
+    // Nếu có id dòng (gợi ý: <tr data-id="...">)
+    const rowId = row.dataset.id || row.getAttribute('data-id');
+    if (rowId) rowData.id = rowId;
+
+    data.push(rowData);
+  });
+
+  return data;
 }
 
 

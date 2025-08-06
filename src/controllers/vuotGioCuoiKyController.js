@@ -308,8 +308,8 @@ const saveWorkloadData = async (req, res) => {
         soBaiCham2 = 0,
         tongSoBai = 0,
         soTietQC = 0,
-        khoaduyet = 1, // Mặc định là 0 nếu không có
-        khaothiduyet = 1, // Mặc định là 0 nếu không có
+        khoaduyet = 0, // Mặc định là 0 nếu không có
+        khaothiduyet = 0, // Mặc định là 0 nếu không có
         Type
       } = item;
 
@@ -509,7 +509,7 @@ const updateMyData = async (req, res) => {
     const conn = await createPoolConnection();
 
     for (const item of dataList) {
-      const { loai, id } = item; // Lấy loai và id từ từng phần tử trong mảng
+      const { loai, id, tenHocPhan, lopHocPhan } = item; // Lấy loai và id từ từng phần tử trong mảng
       let section, soBaiCham1, soBaiCham2, tongSoBai, soTietQC;
 
       if (loai === "Ra Đề") {
@@ -535,11 +535,13 @@ const updateMyData = async (req, res) => {
 
       const query = `
         UPDATE ketthuchocphan 
-        SET hinhthuc = ?, baicham1 = ?, baicham2 = ?, tongso = ?, sotietqc = ?
+        SET tenhocphan = ?, lophocphan = ?, hinhthuc = ?, baicham1 = ?, baicham2 = ?, tongso = ?, sotietqc = ?
         WHERE id = ?
       `;
 
       await conn.query(query, [
+        tenHocPhan,
+        lopHocPhan,
         section,
         soBaiCham1 || 0,
         soBaiCham2 || 0,

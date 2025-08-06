@@ -273,8 +273,10 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   //Lớp học phần
     cells.push(createCellWithEditSupport(row.lophocphan, row.khoaduyet === 0, "lophocphan", row.id))
 
-    // Đối tượng
-    cells.push(createCellWithEditSupport(row.doituong, row.khoaduyet === 0, "doituong", row.id))
+  // Đối tượng
+  const doiTuongCell = document.createElement("td")
+  doiTuongCell.textContent = row.doituong
+  cells.push(doiTuongCell)
 
   // Exam type specific cells
   if (examType === "RaDe") {
