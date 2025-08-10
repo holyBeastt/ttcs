@@ -266,7 +266,7 @@
       });
 
       function unhideButton2(role, MaPhongBan) {
-        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+        if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
           const addBtn = document.getElementById("add-row-btn");
           const exportBtn = document.getElementById("export-file-btn");
           const saveBtn = document.getElementById("save-btn");
@@ -563,7 +563,7 @@
           return column;
         });
 
-        if (role === "Duyệt" && MaPhongBan == "DAOTAO") {
+        if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
           columns.push({
             title: "Xóa",
             field: "actions",

@@ -453,7 +453,7 @@
                   <button class="action-button edit"
                     onclick="editClass(this, '${parseInt(item.id_Gvm)}')"
                     ${
-                      item.khoa_duyet === 1 || isKhoa == 0 || role == "GV"
+                      item.khoa_duyet === 1 || isKhoa == 0 || role == APP_ROLES.gv_khoa
                         ? "disabled style='cursor: not-allowed;'"
                         : ""
                     }>
@@ -482,14 +482,14 @@
 
               let isDisabled = true;
 
-              if (item.khoa_duyet == 0 && role === "Lãnh đạo khoa")
+              if (item.khoa_duyet == 0 && role === APP_ROLES.lanhDao_khoa)
                 isDisabled = false;
 
               if (
                 item.khoa_duyet == 1 &&
-                (MaPhongBan === "BGĐ" ||
-                  (MaPhongBan == "DAOTAO" &&
-                    role == "Duyệt" &&
+                (MaPhongBan === APP_DEPARTMENTS.banGiamDoc ||
+                  (MaPhongBan == APP_DEPARTMENTS.daoTao &&
+                    (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) &&
                     item.dao_tao_duyet == 0))
               ) {
                 isDisabled = false;
@@ -504,7 +504,7 @@
               daoTaoCheckbox.type = "checkbox";
               daoTaoCheckbox.name = "daoTaoCheckBox";
               daoTaoCheckbox.checked = item.dao_tao_duyet; // Kiểm tra trạng thái duyệt
-              daoTaoCheckbox.onchange = () => updateCheckAll("daoTao"); // Gọi hàm khi checkbox thay đổi
+              daoTaoCheckbox.onchange = () => updateCheckAll("<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"); // Gọi hàm khi checkbox thay đổi
 
               // Điều kiện disable đào tạo
               isDisabled = true;
@@ -512,13 +512,13 @@
               if (
                 item.khoa_duyet == 1 &&
                 item.dao_tao_duyet == 0 &&
-                role === "Duyệt" &&
-                MaPhongBan === "DAOTAO"
+                (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) &&
+                MaPhongBan === APP_DEPARTMENTS.daoTao
               ) {
                 isDisabled = false;
               }
 
-              if (item.dao_tao_duyet == 1 && MaPhongBan === "BGĐ") {
+              if (item.dao_tao_duyet == 1 && MaPhongBan === APP_DEPARTMENTS.banGiamDoc) {
                 isDisabled = false;
               }
 
@@ -535,7 +535,7 @@
               hocVienCheckbox.onchange = () => updateCheckAll("hocVien"); // Gọi hàm khi checkbox thay đổi
 
               hocVienCheckbox.disabled =
-                MaPhongBan != "BGĐ" || // Chỉ bật nếu là Học viện
+                MaPhongBan != APP_DEPARTMENTS.banGiamDoc || // Chỉ bật nếu là Học viện
                 item.dao_tao_duyet === 0; // Khóa nếu đào tạo chưa duyệt
               hocVienCheckboxTd.appendChild(hocVienCheckbox);
             });
@@ -707,7 +707,7 @@
             let unchecked = false;
 
             if (
-              MaPhongBan === "BGĐ" &&
+              MaPhongBan === APP_DEPARTMENTS.banGiamDoc &&
               globalData[id_Gvm].dao_tao_duyet == 1 &&
               daoTaoChecked == 0
             ) {

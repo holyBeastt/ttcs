@@ -707,7 +707,7 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        if (role == "Duyệt" && MaPhongBan == "VP") {
+        if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
           // Show the 3 buttons
           $('#approveContractBtn').show();
           $('#unapproveContractBtn').show();

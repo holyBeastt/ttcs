@@ -9,6 +9,9 @@ const login = require("./routes/loginRoute");
 // config engine template
 const configViewEngine = require("./config/viewEngine");
 
+// Middleware for constants
+const constantsMiddleware = require("./middlewares/constantsMiddleware");
+
 // Cấu hình đường dẫn routes
 const webRoutes = require("./routes/web");
 const createGvmRoutes = require("./routes/createGvmRoute");
@@ -66,6 +69,9 @@ const app = express();
 const port = process.env.port || 8888;
 const hostname = process.env.HOST_NAME;
 
+// Gọi middleware lấy roles và departments
+app.use(constantsMiddleware);
+
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
 app.use(express.json());
@@ -76,9 +82,9 @@ configViewEngine(app);
 // cấu hình session cho login
 //app.use(express.urlencoded({ extended: true }));
 // app.use(
-  //   session({
-    //     secret: "your_secret_key",
-    //     resave: false,
+//   session({
+//     secret: "your_secret_key",
+//     resave: false,
 //     saveUninitialized: true,
 //     cookie: { secure: false }, // set secure: true nếu bạn sử dụng HTTPS
 //   })

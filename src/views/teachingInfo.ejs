@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
   <style>
     .container {
       position: relative;
@@ -564,7 +565,7 @@
           const importDoAn = document.getElementById('importDoAn');
           const suaHD = document.getElementById('suaHD');
 
-          if (isKhoa == 0 && role == 'Duyệt') {
+          if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
             importDoAn.style.display = 'block';
             suaHD.style.display = 'block';
           }
@@ -576,7 +577,7 @@
             } else {
               actionButton1.style.display = 'inline-block'; // Hiện actionButton1 nếu isKhoa khác 0
               actionButton2.style.display = 'none'; // Ẩn actionButton2
-              if (role.toLowerCase() == 'gv') {
+              if (role.toLowerCase() == APP_ROLES.gv.toLowerCase()) {
                 actionButton1.style.display = 'none'; // Hiện actionButton1 nếu isKhoa khác 0
               }
             }
@@ -584,7 +585,7 @@
             console.log('Không tìm thấy các nút actionButton1 hoặc actionButton2');
           }
           //Ẩn site duyệt lớp gk
-          if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+          if (role === APP_ROLES.lanhDao_khoa || role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
             actionButton3.style.display = '';
           } else {
             actionButton3.style.display = 'none';
@@ -606,7 +607,7 @@
 
         // Nếu role là 1 trong 3 giá trị sau thì hiển thị cột, ngược lại thì ẩn
         if (1 == 1) {
-          if (role != "Lãnh đạo khoa") {
+          if (role != APP_ROLES.lanhDao_khoa) {
             document.getElementById("checkAllKhoa").disabled = true;
           }
           document.getElementById('khoaColumn').style.display = 'table-cell';
@@ -1198,7 +1199,7 @@
             const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
             const deadlineValue = row.Deadline || ""; // Lấy giá trị Deadline
             const hoanThanh = row.HoanThanh;
-            if (role === 'GV' || role === 'Thường') {
+            if (role === APP_ROLES.gv || role === APP_ROLES.thuong) {
               ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
               ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
               ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
@@ -1223,7 +1224,7 @@
             khoaCheckboxTd = document.createElement('td');
             khoaCheckbox = document.createElement('input');
             khoaCheckbox.disabled = true;
-            if (role == "Lãnh đạo khoa") {
+            if (role == APP_ROLES.lanhDao_khoa) {
               khoaCheckbox.disabled = false;
               khoaCheckbox.onchange = () => updateCheckAll('khoa');
             }
@@ -1255,7 +1256,7 @@
 
 
             // Điều kiện ẩn checkbox Khoa nếu role không phải "CNTT_ALL"
-            if (role != "Lãnh đạo khoa") {
+            if (role != APP_ROLES.lanhDao_khoa) {
               khoaCheckbox.disabled = true;
               daoTaoCheckbox.disabled = true;
               VPCheckbox.disabled = true;
@@ -1264,7 +1265,7 @@
 
             // Nếu Lãnh đạo khoa đã duyệt, thi hành sẽ không nhập được
             // Nếu role là giảng viên thường cũng sẽ không nhập được
-            if (role == "GV" || row.KhoaDuyet == 1) {
+            if (role == APP_ROLES.gv || row.KhoaDuyet == 1) {
               inviteCheckbox.disabled = true
               giaoVienGiangDayInput.disabled = true;
               boMonInput.disabled = true;
@@ -1288,7 +1289,7 @@
                 // Ngăn người dùng thay đổi trạng thái ngày kết thúc
                 ngayKetThucInput.disabled = true;
 
-                if (role == "Lãnh đạo khoa") {
+                if (role == APP_ROLES.lanhDao_khoa) {
                   khoaCheckbox.disabled = true;
 
                   // Ngăn checkbox tổng của 'khoa' không cho thay đổi
@@ -2155,7 +2156,7 @@
         // Nếu quyền GV ẩn nút cập nhật và chèn ngày
         const role = localStorage.getItem("userRole");
 
-        if (role == 'GV') {
+        if (role == APP_ROLES.gv) {
           document.getElementById('update-qc').style.display = 'none';
           document.getElementById('fillDay').style.display = 'none';
           document.getElementById('batdau').style.display = 'none';
@@ -2261,7 +2262,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

@@ -1,3 +1,12 @@
+<script>
+  // gắn roles, departments từ server
+  window.APP_ROLES = <%- JSON.stringify(APP_ROLES) %>;
+  window.APP_DEPARTMENTS = <%- JSON.stringify(APP_DEPARTMENTS) %>;
+
+  var APP_ROLES = window.APP_ROLES;
+  var APP_DEPARTMENTS = window.APP_DEPARTMENTS;
+</script>
+
 <style>
   .badge {
     background-color: red;
@@ -30,8 +39,7 @@
   <!-- Phần dưới của navbar chứa các mục nằm ngang -->
   <nav class="navbar navbar-expand-lg navbar-bottom sticky-top">
     <div class="" style="width: 100%">
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" style="width: 100%" id="navbarNav">
@@ -42,8 +50,7 @@
           <!--  -->
           <div class="navbar-nav" id="tkb-nav">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Thời khóa biểu
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -80,8 +87,7 @@
               </div>
             </div> -->
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Giảng Viên Mời
                 <span id="gvm-badge" class="badge">0</span>
               </a>
@@ -103,27 +109,24 @@
           </div>
           <div class="navbar-nav" id="nav-quychuan">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Bảng Quy Chuẩn
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle themFile" style="display: none" href="#"
-                    id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thêm file</a>
+                  <a class="nav-link dropdown-toggle themFile" style="display: none" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thêm file</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link" href="/import" id="addNewFileQCDK" style="width: 100%">Thêm file quy chuẩn dự
                       kiến</a>
                     <a class="nav-link" id="" href="/importDoAn">Thêm file ĐATN chính thức</a>
-                    
+
                   </div>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
                   <a class="nav-link" id="" href="/importkthp">Thêm file kết thúc hp</a>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Bảng quy chuẩn dự kiến</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Bảng quy chuẩn dự kiến</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link" href="/tableTam">Bảng quy chuẩn dự kiến</a>
                     <!-- <a class="nav-link" id="" href="/getVuotGioDoAnDuKienSite"
@@ -132,24 +135,21 @@
                   </div>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Bảng quy chuẩn chính thức</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Bảng quy chuẩn chính thức</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link" href="/tableQC">Bảng quy chuẩn chính thức</a>
                     <a class="nav-link" href="/doAnChinhThuc">Bảng ĐATN chính thức</a>
                   </div>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Thông tin giảng viên theo lớp</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thông tin giảng viên theo lớp</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link" id="ThongTinGD" href="#">Thông tin giảng viên theo lớp</a>
                     <a class="nav-link" id="" href="/thongTinDoAnTotNghiep">Thông tin đồ án tốt nghiệp</a>
                   </div>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Yêu cầu chỉnh sửa</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Yêu cầu chỉnh sửa</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link" id="" href="/chinhSuaQuyChuan">Yêu cầu chỉnh sửa quy chuẩn chính thức</a>
                     <a class="nav-link" id="" href="/chinhSuaDoAn">Yêu cầu chỉnh sửa đồ án chính thức</a>
@@ -161,25 +161,21 @@
           </div>
           <div class="navbar-nav" id="nav-moigiang">
             <div class="nav-item dropdown" style="width: max-content">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Mời Giảng
               </a>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="nav-link"
-                  href="/xemCacLopGvm">Xem các lớp mời</a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="nav-link" href="/xemCacLopGvm">Xem các lớp mời</a>
                 <a class="nav-link text-nowrap" href="/classInfoGvm">Thống kê lớp mời theo giảng viên</a>
                 <a class="nav-link" href="/hopDongDuKien" role="button">Hợp đồng dự kiến</a>
                 <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
-                    aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown" aria-expanded="false">Tài chính - Duyệt hợp đồng</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
                     <a class="nav-link" href="/duyet-hop-dong">Hợp đồng mời giảng</a>
                     <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
                   </div>
                 </div>
                 <div class="dropdown-submenu" id="nav-tao-so-hop-dong" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown"
-                    aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContract" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownContract">
                     <a class="nav-link" href="/sohopdong">Hợp đồng mời giảng</a>
                     <a class="nav-link" href="/sohopdong-doan">Hợp đồng đồ án</a>
@@ -196,8 +192,7 @@
           </div>
           <div class="navbar-nav" id="nav-vuotgio">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Vượt Giờ
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -215,8 +210,7 @@
           </div>
           <div class="navbar-nav" id="nav-nckh">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Nghiên Cứu Khoa Học
               </a>
               <div id="nckhNav" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -237,8 +231,7 @@
           </div>
           <div class="navbar-nav" id="nav-doan">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Đồ Án
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -253,14 +246,12 @@
 
           <div class="navbar-nav" id="nav-thongke">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Thống Kê
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <div class="dropdown-submenu">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Giảng Dạy</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Giảng Dạy</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link dropdown-item1" href="/ThongkeMG">Mời Giảng</a>
                     <a class="nav-link dropdown-item1" href="/thongkevuotgio">Vượt Giờ</a>
@@ -268,8 +259,7 @@
                   </div>
                 </div>
                 <div class="dropdown-submenu">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown"
-                    aria-expanded="false">Thống kê chi tiết</a>
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Thống kê chi tiết</a>
                   <div class="dropdown-menu1" aria-labelledby="navbarDropdownTeaching">
                     <a class="nav-link dropdown-item" href="/thongkeChiTietMG">Chi tiết mời giảng</a>
                     <a class="nav-link" id="" href="/tonghopsotietnckh">Tổng hợp số tiết NCKH</a>
@@ -284,8 +274,7 @@
 
           <div class="navbar-nav" id="nav-hethong">
             <div class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-                aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
                 Hệ Thống
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -297,8 +286,7 @@
         </ul>
         <div class="navbar-nav">
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown"
-              aria-expanded="false">
+            <a class="nav-link dropdown-toggle fullname" href="/login" id="navbarDropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
               Lỗi Server, Vui lòng đăng nhập lại!
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -334,7 +322,7 @@
   });
 
   // Hàm xử lý trạng thái active
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function() {
     // Lấy đường dẫn hiện tại
     const currentPath = window.location.pathname;
 
@@ -374,7 +362,7 @@
   });
 
   // Phần phân quyền
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function() {
     const isKhoa = localStorage.getItem("isKhoa");
     const role = localStorage.getItem("userRole");
     const MaPhongBan = localStorage.getItem("MaPhongBan");
@@ -387,12 +375,12 @@
       const actionButtonBackup = document.getElementById("backup-btn");
       const navTaoSoHopDong = document.getElementById("nav-tao-so-hop-dong");
 
-      if (isKhoa === "0" || role === "GV") {
+      if (isKhoa === "0" || role === APP_ROLES.gv) {
         addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
       }
 
-      // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "Duyệt" và MaPhongBan "DAOTAO"
-      if (role === "Duyệt" && MaPhongBan === "DAOTAO") {
+      // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "<%= APP_ROLES.troLy_phong %>" và MaPhongBan "<%= APP_DEPARTMENTS.daoTao %>"
+      if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
         navTaoSoHopDong.style.display = "block";
       } else {
         navTaoSoHopDong.style.display = "none";
@@ -405,21 +393,21 @@
       const addNewTKB = document.getElementById("add-new-tkb");
 
       // Chỉ đào tạo (duyệt) được quyền thao tác với thêm TKB, thêm file và sửa hợp đồng
-      if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+      if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
         themFile.style.display = "block";
         suaHD.style.display = "block";
         addNewTKB.style.display = "block";
       }
 
       if (
-        role === "Lãnh đạo khoa" ||
-        (MaPhongBan === "DAOTAO" && role === "Duyệt")
+        role === APP_ROLES.lanhDao_khoa ||
+        (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong))
       ) {
         actionButton3.style.display = "";
       } else {
         actionButton3.style.display = "none";
       }
-      if (MaPhongBan === "DAOTAO" && role === "Duyệt") {
+      if (MaPhongBan === APP_DEPARTMENTS.daoTao && (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong)) {
         actionButtonBackup.style.display = "";
       } else {
         actionButtonBackup.style.display = "none";
@@ -427,8 +415,11 @@
     }
     const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
     let Role = role;
-    if (Role.toUpperCase() == "LÃNH ĐẠO KHOA") {
+    if (Role.toUpperCase() == APP_ROLES.lanhDao_khoa.toUpperCase()) {
       Role = "LĐK";
+    }
+    if (Role.toUpperCase() == APP_ROLES.lanhDao_phong.toUpperCase()) {
+      Role = "LĐP";
     }
     if (TenNhanVien) {
       // Hiển thị tên người dùng trên phần tử HTML
@@ -440,7 +431,7 @@
     // Ẩn thêm thông báo nếu không phải đào tạo hoặc tài chính
     const actionButton = document.getElementById("changeMessage");
     //Ẩn site thêm thông báo
-    if (role === "Duyệt") {
+    if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
       actionButton.style.display = "";
     } else {
       actionButton.style.display = "none";
@@ -451,7 +442,7 @@
 
 <!-- phân quyền nckh -->
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function() {
     let maPhongBan = localStorage.getItem("MaPhongBan");
     let userRole = localStorage.getItem("userRole");
     let isKhoa = localStorage.getItem("isKhoa");
@@ -472,7 +463,7 @@
     let themFileKTHP = document.getElementById("addFileKTHP");
 
     // nckh xem 4 mục đầu, đào tạo 5 mục sau, giáo vụ thi hành all, lãnh đạo khoa all
-    if (maPhongBan === "NC&HTPT" && userRole === "Duyệt") {
+    if (maPhongBan === APP_DEPARTMENTS.ncHtpt && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "block";
       links[1].style.display = "block";
       links[2].style.display = "none";
@@ -484,7 +475,7 @@
       links[8].style.display = "block";
       links[9].style.display = "block";
       links[10].style.display = "block";
-    } else if (maPhongBan === "DAOTAO" && userRole === "Duyệt") {
+    } else if (maPhongBan === APP_DEPARTMENTS.daoTao && (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong)) {
       links[0].style.display = "none";
       links[1].style.display = "none";
       links[2].style.display = "block";
@@ -500,7 +491,7 @@
 
     // phòng nckh chỉ hiển thị nckh, log, thống kê
     // quyền thường, gv nhót
-    if (maPhongBan === "NC&HTPT") {
+    if (maPhongBan === APP_DEPARTMENTS.ncHtpt) {
       gvmNav.style.display = "none";
       quychuanNav.style.display = "none";
       moigiangNav.style.display = "none";
@@ -509,18 +500,18 @@
       tkbNav.style.display = "none";
     }
 
-    // else if (userRole == "GV" || userRole == "Thường") {
+    // else if (userRole == APP_ROLES.gv || userRole == APP_ROLES.thuong) {
     //   nckhNav.style.display = "none";
     // }
 
     // Tài chính không hiển thị tkb, thêm file qc
-    if (maPhongBan === "VP") {
+    if (maPhongBan === APP_DEPARTMENTS.vanPhong) {
       tkbNav.style.display = "none";
       navLink_addFileQC.style.display = "none";
     }
 
     console.log(maPhongBan)
-    if (maPhongBan !== "KT&ĐBCL" || (userRole !== "Lãnh đạo" && userRole !== "Trợ lý")) {
+    if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
       themFileKTHP.style.display = "none";
     }
   });
@@ -564,7 +555,7 @@
 <script>
   document
     .getElementById("changePasswordLink")
-    .addEventListener("click", function (event) {
+    .addEventListener("click", function(event) {
       event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
       const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
 

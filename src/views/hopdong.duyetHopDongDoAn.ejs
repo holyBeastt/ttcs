@@ -821,7 +821,7 @@
           if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
             displayContractDataInSeparateTables(response.groupedByTeacher, response.enhancedGroupedByTeacher, response.SoTietDinhMuc || 0);
             showSuccess('Tải dữ liệu thành công');
-            if (role == "Duyệt" && MaPhongBan == "VP") {
+            if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
               $('#approveContractBtn, #unapproveContractBtn, #saveDataDoAn').show();
             }
           } else {
@@ -830,7 +830,7 @@
         } else if (type === 'hedaotao') {
           if (response.success && response.data && response.data.length > 0) {
             showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo.`);
-            if (role == "Duyệt" && MaPhongBan == "VP") {
+            if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
               $('#approveContractBtn, #saveDataDoAn').hide();
               displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);
             }
@@ -2088,7 +2088,7 @@
         showActionColumns();
       });
       function hideBtn(role, MaPhongBan) {
-        if (role == "Duyệt" && MaPhongBan == "VP") {
+        if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
           const control = document.getElementById("control");
           control.style.display = "none"; //
         }
@@ -2098,7 +2098,7 @@
       function showActionColumns() {
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
-        const shouldShowActions = (role == "Duyệt" && MaPhongBan == "VP");
+        const shouldShowActions = ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong);
 
         // Control action column headers
         const actionHeader1 = document.getElementById("action-header-1");

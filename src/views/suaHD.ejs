@@ -314,7 +314,7 @@
       // Ẩn button ngay khi trang được tải
       const actionButton = document.getElementById('changeMessage');
       //Ẩn site thêm thông báo
-      if (role === "Duyệt") {
+      if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
         actionButton.style.display = '';
       } else {
         actionButton.style.display = 'none';

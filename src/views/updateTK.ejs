@@ -1,55 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sửa Tài Khoản</title>
-    <link rel="stylesheet" href="/css/admin.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-  </head>
-  <style>
-    #suggestionBox {
-      position: absolute;
-      z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần khác */
-      background-color: white; /* Để nội dung rõ ràng */
-      border: 1px solid #ccc;
-      width: 200px; /*Căn theo độ rộng của input */
-      max-height: 200px; /* Giới hạn chiều cao */
-      overflow-y: auto; /* Thêm thanh cuộn nếu danh sách quá dài */
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Đổ bóng cho đẹp */
-    }
 
-  </style>
-  </style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sửa Tài Khoản</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<style>
+  #suggestionBox {
+    position: absolute;
+    z-index: 9999;
+    /* Đảm bảo hiển thị trên tất cả các phần khác */
+    background-color: white;
+    /* Để nội dung rõ ràng */
+    border: 1px solid #ccc;
+    width: 200px;
+    /*Căn theo độ rộng của input */
+    max-height: 200px;
+    /* Giới hạn chiều cao */
+    overflow-y: auto;
+    /* Thêm thanh cuộn nếu danh sách quá dài */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    /* Đổ bóng cho đẹp */
+  }
+</style>
+</style>
 
-  <body>
-    <%- include('adminHeader') %>
-    
+<body>
+  <%- include('adminHeader') %>
+
     <div class="container my-5 box">
       <h2>Sửa Tài Khoản</h2>
-      <form
-        id="themTK"
-        action="/updateTK/<%= accountList.TenDangNhap %>"
-        method="POST"
-      >
+      <form id="themTK" action="/updateTK/<%= accountList.TenDangNhap %>" method="POST">
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="username" class="form-label">Tên Nhân Viên</label>
-            <input
-              class="form-control"
-              type="text"
-              id="TenNhanVien"
-              onkeyup="suggest()"
-              value="<%= id.TenNhanVien %>"
-            />
+            <input class="form-control" type="text" id="TenNhanVien" onkeyup="suggest()"
+              value="<%= id.TenNhanVien %>" />
             <div id="suggestionBox"></div>
           </div>
         </div>
@@ -57,25 +48,14 @@
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="username" class="form-label">Tên đăng nhập</label>
-            <input
-              type="text"
-              class="form-control"
-              id="TenDangNhap"
-              name="TenDangNhap"
-              value="<%= accountList.TenDangNhap %>"
-              readonly
-            />
+            <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap"
+              value="<%= accountList.TenDangNhap %>" readonly />
           </div>
         </div>
         <div class="row mb-3" hidden>
           <div class="col-md-4 input-wrapper">
             <label for="id_User" class="form-label">id_User</label>
-            <input
-              type="text"
-              name="id_User"
-              id="id_User"
-              value="<%= id.id_User %>"
-            />
+            <input type="text" name="id_User" id="id_User" value="<%= id.id_User %>" />
             <!-- <select id="id_User" name="id_User" onchange="fetchPhongBan()">
                   <% user.forEach(function(user) { %>
                     <option value="<%= user.id_User %>"
@@ -89,56 +69,35 @@
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="password" class="form-label">Mật khẩu</label>
-            <input
-              type="password"
-              class="form-control"
-              id="MatKhau"
-              name="MatKhau"
-              value="<%= accountList.MatKhau %>"
-              required
-            />
+            <input type="password" class="form-control" id="MatKhau" name="MatKhau" value="<%= accountList.MatKhau %>"
+              required />
           </div>
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="MaPhongBan" class="form-label">Mã Phòng ban</label>
-            <input
-              type="text"
-              class="form-control"
-              id="MaPhongBan"
-              name="MaPhongBan"
-              value="<%= id.MaPhongBan %>"
-              readonly
-            />
+            <input type="text" class="form-control" id="MaPhongBan" name="MaPhongBan" value="<%= id.MaPhongBan %>"
+              readonly />
           </div>
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper">
             <label for="Quyen" class="form-label">Quyền</label>
             <select id="Quyen" name="Quyen" class="form-control">
-              <option value="<%= role.Quyen %>"><%= role.Quyen %></option>
+              <option value="<%= role.Quyen %>">
+                <%= role.Quyen %>
+              </option>
             </select>
           </div>
         </div>
         <div class="row mb-3">
           <div class="col-md-4 input-wrapper" hidden>
             <label class="form-check-label" for="isKhoa"> isKhoa </label>
-            <input
-              class="form-control"
-              type="text"
-              id="isKhoa"
-              name="isKhoa"
-              value="<%= id.isKhoa %>"
-              readonly
-            />
+            <input class="form-control" type="text" id="isKhoa" name="isKhoa" value="<%= id.isKhoa %>" readonly />
           </div>
         </div>
         <button type="submit" class="btn">Cập nhật</button>
-        <button
-          type="button"
-          class="btn mx-5"
-          onclick="window.location.href='/thongTinTK'"
-        >
+        <button type="button" class="btn mx-5" onclick="window.location.href='/thongTinTK'">
           Trở về
         </button>
       </form>
@@ -162,29 +121,21 @@
         console.log("khoa:", khoa, "maPhongBan:", maPhongBan);
 
         // Biến để xác định phòng Khảo Thí
-        const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && khoa === 0);
+        const phongKhaoThi = (maPhongBan === APP_DEPARTMENTS.ktDbcl && khoa === 0);
         console.log("phongKhaoThi:", phongKhaoThi);
 
         // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
         if (khoa === 1) {
           console.log("Applying khoa = 1 permissions");
           quyenSelect.innerHTML = `
-              <option value="GV">Giảng Viên</option>
-              <option value="GV_CNBM">Giáo vụ - Chủ nhiệm bộ môn</option>
-              <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
-        } else if (phongKhaoThi) {
-          console.log("Applying KT&ĐBCL permissions");
-          // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
-          quyenSelect.innerHTML = `
-              <option value="Lãnh đạo">Lãnh đạo</option>
-              <option value="Trợ lý">Trợ lý</option>
-              <option value="Thường">Thường</option>`;
+              <option value="${APP_ROLES.gv_khoa}">Giảng Viên</option>
+              <option value="${APP_ROLES.gv_cnbm_khoa}">Giáo vụ - Chủ nhiệm bộ môn</option>
+              <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
         } else {
-          console.log("Applying default permissions");
-          // Các phòng ban hành chính khác
           quyenSelect.innerHTML = `
-              <option value="Duyệt">Duyệt</option>
-              <option value="Thường">Thường</option>`;
+              <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo</option>
+              <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+              <option value="${APP_ROLES.thuong}">Thường</option>`;
         }
         const quyenValue = "<%= role.Quyen %>";
         localStorage.setItem("Quyen", quyenValue);
@@ -243,29 +194,29 @@
             console.log("data.MaPhongBan:", data.MaPhongBan, "data.isKhoa:", data.isKhoa);
 
             // Biến để xác định phòng Khảo Thí
-            const phongKhaoThi = (data.MaPhongBan === "KT&ĐBCL" && data.isKhoa === 0);
+            const phongKhaoThi = (data.MaPhongBan === APP_DEPARTMENTS.ktDbcl && data.isKhoa === 0);
             console.log("phongKhaoThi in fetchPhongBan:", phongKhaoThi);
 
             // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
             if (data.isKhoa === 1) {
               console.log("Applying khoa = 1 permissions in fetchPhongBan");
               quyenSelect.innerHTML = `
-          <option value="GV">Giảng Viên</option>
-          <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-          <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+          <option value="${APP_ROLES.gv_khoa}">Giảng Viên</option>
+          <option value="${APP_ROLES.gv_cnbm_khoa}">Giảng viên-Chủ nhiệm bộ môn</option>
+          <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
             } else if (phongKhaoThi) {
               console.log("Applying KT&ĐBCL permissions in fetchPhongBan");
               // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
               quyenSelect.innerHTML = `
-          <option value="Lãnh đạo">Lãnh đạo</option>
-          <option value="Trợ lý">Trợ lý</option>
-          <option value="Thường">Thường</option>`;
+          <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo</option>
+          <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+          <option value="${APP_ROLES.thuong}">Thường</option>`;
             } else {
               console.log("Applying default permissions in fetchPhongBan");
               // Các phòng ban hành chính khác
               quyenSelect.innerHTML = `
-          <option value="Duyệt">Duyệt</option>
-          <option value="Thường">Thường</option>`;
+          <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+          <option value="${APP_ROLES.thuong}">Thường</option>`;
             }
             const quyenValue = localStorage.getItem("Quyen");
             const optionToSelect = quyenSelect.querySelector(
@@ -340,5 +291,6 @@
         fetchPhongBan(value);
       }
     </script>
-  </body>
+</body>
+
 </html>

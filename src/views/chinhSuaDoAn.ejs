@@ -321,7 +321,7 @@
               const MaPhongBan = localStorage.getItem("MaPhongBan");
               
               // If user is regular or has approval rights, show all faculties
-              if (userRole === "Thường" || userRole === "Duyệt") {
+              if (userRole === APP_ROLES.thuong || userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) {
                 $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
                 response.MaPhongBan.forEach(function(item) {
                   $("#filter-khoa").append(
@@ -391,7 +391,7 @@
               const MaPhongBan = localStorage.getItem("MaPhongBan");
               
               // If user is regular or has approval rights, show all faculties
-              if (userRole === "Thường" || userRole === "Duyệt") {
+              if (userRole === APP_ROLES.thuong || userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) {
                 $("#modal-khoa").prepend('<option value="ALL">ALL</option>');
                 response.MaPhongBan.forEach(function(item) {
                   $("#modal-khoa").append(
@@ -467,11 +467,11 @@
           }
 
           requests.forEach(request => {
-            const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
-            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+            const canApproveKhoa = (userRole === "<%= APP_ROLES.lanhDao_khoa %>" || userRole === "<%= APP_ROLES.gv %>") && isKhoa === "1";
+            const canApproveDaoTao = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
+            const canApproveBGD = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
             const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-            const canUpdate = userRole === "Duyệt";
+            const canUpdate = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>");
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
@@ -498,7 +498,7 @@
                 <input type="checkbox" 
                   class="approval-checkbox" 
                   data-request-id="${request.id}" 
-                  data-type="daotao"
+                  data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"
                   ${request.daotao_duyet ? 'checked' : ''}
                   ${(canApproveDaoTao && !isPublished) ? '' : 'disabled'}
                   onchange="handleApproval(this)">
@@ -632,11 +632,11 @@
             result.data.forEach(request => {
               const userRole = localStorage.getItem("userRole");
               const isKhoa = localStorage.getItem("isKhoa");
-              const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
-              const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-              const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+              const canApproveKhoa = (userRole === "<%= APP_ROLES.lanhDao_khoa %>" || userRole === "<%= APP_ROLES.gv %>") && isKhoa === "1";
+              const canApproveDaoTao = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
+              const canApproveBGD = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
               const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-              const canUpdate = userRole === "Duyệt";
+              const canUpdate = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>");
               const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
               const isPublished = request.status === 'Cập nhật thành công';
 
@@ -794,11 +794,11 @@
             result.data.forEach(request => {
               const userRole = localStorage.getItem("userRole");
               const isKhoa = localStorage.getItem("isKhoa");
-              const canApproveKhoa = (userRole === "Lãnh đạo khoa" || userRole === "GV") && isKhoa === "1";
-              const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-              const canApproveBGD = userRole === "Duyệt" && isKhoa === "0";
+              const canApproveKhoa = (userRole === "<%= APP_ROLES.lanhDao_khoa %>" || userRole === "<%= APP_ROLES.gv %>") && isKhoa === "1";
+              const canApproveDaoTao = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
+              const canApproveBGD = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>") && isKhoa === "0";
               const allApproved = request.khoa_duyet && request.daotao_duyet && request.bgd_duyet;
-              const canUpdate = userRole === "Duyệt";
+              const canUpdate = (userRole === "<%= APP_ROLES.troLy_phong %>" || userRole === "<%= APP_ROLES.lanhDao_phong %>");
               const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
               const isPublished = request.status === 'Cập nhật thành công';
 

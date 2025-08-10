@@ -954,7 +954,7 @@
             row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
           const deadlineValue = row.Deadline || ""; // Lấy giá trị Deadline
           const hoanThanh = row.HoanThanh;
-          if (role === "GV" || role === "Thường") {
+          if (role === APP_ROLES.gv || role === APP_ROLES.thuong) {
             ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
             ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
             ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
@@ -995,9 +995,9 @@
           daoTaoCheckbox = document.createElement("input");
           daoTaoCheckbox.type = "checkbox";
           daoTaoCheckbox.style.marginLeft = "30px";
-          daoTaoCheckbox.name = "daoTao"; // Thêm thuộc tính name
+          daoTaoCheckbox.name = "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"; // Thêm thuộc tính name
           daoTaoCheckbox.checked = row.DaoTaoDuyet || false; // Dùng một trường cho checkbox
-          daoTaoCheckbox.onchange = () => updateCheckAll("daoTao"); // Gọi hàm khi checkbox thay đổi
+          daoTaoCheckbox.onchange = () => updateCheckAll("<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"); // Gọi hàm khi checkbox thay đổi
           daoTaoCheckboxTd.appendChild(daoTaoCheckbox);
           tableRow.appendChild(daoTaoCheckboxTd);
           // ẩn đi
@@ -1010,22 +1010,22 @@
           VPCheckbox = document.createElement("input");
           VPCheckbox.type = "checkbox";
           VPCheckbox.style.marginLeft = "30px";
-          VPCheckbox.name = "VP"; // Thêm thuộc tính name
+          VPCheckbox.name = "<%= APP_DEPARTMENTS.vanPhong %>"; // Thêm thuộc tính name
           VPCheckbox.checked = row.TaiChinhDuyet || false; // Dùng một trường cho checkbox
-          VPCheckbox.onchange = () => updateCheckAll("VP"); // Gọi hàm khi checkbox thay đổi
+          VPCheckbox.onchange = () => updateCheckAll("<%= APP_DEPARTMENTS.vanPhong %>"); // Gọi hàm khi checkbox thay đổi
           VPCheckboxTd.appendChild(VPCheckbox);
           tableRow.appendChild(VPCheckboxTd);
           // Ẩn đi
           VPCheckbox.style.display = "none";
 
-          if (isKhoa == 1 && role == "Lãnh đạo khoa") {
+          if (isKhoa == 1 && role == APP_ROLES.lanhDao_khoa) {
             khoaCheckbox.style.display = "block";
-          } else if (isKhoa == 0 && role == "Duyệt") {
-            if (MaPhongBan == "DAOTAO") {
+          } else if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
+            if (MaPhongBan == APP_DEPARTMENTS.daoTao) {
               khoaCheckbox.style.display = "block";
               daoTaoCheckbox.style.display = "block";
               VPCheckbox.style.display = "none";
-            } else if (MaPhongBan == "VP") {
+            } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
               // Sửa lỗi: hiển thị checkbox cho cột Văn Phòng
               khoaCheckbox.style.display = "block";
               daoTaoCheckbox.style.display = "block";
@@ -1043,7 +1043,7 @@
           }
 
           if (
-            (isKhoa == 1 && role == "GV") ||
+            (isKhoa == 1 && role == APP_ROLES.gv) ||
             (isKhoa == 1 && row.KhoaDuyet == 1)
           ) {
             giaoVienHuongDan1Input.disabled = true;
@@ -1070,8 +1070,8 @@
           }
 
           if (
-            MaPhongBan.toLowerCase() === "daotao" &&
-            role.toLowerCase() !== "thường"
+            MaPhongBan.toLowerCase() === APP_DEPARTMENTS.daoTao.toLowerCase() &&
+            role.toLowerCase() !== APP_ROLES.thuong.toLowerCase()
           ) {
             // Nếu khoa đã check thì hiện check bên đào tạo
             if (!KhoaCheck.includes(row.MaPhongBan)) {
@@ -1089,8 +1089,8 @@
           }
 
           if (
-            MaPhongBan.toLowerCase() === "vp" &&
-            role.toLowerCase() !== "thường"
+            MaPhongBan.toLowerCase() === APP_DEPARTMENTS.vanPhong.toLowerCase() &&
+            role.toLowerCase() !== APP_ROLES.thuong.toLowerCase()
           ) {
             // Nếu đào tạo chưa check thì disable checkbox VP
             if (!DaoTaoCheck.includes(row.MaPhongBan)) {
@@ -1262,10 +1262,10 @@
             'input[type="checkbox"][name="khoa"]'
           );
           const daoTaoCheckbox = row.querySelector(
-            'input[type="checkbox"][name="daoTao"]'
+            'input[type="checkbox"][name="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]'
           );
           const VPCheckbox = row.querySelector(
-            'input[type="checkbox"][name="VP"]'
+            'input[type="checkbox"][name="<%= APP_DEPARTMENTS.vanPhong %>"]'
           );
 
           // Lấy trạng thái của checkbox "Khoa"
@@ -1846,19 +1846,19 @@
           document.getElementById("MaPhongBan").style.display = "none";
         }
 
-        if (role == "Thường" || role.includes("GV")) {
+        if (role == APP_ROLES.thuong || role.includes("<%= APP_ROLES.gv %>")) {
           if (!role.includes("CNBM")) {
             document.getElementById("updateDoAn").style.display = "none";
           }
         }
 
-        if (isKhoa == 0 && role == "Duyệt") {
-          if (MaPhongBan == "DAOTAO") {
+        if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
+          if (MaPhongBan == APP_DEPARTMENTS.daoTao) {
             // Ẩn cột 'VPColumn'
             document.getElementById("VPColumn").style.display = "none";
             document.getElementById("updateDoAn").style.display =
               "inline-block";
-          } else if (MaPhongBan == "VP") {
+          } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
             // Hiển thị tất cả các cột cho VP
             document.getElementById("khoaColumn").style.display = "table-cell";
             document.getElementById("daoTaoColumn").style.display =
@@ -1873,7 +1873,7 @@
 
         // Phân quyền, nếu không có quyền khoa chỉnh sửa sẽ ẩn ngày all đi
         const dateContainer = document.querySelector(".date-all-container");
-        if (isKhoa == 1 && role != "GV") {
+        if (isKhoa == 1 && role != APP_ROLES.gv) {
           dateContainer.style.display = "flex";
         }
       });
@@ -2013,7 +2013,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

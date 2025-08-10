@@ -445,7 +445,7 @@
         // Ẩn phần lọc khoa nếu role là Khoa
         const departmentFilter = document.getElementById("departmentFilter");
 
-        if (!MaPhongBan.includes("DAOTAO") && !MaPhongBan.includes("VP")) {
+        if (!MaPhongBan.includes(APP_DEPARTMENTS.daoTao) && !MaPhongBan.includes(APP_DEPARTMENTS.vanPhong)) {
           departmentFilter.style.display = "none";
         }
       });
@@ -802,7 +802,7 @@
       window.onload = function () {
         const TenNhanVien = localStorage.getItem("TenNhanVien"); // Lấy tên người dùng từ localStorage
         let Role = localStorage.getItem("userRole");
-        if (Role.toUpperCase() == "LÃNH ĐẠO KHOA") {
+        if (Role.toUpperCase() == APP_ROLES.lanhDao_khoa.toUpperCase()) {
           Role = "LĐK";
         }
         if (TenNhanVien) {
@@ -849,20 +849,20 @@
         if (isKhoa == 0) {
           actionButton1.style.display = "none"; // Ẩn actionButton1 nếu isKhoa = 0
           actionButton2.style.display = "inline-block"; // Hiện actionButton2
-          if (role.trim().toLocaleLowerCase() == "thường") {
+          if (role.trim().toLocaleLowerCase() == APP_ROLES.thuong.toLowerCase()) {
             actionButton2.style.display = "none"; // Hiện actionButton2
           }
         } else {
           actionButton1.style.display = "inline-block"; // Hiện actionButton1 nếu isKhoa khác 0
           actionButton2.style.display = "none"; // Ẩn actionButton2
 
-          if (Quyen.toLowerCase() == "gv") {
+          if (Quyen.toLowerCase() == APP_ROLES.gv.toLowerCase()) {
             actionButton1.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
           }
         }
 
         //Ẩn site duyệt lớp gk
-        if (Quyen === "Lãnh đạo khoa" || Quyen === "Duyệt") {
+        if (Quyen === APP_ROLES.lanhDao_khoa || Quyen === APP_ROLES.troLy_phong || Quyen === APP_ROLES.lanhDao_phong) {
           actionButton3.style.display = "";
         } else {
           actionButton3.style.display = "none";

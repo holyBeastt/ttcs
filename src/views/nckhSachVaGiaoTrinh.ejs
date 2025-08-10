@@ -301,8 +301,8 @@
           // const department = document.getElementById("MaPhongBanView").value;
           let department;
           if (
-            localStorage.getItem("MaPhongBan") == "DAOTAO" ||
-            localStorage.getItem("MaPhongBan") == "NC&HTPT"
+            localStorage.getItem("MaPhongBan") == APP_DEPARTMENTS.daoTao ||
+            localStorage.getItem("MaPhongBan") == APP_DEPARTMENTS.ncHtpt
           ) {
             department = "ALL";
           } else {
@@ -321,7 +321,7 @@
             let columns;
 
             // Cấp quyền sửa
-            if (userRole === "GV" || userRole === "Thường") {
+            if (userRole === APP_ROLES.gv || userRole === APP_ROLES.thuong) {
               columns = [
                 {
                   title: "Phân loại",
@@ -436,9 +436,9 @@
 
             // Cấp quyền xóa
             if (
-              (userRole === "Duyệt" && MaPhongBan == "DAOTAO") ||
-              userRole === "GV_CNBM" ||
-              userRole === "Lãnh đạo khoa"
+              ((userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) ||
+              userRole === APP_ROLES.gv_cnbm_khoa ||
+              userRole === APP_ROLES.lanhDao_khoa
             ) {
               columns.push({
                 title: "Xóa",
@@ -451,7 +451,7 @@
             }
 
             // Cấp quyền duyệt
-            if (userRole === "Duyệt" && MaPhongBan == "DAOTAO") {
+            if (((userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao)) {
               columns.push({
                 title: "Duyệt",
                 field: "DaoTaoDuyet",
@@ -852,7 +852,7 @@
           };
 
           // Phần quyền nhập
-          if (role == "GV" || role == "Thường" || MaPhongBan == "VP") {
+          if (role == APP_ROLES.gv || role == APP_ROLES.thuong || MaPhongBan == APP_DEPARTMENTS.vanPhong) {
             alert("Bạn không có quyền truy cấp chức năng này");
             return;
           }
