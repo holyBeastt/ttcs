@@ -609,7 +609,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (Quyen === "Duyệt") {
+        if (Quyen === "<%= APP_ROLES.troLy_phong %>" || Quyen === "<%= APP_ROLES.lanhDao_phong %>") {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

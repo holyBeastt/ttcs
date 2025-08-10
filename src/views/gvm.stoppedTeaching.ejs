@@ -305,7 +305,7 @@
       document.addEventListener("DOMContentLoaded", async function () {
         // Ẩn cột duyệt
 
-        if (role !== "Lãnh đạo khoa" && role !== "GV_CNBM") {
+        if (role !== APP_ROLES.lanhDao_khoa && role !== APP_ROLES.gv_cnbm) {
           const tinhTrangGiangDayColumn = document.getElementById(
             "tinhTrangGiangDayColumn"
           );
@@ -466,7 +466,7 @@
             `;
 
           // Cột checkbox Học viện
-          if (role === "Lãnh đạo khoa" || role === "GV_CNBM") {
+          if (role === APP_ROLES.lanhDao_khoa || role === APP_ROLES.gv_cnbm_khoa) {
             const tinhTrangGiangDayTd = row.insertCell(colIndex++); // Thêm cột mới
             const tinhTrangGiangDay = document.createElement("input");
             tinhTrangGiangDay.type = "checkbox";

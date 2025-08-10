@@ -1,169 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Học Viện Kỹ Thuật Mật Mã</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/gvmList.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    />
 
-    <style>
-      .teacher-group {
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-        border-collapse: separate;
-        margin-bottom: 10px;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học Viện Kỹ Thuật Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/gvmList.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
-      .teacher-group td,
-      .teacher-group th {
-        padding: 8px;
-        text-align: left;
-        border: 2px solid black;
-        /* Viền đen xung quanh nhóm giảng viên */
-      }
+  <style>
+    .teacher-group {
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+      border-collapse: separate;
+      margin-bottom: 10px;
+    }
 
-      .btn {
-        height: 45px;
-      }
+    .teacher-group td,
+    .teacher-group th {
+      padding: 8px;
+      text-align: left;
+      border: 2px solid black;
+      /* Viền đen xung quanh nhóm giảng viên */
+    }
 
-      .suggestions {
-        position: absolute;
-        /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
-        top: calc(100% + 5px);
-        /* Đặt gợi ý phía trên input với một khoảng cách */
-        font-size: 12px;
-        left: 0;
-        background-color: #f0f0f0;
-        color: #000;
-        border: 1px solid #ccc;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        /* Đảm bảo gợi ý nằm trên các thành phần khác */
-        border-radius: 4px;
-        max-height: 300px;
-        overflow-y: auto;
-      }
+    .btn {
+      height: 45px;
+    }
 
-      /* Hiệu ứng lung linh khi hover */
-      .suggestions:hover {
-        background-color: #e0e0e0;
-        /* Thay đổi màu nền khi hover */
-        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-        /* Tăng độ bóng khi hover */
-      }
+    .suggestions {
+      position: absolute;
+      /* Đảm bảo gợi ý nằm bên trên các thành phần khác */
+      top: calc(100% + 5px);
+      /* Đặt gợi ý phía trên input với một khoảng cách */
+      font-size: 12px;
+      left: 0;
+      background-color: #f0f0f0;
+      color: #000;
+      border: 1px solid #ccc;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      /* Đảm bảo gợi ý nằm trên các thành phần khác */
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
 
-      /* CSS cho từng mục gợi ý */
-      .suggestion-item {
-        padding: 8px 12px;
-        /* Khoảng cách bên trong từng mục */
-        cursor: pointer;
-        /* Con trỏ chuột thay đổi khi hover */
-        transition: background-color 0.2s ease;
-        /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
-      }
+    /* Hiệu ứng lung linh khi hover */
+    .suggestions:hover {
+      background-color: #e0e0e0;
+      /* Thay đổi màu nền khi hover */
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      /* Tăng độ bóng khi hover */
+    }
 
-      /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
-      .suggestion-item:hover {
-        background-color: #f0f0f0;
-        /* Màu nền khi hover */
-      }
+    /* CSS cho từng mục gợi ý */
+    .suggestion-item {
+      padding: 8px 12px;
+      /* Khoảng cách bên trong từng mục */
+      cursor: pointer;
+      /* Con trỏ chuột thay đổi khi hover */
+      transition: background-color 0.2s ease;
+      /* Tạo hiệu ứng chuyển đổi mượt mà khi hover */
+    }
 
-      /* Đặt lại một số thuộc tính khi input mất focus */
-      input:focus + .suggestions {
-        display: block;
-        /* Đảm bảo khung hiển thị khi input được focus */
-      }
+    /* Hiệu ứng khi người dùng di chuột vào mục gợi ý */
+    .suggestion-item:hover {
+      background-color: #f0f0f0;
+      /* Màu nền khi hover */
+    }
 
-      /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
-      .suggestions {
-        overflow: hidden;
-      }
-    </style>
-    <style>
-      /* Tùy chỉnh danh sách gợi ý */
-      .ui-autocomplete {
-        background: white;
-        border: 1px solid #ccc;
-        max-height: 200px;
-        overflow-y: auto;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        font-size: 14px;
-        padding: 5px;
-        width: 200px; /* Giảm độ rộng */
-        font-size: 12px !important;
-      }
+    /* Đặt lại một số thuộc tính khi input mất focus */
+    input:focus+.suggestions {
+      display: block;
+      /* Đảm bảo khung hiển thị khi input được focus */
+    }
 
-      /* Hiển thị đẹp hơn, không cần hover */
-      .ui-menu-item {
-        padding: 8px;
-        cursor: default;
-      }
-    </style>
-  </head>
+    /* Đảm bảo container gợi ý không bị tràn ra ngoài khung nếu có */
+    .suggestions {
+      overflow: hidden;
+    }
+  </style>
+  <style>
+    /* Tùy chỉnh danh sách gợi ý */
+    .ui-autocomplete {
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      padding: 5px;
+      width: 200px;
+      /* Giảm độ rộng */
+      font-size: 12px !important;
+    }
 
-  <body>
-    <!-- Phần header -->
-    <%- include('header') %>
+    /* Hiển thị đẹp hơn, không cần hover */
+    .ui-menu-item {
+      padding: 8px;
+      cursor: default;
+    }
+  </style>
+</head>
 
-    <!-- Phần nội dung -->
+<body>
+  <!-- Phần header -->
+  <%- include('header') %>
 
-    <div class="d-flex justify-content-center">
-      <!-- Main content -->
-      <div class="gvmList">
-        <div class="m-3">
-          <h1>HỢP ĐỒNG ĐỒ ÁN</h1>
+  <!-- Phần nội dung -->
 
-          <div class="controls-container d-flex align-items-center">
-            <select
-              class="form-select w-100px mx-2 selectop"
-              id="combobox-dot"
-            ></select>
+  <div class="d-flex justify-content-center">
+    <!-- Main content -->
+    <div class="gvmList">
+      <div class="m-3">
+        <h1>HỢP ĐỒNG ĐỒ ÁN</h1>
 
-            <select
-              class="form-select w-100px mx-2 selectop"
-              id="comboboxki"
-            ></select>
+        <div class="controls-container d-flex align-items-center">
+          <select class="form-select w-100px mx-2 selectop" id="combobox-dot"></select>
 
-            <select
-              class="form-select mx-2 selectop"
-              style="width: max-content"
-              id="NamHoc"
-            ></select>
+          <select class="form-select w-100px mx-2 selectop" id="comboboxki"></select>
 
-            <select
-              class="form-select mx-2 selectop"
-              style="width: max-content"
-              id="MaPhongBan"
-            >
-              <option value="">Chọn khoa</option>
-            </select>
+          <select class="form-select mx-2 selectop" style="width: max-content" id="NamHoc"></select>
 
-            <select class="form-select mx-1 selectop" id="he_dao_tao">
-              <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
-              <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
-            </select>
+          <select class="form-select mx-2 selectop" style="width: max-content" id="MaPhongBan">
+            <option value="">Chọn khoa</option>
+          </select>
 
-            <input
-              type="text"
-              class="form-control w-200px mx-2"
-              id="search-teacher"
-              placeholder="Tìm kiếm giảng viên"
-            />
+          <select class="form-select mx-1 selectop" id="he_dao_tao">
+            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
+            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+          </select>
 
-            <!-- <select
+          <input type="text" class="form-control w-200px mx-2" id="search-teacher" placeholder="Tìm kiếm giảng viên" />
+
+          <!-- <select
               id="loaiHopDong"
               name="loaiHopDong"
               class="form-select w-200px mx-2 selectop"
@@ -172,156 +146,127 @@
               <option value="Đồ án">Đồ án</option>
             </select> -->
 
-            <button type="button" class="btn mx-2" id="exportButton2">
-              <i class="fas fa-file-export me-2"></i>Xuất Hợp Đồng
-            </button>
-          </div>
+          <button type="button" class="btn mx-2" id="exportButton2">
+            <i class="fas fa-file-export me-2"></i>Xuất Hợp Đồng
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Link script Sweet alert 2 -->
-    <!-- SweetAlert2 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Link script Sweet alert 2 -->
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
 
-    <!-- SweetAlert2 JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
-    <!-- Thêm jQuery và jQuery UI -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+  <!-- Thêm jQuery và jQuery UI -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-    <!-- jQuery UI CSS -->
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
-    />
+  <!-- jQuery UI CSS -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
-    <script>
-      // Trong file exportHD.ejs
-      document
-        .getElementById("exportButton2")
-        .addEventListener("click", function () {
-          const dot = document.getElementById("combobox-dot").value;
-          const ki = document.getElementById("comboboxki").value;
-          const namHoc = document.getElementById("NamHoc").value;
-          const khoa = document.getElementById("MaPhongBan").value;
-          const he_dao_tao = document.getElementById("he_dao_tao").value;
-          const teacherName = document.getElementById("search-teacher").value;
+  <script>
+    // Trong file exportHD.ejs
+    document
+      .getElementById("exportButton2")
+      .addEventListener("click", function() {
+        const dot = document.getElementById("combobox-dot").value;
+        const ki = document.getElementById("comboboxki").value;
+        const namHoc = document.getElementById("NamHoc").value;
+        const khoa = document.getElementById("MaPhongBan").value;
+        const he_dao_tao = document.getElementById("he_dao_tao").value;
+        const teacherName = document.getElementById("search-teacher").value;
 
-          if (!dot || !ki || !namHoc) {
-            alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
-            return;
-          }
+        if (!dot || !ki || !namHoc) {
+          alert("Vui lòng chọn đầy đủ thông tin đợt và năm học.");
+          return;
+        }
 
-          // Hiển thị loading SweetAlert2
-          Swal.fire({
-            title: "Đang xử lý...",
-            text: "Vui lòng chờ trong giây lát!",
-            allowOutsideClick: false,
-            didOpen: () => {
-              Swal.showLoading();
-            },
-          });
+        // Hiển thị loading SweetAlert2
+        Swal.fire({
+          title: "Đang xử lý...",
+          text: "Vui lòng chờ trong giây lát!",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
 
-          let url = `/exportHDDA/Dowload?dot=${encodeURIComponent(
+        let url = `/exportHDDA/Dowload?dot=${encodeURIComponent(
             dot
           )}&ki=${encodeURIComponent(ki)}&namHoc=${encodeURIComponent(
             namHoc
           )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`;
 
-          if (khoa) {
-            url += `&khoa=${encodeURIComponent(khoa)}`;
-          }
+        if (khoa) {
+          url += `&khoa=${encodeURIComponent(khoa)}`;
+        }
 
-          if (teacherName) {
-            url += `&teacherName=${encodeURIComponent(teacherName)}`;
-          }
+        if (teacherName) {
+          url += `&teacherName=${encodeURIComponent(teacherName)}`;
+        }
 
-          // Delay một chút để hiển thị loading trước khi chuyển hướng
-          setTimeout(() => {
-            window.location.href = url;
-            // Sau khi chuyển trang/tải file thì SweetAlert tự đóng (hoặc bạn có thể không cần)
-            Swal.close();
-          }, 1000); // delay 1 giây (tuỳ chọn, có thể chỉnh)
-        });
-    </script>
-    <script>
-      // Lấy query string từ URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const message = urlParams.get("message");
-
-      // Lấy phần tử div để hiển thị thông báo
-      const messageDiv = document.getElementById("message");
-
-      // console.log(message)
-      // Hiển thị thông báo dựa trên giá trị của message
-      if (message === "insertSuccess") {
-        alert("Update Success");
-      } else if (message === "insertFalse") {
-        alert("Update False");
-      }
-
-      // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
-      if (message) {
-        // Sử dụng window.history để xóa query string mà không refresh lại trang
-        const newUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-    </script>
-
-    <!-- Phần phân quyền -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Thêm sự kiện click cho phần tử có id="ThongTinGD"
-        const ThongTinGD = document.getElementById("ThongTinGD");
-
-        ThongTinGD.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/info2";
-          } else {
-            window.location.href = "/info";
-          }
-        });
-
-        // Thêm sự kiện click cho phần tử có id="Home"
-
-        const Home = document.getElementById("Home");
-
-        Home.addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
-
-          const isKhoa = localStorage.getItem("isKhoa");
-
-          if (isKhoa == 0) {
-            // Nếu là đào tạo hoặc tài chính
-            window.location.href = "/maindt";
-          } else {
-            window.location.href = "/mainkhoa";
-          }
-        });
+        // Delay một chút để hiển thị loading trước khi chuyển hướng
+        setTimeout(() => {
+          window.location.href = url;
+          // Sau khi chuyển trang/tải file thì SweetAlert tự đóng (hoặc bạn có thể không cần)
+          Swal.close();
+        }, 1000); // delay 1 giây (tuỳ chọn, có thể chỉnh)
       });
-    </script>
+  </script>
+  <script>
+    // Lấy query string từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get("message");
 
-    <script>
+    // Lấy phần tử div để hiển thị thông báo
+    const messageDiv = document.getElementById("message");
+
+    // console.log(message)
+    // Hiển thị thông báo dựa trên giá trị của message
+    if (message === "insertSuccess") {
+      alert("Update Success");
+    } else if (message === "insertFalse") {
+      alert("Update False");
+    }
+
+    // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+    if (message) {
+      // Sử dụng window.history để xóa query string mà không refresh lại trang
+      const newUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  </script>
+
+  <!-- Phần phân quyền -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Thêm sự kiện click cho phần tử có id="ThongTinGD"
+      const ThongTinGD = document.getElementById("ThongTinGD");
+
+      ThongTinGD.addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+        const isKhoa = localStorage.getItem("isKhoa"); // Lấy role từ localStorage
+
+        if (isKhoa == 0) {
+          // Nếu là đào tạo hoặc tài chính
+          window.location.href = "/info2";
+        } else {
+          window.location.href = "/info";
+        }
+      });
+
       // Thêm sự kiện click cho phần tử có id="Home"
 
       const Home = document.getElementById("Home");
 
-      Home.addEventListener("click", function (event) {
+      Home.addEventListener("click", function(event) {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
 
         const isKhoa = localStorage.getItem("isKhoa");
@@ -333,27 +278,47 @@
           window.location.href = "/mainkhoa";
         }
       });
-    </script>
+    });
+  </script>
 
-    <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+  <script>
+    // Thêm sự kiện click cho phần tử có id="Home"
 
-          if (tenDangNhap) {
-            // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
-            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+    const Home = document.getElementById("Home");
+
+    Home.addEventListener("click", function(event) {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của liên kết
+
+      const isKhoa = localStorage.getItem("isKhoa");
+
+      if (isKhoa == 0) {
+        // Nếu là đào tạo hoặc tài chính
+        window.location.href = "/maindt";
+      } else {
+        window.location.href = "/mainkhoa";
+      }
+    });
+  </script>
+
+  <script>
+    document
+      .getElementById("changePasswordLink")
+      .addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const tenDangNhap = localStorage.getItem("TenDangNhap"); // Lấy TenDangNhap từ localStorage
+
+        if (tenDangNhap) {
+          // Chuyển hướng đến trang changePassword và truyền TenDangNhap trong URL
+          window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
               tenDangNhap
             )}`;
-          } else {
-            alert("Không tìm thấy TenDangNhap trong localStorage.");
-          }
-        });
-    </script>
+        } else {
+          alert("Không tìm thấy TenDangNhap trong localStorage.");
+        }
+      });
+  </script>
 
-    <!-- <script>
+  <!-- <script>
     $(document).ready(function () {
       // Xóa tùy chọn rỗng nếu có
       $('#NamHoc option[value=""]').remove();
@@ -391,182 +356,183 @@
     });
   </script> -->
 
-    <script>
-      $(document).ready(function () {
-        $('#NamHoc option[value=""]').remove();
-        $('#comboboxki option[value=""]').remove();
-        $('#combobox-dot option[value=""]').remove();
+  <script>
+    $(document).ready(function() {
+      $('#NamHoc option[value=""]').remove();
+      $('#comboboxki option[value=""]').remove();
+      $('#combobox-dot option[value=""]').remove();
 
-        $.ajax({
-          url: "/getNamHoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              response.NamHoc.forEach(function (item) {
-                console.log(item.NamHoc);
-                $("#NamHoc").append(
-                  `<option value="${item.NamHoc}">${item.NamHoc}</option>`
-                );
-              });
-
-              response.Ki.forEach(function (item) {
-                console.log(item.Ki);
-                $("#comboboxki").append(
-                  `<option value="${item.value}">${item.Ki}</option>`
-                );
-              });
-              response.Dot.forEach(function (item) {
-                console.log(item.Dot);
-                $("#combobox-dot").append(
-                  `<option value="${item.value}">${item.Dot}</option>`
-                );
-              });
-            } else {
-              console.error(
-                "Không lấy được dữ liệu năm học:",
-                response.message
+      $.ajax({
+        url: "/getNamHoc",
+        method: "GET",
+        success: function(response) {
+          if (response.success) {
+            response.NamHoc.forEach(function(item) {
+              console.log(item.NamHoc);
+              $("#NamHoc").append(
+                `<option value="${item.NamHoc}">${item.NamHoc}</option>`
               );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu năm học:", error);
-          },
-        });
+            });
+
+            response.Ki.forEach(function(item) {
+              console.log(item.Ki);
+              $("#comboboxki").append(
+                `<option value="${item.value}">${item.Ki}</option>`
+              );
+            });
+            response.Dot.forEach(function(item) {
+              console.log(item.Dot);
+              $("#combobox-dot").append(
+                `<option value="${item.value}">${item.Dot}</option>`
+              );
+            });
+          } else {
+            console.error(
+              "Không lấy được dữ liệu năm học:",
+              response.message
+            );
+          }
+        },
+        error: function(error) {
+          console.error("Lỗi khi lấy dữ liệu năm học:", error);
+        },
       });
-    </script>
+    });
+  </script>
 
-    <script>
-      $(document).ready(function () {
-        const isKhoa = localStorage.getItem("isKhoa");
+  <script>
+    $(document).ready(function() {
+      const isKhoa = localStorage.getItem("isKhoa");
 
-        if (isKhoa == 1) {
-          $("#MaPhongBan").hide(); // ẩn cả label và select nếu bọc trong form-group
-          return; // không cần gọi AJAX nữa
-        }
+      if (isKhoa == 1) {
+        $("#MaPhongBan").hide(); // ẩn cả label và select nếu bọc trong form-group
+        return; // không cần gọi AJAX nữa
+      }
 
-        $('#MaPhongBan option[value=""]').remove();
-        // Gọi AJAX để lấy dữ liệu JSON từ API
-        $.ajax({
-          url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
-          method: "GET",
-          success: function (response) {
-            // Kiểm tra nếu response thành công
-            const MaPhongBan = response.MaPhongBan;
-            if (response.success) {
+      $('#MaPhongBan option[value=""]').remove();
+      // Gọi AJAX để lấy dữ liệu JSON từ API
+      $.ajax({
+        url: "/api/shared/faculty-code-list", // Đường dẫn tới API getPhongBan
+        method: "GET",
+        success: function(response) {
+          // Kiểm tra nếu response thành công
+          const MaPhongBan = response.MaPhongBan;
+          if (response.success) {
+            $("#MaPhongBan").prepend(
+              '<option value="ALL">Tất cả khoa</option>'
+            );
+            // Lặp qua từng mục trong mảng MaPhongBan
+            response.MaPhongBan.forEach(function(item) {
+              // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
+              console.log(item);
+              $("#MaPhongBan").append(
+                `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+              );
+            });
+
+            // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
+            if (!$("#MaPhongBan option:selected").length) {
               $("#MaPhongBan").prepend(
-                '<option value="ALL">Tất cả khoa</option>'
-              );
-              // Lặp qua từng mục trong mảng MaPhongBan
-              response.MaPhongBan.forEach(function (item) {
-                // Nếu item.MaPhongBan bằng boMon.MaPhongBan, hiển thị trước
-                console.log(item);
-                $("#MaPhongBan").append(
-                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
-                );
-              });
-
-              // Nếu không có phòng ban nào tương ứng, bạn có thể thêm tùy chọn mặc định ở đây
-              if (!$("#MaPhongBan option:selected").length) {
-                $("#MaPhongBan").prepend(
-                  '<option value="">Chọn Phòng Ban</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu phongBan:",
-                response.message
+                '<option value="">Chọn Phòng Ban</option>'
               );
             }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-          },
-        });
-      });
-    </script>
-
-    <script>
-        // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
-      const gvmList = <%- JSON.stringify(gvmoiList) %>;
-      localStorage.setItem("gvmList", JSON.stringify(gvmList));
-      console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
-
-      $(document).ready(function () {
-        // Cấu hình autocomplete
-        $("#search-teacher").autocomplete({
-            source: function (request, response) {
-                const value = request.term.toLowerCase();
-
-                const gvmList = JSON.parse(localStorage.getItem("gvmList"));
-
-                let suggestions = gvmList
-                    .map(item => `${item.HoTen} - ${item.MaPhongBan}`);
-
-                // Nếu có giá trị nhập vào thì lọc
-                if (value) {
-                    suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
-                }
-
-                response(suggestions);
-            },
-            minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
-            select: function (event, ui) {
-                let parts = ui.item.value.split("-");
-                let processedName = parts[0].trim();
-                $("#search-teacher").val(processedName);
-                return false;
-            }
-        });
-
-        // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
-        $("#search-teacher").on("focus", function () {
-            $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
-        });
-      });
-    </script>
-    <script>
-      document
-        .getElementById("infome")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
-          if (id_User) {
-            // Chuyển hướng đến trang infome và truyền id_User trong URL
-            window.location.href = `/infome/${id_User}`;
           } else {
-            alert("Không tìm thấy id_User trong localStorage.");
+            console.error(
+              "Không lấy được dữ liệu phongBan:",
+              response.message
+            );
           }
-        });
-    </script>
+        },
+        error: function(error) {
+          console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+        },
+      });
+    });
+  </script>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const role = localStorage.getItem("userRole");
+  <script>
+    // Chuyển đổi dữ liệu phòng ban thành JSON và lưu vào Local Storage
+    const gvmList = <%- JSON.stringify(gvmoiList) %>;
+    localStorage.setItem("gvmList", JSON.stringify(gvmList));
+    console.log("Dữ liệu phòng ban đã được lưu vào Local Storage:", gvmList);
 
-        // Ẩn button ngay khi trang được tải
-        const actionButton = document.getElementById("changeMessage");
-        //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
-          actionButton.style.display = "";
-        } else {
-          actionButton.style.display = "none";
+    $(document).ready(function() {
+      // Cấu hình autocomplete
+      $("#search-teacher").autocomplete({
+        source: function(request, response) {
+          const value = request.term.toLowerCase();
+
+          const gvmList = JSON.parse(localStorage.getItem("gvmList"));
+
+          let suggestions = gvmList
+            .map(item => `${item.HoTen} - ${item.MaPhongBan}`);
+
+          // Nếu có giá trị nhập vào thì lọc
+          if (value) {
+            suggestions = suggestions.filter(name => name.toLowerCase().includes(value));
+          }
+
+          response(suggestions);
+        },
+        minLength: 0, // Cho phép hiển thị ngay khi nhấn vào ô input
+        select: function(event, ui) {
+          let parts = ui.item.value.split("-");
+          let processedName = parts[0].trim();
+          $("#search-teacher").val(processedName);
+          return false;
         }
       });
-    </script>
-    <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
-          const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
 
-          if (MaPhongBan) {
-            // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
-            window.location.href = `/changeMessage/${MaPhongBan}`;
-          } else {
-            alert("Không tìm thấy MaPhongBan trong localStorage.");
-          }
-        });
-    </script>
-  </body>
+      // Khi click vào ô input, hiển thị danh sách gợi ý ngay lập tức
+      $("#search-teacher").on("focus", function() {
+        $(this).autocomplete("search", ""); // Gọi autocomplete với chuỗi rỗng để hiển thị toàn bộ
+      });
+    });
+  </script>
+  <script>
+    document
+      .getElementById("infome")
+      .addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const id_User = localStorage.getItem("id_User"); // Lấy id_User từ localStorage\
+        if (id_User) {
+          // Chuyển hướng đến trang infome và truyền id_User trong URL
+          window.location.href = `/infome/${id_User}`;
+        } else {
+          alert("Không tìm thấy id_User trong localStorage.");
+        }
+      });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const role = localStorage.getItem("userRole");
+
+      // Ẩn button ngay khi trang được tải
+      const actionButton = document.getElementById("changeMessage");
+      //Ẩn site thêm thông báo
+      if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
+        actionButton.style.display = "";
+      } else {
+        actionButton.style.display = "none";
+      }
+    });
+  </script>
+  <script>
+    document
+      .getElementById("changeMessage")
+      .addEventListener("click", function(event) {
+        event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ a
+        const MaPhongBan = localStorage.getItem("MaPhongBan"); // Lấy MaPhongBan từ localStorage
+
+        if (MaPhongBan) {
+          // Chuyển hướng đến trang changeMessage và truyền MaPhongBan trong URL
+          window.location.href = `/changeMessage/${MaPhongBan}`;
+        } else {
+          alert("Không tìm thấy MaPhongBan trong localStorage.");
+        }
+      });
+  </script>
+</body>
+
 </html>

@@ -578,7 +578,7 @@
       const ghiChuTd = document.createElement("td");
       const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
       const hoanThanh = row.HoanThanh;
-      if (role === 'GV' || role === 'Thường') {
+      if (role === APP_ROLES.gv || role === APP_ROLES.thuong) {
         ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
         ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
         ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
@@ -927,7 +927,7 @@
     // Ẩn button ngay khi trang được tải
     const actionButton = document.getElementById('changeMessage');
     //Ẩn site thêm thông báo
-    if (role === "Duyệt") {
+    if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
       actionButton.style.display = '';
     } else {
       actionButton.style.display = 'none';
@@ -955,7 +955,7 @@
   // const deleteClass = document.getElementById("select");
 
 
-  if (MaPhongBan == "VP") {
+  if (MaPhongBan == APP_DEPARTMENTS.vanPhong) {
     // addClassBtn.style.display = "none";
     updateBtn.style.display = "none";
     // deleteClass.style.display = "none";

@@ -466,7 +466,7 @@
       });
 
       function hideButtonTKB(role) {
-        if (role != "Duyệt") {
+        if (role != "<%= APP_ROLES.troLy_phong %>" && role != "<%= APP_ROLES.lanhDao_phong %>") {
           const deleteTKB = document.getElementById("xoa-TKB");
           const themBtn = document.getElementById("add-row-btn");
           const addToQCDK = document.getElementById("them-vao-qc-du-kien");
@@ -651,7 +651,7 @@
 
         let canEdit = false;
 
-        if (role == "Duyệt") {
+        if (role == "<%= APP_ROLES.troLy_phong %>" || role == "<%= APP_ROLES.lanhDao_phong %>") {
           canEdit = true;
         }
 
@@ -743,8 +743,8 @@
               },
             })),
         ];
-        // Thêm cột "Hành động" nếu role là "Duyệt"
-        if (role === "Duyệt") {
+        // Thêm cột "Hành động" nếu role là "<%= APP_ROLES.troLy_phong %>" hoặc "<%= APP_ROLES.lanhDao_phong %>"
+        if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
           columnDefs.push({
             headerName: "Xóa",
             field: "actions",
@@ -893,9 +893,9 @@
           })
           .join("");
 
-        // Tạo cột hành động nếu role là "Duyệt"
+        // Tạo cột hành động nếu role là "<%= APP_ROLES.troLy_phong %>" hoặc "<%= APP_ROLES.lanhDao_phong %>"
         let actionColumn = "";
-        if (role === "Duyệt") {
+        if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
           actionColumn = `
                           <td style="text-align: center; vertical-align: middle;">
                             <button onclick="editRow(${id})">Sửa</button>
@@ -1625,7 +1625,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

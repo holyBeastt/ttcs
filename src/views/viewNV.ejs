@@ -441,13 +441,13 @@ fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
     // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
     if (data.isKhoa === 1) {
       quyenSelect.innerHTML = `
-        <option value="GV">Giảng Viên</option>
-        <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-        <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+        <option value="<%= APP_ROLES.gv %>">Giảng Viên</option>
+        <option value="<%= APP_ROLES.gv_cnbm %>">Giảng viên-Chủ nhiệm bộ môn</option>
+        <option value="<%= APP_ROLES.lanhDao_khoa %>">Lãnh đạo khoa</option>`;
     } else {
         quyenSelect.innerHTML = `
-        <option value="Thường">Thường</option>
-        <option value="Duyệt">Duyệt</option>`;
+        <option value="<%= APP_ROLES.thuong %>">Thường</option>
+        <option value="<%= APP_ROLES.troLy_phong %>">Trợ lý</option>`;
       }
       
     }

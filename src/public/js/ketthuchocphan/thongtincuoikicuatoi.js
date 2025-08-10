@@ -48,7 +48,7 @@ function initializeRoleBasedUI() {
   // Configure action buttons based on role
   const changeMessageBtn = document.getElementById("changeMessage")
   if (changeMessageBtn) {
-    if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+    if (role === window.APP_ROLES.lanhDao_khoa || role === window.APP_ROLES.troLy_phong || role === window.APP_ROLES.lanhDao_phong) {
       changeMessageBtn.style.display = ""
     } else {
       changeMessageBtn.style.display = "none"
@@ -344,7 +344,7 @@ function createNoteCell(row, role, tableRow) {
   const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false
   const hoanThanh = row.HoanThanh
 
-  if (role === "GV" || role === "Thường") {
+  if (role === window.APP_ROLES.gv || role === window.APP_ROLES.thuong) {
     ghiChuTd.innerHTML = "📜"
     ghiChuTd.style.cursor = "not-allowed"
     ghiChuTd.title = "Bạn không có quyền truy cập"

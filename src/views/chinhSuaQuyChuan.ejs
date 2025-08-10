@@ -505,7 +505,7 @@
       });
 
       function unhideButton2(role, MaPhongBan) {
-        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+        if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
           const exportBtn = document.getElementById("export-file-btn");
           exportBtn.style.display = "block"; // Hiện actionButton1 nếu isKhoa khác 0
         }
@@ -936,7 +936,7 @@
         const importDoAn = document.getElementById("importDoAn");
         const suaHD = document.getElementById("suaHD");
 
-        if (isKhoa == 0 && role == "Duyệt") {
+        if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
           importDoAn.style.display = "block";
           suaHD.style.display = "block";
         }
@@ -944,7 +944,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";
@@ -983,7 +983,7 @@
           
           // Lọc requests dựa trên quyền
           let filteredRequests = requests;
-          if (userRole !== "Thường" && userRole !== "Duyệt") {
+          if (userRole !== APP_ROLES.thuong && userRole !== APP_ROLES.troLy_phong && userRole !== APP_ROLES.lanhDao_phong) {
             filteredRequests = requests.filter(request => request.khoa === MaPhongBan);
           }
           
@@ -1020,10 +1020,10 @@
               `;
 
           filteredRequests.forEach(request => {
-            const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-            const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-            const canApproveBGD = userRole === "Thường";
-            const canUpdate = userRole === "Thường";
+            const canApproveKhoa = userRole === APP_ROLES.lanhDao_khoa && isKhoa === "1";
+            const canApproveDaoTao = (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && isKhoa === "0";
+            const canApproveBGD = userRole === APP_ROLES.thuong;
+            const canUpdate = userRole === APP_ROLES.thuong;
             const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
             const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1052,7 +1052,7 @@
                   <input type="checkbox" 
                     class="approval-checkbox" 
                     data-request-id="${request.id}" 
-                    data-type="daotao"
+                    data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"
                     ${request.daotao_duyet ? 'checked' : ''}
                     ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                 </td>
@@ -1265,10 +1265,10 @@
                     const userRole = localStorage.getItem("userRole");
                     const isKhoa = localStorage.getItem("isKhoa");
                     
-                    const canApproveKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-                    const canApproveDaoTao = userRole === "Duyệt" && isKhoa === "0";
-                    const canApproveBGD = userRole === "Thường";
-                    const canUpdate = userRole === "Thường";
+                    const canApproveKhoa = userRole === APP_ROLES.lanhDao_khoa && isKhoa === "1";
+                    const canApproveDaoTao = (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && isKhoa === "0";
+                    const canApproveBGD = userRole === APP_ROLES.thuong;
+                    const canUpdate = userRole === APP_ROLES.thuong;
                     const status = request.status === 'Cập nhật thành công' ? 'Đã ban hành' : 'Chưa ban hành';
                     const isPublished = request.status === 'Cập nhật thành công';
 
@@ -1297,7 +1297,7 @@
                         <input type="checkbox" 
                           class="approval-checkbox" 
                           data-request-id="${request.id}" 
-                          data-type="daotao"
+                          data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"
                           ${request.daotao_duyet ? 'checked' : ''}
                           ${request.status === 'Cập nhật thành công' ? 'disabled' : ''}>
                       </td>
@@ -1344,7 +1344,7 @@
         const editBtn = document.getElementById("show-edit-form-btn");
         
         // Hiển thị nút cho Lãnh đạo khoa, GV, và GV_CNBM
-        const allowedRoles = ["Lãnh đạo khoa", "GV", "GV_CNBM"];
+        const allowedRoles = [APP_ROLES.lanhDao_khoa, APP_ROLES.gv, APP_ROLES.gv_cnbm];
         if (!(allowedRoles.includes(role) && isKhoa === "1")) {
           editBtn.style.display = "none";
         }
@@ -1492,7 +1492,7 @@
               const MaPhongBan = localStorage.getItem("MaPhongBan");
               
               // Nếu là giảng viên thường hoặc có quyền Duyệt, hiển thị tất cả khoa
-              if (userRole === "Thường" || userRole === "Duyệt") {
+              if (userRole === APP_ROLES.thuong || userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) {
                 $("#filter-khoa").prepend('<option value="ALL">ALL</option>');
                 response.MaPhongBan.forEach(function (item) {
                   $("#filter-khoa").append(
@@ -1567,9 +1567,9 @@
           }
 
           requests.forEach(request => {
-            const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-            const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
-            const isThuongBGD = userRole === "Thường";
+            const isLanhDaoKhoa = userRole === APP_ROLES.lanhDao_khoa && isKhoa === "1";
+            const isDuyetDaoTao = (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao;
+            const isThuongBGD = userRole === APP_ROLES.thuong;
             const isPublished = request.status === 'Cập nhật thành công';
 
             // Logic phân quyền cho từng checkbox
@@ -1625,7 +1625,7 @@
                 <input type="checkbox" 
                   class="approval-checkbox" 
                   data-request-id="${request.id}" 
-                  data-type="daotao"
+                  data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"
                   ${request.daotao_duyet ? 'checked' : ''}
                   ${daotaoDisabled ? 'disabled' : ''}>
               </td>
@@ -1694,7 +1694,7 @@
               const MaPhongBan = localStorage.getItem("MaPhongBan");
               
               // Nếu là giảng viên thường hoặc có quyền Duyệt, hiển thị tất cả khoa
-              if (userRole === "Thường" || userRole === "Duyệt") {
+              if (userRole === APP_ROLES.thuong || userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) {
                 $("#modal-khoa").prepend('<option value="ALL">ALL</option>');
                 response.MaPhongBan.forEach(function (item) {
                   $("#modal-khoa").append(
@@ -2105,7 +2105,7 @@
         const status = row.find('td').last().text().trim();
 
         const khoaCheckbox = row.find('input[data-type="khoa"]');
-        const daotaoCheckbox = row.find('input[data-type="daotao"]');
+        const daotaoCheckbox = row.find(`input[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`);
         const bgdCheckbox = row.find('input[data-type="bgd"]');
 
         // Nếu đã ban hành thì luôn disabled
@@ -2116,8 +2116,8 @@
           return;
         }
 
-        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
-        const isThuongBGD = userRole === "Thường";
+        const isDuyetDaoTao = (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao;
+        const isThuongBGD = userRole === APP_ROLES.thuong;
         
         const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
         const canApproveBGD = isThuongBGD;
@@ -2161,7 +2161,7 @@
         const isChecked = $(this).is(':checked');
 
         // Chỉ cho tick Đào tạo duyệt khi tất cả Khoa duyệt đã được tick
-        if (approvalType === "daotao" && isChecked) {
+        if (approvalType === "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>" && isChecked) {
           const uncheckedRows = [];
           $('#edit-requests-body tr').each(function() {
             const khoaCheckbox = $(this).find('input.approval-checkbox[data-type="khoa"]');
@@ -2197,7 +2197,7 @@
         if (approvalType === "bgd" && isChecked) {
           const uncheckedRows = [];
           $('#edit-requests-body tr').each(function() {
-            const daotaoCheckbox = $(this).find('input.approval-checkbox[data-type="daotao"]');
+            const daotaoCheckbox = $(this).find(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`);
             if (daotaoCheckbox.length && !daotaoCheckbox.is(':checked')) {
               const tds = $(this).find('td');
               const dot = tds.eq(1).text().trim();
@@ -2253,7 +2253,7 @@
       });
       $(document).on('change', '#check-all-daotao-duyet', function() {
         const checked = this.checked;
-        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+        $(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`).each(function() {
           // Chỉ tick nếu chưa disabled (tức là chưa ban hành)
           if (!$(this).prop('disabled')) {
             // Chỉ tick nếu Khoa duyệt đã được tick
@@ -2280,7 +2280,7 @@
             // Chỉ tick nếu Khoa và Đào tạo duyệt đã được tick
             const row = $(this).closest('tr');
             const khoaCheckbox = row.find('input.approval-checkbox[data-type="khoa"]');
-            const daotaoCheckbox = row.find('input.approval-checkbox[data-type="daotao"]');
+            const daotaoCheckbox = row.find(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`);
             if (khoaCheckbox.is(':checked') && daotaoCheckbox.is(':checked')) {
               $(this).prop('checked', checked);
               // Cập nhật pendingApprovalChanges
@@ -2302,9 +2302,9 @@
         const isKhoa = localStorage.getItem("isKhoa");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        const isLanhDaoKhoa = userRole === "Lãnh đạo khoa" && isKhoa === "1";
-        const isDuyetDaoTao = userRole === "Duyệt" && MaPhongBan === "DAOTAO";
-        const isThuongBGD = userRole === "Thường";
+        const isLanhDaoKhoa = userRole === APP_ROLES.lanhDao_khoa && isKhoa === "1";
+        const isDuyetDaoTao = (userRole === APP_ROLES.troLy_phong || userRole === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao;
+        const isThuongBGD = userRole === APP_ROLES.thuong;
 
         const canApproveKhoa = isLanhDaoKhoa || isDuyetDaoTao || isThuongBGD;
         const canApproveDaoTao = isDuyetDaoTao || isThuongBGD;
@@ -2319,7 +2319,7 @@
         setApprovalHeaderCheckboxesPermission();
 
         const userRole = localStorage.getItem("userRole");
-        if (userRole === "Thường") {
+        if (userRole === APP_ROLES.thuong) {
           document.getElementById("publish-all-btn").style.display = "inline-block";
         }
       });
@@ -2441,7 +2441,7 @@
       function updateAllDaoTaoCheckboxState() {
         // Nếu tất cả Khoa duyệt đã tick thì enable hết Đào tạo duyệt, ngược lại disable các ô chưa được tick
         const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
-        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+        $(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`).each(function() {
           if (allKhoaChecked) {
             $(this).prop('disabled', false);
           } else {
@@ -2458,7 +2458,7 @@
       // Thêm hàm này vào script
       function updateAllDaoTaoCheckboxState() {
         const allKhoaChecked = $('input.approval-checkbox[data-type="khoa"]').toArray().every(cb => cb.checked);
-        $('input.approval-checkbox[data-type="daotao"]').each(function() {
+        $(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`).each(function() {
           if (allKhoaChecked) {
             $(this).prop('disabled', false);
           } else {
@@ -2473,7 +2473,7 @@
       $(document).on('change', '.approval-checkbox', function() {
         // ... các code kiểm tra như cũ ...
 
-        if (approvalType === "daotao" && isChecked) {
+        if (approvalType === "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>" && isChecked) {
           // ... kiểm tra ...
           if (uncheckedRows.length > 0) {
             $(this).prop('checked', false);
@@ -2501,7 +2501,7 @@
           updateAllDaoTaoCheckboxState();
         }
         // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
-        if (approvalType === "daotao") {
+        if (approvalType === "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>") {
           updateAllBgdCheckboxState();
         }
       });
@@ -2510,7 +2510,7 @@
     <script>
       // Thêm hàm này
       function updateAllBgdCheckboxState() {
-        const allDaoTaoChecked = $('input.approval-checkbox[data-type="daotao"]').toArray().every(cb => cb.checked);
+        const allDaoTaoChecked = $(`input.approval-checkbox[data-type="<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>"]`).toArray().every(cb => cb.checked);
         $('input.approval-checkbox[data-type="bgd"]').each(function() {
           if (allDaoTaoChecked) {
             $(this).prop('disabled', false);
@@ -2554,7 +2554,7 @@
           updateAllDaoTaoCheckboxState();
         }
         // Nếu là tick vào Đào tạo duyệt thì cập nhật lại trạng thái BGD duyệt
-        if (approvalType === "daotao") {
+        if (approvalType === "<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>") {
           updateAllBgdCheckboxState();
         }
       });

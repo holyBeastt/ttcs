@@ -553,7 +553,7 @@
       ghiChuTd.classList.add('ghichu');
       const ghiChuValue = row.GhiChu && row.GhiChu.trim() !== "" ? row.GhiChu : false;
       const hoanThanh = row.HoanThanh;
-      if (role === 'GV' || role === 'Thường') {
+      if (role === APP_ROLES.gv_khoa || role === APP_ROLES.thuong) {
         ghiChuTd.innerHTML = "📜"; // Hiển thị biểu tượng ghi chú nếu role là GV hoặc Thường
         ghiChuTd.style.cursor = "not-allowed"; // Thay đổi con trỏ chuột thành 'not-allowed' để báo hiệu không thể tương tác
         ghiChuTd.title = "Bạn không có quyền truy cập"; // Thêm tooltip để giải thích lý do không thể nhấn
@@ -628,7 +628,7 @@
             tableRow.style.display = 'none';
           }
       }
-      if(row.DaoTaoDuyet && MaPhongBan !== "DAOTAO"){
+      if(row.DaoTaoDuyet && MaPhongBan !== APP_DEPARTMENTS.daoTao){
         khoaDuyetCheckbox.disabled = true;
         selectCheckbox.disabled = true;
       }
@@ -1047,7 +1047,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+        if (role === APP_ROLES.lanhDao_khoa || role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';

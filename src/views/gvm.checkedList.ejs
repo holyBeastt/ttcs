@@ -463,7 +463,7 @@
           hocVienCheckbox.checked = item.hoc_vien_duyet; // Kiểm tra trạng thái duyệt
           hocVienCheckbox.onchange = () => updateCheckAll("hocVien"); // Gọi hàm khi checkbox thay đổi
 
-          hocVienCheckbox.disabled = MaPhongBan != "BGĐ"; // Chỉ bật nếu là Học viện
+          hocVienCheckbox.disabled = MaPhongBan != APP_DEPARTMENTS.banGiamDoc; // Chỉ bật nếu là Học viện
           hocVienCheckboxTd.appendChild(hocVienCheckbox);
         });
 

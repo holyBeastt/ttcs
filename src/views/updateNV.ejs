@@ -212,25 +212,25 @@
     const quyenSelect = document.getElementById('Quyen');
 
     // Biến để xác định phòng Khảo Thí
-    const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && khoa === 0);
+    const phongKhaoThi = (maPhongBan === APP_DEPARTMENTS.ktDbcl && khoa === 0);
 
     // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
     if (khoa === 1) {
       quyenSelect.innerHTML = `
-        <option value="GV">Giảng Viên</option>
-        <option value="GV_CNBM">Giáo vụ - Chủ nhiệm bộ môn</option>
-        <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+        <option value="${APP_ROLES.gv_khoa}">Giảng Viên</option>
+        <option value="${APP_ROLES.gv_cnbm_khoa}">Giáo vụ - Chủ nhiệm bộ môn</option>
+        <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
     } else if (phongKhaoThi) {
       // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
       quyenSelect.innerHTML = `
-        <option value="Lãnh đạo">Lãnh đạo</option>
-        <option value="Trợ lý">Trợ lý</option>
-        <option value="Thường">Thường</option>`;
+        <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo</option>
+        <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+        <option value="${APP_ROLES.thuong}">Thường</option>`;
     } else {
       // Các phòng ban hành chính khác
       quyenSelect.innerHTML = `
-        <option value="Duyệt">Duyệt</option>
-        <option value="Thường">Thường</option>`;
+        <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+        <option value="${APP_ROLES.thuong}">Thường</option>`;
     }
     const quyenValue = "<%= role.Quyen %>";
 
@@ -356,25 +356,25 @@ fetch(`/getQuyenByPhongBan?MaPhongBan=${maPhongBan}`)
     quyenSelect.innerHTML = ''; // Xóa các option cũ
 
     // Biến để xác định phòng Khảo Thí
-    const phongKhaoThi = (maPhongBan === "KT&ĐBCL" && data.isKhoa === 0);
+    const phongKhaoThi = (maPhongBan === APP_DEPARTMENTS.ktDbcl && data.isKhoa === 0);
 
     // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
     if (data.isKhoa === 1) {
       quyenSelect.innerHTML = `
-        <option value="GV">Giảng Viên</option>
-        <option value="GV_CNBM">Giảng viên-Chủ nhiệm bộ môn</option>
-        <option value="Lãnh đạo khoa">Lãnh đạo khoa</option>`;
+        <option value="${APP_ROLES.gv_khoa}">Giảng Viên</option>
+        <option value="${APP_ROLES.gv_cnbm_khoa}">Giảng viên-Chủ nhiệm bộ môn</option>
+        <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
     } else if (phongKhaoThi) {
       // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
       quyenSelect.innerHTML = `
-        <option value="Lãnh đạo">Lãnh đạo</option>
-        <option value="Trợ lý">Trợ lý</option>
-        <option value="Thường">Thường</option>`;
+        <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo</option>
+        <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
+        <option value="${APP_ROLES.thuong}">Thường</option>`;
     } else {
       // Các phòng ban hành chính khác
         quyenSelect.innerHTML = `
-        <option value="Thường">Thường</option>
-        <option value="Duyệt">Duyệt</option>`;
+        <option value="${APP_ROLES.thuong}">Thường</option>
+        <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>`;
       }
       
     }

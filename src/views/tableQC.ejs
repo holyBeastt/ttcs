@@ -422,7 +422,7 @@
       });
 
       function unhideButton2(role, MaPhongBan) {
-        if (role == "Duyệt" && MaPhongBan == "DAOTAO") {
+        if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
           const exportBtn = document.getElementById("export-file-btn");
           exportBtn.style.display = "block"; // Hiện actionButton1 nếu isKhoa khác 0
         }
@@ -767,7 +767,7 @@
         const importDoAn = document.getElementById("importDoAn");
         const suaHD = document.getElementById("suaHD");
 
-        if (isKhoa == 0 && role == "Duyệt") {
+        if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
           importDoAn.style.display = "block";
           suaHD.style.display = "block";
         }
@@ -775,7 +775,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

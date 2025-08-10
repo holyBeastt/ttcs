@@ -654,7 +654,7 @@
         const TenDangNhap = localStorage.getItem("TenDangNhap");
 
         let Role = localStorage.getItem("userRole");
-        if (Role.toUpperCase() == "LÃNH ĐẠO KHOA") {
+        if (Role.toUpperCase() == "<%= APP_ROLES.lanhDao_khoa.toUpperCase() %>") {
           Role = "LĐK";
         }
 
@@ -752,7 +752,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

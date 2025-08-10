@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+  
   <style>
     /* Định dạng cho bảng */
     .table {
@@ -605,7 +606,7 @@ async function fetchData() {
       const importDoAn = document.getElementById('importDoAn');
       const suaHD = document.getElementById('suaHD');
 
-      if (isKhoa == 0 && role == 'Duyệt'){
+      if (isKhoa == 0 && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)){
         importDoAn.style.display = 'block';
         suaHD.style.display = 'block';
       }
@@ -613,7 +614,7 @@ async function fetchData() {
     // Ẩn button ngay khi trang được tải
     const actionButton = document.getElementById('changeMessage');
     //Ẩn site thêm thông báo
-    if (role === "Duyệt") {
+    if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
       actionButton.style.display = '';
     } else {
       actionButton.style.display = 'none';

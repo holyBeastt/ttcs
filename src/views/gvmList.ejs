@@ -461,7 +461,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById('changeMessage');
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = '';
         } else {
           actionButton.style.display = 'none';
@@ -494,14 +494,14 @@
       const filterByDepartment =
         document.getElementById("filterByDepartment");
 
-      if (isKhoa == 0 || role.toLowerCase() == 'gv') {
+      if (isKhoa == 0 || role.toLowerCase() == APP_ROLES.gv.toLowerCase()) {
         createGvm.style.display = "none"; // Ẩn button
         const editButtons = document.querySelectorAll('.action-button.edit');
         editButtons.forEach(button => button.style.visibility = 'hidden');
       }
 
       if (isKhoa == 1) {
-        if (role.toLowerCase() == 'gv') {
+        if (role.toLowerCase() == APP_ROLES.gv.toLowerCase()) {
           filterByDepartment.style.visibility = "hidden";
         } else {
           filterByDepartment.style.display = "none";

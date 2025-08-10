@@ -255,7 +255,7 @@
             // Kiểm tra nếu response thành công
             if (response.success) {
               // Nếu role không phải là GV, GV_CNBM, hoặc Lãnh đạo khoa, thêm tùy chọn "Tất cả khoa"
-              if (!["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+              if (![APP_ROLES.gv_khoa, APP_ROLES.gv_cnbm_khoa, APP_ROLES.lanhDao_khoa].includes(userRole)) {
                 $("#MaPhongBan").prepend(
                   '<option value="ALL">Tất cả khoa</option>'
                 );
@@ -264,7 +264,7 @@
               // Lặp qua từng mục trong mảng MaPhongBan
               response.MaPhongBan.forEach(function (item) {
                 // Nếu role là GV, GV_CNBM, hoặc Lãnh đạo khoa, chỉ hiển thị khoa của giảng viên
-                if (["GV", "GV_CNBM", "Lãnh đạo khoa"].includes(userRole)) {
+                if ([APP_ROLES.gv_khoa, APP_ROLES.gv_cnbm_khoa, APP_ROLES.lanhDao_khoa].includes(userRole)) {
                   if (item.MaPhongBan === userMaPhongBan) {
                     $("#MaPhongBan").append(
                       `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
@@ -305,7 +305,7 @@
         // Ẩn button ngay khi trang được tải
         const actionButton = document.getElementById("changeMessage");
         //Ẩn site thêm thông báo
-        if (role === "Duyệt") {
+        if (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) {
           actionButton.style.display = "";
         } else {
           actionButton.style.display = "none";

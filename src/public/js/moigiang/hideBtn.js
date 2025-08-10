@@ -46,12 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         actionButton1.style.display = "inline-block"; // Hiện actionButton1 nếu isKhoa khác 0
         actionButton2.style.display = "none"; // Ẩn actionButton2
-        if (role.toLowerCase() == "gv") {
+        if (role.toLowerCase() == window.APP_ROLES.gv.toLowerCase()) {
             actionButton1.style.display = "none"; // Hiện actionButton1 nếu isKhoa khác 0
         }
     }
     //Ẩn site duyệt lớp gk
-    if (role === "Lãnh đạo khoa" || role === "Duyệt") {
+    if (role === window.APP_ROLES.lanhDao_khoa || role === window.APP_ROLES.troLy_phong || role === window.APP_ROLES.lanhDao_phong) {
         actionButton3.style.display = "";
     } else {
         actionButton3.style.display = "none";
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ẩn nút thêm thông báo ngay khi trang được tải
     const changeMessageBtn = document.getElementById("changeMessage");
     //Ẩn site thêm thông báo
-    if (role === "Duyệt") {
+    if (role === window.APP_ROLES.troLy_phong || role === window.APP_ROLES.lanhDao_phong) {
         changeMessageBtn.style.display = "";
     } else {
         changeMessageBtn.style.display = "none";
