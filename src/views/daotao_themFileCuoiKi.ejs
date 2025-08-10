@@ -21,7 +21,7 @@
     <div class="content-card">
       <h1 class="page-title">
         <i class="fas fa-upload"></i>
-        Quản Lý File Cuối Kỳ
+        Thêm thông tin coi thi, chấm thi, ra đề của giảng viên các khoa
       </h1>
       
       <!-- Control Panel -->
@@ -115,7 +115,7 @@
           <div class="row g-4">
             <div class="col-md-6">
               <label for="section" class="form-label">Phân loại:</label>
-              <select id="section" class="form-select modern-form-control" style="margin: 0px; height: max-content; background-color: white !important;">
+              <select id="section" class="form-select modern-form-control" style="margin: 0px; height: max-content; background-color: white !important; font-weight: 1000;">
                 <option value="raDe">Ra Đề</option>
                 <option value="coiThi">Coi Thi</option>
                 <option value="chamThi">Chấm Thi</option>
@@ -123,11 +123,13 @@
             </div>
             <div class="col-md-6">
               <label for="hoVaTen" class="form-label">Họ và tên:</label>
-              <input type="text" id="hoVaTen" class="form-control modern-form-control" required placeholder="Nhập họ và tên">
+              <input type="text" id="hoVaTen" list="nameGVSuggestions" class="form-control modern-form-control" required placeholder="Nhập họ và tên">
+              <datalist id="nameGVSuggestions"></datalist>
             </div>
             <div class="col-md-6">
               <label for="khoa" class="form-label">Khoa:</label>
-              <input type="text" id="khoa" class="form-control modern-form-control" required placeholder="Nhập tên khoa">
+              <select class="form-select modern-form-control" id="MaPhongBan" onchange="getSuggestions()" style="margin: 0px; height: max-content; background-color: white !important; font-weight: 1000; width: 100%;">
+              </select>
             </div>
             <div class="col-md-6">
               <label for="tenHocPhan" class="form-label">Tên học phần:</label>

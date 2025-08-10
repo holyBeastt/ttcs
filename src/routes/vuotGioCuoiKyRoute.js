@@ -2,9 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const { readFileExcel, addWorkloadEntry, getWorkload, importWorkloadToDB,
-  deleteWorkloadData, saveWorkloadData, checkDataExistence, getList,
-  updateDuyet, insertMyData, getMyList, updateMyData, deleteMyData,
-  getSuggestions
+  deleteWorkloadData, saveWorkloadData, checkDataExistence, getList, insertMyData, getMyList, updateMyData, deleteMyData,
+  getSuggestions, saveData, updateData, getNameSuggestions,
   } = require('../controllers/vuotGioCuoiKyController');
 
 // Middleware xử lý upload file với multer
@@ -23,13 +22,14 @@ router.post('/importkthp/checkfile', checkDataExistence);
 router.post('/importkthp/delete', deleteWorkloadData);
 router.post('/importkthp/save', saveWorkloadData);
 router.get('/importkthp/getSuggestions', getSuggestions);
+router.get('/importkthp/getNameSuggestions', getNameSuggestions); // API để lấy gợi ý tên nhân viên
 
 router.get('/vuotGioDanhGiaCuoiKi', (req, res) => {
   res.render('vuotGioDanhGiaCuoiKi'); // Render trang danh sách vuotGioCuoiKy 
 });
 
 router.get('/vuotGioDanhSachCuoiKi/getDSCuoiKi/:MaPhongBan/:Ki/:Nam', getList); // API để lấy danh sách vuotGioCuoiKy
-router.post('/vuotGioDanhSachCuoiKi/updateDuyet', updateDuyet); // API để duyệt vuotGioCuoiKy
+router.post('/vuotGioDanhSachCuoiKi/saveData', saveData); // API để duyệt vuotGioCuoiKy
 
 
 router.get('/vuotGioCuoiKi', (req, res) => {
@@ -39,5 +39,6 @@ router.post('/vuotGioCuoiKi/addmydata', insertMyData); // API để lấy thông
 router.get('/vuotGioDanhSachCuoiKi/getDataCuoiKi/:TenNhanVien/:Ki/:Nam', getMyList); // API để lấy danh sách vuotGioCuoiKy
 router.post('/vuotGioCuoiKi/update', updateMyData); // API để lưu thông tin vuotGioCuoiKy
 router.post('/vuotGioCuoiKi/delete', deleteMyData); // API để xóa thông tin vuotGioCuoiKy
+router.post('/vuotGioCuoiKi/updateData', updateData); // API để cập nhật thông tin vuotGioCuoiKy
 
 module.exports = router;

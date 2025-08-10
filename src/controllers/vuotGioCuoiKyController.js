@@ -400,35 +400,40 @@ const getList = async (req, res) => {
   }
 };
 
-const updateDuyet = async (req, res) => {
-  const { duyetList } = req.body
+const saveData = async (req, res) => {
+  let { idList } = req.body;
 
-  if (!Array.isArray(duyetList)) {
-    return res.status(400).json({ message: "Dữ liệu không hợp lệ" })
+  // Nếu idList là chuỗi "53,72,101" thì tách thành mảng
+  if (typeof idList === "string") {
+    idList = idList.split(",").map(id => id.trim()).filter(id => id);
   }
 
-  
+  if (!Array.isArray(idList) || idList.length === 0) {
+    return res.status(400).json({ message: "Dữ liệu không hợp lệ" });
+  }
 
   try {
-    const conn = await createPoolConnection()
+    const conn = await createPoolConnection();
 
     const query = `
-      UPDATE ketthuchocphan SET khoaduyet = ?, khaothiduyet = ?
-      WHERE id = ?`
+      UPDATE ketthuchocphan
+      SET daluu = 1
+      WHERE id = ?
+    `;
 
-    for (const item of duyetList) {
-      const { id, khoaDuyet, khaoThiDuyet } = item;
-
-      await conn.query(query, [khoaDuyet, khaoThiDuyet, id]);
+    for (const id of idList) {
+      await conn.query(query, [id]);
     }
 
-    res.status(200).json({ message: "Cập nhật thành công" })
     conn.release();
+    res.status(200).json({ message: "Cập nhật thành công" });
+
   } catch (err) {
-    console.error("Lỗi khi cập nhật duyệt:", err)
-    res.status(500).json({ message: "Cập nhật thất bại" })
+    console.error("Lỗi khi cập nhật duyệt:", err);
+    res.status(500).json({ message: "Cập nhật thất bại" });
   }
 };
+
 
 const insertMyData = async (req, res) => {
   try {
@@ -586,6 +591,77 @@ const deleteMyData = async (req, res) => {
   }
 };
 
+const updateData = async (req, res) => {
+  try {
+
+    const dataList = req.body.data; // ⬅️ data là một mảng
+    if (!Array.isArray(dataList)) {
+      return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
+    }
+    const conn = await createPoolConnection();
+
+    for (const item of dataList) {
+      const { loai, id, tenHocPhan, lopHocPhan } = item; // Lấy loai và id từ từng phần tử trong mảng
+      let section, soBaiCham1, soBaiCham2, tongSoBai, soTietQC;
+
+      if (loai === "Ra Đề") {
+        section = "Ra Đề";
+        soBaiCham1 = 0;
+        soBaiCham2 = 0;
+        tongSoBai = item.soDe || 0;
+        soTietQC = item.soTietQC || 0;
+        khoaduyet = item.khoaduyet || 0;
+        khaothiduyet = item.khaothiduyet || 0;
+      } else if (loai === "Coi Thi") {
+        section = "Coi Thi";
+        soBaiCham1 = 0;
+        soBaiCham2 = 0;
+        tongSoBai = item.soCa || 0;
+        soTietQC = item.soTietQC || 0;
+        khoaduyet = item.khoaduyet || 0;
+        khaothiduyet = item.khaothiduyet || 0;
+      } else if (loai === "Chấm Thi") {
+        section = "Chấm Thi";
+        soBaiCham1 = item.soBaiCham1;
+        soBaiCham2 = item.soBaiCham2;
+        tongSoBai = item.tongSoBai || 0;
+        soTietQC = item.soTietQC || 0;
+        khoaduyet = item.khoaduyet || 0;
+        khaothiduyet = item.khaothiduyet || 0;
+      }
+      
+
+      const query = `
+        UPDATE ketthuchocphan 
+        SET tenhocphan = ?, lophocphan = ?, hinhthuc = ?, baicham1 = ?, baicham2 = ?, tongso = ?, sotietqc = ?, khoaduyet = ?, khaothiduyet = ?
+        WHERE id = ?
+      `;
+
+      await conn.query(query, [
+        tenHocPhan,
+        lopHocPhan,
+        section,
+        soBaiCham1,
+        soBaiCham2,
+        tongSoBai,
+        soTietQC,
+        khoaduyet,
+        khaothiduyet,
+        id
+      ]);
+    }
+
+    conn.release();
+    res.json({ 
+      message: "Cập nhật dữ liệu thành công!",
+      success: true
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật dữ liệu:", error);
+    res.status(500).json({ error: "Lỗi khi cập nhật dữ liệu" });
+  }
+};
+
 const getSuggestions = async (req, res) => {
   try {
     const conn = await createPoolConnection();
@@ -605,6 +681,27 @@ const getSuggestions = async (req, res) => {
   }
 };
 
+const getNameSuggestions = async (req, res) => {
+  try {
+    const { MaPhongBan } = req.query; // Lấy MaPhongBan từ query string
+    const conn = await createPoolConnection();
+
+    const searchQuery = `
+      SELECT TenNhanVien
+      FROM nhanvien
+      WHERE MaPhongBan = ?
+    `;
+
+    const [rows] = await conn.query(searchQuery, [MaPhongBan]);
+    conn.release();
+
+    res.json(rows);
+  } catch (error) {
+    console.error("Lỗi khi lấy gợi ý:", error);
+    res.status(500).json({ error: "Lỗi khi lấy gợi ý" });
+  }
+};
+
 
 module.exports = {
   getWorkload,
@@ -615,10 +712,13 @@ module.exports = {
   saveWorkloadData,
   checkDataExistence,
   getList,
-  updateDuyet,
+  saveData,
   insertMyData,
   getMyList,
   updateMyData,
   deleteMyData,
+  updateData,
   getSuggestions,
+  getNameSuggestions,
+  
 };

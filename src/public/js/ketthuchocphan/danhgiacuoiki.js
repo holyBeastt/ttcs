@@ -49,7 +49,19 @@ function initializeRoleBasedUI() {
       hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
       document.getElementById("update-qc").style.display = "none"
     }
-  } else if (MaPhongBan === "KT&DBCL") {
+  } else if (MaPhongBan === "KT&ĐBCL") {
+    console.log("KT&ĐBCL role detected")
+    if( role !== "Lãnh đạo" && role !== "Trợ lý") {
+      hideTableHeadersByIds([
+        "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
+        "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
+      ])
+      document.getElementById("update-qc").style.display = "none"
+      console.log("Hiding all headers for KT&ĐBCL role")
+    }else if (role === "Trợ lý") {
+      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      document.getElementById("update-qc").style.display = ""
+    }
   } else {
     hideTableHeadersByIds([
       "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
@@ -307,10 +319,18 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   // Common cells
   const cells = []
   let editable;
-  if (role === "Lãnh đạo khoa" || role === "GV_CNBM" || role === "Lãnh đạo" || role === "Trợ lý") {
-    editable = row.khoaduyet === 0;
-  } else {
-    editable = false; // Non-editable for other roles
+  if (row.daluu === 0) {
+    if (row.khaothiduyet) {
+      editable = false; // Non-editable if Khao Thi has been approved
+    }else{
+      if (role === "Lãnh đạo khoa" || role === "GV_CNBM" || role === "Lãnh đạo" || role === "Trợ lý") {
+        editable = row.khoaduyet === 0;
+      } else {
+        editable = false; // Non-editable for other roles
+      }
+    }
+  }else {
+    editable = false; // Non-editable if already saved
   }
   // STT
   const sttCell = document.createElement("td")
@@ -448,14 +468,30 @@ function createCheckboxCells(tab, row, tableRow, isKhoa, MaPhongBan) {
       khoaCell.style.display = "none"
     }
   } else {
-    if (MaPhongBan !== "KT&ĐBCL") {
-      khaoThiCell.style.display = "none"
+    if (MaPhongBan === "KT&ĐBCL") {
+      console.log(`MaPhongBan: ${MaPhongBan}, userRole: ${userRole}`)
+      if( userRole === "Lãnh đạo"){
+        khaoThiCell.style.display = ""
+        khoaCell.style.display = ""
+      }else if (userRole === "Trợ lý") {
+        khaoThiCell.style.display = "none"
+      }else {
+        khoaCell.style.display = "none"
+        khaoThiCell.style.display = "none"
+      }
+    }else {
       khoaCell.style.display = "none"
+      khaoThiCell.style.display = "none"
     }
   }
 
   // Vô hiệu nếu đã được duyệt
-  if (row.KhaoThiDuyet && MaPhongBan !== "KT&DBCL") {
+  if(row.daluu === 0){
+    if (row.khaothiduyet && (MaPhongBan !== "KT&ĐBCL" || userRole !== "Lãnh đạo")) {
+      khoaCheckbox.disabled = true
+      khaoThiCheckbox.disabled = true
+    }
+  }else {
     khoaCheckbox.disabled = true
     khaoThiCheckbox.disabled = true
   }
@@ -614,71 +650,15 @@ function calculateTotals() {
 }
 
 
-async function updateDuyet() {
-  try {
-    const duyetList = []
 
-    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="DuyetChamThi"], input[type="checkbox"][name$="DuyetRaDe"], input[type="checkbox"][name$="DuyetCoiThi"]')
-
-    if (allCheckboxes.length === 0) {
-      showAlert("Không có checkbox nào để cập nhật", "warning")
-      return
-    }
-    allCheckboxes.forEach((checkbox) => {
-      // Ví dụ: id="KhoaDuyetChamThi_53"
-      const [fullType, id] = checkbox.id.split("_") // ["KhoaDuyetChamThi", "53"]
-      if (!id) return
-
-      let row = duyetList.find(item => item.id === id)
-      if (!row) {
-        row = { id }
-        duyetList.push(row)
-      }
-
-      // Gán giá trị, chuyển camelCase về lowercase để dễ dùng phía backend nếu cần
-      const key = fullType.charAt(0).toLowerCase() + fullType.slice(1) // ví dụ: "khoaDuyetChamThi"
-      row[key] = checkbox.checked ? 1 : 0
-    })
-
-
-    // ✅ Kiểm tra ràng buộc: nếu có khảo thí duyệt mà khoa chưa duyệt
-    const invalidRows = duyetList.filter(row => {
-      const khoaKeys = Object.keys(row).filter(k => k.startsWith("khoaDuyet"))
-      const khaoThiKeys = Object.keys(row).filter(k => k.startsWith("khaoThiDuyet"))
-
-      return khaoThiKeys.some(khao => row[khao] === 1) && khoaKeys.every(khoa => row[khoa] !== 1)
-    })
-
-    if (invalidRows.length > 0) {
-      showAlert("Vui lòng duyệt Khoa trước khi Khảo thí duyệt!", "warning")
-      return // Ngưng gửi request
-    }
-
-    const response = await fetch("/vuotGioDanhSachCuoiKi/updateDuyet", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ duyetList }),
-    })
-
-    const data = await response.json()
-    if (response.ok) {
-      showAlert(data.message, "success")
-    } else {
-      throw new Error(data.message)
-    }
-  } catch (error) {
-    showAlert("Có lỗi xảy ra khi cập nhật dữ liệu", "error")
-    console.error(error)
-  }
-}
 
 const columnDefs = {
-  raDe: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC'],
-  coiThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC'],
-  chamThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC']
+  raDe: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC', 'GhiChu','HanhDong', 'khoaduyet', 'khaothiduyet'],
+  coiThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC', 'GhiChu', 'HanhDong', 'khoaduyet', 'khaothiduyet'],
+  chamThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC', 'GhiChu', 'HanhDong', 'khoaduyet', 'khaothiduyet']
 };
 
-async function saveDataToServer() {
+async function updateDataToServer() {
   try {
     let dataTam = []
 
@@ -691,9 +671,19 @@ async function saveDataToServer() {
     // Cập nhật lại dataTam
     dataTam = [...raDeData, ...coiThiData, ...chamThiData];
 
+    // ✅ Kiểm tra ràng buộc
+    const invalidRows = dataTam.filter(row =>
+      Number(row.khaothiduyet) === 1 && Number(row.khoaduyet) !== 1
+    );
+
+    if (invalidRows.length > 0) {
+      showAlert('Vui lòng duyệt khoa trước khi duyệt khảo thí!', 'error');
+      return; // Ngưng xử lý tiếp
+    }
+
     console.log('Data to be sent:', dataTam);
 
-    const response = await fetch('/vuotGioCuoiKi/update', {
+    const response = await fetch('/vuotGioCuoiKi/updateData', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -703,14 +693,91 @@ async function saveDataToServer() {
       })
     });
 
-    if (!response.ok) throw new Error('Thêm dữ liệu thất bại');
+    if (!response.ok) throw new Error('Cập nhật dữ liệu thất bại');
       const data = await response.json();
-      showAlert('Dữ liệu đã được thêm thành công!', 'success');
+      showAlert('Dữ liệu đã được cập nhật thành công!', 'success');
 
-    if (data.success) location.reload();
+    // if (data.success) location.reload();
   } catch (error) {
     showAlert( error.message || messages.error, 'error');
     console.error('Error:', error);
+  }
+}
+
+async function saveDataToServer() {
+  await updateDataToServer()
+  try {
+    // Lấy tất cả checkbox khảo thí duyệt (kể cả chưa tick)
+    const allKhaoThi = Array.from(
+      document.querySelectorAll('input[type="checkbox"][name^="KhaoThiDuyet"]')
+    );
+
+    // Kiểm tra nếu có checkbox chưa được check
+    const unchecked = allKhaoThi.filter(cb => !cb.checked);
+    if (unchecked.length > 0) {
+      showAlert("Vui lòng tích tất cả checkbox khảo thí duyệt trước khi tiếp tục!", "error");
+      return; // Ngừng xử lý tiếp
+    }
+    // Lấy danh sách id (sau dấu "_") và ghép thành chuỗi
+    const idList = allKhaoThi
+      .map(cb => cb.id.split("_")[1]) // Lấy phần id sau dấu "_"
+      .filter(id => id)               // Bỏ null/undefined
+      .join(",");                      // Ghép thành chuỗi
+
+    console.log(idList); // Ví dụ: "53,72,101"
+
+
+    // const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="DuyetChamThi"], input[type="checkbox"][name$="DuyetRaDe"], input[type="checkbox"][name$="DuyetCoiThi"]')
+
+    // if (allCheckboxes.length === 0) {
+    //   showAlert("Không có checkbox nào để cập nhật", "warning")
+    //   return
+    // }
+    // allCheckboxes.forEach((checkbox) => {
+    //   // Ví dụ: id="KhoaDuyetChamThi_53"
+    //   const [fullType, id] = checkbox.id.split("_") // ["KhoaDuyetChamThi", "53"]
+    //   if (!id) return
+
+    //   let row = duyetList.find(item => item.id === id)
+    //   if (!row) {
+    //     row = { id }
+    //     duyetList.push(row)
+    //   }
+
+    //   // Gán giá trị, chuyển camelCase về lowercase để dễ dùng phía backend nếu cần
+    //   const key = fullType.charAt(0).toLowerCase() + fullType.slice(1) // ví dụ: "khoaDuyetChamThi"
+    //   row[key] = checkbox.checked ? 1 : 0
+    // })
+
+
+    // // ✅ Kiểm tra ràng buộc: nếu có khảo thí duyệt mà khoa chưa duyệt
+    // const invalidRows = duyetList.filter(row => {
+    //   const khoaKeys = Object.keys(row).filter(k => k.startsWith("khoaDuyet"))
+    //   const khaoThiKeys = Object.keys(row).filter(k => k.startsWith("khaoThiDuyet"))
+
+    //   return khaoThiKeys.some(khao => row[khao] === 1) && khoaKeys.every(khoa => row[khoa] !== 1)
+    // })
+
+    // if (invalidRows.length > 0) {
+    //   showAlert("Vui lòng duyệt hết dữ liệu trước khi lưu!", "warning")
+    //   return // Ngưng gửi request
+    // }
+
+    const response = await fetch("/vuotGioDanhSachCuoiKi/saveData", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idList }) // Gửi danh sách id đã chọn,
+    })
+
+    const data = await response.json()
+    if (response.ok) {
+      showAlert(data.message, "success")
+    } else {
+      throw new Error(data.message)
+    }
+  } catch (error) {
+    showAlert("Có lỗi xảy ra khi cập nhật dữ liệu", "error")
+    console.error(error)
   }
 }
 
@@ -732,7 +799,13 @@ function extractEditedData(containerId, columnList, examType) {
 
       const input = cell.querySelector('input');
       if (input) {
-        rowData[colName] = input.value.trim();
+        if (input.type === 'checkbox') {
+          // Checkbox: lưu 1 nếu checked, 0 nếu không
+          rowData[colName] = input.checked ? 1 : 0;
+        } else {
+          // Các input khác
+          rowData[colName] = input.value.trim();
+        }
       } else {
         rowData[colName] = cell.textContent.trim();
       }
