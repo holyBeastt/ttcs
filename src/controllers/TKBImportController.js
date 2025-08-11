@@ -2,6 +2,10 @@ const XLSX = require("xlsx");
 const pool = require("../config/Pool");
 
 const importExcelTKB = async (req, res) => {
+  const semester = JSON.parse(req.body.semester);
+
+  const { dot, ki, nam } = semester;
+
   if (!req.file) {
     return res.status(400).json({ message: "Vui lòng chọn file Excel." });
   }
@@ -11,50 +15,41 @@ const importExcelTKB = async (req, res) => {
 
     let allData = [];
 
-    // Đọc toàn bộ sheet
     workbook.SheetNames.forEach((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
+
+      // Lấy hàng tiêu đề (row 4 trong file Excel)
+      const headerRow =
+        XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          range: 3, // chỉ đọc hàng thứ 4
+        })[0] || [];
+
+      // Lọc header rỗng
+      const validHeaders = headerRow.map((h) => (h || "").toString().trim());
+
+      // Đọc dữ liệu từ hàng thứ 5 trở đi
       const data = XLSX.utils.sheet_to_json(sheet, {
-        defval: "",
+        header: validHeaders,
         range: 4,
-        header: [
-          "tt",
-          "course_code",
-          "credit_hours",
-          // "student_quantity",
-          "ll_code",
-          // "student_bonus",
-          // "ll_code_real",
-          // "qc",
-          "course_name",
-          "study_format",
-          "periods_per_week",
-          "day_of_week",
-          "periods",
-          "classroom",
-          "start_date",
-          "end_date",
-          "lecturer",
-        ],
+        defval: "",
         raw: false,
         cellDates: true,
       });
 
-      if (data.length > 0) {
-        // Gắn tên sheet để biết dòng thuộc sheet nào (nếu cần)
-        data.forEach((row) => {
-          row.sheet_name = sheetName;
-        });
+      // Gắn tên sheet vào từng dòng
+      data.forEach((row) => {
+        row.sheet_name = sheetName;
+      });
 
-        allData = allData.concat(data);
-      }
+      allData = allData.concat(data);
     });
 
     if (allData.length === 0) {
       return res.status(400).json({ message: "File Excel không có dữ liệu." });
     }
 
-    // Xử lý ô merge bị trống
+    // Xử lý merge: ô trống lấy giá trị từ dòng trên
     for (let i = 1; i < allData.length; i++) {
       for (const key of Object.keys(allData[i])) {
         if (allData[i][key] === "") {
@@ -63,61 +58,103 @@ const importExcelTKB = async (req, res) => {
       }
     }
 
-    // Tính tổng tiết
+    // Map tên cột từ tiếng Việt sang key tiếng Anh
+    const renameMap = {
+      "TT": "tt",
+      "Mã HP": "course_code",
+      "Số TC": "credit_hours",
+      "LL": "ll_code",
+      "Số \nSV": "student_quantity",
+      "HS lớp đông": "student_bonus",
+      "Ngoài giờ HC": "bonux_time",
+      "LL thực": "ll_code_actual",
+      "QC": "qc",
+      "Lớp học phần": "course_name",
+      "Hình thức học": "study_format",
+      "ST/ tuần": "periods_per_week",
+      "Thứ": "day_of_week",
+      "Tiết học": "period_range",
+      "Phòng học": "classroom",
+      "Ngày BĐ\n(tuần)": "start_date",
+      "Ngày KT\n(tuần)": "end_date",
+      "Giáo viên": "lecturer",
+    };
+
+    const renamedData = allData.map((row) => {
+      const newRow = {};
+      for (const [oldKey, newKey] of Object.entries(renameMap)) {
+        newRow[newKey] = row[oldKey] ?? "";
+      }
+      newRow.sheet_name = row.sheet_name;
+      return newRow;
+    });
+
+    // Tính tổng tiết cho mỗi lớp học phần
     const tongTietMap = {};
-    for (const row of allData) {
-      const tietHoc = row["periods"];
-      if (tietHoc && tietHoc.includes("->")) {
-        const [startTiet, endTiet] = tietHoc.split("->").map(Number);
+    for (const row of renamedData) {
+      if (row.period_range && row.period_range.includes("->")) {
+        const [startTiet, endTiet] = row.period_range.split("->").map(Number);
         const tietBuoi = endTiet - startTiet + 1;
-        const startDate = parseDateDDMMYY(row["start_date"]);
-        const endDate = parseDateDDMMYY(row["end_date"]);
+        const startDate = parseDateDDMMYY(row.start_date);
+        const endDate = parseDateDDMMYY(row.end_date);
         const soTuan = Math.ceil(
           (endDate - startDate) / (7 * 24 * 60 * 60 * 1000)
         );
         const tongTiet = soTuan * tietBuoi;
-        const lop = row["course_name"];
-        tongTietMap[lop] = (tongTietMap[lop] || 0) + tongTiet;
+        tongTietMap[row.course_name] =
+          (tongTietMap[row.course_name] || 0) + tongTiet;
       }
     }
 
-    // Gắn data cần thiết: TongTiet vào từng dòng
-    for (const row of allData) {
-      row["period_start"] = row["periods"].split("->")[0] || null;
-      row["period_end"] = row["periods"].split("->")[1] || null;
-      row["ll_total"] = tongTietMap[row["course_name"]] || 0;
+    // Thêm period_start, period_end, ll_total vào từng dòng
+    for (const row of renamedData) {
+      if (row.period_range.includes("->")) {
+        const [start, end] = row.period_range.split("->");
+        row.period_start = start || null;
+        row.period_end = end || null;
+      } else {
+        row.period_start = null;
+        row.period_end = null;
+      }
+      row.ll_total = tongTietMap[row.course_name] || 0;
     }
 
-    // Tạo mảng values
-    const values = allData.map((row) => [
-      row["tt"],
-      row["course_code"],
-      row["credit_hours"],
-      row["ll_code"],
-      row["ll_total"],
-      row["qc"],
-      row["course_name"],
-      row["study_format"],
-      row["periods_per_week"],
-      row["day_of_week"],
-      row["period_start"],
-      row["period_end"],
-      row["classroom"],
-      formatDateForMySQL(parseDateDDMMYY(row["start_date"])),
-      formatDateForMySQL(parseDateDDMMYY(row["end_date"])),
-      row["lecturer"],
+    // Chuẩn bị values để insert
+    const values = renamedData.map((row) => [
+      row.tt,
+      row.course_code,
+      row.credit_hours,
+      row.student_quantity,
+      row.student_bonus,
+      row.bonux_time,
+      row.ll_code,
+      row.ll_total,
+      row.qc,
+      row.course_name,
+      row.study_format,
+      row.periods_per_week,
+      row.day_of_week,
+      row.period_start,
+      row.period_end,
+      row.classroom,
+      formatDateForMySQL(parseDateDDMMYY(row.start_date)),
+      formatDateForMySQL(parseDateDDMMYY(row.end_date)),
+      row.lecturer,
+      dot,
+      ki,
+      nam,
     ]);
 
     // Insert batch
     await pool.query(
       `INSERT INTO course_schedule_details (
-        TT, course_id, credit_hours, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
-        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer
+        TT, course_id, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
+        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]
     );
 
-    res.json({ message: "Đọc file và lưu thành công", data: allData });
+    res.json({ message: "Đọc file và lưu thành công", data: renamedData });
   } catch (err) {
     console.error("Lỗi khi xử lý file Excel:", err);
     res.status(500).json({ message: "Lỗi khi xử lý file Excel." });
