@@ -416,7 +416,7 @@
                 </th>
                 <th style="width: 50px" id="daoTaoColumn">
                   <div class="form-check d-flex">
-                    <input class="check" type="checkbox" id="checkAllDaoTao" onclick="checkAll('daoTao')" />
+                    <input class="check" type="checkbox" id="checkAllDaoTao" onclick="checkAll('<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>')" />
                     <label class="form-check-label text-nowrap" for="checkAllDaoTao">Đào Tạo</label>
                   </div>
                 </th>
@@ -532,7 +532,7 @@
           document.getElementById("update-qc").style.display = "inline-block"; // Sử dụng 'inline-block' để hiển thị nút
 
 
-        } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong && (role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong)) {
+        } else if (MaPhongBan == APP_DEPARTMENTS.vanPhong && role == APP_ROLES.lanhDao_phong) {
           // Ẩn cột 'khoaColumn'
           // document.getElementById("khoaColumn").style.display = "none";
 
@@ -942,16 +942,14 @@
             }
           }
           
-          if (role.toLowerCase() === APP_ROLES.thuong.toLowerCase()) {
-            khoaCheckbox.disabled = true;
-            daoTaoCheckbox.disabled = true;
-            VPCheckbox.disabled = true;
-          }
-
-          if (MaPhongBan === APP_DEPARTMENTS.banGiamDoc && (role.toLocaleLowerCase() === APP_ROLES.troLy_phong.toLowerCase() || role.toLocaleLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase())) {
+          if (MaPhongBan === APP_DEPARTMENTS.banGiamDoc || role.toLocaleLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase()) {
             khoaCheckbox.disabled = false;
             daoTaoCheckbox.disabled = false;
             VPCheckbox.disabled = false;
+          } else {
+            khoaCheckbox.disabled = true;
+            daoTaoCheckbox.disabled = true;
+            VPCheckbox.disabled = true;
           }
 
           tableBody.appendChild(tableRow); // Thêm hàng vào bảng
@@ -1120,9 +1118,20 @@
         const checkboxes = document.querySelectorAll(
           `input[type="checkbox"][name="${type}"]`
         );
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        
+        // Map type to actual checkbox ID
+        const checkAllIdMap = {
+          'khoa': 'checkAllKhoa',
+          '<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>': 'checkAllDaoTao',
+          'vanPhong': 'checkAllVP'
+        };
+        
+        const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
+
+        if (!checkAllCheckbox) {
+          console.error(`CheckAll checkbox not found for type: ${type}`);
+          return;
+        }
 
         for (const checkbox of checkboxes) {
           if (checkbox.disabled || !checkbox.offsetParent) {
@@ -1139,9 +1148,20 @@
         const checkboxes = document.querySelectorAll(
           `input[type="checkbox"][name="${type}"]`
         );
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        
+        // Map type to actual checkbox ID
+        const checkAllIdMap = {
+          'khoa': 'checkAllKhoa',
+          '<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>': 'checkAllDaoTao',
+          'vanPhong': 'checkAllVP'
+        };
+        
+        const checkAllCheckbox = document.getElementById(checkAllIdMap[type]);
+
+        if (!checkAllCheckbox) {
+          console.error(`CheckAll checkbox not found for type: ${type}`);
+          return;
+        }
 
         // Kiểm tra nếu tất cả checkbox cá nhân đều được chọn
         const allChecked = Array.from(checkboxes).every(
