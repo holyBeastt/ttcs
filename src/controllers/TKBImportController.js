@@ -77,7 +77,7 @@ const importExcelTKB = async (req, res) => {
       "Phòng học": "classroom",
       "Ngày BĐ\n(tuần)": "start_date",
       "Ngày KT\n(tuần)": "end_date",
-      "Giáo viên": "lecturer",
+      "Giáo Viên": "lecturer",
     };
 
     const renamedData = allData.map((row) => {
