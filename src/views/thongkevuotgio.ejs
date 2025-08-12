@@ -395,42 +395,7 @@ $(document).ready(function () {
                 }
             }
 
-            // Thêm dữ liệu mới
-            data.forEach((item, index) => {
-                const row = tableBody.insertRow();
-                let cellIdx = 0;
 
-                if (currentType === "khoa") {
-                    if (khoa === 'ALL') {
-                        row.insertCell(cellIdx++).textContent = item.Khoa || "";
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTietall || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
-                    } else {
-                        row.insertCell(cellIdx++).textContent = index + 1;
-                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-                    }
-                } else if (currentType === "hedaotao") {
-                    if (hedaotao === 'ALL') {
-                        row.insertCell(cellIdx++).textContent = item.HeDaoTao || "";
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
-                    } else {
-                        row.insertCell(cellIdx++).textContent = index + 1;
-                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
-                        row.insertCell(cellIdx++).textContent = item.HocVi || "";
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.TongSoTiet || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
-                        row.insertCell(cellIdx++).textContent = parseFloat(item.SoTietVuotGio || 0).toFixed(2);
-                    }
-                }
-            });
 
             // Cập nhật tổng số tiết
             const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
@@ -458,6 +423,71 @@ $(document).ready(function () {
                 document.getElementById('totalSTPHTContainer').style.display = 'none';
                 document.getElementById('totalSTMGContainer').style.display = 'none';
             }
+
+            // Thêm dữ liệu mới vào bảng
+            data.forEach((item, index) => {
+                const row = tableBody.insertRow();
+                let cellIdx = 0;
+
+                if (currentType === "khoa") {
+                    if (khoa === 'ALL') {
+                        row.insertCell(cellIdx++).textContent = item.Khoa || "";
+                        
+                        // Tính phần trăm cho số tiết tính vượt giờ
+                        const percentageSoTiet = totalSoTietGiangDay > 0 ? ((parseFloat(item.TongSoTietall || 0) / totalSoTietGiangDay) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.TongSoTietall || 0).toFixed(2)} (${percentageSoTiet}%)`;
+                        
+                        // Tính phần trăm cho số tiết vượt giờ
+                        const percentageVuotGio = total > 0 ? ((parseFloat(item.SoTietVuotGio || 0) / total) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.SoTietVuotGio || 0).toFixed(2)} (${percentageVuotGio}%)`;
+                        
+                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
+                    } else {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
+                        
+                        // Tính phần trăm cho tổng số tiết
+                        const percentageSoTiet = totalSoTietGiangDay > 0 ? ((parseFloat(item.TongSoTiet || 0) / totalSoTietGiangDay) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.TongSoTiet || 0).toFixed(2)} (${percentageSoTiet}%)`;
+                        
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
+                        
+                        // Tính phần trăm cho số tiết vượt giờ
+                        const percentageVuotGio = total > 0 ? ((parseFloat(item.SoTietVuotGio || 0) / total) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.SoTietVuotGio || 0).toFixed(2)} (${percentageVuotGio}%)`;
+                    }
+                } else if (currentType === "hedaotao") {
+                    if (hedaotao === 'ALL') {
+                        row.insertCell(cellIdx++).textContent = item.HeDaoTao || "";
+                        
+                        // Tính phần trăm cho tổng số tiết
+                        const percentageSoTiet = totalSoTietGiangDay > 0 ? ((parseFloat(item.TongSoTiet || 0) / totalSoTietGiangDay) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.TongSoTiet || 0).toFixed(2)} (${percentageSoTiet}%)`;
+                        
+                        // Tính phần trăm cho số tiết vượt giờ
+                        const percentageVuotGio = total > 0 ? ((parseFloat(item.SoTietVuotGio || 0) / total) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.SoTietVuotGio || 0).toFixed(2)} (${percentageVuotGio}%)`;
+                        
+                        row.insertCell(cellIdx++).textContent = item.SoLuongGiangVien || "";
+                    } else {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = item.GiangVien || "";
+                        row.insertCell(cellIdx++).textContent = item.HocVi || "";
+                        
+                        // Tính phần trăm cho tổng số tiết
+                        const percentageSoTiet = totalSoTietGiangDay > 0 ? ((parseFloat(item.TongSoTiet || 0) / totalSoTietGiangDay) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.TongSoTiet || 0).toFixed(2)} (${percentageSoTiet}%)`;
+                        
+                        row.insertCell(cellIdx++).textContent = parseFloat(item.STPHT || 0).toFixed(2);
+                        row.insertCell(cellIdx++).textContent = parseFloat((300 - item.STPHT) || 0).toFixed(2);
+                        
+                        // Tính phần trăm cho số tiết vượt giờ
+                        const percentageVuotGio = total > 0 ? ((parseFloat(item.SoTietVuotGio || 0) / total) * 100).toFixed(1) : 0;
+                        row.insertCell(cellIdx++).textContent = `${parseFloat(item.SoTietVuotGio || 0).toFixed(2)} (${percentageVuotGio}%)`;
+                    }
+                }
+            });
 
             // Cập nhật biểu đồ
             updateCharts(data, currentType, khoa, hedaotao);
