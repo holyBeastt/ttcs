@@ -508,11 +508,11 @@
 
               // Điều kiện disable đào tạo
               isDisabled = true;
-
+              console.log(APP_ROLES.lanhDao_phong, APP_DEPARTMENTS.daoTao)
               if (
                 item.khoa_duyet == 1 &&
                 item.dao_tao_duyet == 0 &&
-                (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) &&
+                role === APP_ROLES.lanhDao_phong &&
                 MaPhongBan === APP_DEPARTMENTS.daoTao
               ) {
                 isDisabled = false;
