@@ -224,8 +224,8 @@
             } else if (phongKhaoThi) {
               // Trường hợp riêng cho phòng Khảo Thí (KT&ĐBCL)
               quyenSelect.innerHTML = `
-                <option value="Lãnh đạo">Lãnh đạo</option>
-                <option value="Trợ lý">Trợ lý</option>
+                <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo phòng</option>
+                <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
                 <option value="${APP_ROLES.thuong}">Thường</option>`;
             } else {
               // Các phòng ban hành chính khác

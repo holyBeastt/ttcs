@@ -425,6 +425,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-
-
+    
 });
+async function getSuggestions() {
+    try {
+        const MaPhongBan = document.getElementById("MaPhongBan").value;
+        const response = await fetch(`/importkthp/getNameSuggestions?MaPhongBan=${MaPhongBan}`);
+        if (!response.ok) throw new Error("Lỗi khi tải danh sách");
+
+        const nhanSuList = await response.json();
+
+        const datalist = document.getElementById("nameGVSuggestions");
+        datalist.innerHTML = ""; // Xóa gợi ý cũ
+
+        nhanSuList.forEach(({ TenNhanVien }) => {
+        const option = document.createElement("option");
+        option.value = TenNhanVien;
+        datalist.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Không thể tải danh sách:", error);
+    }
+}
+

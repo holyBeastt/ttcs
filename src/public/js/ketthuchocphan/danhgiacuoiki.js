@@ -1,5 +1,8 @@
 // Global variables
 const changeMessageBtn = document.getElementById("changeMessage")
+role = localStorage.getItem("userRole")
+isKhoa = localStorage.getItem("isKhoa")
+MaPhongBan = localStorage.getItem("MaPhongBan")
 if (changeMessageBtn) {
   if (role === window.APP_ROLES?.lanhDao_khoa || role === window.APP_ROLES?.troLy_phong || role === window.APP_ROLES?.lanhDao_phong) {
     changeMessageBtn.style.display = ""
@@ -27,10 +30,6 @@ if (isKhoa == 1) {
 
   // Initialize role-based UI
   function initializeRoleBasedUI() {
-    const isKhoa = localStorage.getItem("isKhoa")
-    const role = localStorage.getItem("userRole")
-    const MaPhongBan = localStorage.getItem("MaPhongBan")
-
     // Configure UI based on role
     if (isKhoa === "1") {
       // Khoa role - show only Khoa approval column
@@ -58,20 +57,32 @@ if (isKhoa == 1) {
       }
     }
 
-    if (isKhoa == 1) {
-      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
-      if (role !== window.APP_ROLES.lanhDao_khoa && role !== window.APP_ROLES.gv_cnbm) {
-        hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
-        document.getElementById("update-qc").style.display = "none"
-      }
-    } else if (MaPhongBan === "KT&DBCL") {
-    } else {
+  if (isKhoa == 1) {
+    hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+    if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
+      hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
+      document.getElementById("update-qc").style.display = "none"
+    }
+  } else if (MaPhongBan === "KT&ĐBCL") {
+    console.log("KT&ĐBCL role detected")
+    if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
       hideTableHeadersByIds([
         "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
         "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
       ])
       document.getElementById("update-qc").style.display = "none"
+      console.log("Hiding all headers for KT&ĐBCL role")
+    }else if (role === window.APP_ROLES?.troLy_phong) {
+      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      document.getElementById("update-qc").style.display = ""
     }
+  } else {
+    hideTableHeadersByIds([
+      "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
+      "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
+    ])
+    document.getElementById("update-qc").style.display = "none"
+  }
 
 
   }
@@ -110,7 +121,6 @@ if (isKhoa == 1) {
     if (homeBtn) {
       homeBtn.addEventListener("click", (event) => {
         event.preventDefault()
-        const isKhoa = localStorage.getItem("isKhoa")
         window.location.href = isKhoa == 0 ? "/maindt" : "/mainkhoa"
       })
     }
@@ -120,7 +130,6 @@ if (isKhoa == 1) {
     if (infoBtn) {
       infoBtn.addEventListener("click", (event) => {
         event.preventDefault()
-        const isKhoa = localStorage.getItem("isKhoa")
         window.location.href = isKhoa == 0 ? "/info2" : "/info"
       })
     }
@@ -188,26 +197,25 @@ if (isKhoa == 1) {
 
   // Load exam data from server
   async function loadExamData() {
-    const isKhoa = localStorage.getItem("isKhoa")
-    let MaPhongBan
+    let maPhongBan
 
     if (isKhoa === "1") {
-      MaPhongBan = localStorage.getItem("MaPhongBan")
+      maPhongBan = localStorage.getItem("MaPhongBan")
     } else {
-      MaPhongBan = document.getElementById("MaPhongBan").value
+      maPhongBan = document.getElementById("MaPhongBan").value
     }
 
     const Ki = document.getElementById("comboboxki").value
     const Nam = document.getElementById("NamHoc").value
 
-    if (!MaPhongBan) {
+    if (!maPhongBan) {
       showAlert("Mã phòng ban không tồn tại!", "error")
       return
     }
 
     try {
       showLoading(true)
-      const response = await fetch(`/vuotGioDanhSachCuoiKi/getDSCuoiKi/${MaPhongBan}/${Ki}/${Nam}`, {
+      const response = await fetch(`/vuotGioDanhSachCuoiKi/getDSCuoiKi/${maPhongBan}/${Ki}/${Nam}`, {
         method: "GET",
       })
 
@@ -234,9 +242,6 @@ if (isKhoa == 1) {
 
   // Render exam tables for all three tabs
   function renderExamTables(data) {
-    const role = localStorage.getItem("userRole")
-    const MaPhongBan = localStorage.getItem("MaPhongBan")
-    const isKhoa = localStorage.getItem("isKhoa")
 
     tableRowData = []
 
@@ -317,20 +322,28 @@ if (isKhoa == 1) {
     return td
   }
 
-  // Create table cells based on exam type
-  function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, index) {
-    // Common cells
-    const cells = []
-    let editable;
-    if (role === window.APP_ROLES.lanhDao_khoa || role === window.APP_ROLES.gv_cnbm || role === window.APP_ROLES.lanhDao_phong || role === window.APP_ROLES.troLy_phong) {
-      editable = row.khoaduyet === 0;
-    } else {
-      editable = false; // Non-editable for other roles
+// Create table cells based on exam type
+function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, index) {
+  // Common cells
+  const cells = []
+  let editable;
+  if (row.daluu === 0) {
+    if (row.khaothiduyet) {
+      editable = false; // Non-editable if Khao Thi has been approved
+    }else{
+      if (role === window.APP_ROLES?.lanhDao_khoa || role === window.APP_ROLES?.gv_cnbm || role === window.APP_ROLES?.lanhDao_phong || role === window.APP_ROLES?.troLy_phong) {
+        editable = row.khoaduyet === 0;
+      } else {
+        editable = false; // Non-editable for other roles
+      }
     }
-    // STT
-    const sttCell = document.createElement("td")
-    sttCell.textContent = index + 1 // Use the passed index for STT
-    cells.push(sttCell)
+  }else {
+    editable = false; // Non-editable if already saved
+  }
+  // STT
+  const sttCell = document.createElement("td")
+  sttCell.textContent = index + 1 // Use the passed index for STT
+  cells.push(sttCell)
 
 
 
@@ -428,8 +441,7 @@ if (isKhoa == 1) {
   }
 
   // Create checkbox cells
-  function createCheckboxCells(tab, row, tableRow, isKhoa, MaPhongBan) {
-    const userRole = localStorage.getItem("userRole")
+  function createCheckboxCells(tab, row, tableRow, isKhoa, maPhongBan) {
     const cells = []
 
     // Khoa approval checkbox
@@ -456,24 +468,40 @@ if (isKhoa == 1) {
     khaoThiCell.appendChild(khaoThiCheckbox)
     cells.push(khaoThiCell)
 
-    // Ẩn ô nếu là khoa
-    if (isKhoa === "1") {
-      khaoThiCell.style.display = "none"
-      if (userRole !== window.APP_ROLES.lanhDao_khoa && userRole !== window.APP_ROLES.gv_cnbm) {
-        khoaCell.style.display = "none"
-      }
-    } else {
-      if (MaPhongBan !== window.APP_DEPARTMENTS.khaoThi) {
-        khaoThiCell.style.display = "none"
-        khoaCell.style.display = "none"
-      }
+  // Ẩn ô nếu là khoa
+  if (isKhoa === "1") {
+    khaoThiCell.style.display = "none"
+    if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
+      khoaCell.style.display = "none"
     }
+  } else {
+    if (maPhongBan === "KT&ĐBCL") {
+      console.log(`MaPhongBan: ${maPhongBan}, userRole: ${role}`)
+      if( role === window.APP_ROLES?.lanhDao_phong){
+        khaoThiCell.style.display = ""
+        khoaCell.style.display = ""
+      }else if (role === window.APP_ROLES?.troLy_phong) {
+        khaoThiCell.style.display = "none"
+      }else {
+        khoaCell.style.display = "none"
+        khaoThiCell.style.display = "none"
+      }
+    }else {
+      khoaCell.style.display = "none"
+      khaoThiCell.style.display = "none"
+    }
+  }
 
-    // Vô hiệu nếu đã được duyệt
-    if (row.KhaoThiDuyet && MaPhongBan !== "KT&DBCL") {
+  // Vô hiệu nếu đã được duyệt
+  if(row.daluu === 0){
+    if (row.khaothiduyet && (maPhongBan !== "KT&ĐBCL" || role !== window.APP_ROLES?.lanhDao_phong)) {
       khoaCheckbox.disabled = true
       khaoThiCheckbox.disabled = true
     }
+  }else {
+    khoaCheckbox.disabled = true
+    khaoThiCheckbox.disabled = true
+  }
 
     return cells
   }
@@ -629,73 +657,17 @@ if (isKhoa == 1) {
   }
 
 
-  async function updateDuyet() {
-    try {
-      const duyetList = []
-
-      const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="DuyetChamThi"], input[type="checkbox"][name$="DuyetRaDe"], input[type="checkbox"][name$="DuyetCoiThi"]')
-
-      if (allCheckboxes.length === 0) {
-        showAlert("Không có checkbox nào để cập nhật", "warning")
-        return
-      }
-      allCheckboxes.forEach((checkbox) => {
-        // Ví dụ: id="KhoaDuyetChamThi_53"
-        const [fullType, id] = checkbox.id.split("_") // ["KhoaDuyetChamThi", "53"]
-        if (!id) return
-
-        let row = duyetList.find(item => item.id === id)
-        if (!row) {
-          row = { id }
-          duyetList.push(row)
-        }
-
-        // Gán giá trị, chuyển camelCase về lowercase để dễ dùng phía backend nếu cần
-        const key = fullType.charAt(0).toLowerCase() + fullType.slice(1) // ví dụ: "khoaDuyetChamThi"
-        row[key] = checkbox.checked ? 1 : 0
-      })
 
 
-      // ✅ Kiểm tra ràng buộc: nếu có khảo thí duyệt mà khoa chưa duyệt
-      const invalidRows = duyetList.filter(row => {
-        const khoaKeys = Object.keys(row).filter(k => k.startsWith("khoaDuyet"))
-        const khaoThiKeys = Object.keys(row).filter(k => k.startsWith("khaoThiDuyet"))
+const columnDefs = {
+  raDe: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC', 'GhiChu','HanhDong', 'khoaduyet', 'khaothiduyet'],
+  coiThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC', 'GhiChu', 'HanhDong', 'khoaduyet', 'khaothiduyet'],
+  chamThi: ['stt','hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC', 'GhiChu', 'HanhDong', 'khoaduyet', 'khaothiduyet']
+};
 
-        return khaoThiKeys.some(khao => row[khao] === 1) && khoaKeys.every(khoa => row[khoa] !== 1)
-      })
-
-      if (invalidRows.length > 0) {
-        showAlert("Vui lòng duyệt Khoa trước khi Khảo thí duyệt!", "warning")
-        return // Ngưng gửi request
-      }
-
-      const response = await fetch("/vuotGioDanhSachCuoiKi/updateDuyet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ duyetList }),
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        showAlert(data.message, "success")
-      } else {
-        throw new Error(data.message)
-      }
-    } catch (error) {
-      showAlert("Có lỗi xảy ra khi cập nhật dữ liệu", "error")
-      console.error(error)
-    }
-  }
-
-  const columnDefs = {
-    raDe: ['stt', 'hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soDe', 'soTietQC'],
-    coiThi: ['stt', 'hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soCa', 'soTietQC'],
-    chamThi: ['stt', 'hoVaTen', 'khoa', 'tenHocPhan', 'lopHocPhan', 'doiTuong', 'soBaiCham1', 'soBaiCham2', 'tongSoBai', 'soTietQC']
-  };
-
-  async function saveDataToServer() {
-    try {
-      let dataTam = []
+async function updateDataToServer() {
+  try {
+    let dataTam = []
 
       const kiValue = document.getElementById('comboboxki').value;
       const namValue = document.getElementById('NamHoc').value;
@@ -703,31 +675,118 @@ if (isKhoa == 1) {
       const coiThiData = extractEditedData('coiThiTableContainer', columnDefs.coiThi, 'Coi Thi');
       const chamThiData = extractEditedData('chamThiTableContainer', columnDefs.chamThi, 'Chấm Thi');
 
-      // Cập nhật lại dataTam
-      dataTam = [...raDeData, ...coiThiData, ...chamThiData];
+    // Cập nhật lại dataTam
+    dataTam = [...raDeData, ...coiThiData, ...chamThiData];
+
+    // ✅ Kiểm tra ràng buộc
+    const invalidRows = dataTam.filter(row =>
+      Number(row.khaothiduyet) === 1 && Number(row.khoaduyet) !== 1
+    );
+
+    if (invalidRows.length > 0) {
+      showAlert('Vui lòng duyệt khoa trước khi duyệt khảo thí!', 'error');
+      return; // Ngưng xử lý tiếp
+    }
 
       console.log('Data to be sent:', dataTam);
 
-      const response = await fetch('/vuotGioCuoiKi/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          Ki: kiValue,
-          Nam: namValue,
-          data: dataTam // Truyền thêm dataTam
-        })
-      });
+    const response = await fetch('/vuotGioCuoiKi/updateData', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Ki: kiValue,
+        Nam: namValue,
+        data: dataTam // Truyền thêm dataTam
+      })
+    });
 
-      if (!response.ok) throw new Error('Thêm dữ liệu thất bại');
+    if (!response.ok) throw new Error('Cập nhật dữ liệu thất bại');
       const data = await response.json();
-      showAlert('Dữ liệu đã được thêm thành công!', 'success');
+      showAlert('Dữ liệu đã được cập nhật thành công!', 'success');
 
-      if (data.success) location.reload();
-    } catch (error) {
-      showAlert(error.message || messages.error, 'error');
-      console.error('Error:', error);
-    }
+    // if (data.success) location.reload();
+  } catch (error) {
+    showAlert( error.message || messages.error, 'error');
+    console.error('Error:', error);
   }
+}
+
+async function saveDataToServer() {
+  await updateDataToServer()
+  try {
+    // Lấy tất cả checkbox khảo thí duyệt (kể cả chưa tick)
+    const allKhaoThi = Array.from(
+      document.querySelectorAll('input[type="checkbox"][name^="KhaoThiDuyet"]')
+    );
+
+    // Kiểm tra nếu có checkbox chưa được check
+    const unchecked = allKhaoThi.filter(cb => !cb.checked);
+    if (unchecked.length > 0) {
+      showAlert("Vui lòng tích tất cả checkbox khảo thí duyệt trước khi tiếp tục!", "error");
+      return; // Ngừng xử lý tiếp
+    }
+    // Lấy danh sách id (sau dấu "_") và ghép thành chuỗi
+    const idList = allKhaoThi
+      .map(cb => cb.id.split("_")[1]) // Lấy phần id sau dấu "_"
+      .filter(id => id)               // Bỏ null/undefined
+      .join(",");                      // Ghép thành chuỗi
+
+    console.log(idList); // Ví dụ: "53,72,101"
+
+
+    // const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name$="DuyetChamThi"], input[type="checkbox"][name$="DuyetRaDe"], input[type="checkbox"][name$="DuyetCoiThi"]')
+
+    // if (allCheckboxes.length === 0) {
+    //   showAlert("Không có checkbox nào để cập nhật", "warning")
+    //   return
+    // }
+    // allCheckboxes.forEach((checkbox) => {
+    //   // Ví dụ: id="KhoaDuyetChamThi_53"
+    //   const [fullType, id] = checkbox.id.split("_") // ["KhoaDuyetChamThi", "53"]
+    //   if (!id) return
+
+    //   let row = duyetList.find(item => item.id === id)
+    //   if (!row) {
+    //     row = { id }
+    //     duyetList.push(row)
+    //   }
+
+    //   // Gán giá trị, chuyển camelCase về lowercase để dễ dùng phía backend nếu cần
+    //   const key = fullType.charAt(0).toLowerCase() + fullType.slice(1) // ví dụ: "khoaDuyetChamThi"
+    //   row[key] = checkbox.checked ? 1 : 0
+    // })
+
+
+    // // ✅ Kiểm tra ràng buộc: nếu có khảo thí duyệt mà khoa chưa duyệt
+    // const invalidRows = duyetList.filter(row => {
+    //   const khoaKeys = Object.keys(row).filter(k => k.startsWith("khoaDuyet"))
+    //   const khaoThiKeys = Object.keys(row).filter(k => k.startsWith("khaoThiDuyet"))
+
+    //   return khaoThiKeys.some(khao => row[khao] === 1) && khoaKeys.every(khoa => row[khoa] !== 1)
+    // })
+
+    // if (invalidRows.length > 0) {
+    //   showAlert("Vui lòng duyệt hết dữ liệu trước khi lưu!", "warning")
+    //   return // Ngưng gửi request
+    // }
+
+    const response = await fetch("/vuotGioDanhSachCuoiKi/saveData", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idList }) // Gửi danh sách id đã chọn,
+    })
+
+    const data = await response.json()
+    if (response.ok) {
+      showAlert(data.message, "success")
+    } else {
+      throw new Error(data.message)
+    }
+  } catch (error) {
+    showAlert("Có lỗi xảy ra khi cập nhật dữ liệu", "error")
+    console.error(error)
+  }
+}
 
   function extractEditedData(containerId, columnList, examType) {
     const tbody = document.querySelector(`#${containerId} tbody`);
@@ -745,13 +804,19 @@ if (isKhoa == 1) {
         const cell = cells[index];
         if (!cell) return;
 
-        const input = cell.querySelector('input');
-        if (input) {
-          rowData[colName] = input.value.trim();
+      const input = cell.querySelector('input');
+      if (input) {
+        if (input.type === 'checkbox') {
+          // Checkbox: lưu 1 nếu checked, 0 nếu không
+          rowData[colName] = input.checked ? 1 : 0;
         } else {
-          rowData[colName] = cell.textContent.trim();
+          // Các input khác
+          rowData[colName] = input.value.trim();
         }
-      });
+      } else {
+        rowData[colName] = cell.textContent.trim();
+      }
+    });
 
       // Nếu có id dòng (gợi ý: <tr data-id="...">)
       const rowId = row.dataset.id || row.getAttribute('data-id');

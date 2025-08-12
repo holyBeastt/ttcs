@@ -17,7 +17,7 @@
 
   <!-- Phần nội dung -->
   <div class="container-fluid">
-    <h1 class="d-flex justify-content-center my-3">Đánh giá cuối học phần</h1>
+    <h1 class="d-flex justify-content-center my-3">Thêm thông tin coi thi, chấm thi, ra đề của giảng viên các khoa</h1>
     
     <!-- Filter Section -->
     <div class="box m-4">
@@ -37,8 +37,14 @@
           <button id="infoCuoiKi" class="btn btn-primary">
             <i class="fas fa-eye me-2"></i>Hiển thị
           </button>
-          <button onclick="saveDataToServer()" class="btn btn-success" id="update-qc">
+          <button onclick="updateDataToServer()" class="btn btn-success" id="update-qc">
             <i class="fas fa-sync-alt me-2"></i>Cập nhật
+          </button>
+          <button onclick="saveDataToServer()" class="btn btn-warning" id="save-info">
+            <i class="bi bi-floppy"></i>Lưu
+          </button>
+          <button class="btn btn-secondary" onclick="window.location.href='/importkthp'" id="importFile">
+            <i class="bi bi-file-earmark-plus"></i>Thêm mới
           </button>
         </div>
       </div>

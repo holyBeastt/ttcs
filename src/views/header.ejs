@@ -123,7 +123,7 @@
                   </div>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%" id="addFileKTHP">
-                  <a class="nav-link" id="" href="/importkthp">Thêm file kết thúc hp</a>
+                  <a class="nav-link" id="" href="/importkthp">Coi, chấm, ra đề thi</a>
                 </div>
                 <div class="dropdown-submenu" style="width: 100%">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTeaching" data-bs-toggle="dropdown" aria-expanded="false">Bảng quy chuẩn dự kiến</a>
@@ -513,6 +513,12 @@
     console.log(maPhongBan)
     if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
       themFileKTHP.style.display = "none";
+      console.log("ẩn thêm file KTHP")
+      console.log(userRole);
+      console.log(APP_ROLES.lanhDao_phong);
+    }else {
+      themFileKTHP.style.display = "";
+      console.log("hiển thị thêm file KTHP")
     }
   });
 </script>

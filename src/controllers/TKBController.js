@@ -818,7 +818,7 @@ const addNewRowTKB = async (req, res) => {
 };
 
 const deleteTKB = async (req, res) => {
-  const { major, semester } = req.body;
+  const { major, dot, ki, nam } = req.body;
 
   let connection;
 
@@ -826,8 +826,9 @@ const deleteTKB = async (req, res) => {
     // Kết nối database từ pool
     connection = await createPoolConnection();
 
-    let sql = "DELETE FROM course_schedule_details WHERE semester = ?";
-    let params = [semester];
+    let sql =
+      "DELETE FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?";
+    let params = [dot, ki, nam];
 
     if (major !== "ALL") {
       sql += " AND major = ?";
@@ -1142,7 +1143,7 @@ GROUP BY
 };
 
 const checkDataTKBExist = async (req, res) => {
-  const { semester } = req.body;
+  const { dot, ki, nam } = req.body;
 
   let connection;
 
@@ -1151,10 +1152,10 @@ const checkDataTKBExist = async (req, res) => {
     connection = await createPoolConnection();
 
     // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
-    const queryCheck = `SELECT EXISTS(SELECT 1 FROM course_schedule_details WHERE semester = ?) AS exist;`;
+    const queryCheck = `SELECT EXISTS(SELECT 1 FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?) AS exist;`;
 
     // Thực hiện truy vấn
-    const [results] = await connection.query(queryCheck, [semester]);
+    const [results] = await connection.query(queryCheck, [dot, ki, nam]);
 
     // Kết quả trả về từ cơ sở dữ liệu
     const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
