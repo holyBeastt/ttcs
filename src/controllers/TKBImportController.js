@@ -3,6 +3,7 @@ const pool = require("../config/Pool");
 
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
+  let lastTTValue = JSON.parse(req.body.lastTTValue);
 
   const { dot, ki, nam } = semester;
 
@@ -80,12 +81,29 @@ const importExcelTKB = async (req, res) => {
       "Giáo Viên": "lecturer",
     };
 
+    const majorMap = {
+      "C": "CNTT",
+      "D": "ĐTVM",
+      "A": "ATTT",
+    }
+
     const renamedData = allData.map((row) => {
       const newRow = {};
       for (const [oldKey, newKey] of Object.entries(renameMap)) {
         newRow[newKey] = row[oldKey] ?? "";
       }
       newRow.sheet_name = row.sheet_name;
+
+      // Lấy các chữ cái đầu tiên trong sheet_name
+      const prefixLetters = (row.sheet_name || "").trim().match(/^[A-Za-zÀ-ỹ]+/g)?.[0] || "";
+
+      if (prefixLetters.length > 1) {
+        newRow.major = "CB"; // Khoa Cơ bản
+      } else {
+        const sheetPrefix = prefixLetters.charAt(0);
+        newRow.major = majorMap[sheetPrefix] || "unknown";
+      }
+
       return newRow;
     });
 
@@ -106,8 +124,12 @@ const importExcelTKB = async (req, res) => {
       }
     }
 
-    // Thêm period_start, period_end, ll_total vào từng dòng
-    for (const row of renamedData) {
+    let preTT = 0;
+
+    for (let i = 0; i < renamedData.length; i++) {
+      const row = renamedData[i];
+
+      // Thêm period_start, period_end, ll_total vào từng dòng
       if (row.period_range.includes("->")) {
         const [start, end] = row.period_range.split("->");
         row.period_start = start || null;
@@ -116,8 +138,26 @@ const importExcelTKB = async (req, res) => {
         row.period_start = null;
         row.period_end = null;
       }
+
       row.ll_total = tongTietMap[row.course_name] || 0;
+
+      // Gán lại tt phục vụ quy chuẩn
+      if (i > 0) {
+        // Chỉnh sửa tt phục vụ quy chuẩn
+        if (row.tt !== preTT) {
+          preTT = row.tt;
+          row.tt = ++lastTTValue;
+        } else {
+          // Nếu tt giống với dòng trước, giữ nguyên giá trị
+          row.tt = lastTTValue;
+        }
+      } else {
+        // Dòng đầu tiên
+        preTT = row.tt;
+        row.tt = ++lastTTValue;
+      }
     }
+
 
     // Chuẩn bị values để insert
     const values = renamedData.map((row) => [
@@ -140,6 +180,7 @@ const importExcelTKB = async (req, res) => {
       formatDateForMySQL(parseDateDDMMYY(row.start_date)),
       formatDateForMySQL(parseDateDDMMYY(row.end_date)),
       row.lecturer,
+      row.major,
       dot,
       ki,
       nam,
@@ -149,7 +190,7 @@ const importExcelTKB = async (req, res) => {
     await pool.query(
       `INSERT INTO course_schedule_details (
         TT, course_id, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
-        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, dot, ki_hoc, nam_hoc
+        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]
     );

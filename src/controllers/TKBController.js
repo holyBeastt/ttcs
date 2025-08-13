@@ -1152,23 +1152,27 @@ const checkDataTKBExist = async (req, res) => {
     connection = await createPoolConnection();
 
     // Câu truy vấn kiểm tra sự tồn tại của giá trị Khoa trong bảng
-    const queryCheck = `SELECT EXISTS(SELECT 1 FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?) AS exist;`;
+    const queryCheck = `SELECT MAX(tt) AS last_tt FROM course_schedule_details WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?;`;
 
     // Thực hiện truy vấn
     const [results] = await connection.query(queryCheck, [dot, ki, nam]);
 
     // Kết quả trả về từ cơ sở dữ liệu
-    const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
+    const lastTTValue = results[0].last_tt; // Lấy giá trị lớn nhất của tt
+
+    const exist = lastTTValue != null; // True nếu tồn tại, False nếu không tồn tại
 
     if (exist) {
       return res.status(200).json({
         message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
         exists: true,
+        lastTTValue: lastTTValue,
       });
     } else {
       return res.status(200).json({
         message: "Dữ liệu không tồn tại trong cơ sở dữ liệu",
         exists: false,
+        lastTTValue: 0, // Trả về -1 nếu không tồn tại
       });
     }
   } catch (err) {
