@@ -429,17 +429,55 @@
               const row = document.createElement("tr");
               const khoaSVT =
                 currentType === "hedaotao" ? item.Khoa : item.Khoa; // item.Khoa will contain he_dao_tao when currentType is hedaotao
+
+              // Tính tổng để tính phần trăm
+              const totalMoiGiang = data.reduce(
+                (sum, item) => sum + parseFloat(item.TongSoTietMoiGiang || 0),
+                0
+              );
+              const totalVuotGio = data.reduce(
+                (sum, item) => sum + parseFloat(item.TongSoTiet || 0),
+                0
+              );
+              const totalTong = data.reduce(
+                (sum, item) => sum + parseFloat(item.Tongso || 0),
+                0
+              );
+
+              // Tính phần trăm
+              const percentageMoiGiang =
+                totalMoiGiang > 0
+                  ? (
+                      (parseFloat(item.TongSoTietMoiGiang || 0) /
+                        totalMoiGiang) *
+                      100
+                    ).toFixed(1)
+                  : 0;
+              const percentageVuotGio =
+                totalVuotGio > 0
+                  ? (
+                      (parseFloat(item.TongSoTiet || 0) / totalVuotGio) *
+                      100
+                    ).toFixed(1)
+                  : 0;
+              const percentageTong =
+                totalTong > 0
+                  ? ((parseFloat(item.Tongso || 0) / totalTong) * 100).toFixed(
+                      1
+                    )
+                  : 0;
+
               const tongSoTietMoiGiangSV = parseFloat(
-                item.TongSoTietMoiGiang
+                item.TongSoTietMoiGiang || 0
               ).toFixed(2);
-              const tongSoTietSV = parseFloat(item.TongSoTiet).toFixed(2);
-              const tongsoSV = parseFloat(item.Tongso).toFixed(2);
+              const tongSoTietSV = parseFloat(item.TongSoTiet || 0).toFixed(2);
+              const tongsoSV = parseFloat(item.Tongso || 0).toFixed(2);
 
               row.innerHTML = `
                         <td>${khoaSVT}</td>
-                        <td>${tongSoTietMoiGiangSV}</td>
-                        <td>${tongSoTietSV}</td>
-                        <td>${tongsoSV}</td>
+                        <td>${tongSoTietMoiGiangSV} (${percentageMoiGiang}%)</td>
+                        <td>${tongSoTietSV} (${percentageVuotGio}%)</td>
+                        <td>${tongsoSV} (${percentageTong}%)</td>
                     `;
               tableBody.appendChild(row);
             });
