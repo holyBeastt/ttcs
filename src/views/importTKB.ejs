@@ -234,8 +234,12 @@
           })
           .then((data) => {
             if (data.exists) {
+              formData.append("lastTTValue", JSON.stringify(data.lastTTValue));
+              // Hiển thị modal để xác nhận xóa hay chèn
               showModal(semester, formData);
             } else {
+              formData.append("lastTTValue", JSON.stringify(data.lastTTValue));
+              // Nếu không tồn tại, trực tiếp gọi hàm importFileTKB
               importFileTKB(semester, formData);
             }
           })
@@ -311,9 +315,6 @@
       }
 
       async function importFileTKB(semester, formData) {
-        // Gửi yêu cầu POST đến server
-        // http://42.112.213.93:8080/api/v1/excel/upload
-        // http://localhost:8080/api/v1/excel/upload
         // http://${window.location.hostname}:8080/api/v1/excel/upload
         fetch(`/api/v1/tkb/import`, {
           method: "POST",

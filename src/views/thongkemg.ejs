@@ -497,36 +497,6 @@
                     }
                 }
 
-                // Thêm dữ liệu mới
-                data.forEach((item, index) => {
-                    const row = tableBody.insertRow();
-                    let cellIdx = 0;
-                    // Chế độ theo khoa
-                    if (currentType === "khoa") {
-                        row.insertCell(cellIdx++).textContent = index + 1;
-                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.khoa || "") : (item.hoten || "");
-                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.tongsotiet || "") : (item.hedaotao || "");
-                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.sogiangvien || "") : (item.tongsotiet || "");
-                    } else if (currentType === "hedaotao") {
-                        if (hedaotao === 'ALL') {
-                            row.insertCell(cellIdx++).textContent = index + 1;
-                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
-                            row.insertCell(cellIdx++).textContent = item.tongsotiet || "";
-                            const tongtienCell = row.insertCell(cellIdx++);
-                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
-                            row.insertCell(cellIdx++).textContent = item.sogiangvien || "";
-                        } else {
-                            row.insertCell(cellIdx++).textContent = index + 1;
-                            row.insertCell(cellIdx++).textContent = item.hoten || "";
-                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
-                            row.insertCell(cellIdx++).textContent = item.hocvi || "";
-                            row.insertCell(cellIdx++).textContent = item.tongsotiet || "";
-                            const tongtienCell = row.insertCell(cellIdx++);
-                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
-                        }
-                    }
-                });
-
                 // Cập nhật tổng số tiết
                 const total = data.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
                 const totalElement = document.getElementById('total');
@@ -545,6 +515,58 @@
                         totalMoneyElement.parentElement.style.display = 'none';
                     }
                 }
+
+                // Thêm dữ liệu mới
+                data.forEach((item, index) => {
+                    const row = tableBody.insertRow();
+                    let cellIdx = 0;
+                    // Chế độ theo khoa
+                    if (currentType === "khoa") {
+                        row.insertCell(cellIdx++).textContent = index + 1;
+                        row.insertCell(cellIdx++).textContent = (khoa === 'ALL') ? (item.khoa || "") : (item.hoten || "");
+                        
+                        if (khoa === 'ALL') {
+                            // Tính phần trăm cho tổng số tiết
+                            const percentage = total > 0 ? ((parseFloat(item.tongsotiet || 0) / total) * 100).toFixed(1) : 0;
+                            row.insertCell(cellIdx++).textContent = `${item.tongsotiet || 0} (${percentage}%)`;
+                        } else {
+                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
+                        }
+                        
+                        if (khoa === 'ALL') {
+                            row.insertCell(cellIdx++).textContent = item.sogiangvien || "";
+                        } else {
+                            // Tính phần trăm cho tổng số tiết của giảng viên
+                            const percentage = total > 0 ? ((parseFloat(item.tongsotiet || 0) / total) * 100).toFixed(1) : 0;
+                            row.insertCell(cellIdx++).textContent = `${item.tongsotiet || 0} (${percentage}%)`;
+                        }
+                    } else if (currentType === "hedaotao") {
+                        if (hedaotao === 'ALL') {
+                            row.insertCell(cellIdx++).textContent = index + 1;
+                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
+                            
+                            // Tính phần trăm cho tổng số tiết
+                            const percentage = total > 0 ? ((parseFloat(item.tongsotiet || 0) / total) * 100).toFixed(1) : 0;
+                            row.insertCell(cellIdx++).textContent = `${item.tongsotiet || 0} (${percentage}%)`;
+                            
+                            const tongtienCell = row.insertCell(cellIdx++);
+                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
+                            row.insertCell(cellIdx++).textContent = item.sogiangvien || "";
+                        } else {
+                            row.insertCell(cellIdx++).textContent = index + 1;
+                            row.insertCell(cellIdx++).textContent = item.hoten || "";
+                            row.insertCell(cellIdx++).textContent = item.hedaotao || "";
+                            row.insertCell(cellIdx++).textContent = item.hocvi || "";
+                            
+                            // Tính phần trăm cho tổng số tiết của giảng viên
+                            const percentage = total > 0 ? ((parseFloat(item.tongsotiet || 0) / total) * 100).toFixed(1) : 0;
+                            row.insertCell(cellIdx++).textContent = `${item.tongsotiet || 0} (${percentage}%)`;
+                            
+                            const tongtienCell = row.insertCell(cellIdx++);
+                            tongtienCell.textContent = item.tongtien ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.tongtien) : '';
+                        }
+                    }
+                });
 
                 // Sau khi cập nhật bảng, gọi hàm vẽ biểu đồ
                 updateCharts(data, khoa, currentType);
