@@ -1,4 +1,4 @@
-const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 const { use } = require("../routes/adminRoute");
 require("dotenv").config();
 
@@ -7,10 +7,8 @@ const login = async (req, res) => {
   let connection;
 
   try {
-    connection = await createPoolConnection(); // Đảm bảo dùng await
-
     // Truy vấn người dùng từ cơ sở dữ liệu
-    const [users] = await connection.query(
+    const [users] = await pool.query(
       "SELECT * FROM taikhoannguoidung WHERE TenDangNhap = ?",
       [username]
     );
@@ -27,11 +25,11 @@ const login = async (req, res) => {
         const query = `SELECT TenNhanVien FROM nhanvien 
             JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User
             WHERE TenDangNhap = ?`;
-        const [TenNhanViens] = await connection.query(query, [username]);
+        const [TenNhanViens] = await pool.query(query, [username]);
         const TenNhanVien = TenNhanViens[0]?.TenNhanVien;
 
         // Phân quyền người dùng
-        const [roles] = await connection.query(
+        const [roles] = await pool.query(
           "SELECT MaPhongBan, Quyen, isKhoa FROM role WHERE TenDangNhap = ?",
           [username]
         );
@@ -81,8 +79,6 @@ const login = async (req, res) => {
     // Xử lý lỗi
     console.error(err);
     return res.status(500).json({ message: "Lỗi máy chủ" });
-  } finally {
-    if (connection) connection.release(); // Giải phóng kết nối
   }
 };
 
