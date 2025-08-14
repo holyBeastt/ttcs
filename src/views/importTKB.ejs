@@ -315,38 +315,39 @@
       }
 
       async function importFileTKB(semester, formData) {
-        // http://${window.location.hostname}:8080/api/v1/excel/upload
-        fetch(`/api/v1/tkb/import`, {
-          method: "POST",
-          body: formData,
-        })
-          .then((response) => {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-              return response.json(); // Phản hồi dạng JSON
-            } else {
-              return response.text(); // Phản hồi dạng text
-            }
-          })
-          .then((data) => {
-            if (typeof data === "string") {
-              if (data != "File processed successfully") return;
-              // insertDataAgain(semester);
-              return;
-            }
-
-            // Kiểm tra dữ liệu JSON
-            if (!data || data.length === 0) {
-              throw new Error("Dữ liệu trả về trống");
-            }
-            console.log("Dữ liệu thô từ server:", data);
-          })
-          .catch((error) => {
-            console.error(
-              "Lỗi khi tải file hoặc xử lý dữ liệu:",
-              error.message
-            );
+        try {
+          const response = await fetch(`/api/v1/tkb/import`, {
+            method: "POST",
+            body: formData,
           });
+
+          const contentType = response.headers.get("content-type");
+          const data = contentType.includes("application/json")
+            ? await response.json()
+            : { success: false, message: await response.text() };
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || "Lỗi xử lý file");
+          }
+
+          Swal.fire({
+            title: "Thông báo",
+            html: data.message,
+            icon: "success",
+            confirmButtonText: "OK",
+            width: "auto",
+            padding: "20px",
+          });
+
+        } catch (error) {
+          console.error("Lỗi khi tải file:", error.message);
+          Swal.fire({
+            title: "Lỗi",
+            html: error.message,
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
       }
 
       async function insertDataAgain(semester) {

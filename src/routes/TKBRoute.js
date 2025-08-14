@@ -10,10 +10,10 @@ router.get("/getImportTKBSite", TKBController.getImportTKBSite);
 router.get("/getTKBChinhThucSite", TKBController.getTKBChinhThucSite);
 
 // Hiển thị ra bảng TKB chính thức
-router.post("/getDataTKBChinhThuc", TKBController.getDataTKBChinhThuc);
+router.post("/api/v1/tkb/data-tkb-to-render", TKBController.getDataTKBChinhThuc);
 
 // Cập nhật dữ liệu 1 dòng
-router.post("/api/update-row-TKB", TKBController.updateRowTKB);
+router.post("/api/v1/tkb/update-row", TKBController.updateRowTKB);
 
 // xóa 1 dòng
 router.delete("/TKB-delete-row/:id", TKBController.deleteRow);
@@ -25,7 +25,7 @@ router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
 router.post("/save-data-tkb-to-qcdk", TKBController.themTKBVaoQCDK);
 
 // Thêm dòng vào TKB
-router.post("/api/addRowTKB", TKBController.addNewRowTKB);
+router.post("/api/v1/TKB/add-new_row", TKBController.addNewRowTKB);
 
 // Xóa bảng thời khóa biểu
 router.post("/api/delete-data-TKB", TKBController.deleteTKB);
@@ -41,7 +41,7 @@ router.post(
 );
 
 // Làm lại dữ liệu TKB
-router.post("/api/insert-data-TKB-again", TKBController.insertDataAgain);
+// router.post("/api/insert-data-TKB-again", TKBController.insertDataAgain);
 
 // Check dữ liệu bảng TKB
 router.post("/api/check-data-TKB-exist", TKBController.checkDataTKBExist);

@@ -436,26 +436,7 @@
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
     />
 
-    <!-- <script>
-      // Lấy danh sách từ localStorage
-      const khoaList = JSON.parse(localStorage.getItem("MaPhongBanList"));
 
-      // Kiểm tra nếu danh sách tồn tại
-      if (khoaList && Array.isArray(khoaList)) {
-        // Lấy phần tử select
-        const selectElement = document.getElementById("Khoa");
-
-        // Duyệt qua danh sách và tạo các option
-        khoaList.forEach((khoa) => {
-          const option = document.createElement("option");
-          option.value = khoa.MaPhongBan; // Giá trị của option (có thể là ID hoặc mã khoa)
-          option.textContent = khoa.MaPhongBan; // Nội dung hiển thị cho option
-
-          // Thêm option vào select
-          selectElement.appendChild(option);
-        });
-      }
-    </script> -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
@@ -486,88 +467,6 @@
         }
       }
     </script>
-    <!-- phần xuất file -->
-    <!-- <script>
-      // renderData là biến var
-
-      document
-        .getElementById("export-file-btn")
-        .addEventListener("click", async function (event) {
-          try {
-            // Lấy dữ liệu khoa, đợt, kì, năm
-            const dot = document.getElementById("combobox-dot").value;
-            const ki = document.getElementById("comboboxki").value;
-            const nam = document.getElementById("NamHoc").value;
-            const formattedNam = nam.replace(/\s*-\s*/g, "-"); // Tạo JSON
-
-            // Tạo dữ liệu JSON
-            const data = {
-              path: "D:\\github_ttcs\\excel_export_tkb_to_qc\\real\\",
-              semester: `${dot}, ${ki}, ${nam}`,
-            };
-
-            // Gửi yêu cầu POST với JSON
-            const response = await fetch(
-              "http://localhost:8080/api/v1/excel/export/real",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data), // Chuyển đổi dữ liệu thành JSON
-              }
-            );
-
-            if (!response.ok) {
-              throw new Error("Xuất file thất bại");
-            }
-
-            // Kiểm tra kiểu MIME của file trả về
-            const contentType = response.headers.get("Content-Type");
-
-            if (
-              contentType &&
-              contentType.includes(
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              )
-            ) {
-              // Nếu file là Excel
-              const blob = await response.blob();
-
-              // Tạo liên kết tải xuống
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = "exported-file.xlsx"; // Đặt tên file Excel
-              document.body.appendChild(link);
-              link.click();
-
-              // Xóa liên kết sau khi tải xong
-              document.body.removeChild(link);
-            } else {
-              // Nếu không phải file Excel, trả về lỗi
-              const text = await response.text();
-              console.error("Lỗi từ server:", text);
-              alert("Có lỗi xảy ra khi xuất file!");
-            }
-          } catch (error) {
-            console.error("Lỗi khi xuất file:", error.message);
-            alert("Có lỗi xảy ra khi xuất file!");
-          }
-        });
-      /*
-      const titleMap = {
-        SoTinChi: "Số TC",
-        LopHocPhan: "Lớp học phần",
-        GiaoVien: "Giáo viên",
-        SoTietCTDT: "Số tiết CTĐT",
-        SoSinhVien: "Số SV",
-        LL: "Số tiết lên lớp theo TKB",
-        HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-        HeSoLopDong: "Hệ số lớp đông",
-        QuyChuan: "Quy chuẩn",
-      };
-      */
-    </script> -->
 
     <!-- render bảng -->
     <script>
@@ -590,7 +489,7 @@
         };
 
         try {
-          const response = await fetch("/getDataTKBChinhThuc", {
+          const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -671,7 +570,8 @@
               headerName: headersMap[key]?.name || key,
               width: headersMap[key]?.width || 100,
               editable: canEdit && key !== "student_bonus" && key !== "id",
-              hide: key === "semester" || key === "id",
+              hide: key === "semester" || key === "id" || key === "tt" || key === "course_id" 
+              || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc', // Ẩn cột không cần thiết
               headerClass: "custom-header",
               filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
               valueFormatter: (params) => {
@@ -762,13 +662,18 @@
         async function onCellValueChanged(event) {
           const { data, colDef, newValue } = event;
           const id = data.id;
+          const tt = data.tt;
+          const dot = data.dot;
+          const ki_hoc = data.ki_hoc;
+          const nam_hoc = data.nam_hoc;
+
           const field = colDef.field;
 
           try {
-            const response = await fetch("/api/update-row-TKB", {
+            const response = await fetch("/api/v1/tkb/update-row", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id, field, value: newValue, data }),
+              body: JSON.stringify({ tt, dot, ki_hoc, nam_hoc, field, value: newValue, data }),
             });
 
             const updatedRow = await response.json();
@@ -922,13 +827,14 @@
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("departmentFilter").value;
 
-        const semester = `${Dot}, ${Ki}, ${Nam}`;
         try {
-          const response = await fetch("/api/addRowTKB", {
+          const response = await fetch("/api/v1/TKB/add-new_row", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              semester: semester,
+              dot: Dot,
+              ki_hoc: Ki,
+              nam_hoc: Nam,
               major: Khoa,
               course_name: "Môn học mới",
               lecturer: "Giảng viên",
