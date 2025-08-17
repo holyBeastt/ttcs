@@ -25,12 +25,35 @@ const logController = {
     let connection;
     try {
       connection = await createConnection();
-      const query = "SELECT * FROM lichsunhaplieu ORDER BY MaLichSuNhap DESC";
-      const [result] = await connection.query(query);
+      
+      // Lấy tham số phân trang từ query parameters
+      const page = parseInt(req.query.page) || 1; // Trang hiện tại, mặc định là 1
+      const limit = parseInt(req.query.limit) || 30; // Số dòng mỗi trang, mặc định là 30
+      const offset = (page - 1) * limit; // Vị trí bắt đầu
+      
+      // Đếm tổng số bản ghi
+      const countQuery = "SELECT COUNT(*) as total FROM lichsunhaplieu";
+      const [countResult] = await connection.query(countQuery);
+      const totalRecords = countResult[0].total;
+      const totalPages = Math.ceil(totalRecords / limit);
+      
+      // Lấy dữ liệu với phân trang
+      const query = "SELECT * FROM lichsunhaplieu ORDER BY MaLichSuNhap DESC LIMIT ? OFFSET ?";
+      const [result] = await connection.query(query, [limit, offset]);
       const lichsunhaplieu = result;
 
       // Trả về dữ liệu dưới dạng JSON
-      res.json(lichsunhaplieu);
+      res.json({
+        data: lichsunhaplieu,
+        pagination: {
+          currentPage: page,
+          totalPages: totalPages,
+          totalRecords: totalRecords,
+          limit: limit,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        }
+      });
     } catch (err) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
       res.status(500).send("Lỗi máy chủ");

@@ -18,6 +18,7 @@ if (isKhoa == 1) {
     document.getElementById("update-qc").style.display = "none"
   }
 } else if (MaPhongBan === window.APP_DEPARTMENTS?.khaoThi) {
+}
   let currentRow = null
   let tableRowData = []
 
@@ -57,34 +58,45 @@ if (isKhoa == 1) {
       }
     }
 
-  if (isKhoa == 1) {
-    hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
-    if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
-      hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
-      document.getElementById("update-qc").style.display = "none"
-    }
-  } else if (MaPhongBan === "KT&ĐBCL") {
-    console.log("KT&ĐBCL role detected")
-    if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
+    if (isKhoa == 1) {
+      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
+        hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
+        document.getElementById("update-qc").style.display = "none"
+      }
+    } else if (MaPhongBan === APP_DEPARTMENTS?.khaoThi) {
+      console.log("KT&ĐBCL role detected")
+      if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
+        hideTableHeadersByIds([
+          "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
+          "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
+        ])
+        document.getElementById("update-qc").style.display = "none"
+        console.log("Hiding all headers for KT&ĐBCL role")
+      // }else if (role === window.APP_ROLES?.troLy_phong) {
+      //   hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      //   document.getElementById("update-qc").style.display = ""
+      // }
+      }
+    } else {
       hideTableHeadersByIds([
         "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
         "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
       ])
       document.getElementById("update-qc").style.display = "none"
-      console.log("Hiding all headers for KT&ĐBCL role")
-    }else if (role === window.APP_ROLES?.troLy_phong) {
-      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
-      document.getElementById("update-qc").style.display = ""
     }
-  } else {
-    hideTableHeadersByIds([
-      "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
-      "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
-    ])
-    document.getElementById("update-qc").style.display = "none"
-  }
 
-
+    if (MaPhongBan === APP_DEPARTMENTS?.khaoThi) {
+      if (role === window.APP_ROLES?.lanhDao_phong) {
+        document.getElementById("checkAllKhoaRaDe").style.display = "none"
+        document.getElementById("checkAllKhoaCoiThi").style.display = "none"
+        document.getElementById("checkAllKhoaChamThi").style.display = "none"
+      } else if (role === window.APP_ROLES?.troLy_phong) {
+        document.getElementById("checkAllKhoaRaDe").style.display = ""
+        document.getElementById("checkAllKhoaCoiThi").style.display = ""
+        document.getElementById("checkAllKhoaChamThi").style.display = ""
+      }
+    }
   }
 
   function hideTableHeadersByIds(idList) {
@@ -101,6 +113,14 @@ if (isKhoa == 1) {
     // Search functionality
     document.getElementById("filterName").addEventListener("input", filterTables)
     document.getElementById("filterClass").addEventListener("input", filterTables)
+    document.getElementById("update-qc").addEventListener("click", async () => {
+      await updateDataToServer()
+      loadExamData()
+    })
+    document.getElementById("save-info").addEventListener("click", async () => {
+      await saveDataToServer()
+      loadExamData()
+    })
 
     // Check all functionality
     setupCheckAllListeners()
@@ -340,6 +360,7 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   }else {
     editable = false; // Non-editable if already saved
   }
+  
   // STT
   const sttCell = document.createElement("td")
   sttCell.textContent = index + 1 // Use the passed index for STT
@@ -475,13 +496,18 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
       khoaCell.style.display = "none"
     }
   } else {
-    if (maPhongBan === "KT&ĐBCL") {
+    if (maPhongBan === APP_DEPARTMENTS?.khaoThi) {
       console.log(`MaPhongBan: ${maPhongBan}, userRole: ${role}`)
       if( role === window.APP_ROLES?.lanhDao_phong){
         khaoThiCell.style.display = ""
         khoaCell.style.display = ""
+        khoaCell.style.pointerEvents = "none"
+        if (row.khaothiduyet === 0) {
+          khaoThiCell.style.pointerEvents = "none"
+        }
       }else if (role === window.APP_ROLES?.troLy_phong) {
-        khaoThiCell.style.display = "none"
+        khaoThiCell.style.display = ""
+        khoaCell.style.display = ""
       }else {
         khoaCell.style.display = "none"
         khaoThiCell.style.display = "none"
@@ -494,7 +520,7 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
 
   // Vô hiệu nếu đã được duyệt
   if(row.daluu === 0){
-    if (row.khaothiduyet && (maPhongBan !== "KT&ĐBCL" || role !== window.APP_ROLES?.lanhDao_phong)) {
+    if (row.khaothiduyet && (maPhongBan !== APP_DEPARTMENTS?.khaoThi || role !== window.APP_ROLES?.lanhDao_phong)) {
       khoaCheckbox.disabled = true
       khaoThiCheckbox.disabled = true
     }
@@ -956,4 +982,3 @@ async function saveDataToServer() {
   function calculateTotalSoTietKT() {
     calculateTotals()
   }
-}

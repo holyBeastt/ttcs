@@ -871,25 +871,50 @@
         const DaoTaoCheck = JSON.parse(localStorage.getItem("DaoTaoCheck") || "[]");
         const VPCheck = JSON.parse(localStorage.getItem("VPCheck") || "[]");
 
-        // console.log(check, DaoTaoCheck, VPCheck)
+        console.log(check, DaoTaoCheck, VPCheck);
+        // log check example : ATTT,CNTT,ĐTVM,NCKH,ĐTPH,CB,MM, NCKH,ĐTPH,MM, NCKH,ĐTPH,MM, 
+        
+        // Logic phân quyền cho Phòng Đào Tạo
         if (MaPhongBan.toLowerCase() === APP_DEPARTMENTS.daoTao.toLowerCase() && role.toLowerCase() !== APP_ROLES.thuong.toLowerCase()) {
-          // Nếu khoa đã check thì hiện check bên đào tạo
-          if (!check.includes(row.Khoa)) {
-            // Ngăn thay đổi trạng thái check box khoa
-            khoaCheckbox.disabled = true
-            daoTaoCheckbox.disabled = true
+          
+          // Trợ lý phòng Đào tạo
+          if (role.toLowerCase() === APP_ROLES.troLy_phong.toLowerCase()) {
+            // Nếu khoa chưa check thì không thể thao tác
+            if (!check.includes(row.Khoa)) {
+              khoaCheckbox.disabled = true;
+              daoTaoCheckbox.disabled = true;
+            } else {
+              // Nếu đã duyệt Đào tạo thì ẩn cả cột Khoa và Đào tạo
+              if (row.DaoTaoDuyet) {
+                khoaCheckbox.disabled = true; // Ẩn cột Khoa
+                daoTaoCheckbox.disabled = true; // Ẩn cột Đào tạo
+              } else {
+                // Khoa đã check và Đào tạo chưa duyệt, cho phép thao tác
+                khoaCheckbox.disabled = false;
+                daoTaoCheckbox.disabled = false;
+              }
+            }
           }
-
-          // Nếu đào tạo đã check thì disable check đào tạo
-          if (DaoTaoCheck.includes(row.Khoa)) {
-            // Ngăn thay đổi trạng thái check box khoa
-            khoaCheckbox.disabled = true
-            daoTaoCheckbox.disabled = true;
+          
+          // Lãnh đạo phòng Đào tạo - chỉ có quyền bỏ duyệt
+          else if (role.toLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase()) {
+            khoaCheckbox.disabled = true; // Không được thao tác cột Khoa
+            
+            // Chỉ có thể bỏ duyệt (từ checked → unchecked), không thể duyệt (từ unchecked → checked)
+            if (row.DaoTaoDuyet) {
+              daoTaoCheckbox.disabled = false; // Cho phép bỏ duyệt
+            } else {
+              daoTaoCheckbox.disabled = true; // Không cho phép duyệt mới
+            }
           }
+          
+          // Không được thao tác cột Văn phòng
+          VPCheckbox.disabled = true;
         }
 
+        // Logic phân quyền cho Văn phòng 
         if (MaPhongBan.toLowerCase() === APP_DEPARTMENTS.vanPhong.toLowerCase() && role.toLowerCase() !== APP_ROLES.thuong.toLowerCase()) {
-          // Nếu đào tạo đã check thì hiện check bên văn phòng
+          // Nếu đào tạo chưa check thì hiện check bên văn phòng
           if (!DaoTaoCheck.includes(row.Khoa)) {
             // Ngăn thay đổi trạng thái check box đào tạo
             daoTaoCheckbox.disabled = true
@@ -902,6 +927,9 @@
             daoTaoCheckbox.disabled = true
             VPCheckbox.disabled = true;
           }
+          
+          // Không được thao tác cột Khoa
+          khoaCheckbox.disabled = true;
         }
 
         // nếu là ban giám đốc, cho phép thao tác với cả 3 cột
@@ -909,14 +937,8 @@
           khoaCheckbox.disabled = false;
           daoTaoCheckbox.disabled = false;
           VPCheckbox.disabled = false;
-          // nếu là đào tạo, ẩn thao tác với cột văn phòng
-        } else if (MaPhongBan === APP_DEPARTMENTS.daoTao && role.toLocaleLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase()) {
-          VPCheckbox.disabled = true;
-          // nếu là văn phòng, ẩn thao tác với khoa
-        } else if (MaPhongBan === APP_DEPARTMENTS.vanPhong && role.toLocaleLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase()) {
-          khoaCheckbox.disabled = true;
-          // nếu không thuộc 3 role thao tác, ẩn hết cả 3 cột
-        } else {
+          // nếu không thuộc các role được phép thao tác, ẩn hết cả 3 cột
+        } else if (MaPhongBan !== APP_DEPARTMENTS.daoTao && MaPhongBan !== APP_DEPARTMENTS.vanPhong && MaPhongBan !== APP_DEPARTMENTS.banGiamDoc) {
           khoaCheckbox.disabled = true;
           daoTaoCheckbox.disabled = true;
           VPCheckbox.disabled = true;
@@ -1134,9 +1156,14 @@
       }
 
       // Kiểm tra nếu tất cả checkbox cá nhân đều được chọn
-      const allChecked = Array.from(checkboxes).every(
+      const enabledCheckboxes = Array.from(checkboxes).filter(
+        checkbox => !checkbox.disabled && checkbox.offsetParent
+      );
+      
+      const allChecked = enabledCheckboxes.every(
         (checkbox) => checkbox.checked
       );
+      
       checkAllCheckbox.checked = allChecked; // Cập nhật trạng thái của checkbox "Check All"
     }
 

@@ -713,9 +713,6 @@
       }
 
       function initializeEventHandlers() {
-        // Initialize button states
-        $('#saveDataDoAn, #approveContractBtn').hide();
-
         // Search functionality
         $('#searchGiangVien').on('input', filterTable);
 
@@ -728,9 +725,14 @@
           handleViewChange(e, 'Theo hệ đào tạo', 'Tìm theo tên giảng viên trong hệ đào tạo', loadContractDataByHeDaoTao);
         });
 
-        // Contract type change
+        // Contract type change - still need to manage visibility based on contract type
         $('#loaiHopDong').on('change', function () {
-          $('#saveDataDoAn').toggle($(this).val() === 'Đồ án');
+          // Check permissions first, then apply contract type logic
+          checkUserPermissions();
+          // Additional logic for contract type specific visibility
+          if ($(this).val() !== 'Đồ án') {
+            $('#saveDataDoAn').hide();
+          }
         });
 
         // Button handlers
@@ -821,19 +823,17 @@
           if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
             displayContractDataInSeparateTables(response.groupedByTeacher, response.enhancedGroupedByTeacher, response.SoTietDinhMuc || 0);
             showSuccess('Tải dữ liệu thành công');
-            if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
-              $('#approveContractBtn, #unapproveContractBtn, #saveDataDoAn').show();
-            }
+            // Check permissions for buttons instead of showing all
+            checkUserPermissions();
           } else {
             showNoDataWithError('Không có dữ liệu để hiển thị');
           }
         } else if (type === 'hedaotao') {
           if (response.success && response.data && response.data.length > 0) {
             showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo.`);
-            if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
-              $('#approveContractBtn, #saveDataDoAn').hide();
-              displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);
-            }
+            displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc);
+            // Check permissions for buttons instead of showing specific ones
+            checkUserPermissions();
           } else {
             showNoDataWithError(response.message || 'Không có dữ liệu để hiển thị');
           }
@@ -2086,7 +2086,33 @@
         hideBtn(role, MaPhongBan);
         // Apply action column visibility on page load
         showActionColumns();
+        // Check user permissions for buttons
+        checkUserPermissions();
       });
+
+      // Function to check user permissions and show/hide buttons
+      function checkUserPermissions() {
+        const role = localStorage.getItem("userRole");
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
+        const loaiHopDong = $('#loaiHopDong').val();
+
+        // Nút duyệt và bỏ duyệt: chỉ hiển thị với role Trợ lý
+        if (role == APP_ROLES.troLy_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
+          $('#approveContractBtn').show();
+          $('#unapproveContractBtn').show();
+        } else {
+          $('#approveContractBtn').hide();
+          $('#unapproveContractBtn').hide();
+        }
+
+        // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo và khi loại hợp đồng là "Đồ án"
+        if (role == APP_ROLES.lanhDao_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong && loaiHopDong === 'Đồ án') {
+          $('#saveDataDoAn').show();
+        } else {
+          $('#saveDataDoAn').hide();
+        }
+      }
+
       function hideBtn(role, MaPhongBan) {
         if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
           const control = document.getElementById("control");

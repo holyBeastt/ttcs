@@ -615,7 +615,14 @@
       daoTaoDuyetCheckbox.onchange = () => updateCheckAll('daoTaoDuyet'); // Gọi hàm khi checkbox thay đổi
       daoTaoDuyetCheckboxTd.appendChild(daoTaoDuyetCheckbox);
       tableRow.appendChild(daoTaoDuyetCheckboxTd);
-
+      console.log(role, row.DaoTaoDuyet);
+      if (role == APP_ROLES.troLy_phong && row.DaoTaoDuyet) {
+        khoaDuyetCheckbox.disabled = true; // Vô hiệu hóa checkbox khoa duyệt nếu đã được duyệt bởi đào tạo
+        daoTaoDuyetCheckbox.disabled = true; // Vô hiệu hóa checkbox select nếu đã được duyệt bởi đào tạo
+      }else if (role === APP_ROLES.lanhDao_phong && !row.DaoTaoDuyet) {
+        khoaDuyetCheckbox.disabled = true; // Vô hiệu hóa checkbox khoa duyệt nếu đã được duyệt bởi đào tạo
+        daoTaoDuyetCheckbox.disabled = true; // Vô hiệu hóa checkbox select nếu đã được duyệt bởi đào tạo
+      }
 
       //Ẩn check box
       if (isKhoa === "1") {
@@ -703,6 +710,7 @@
         console.log(khoaDuyet, daoTaoDuyet, MaGiangDay);
         updateDuyet(MaGiangDay, khoaDuyet, daoTaoDuyet, MaPhongBan);
       }
+      loadLopMoiData();
 
 
     });

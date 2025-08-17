@@ -252,16 +252,63 @@
       <tbody id="logTableBody"></tbody>
     </table>
 
+    <!-- Loading indicator cho load more -->
+    <div class="text-center mt-3" id="loadMoreContainer" style="display: none;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+      <p class="mt-2">Đang tải thêm dữ liệu...</p>
+    </div>
+
+    <!-- Nút tải thêm thủ công -->
+    <div class="text-center mt-3" id="loadMoreButton" style="display: none;">
+      <button class="btn btn-outline-primary" onclick="loadMoreData()">
+        <i class="bi bi-arrow-down-circle"></i> Tải thêm dữ liệu
+      </button>
+    </div>
+
+    <!-- Thông tin tổng số bản ghi -->
+    <div class="text-center mt-2" id="recordInfo" style="display: none;">
+      <small class="text-muted"></small>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      async function fetchLogData(startDate, endDate, ki, namHoc, khoa) {
-        try {
-          const response = await fetch("/api/log"); // Gọi đến API
-          const data = await response.json(); // Chuyển đổi dữ liệu thành JSON
+      let currentPage = 1;
+      let isLoading = false;
+      let hasMoreData = true;
+      let currentFilters = {};
+      let allLoadedData = []; // Lưu tất cả dữ liệu đã load
 
-          const tableBody = document.getElementById("logTableBody");
-          tableBody.innerHTML = ""; // Xóa nội dung bảng trước khi thêm dữ liệu mới
+      async function fetchLogData(startDate, endDate, ki, namHoc, khoa, page = 1, isLoadMore = false) {
+        if (isLoading) return;
+        
+        try {
+          isLoading = true;
+          
+          // Nếu không phải load more thì reset dữ liệu
+          if (!isLoadMore) {
+            allLoadedData = [];
+            currentPage = 1;
+            hasMoreData = true;
+            document.getElementById("logTableBody").innerHTML = "";
+          }
+          
+          // Hiển thị loading indicator
+          if (isLoadMore) {
+            document.getElementById("loadMoreContainer").style.display = "block";
+          }
+
+          // Lưu filters hiện tại
+          currentFilters = { startDate, endDate, ki, namHoc, khoa };
+
+          // Gọi API với phân trang
+          const response = await fetch(`/api/log?page=${page}&limit=30`);
+          const result = await response.json();
+          
+          const data = result.data;
+          const pagination = result.pagination;
 
           // Lấy danh sách ID nhân viên có MaPhongBan tương ứng
           const responseNhanVien = await fetch("/api/nhanvien");
@@ -313,9 +360,20 @@
             );
           });
 
+          // Thêm dữ liệu mới vào danh sách đã load
+          allLoadedData = [...allLoadedData, ...filteredData];
+          
+          // Cập nhật hasMoreData
+          hasMoreData = pagination.hasNext && filteredData.length > 0;
+          currentPage = pagination.currentPage;
+
+          const tableBody = document.getElementById("logTableBody");
+          
+          // Hiển thị dữ liệu
           if (filteredData.length > 0) {
             filteredData.forEach((item, index) => {
               const row = document.createElement("tr");
+              // STT chính là MaLichSuNhap từ database
               row.innerHTML = `
                         <td>${item.MaLichSuNhap}</td>
                         <td>${item.id_User}</td>
@@ -328,14 +386,67 @@
                     `;
               tableBody.appendChild(row);
             });
-          } else {
+          } else if (!isLoadMore) {
             tableBody.innerHTML =
               '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
           }
+
+          // Cập nhật thông tin
+          updateRecordInfo();
         } catch (error) {
           console.error("Lỗi khi fetch dữ liệu:", error);
+        } finally {
+          isLoading = false;
+          document.getElementById("loadMoreContainer").style.display = "none";
         }
       }
+
+      // Hàm cập nhật thông tin số bản ghi
+      function updateRecordInfo() {
+        const recordInfo = document.getElementById("recordInfo");
+        const loadMoreButton = document.getElementById("loadMoreButton");
+        
+        recordInfo.style.display = "block";
+        recordInfo.querySelector("small").textContent = 
+          `Đã hiển thị ${allLoadedData.length} bản ghi${hasMoreData ? ' - Kéo xuống hoặc click để tải thêm' : ' - Đã hiển thị hết'}`;
+        
+        // Hiển thị/ẩn nút tải thêm
+        if (hasMoreData && allLoadedData.length > 0) {
+          loadMoreButton.style.display = "block";
+        } else {
+          loadMoreButton.style.display = "none";
+        }
+      }
+
+      // Hàm load more data
+      function loadMoreData() {
+        if (hasMoreData && !isLoading) {
+          fetchLogData(
+            currentFilters.startDate,
+            currentFilters.endDate,
+            currentFilters.ki,
+            currentFilters.namHoc,
+            currentFilters.khoa,
+            currentPage + 1,
+            true // isLoadMore = true
+          );
+        }
+      }
+
+      // Thêm scroll listener để tự động load more
+      let scrollTimeout = null;
+      window.addEventListener('scroll', function() {
+        // Throttle scroll events
+        if (scrollTimeout) return;
+        
+        scrollTimeout = setTimeout(() => {
+          // Kiểm tra nếu user scroll gần đến cuối trang (còn 500px)
+          if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+            loadMoreData();
+          }
+          scrollTimeout = null;
+        }, 200);
+      });
 
       // Hàm hiển thị/ẩn loading
       function toggleLoading(show) {
