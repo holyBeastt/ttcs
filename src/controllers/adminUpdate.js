@@ -171,6 +171,25 @@ const postUpdateNV = async (req, res) => {
       [MaPhongBan, Quyen, isKhoa, TenDangNhap]
     );
 
+    // Ghi log cập nhật nhân viên thành công
+    const logQuery = `
+      INSERT INTO lichsunhaplieu 
+      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+    
+    const userId = req.session?.userId || 1;
+    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const loaiThongTin = 'Admin Log';
+    const changeMessage = `${tenNhanVien} đã cập nhật thông tin nhân viên: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien})`;
+    
+    await connection.query(logQuery, [
+      userId,
+      tenNhanVien,
+      loaiThongTin,
+      changeMessage
+    ]);
+
     res
       .status(200)
       .json({ message: "Cập nhật nhân viên thành công", MaNhanVien });
@@ -195,6 +214,25 @@ const postUpdatePhongBan = async (req, res) => {
 
     const query = `UPDATE phongban SET TenPhongBan = ?, GhiChu = ?, isKhoa = ? WHERE MaPhongBan = ?`;
     await connection.query(query, [tenPhongBan, ghiChu, isKhoa, MaPhongBan]);
+
+    // Ghi log cập nhật phòng ban thành công
+    const logQuery = `
+      INSERT INTO lichsunhaplieu 
+      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+    
+    const userId = req.session?.userId || 1;
+    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const loaiThongTin = 'Admin Log';
+    const changeMessage = `${tenNhanVien} đã cập nhật phòng ban: "${tenPhongBan}" (Mã: ${MaPhongBan})`;
+    
+    await connection.query(logQuery, [
+      userId,
+      tenNhanVien,
+      loaiThongTin,
+      changeMessage
+    ]);
 
     res.redirect("/phongBan?message=True"); // Điều hướng về danh sách phòng ban sau khi cập nhật
   } catch (error) {
@@ -256,6 +294,18 @@ const postUpdateBoMon = async (req, res) => {
       TruongBoMon,
       id,
     ]);
+
+    // Ghi log khi admin cập nhật bộ môn
+    try {
+      const userId = req.session.userId || '';
+      const tenNhanVien = req.session.TenNhanVien || '';
+      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logMessage = `Admin cập nhật bộ môn ${MaBoMon}: ${TenBoMon}`;
+      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+    } catch (logError) {
+      console.error('Lỗi khi ghi log:', logError);
+    }
+
     res.redirect("/boMon?Success");
   } catch (error) {
     console.error("Lỗi khi cập nhật dữ liệu: ", error.message);

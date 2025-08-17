@@ -145,6 +145,17 @@ const saveToDB = async (req, res) => {
         return res.status(400).json({ message: mess });
       }
 
+      // Ghi log khi admin thêm file học phần
+      try {
+        const userId = req.session.userId || '';
+        const tenNhanVien = req.session.TenNhanVien || '';
+        const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+        const logMessage = `Admin thêm file học phần - ${data.length} bản ghi`;
+        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+      } catch (logError) {
+        console.error('Lỗi khi ghi log:', logError);
+      }
+
       res.json({ message: "Dữ liệu đã được lưu thành công vào database!" });
     } else {
       res.status(400).json({ message: "Không có dữ liệu để lưu." });
