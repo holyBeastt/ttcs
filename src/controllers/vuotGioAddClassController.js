@@ -1090,6 +1090,21 @@ const getTTVuotGio = async (req, res) => {
             FROM giuaky 
             WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
+    //Truy vấn ketthuchocphan
+    const query2 = `
+                    SELECT *,
+                          CASE 
+                            WHEN TRIM(LOWER(doituong)) = TRIM(LOWER('Đóng hp')) 
+                            THEN 1 
+                            ELSE 2 
+                          END AS nhom
+                    FROM ketthuchocphan 
+                    WHERE TRIM(LOWER(giangvien)) = TRIM(LOWER(?)) 
+                      AND ki = ? 
+                      AND namhoc = ? 
+                    ORDER BY nhom, doituong
+                  `;
+
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
       TenNhanVien,
@@ -1156,6 +1171,21 @@ const getTTVuotGio = async (req, res) => {
       "%Đóng học phí%",
       Nam,
     ]);
+
+    const [rowsA31All] = await connection.query(query2, [
+      TenNhanVien,
+      1,
+      Nam,
+    ]);
+    const rows31 = rowsA31All.filter(r => r.nhom === 2);
+    const rows32   = rowsA31All.filter(r => r.nhom === 1);
+    const [rowsA32All] = await connection.query(query2, [
+      TenNhanVien,
+      2,
+      Nam,
+    ]);
+    const rows33= rowsA32All.filter(r => r.nhom === 2);
+    const rows34   = rowsA32All.filter(r => r.nhom === 1);
     const queryB = `
         SELECT *, 
             CASE 
@@ -1325,6 +1355,10 @@ const getTTVuotGio = async (req, res) => {
       rows22: rows22,
       rows23: rows23,
       rows24: rows24,
+      rows31: rows31,
+      rows32: rows32,
+      rows33: rows33,
+      rows34: rows34,
       rowsB: rowsB,
       rowsC1: rowsC1,
       rowsC2: rowsC2,
