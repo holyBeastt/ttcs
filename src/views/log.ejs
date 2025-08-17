@@ -252,27 +252,56 @@
       <tbody id="logTableBody"></tbody>
     </table>
 
-    <!-- Phân trang -->
-    <nav aria-label="Page navigation" id="paginationNav" style="display: none;">
-      <ul class="pagination justify-content-center" id="paginationList">
-        <!-- Phân trang sẽ được tạo động ở đây -->
-      </ul>
-      <div class="text-center mt-2">
-        <small id="paginationInfo" class="text-muted"></small>
+    <!-- Loading indicator cho load more -->
+    <div class="text-center mt-3" id="loadMoreContainer" style="display: none;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
       </div>
-    </nav>
+      <p class="mt-2">Đang tải thêm dữ liệu...</p>
+    </div>
+
+    <!-- Nút tải thêm thủ công -->
+    <div class="text-center mt-3" id="loadMoreButton" style="display: none;">
+      <button class="btn btn-outline-primary" onclick="loadMoreData()">
+        <i class="bi bi-arrow-down-circle"></i> Tải thêm dữ liệu
+      </button>
+    </div>
+
+    <!-- Thông tin tổng số bản ghi -->
+    <div class="text-center mt-2" id="recordInfo" style="display: none;">
+      <small class="text-muted"></small>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       let currentPage = 1;
+      let isLoading = false;
+      let hasMoreData = true;
       let currentFilters = {};
+      let allLoadedData = []; // Lưu tất cả dữ liệu đã load
 
-      async function fetchLogData(startDate, endDate, ki, namHoc, khoa, page = 1) {
+      async function fetchLogData(startDate, endDate, ki, namHoc, khoa, page = 1, isLoadMore = false) {
+        if (isLoading) return;
+        
         try {
+          isLoading = true;
+          
+          // Nếu không phải load more thì reset dữ liệu
+          if (!isLoadMore) {
+            allLoadedData = [];
+            currentPage = 1;
+            hasMoreData = true;
+            document.getElementById("logTableBody").innerHTML = "";
+          }
+          
+          // Hiển thị loading indicator
+          if (isLoadMore) {
+            document.getElementById("loadMoreContainer").style.display = "block";
+          }
+
           // Lưu filters hiện tại
           currentFilters = { startDate, endDate, ki, namHoc, khoa };
-          currentPage = page;
 
           // Gọi API với phân trang
           const response = await fetch(`/api/log?page=${page}&limit=30`);
@@ -280,9 +309,6 @@
           
           const data = result.data;
           const pagination = result.pagination;
-
-          const tableBody = document.getElementById("logTableBody");
-          tableBody.innerHTML = ""; // Xóa nội dung bảng trước khi thêm dữ liệu mới
 
           // Lấy danh sách ID nhân viên có MaPhongBan tương ứng
           const responseNhanVien = await fetch("/api/nhanvien");
@@ -334,12 +360,22 @@
             );
           });
 
+          // Thêm dữ liệu mới vào danh sách đã load
+          allLoadedData = [...allLoadedData, ...filteredData];
+          
+          // Cập nhật hasMoreData
+          hasMoreData = pagination.hasNext && filteredData.length > 0;
+          currentPage = pagination.currentPage;
+
+          const tableBody = document.getElementById("logTableBody");
+          
+          // Hiển thị dữ liệu
           if (filteredData.length > 0) {
             filteredData.forEach((item, index) => {
               const row = document.createElement("tr");
-              const stt = (pagination.currentPage - 1) * pagination.limit + index + 1;
+              // STT chính là MaLichSuNhap từ database
               row.innerHTML = `
-                        <td>${stt}</td>
+                        <td>${item.MaLichSuNhap}</td>
                         <td>${item.id_User}</td>
                         <td>${item.TenNhanVien}</td>
                         <td>${item.LoaiThongTin}</td>
@@ -350,71 +386,67 @@
                     `;
               tableBody.appendChild(row);
             });
-          } else {
+          } else if (!isLoadMore) {
             tableBody.innerHTML =
               '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
           }
 
-          // Tạo phân trang
-          createPagination(pagination);
+          // Cập nhật thông tin
+          updateRecordInfo();
         } catch (error) {
           console.error("Lỗi khi fetch dữ liệu:", error);
+        } finally {
+          isLoading = false;
+          document.getElementById("loadMoreContainer").style.display = "none";
         }
       }
 
-      // Hàm tạo phân trang
-      function createPagination(pagination) {
-        const paginationNav = document.getElementById("paginationNav");
-        const paginationList = document.getElementById("paginationList");
-        const paginationInfo = document.getElementById("paginationInfo");
+      // Hàm cập nhật thông tin số bản ghi
+      function updateRecordInfo() {
+        const recordInfo = document.getElementById("recordInfo");
+        const loadMoreButton = document.getElementById("loadMoreButton");
         
-        if (pagination.totalPages <= 1) {
-          paginationNav.style.display = "none";
-          return;
+        recordInfo.style.display = "block";
+        recordInfo.querySelector("small").textContent = 
+          `Đã hiển thị ${allLoadedData.length} bản ghi${hasMoreData ? ' - Kéo xuống hoặc click để tải thêm' : ' - Đã hiển thị hết'}`;
+        
+        // Hiển thị/ẩn nút tải thêm
+        if (hasMoreData && allLoadedData.length > 0) {
+          loadMoreButton.style.display = "block";
+        } else {
+          loadMoreButton.style.display = "none";
         }
-
-        paginationNav.style.display = "block";
-        paginationList.innerHTML = "";
-
-        // Nút Previous
-        const prevLi = document.createElement("li");
-        prevLi.className = `page-item ${!pagination.hasPrev ? 'disabled' : ''}`;
-        prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${pagination.currentPage - 1})">Previous</a>`;
-        paginationList.appendChild(prevLi);
-
-        // Các số trang
-        const startPage = Math.max(1, pagination.currentPage - 2);
-        const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
-
-        for (let i = startPage; i <= endPage; i++) {
-          const li = document.createElement("li");
-          li.className = `page-item ${i === pagination.currentPage ? 'active' : ''}`;
-          li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i})">${i}</a>`;
-          paginationList.appendChild(li);
-        }
-
-        // Nút Next
-        const nextLi = document.createElement("li");
-        nextLi.className = `page-item ${!pagination.hasNext ? 'disabled' : ''}`;
-        nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${pagination.currentPage + 1})">Next</a>`;
-        paginationList.appendChild(nextLi);
-
-        // Thông tin phân trang
-        paginationInfo.textContent = `Hiển thị trang ${pagination.currentPage} / ${pagination.totalPages} (${pagination.totalRecords} bản ghi)`;
       }
 
-      // Hàm chuyển trang
-      function changePage(page) {
-        if (page < 1) return;
-        fetchLogData(
-          currentFilters.startDate,
-          currentFilters.endDate,
-          currentFilters.ki,
-          currentFilters.namHoc,
-          currentFilters.khoa,
-          page
-        );
+      // Hàm load more data
+      function loadMoreData() {
+        if (hasMoreData && !isLoading) {
+          fetchLogData(
+            currentFilters.startDate,
+            currentFilters.endDate,
+            currentFilters.ki,
+            currentFilters.namHoc,
+            currentFilters.khoa,
+            currentPage + 1,
+            true // isLoadMore = true
+          );
+        }
       }
+
+      // Thêm scroll listener để tự động load more
+      let scrollTimeout = null;
+      window.addEventListener('scroll', function() {
+        // Throttle scroll events
+        if (scrollTimeout) return;
+        
+        scrollTimeout = setTimeout(() => {
+          // Kiểm tra nếu user scroll gần đến cuối trang (còn 500px)
+          if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+            loadMoreData();
+          }
+          scrollTimeout = null;
+        }, 200);
+      });
 
       // Hàm hiển thị/ẩn loading
       function toggleLoading(show) {
@@ -435,9 +467,8 @@
             const khoa = document.getElementById("Khoa").value;
             const loaiThongTin = document.getElementById("loaiThongTin").value;
 
-            await fetchLogData(null, null, ki, namHoc, khoa, 1);
+            await fetchLogData(null, null, ki, namHoc, khoa);
             document.getElementById("logTable").style.display = "table";
-            document.getElementById("paginationNav").style.display = "block";
           } catch (error) {
             console.error("Lỗi:", error);
             alert("Có lỗi xảy ra khi tải dữ liệu");
@@ -460,9 +491,8 @@
             const khoa = document.getElementById("Khoa").value;
             const loaiThongTin = document.getElementById("loaiThongTin").value;
 
-            await fetchLogData(startDate, endDate, ki, namHoc, khoa, 1);
+            await fetchLogData(startDate, endDate, ki, namHoc, khoa);
             document.getElementById("logTable").style.display = "table";
-            document.getElementById("paginationNav").style.display = "block";
           } catch (error) {
             console.error("Lỗi:", error);
             alert("Có lỗi xảy ra khi lọc dữ liệu");
