@@ -16,27 +16,27 @@ router.post("/api/v1/tkb/data-tkb-to-render", TKBController.getDataTKBChinhThuc)
 router.post("/api/v1/tkb/update-row", TKBController.updateRowTKB);
 
 // xóa 1 dòng
-router.delete("/TKB-delete-row/:id", TKBController.deleteRow);
+router.delete("/TKB-delete-row", TKBController.deleteRow);
 
 // Cập nhật số lượng sinh viên
 router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
 
 // Lưu từ TKB sang quy chuẩn dự kiến
-router.post("/save-data-tkb-to-qcdk", TKBController.themTKBVaoQCDK);
+router.post("/api/v1/tkb/save-data-to-qcdk", TKBController.themTKBVaoQCDK);
 
 // Thêm dòng vào TKB
 router.post("/api/v1/TKB/add-new_row", TKBController.addNewRowTKB);
 
 // Xóa bảng thời khóa biểu
-router.post("/api/delete-data-TKB", TKBController.deleteTKB);
+router.delete("/api/v1/tkb/all", TKBController.deleteTKB);
 
 router.post(
-  "/api/export-multiple-worksheet-TKB",
+  "/api/v1/tkb/export-multiple-worksheet",
   TKBController.exportMultipleWorksheets
 );
 
-router.post(
-  "/api/export-single-worksheet-TKB",
+router.get(
+  "/api/v1/tkb/export-single-worksheet",
   TKBController.exportSingleWorksheets
 );
 
@@ -50,6 +50,6 @@ router.post("/api/check-data-TKB-exist", TKBController.checkDataTKBExist);
 router.get("/api/TKB/getKhoaList", TKBController.getKhoaList);
 
 // Check dữ liệu có trong bảng TKB không -> check dữ liệu trong bảng tạm
-router.post("/api/TKB//kiem-tra-file", TKBController.checkDataQCDK);
+router.get("/api/v1/tkb/check-data-qcdk-exist", TKBController.checkDataQCDK);
 
 module.exports = router;

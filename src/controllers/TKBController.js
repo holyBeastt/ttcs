@@ -241,23 +241,24 @@ function formatDateForDB(dateStr) {
 
 // hàm xóa 1 dòng
 const deleteRow = async (req, res) => {
-  const { id } = req.params; // Lấy ID từ URL
+  const { tt, dot, ki_hoc, nam_hoc } = req.query; // Lấy ID từ URL
+  console.log("Xóa dòng với tham số:", { tt, dot, ki_hoc, nam_hoc });
 
   let connection;
 
   try {
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-    // Kiểm tra xem ID có hợp lệ không
-    if (!id) {
+    // Kiểm tra xem tt có hợp lệ không
+    if (!tt) {
       return res.status(400).json({ message: "ID không hợp lệ." });
     }
 
     // Chuẩn bị truy vấn DELETE
-    const deleteQuery = `DELETE FROM course_schedule_details WHERE id = ?`;
+    const deleteQuery = `DELETE FROM course_schedule_details WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
 
     // Thực thi truy vấn
-    await connection.query(deleteQuery, [id]);
+    await connection.query(deleteQuery, [tt, dot, ki_hoc, nam_hoc]);
 
     // Trả về phản hồi thành công
     return res.json({ message: "Dòng dữ liệu đã được xóa thành công." });
@@ -372,8 +373,7 @@ const updateStudentQuantity = async (req, res) => {
 };
 
 const themTKBVaoQCDK = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
-  const semester = `${Dot}, ${Ki}, ${Nam}`;
+  const { major, dot, ki_hoc, nam_hoc } = req.body;
 
   let connection,
     maPhongBanFalse = [];
@@ -385,31 +385,35 @@ const themTKBVaoQCDK = async (req, res) => {
     // Lấy dữ liệu bên bảng course_schedule_details
     let getDataTKBQuery = `
     SELECT
-      id AS ID,
-      major AS Khoa,
-      ll_code AS SoTietCTDT,
-      ll_total AS LL,
-      student_quantity AS SoSinhVien,
-      student_bonus AS HeSoLopDong,
-      bonus_time AS HeSoT7CN,
-      course_id AS MaBoMon,
-      lecturer AS GiaoVien,
-      credit_hours AS SoTinChi,
-      course_name AS LopHocPhan,
-      course_code AS MaHocPhan,
-      start_date AS NgayBatDau,
-      end_date AS NgayKetThuc,
-      qc AS QuyChuan
+      min(id) AS ID,
+      tt,
+      max(major) AS Khoa,
+      max(ll_code) AS SoTietCTDT,
+      max(ll_total) AS LL,
+      max(student_quantity) AS SoSinhVien,
+      max(student_bonus) AS HeSoLopDong,
+      max(bonus_time) AS HeSoT7CN,
+      max(course_id) AS MaBoMon,
+      max(lecturer) AS GiaoVien,
+      max(credit_hours) AS SoTinChi,
+      max(course_name) AS LopHocPhan,
+      max(course_code) AS MaHocPhan,
+      min(start_date) AS NgayBatDau,
+      max(end_date) AS NgayKetThuc,
+      max(qc) AS QuyChuan
     FROM course_schedule_details
-    WHERE semester = ? AND da_luu != 1
+    WHERE dot = ? and ki_hoc = ? and nam_hoc = ? and da_luu = 0
   `;
 
-    const getDataTKBParams = [semester];
+    const getDataTKBParams = [dot, ki_hoc, nam_hoc];
 
-    if (Khoa !== "ALL") {
-      getDataTKBQuery += " AND major = ?";
-      getDataTKBParams.push(Khoa);
+    if (major !== "ALL") {
+      getDataTKBQuery += " and major = ?";
+      getDataTKBParams.push(major);
     }
+
+    getDataTKBQuery += " group by tt";
+
 
     const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
 
@@ -422,7 +426,7 @@ const themTKBVaoQCDK = async (req, res) => {
 
     let insertValues = [];
 
-    if (Khoa === "ALL") {
+    if (major === "ALL") {
       // Nếu Khoa === "ALL", chỉ lấy MaBoMon thuộc các phòng ban hợp lệ
       const [MaPhongBanList] = await connection.query(
         `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`
@@ -437,9 +441,9 @@ const themTKBVaoQCDK = async (req, res) => {
         if (validMaPhongBanSet.has(row.Khoa)) {
           insertValues.push([
             row.Khoa,
-            Dot,
-            Ki,
-            Nam,
+            dot,
+            ki_hoc,
+            nam_hoc,
             row.SoTietCTDT,
             row.LL,
             row.SoSinhVien,
@@ -462,9 +466,9 @@ const themTKBVaoQCDK = async (req, res) => {
       // Chuyển dữ liệu về dạng mảng 2D cho MySQL
       insertValues = tkbData.map((row) => [
         row.Khoa, // major
-        Dot, // dot
-        Ki, // ki
-        Nam, // nam
+        dot, // dot
+        ki_hoc, // ki
+        nam_hoc, // nam
         row.SoTietCTDT, // ll_code
         row.LL, // ll_total
         row.SoSinhVien, // student_quantity
@@ -498,38 +502,46 @@ const themTKBVaoQCDK = async (req, res) => {
     // Thực hiện INSERT
     await connection.query(insertQuery, [insertValues]);
 
-    // Nếu có khoa không trùng với csdl
-    if (maPhongBanFalse.length != 0) {
-      if (Khoa === "ALL") {
+    // Cập nhật trường da_luu = 1 cho những dòng đã được lưu
+    let updateQuery = `UPDATE course_schedule_details 
+      SET da_luu = 1 
+      WHERE dot = ? and ki_hoc = ? and nam_hoc = ?
+    `;
+    const updateValues = [dot, ki_hoc, nam_hoc];
+
+    // Nếu lưu all
+    if (major === "ALL") {
+
+      // Nếu có khoa không trùng với csdl
+      if (maPhongBanFalse.length != 0) {
         const idsToExclude = maPhongBanFalse.join(", ");
+        updateQuery += ` AND id NOT IN (${idsToExclude})`;
 
-        const updateQuery = `
-        UPDATE course_schedule_details 
-        SET da_luu = 1 
-        WHERE semester = ? AND id NOT IN (${idsToExclude});
-      `;
+        await connection.query(updateQuery, updateValues);
 
-        await connection.query(updateQuery, [semester]);
+        return res.status(200).json({
+          status: "warning",
+          message: "Những dòng không trùng khoa với CSDL sẽ không được chuyển",
+        });
+
       }
-
-      return res.status(200).json({
-        success: true,
-        message: "Những dòng không trùng khoa với CSDL sẽ không được chuyển",
-      });
+    } else {
+      updateQuery += " AND major = ?";
+      updateValues.push(major);
     }
 
-    const updateQuery = `
-      UPDATE course_schedule_details 
-      SET da_luu = 1 
-      WHERE semester = ? AND major = ?;
-    `;
+    await connection.query(updateQuery, updateValues);
 
-    await connection.query(updateQuery, [semester, Khoa]);
-
-    res.status(200).json({ success: true, message: "Thêm file thành công" });
+    return res.status(201).json({
+      status: "success",
+      message: "Thêm dữ liệu vào quy chuẩn dự kiến thành công"
+    });
   } catch (error) {
-    console.error("Lỗi cập nhật:", error);
-    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
+    console.error("Lỗi khi cập nhật dữ liệu:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Có lỗi xảy ra khi cập nhật dữ liệu"
+    });
   } finally {
     if (connection) connection.release(); // Trả kết nối về pool
   }
@@ -554,7 +566,7 @@ const addNewRowTKB = async (req, res) => {
       INSERT INTO course_schedule_details 
       (course_name, course_code, student_quantity, lecturer, major, ll_total, 
        bonus_time, ll_code, start_date, end_date, dot, ki_hoc, nam_hoc, qc) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Giá trị cần chèn vào database
@@ -593,7 +605,7 @@ const addNewRowTKB = async (req, res) => {
 };
 
 const deleteTKB = async (req, res) => {
-  const { major, dot, ki, nam } = req.body;
+  const { major, dot, ki_hoc, nam_hoc } = req.query;
 
   let connection;
 
@@ -603,7 +615,7 @@ const deleteTKB = async (req, res) => {
 
     let sql =
       "DELETE FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?";
-    let params = [dot, ki, nam];
+    let params = [dot, ki_hoc, nam_hoc];
 
     if (major !== "ALL") {
       sql += " AND major = ?";
@@ -629,7 +641,7 @@ const deleteTKB = async (req, res) => {
 // Xuất file excel
 
 const exportMultipleWorksheets = async (req, res) => {
-  const { major, semester } = req.body;
+  const { major, dot, ki_hoc, nam_hoc } = req.query;
   let connection;
 
   try {
@@ -640,8 +652,8 @@ const exportMultipleWorksheets = async (req, res) => {
     let majors = [major];
     if (major === "ALL") {
       const [majorRows] = await connection.query(
-        "SELECT DISTINCT major FROM course_schedule_details WHERE semester = ?",
-        [semester]
+        "SELECT DISTINCT major FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?",
+        [dot, ki_hoc, nam_hoc]
       );
       majors = majorRows.map((row) => row.major);
     }
@@ -652,8 +664,21 @@ const exportMultipleWorksheets = async (req, res) => {
     for (const m of majors) {
       // Truy vấn lấy dữ liệu theo từng major
       let query =
-        "SELECT * FROM course_schedule_details WHERE semester = ? AND major = ?";
-      let params = [semester, m];
+        `SELECT 
+        max(id) as id,
+        tt,
+        min(credit_hours) as credit_hours,
+        min(course_name) as course_name,
+        min(lecturer) as lecturer,
+        min(ll_code) as ll_code,
+        min(student_quantity) as student_quantity,
+        min(ll_total) as ll_total,
+        max(bonus_time) as bonus_time,
+        max(student_bonus) as student_bonus,
+        max(qc) as qc 
+        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
+        group by tt`;
+      let params = [dot, ki_hoc, nam_hoc, m];
 
       const [rows] = await connection.query(query, params);
       if (rows.length === 0) continue; // Bỏ qua nếu không có dữ liệu
@@ -708,7 +733,7 @@ const exportMultipleWorksheets = async (req, res) => {
     }
 
     // **📌 Lưu file Excel**
-    const fileName = `TKB_${semester.replace(/[, ]+/g, "_")}.xlsx`;
+    const fileName = `TKB_${dot}_${ki_hoc}_${nam_hoc}.xlsx`;
     const filePath = path.join(__dirname, "../../uploads", fileName);
     XLSX.writeFile(wb, filePath);
 
@@ -729,8 +754,10 @@ const exportMultipleWorksheets = async (req, res) => {
 };
 
 const exportSingleWorksheets = async (req, res) => {
-  const { major, semester } = req.body;
+  const { major, dot, ki_hoc, nam_hoc } = req.query;
   let connection;
+
+  console.log("exportSingleWorksheets:", { major, dot, ki_hoc, nam_hoc });
 
   try {
     // Kết nối database từ pool
@@ -740,8 +767,8 @@ const exportSingleWorksheets = async (req, res) => {
     let majors = [major];
     if (major === "ALL") {
       const [majorRows] = await connection.query(
-        "SELECT DISTINCT major FROM course_schedule_details WHERE semester = ?",
-        [semester]
+        "SELECT DISTINCT major FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ?",
+        [dot, ki_hoc, nam_hoc]
       );
       majors = majorRows.map((row) => row.major);
     }
@@ -769,10 +796,25 @@ const exportSingleWorksheets = async (req, res) => {
     for (const m of majors) {
       // Truy vấn lấy dữ liệu theo từng major
       let query =
-        "SELECT * FROM course_schedule_details WHERE semester = ? AND major = ?";
-      let params = [semester, m];
+        `SELECT 
+        max(id) as id,
+        tt,
+        min(credit_hours) as credit_hours,
+        min(course_name) as course_name,
+        min(lecturer) as lecturer,
+        min(ll_code) as ll_code,
+        min(student_quantity) as student_quantity,
+        min(ll_total) as ll_total,
+        max(bonus_time) as bonus_time,
+        max(student_bonus) as student_bonus,
+        max(qc) as qc 
+        FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
+        group by tt`;
+      let params = [dot, ki_hoc, nam_hoc, m];
 
       const [rows] = await connection.query(query, params);
+      console.log("wsData:", rows); // Kiểm tra dữ liệu trước khi ghi vào file
+
       if (rows.length === 0) continue; // Bỏ qua nếu không có dữ liệu
 
       // **📌 Thêm dòng tiêu đề ngành**
@@ -808,7 +850,7 @@ const exportSingleWorksheets = async (req, res) => {
     };
 
     // **📌 Lưu file Excel**
-    const fileName = `TKB_${semester.replace(/[, ]+/g, "_")}.xlsx`;
+    const fileName = `TKB_${dot}_${ki_hoc}_${nam_hoc}.xlsx`;
     const filePath = path.join(__dirname, "../../uploads", fileName);
     XLSX.utils.book_append_sheet(wb, ws, "TKB");
     XLSX.writeFile(wb, filePath);
@@ -977,7 +1019,7 @@ const getKhoaList = async (req, res) => {
 };
 
 const checkDataQCDK = async (req, res) => {
-  const { Khoa, Dot, Ki, Nam } = req.body;
+  const { major, dot, ki_hoc, nam_hoc } = req.query;
 
   let connection;
 
@@ -989,7 +1031,7 @@ const checkDataQCDK = async (req, res) => {
     const queryCheck = `SELECT EXISTS(SELECT 1 FROM tam WHERE Khoa = ? AND Dot = ? AND Ki = ? AND Nam = ?) AS exist;`;
 
     // Thực hiện truy vấn
-    const [results] = await connection.query(queryCheck, [Khoa, Dot, Ki, Nam]);
+    const [results] = await connection.query(queryCheck, [major, dot, ki_hoc, nam_hoc]);
 
     // Kết quả trả về từ cơ sở dữ liệu
     const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
@@ -1013,16 +1055,14 @@ const checkDataQCDK = async (req, res) => {
           end_date AS NgayKetThuc,
           qc AS QuyChuan
         FROM course_schedule_details
-        WHERE semester = ? AND da_luu != 1
+        WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND da_luu != 1
       `;
 
-    const semester = `${Dot}, ${Ki}, ${Nam}`;
+    const getDataTKBParams = [dot, ki_hoc, nam_hoc];
 
-    const getDataTKBParams = [semester];
-
-    if (Khoa !== "ALL") {
+    if (major !== "ALL") {
       getDataTKBQuery += " AND major = ?";
-      getDataTKBParams.push(Khoa);
+      getDataTKBParams.push(major);
     }
 
     const [tkbData] = await connection.query(getDataTKBQuery, getDataTKBParams);
