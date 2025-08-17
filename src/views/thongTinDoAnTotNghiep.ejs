@@ -386,7 +386,7 @@
                       class="check"
                       type="checkbox"
                       id="checkAllDaoTao"
-                      onclick="checkAll('daoTao')"
+                      onclick="checkAll('<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>')"
                     />
                     <label
                       class="form-check-label text-nowrap"
@@ -401,7 +401,7 @@
                       class="check"
                       type="checkbox"
                       id="checkAllVP"
-                      onclick="checkAll('VP')"
+                      onclick="checkAll('<%= APP_DEPARTMENTS.vanPhong %>')"
                     />
                     <label class="form-check-label text-nowrap" for="checkAllVP"
                       >Văn phòng</label
@@ -1073,18 +1073,44 @@
             MaPhongBan.toLowerCase() === APP_DEPARTMENTS.daoTao.toLowerCase() &&
             role.toLowerCase() !== APP_ROLES.thuong.toLowerCase()
           ) {
-            // Nếu khoa đã check thì hiện check bên đào tạo
-            if (!KhoaCheck.includes(row.MaPhongBan)) {
-              // Ngăn thay đổi trạng thái check box khoa
-              khoaCheckbox.disabled = true;
-              daoTaoCheckbox.disabled = true;
+            const isKhoaChecked = KhoaCheck.includes(row.MaPhongBan);
+            const isDaoTaoChecked = DaoTaoCheck.includes(row.MaPhongBan);
+            
+            // Logic cho Trợ lý phòng
+            if (role.toLowerCase() === APP_ROLES.troLy_phong.toLowerCase()) {
+              if (!isKhoaChecked) {
+                // Nếu khoa chưa check → Vô hiệu hóa cả cột Khoa và Đào Tạo
+                khoaCheckbox.disabled = true;
+                daoTaoCheckbox.disabled = true;
+              } else if (isKhoaChecked && !isDaoTaoChecked) {
+                // Nếu khoa đã check và Đào Tạo chưa duyệt → Cho phép thao tác cả 2 cột
+                khoaCheckbox.disabled = false;
+                daoTaoCheckbox.disabled = false;
+              } else if (isDaoTaoChecked) {
+                // Nếu Đào Tạo đã duyệt → Vô hiệu hóa cả 2 cột
+                khoaCheckbox.disabled = true;
+                daoTaoCheckbox.disabled = true;
+              }
             }
-
-            // Nếu đào tạo đã check thì disable check đào tạo
-            if (DaoTaoCheck.includes(row.MaPhongBan)) {
-              // Ngăn thay đổi trạng thái check box khoa
+            // Logic cho Lãnh đạo phòng
+            else if (role.toLowerCase() === APP_ROLES.lanhDao_phong.toLowerCase()) {
+              // Không được thao tác cột Khoa
               khoaCheckbox.disabled = true;
-              daoTaoCheckbox.disabled = true;
+              
+              if (isDaoTaoChecked) {
+                // Nếu Đào Tạo đã duyệt → Cho phép bỏ duyệt (chỉ từ checked → unchecked)
+                daoTaoCheckbox.disabled = false;
+                // Thêm xử lý để chỉ cho phép bỏ duyệt, không cho phép duyệt mới
+                daoTaoCheckbox.addEventListener('change', function() {
+                  if (this.checked && isDaoTaoChecked) {
+                    // Nếu cố gắng check lại khi đã được duyệt, không cho phép
+                    this.checked = false;
+                  }
+                });
+              } else {
+                // Nếu Đào Tạo chưa duyệt → Không cho phép duyệt mới
+                daoTaoCheckbox.disabled = true;
+              }
             }
           }
 
@@ -1194,9 +1220,21 @@
         const checkboxes = document.querySelectorAll(
           `input[type="checkbox"][name="${type}"]`
         );
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        
+        // Map type names to correct ID names for checkAll checkbox
+        let checkAllId;
+        if (type === 'khoa') {
+          checkAllId = 'checkAllKhoa';
+        } else if (type === '<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>') {
+          checkAllId = 'checkAllDaoTao';
+        } else if (type === '<%= APP_DEPARTMENTS.vanPhong %>') {
+          checkAllId = 'checkAllVP';
+        } else {
+          // Fallback for other types - use original logic
+          checkAllId = `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        }
+        
+        const checkAllCheckbox = document.getElementById(checkAllId);
 
         for (const checkbox of checkboxes) {
           if (checkbox.disabled || !checkbox.offsetParent) {
@@ -1217,9 +1255,21 @@
         const checkboxes = document.querySelectorAll(
           `input[type="checkbox"][name="${type}"]`
         );
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        
+        // Map type names to correct ID names for checkAll checkbox
+        let checkAllId;
+        if (type === 'khoa') {
+          checkAllId = 'checkAllKhoa';
+        } else if (type === '<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>') {
+          checkAllId = 'checkAllDaoTao';
+        } else if (type === '<%= APP_DEPARTMENTS.vanPhong %>') {
+          checkAllId = 'checkAllVP';
+        } else {
+          // Fallback for other types - use original logic
+          checkAllId = `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        }
+        
+        const checkAllCheckbox = document.getElementById(checkAllId);
 
         // Kiểm tra nếu tất cả checkbox cá nhân đều được chọn
         const allChecked = Array.from(checkboxes).every(
@@ -1229,9 +1279,20 @@
       }
 
       function disableCheckAll(type) {
-        const checkAllCheckbox = document.getElementById(
-          `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`
-        );
+        // Map type names to correct ID names for checkAll checkbox
+        let checkAllId;
+        if (type === 'khoa') {
+          checkAllId = 'checkAllKhoa';
+        } else if (type === '<%= APP_DEPARTMENTS.daoTao.toLowerCase() %>') {
+          checkAllId = 'checkAllDaoTao';
+        } else if (type === '<%= APP_DEPARTMENTS.vanPhong %>') {
+          checkAllId = 'checkAllVP';
+        } else {
+          // Fallback for other types - use original logic
+          checkAllId = `checkAll${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        }
+        
+        const checkAllCheckbox = document.getElementById(checkAllId);
 
         if (checkAllCheckbox) {
           // Ngăn không cho người dùng thay đổi checkbox tổng
