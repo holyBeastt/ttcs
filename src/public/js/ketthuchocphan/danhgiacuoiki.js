@@ -18,6 +18,7 @@ if (isKhoa == 1) {
     document.getElementById("update-qc").style.display = "none"
   }
 } else if (MaPhongBan === window.APP_DEPARTMENTS?.khaoThi) {
+}
   let currentRow = null
   let tableRowData = []
 
@@ -57,34 +58,45 @@ if (isKhoa == 1) {
       }
     }
 
-  if (isKhoa == 1) {
-    hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
-    if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
-      hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
-      document.getElementById("update-qc").style.display = "none"
-    }
-  } else if (MaPhongBan === "KT&ĐBCL") {
-    console.log("KT&ĐBCL role detected")
-    if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
+    if (isKhoa == 1) {
+      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      if (role !== window.APP_ROLES?.lanhDao_khoa && role !== window.APP_ROLES?.gv_cnbm) {
+        hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
+        document.getElementById("update-qc").style.display = "none"
+      }
+    } else if (MaPhongBan === "KT&ĐBCL") {
+      console.log("KT&ĐBCL role detected")
+      if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
+        hideTableHeadersByIds([
+          "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
+          "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
+        ])
+        document.getElementById("update-qc").style.display = "none"
+        console.log("Hiding all headers for KT&ĐBCL role")
+      // }else if (role === window.APP_ROLES?.troLy_phong) {
+      //   hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
+      //   document.getElementById("update-qc").style.display = ""
+      // }
+      }
+    } else {
       hideTableHeadersByIds([
         "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
         "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
       ])
       document.getElementById("update-qc").style.display = "none"
-      console.log("Hiding all headers for KT&ĐBCL role")
-    }else if (role === window.APP_ROLES?.troLy_phong) {
-      hideTableHeadersByIds(["labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"])
-      document.getElementById("update-qc").style.display = ""
     }
-  } else {
-    hideTableHeadersByIds([
-      "labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi",
-      "labelKhaoThiRaDe", "labelKhaoThiCoiThi", "labelKhaoThiChamThi"
-    ])
-    document.getElementById("update-qc").style.display = "none"
-  }
 
-
+    if (MaPhongBan === "KT&ĐBCL") {
+      if (role === window.APP_ROLES?.lanhDao_phong) {
+        document.getElementById("checkAllKhoaRaDe").style.display = "none"
+        document.getElementById("checkAllKhoaCoiThi").style.display = "none"
+        document.getElementById("checkAllKhoaChamThi").style.display = "none"
+      } else if (role === window.APP_ROLES?.troLy_phong) {
+        document.getElementById("checkAllKhoaRaDe").style.display = ""
+        document.getElementById("checkAllKhoaCoiThi").style.display = ""
+        document.getElementById("checkAllKhoaChamThi").style.display = ""
+      }
+    }
   }
 
   function hideTableHeadersByIds(idList) {
@@ -101,6 +113,14 @@ if (isKhoa == 1) {
     // Search functionality
     document.getElementById("filterName").addEventListener("input", filterTables)
     document.getElementById("filterClass").addEventListener("input", filterTables)
+    document.getElementById("update-qc").addEventListener("click", async () => {
+      await updateDataToServer()
+      loadExamData()
+    })
+    document.getElementById("save-info").addEventListener("click", async () => {
+      await saveDataToServer()
+      loadExamData()
+    })
 
     // Check all functionality
     setupCheckAllListeners()
@@ -480,8 +500,10 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
       if( role === window.APP_ROLES?.lanhDao_phong){
         khaoThiCell.style.display = ""
         khoaCell.style.display = ""
+        khoaCell.style.pointerEvents = "none"
       }else if (role === window.APP_ROLES?.troLy_phong) {
-        khaoThiCell.style.display = "none"
+        khaoThiCell.style.display = ""
+        khoaCell.style.display = ""
       }else {
         khoaCell.style.display = "none"
         khaoThiCell.style.display = "none"
@@ -956,4 +978,3 @@ async function saveDataToServer() {
   function calculateTotalSoTietKT() {
     calculateTotals()
   }
-}

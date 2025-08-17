@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
@@ -14,220 +15,75 @@ const getTKBChinhThucSite = async (req, res) => {
   res.render("TKBChinhThuc.ejs");
 };
 
-// render bảng
 const getDataTKBChinhThuc = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body;
-
-  const semester = `${Dot}, ${Ki}, ${Nam}`;
-
   let connection;
+
+  const baseSelect = `
+    SELECT 
+      tt,
+      MIN(id) AS id,
+      MAX(course_id) AS course_id,
+      MAX(course_name) AS course_name,
+      MAX(major) AS major,
+      MAX(lecturer) AS lecturer,
+      MIN(start_date) AS start_date,
+      MAX(end_date) AS end_date,
+      MAX(ll_code) AS ll_code,
+      MAX(ll_total) AS ll_total,
+      MAX(student_quantity) AS student_quantity,
+      MAX(student_bonus) AS student_bonus,
+      MAX(bonus_time) AS bonus_time,
+      MAX(qc) AS qc,
+      MAX(dot) AS dot,
+      MAX(ki_hoc) AS ki_hoc,
+      MAX(nam_hoc) AS nam_hoc
+    FROM course_schedule_details
+  `;
+
   try {
-    connection = await createPoolConnection(); // Lấy kết nối từ pool
+    connection = await createPoolConnection();
+    let query = "";
+    let queryParams = [];
 
-    let query;
-    const queryParams = [];
+    if (Khoa === "ALL") {
+      query = `${baseSelect} 
+        WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?
+        GROUP BY tt`;
+      queryParams = [Dot, Ki, Nam];
 
-    // Xây dựng truy vấn dựa vào giá trị của Khoa
-    if (Khoa == "ALL") {
-      query = `SELECT 
-          id, 
-          course_id, 
-          course_name, 
-          major, 
-          lecturer, 
-          start_date, 
-          end_date, 
-          ll_code, 
-          ll_total, 
-          student_quantity, 
-          student_bonus, 
-          bonus_time, 
-          qc, 
-          semester 
-      FROM course_schedule_details 
-      WHERE semester = ?;
-    `;
-      queryParams.push(semester);
-    } else if (Khoa == "Khac") {
-      // Lấy danh sách khoa
+    } else if (Khoa === "Khac") {
       const [khoaArray] = await connection.query(
-        `SELECT MaPhongBan from phongban where isKhoa = 1;`
+        `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`
       );
+      const khoaList = khoaArray.map(row => row.MaPhongBan);
 
-      // Chuyển thành mảng giá trị
-      const khoaList = khoaArray.map((row) => row.MaPhongBan);
+      query = `${baseSelect} 
+        WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?
+          AND major NOT IN (${khoaList.map(() => "?").join(", ")})
+        GROUP BY tt`;
+      queryParams = [Dot, Ki, Nam, ...khoaList];
 
-      query = `SELECT 
-      id, 
-      course_id, 
-      course_name, 
-      major, 
-      lecturer, 
-      start_date, 
-      end_date, 
-      ll_code, 
-      ll_total, 
-      student_quantity, 
-      student_bonus, 
-      bonus_time, 
-      qc, 
-      semester 
-  FROM course_schedule_details 
-  WHERE semester = ? AND major NOT IN (${khoaList.map(() => "?").join(", ")});`;
-
-      queryParams.push(semester, ...khoaList);
     } else {
-      query = `SELECT 
-          id, 
-          course_id, 
-          course_name, 
-          major, 
-          lecturer, 
-          start_date, 
-          end_date, 
-          ll_code, 
-          ll_total, 
-          student_quantity, 
-          student_bonus, 
-          bonus_time, 
-          qc, 
-          semester 
-      FROM course_schedule_details 
-      WHERE major = ? AND semester = ?;
-    `;
-      queryParams.push(Khoa, semester);
+      query = `${baseSelect} 
+        WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?
+        GROUP BY tt`;
+      queryParams = [Khoa, Dot, Ki, Nam];
     }
 
-    // Thực hiện truy vấn
     const [results] = await connection.execute(query, queryParams);
+    res.json(results);
 
-    // Trả về kết quả dưới dạng JSON
-    res.json(results); // results chứa dữ liệu trả về
   } catch (error) {
-    console.error("Lỗi trong hàm getTableTam:", error);
-    res
-      .status(500)
-      .json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
+    console.error("Lỗi trong hàm getDataTKBChinhThuc:", error);
+    res.status(500).json({ message: "Không thể truy xuất dữ liệu từ cơ sở dữ liệu." });
   } finally {
-    if (connection) connection.release(); // Trả lại kết nối cho pool
+    if (connection) connection.release();
   }
 };
 
-// hàm sửa 1 dòng
-// const updateRowTKB = async (req, res) => {
-//   const ID = req.params.id;
-//   const data = req.body; // Dữ liệu của dòng cần cập nhật
-
-//   let connection; // Khai báo biến kết nối
-
-//   try {
-//     connection = await createPoolConnection(); // Lấy kết nối từ pool
-
-//     // Kiểm tra dữ liệu đầu vào
-//     if (!data || typeof data !== "object" || !ID) {
-//       return res
-//         .status(400)
-//         .json({ message: "Dữ liệu không hợp lệ hoặc thiếu ID." });
-//     }
-
-//     let student_bonus = 1;
-
-//     switch (true) {
-//       case data.student_quantity >= 101:
-//         student_bonus = 1.5;
-//         break;
-//       case data.student_quantity >= 81:
-//         student_bonus = 1.4;
-//         break;
-//       case data.student_quantity >= 66:
-//         student_bonus = 1.3;
-//         break;
-//       case data.student_quantity >= 51:
-//         student_bonus = 1.2;
-//         break;
-//       case data.student_quantity >= 41:
-//         student_bonus = 1.1;
-//         break;
-//     }
-
-//     const qc = student_bonus * data.bonus_time * data.ll_total;
-
-//     // Chuẩn bị giá trị cho truy vấn UPDATE
-//     const updateValues = [
-//       data.course_name,
-//       data.credit_hours,
-//       data.ll_code,
-//       data.ll_total,
-//       data.classroom || null,
-//       data.course_code || null,
-//       data.major || null,
-//       data.study_format || null,
-//       data.lecturer || null,
-//       data.periods_per_week || null,
-//       data.period_start || null,
-//       data.period_end || null,
-//       data.day_of_week || null,
-//       convertDateFormat(data.start_date) || null,
-//       convertDateFormat(data.end_date) || null,
-//       data.student_quantity || null,
-//       data.student_bonus || null,
-//       data.bonus_time || null,
-//       data.bonus_teacher || null,
-//       data.bonus_total || null,
-//       qc || null,
-//       data.class_section || null,
-//       data.course_id || null,
-//       data.semester || null,
-//       ID, // Điều kiện WHERE sử dụng ID
-//     ];
-
-//     const updateQuery = `
-//     UPDATE course_schedule_details
-//     SET
-//         course_name = ?,
-//         credit_hours = ?,
-//         ll_code = ?,
-//         ll_total = ?,
-//         classroom = ?,
-//         course_code = ?,
-//         major = ?,
-//         study_format = ?,
-//         lecturer = ?,
-//         periods_per_week = ?,
-//         period_start = ?,
-//         period_end = ?,
-//         day_of_week = ?,
-//         start_date = ?,
-//         end_date = ?,
-//         student_quantity = ?,
-//         student_bonus = ?,
-//         bonus_time = ?,
-//         bonus_teacher = ?,
-//         bonus_total = ?,
-//         qc = ?,
-//         class_section = ?,
-//         course_id = ?,
-//         semester = ?
-//     WHERE ID = ?;
-//   `;
-
-//     // Thực thi truy vấn
-//     await connection.query(updateQuery, updateValues);
-
-//     // Trả về phản hồi thành công
-//     return res.json({ message: "Dòng dữ liệu đã được cập nhật thành công." });
-//   } catch (error) {
-//     console.error("Lỗi khi cập nhật dòng dữ liệu:", error);
-//     return res
-//       .status(500)
-//       .json({ message: "Đã xảy ra lỗi khi cập nhật dữ liệu." });
-//   } finally {
-//     if (connection) connection.release(); // Giải phóng kết nối
-//   }
-// };
-
 const updateRowTKB = async (req, res) => {
-  let { id, field, value, data } = req.body;
+  let { tt, dot, ki_hoc, nam_hoc, field, value, data } = req.body;
   let connection;
 
   try {
@@ -266,8 +122,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET student_quantity = ?, student_bonus = ?, qc = ? 
-        WHERE id = ?`;
-      const updateValues = [value, student_bonus, qc, id];
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, student_bonus, qc, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "bonus_time") {
@@ -282,8 +138,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET bonus_time = ?, qc = ? 
-        WHERE id = ?`;
-      const updateValues = [value, qc, id];
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, qc, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "ll_total") {
@@ -300,8 +156,8 @@ const updateRowTKB = async (req, res) => {
       const updateQuery = `
         UPDATE course_schedule_details 
         SET ll_total = ?, qc = ? 
-        WHERE id = ?`;
-      const updateValues = [value, qc, id];
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, qc, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
     } else if (field === "qc") {
@@ -315,8 +171,8 @@ const updateRowTKB = async (req, res) => {
 
       const updateQuery = `
         UPDATE course_schedule_details SET qc = ? 
-        WHERE id = ?`;
-      const updateValues = [value, id];
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
     } else {
@@ -324,16 +180,36 @@ const updateRowTKB = async (req, res) => {
         value = formatDateForDB(value);
       }
 
-      const updateQuery = `UPDATE course_schedule_details SET ${field} = ? WHERE id = ?`;
-      const updateValues = [value, id];
+      const updateQuery = `UPDATE course_schedule_details SET ${field} = ? WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
     }
 
     // 🛠 Lấy lại dữ liệu sau khi cập nhật
     const [updatedRow] = await connection.query(
-      "SELECT * FROM course_schedule_details WHERE id = ?",
-      [id]
+      `SELECT
+        tt,
+        MIN(id) AS id,
+        MAX(course_id) AS course_id,
+        MAX(course_name) AS course_name,
+        MAX(major) AS major,
+        MAX(lecturer) AS lecturer,
+        MIN(start_date) AS start_date,
+        MAX(end_date) AS end_date,
+        MAX(ll_code) AS ll_code,
+        MAX(ll_total) AS ll_total,
+        MAX(student_quantity) AS student_quantity,
+        MAX(student_bonus) AS student_bonus,
+        MAX(bonus_time) AS bonus_time,
+        MAX(qc) AS qc,
+        MAX(dot) AS dot,
+        MAX(ki_hoc) AS ki_hoc,
+        MAX(nam_hoc) AS nam_hoc
+      FROM course_schedule_details 
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?
+        group by tt`,
+      [tt, dot, ki_hoc, nam_hoc]
     );
 
     return res.json(updatedRow[0]); // ✅ Trả về toàn bộ dòng mới cập nhật
@@ -392,111 +268,6 @@ const deleteRow = async (req, res) => {
     if (connection) connection.release(); // Giải phóng kết nối
   }
 };
-
-// const updateStudentQuantity = async (req, res) => {
-//   const jsonData = req.body;
-
-//   let connection;
-
-//   try {
-//     if (!jsonData || jsonData.length === 0) {
-//       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
-//     }
-
-//     connection = await createPoolConnection();
-
-//     const batchSize = 50; // Tùy chỉnh batch size
-//     const errors = [];
-
-//     for (let i = 0; i < jsonData.length; i += batchSize) {
-//       const batch = jsonData.slice(i, i + batchSize);
-
-//       let updateQuery = `UPDATE course_schedule_details SET `;
-//       const updateValues = [];
-//       const ids = [];
-
-//       // Cập nhật student_quantity
-//       let studentQuantityCase = ` student_quantity = CASE`;
-//       batch.forEach(({ id, student_quantity }) => {
-//         id = Number(id);
-//         student_quantity = Number(student_quantity);
-//         if (isNaN(id) || isNaN(student_quantity)) {
-//           errors.push(`Dữ liệu không hợp lệ cho id ${id}`);
-//           return;
-//         }
-
-//         studentQuantityCase += ` WHEN id = ? THEN ?`;
-//         updateValues.push(id, student_quantity);
-
-//         if (!ids.includes(id)) ids.push(id);
-//       });
-//       studentQuantityCase += ` END,`;
-
-//       // Cập nhật student_bonus
-//       let studentBonusCase = ` student_bonus = CASE`;
-//       batch.forEach(({ id, student_quantity }) => {
-//         id = Number(id);
-//         student_quantity = Number(student_quantity);
-//         if (isNaN(id) || isNaN(student_quantity)) return;
-
-//         let student_bonus = 1;
-//         if (student_quantity >= 101) student_bonus = 1.5;
-//         else if (student_quantity >= 81) student_bonus = 1.4;
-//         else if (student_quantity >= 66) student_bonus = 1.3;
-//         else if (student_quantity >= 51) student_bonus = 1.2;
-//         else if (student_quantity >= 41) student_bonus = 1.1;
-
-//         studentBonusCase += ` WHEN id = ? THEN ?`;
-//         updateValues.push(id, student_bonus);
-//       });
-//       studentBonusCase += ` END,`;
-
-//       // Cập nhật qc
-//       let qcCase = ` qc = CASE`;
-//       batch.forEach(({ id, student_quantity, ll_total, bonus_time }) => {
-//         id = Number(id);
-//         student_quantity = Number(student_quantity);
-//         if (isNaN(id) || isNaN(student_quantity)) return;
-
-//         let student_bonus = 1;
-//         if (student_quantity >= 101) student_bonus = 1.5;
-//         else if (student_quantity >= 81) student_bonus = 1.4;
-//         else if (student_quantity >= 66) student_bonus = 1.3;
-//         else if (student_quantity >= 51) student_bonus = 1.2;
-//         else if (student_quantity >= 41) student_bonus = 1.1;
-
-//         const qc =
-//           student_bonus * (Number(bonus_time) || 0) * (Number(ll_total) || 0);
-
-//         qcCase += ` WHEN id = ? THEN ?`;
-//         updateValues.push(id, qc);
-//       });
-//       qcCase += ` END`;
-
-//       // Hoàn thiện query
-//       const whereClause = ` WHERE id IN (${ids.map(() => "?").join(", ")})`;
-//       updateValues.push(...ids);
-
-//       const finalQuery = `${updateQuery} ${studentQuantityCase} ${studentBonusCase} ${qcCase} ${whereClause}`;
-
-//       console.log("📌 Query:", finalQuery);
-//       console.log("📌 Values:", updateValues);
-
-//       await connection.query(finalQuery, updateValues);
-//     }
-
-//     if (errors.length > 0) {
-//       return res.status(400).json({ success: false, errors });
-//     }
-
-//     res.status(200).json({ success: true, message: "Cập nhật thành công" });
-//   } catch (error) {
-//     console.error("❌ Lỗi cập nhật:", error);
-//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
-//   } finally {
-//     if (connection) connection.release();
-//   }
-// };
 
 const updateStudentQuantity = async (req, res) => {
   const jsonData = req.body;
@@ -768,7 +539,9 @@ const addNewRowTKB = async (req, res) => {
   const data = req.body;
 
   // Ghép các thông tin kỳ học từ frontend
-  const semester = data.semester;
+  const dot = data.dot;
+  const ki_hoc = data.ki_hoc;
+  const nam_hoc = data.nam_hoc;
 
   let connection;
 
@@ -780,7 +553,7 @@ const addNewRowTKB = async (req, res) => {
     const insertQuery = `
       INSERT INTO course_schedule_details 
       (course_name, course_code, student_quantity, lecturer, major, ll_total, 
-       bonus_time, ll_code, start_date, end_date, semester, qc) 
+       bonus_time, ll_code, start_date, end_date, dot, ki_hoc, nam_hoc, qc) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -796,7 +569,9 @@ const addNewRowTKB = async (req, res) => {
       data.ll_code || "0",
       data.start_date || null,
       data.end_date || null,
-      semester,
+      dot,
+      ki_hoc,
+      nam_hoc,
       0,
     ];
 
@@ -1054,93 +829,93 @@ const exportSingleWorksheets = async (req, res) => {
   }
 };
 
-const insertDataAgain = async (req, res) => {
-  const { semester } = req.body;
+// const insertDataAgain = async (req, res) => {
+//   const { semester } = req.body;
 
-  let connection;
+//   let connection;
 
-  try {
-    // Kết nối database từ pool
-    connection = await createPoolConnection();
+//   try {
+//     // Kết nối database từ pool
+//     connection = await createPoolConnection();
 
-    // Lấy dữ liệu đã nhóm lại
-    let sqlSelect = `SELECT 
-    course_name, credit_hours, ll_code, ll_total, 
-    course_code, major, study_format, 
-    MAX(lecturer) AS lecturer, 
-    MIN(start_date) AS start_date, 
-    MAX(end_date) AS end_date,
-    MAX(bonus_time) AS bonus_time,
-    MAX(qc) AS qc,
-    student_quantity, student_bonus, 
-    bonus_teacher, bonus_total, class_section, course_id
-FROM course_schedule_details
-WHERE semester = ?
-GROUP BY 
-    course_name, credit_hours, ll_code, ll_total, 
-    course_code, major, study_format, 
-    student_quantity, student_bonus,
-    bonus_teacher, bonus_total, class_section, course_id`;
+//     // Lấy dữ liệu đã nhóm lại
+//     let sqlSelect = `SELECT 
+//     course_name, credit_hours, ll_code, ll_total, 
+//     course_code, major, study_format, 
+//     MAX(lecturer) AS lecturer, 
+//     MIN(start_date) AS start_date, 
+//     MAX(end_date) AS end_date,
+//     MAX(bonus_time) AS bonus_time,
+//     MAX(qc) AS qc,
+//     student_quantity, student_bonus, 
+//     bonus_teacher, bonus_total, class_section, course_id
+// FROM course_schedule_details
+// WHERE semester = ?
+// GROUP BY 
+//     course_name, credit_hours, ll_code, ll_total, 
+//     course_code, major, study_format, 
+//     student_quantity, student_bonus,
+//     bonus_teacher, bonus_total, class_section, course_id`;
 
-    let params = [semester, semester];
+//     let params = [semester, semester];
 
-    // Lấy dữ liệu đã nhóm
-    const [result] = await connection.query(sqlSelect, params);
+//     // Lấy dữ liệu đã nhóm
+//     const [result] = await connection.query(sqlSelect, params);
 
-    // Xóa dữ liệu cũ
-    await connection.query(
-      `DELETE FROM course_schedule_details WHERE semester = ?`,
-      [semester]
-    );
+//     // Xóa dữ liệu cũ
+//     await connection.query(
+//       `DELETE FROM course_schedule_details WHERE semester = ?`,
+//       [semester]
+//     );
 
-    // Chèn lại dữ liệu
-    let sqlInsert = `INSERT INTO course_schedule_details (
-            course_name, credit_hours, ll_code, ll_total, 
-            course_code, major, study_format, lecturer, 
-            start_date, end_date, student_quantity, student_bonus, 
-            bonus_time, bonus_teacher, bonus_total, qc, 
-            class_section, course_id, semester
-        ) 
-        VALUES ?`;
+//     // Chèn lại dữ liệu
+//     let sqlInsert = `INSERT INTO course_schedule_details (
+//             course_name, credit_hours, ll_code, ll_total, 
+//             course_code, major, study_format, lecturer, 
+//             start_date, end_date, student_quantity, student_bonus, 
+//             bonus_time, bonus_teacher, bonus_total, qc, 
+//             class_section, course_id, semester
+//         ) 
+//         VALUES ?`;
 
-    const values = result.map((row) => [
-      row.course_name,
-      row.credit_hours,
-      row.ll_code,
-      row.ll_total,
-      row.course_code,
-      row.major,
-      row.study_format,
-      row.lecturer,
-      row.start_date,
-      row.end_date,
-      row.student_quantity,
-      row.student_bonus,
-      row.bonus_time,
-      row.bonus_teacher,
-      row.bonus_total,
-      row.qc,
-      row.class_section,
-      row.course_id,
-      semester,
-    ]);
+//     const values = result.map((row) => [
+//       row.course_name,
+//       row.credit_hours,
+//       row.ll_code,
+//       row.ll_total,
+//       row.course_code,
+//       row.major,
+//       row.study_format,
+//       row.lecturer,
+//       row.start_date,
+//       row.end_date,
+//       row.student_quantity,
+//       row.student_bonus,
+//       row.bonus_time,
+//       row.bonus_teacher,
+//       row.bonus_total,
+//       row.qc,
+//       row.class_section,
+//       row.course_id,
+//       semester,
+//     ]);
 
-    if (values.length > 0) {
-      await connection.query(sqlInsert, [values]);
-    }
+//     if (values.length > 0) {
+//       await connection.query(sqlInsert, [values]);
+//     }
 
-    res
-      .status(200)
-      .json({ message: "Dữ liệu đã được nhóm và chèn lại thành công" });
-  } catch (error) {
-    console.error("Lỗi khi xử lý dữ liệu:", error);
-    res
-      .status(500)
-      .json({ error: "Có lỗi xảy ra trong quá trình xử lý dữ liệu" });
-  } finally {
-    if (connection) connection.release(); // Trả kết nối về pool
-  }
-};
+//     res
+//       .status(200)
+//       .json({ message: "Dữ liệu đã được nhóm và chèn lại thành công" });
+//   } catch (error) {
+//     console.error("Lỗi khi xử lý dữ liệu:", error);
+//     res
+//       .status(500)
+//       .json({ error: "Có lỗi xảy ra trong quá trình xử lý dữ liệu" });
+//   } finally {
+//     if (connection) connection.release(); // Trả kết nối về pool
+//   }
+// };
 
 const checkDataTKBExist = async (req, res) => {
   const { dot, ki, nam } = req.body;
@@ -1295,7 +1070,6 @@ module.exports = {
   deleteTKB,
   exportMultipleWorksheets,
   exportSingleWorksheets,
-  insertDataAgain,
   checkDataTKBExist,
   getKhoaList,
   checkDataQCDK,

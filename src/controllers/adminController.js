@@ -225,12 +225,50 @@ const AdminController = {
         // Mã hóa duplicateName và nối với thông điệp
         const encodedDuplicateNames = duplicateName.join(",");
 
+        // Ghi log thêm nhân viên thành công
+        const logQuery = `
+          INSERT INTO lichsunhaplieu 
+          (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+          VALUES (?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = req.session?.userId || 1;
+        const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+        const loaiThongTin = 'Admin Log';
+        const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien}). Tên bị trùng được đổi thành: ${modifiedName}`;
+        
+        await connection.query(logQuery, [
+          userId,
+          tenNhanVien,
+          loaiThongTin,
+          changeMessage
+        ]);
+
         // Nối thông điệp và danh sách tên đã mã hóa
         return res.status(200).json({
           message: `${message}${duplicateName}`,
           MaNhanVien: MaNhanVien,
         });
       }
+
+      // Ghi log thêm nhân viên thành công
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+      
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const loaiThongTin = 'Admin Log';
+      const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien})`;
+      
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
+      ]);
 
       res
         .status(200)
@@ -266,6 +304,26 @@ const AdminController = {
       const values = [maPhongBan, tenPhongBan, ghiChu, khoa ? 1 : 0];
 
       await connection.execute(query, values);
+      
+      // Ghi log thêm phòng ban thành công
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+      
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const loaiThongTin = 'Admin Log';
+      const changeMessage = `${tenNhanVien} đã thêm phòng ban mới: "${tenPhongBan}" (Mã: ${maPhongBan})`;
+      
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
+      ]);
+      
       res.redirect("/phongBan?themphongbanthanhcong");
     } catch (error) {
       console.error("Lỗi khi thêm phòng ban:", error);
@@ -324,6 +382,25 @@ const AdminController = {
           VALUES (?, ?, ?, ?)
       `;
       await connection.query(query1, [TenDangNhap, MaPhongBan, Quyen, Khoa]);
+
+      // Ghi log thêm tài khoản thành công
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+      
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const loaiThongTin = 'Admin Log';
+      const changeMessage = `${tenNhanVien} đã tạo tài khoản mới: "${TenDangNhap}" với quyền "${Quyen}"`;
+      
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
+      ]);
 
       return res.status(200).json({ message: "Tạo tài khoản mới thành công" });
       //res.redirect("/thongTinTK?ThemTK=Success");
@@ -594,6 +671,25 @@ const AdminController = {
         MaBoMon,
         TenBoMon,
         TruongBoMon,
+      ]);
+
+      // Ghi log thêm bộ môn thành công
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+      
+      const userId = req.session?.userId || 1;
+      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const loaiThongTin = 'Admin Log';
+      const changeMessage = `${tenNhanVien} đã thêm bộ môn mới: "${TenBoMon}" (Mã: ${MaBoMon}, Phòng ban: ${MaPhongBan})`;
+      
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        loaiThongTin,
+        changeMessage
       ]);
 
       res.redirect("/boMon?Success");

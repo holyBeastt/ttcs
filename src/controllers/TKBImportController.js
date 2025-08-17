@@ -67,7 +67,7 @@ const importExcelTKB = async (req, res) => {
       "LL": "ll_code",
       "Số \nSV": "student_quantity",
       "HS lớp đông": "student_bonus",
-      "Ngoài giờ HC": "bonux_time",
+      "Ngoài giờ HC": "bonus_time",
       "LL thực": "ll_code_actual",
       "QC": "qc",
       "Lớp học phần": "course_name",
@@ -166,7 +166,7 @@ const importExcelTKB = async (req, res) => {
       row.credit_hours,
       row.student_quantity,
       row.student_bonus,
-      row.bonux_time,
+      row.bonus_time || 1, // Nếu không có giá trị thì mặc định là 1
       row.ll_code,
       row.ll_total,
       row.qc,
@@ -195,7 +195,11 @@ const importExcelTKB = async (req, res) => {
       [values]
     );
 
-    res.json({ message: "Đọc file và lưu thành công", data: renamedData });
+    res.status(200).json({
+      success: true,
+      message: "Đọc file và lưu thành công",
+      data: {} // Nếu có dữ liệu kèm theo
+    });
   } catch (err) {
     console.error("Lỗi khi xử lý file Excel:", err);
     res.status(500).json({ message: "Lỗi khi xử lý file Excel." });
