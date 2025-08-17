@@ -198,7 +198,7 @@ const updatePassword = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin cập nhật mật khẩu cho tài khoản: ${TenDangNhap}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
@@ -265,7 +265,7 @@ const postNamHoc = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin thêm năm học: ${NamHoc}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
@@ -292,7 +292,7 @@ const deleteNamHoc = async (req, res) => {
       try {
         const userId = req.session.userId || '';
         const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
         const logMessage = `Admin xóa năm học: ${NamHoc}`;
         await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
       } catch (logError) {
@@ -331,7 +331,7 @@ const addMessage = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin thêm thông báo cho phòng ban ${MaPhongBan}: ${Title}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
@@ -390,7 +390,7 @@ const updateMessage = async (req, res) => {
       try {
         const userId = req.session.userId || '';
         const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
         const logMessage = `Admin cập nhật thông báo ID ${id}: ${tieuDe}`;
         await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
       } catch (logError) {
@@ -442,7 +442,7 @@ const deleteMessage = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const title = messageData.length > 0 ? messageData[0].Title : id;
       const logMessage = `Admin xóa thông báo ID ${id}: ${title}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
@@ -506,7 +506,7 @@ const postDotDoAn = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin thêm đợt đồ án: ${DotDoAn}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
@@ -535,7 +535,7 @@ const deleteDotDoAn = async (req, res) => {
       try {
         const userId = req.session.userId || '';
         const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
         const logMessage = `Admin xóa đợt đồ án: ${dotdoan}`;
         await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
       } catch (logError) {
@@ -585,7 +585,7 @@ const updateHocPhan = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin cập nhật học phần ${MaHocPhan}: ${TenHocPhan}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
@@ -619,7 +619,7 @@ const deleteHocPhan = async (req, res) => {
       try {
         const userId = req.session.userId || '';
         const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
         const tenHocPhan = hocPhanData.length > 0 ? hocPhanData[0].TenHocPhan : MaHocPhan;
         const logMessage = `Admin xóa học phần ${MaHocPhan}: ${tenHocPhan}`;
         await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);

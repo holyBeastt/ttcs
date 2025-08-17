@@ -299,7 +299,7 @@ const postUpdateBoMon = async (req, res) => {
     try {
       const userId = req.session.userId || '';
       const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (userId, TenNhanVien, LoaiND, NoiDungThaoDoi, ThoiGian) VALUES (?, ?, ?, ?, NOW())`;
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
       const logMessage = `Admin cập nhật bộ môn ${MaBoMon}: ${TenBoMon}`;
       await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
     } catch (logError) {
