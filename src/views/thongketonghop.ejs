@@ -351,6 +351,28 @@
                   legend: {
                     position: "top",
                   },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const rawValue = context.raw || 0;
+                        const chart = context.chart;
+                        const datasets = chart.data.datasets;
+                        const index = context.dataIndex;
+                        const totalAtIndex = datasets.reduce((sum, ds) => {
+                          const v = Array.isArray(ds.data)
+                            ? parseFloat(ds.data[index]) || 0
+                            : 0;
+                          return sum + v;
+                        }, 0);
+                        const percentage =
+                          totalAtIndex > 0
+                            ? ((rawValue / totalAtIndex) * 100).toFixed(1)
+                            : 0;
+                        const value = (parseFloat(rawValue) || 0).toFixed(2);
+                        return `${context.dataset.label}: ${value} tiết (${percentage}%)`;
+                      },
+                    },
+                  },
                   title: {
                     display: true,
                     text:
@@ -444,28 +466,22 @@
                 0
               );
 
-              // Tính phần trăm
-              const percentageMoiGiang =
-                totalMoiGiang > 0
-                  ? (
-                      (parseFloat(item.TongSoTietMoiGiang || 0) /
-                        totalMoiGiang) *
-                      100
-                    ).toFixed(1)
-                  : 0;
-              const percentageVuotGio =
-                totalVuotGio > 0
-                  ? (
-                      (parseFloat(item.TongSoTiet || 0) / totalVuotGio) *
-                      100
-                    ).toFixed(1)
-                  : 0;
+              // Phần trăm "Tổng số" theo toàn bảng để hiển thị ở cột Khoa
               const percentageTong =
                 totalTong > 0
                   ? ((parseFloat(item.Tongso || 0) / totalTong) * 100).toFixed(
                       1
                     )
                   : 0;
+
+              // Tính phần trăm THEO HÀNG: MG/(MG+VG) và VG/(MG+VG)
+              const mgValueRow = parseFloat(item.TongSoTietMoiGiang || 0);
+              const vgValueRow = parseFloat(item.TongSoTiet || 0);
+              const rowTotal = mgValueRow + vgValueRow;
+              const percentageMoiGiang =
+                rowTotal > 0 ? ((mgValueRow / rowTotal) * 100).toFixed(1) : 0;
+              const percentageVuotGio =
+                rowTotal > 0 ? ((vgValueRow / rowTotal) * 100).toFixed(1) : 0;
 
               const tongSoTietMoiGiangSV = parseFloat(
                 item.TongSoTietMoiGiang || 0
@@ -474,10 +490,10 @@
               const tongsoSV = parseFloat(item.Tongso || 0).toFixed(2);
 
               row.innerHTML = `
-                        <td>${khoaSVT}</td>
+                        <td>${khoaSVT} (${percentageTong}%)</td>
                         <td>${tongSoTietMoiGiangSV} (${percentageMoiGiang}%)</td>
                         <td>${tongSoTietSV} (${percentageVuotGio}%)</td>
-                        <td>${tongsoSV} (${percentageTong}%)</td>
+                        <td>${tongsoSV}</td>
                     `;
               tableBody.appendChild(row);
             });
@@ -551,6 +567,10 @@
             const moiGiangCtx = document
               .getElementById("moiGiangPieChart")
               .getContext("2d");
+            const totalMoiGiang = moiGiangData.reduce(
+              (sum, v) => sum + (parseFloat(v) || 0),
+              0
+            );
             window.moiGiangPieChart = new Chart(moiGiangCtx, {
               type: "pie",
               data: {
@@ -566,7 +586,46 @@
               options: {
                 responsive: true,
                 plugins: {
-                  legend: { position: "top" },
+                  legend: {
+                    position: "top",
+                    labels: {
+                      generateLabels: function (chart) {
+                        const data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                          return data.labels.map((label, i) => {
+                            const value = data.datasets[0].data[i];
+                            const percentage =
+                              totalMoiGiang > 0
+                                ? (
+                                    ((value || 0) / totalMoiGiang) *
+                                    100
+                                  ).toFixed(1)
+                                : 0;
+                            return {
+                              text: `${label} (${percentage}%)`,
+                              fillStyle: data.datasets[0].backgroundColor[i],
+                              hidden: isNaN(value) || value === 0,
+                              index: i,
+                            };
+                          });
+                        }
+                        return [];
+                      },
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const raw = context.raw;
+                        const value = (parseFloat(raw) || 0).toFixed(2);
+                        const percentage =
+                          totalMoiGiang > 0
+                            ? (((raw || 0) / totalMoiGiang) * 100).toFixed(1)
+                            : 0;
+                        return `${context.label}: ${value} tiết (${percentage}%)`;
+                      },
+                    },
+                  },
                   title: {
                     display: true,
                     text:
@@ -582,6 +641,10 @@
             const vuotGioCtx = document
               .getElementById("vuotGioPieChart")
               .getContext("2d");
+            const totalVuotGio = vuotGioData.reduce(
+              (sum, v) => sum + (parseFloat(v) || 0),
+              0
+            );
             window.vuotGioPieChart = new Chart(vuotGioCtx, {
               type: "pie",
               data: {
@@ -597,7 +660,45 @@
               options: {
                 responsive: true,
                 plugins: {
-                  legend: { position: "top" },
+                  legend: {
+                    position: "top",
+                    labels: {
+                      generateLabels: function (chart) {
+                        const data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                          return data.labels.map((label, i) => {
+                            const value = data.datasets[0].data[i];
+                            const percentage =
+                              totalVuotGio > 0
+                                ? (((value || 0) / totalVuotGio) * 100).toFixed(
+                                    1
+                                  )
+                                : 0;
+                            return {
+                              text: `${label} (${percentage}%)`,
+                              fillStyle: data.datasets[0].backgroundColor[i],
+                              hidden: isNaN(value) || value === 0,
+                              index: i,
+                            };
+                          });
+                        }
+                        return [];
+                      },
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const raw = context.raw;
+                        const value = (parseFloat(raw) || 0).toFixed(2);
+                        const percentage =
+                          totalVuotGio > 0
+                            ? (((raw || 0) / totalVuotGio) * 100).toFixed(1)
+                            : 0;
+                        return `${context.label}: ${value} tiết (${percentage}%)`;
+                      },
+                    },
+                  },
                   title: {
                     display: true,
                     text:
@@ -613,6 +714,10 @@
             const tongTietCtx = document
               .getElementById("tongTietPieChart")
               .getContext("2d");
+            const totalTong = tongSoTietData.reduce(
+              (sum, v) => sum + (parseFloat(v) || 0),
+              0
+            );
             window.tongTietPieChart = new Chart(tongTietCtx, {
               type: "pie",
               data: {
@@ -628,7 +733,43 @@
               options: {
                 responsive: true,
                 plugins: {
-                  legend: { position: "top" },
+                  legend: {
+                    position: "top",
+                    labels: {
+                      generateLabels: function (chart) {
+                        const data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                          return data.labels.map((label, i) => {
+                            const value = data.datasets[0].data[i];
+                            const percentage =
+                              totalTong > 0
+                                ? (((value || 0) / totalTong) * 100).toFixed(1)
+                                : 0;
+                            return {
+                              text: `${label} (${percentage}%)`,
+                              fillStyle: data.datasets[0].backgroundColor[i],
+                              hidden: isNaN(value) || value === 0,
+                              index: i,
+                            };
+                          });
+                        }
+                        return [];
+                      },
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const raw = context.raw;
+                        const value = (parseFloat(raw) || 0).toFixed(2);
+                        const percentage =
+                          totalTong > 0
+                            ? (((raw || 0) / totalTong) * 100).toFixed(1)
+                            : 0;
+                        return `${context.label}: ${value} tiết (${percentage}%)`;
+                      },
+                    },
+                  },
                   title: {
                     display: true,
                     text:
