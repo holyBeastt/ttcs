@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã - Sửa Mẫu Ủy Nhiệm</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <style>
+    .container-main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .upload-section {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .file-upload-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .file-input {
+      position: absolute;
+      left: -9999px;
+    }
+    
+    .file-upload-button {
+      cursor: pointer;
+      display: inline-block;
+      padding: 6px 12px;
+      background: #e9ecef;
+      border-right: 1px solid #ced4da;
+      margin: 0;
+      font-size: 14px;
+      color: #495057;
+      border-radius: 0;
+      transition: background 0.3s;
+    }
+    
+    .file-upload-button:hover {
+      background: #dee2e6;
+    }
+    
+    .file-name-display {
+      padding: 6px 12px;
+      flex: 1;
+      font-size: 14px;
+      color: #6c757d;
+      background: white;
+    }
+    
+    .btn-lg {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <%- include('header') %>
+
+  <div class="container-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-edit me-2"></i>Sửa Mẫu Ủy Nhiệm</h2>
+    </div>
+
+    <!-- Main content -->
+    <div class="upload-section">
+      <!-- Tải file hợp đồng mẫu -->
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary btn-lg w-100" id="btn-tai-mau">
+          Tải file hợp đồng mẫu
+        </button>
+      </div>
+
+      <!-- Choose File -->
+      <div class="mb-3">
+        <div class="file-upload-wrapper">
+          <input type="file" id="file-upload" class="file-input" accept=".doc,.docx" />
+          <label for="file-upload" class="file-upload-button">
+            Choose File
+          </label>
+          <span id="file-name" class="file-name-display">No file chosen</span>
+        </div>
+      </div>
+
+      <!-- Sửa file -->
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary btn-lg w-100" id="btn-sua-file">
+          Sửa file
+        </button>
+      </div>
+      
+      <p class="text-danger mt-2 mb-0">
+        <strong>Ghi chú:</strong> File tải lên phải giống tên file gốc.
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Event listeners
+      document.getElementById('file-upload').addEventListener('change', handleFileSelect);
+      document.getElementById('btn-sua-file').addEventListener('click', uploadTemplate);
+      document.getElementById('btn-tai-mau').addEventListener('click', downloadTemplate);
+    });
+
+    // Xử lý chọn file
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      const fileName = document.getElementById('file-name');
+      
+      if (file) {
+        fileName.textContent = file.name;
+      } else {
+        fileName.textContent = 'No file chosen';
+      }
+    }
+
+    // Upload mẫu
+    function uploadTemplate() {
+      const fileInput = document.getElementById('file-upload');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        Swal.fire({
+          title: 'Thông báo',
+          text: 'Vui lòng chọn file để upload',
+          icon: 'warning'
+        });
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('template', file);
+      
+      fetch('/uy-nhiem-chi/api/upload-mau-uy-nhiem', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Thành công',
+            text: data.message,
+            icon: 'success'
+          }).then(() => {
+            // Reset form
+            fileInput.value = '';
+            document.getElementById('file-name').textContent = 'No file chosen';
+          });
+        } else {
+          Swal.fire({
+            title: 'Lỗi',
+            text: data.message,
+            icon: 'error'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Lỗi',
+          text: 'Có lỗi xảy ra khi upload file',
+          icon: 'error'
+        });
+      });
+    }
+
+    // Tải mẫu
+    function downloadTemplate() {
+      const fileName = encodeURIComponent('Mẫu ủy nhiệm chi.xlsx');
+      
+      fetch(`/uy-nhiem-chi/api/download-mau-uy-nhiem/${fileName}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Không thể tải file mẫu');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // Tạo link tạm để tải file
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Mẫu ủy nhiệm chi.xlsx';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          Swal.fire({
+            title: 'Thành công',
+            text: 'Đã tải file mẫu thành công',
+            icon: 'success'
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: 'Không thể tải file mẫu. Vui lòng thử lại.',
+            icon: 'error'
+          });
+        });
+    }
+  </script>
+</body>
+
+</html>
