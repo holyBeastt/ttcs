@@ -579,8 +579,9 @@ $(document).ready(function () {
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const value = context.raw;
-                                        const percentage = ((value / totalHours) * 100).toFixed(1);
+                                        const raw = context.raw;
+                                        const value = (parseFloat(raw) || 0).toFixed(2);
+                                        const percentage = ((raw / totalHours) * 100).toFixed(1);
                                         return `${context.label}: ${value} tiết (${percentage}%)`;
                                     }
                                 }
