@@ -48,56 +48,42 @@
       <div class="header-actions">
         <div class="right" style="margin-top: 0px">
           <div class="loc d-flex align-items-center">
-            <div class="form-group me-2">
-              <label for="combobox-dot" class="form-label me-1">Đợt:</label>
-              <select id="combobox-dot" class="form-select selectop" style="width: 80px">
-                <option value="">Chọn</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-              </select>
-            </div>
-
-            <div class="form-group me-2">
-              <label for="comboboxki" class="form-label me-1">Kỳ:</label>
-              <select id="comboboxki" class="form-select selectop" style="width: 80px">
-                <option value="">Chọn</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-              </select>
-            </div>
-
-            <div class="form-group me-2">
-              <label for="NamHoc" class="form-label me-1">Năm học:</label>
-              <select id="NamHoc" class="form-select selectop" style="width: 160px">
-                <option value="">Chọn năm học</option>
-                <option value="2024 - 2025">2024 - 2025</option>
-                <option value="2023 - 2024">2023 - 2024</option>
-                <option value="2022 - 2023">2022 - 2023</option>
-              </select>
-            </div>
-
-            <div class="form-group me-2">
-              <label for="MaPhongBan" class="form-label me-1">Khoa:</label>
-              <select id="MaPhongBan" class="form-select selectop" style="width: 200px">
-                <option value="">Tất cả</option>
-                <option value="CNTT">CNTT</option>
-                <option value="ATTT">ATTT</option>
-                <option value="KTMT">KTMT</option>
-                <option value="KHMT">KHMT</option>
-                <option value="CNPM">CNPM</option>
-                <option value="ATMMT">ATMMT</option>
-                <option value="DVVT">DVVT</option>
-              </select>
-            </div>
-
-            <div class="form-group me-2">
-              <label for="he_dao_tao" class="form-label me-1">Hệ đào tạo:</label>
-              <select id="he_dao_tao" class="form-select selectop" style="width: 150px">
-                <option value="">Tất cả</option>
-                <option value="Đại học">Đại học</option>
-                <option value="Cao học">Cao học</option>
-              </select>
-            </div>
+            <select class="selectop" id="combobox-dot" style="width: 70px">
+              <option value="">Đợt</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <select class="selectop" id="comboboxki" style="width: 70px">
+              <option value="">Kì</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="Hè">Hè</option>
+            </select>
+            <select class="selectop" id="NamHoc">
+              <option value="">Chọn năm học</option>
+              <option value="2024 - 2025">2024 - 2025</option>
+              <option value="2023 - 2024">2023 - 2024</option>
+              <option value="2022 - 2023">2022 - 2023</option>
+            </select>
+            <select class="selectop" id="MaPhongBan">
+              <option value="ALL">Tất cả khoa</option>
+              <option value="CNTT">CNTT</option>
+              <option value="ATTT">ATTT</option>
+              <option value="KTMT">KTMT</option>
+              <option value="KHMT">KHMT</option>
+              <option value="CNPM">CNPM</option>
+              <option value="ATMMT">ATMMT</option>
+              <option value="DVVT">DVVT</option>
+            </select>
+            <select class="selectop" id="he_dao_tao">
+              <option value="">Tất cả hệ</option>
+              <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
+              <option value="Đại học (Mật mã)">Hệ mật mã</option>
+              <option value="Cao học (Đóng học phí)">Cao học</option>
+              <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh</option>
+            </select>
           </div>
         </div>
 

@@ -246,7 +246,6 @@ const taiUyNhiemChiController = {
 
       try {
         // Sử dụng ExcelJS để giữ nguyên format và hình ảnh
-        console.log('Reading template file with ExcelJS...');
         const templateWorkbook = new ExcelJS.Workbook();
         await templateWorkbook.xlsx.readFile(templatePath);
         
@@ -260,14 +259,10 @@ const taiUyNhiemChiController = {
         const outputWorkbook = new ExcelJS.Workbook();
         
         // Tạo sheet cho từng người
-        console.log('Creating sheets for', rows.length, 'records');
-        
         for (let index = 0; index < rows.length; index++) {
           const row = rows[index];
           const soUyNhiem = String(row.SoUyNhiem).padStart(3, '0');
           const sheetName = `${soUyNhiem}_${row.HoTen.replace(/\s+/g, '_')}`;
-          
-          console.log(`Creating sheet ${sheetName} for ${row.HoTen} (${index + 1}/${rows.length})`);
           
           // Clone worksheet từ template để giữ nguyên toàn bộ định dạng
           const newWorksheet = outputWorkbook.addWorksheet(sheetName);
@@ -305,7 +300,7 @@ const taiUyNhiemChiController = {
               try {
                 newWorksheet.mergeCells(merge);
               } catch (e) {
-                console.log('Warning: Could not merge cells:', merge);
+                // Ignore merge errors
               }
             });
           }
@@ -351,16 +346,13 @@ const taiUyNhiemChiController = {
             });
           });
           
-          console.log(`Completed sheet ${sheetName} for ${row.HoTen}`);
         }
         
         // Ghi file Excel
-        console.log('Writing Excel file with ExcelJS...');
         await outputWorkbook.xlsx.writeFile(outputPath);
         
         // Kiểm tra file đã được tạo thành công
         const outputStats = fs.statSync(outputPath);
-        console.log('Excel file created. Size:', outputStats.size);
         
         if (outputStats.size === 0) {
           throw new Error('File được tạo nhưng có kích thước 0');
@@ -375,7 +367,6 @@ const taiUyNhiemChiController = {
               message: 'Lỗi khi tải file'
             });
           } else {
-            console.log('Excel file downloaded successfully');
             // Xóa file tạm sau khi download
             setTimeout(() => {
               if (fs.existsSync(outputPath)) {
@@ -510,7 +501,6 @@ const taiUyNhiemChiController = {
       
       // Validate input
       if (!dot || !ki || !namHoc || !startingNumber) {
-        console.log('Validation failed:', { dot, ki, namHoc, startingNumber });
         return res.status(400).json({
           success: false,
           message: 'Thiếu thông tin đợt, kỳ, năm học hoặc số bắt đầu'
