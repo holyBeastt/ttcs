@@ -4,6 +4,7 @@ require("dotenv").config();
 const path = require("path");
 const { getEnvironmentData } = require("worker_threads");
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/databasePool");
 
 // Hàm tách chuỗi - giữ nguyên
 function tachChuoi(chuoi) {
@@ -54,14 +55,12 @@ function handleDuplicateCourses(firstCourse, courses) {
   };
 }
 
-const KhoaCheckAll = async (req, Dot, KiHoc, NamHoc) => {
+const KhoaCheckAll = async (req, connection, Dot, KiHoc, NamHoc) => {
   const isKhoa = req.session.isKhoa;
   let kq = ""; // Biến để lưu kết quả
-  let connection;
 
   try {
     const query = `SELECT MaPhongBan FROM phongban where isKhoa = 1`;
-    connection = await createPoolConnection();
     const [results, fields] = await connection.query(query);
 
     // Chọn theo từng phòng ban
@@ -87,60 +86,24 @@ const KhoaCheckAll = async (req, Dot, KiHoc, NamHoc) => {
         kq += MaPhongBan + ",";
       }
     }
+
+    // Trả về kết quả có dấu phẩy cuối cùng
+    return kq;
   } catch (error) {
     console.error("Error in KhoaCheckAll:", error);
     throw error; // Throw lại lỗi để xử lý ở nơi gọi hàm này
-  } finally {
-    if (connection) connection.release();
   }
 
-  // Trả về kết quả có dấu phẩy cuối cùng
-  return kq;
+
 };
 
-// const DaoTaoCheckAll = async (req, Dot, KiHoc, NamHoc) => {
-//   let kq = ""; // Biến để lưu kết quả
-
-//   const query = ` SELECT MaPhongBan FROM phongban where isKhoa = 1 `;
-//   const connection1 = await createConnection();
-//   const [results, fields] = await connection1.query(query);
-
-//   // Chọn theo từng phòng ban
-//   for (let i = 0; i < results.length; i++) {
-//     const MaPhongBan = results[i].MaPhongBan;
-
-//     const query = ` SELECT DaoTaoDuyet FROM quychuan where Khoa = ? and Dot = ? and KiHoc = ? and NamHoc = ?`;
-//     const connection = await createConnection();
-//     const [check, fields] = await connection.query(query, [
-//       MaPhongBan,
-//       Dot,
-//       KiHoc,
-//       NamHoc,
-//     ]);
-
-//     let checkAll = true;
-//     for (let j = 0; j < check.length; j++) {
-//       if (check[j].DaoTaoDuyet == 0) {
-//         checkAll = false;
-//         break;
-//       }
-//     }
-//     if (checkAll == true) {
-//       kq += MaPhongBan + ",";
-//     }
-//   }
-
-//   return kq;
-// };
-
-const DaoTaoCheckAll = async (req, Dot, KiHoc, NamHoc) => {
+const DaoTaoCheckAll = async (req, connection, Dot, KiHoc, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
 
   const queryPhongBan = `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`;
-  const connection1 = await createPoolConnection();
 
   try {
-    const [results] = await connection1.query(queryPhongBan);
+    const [results] = await connection.query(queryPhongBan);
 
     // Chọn theo từng phòng ban
     for (let i = 0; i < results.length; i++) {
@@ -151,7 +114,6 @@ const DaoTaoCheckAll = async (req, Dot, KiHoc, NamHoc) => {
         FROM quychuan 
         WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
       `;
-      const connection = await createPoolConnection();
 
       try {
         const [check] = await connection.query(queryDuyet, [
@@ -171,22 +133,23 @@ const DaoTaoCheckAll = async (req, Dot, KiHoc, NamHoc) => {
         if (checkAll) {
           kq += MaPhongBan + ",";
         }
-      } finally {
-        connection.release(); // Giải phóng kết nối sau khi truy vấn xong
+      } catch (error) {
+        console.error("Error in DaoTaoCheckAll query:", error);
+        throw error; // Throw lại lỗi để xử lý ở nơi gọi hàm này
       }
     }
-  } finally {
-    connection1.release(); // Giải phóng kết nối sau khi lấy danh sách phòng ban
+
+    return kq;
+  } catch (error) {
+    console.error("Error in DaoTaoCheckAll:", error);
+    throw error; // Throw lại lỗi để xử lý ở nơi gọi hàm này
   }
 
-  return kq;
 };
 
 // Mới
-const TaiChinhCheckAll = async (req, Dot, KiHoc, NamHoc) => {
+const TaiChinhCheckAll = async (req, connection, Dot, KiHoc, NamHoc) => {
   let kq = ""; // Biến để lưu kết quả
-
-  const connection = await createPoolConnection();
 
   try {
     const query = `SELECT MaPhongBan FROM phongban WHERE isKhoa = 1`;
@@ -217,24 +180,17 @@ const TaiChinhCheckAll = async (req, Dot, KiHoc, NamHoc) => {
         kq += MaPhongBan + ",";
       }
     }
-  } finally {
-    if (connection) connection.release();
-  }
 
-  return kq;
+    return kq;
+  } catch (error) {
+    console.error("Error in TaiChinhCheckAll:", error);
+    throw error; // Throw lại lỗi để xử lý ở nơi gọi hàm này
+  }
 };
 
 const renderInfoWithValueKhoa = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body; // Lấy giá trị Khoa, Dot, Ki, Nam từ body của yêu cầu
   const tableName = process.env.DB_TABLE_QC; // Bảng cần truy vấn
-
-  // Gọi hàm KhoaCheckAll để kiểm tra điều kiện duyệt
-  //const kq = await KhoaCheckAll(req, Dot, Ki, Nam);
-
-  // Kiểm tra nếu "TAICHINH" không có trong kết quả, trả về thông báo chưa duyệt
-  // if (!kq.includes("TAICHINH")) {
-  //   return res.status(403).json({ message: "Quy chuẩn chưa được duyệt bởi Tài chính" });
-  // }
 
   // Xác định query SQL với điều kiện WHERE cho Khoa, Dot, Ki, Nam
   const query = `
@@ -270,87 +226,29 @@ const renderInfoWithValueKhoa = async (req, res) => {
   }
 };
 
-// const totalNumberOfPeriods = async (connection, data) => {
-//   try {
-//     const [gvmList] = await connection.query("SELECT * FROM gvmoi");
-//     const [coHuuList] = await connection.query("SELECT * FROM nhanvien");
 
-//     let tongTietMoiGiang = 0;
-//     let tongTietCoHuu = 0;
-//     let tongTietAll = 0;
+const tinhThongKeTatCa = async (connection, data) => {
+  // Lấy danh sách các khoa duy nhất
+  const dsKhoa = [...new Set(data.map((row) => row.Khoa))];
 
-//     const tongTietDetail = {};
-//     const detailMoiGiang = {};
-//     const detailCoHuu = {};
+  // Tính thống kê cho từng khoa
+  const thongKeTheoKhoa = await Promise.all(
+    dsKhoa.map((maPhongBan) => tinhThongKeTheoKhoa(connection, data, maPhongBan))
+  );
 
-//     // Hàm xác định loại giảng viên và gắn hậu tố
-//     const getLabel = (ten, type) => {
-//       const tenTrim = ten.trim();
 
-//       let isMoi, isCoHuu;
-//       if (type == 1) {
-//         isMoi = gvmList.some((gv) => gv.HoTen?.trim() === tenTrim);
-//       } else {
-//         isCoHuu = coHuuList.some((gv) => gv.TenNhanVien?.trim() === tenTrim);
-//       }
+  // Thêm thống kê cho ALL
+  const thongKeAll = await tinhThongKeTheoKhoa(connection, data, "ALL");
 
-//       if (isMoi) return `${tenTrim} - Giảng viên mời`;
-//       if (isCoHuu) return `${tenTrim} - Cơ hữu`;
-//       return tenTrim; // không xác định
-//     };
+  return {
+    thongKeTheoKhoa,
+    thongKeAll,
+  };
+};
 
-//     // Tính tổng tiết cho từng giảng viên
-//     data.forEach((row) => {
-//       const giangVien = row.GiaoVienGiangDay;
-//       if (!giangVien) return;
 
-//       if (giangVien.includes(",")) {
-//         const [gv1, gv2] = giangVien.split(",").map((gv) => gv.trim());
-//         const gv1Label = getLabel(gv1, 0);
-//         const gv2Label = getLabel(gv2, row.MoiGiang);
 
-//         tongTietDetail[gv1Label] =
-//           (tongTietDetail[gv1Label] || 0) + row.QuyChuan * 0.3;
-//         tongTietDetail[gv2Label] =
-//           (tongTietDetail[gv2Label] || 0) + row.QuyChuan * 0.7;
-//       } else {
-//         const gvLabel = getLabel(giangVien, row.MoiGiang);
-//         tongTietDetail[gvLabel] = (tongTietDetail[gvLabel] || 0) + row.QuyChuan;
-//       }
-//     });
-
-//     // Phân loại lại để thống kê chi tiết
-//     for (const tenGV in tongTietDetail) {
-//       const tiet = tongTietDetail[tenGV];
-//       tongTietAll += tiet;
-
-//       if (tenGV.includes("Giảng viên mời")) {
-//         tongTietMoiGiang += tiet;
-//         detailMoiGiang[tenGV] = tiet;
-//       } else if (tenGV.includes("Cơ hữu")) {
-//         tongTietCoHuu += tiet;
-//         detailCoHuu[tenGV] = tiet;
-//       }
-//     }
-
-//     return {
-//       tongTietMoiGiang,
-//       tongTietCoHuu,
-//       tongTietAll,
-//       tongTietDetail,
-//       detailMoiGiang,
-//       detailCoHuu,
-//     };
-//   } catch (error) {
-//     console.error("Lỗi khi xử lý:", error);
-//   } finally {
-//     if (connection) connection.release();
-//   }
-// };
-
-// mới
-
-const totalNumberOfPeriods = async (connection, data) => {
+const tinhThongKeTheoKhoa = async (connection, data, maPhongBan) => {
   try {
     const [gvmList] = await connection.query("SELECT * FROM gvmoi");
     const [coHuuList] = await connection.query("SELECT * FROM nhanvien");
@@ -360,14 +258,13 @@ const totalNumberOfPeriods = async (connection, data) => {
     let tongTietAll = 0;
 
     const tongTietDetail = {};
-    const detailMoiGiang = {};
-    const detailCoHuu = {};
 
-    // Hàm xác định loại giảng viên và gắn hậu tố
+    // Hàm xác định loại giảng viên
     const getLabel = (ten, type) => {
       const tenTrim = ten.trim();
+      let isMoi = false,
+        isCoHuu = false;
 
-      let isMoi, isCoHuu;
       if (type == 1) {
         isMoi = gvmList.some((gv) => gv.HoTen?.trim() === tenTrim);
       } else {
@@ -376,15 +273,20 @@ const totalNumberOfPeriods = async (connection, data) => {
 
       if (isMoi) return `${tenTrim} - Giảng viên mời`;
       if (isCoHuu) return `${tenTrim} - Cơ hữu`;
-      return tenTrim; // không xác định
+      return tenTrim;
     };
 
-    // Tính tổng tiết cho từng giảng viên
-    data.forEach((row) => {
+    // Lọc theo khoa nếu cần
+    const filteredData =
+      maPhongBan === "ALL"
+        ? data
+        : data.filter((row) => row.Khoa === maPhongBan);
+
+    // Gom tiết vào từng GV
+    filteredData.forEach((row) => {
       const giangVien = row.GiaoVienGiangDay;
       if (!giangVien) return;
 
-      // Chuyển đổi QuyChuan sang số và xử lý null/undefined
       const quyChuan = parseFloat(row.QuyChuan) || 0;
 
       if (giangVien.includes(",")) {
@@ -392,7 +294,6 @@ const totalNumberOfPeriods = async (connection, data) => {
         const gv1Label = getLabel(gv1, 0);
         const gv2Label = getLabel(gv2, row.MoiGiang);
 
-        // Đảm bảo phép cộng số học
         tongTietDetail[gv1Label] =
           (parseFloat(tongTietDetail[gv1Label]) || 0) + quyChuan * 0.3;
         tongTietDetail[gv2Label] =
@@ -402,52 +303,40 @@ const totalNumberOfPeriods = async (connection, data) => {
         tongTietDetail[gvLabel] =
           (parseFloat(tongTietDetail[gvLabel]) || 0) + quyChuan;
       }
-    }); // Phân loại lại để thống kê chi tiết
+    });
+
+    // Phân loại lại: mời giảng / cơ hữu
     for (const tenGV in tongTietDetail) {
       const tiet = parseFloat(tongTietDetail[tenGV]) || 0;
       tongTietAll += tiet;
 
-      gvInfo = tachTenVaLoai(tenGV);
-
+      const gvInfo = tachTenVaLoai(tenGV);
       if (gvInfo.loai && gvInfo.loai.includes("giảng viên mời")) {
         tongTietMoiGiang += tiet;
-        detailMoiGiang[gvInfo.ten] = tiet;
       } else if (gvInfo.loai && gvInfo.loai.includes("cơ hữu")) {
         tongTietCoHuu += tiet;
-        detailCoHuu[gvInfo.ten] = tiet;
       }
     }
 
-    // Làm tròn kết quả để tránh lỗi floating point
+    // Tính % (tránh chia 0)
+    const phanTramMoiGiang =
+      tongTietAll > 0 ? ((tongTietMoiGiang / tongTietAll) * 100).toFixed(2) : "0.00";
+    const phanTramCoHuu =
+      tongTietAll > 0 ? ((tongTietCoHuu / tongTietAll) * 100).toFixed(2) : "0.00";
+
     return {
+      MaPhongBan: maPhongBan,
       tongTietMoiGiang: Math.round(tongTietMoiGiang * 100) / 100,
       tongTietCoHuu: Math.round(tongTietCoHuu * 100) / 100,
       tongTietAll: Math.round(tongTietAll * 100) / 100,
-      tongTietDetail: Object.fromEntries(
-        Object.entries(tongTietDetail).map(([key, value]) => [
-          key,
-          Math.round((parseFloat(value) || 0) * 100) / 100,
-        ])
-      ),
-      detailMoiGiang: Object.fromEntries(
-        Object.entries(detailMoiGiang).map(([key, value]) => [
-          key,
-          Math.round(value * 100) / 100,
-        ])
-      ),
-      detailCoHuu: Object.fromEntries(
-        Object.entries(detailCoHuu).map(([key, value]) => [
-          key,
-          Math.round(value * 100) / 100,
-        ])
-      ),
+      phanTramMoiGiang: `${phanTramMoiGiang}%`,
+      phanTramCoHuu: `${phanTramCoHuu}%`,
     };
   } catch (error) {
-    console.error("Lỗi khi xử lý:", error);
-  } finally {
-    if (connection) connection.release();
+    console.error("Lỗi khi tính thống kê khoa:", error);
   }
 };
+
 
 function tachTenVaLoai(tenGoc) {
   const match = tenGoc.match(/^(.+?)\s*-\s*(Giảng viên mời|Cơ hữu)/i);
@@ -472,11 +361,6 @@ const renderInfo = async (req, res) => {
   const tableName = process.env.DB_TABLE_QC;
   let query = "";
 
-  console.log(
-    "Phòng ban " +
-      MaPhongBan +
-      ` vừa lấy dữ liệu thông tin giảng dạy các lớp đợt ${Dot} kì ${Ki} năm ${Nam}`
-  );
 
   // Xác định query SQL dựa trên isKhoa
   if (isKhoa == 1) {
@@ -485,14 +369,16 @@ const renderInfo = async (req, res) => {
     query = `SELECT * FROM ${tableName} WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;`;
   }
 
-  // Gọi các hàm kiểm tra
-  const check = await KhoaCheckAll(req, Dot, Ki, Nam);
-  const DaoTaoCheck = await DaoTaoCheckAll(req, Dot, Ki, Nam);
-  const TaiChinhCheck = await TaiChinhCheckAll(req, Dot, Ki, Nam);
-
-  const connection = await createPoolConnection(); // Tạo kết nối cơ sở dữ liệu
+  let connection;
 
   try {
+    connection = await createPoolConnection(); // Tạo kết nối cơ sở dữ liệu
+
+    // Gọi các hàm kiểm tra
+    const check = await KhoaCheckAll(req, connection, Dot, Ki, Nam);
+    const DaoTaoCheck = await DaoTaoCheckAll(req, connection, Dot, Ki, Nam);
+    const TaiChinhCheck = await TaiChinhCheckAll(req, connection, Dot, Ki, Nam);
+
     // Thực hiện truy vấn với tham số an toàn
     const [results] = await connection.query(
       query,
@@ -503,7 +389,16 @@ const renderInfo = async (req, res) => {
       return res.status(404).json({ message: "No data found" });
     }
 
-    const tongTiet = await totalNumberOfPeriods(connection, results);
+    let tongTiet;
+    // Tính thống kê theo khoa v2
+    if (isKhoa == 1) {
+      tongTiet = await tinhThongKeTheoKhoa(connection, results, MaPhongBan);
+    } else {
+      // Nếu không phải khoa, tính thống kê cho tất cả
+      tongTiet = await tinhThongKeTatCa(connection, results);
+    }
+
+    console.log("Tong theo khoa:", tongTiet);
 
     // Trả về kết quả và các giá trị check
     return res.status(200).json({
@@ -609,16 +504,12 @@ const getTeachingInfo1 = (req, res) => {
 };
 
 const getTeachingInfo2 = async (req, res) => {
-  let connection;
   try {
-    connection = await createPoolConnection();
 
     res.render("teachingInfo2.ejs");
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).send("Internal Server Error");
-  } finally {
-    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
   }
 };
 

@@ -447,30 +447,23 @@
               </tr>
             </tbody>
           </table>
-                    <!-- Floating Summary Container -->
+
           <div class="summary-container">
             <div class="floating-box" id="summaryBox">
               <div>
                 <strong>Tổng tiết mời giảng:</strong>
                 <span id="tietMoi">0</span>
+                (<span id="percentMoi">0%</span>)
               </div>
               <div>
                 <strong>Tổng tiết cơ hữu:</strong>
                 <span id="tietCoHuu">0</span>
+                (<span id="percentCoHuu">0%</span>)
               </div>
               <div>
                 <strong>Tổng số tiết:</strong>
                 <span id="tongTiet">0</span>
               </div>
-
-              <!-- Link xem chi tiết -->
-              <div>
-                <span id="xemChiTiet" class="xem-chi-tiet popup-font-size"
-                  >Xem chi tiết</span
-                >
-              </div>
-
-              <div class="detail-popup" id="popupChiTiet"></div>
             </div>
 
             <button class="toggle-btn" id="toggleBtn">
@@ -487,6 +480,7 @@
               </svg>
             </button>
           </div>
+
         </div>
       </div>
       
@@ -788,7 +782,7 @@
             Ki: kiValue,
             Nam: namValue,
           };
-          const teachingResponse = await fetch('/thong-tin-giang-day', {
+          const teachingResponse = await fetch('/api/v1/qc/thong-tin-giang-day', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -815,7 +809,7 @@
           localStorage.setItem('check', check);
           tongTiet = rs.tongTiet;
 
-          loadDataPopup();
+          loadDataPopup(tongTiet);
 
           // Hiển thị dữ liệu
           viewData(globalData);
@@ -917,7 +911,7 @@
 
             // Gọi API thứ ba
             console.log('Gọi API thong-tin-giang-day...');
-            const teachingResponse = await fetch('/thong-tin-giang-day', {
+            const teachingResponse = await fetch('/api/v1/qc/thong-tin-giang-day', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -953,7 +947,8 @@
             const check = rs.check; // Dữ liệu check
             localStorage.setItem('check', check);
             tongTiet = rs.tongTiet;
-            loadDataPopup();
+
+            loadDataPopup(tongTiet);
 
             // Hiển thị dữ liệu
             viewData(globalData);
@@ -962,70 +957,53 @@
           }
         }
 
-      const loadDataPopup = async () => {
-        // Phần popup hiển thị tổng số tiết
-        const tietMapMoi = tongTiet.detailMoiGiang;
-        const tietMapCoHuu = tongTiet.detailCoHuu;
+    const loadDataPopup = async (tongTiet) => {
+      debugger
+      const summaryBox = document.getElementById("summaryBox");
+      summaryBox.innerHTML = ""; // clear cũ
 
-        document.getElementById("tietMoi").innerText =
-          tongTiet.tongTietMoiGiang;
-        document.getElementById("tietCoHuu").innerText = tongTiet.tongTietCoHuu;
-        document.getElementById("tongTiet").innerText = tongTiet.tongTietAll;
-
-        const popup = document.getElementById("popupChiTiet");
-        const xemChiTiet = document.getElementById("xemChiTiet");
-
-        xemChiTiet.addEventListener("click", (e) => {
-          e.stopPropagation();
-          popup.innerHTML = "";
-
-          // --- Phần Mời Giảng ---
-          const titleMoi = document.createElement("h6");
-          titleMoi.innerText = "Giảng viên mời:";
-          popup.appendChild(titleMoi);
-
-          for (let gv in tietMapMoi) {
-            const div = document.createElement("div");
-            div.className = "detail-item";
-            div.innerText = `${gv}: ${tietMapMoi[gv]} tiết`;
-            popup.appendChild(div);
-          }
-
-          // --- Phần Cơ Hữu ---
-          const titleCoHuu = document.createElement("h6");
-          titleCoHuu.innerText = "Giảng viên cơ hữu:";
-          titleCoHuu.style.marginTop = "10px";
-          popup.appendChild(titleCoHuu);
-
-          for (let gv in tietMapCoHuu) {
-            const div = document.createElement("div");
-            div.className = "detail-item";
-            div.innerText = `${gv}: ${tietMapCoHuu[gv]} tiết`;
-            popup.appendChild(div);
-          }
-
-          popup.style.display = "block";
-        });
-
-        document.addEventListener("click", () => {
-          popup.style.display = "none";
-        });
-
-        popup.addEventListener("click", (e) => e.stopPropagation());
-
-        const toggleBtn = document.getElementById("toggleBtn");
-        const arrowIcon = document.getElementById("arrowIcon");
-        const summaryBox = document.getElementById("summaryBox");
-
-        let isVisible = false;
-        toggleBtn.addEventListener("click", () => {
-          isVisible = !isVisible;
-          summaryBox.style.display = isVisible ? "block" : "none";
-          arrowIcon.style.transform = isVisible
-            ? "rotate(180deg)"
-            : "rotate(0deg)";
-        });
+      // Hàm render 1 block khoa
+      const renderBlock = (item) => {
+        debugger
+        const block = document.createElement("div");
+        block.className = "khoa-summary";
+        block.innerHTML = `
+          <h4>${item.MaPhongBan}</h4>
+          <p><b>Tổng tiết mời giảng:</b> ${item.tongTietMoiGiang} (${item.phanTramMoiGiang})</p>
+          <p><b>Tổng tiết cơ hữu:</b> ${item.tongTietCoHuu} (${item.phanTramCoHuu})</p>
+          <p><b>Tổng số tiết:</b> ${item.tongTietAll}</p>
+        `;
+        return block;
       };
+
+      // Trường hợp chỉ có 1 object
+      summaryBox.appendChild(renderBlock(tongTiet));
+      
+      // Toggle hiển thị box tổng kết
+      const toggleBtn = document.getElementById("toggleBtn");
+      const arrowIcon = document.getElementById("arrowIcon");
+
+      let isVisible = true;
+      summaryBox.style.display = "block";
+
+      toggleBtn.onclick = () => {
+        isVisible = !isVisible;
+        summaryBox.style.display = isVisible ? "block" : "none";
+        arrowIcon.style.transform = isVisible ? "rotate(180deg)" : "rotate(0deg)";
+      };
+    };
+
+        const renderBlock = (item) => {
+          const block = document.createElement("div");
+          block.className = "khoa-summary";
+          block.innerHTML = `
+            <h4>${item.MaPhongBan}</h4>
+            <p><b>Tổng tiết mời giảng:</b> ${item.tongTietMoiGiang} (${item.phanTramMoiGiang})</p>
+            <p><b>Tổng tiết cơ hữu:</b> ${item.tongTietCoHuu} (${item.phanTramCoHuu})</p>
+            <p><b>Tổng số tiết:</b> ${item.tongTietAll}</p>
+            `;
+          return block;
+        };
 
 
         // render ra bảng
