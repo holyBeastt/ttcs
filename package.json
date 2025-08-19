@@ -39,6 +39,7 @@
     "pdf-parse": "^1.1.1",
     "pizzip": "^3.1.7",
     "read-excel-file": "^5.8.6",
+    "to-words": "^4.7.0",
     "xlsx": "^0.18.5",
     "xml2js": "^0.6.2"
   },
