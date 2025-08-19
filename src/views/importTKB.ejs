@@ -316,6 +316,17 @@
 
       async function importFileTKB(semester, formData) {
         try {
+          // Hiện loading
+          Swal.fire({
+            title: "Đang xử lý...",
+            html: "Vui lòng chờ trong giây lát",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          });
+
           const response = await fetch(`/api/v1/tkb/import`, {
             method: "POST",
             body: formData,
@@ -325,6 +336,8 @@
           const data = contentType.includes("application/json")
             ? await response.json()
             : { success: false, message: await response.text() };
+
+          Swal.close(); // đóng loading trước khi show thông báo
 
           if (!response.ok || !data.success) {
             throw new Error(data.message || "Lỗi xử lý file");
@@ -348,43 +361,6 @@
             confirmButtonText: "OK",
           });
         }
-      }
-
-      async function insertDataAgain(semester) {
-        fetch("/api/insert-data-TKB-again", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ semester }), // Đảm bảo truyền đúng định dạng
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Xóa dữ liệu thất bại");
-            }
-            return response.json(); // Chuyển đổi response thành JSON
-          })
-          .then((data) => {
-            Swal.fire({
-              title: "Thành công",
-              html: "Dữ liệu đã được thêm!",
-              icon: "success",
-              confirmButtonText: "OK",
-              width: "auto",
-              padding: "20px",
-            });
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: "Thông báo",
-              html: "Xóa dữ liệu thất bại",
-              icon: "error",
-              confirmButtonText: "OK",
-              width: "auto",
-              padding: "20px",
-            });
-            console.error("Error:", error);
-          });
       }
 
       // Hàm tạo bảng từ dữ liệu JSON

@@ -517,15 +517,10 @@
       navLink_addFileQC.style.display = "none";
     }
 
-    console.log(maPhongBan)
     if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
       themFileKTHP.style.display = "none";
-      console.log("ẩn thêm file KTHP")
-      console.log(userRole);
-      console.log(APP_ROLES.lanhDao_phong);
     }else {
       themFileKTHP.style.display = "";
-      console.log("hiển thị thêm file KTHP")
     }
   });
 </script>

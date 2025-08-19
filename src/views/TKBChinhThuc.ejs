@@ -651,9 +651,13 @@
             editable: false,
             width: 60,
             cellRenderer: (params) => {
-              const id = params.data.id; // Vẫn sử dụng giá trị `id`
+              const id = params.data.id; // Lấy ID từ dữ liệu
+              const tt = params.data.tt; // Lấy giá trị `tt` từ dữ liệu
+              const dot = params.data.dot; // Lấy giá trị `dot` từ dữ liệu
+              const ki_hoc = params.data.ki_hoc; // Lấy giá trị `ki_hoc` từ dữ liệu
+              const nam_hoc = params.data.nam_hoc; // Lấy giá trị `nam_hoc` từ dữ liệu
               const stt = params.node.rowIndex + 1; // Lấy STT của dòng
-              return `<button onclick="deleteRow(${id}, ${stt})">Xóa</button>`;
+              return `<button onclick="deleteRow('${id}', '${tt}', '${dot}', '${ki_hoc}', '${nam_hoc}', ${stt})">Xóa</button>`;
             },
           });
         }
@@ -747,80 +751,6 @@
         }, 100);
       }
 
-      function renderRow(id, updatedRow) {
-        let rowElement = document.getElementById(`row-${id}`);
-        const role = localStorage.getItem("userRole");
-        const headersMap = {
-          id: { name: "ID", width: "50px" },
-          major: { name: "Khoa", width: "50px" },
-          ll_code: { name: "Số tiết thực tế", width: "100px" },
-          ll_total: { name: "Lên lớp", width: "80px" },
-          student_quantity: { name: "SL sinh viên", width: "80px" },
-          student_bonus: { name: "HS lớp đông", width: "70px" },
-          bonus_time: { name: "HS T7/CN", width: "50px" },
-          course_id: { name: "Mã bộ môn", width: "100px" },
-          lecturer: { name: "Giảng viên theo TKB", width: "150px" },
-          credit_hours: { name: "Số TC", width: "80px" },
-          course_name: { name: "Lớp học phần", width: "200px" },
-          course_code: { name: "Mã học phần", width: "100px" },
-          start_date: { name: "Ngày bắt đầu", width: "100px" },
-          end_date: { name: "Ngày kết thúc", width: "150px" },
-          bonus_total: { name: "Quy chuẩn", width: "50px" },
-          semester: { name: "Năm học", width: "100px" },
-        };
-
-        const keyNotEdit = ["id", "semester"];
-        const headers = Object.keys(updatedRow).filter(
-          (header) => header !== "description"
-        );
-
-        // Nếu dòng chưa tồn tại, tạo mới
-        if (!rowElement) {
-          rowElement = document.createElement("tr");
-          rowElement.id = `row-${id}`;
-          document.getElementById("data-table-body").appendChild(rowElement);
-        }
-
-        const rowHtml = headers
-          .map((key) => {
-            const headerInfo = headersMap[key] || { name: key, width: "auto" };
-            const cellStyle = `style="text-align: center; vertical-align: middle; width: ${headerInfo.width}"`;
-
-            if (keyNotEdit.includes(key)) {
-              return `<td ${cellStyle}>${
-                updatedRow[key] !== null ? updatedRow[key] : ""
-              }</td>`;
-            }
-
-            return `<td id="cell-${id}-${key}" ${cellStyle}>${
-              updatedRow[key] !== null ? updatedRow[key] : ""
-            }</td>`;
-          })
-          .join("");
-
-        // Tạo cột hành động nếu role là "<%= APP_ROLES.troLy_phong %>" hoặc "<%= APP_ROLES.lanhDao_phong %>"
-        let actionColumn = "";
-        if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
-          actionColumn = `
-                          <td style="text-align: center; vertical-align: middle;">
-                            <button onclick="editRow(${id})">Sửa</button>
-                            <button onclick="deleteRow(${id})">Xóa</button>
-                          </td>`;
-        }
-
-        // Kiểm tra nếu bất kỳ giá trị nào là 0
-        const hasZeroValue = Object.values(updatedRow).some(
-          (value) => !isNaN(value) && Number(value) === 0
-        );
-        const warningClass = hasZeroValue ? "warning-row" : "";
-
-        // Cập nhật HTML của dòng
-        rowElement.className = warningClass;
-        rowElement.innerHTML = `
-                          ${rowHtml}
-                          ${actionColumn}`;
-      }
-
       async function addNewRow() {
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
@@ -864,139 +794,12 @@
         }
       }
 
-      // Hàm sửa gắn vào tt onclick
-      function editRow(index) {
-        // Lọc ra đối tượng trong renderData có ID tương ứng với index
-        const item = renderData.find((item) => item.id === index);
 
-        if (!item) {
-          console.error(`Không tìm thấy đối tượng với ID: ${index}`);
-          return; // Nếu không tìm thấy đối tượng, thoát khỏi hàm
-        }
+      async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
 
-        const row = document.getElementById(`row-${index}`);
-        if (!row) {
-          console.error(`Không tìm thấy row-${index}`);
-          return; // Nếu không tìm thấy row, thoát khỏi hàm
-        }
-
-        // Lọc các cột cần sửa (Loại bỏ cột không sửa được như: "GhiChu" "ID")
-        const headers = Object.keys(renderData[0]).filter(
-          (header) => !["GhiChu", "description"].includes(header)
-        );
-
-        headers.forEach((key) => {
-          // Lấy giá trị của trường tương ứng từ item
-          const currentValue = item[key];
-
-          // Tìm phần tử cell tương ứng với ID và keyss
-          const cell = document.getElementById(`cell-${index}-${key}`);
-
-          if (cell) {
-            let inputWidth = "100%"; // Mặc định độ rộng là 100%
-            if (key === "LopHocPhan" || key === "GiaoVien") {
-              inputWidth = "100%"; // Nếu là "LopHocPhan" hoặc "GiaoVien", đặt độ rộng là 100%
-            }
-
-            // Tạo ô nhập liệu với giá trị hiện tại và độ rộng tùy chỉnh
-            cell.innerHTML = `<input type="text" id="input-${index}-${key}" value="${currentValue}" placeholder="${currentValue}" style="width: ${inputWidth};">`;
-          } else {
-            console.error(`Không tìm thấy cell-${index}-${key}`);
-          }
-        });
-
-        // Thay đổi các nút hành động trong cột "Hành động" từ Sửa thành Lưu và Hủy
-        const actionCell = row.querySelector("td:last-child");
-        actionCell.innerHTML = `
-                        <button onclick="saveRow(${index})">Lưu</button>
-                        <button onclick="cancelEdit(${index})">Hủy</button>
-                    `;
-      }
-
-      // Hàm lưu dòng sửa (gọi api sửa 1 dòng)
-      async function saveRow(id) {
-        try {
-          // Lấy danh sách tất cả các cột của dòng (header của renderData[0])
-          const headers = Object.keys(renderData[0]).filter(
-            (key) => key !== "description"
-          );
-          // Tạo đối tượng lưu dữ liệu dòng đã chỉnh sửa
-          const updatedRow = {};
-
-          // Duyệt qua từng cột và cập nhật giá trị của nó
-          headers.forEach((key) => {
-            // Lấy phần tử input tương ứng với từng cột và dòng
-            const input = document.getElementById(`input-${id}-${key}`);
-
-            if (input) {
-              // Kiểm tra xem ô nhập liệu có tồn tại không
-              const newValue = input.value.trim(); // Lấy giá trị và loại bỏ khoảng trắng dư thừa
-
-              // Nếu giá trị không hợp lệ (ví dụ là một chuỗi rỗng), có thể thêm xử lý ở đây
-              if (
-                newValue === "" &&
-                (key == "course_name" || key == "lecturer")
-              ) {
-                throw new Error(`Giá trị của cột ${key} không thể để trống!`);
-              }
-
-              // Thêm giá trị mới vào đối tượng updatedRow
-
-              updatedRow[key] = newValue;
-            } else {
-              console.warn(
-                `Không tìm thấy ô nhập liệu cho cột ${key} tại dòng ${id}`
-              );
-              // Nếu không có input, giữ nguyên giá trị cũ
-              updatedRow[key] = renderData.find((row) => row.id === id)[key];
-            }
-          });
-
-          // Gửi dữ liệu dòng đã sửa tới API
-          const response = await fetch(`/updateRowTKB/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedRow), // Gửi dữ liệu dòng đã sửa
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to update row: ${response.statusText}`);
-          }
-
-          // Nếu API trả về trạng thái 200, tiếp tục cập nhật và hiển thị lại dòng
-          const rowIndex = renderData.findIndex((row) => row.id === id);
-          if (rowIndex !== -1) {
-            renderData[rowIndex] = updatedRow; // Thay thế dòng cũ bằng dòng đã chỉnh sửa
-          }
-
-          // Hiển thị lại dòng đã chỉnh sửa
-          renderRow(id, updatedRow);
-        } catch (error) {
-          console.error("Error updating row:", error);
-          alert(`Có lỗi xảy ra khi cập nhật: ${error.message}`);
-        }
-      }
-
-      function cancelEdit(id) {
-        // Tìm dữ liệu gốc của dòng dựa trên ID
-        const originalRow = renderData.find((row) => row.id === id);
-        console.log(originalRow);
-
-        if (!originalRow) {
-          console.error(`Không tìm thấy dữ liệu gốc cho dòng có ID: ${id}`);
-          return;
-        }
-
-        // Render lại dòng theo dữ liệu gốc
-        renderRow(id, originalRow);
-      }
-
-      async function deleteRow(id, stt) {
         if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
           try {
-            const response = await fetch(`/TKB-delete-row/${id}`, {
+            const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
@@ -1007,8 +810,10 @@
               throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
             }
 
+            console.log(`data`, renderData);
+
             // Cập nhật lại dữ liệu cục bộ
-            renderData = renderData.filter((row) => row.id !== id);
+            renderData = renderData.filter((row) => row.tt != tt);
 
             // Cập nhật lại bảng AG Grid
             gridOptions.api.setRowData(renderData);
@@ -1028,22 +833,6 @@
         }
       }
 
-      // Hàm thêm khi ấn nút THÊM
-      let newRowCounter = 0; // Khởi tạo biến đếm dòng mới
-
-      // Hàm hủy tạo dòng mới
-      function cancelAddRow() {
-        // Tìm và xóa dòng mới có id bắt đầu bằng "new-row-"
-        const newRow = document.querySelector("tr[id^='new-row-']"); // Tìm dòng có id bắt đầu bằng "new-row-"
-
-        if (newRow) {
-          newRow.remove(); // Xóa dòng mới khỏi DOM
-          console.log("Đã hủy thao tác thêm dòng mới.");
-        } else {
-          console.log("Không tìm thấy dòng mới để hủy.");
-        }
-      }
-
       // Xóa
       document.getElementById("xoa-TKB").addEventListener("click", async () => {
         const major = document.getElementById("departmentFilter").value;
@@ -1051,16 +840,10 @@
         const kiValue = document.getElementById("comboboxki").value;
         const namValue = document.getElementById("NamHoc").value;
 
-        const semester = `${dotValue}, ${kiValue}, ${namValue}`;
-        const body = {
-          major: major,
-          semester: semester,
-        };
-
         // 🔥 Hiển thị hộp thoại xác nhận trước khi xóa
         const result = await Swal.fire({
           title: "Xác nhận xóa",
-          html: `Bạn có chắc chắn muốn xóa dữ liệu cho khoa <b>${major}</b> - <b>${semester}</b>?`,
+          html: `Bạn có chắc chắn muốn xóa dữ liệu cho khoa <b>${major}</b> - <b>${dotValue}, ${kiValue}, ${namValue}</b>?`,
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#d33",
@@ -1073,12 +856,11 @@
         if (!result.isConfirmed) return;
 
         try {
-          const response = await fetch("/api/delete-data-TKB", {
-            method: "POST",
+          const response = await fetch(`/api/v1/tkb/all?major=${major}&dot=${dotValue}&ki_hoc=${kiValue}&nam_hoc=${namValue}`, {
+            method: "DELETE",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(body),
           });
 
           const data = await response.json();
@@ -1110,66 +892,14 @@
 
     <!-- phần ban hành -->
     <script>
-      let dataQC = [];
-
-      // Hàm fetch lần đầu để lấy dữ liệu từ server
-      async function fetchData() {
-        // Lấy giá trị từ các phần tử đầu vào và kiểm tra xem có tồn tại hay không
-        let Dot = document.getElementById("combobox-dot")?.value;
-        let Ki = document.getElementById("comboboxki")?.value;
-        let Nam = document.getElementById("NamHoc")?.value;
-        let Khoa = document.getElementById("departmentFilter")?.value;
-
-        // Kiểm tra nếu có phần tử nào chưa được chọn
-        if (!Dot || !Ki || !Nam || !Khoa) {
-          alert("Vui lòng điền đầy đủ các thông tin cần thiết.");
-          return;
-        }
-
-        const body = {
-          Khoa: Khoa,
-          Dot: Dot,
-          Ki: Ki,
-          Nam: Nam,
-        };
-
-        try {
-          const response = await fetch("/qcdk", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          });
-
-          // Kiểm tra phản hồi từ server
-          if (!response.ok) {
-            throw new Error("Lấy dữ liệu thất bại");
-          }
-
-          const data = await response.json();
-          dataQC = data; // Lưu dữ liệu vào dataQC
-        } catch (error) {
-          console.error("Error:", error);
-          alert("Lấy dữ liệu thất bại! Vui lòng kiểm tra lại kết nối.");
-        }
-      }
-
-      // Hàm xử lý sự kiện khi người dùng nhấn nút "ban-hanh"
       // Hàm kiểm tra dữ liệu tồn tại trên server
       function checkDataExistence(khoaValue, dotValue, kiValue, namValue) {
-        const body = {
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        };
-        fetch("/api/TKB//kiem-tra-file", {
-          method: "POST",
+
+        fetch(`/api/v1/tkb/check-data-qcdk-exist?dot=${dotValue}&ki_hoc=${kiValue}&nam_hoc=${namValue}&major=${khoaValue}`, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
         })
           .then((response) => {
             if (!response.ok) {
@@ -1193,7 +923,7 @@
             if (data.exists) {
               showModal(khoaValue, dotValue, kiValue, namValue);
             } else {
-              saveData(khoaValue, dotValue, kiValue, namValue);
+              saveDataAll(khoaValue, dotValue, kiValue, namValue);
             }
           })
           .catch((error) => {
@@ -1221,7 +951,7 @@
         const appendButton = document.getElementById("btn-append");
         appendButton.onclick = function handleAppendClick() {
           modal.style.display = "none";
-          saveData(khoaValue, dotValue, kiValue, namValue);
+          saveDataAll(khoaValue, dotValue, kiValue, namValue);
         };
 
         // Xử lý sự kiện "Hủy"
@@ -1250,7 +980,7 @@
             if (!response.ok) {
               throw new Error("Xóa dữ liệu thất bại");
             }
-            saveData(khoaValue, dotValue, kiValue, namValue);
+            saveDataAll(khoaValue, dotValue, kiValue, namValue);
             // alert("Xóa thành công!");
             //location.reload();
           })
@@ -1267,16 +997,15 @@
           });
       }
 
-      // Hàm gửi dữ liệu khi dữ liệu không tồn tại
-      function saveData(khoaValue, dotValue, kiValue, namValue) {
+      function saveDataAll(khoaValue, dotValue, kiValue, namValue) {
         const updatedData = {
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
+          major: khoaValue,
+          dot: dotValue,
+          ki_hoc: kiValue,
+          nam_hoc: namValue,
         };
 
-        fetch("/save-data-tkb-to-qcdk", {
+        fetch("/api/v1/tkb/save-data-to-qcdk", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1290,89 +1019,24 @@
             return response.json();
           })
           .then((data) => {
-            if (data.success) {
-              let iconAlert = "info";
-              if (data.message === "Thêm file thành công") {
-                iconAlert = "success";
-              }
-
-              Swal.fire({
-                title: "Thông báo",
-                html: data.message,
-                icon: iconAlert,
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            } else {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thất bại",
-                icon: "error",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
+            let iconAlert = "info";
+            if (data.status === "success") {
+              iconAlert = "success";
+            } else if (data.status === "warning") {
+              iconAlert = "warning";
+            } else if (data.status === "error") {
+              iconAlert = "error";
             }
-          })
-          .catch((error) => {
+
             Swal.fire({
               title: "Thông báo",
-              html: "Gửi dữ liệu thất bại",
-              icon: "success",
+              html: data.message,
+              icon: iconAlert,
               confirmButtonText: "OK",
               width: "auto", // Tự động điều chỉnh chiều rộng
               padding: "20px", // Giữ khoảng cách cho nội dung
             });
-          });
-      }
-
-      function saveDataAll(khoaValue, dotValue, kiValue, namValue) {
-        const updatedData = {
-          Khoa: khoaValue,
-          Dot: dotValue,
-          Ki: kiValue,
-          Nam: namValue,
-        };
-
-        fetch("/save-data-tkb-to-qcdk", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Gửi dữ liệu thất bại");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.success) {
-              let iconAlert = "info";
-              if (data.message === "Thêm file thành công") {
-                iconAlert = "success";
-              }
-
-              Swal.fire({
-                title: "Thông báo",
-                html: data.message,
-                icon: iconAlert,
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            } else {
-              Swal.fire({
-                title: "Thông báo",
-                html: "Thêm file thất bại",
-                icon: "error",
-                confirmButtonText: "OK",
-                width: "auto", // Tự động điều chỉnh chiều rộng
-                padding: "20px", // Giữ khoảng cách cho nội dung
-              });
-            }
+            
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -1573,24 +1237,16 @@
         });
 
       async function exportMultipleWorksheet() {
-        let Dot = document.getElementById("combobox-dot").value;
-        let Ki = document.getElementById("comboboxki").value;
-        let Nam = document.getElementById("NamHoc").value;
+        let dot = document.getElementById("combobox-dot").value;
+        let ki_hoc = document.getElementById("comboboxki").value;
+        let nam_hoc = document.getElementById("NamHoc").value;
         let major = document.getElementById("departmentFilter").value;
 
-        const semester = `${Dot}, ${Ki}, ${Nam}`;
-
-        const dataSend = {
-          major: major,
-          semester: semester,
-        };
-
-        const response = await fetch("/api/export-multiple-worksheet-TKB", {
+        const response = await fetch(`/api/v1/tkb/export-multiple-worksheet?dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}&major=${major}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(dataSend),
         });
 
         if (!response.ok) {
@@ -1603,7 +1259,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "file_quy_chuan.xlsx";
+        a.download = `quy_chuan_${dot}_${ki_hoc}_${nam_hoc}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1611,24 +1267,17 @@
 
       // renderData là biến var
       async function exportSingleWorksheet() {
-        let Dot = document.getElementById("combobox-dot").value;
-        let Ki = document.getElementById("comboboxki").value;
-        let Nam = document.getElementById("NamHoc").value;
+        let dot = document.getElementById("combobox-dot").value;
+        let ki_hoc = document.getElementById("comboboxki").value;
+        let nam_hoc = document.getElementById("NamHoc").value;
         let major = document.getElementById("departmentFilter").value;
 
-        const semester = `${Dot}, ${Ki}, ${Nam}`;
 
-        const dataSend = {
-          major: major,
-          semester: semester,
-        };
-
-        const response = await fetch("/api/export-single-worksheet-TKB", {
-          method: "POST",
+        const response = await fetch(`/api/v1/tkb/export-single-worksheet?dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}&major=${major}`, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(dataSend),
         });
 
         if (!response.ok) {
@@ -1641,7 +1290,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "file_quy_chuan.xlsx";
+        a.download = `quy_chuan_${dot}_${ki_hoc}_${nam_hoc}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
