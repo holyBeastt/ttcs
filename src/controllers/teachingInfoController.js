@@ -197,8 +197,6 @@ const renderInfoWithValueKhoa = async (req, res) => {
     SELECT * FROM ${tableName} 
     WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?`;
 
-  console.log({ Khoa, Dot, Ki, Nam }); // Log các tham số để kiểm tra
-
   let connection;
   try {
     // Lấy kết nối từ pool
@@ -397,8 +395,6 @@ const renderInfo = async (req, res) => {
       // Nếu không phải khoa, tính thống kê cho tất cả
       tongTiet = await tinhThongKeTatCa(connection, results);
     }
-
-    console.log("Tong theo khoa:", tongTiet);
 
     // Trả về kết quả và các giá trị check
     return res.status(200).json({
@@ -653,8 +649,6 @@ const SaveNote = async (req, res) => {
     const HoanThanh = false;
     const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
 
-    console.log(id, ghiChu, deadline, HoanThanh);
-
     const query = `
         UPDATE quychuan 
         SET GhiChu = ?, Deadline = ?, HoanThanh = ?
@@ -677,7 +671,6 @@ const DoneNote = async (req, res) => {
     const mGhiChu = ghiChu + " Đã sửa";
     const deadlineValue = deadline || null; // Nếu deadline rỗng, sẽ gán null
 
-    console.log(id, ghiChu, mGhiChu, deadline, HoanThanh);
     const query = `
           UPDATE quychuan 
           SET GhiChu = ?, Deadline = ?, HoanThanh = ? 
