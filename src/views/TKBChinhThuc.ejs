@@ -776,7 +776,6 @@
           const newRow = await response.json();
 
           if (response.ok) {
-            console.log("✅ Đã thêm dòng mới:", newRow);
 
             // ✅ Thêm dòng mới vào bảng AG Grid
             gridOptions.api.applyTransaction({ add: [newRow.data] });
@@ -809,8 +808,6 @@
             if (!response.ok) {
               throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
             }
-
-            console.log(`data`, renderData);
 
             // Cập nhật lại dữ liệu cục bộ
             renderData = renderData.filter((row) => row.tt != tt);
