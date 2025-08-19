@@ -165,7 +165,7 @@ const importExcelTKB = async (req, res) => {
       row.course_code,
       row.credit_hours,
       row.student_quantity,
-      row.student_bonus,
+      row.student_bonus || 0,
       row.bonus_time || 1, // Nếu không có giá trị thì mặc định là 1
       row.ll_code,
       row.ll_total,
