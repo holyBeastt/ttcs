@@ -454,8 +454,7 @@ const updateDoAn = async (req, res) => {
             connection,
             originalData,
             newData,
-            req.session?.userId || 1,
-            req.session?.TenNhanVien || "ADMIN"
+            req
           );
         }
       }

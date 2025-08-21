@@ -2,10 +2,13 @@ const createPoolConnection = require("../config/databasePool");
 const ExcelJS = require("exceljs");
 
 // Hàm ghi log thay đổi thông tin đồ án
-const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanVien = 'ADMIN') => {
+const logDoAnChanges = async (connection, oldData, newData, req) => {
   try {
     let changeMessage = '';
     const loaiThongTin = 'Thay đổi thông tin đồ án';
+    const userId = req.session?.userId || req.session?.userInfo?.ID || req.user?.id || 1;
+    const tenNhanVien = req.session?.TenNhanVien || req.session?.userInfo?.TenNhanVien || req.user?.TenNhanVien || 'Unknown';
+    const khoa = req.session?.MaPhongBan || req.session?.userInfo?.MaPhongBan || req.user?.MaPhongBan || req.session?.Khoa || req.user?.Khoa || 'Unknown';
     // Kiểm tra cột GiangVien1
     if (String(oldData.GiangVien1 || '') !== String(newData.GiangVien1 || '')) {
       changeMessage = changeMessage + `Giảng Viên 1 cho đồ án "${newData.TenDeTai}": từ "${oldData.GiangVien1 || ''}" thành "${newData.GiangVien1 || ''}". `;
@@ -108,13 +111,14 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
     if (changeMessage !== '') {
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
       await connection.query(insertQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
@@ -187,7 +191,7 @@ const updateDoAn = async (req, res) => {
       ]);
       
       // Ghi log thay đổi
-      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
+      await logDoAnChanges(connection, oldData, newData, req);
     }
 
     await connection.commit();
@@ -467,7 +471,7 @@ const updateDoAnApproval = async (req, res) => {
       }
       
       // Ghi log thay đổi
-      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
+      await logDoAnChanges(connection, oldData, newData, req);
     }
 
     await connection.commit();
@@ -503,7 +507,7 @@ const applyDoAnEdit = async (req, res) => {
     await connection.beginTransaction();
 
     // Sử dụng hàm updateRequest để cập nhật dữ liệu và ghi log
-    await updateRequest(requestId);
+    await updateRequest(requestId, req);
 
     await connection.commit();
 
@@ -815,7 +819,7 @@ const getDoAnChinhThuc = async (req, res) => {
   }
 };
 
-const updateRequest = async (requestId) => {
+const updateRequest = async (requestId, req) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -890,15 +894,20 @@ const updateRequest = async (requestId) => {
     // Ghi log thay đổi vào bảng lichsunhaplieu
     const changeMessage = `Giảng viên hướng dẫn cho đồ án "${request[0].lop_hoc_phan}": từ "${request[0].old_value}" thành "${request[0].new_value}".`;
     
+    const userId = req?.session?.userId || req?.session?.userInfo?.ID || req?.user?.id || 1;
+    const tenNhanVien = req?.session?.TenNhanVien || req?.session?.userInfo?.TenNhanVien || req?.user?.TenNhanVien || 'Unknown';
+    const khoa = req?.session?.MaPhongBan || req?.session?.userInfo?.MaPhongBan || req?.user?.MaPhongBan || req?.session?.Khoa || req?.user?.Khoa || 'Unknown';
+    
     const logQuery = `
       INSERT INTO lichsunhaplieu 
-      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-      VALUES (?, ?, ?, ?, NOW())
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
     
     await connection.query(logQuery, [
-      1, // Thay bằng req.user?.id nếu có
-      'ADMIN', // Thay bằng req.user?.TenNhanVien nếu có
+      userId,
+      tenNhanVien,
+      khoa,
       'Thay đổi thông tin đồ án',
       changeMessage
     ]);
