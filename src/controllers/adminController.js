@@ -231,16 +231,10 @@ const AdminController = {
           (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
           VALUES (?, ?, ?, ?, ?, NOW())
         `;
-<<<<<<< HEAD
-        
+
         const userId = 1;
         const tenNhanVien = 'ADMIN';
         const khoa = 'DAOTAO';
-=======
-
-        const userId = req.session?.userId || 1;
-        const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
         const loaiThongTin = 'Admin Log';
         const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien}). Tên bị trùng được đổi thành: ${modifiedName}`;
 
@@ -265,16 +259,10 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-<<<<<<< HEAD
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
-=======
-
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien})`;
 
@@ -327,16 +315,10 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-<<<<<<< HEAD
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
-=======
-
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm phòng ban mới: "${tenPhongBan}" (Mã: ${maPhongBan})`;
 
@@ -413,16 +395,10 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-<<<<<<< HEAD
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
-=======
-
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã tạo tài khoản mới: "${TenDangNhap}" với quyền "${Quyen}"`;
 
@@ -711,16 +687,10 @@ const AdminController = {
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-<<<<<<< HEAD
-      
+
       const userId = 1;
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
-=======
-
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm bộ môn mới: "${TenBoMon}" (Mã: ${MaBoMon}, Phòng ban: ${MaPhongBan})`;
 

@@ -411,17 +411,25 @@ const deleteMessage = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-<<<<<<< HEAD
-    
-=======
 
     // Lấy thông tin thông báo trước khi xóa để ghi log
     const getQuery = `SELECT * FROM thongbao WHERE id = ?`;
     const [messageData] = await connection.query(getQuery, [id]);
 
->>>>>>> fd5ad6b9c66938e9d3a19677f2442b0379238299
     const query = `DELETE FROM thongbao WHERE id = ?`;
     await connection.query(query, [id]);
+
+    // Ghi log xóa thông báo
+    if (messageData.length > 0) {
+      const deletedMessage = messageData[0];
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+      const logContent = `Xóa thông báo: "${deletedMessage.TieuDe}" (ID: ${id})`;
+      await connection.query(logQuery, [1, 'ADMIN', 'DAOTAO', 'DELETE', logContent]);
+    }
 
     res.json({
       success: true,
