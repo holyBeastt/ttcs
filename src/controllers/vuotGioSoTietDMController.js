@@ -33,17 +33,25 @@ const updateSoTietDM = async (req, res) => {
       });
     }
 
+    // Lấy dữ liệu cũ để so sánh thay đổi
+    const [oldRecords] = await pool.execute(
+      "SELECT GiangDay, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
+    );
+    const oldData = oldRecords.length > 0 ? oldRecords[0] : null;
+
     // Kiểm tra xem đã có dữ liệu chưa
     const [existingRows] = await pool.execute(
       "SELECT COUNT(*) as count FROM sotietdinhmuc"
     );
 
+    let isInsert = false;
     if (existingRows[0].count === 0) {
       // Nếu chưa có dữ liệu, thêm mới
       await pool.execute(
         "INSERT INTO sotietdinhmuc (GiangDay, VuotGio, NCKH) VALUES (?, ?, ?)",
         [soTietDaoTao, soTietVuotGio, soTietNCKH]
       );
+      isInsert = true;
     } else {
       // Nếu đã có dữ liệu, cập nhật
       await pool.execute(
@@ -51,6 +59,48 @@ const updateSoTietDM = async (req, res) => {
         [soTietDaoTao, soTietVuotGio, soTietNCKH]
       );
     }
+
+    // Ghi log
+    const logQuery = `
+      INSERT INTO lichsunhaplieu 
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
+    `;
+    
+    const userId = 1;
+    const tenNhanVien = 'ADMIN';
+    const khoa = 'DAOTAO';
+    const loaiThongTin = 'Admin Log';
+    
+    let noiDungThayDoi;
+    if (isInsert) {
+      // Ghi log thêm mới
+      noiDungThayDoi = `Admin thêm số tiết định mức: Giảng dạy ${soTietDaoTao}, Vượt giờ ${soTietVuotGio}, NCKH ${soTietNCKH}`;
+    } else {
+      // Ghi log cập nhật với so sánh chi tiết
+      let changes = [];
+      if (oldData.GiangDay != soTietDaoTao) {
+        changes.push(`GiangDay: "${oldData.GiangDay}" -> "${soTietDaoTao}"`);
+      }
+      if (oldData.VuotGio != soTietVuotGio) {
+        changes.push(`VuotGio: "${oldData.VuotGio}" -> "${soTietVuotGio}"`);
+      }
+      if (oldData.NCKH != soTietNCKH) {
+        changes.push(`NCKH: "${oldData.NCKH}" -> "${soTietNCKH}"`);
+      }
+      
+      noiDungThayDoi = changes.length > 0 
+        ? `Admin cập nhật số tiết định mức: ${changes.join(', ')}`
+        : `Admin cập nhật số tiết định mức: Không có thay đổi`;
+    }
+    
+    await pool.query(logQuery, [
+      userId,
+      tenNhanVien,
+      khoa,
+      loaiThongTin,
+      noiDungThayDoi
+    ]);
 
     res.status(200).json({
       success: true,

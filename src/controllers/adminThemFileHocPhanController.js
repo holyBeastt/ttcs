@@ -147,11 +147,12 @@ const saveToDB = async (req, res) => {
 
       // Ghi log khi admin thêm file học phần
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
         const logMessage = `Admin thêm file học phần - ${data.length} bản ghi`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }

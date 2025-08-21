@@ -23,6 +23,27 @@ const addDeTaiDuAn = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm đề tài dự án NCKH: Cấp "${CapDeTaiDuAn}", Chủ nhiệm ${ChuNhiem}h, Thư ký ${ThuKy}h, Thành viên ${ThanhVien}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -46,6 +67,18 @@ const editDeTaiDuAn = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy đề tài/dự án để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET CapDeTaiDuAn = ?, ChuNhiem = ?, ThuKy = ?, ThanhVien = ?
@@ -63,6 +96,44 @@ const editDeTaiDuAn = async (req, res) => {
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.CapDeTaiDuAn !== CapDeTaiDuAn) {
+            changes.push(`CapDeTaiDuAn: "${oldData.CapDeTaiDuAn}" -> "${CapDeTaiDuAn}"`);
+        }
+        if (oldData.ChuNhiem !== ChuNhiem) {
+            changes.push(`ChuNhiem: "${oldData.ChuNhiem}" -> "${ChuNhiem}"`);
+        }
+        if (oldData.ThuKy !== ThuKy) {
+            changes.push(`ThuKy: "${oldData.ThuKy}" -> "${ThuKy}"`);
+        }
+        if (oldData.ThanhVien !== ThanhVien) {
+            changes.push(`ThanhVien: "${oldData.ThanhVien}" -> "${ThanhVien}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật đề tài dự án NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật đề tài dự án NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -99,6 +170,27 @@ const addBaiBaoKhoaHoc = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm bài báo khoa học NCKH: Loại tạp chí "${LoaiTapChi}", Chỉ số "${ChiSoTapChi}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -123,6 +215,18 @@ const editBaiBaoKhoaHoc = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy đề bài báo khoa học để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET LoaiTapChi = ?, ChiSoTapChi = ?, SoGio = ?
@@ -140,6 +244,41 @@ const editBaiBaoKhoaHoc = async (req, res) => {
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.LoaiTapChi !== LoaiTapChi) {
+            changes.push(`LoaiTapChi: "${oldData.LoaiTapChi}" -> "${LoaiTapChi}"`);
+        }
+        if (oldData.ChiSoTapChi !== ChiSoTapChi) {
+            changes.push(`ChiSoTapChi: "${oldData.ChiSoTapChi}" -> "${ChiSoTapChi}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật bài báo khoa học NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật bài báo khoa học NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -178,6 +317,27 @@ const addBangSangCheVaGiaiThuong = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm bằng sáng chế/giải thưởng NCKH: "${BangSangCheGiaiThuong}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -202,6 +362,18 @@ const editBangSangCheVaGiaiThuong = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy bằng sáng chế và giải thưởng để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET BangSangCheGiaiThuong = ?, SoGio = ?
@@ -219,6 +391,38 @@ const editBangSangCheVaGiaiThuong = async (req, res) => {
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.BangSangCheGiaiThuong !== BangSangCheGiaiThuong) {
+            changes.push(`BangSangCheGiaiThuong: "${oldData.BangSangCheGiaiThuong}" -> "${BangSangCheGiaiThuong}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật bằng sáng chế/giải thưởng NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật bằng sáng chế/giải thưởng NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -255,6 +459,27 @@ const addSachVaGiaoTrinh = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm sách/giáo trình NCKH: "${SachGiaoTrinh}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -279,6 +504,18 @@ const editSachVaGiaoTrinh = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy sách/giáo trình để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET SachGiaoTrinh = ?, SoGio = ?
@@ -292,10 +529,42 @@ const editSachVaGiaoTrinh = async (req, res) => {
 
         // Kiểm tra nếu không có bản ghi nào được cập nhật
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Không tìm thấy bằng sáng chế và giải thưởng để cập nhật." });
+            return res.status(404).json({ message: "Không tìm thấy sách/giáo trình để cập nhật." });
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.SachGiaoTrinh !== SachGiaoTrinh) {
+            changes.push(`SachGiaoTrinh: "${oldData.SachGiaoTrinh}" -> "${SachGiaoTrinh}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật sách/giáo trình NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật sách/giáo trình NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -332,6 +601,27 @@ const addNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm NCKH/huấn luyện đội tuyển: "${NCKHHuanLuyenDoiTuyen}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -356,6 +646,18 @@ const editNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy NCKH/huấn luyện đội tuyển để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET NCKHHuanLuyenDoiTuyen = ?, SoGio = ?
@@ -369,10 +671,42 @@ const editNCKHVaHuanLuyenDoiTuyen = async (req, res) => {
 
         // Kiểm tra nếu không có bản ghi nào được cập nhật
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Không tìm thấy bằng sáng chế và giải thưởng để cập nhật." });
+            return res.status(404).json({ message: "Không tìm thấy NCKH/huấn luyện đội tuyển để cập nhật." });
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.NCKHHuanLuyenDoiTuyen !== NCKHHuanLuyenDoiTuyen) {
+            changes.push(`NCKHHuanLuyenDoiTuyen: "${oldData.NCKHHuanLuyenDoiTuyen}" -> "${NCKHHuanLuyenDoiTuyen}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật NCKH/huấn luyện đội tuyển ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật NCKH/huấn luyện đội tuyển ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -410,6 +744,27 @@ const addXayDungCTDT = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm xây dựng CTĐT NCKH: "${XayDungCTDT}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -434,6 +789,18 @@ const editXayDungCTDT = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy xây dựng CTĐT để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET XayDungCTDT = ?, SoGio = ?
@@ -447,10 +814,42 @@ const editXayDungCTDT = async (req, res) => {
 
         // Kiểm tra nếu không có bản ghi nào được cập nhật
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Không tìm thấy bằng sáng chế và giải thưởng để cập nhật." });
+            return res.status(404).json({ message: "Không tìm thấy xây dựng CTĐT để cập nhật." });
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.XayDungCTDT !== XayDungCTDT) {
+            changes.push(`XayDungCTDT: "${oldData.XayDungCTDT}" -> "${XayDungCTDT}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật xây dựng CTĐT NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật xây dựng CTĐT NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -488,6 +887,27 @@ const addBienSoanGiaoTrinhBaiGiang = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm biên soạn giáo trình/bài giảng NCKH: "${BienSoanGiaoTrinhBaiGiang}", Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -512,6 +932,18 @@ const editBienSoanGiaoTrinhBaiGiang = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy biên soạn giáo trình/bài giảng để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET BienSoanGiaoTrinhBaiGiang = ?, SoGio = ?
@@ -525,10 +957,42 @@ const editBienSoanGiaoTrinhBaiGiang = async (req, res) => {
 
         // Kiểm tra nếu không có bản ghi nào được cập nhật
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Không tìm thấy bằng sáng chế và giải thưởng để cập nhật." });
+            return res.status(404).json({ message: "Không tìm thấy biên soạn giáo trình/bài giảng để cập nhật." });
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.BienSoanGiaoTrinhBaiGiang !== BienSoanGiaoTrinhBaiGiang) {
+            changes.push(`BienSoanGiaoTrinhBaiGiang: "${oldData.BienSoanGiaoTrinhBaiGiang}" -> "${BienSoanGiaoTrinhBaiGiang}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật biên soạn giáo trình/bài giảng NCKH ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật biên soạn giáo trình/bài giảng NCKH ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -566,6 +1030,27 @@ const addNhiemVuKhoaHocCongNghe = async (req, res) => {
 
         console.log("Dữ liệu đã được thêm thành công:", result);
 
+        // Ghi log thêm mới
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        const noiDungThayDoi = `Admin thêm nhiệm vụ KHCN: "${NhiemVuKhoaHocCongNghe}", Chủ nhiệm ${ChuNhiem}h, Thư ký ${ThuKy}h, Số giờ ${SoGio}h`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            noiDungThayDoi
+        ]);
+
         // Trả về kết quả cho client
         res.status(200).json({
             message: "Thêm mới thành công!",
@@ -589,6 +1074,18 @@ const edtiNhiemVuKhoaHocCongNghe = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy dữ liệu cũ để so sánh thay đổi
+        const [oldRecord] = await connection.execute(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?",
+            [id]
+        );
+        
+        if (oldRecord.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy nhiệm vụ KHCN để cập nhật." });
+        }
+        
+        const oldData = oldRecord[0];
+
         const query = `
             UPDATE quydinhsogionckh
             SET NhiemVuKhoaHocCongNghe = ?, ChuNhiem = ?, ThuKy = ?, SoGio = ?, PhanBien = ?, UyVien = ?
@@ -602,10 +1099,54 @@ const edtiNhiemVuKhoaHocCongNghe = async (req, res) => {
 
         // Kiểm tra nếu không có bản ghi nào được cập nhật
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Không tìm thấy đề tài/dự án để cập nhật." });
+            return res.status(404).json({ message: "Không tìm thấy nhiệm vụ KHCN để cập nhật." });
         }
 
         console.log("Dữ liệu đã được cập nhật thành công:", result);
+
+        // Ghi log chi tiết các trường thay đổi
+        const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+        
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const loaiThongTin = 'Admin Log';
+        
+        let changes = [];
+        if (oldData.NhiemVuKhoaHocCongNghe !== NhiemVuKhoaHocCongNghe) {
+            changes.push(`NhiemVuKhoaHocCongNghe: "${oldData.NhiemVuKhoaHocCongNghe}" -> "${NhiemVuKhoaHocCongNghe}"`);
+        }
+        if (oldData.ChuNhiem !== ChuNhiem) {
+            changes.push(`ChuNhiem: "${oldData.ChuNhiem}" -> "${ChuNhiem}"`);
+        }
+        if (oldData.ThuKy !== ThuKy) {
+            changes.push(`ThuKy: "${oldData.ThuKy}" -> "${ThuKy}"`);
+        }
+        if (oldData.SoGio !== SoGio) {
+            changes.push(`SoGio: "${oldData.SoGio}" -> "${SoGio}"`);
+        }
+        if (oldData.PhanBien !== PhanBien) {
+            changes.push(`PhanBien: "${oldData.PhanBien}" -> "${PhanBien}"`);
+        }
+        if (oldData.UyVien !== UyVien) {
+            changes.push(`UyVien: "${oldData.UyVien}" -> "${UyVien}"`);
+        }
+        
+        const changeMessage = changes.length > 0 
+            ? `Admin cập nhật nhiệm vụ KHCN ID ${id}: ${changes.join(', ')}`
+            : `Admin cập nhật nhiệm vụ KHCN ID ${id}: Không có thay đổi`;
+        
+        await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+        ]);
 
         // Trả về kết quả cho client
         res.status(200).json({
@@ -630,6 +1171,12 @@ const deleteRowQuyDinhSoGioNCKH = async (req, res) => {
     try {
         connection = await createPoolConnection(); // Lấy kết nối từ pool
 
+        // Lấy thông tin bản ghi trước khi xóa để ghi log
+        const [recordToDelete] = await connection.query(
+            "SELECT * FROM quydinhsogionckh WHERE ID = ?", 
+            [id]
+        );
+
         const query = `
             DELETE FROM quydinhsogionckh WHERE ID = ?
         `;
@@ -638,6 +1185,39 @@ const deleteRowQuyDinhSoGioNCKH = async (req, res) => {
 
         // Thực hiện truy vấn
         const [result] = await connection.execute(query, queryParams);
+
+        if (result.affectedRows > 0) {
+            // Ghi log xóa
+            const logQuery = `
+                INSERT INTO lichsunhaplieu 
+                (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            `;
+            
+            const userId = 1;
+            const tenNhanVien = 'ADMIN';
+            const khoa = 'DAOTAO';
+            const loaiThongTin = 'Admin Log';
+            const deletedRecord = recordToDelete[0];
+            
+            // Tạo mô tả dựa trên loại bản ghi
+            let moTa = `Admin xóa quy định số giờ NCKH ID ${id}`;
+            if (deletedRecord.CapDeTaiDuAn) {
+                moTa += `: Cấp đề tài "${deletedRecord.CapDeTaiDuAn}"`;
+            } else if (deletedRecord.LoaiTapChi) {
+                moTa += `: Loại tạp chí "${deletedRecord.LoaiTapChi}"`;
+            } else if (deletedRecord.BangSangCheGiaiThuong) {
+                moTa += `: Bằng sáng chế/giải thưởng "${deletedRecord.BangSangCheGiaiThuong}"`;
+            }
+            
+            await connection.query(logQuery, [
+                userId,
+                tenNhanVien,
+                khoa,
+                loaiThongTin,
+                moTa
+            ]);
+        }
 
         console.log("Xóa thành công:", result);
 

@@ -40,11 +40,14 @@ const postUpdateNV = async (req, res) => {
 
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
-    // Kiểm tra nhân viên có tồn tại không
+    // Lấy dữ liệu cũ để so sánh thay đổi
     const [nhanVien] = await connection.execute(
       "SELECT * FROM nhanvien WHERE id_User = ?",
       [Id_User]
     );
+    const oldRecord = nhanVien[0];
+
+    // Kiểm tra nhân viên có tồn tại không
     if (nhanVien.length === 0) {
       return res.status(404).json({ message: "Nhân viên không tồn tại" });
     }
@@ -171,21 +174,96 @@ const postUpdateNV = async (req, res) => {
       [MaPhongBan, Quyen, isKhoa, TenDangNhap]
     );
 
-    // Ghi log cập nhật nhân viên thành công
+    // Ghi log chi tiết các trường thay đổi
     const logQuery = `
       INSERT INTO lichsunhaplieu 
-      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-      VALUES (?, ?, ?, ?, NOW())
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
     
-    const userId = req.session?.userId || 1;
-    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const userId = 1;
+    const tenNhanVien = 'ADMIN';
+    const khoa = 'DAOTAO';
     const loaiThongTin = 'Admin Log';
-    const changeMessage = `${tenNhanVien} đã cập nhật thông tin nhân viên: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien})`;
+    
+    // Chuẩn hóa định dạng ngày sinh để so sánh (YYYY-MM-DD)
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    // Chuẩn hóa định dạng ngày sinh cho dữ liệu mới (+1 ngày)
+    const formatNewDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      date.setDate(date.getDate() + 1); // Thêm 1 ngày
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    // Chuẩn hóa định dạng phần trăm miễn giảm (x.xx)
+    const formatPercent = (percent) => {
+      if (percent === null || percent === undefined) return '0.00';
+      return parseFloat(percent).toFixed(2);
+    };
+    
+    const formattedOldNgaySinh = formatDate(oldRecord.NgaySinh);
+    const formattedNewNgaySinh = formatNewDate(NgaySinh);
+    const formattedOldPhanTram = formatPercent(oldRecord.PhanTramMienGiam);
+    const formattedNewPhanTram = formatPercent(phanTram);
+    
+    // Chuẩn hóa tên nhân viên (loại bỏ khoảng trắng thừa)
+    const trimmedOldTenNhanVien = (oldRecord.TenNhanVien || '').trim();
+    const trimmedNewTenNhanVien = (TenNhanVien || '').trim();
+    
+    let changes = [];
+    if (trimmedOldTenNhanVien !== trimmedNewTenNhanVien) {
+      changes.push(`TenNhanVien: "${trimmedOldTenNhanVien}" -> "${trimmedNewTenNhanVien}"`);
+    }
+    if (oldRecord.GioiTinh !== GioiTinh) {
+      changes.push(`GioiTinh: "${oldRecord.GioiTinh}" -> "${GioiTinh}"`);
+    }
+    if (formattedOldNgaySinh !== formattedNewNgaySinh) {
+      changes.push(`NgaySinh: "${formattedOldNgaySinh}" -> "${formattedNewNgaySinh}"`);
+    }
+    if (oldRecord.CCCD !== CCCD) {
+      changes.push(`CCCD: "${oldRecord.CCCD}" -> "${CCCD}"`);
+    }
+    if (oldRecord.DienThoai !== DienThoai) {
+      changes.push(`DienThoai: "${oldRecord.DienThoai}" -> "${DienThoai}"`);
+    }
+    if (oldRecord.HocVi !== HocVi) {
+      changes.push(`HocVi: "${oldRecord.HocVi}" -> "${HocVi}"`);
+    }
+    if (oldRecord.ChucVu !== ChucVu) {
+      changes.push(`ChucVu: "${oldRecord.ChucVu}" -> "${ChucVu}"`);
+    }
+    if (oldRecord.MaPhongBan !== MaPhongBan) {
+      changes.push(`MaPhongBan: "${oldRecord.MaPhongBan}" -> "${MaPhongBan}"`);
+    }
+    if (formattedOldPhanTram !== formattedNewPhanTram) {
+      changes.push(`PhanTramMienGiam: "${formattedOldPhanTram}" -> "${formattedNewPhanTram}"`);
+    }
+    if (oldRecord.Luong !== Luong) {
+      changes.push(`Luong: "${oldRecord.Luong}" -> "${Luong}"`);
+    }
+    
+    const changeMessage = changes.length > 0 
+      ? `Admin cập nhật nhân viên ID ${Id_User}: ${changes.join(', ')}`
+      : `Admin cập nhật nhân viên ID ${Id_User}: Không có thay đổi`;
     
     await connection.query(logQuery, [
       userId,
       tenNhanVien,
+      khoa,
       loaiThongTin,
       changeMessage
     ]);
@@ -212,24 +290,45 @@ const postUpdatePhongBan = async (req, res) => {
     const { tenPhongBan, ghiChu, khoa } = req.body;
     const isKhoa = khoa ? 1 : 0;
 
+    // Lấy dữ liệu cũ trước khi cập nhật
+    const getOldDataQuery = `SELECT * FROM phongban WHERE MaPhongBan = ?`;
+    const [oldData] = await connection.query(getOldDataQuery, [MaPhongBan]);
+    const oldRecord = oldData[0];
+
     const query = `UPDATE phongban SET TenPhongBan = ?, GhiChu = ?, isKhoa = ? WHERE MaPhongBan = ?`;
     await connection.query(query, [tenPhongBan, ghiChu, isKhoa, MaPhongBan]);
 
-    // Ghi log cập nhật phòng ban thành công
+    // Ghi log chi tiết các trường thay đổi
     const logQuery = `
       INSERT INTO lichsunhaplieu 
-      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-      VALUES (?, ?, ?, ?, NOW())
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
     
-    const userId = req.session?.userId || 1;
-    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const userId = 1;
+    const tenNhanVien = 'ADMIN';
+    const khoaLog = 'DAOTAO';
     const loaiThongTin = 'Admin Log';
-    const changeMessage = `${tenNhanVien} đã cập nhật phòng ban: "${tenPhongBan}" (Mã: ${MaPhongBan})`;
+    
+    let changes = [];
+    if (oldRecord.TenPhongBan !== tenPhongBan) {
+      changes.push(`TenPhongBan: "${oldRecord.TenPhongBan}" -> "${tenPhongBan}"`);
+    }
+    if (oldRecord.GhiChu !== ghiChu) {
+      changes.push(`GhiChu: "${oldRecord.GhiChu}" -> "${ghiChu}"`);
+    }
+    if (oldRecord.isKhoa !== isKhoa) {
+      changes.push(`isKhoa: "${oldRecord.isKhoa}" -> "${isKhoa}"`);
+    }
+    
+    const changeMessage = changes.length > 0 
+      ? `Admin cập nhật phòng ban ${MaPhongBan}: ${changes.join(', ')}`
+      : `Admin cập nhật phòng ban ${MaPhongBan}: Không có thay đổi`;
     
     await connection.query(logQuery, [
       userId,
       tenNhanVien,
+      khoaLog,
       loaiThongTin,
       changeMessage
     ]);
@@ -257,6 +356,7 @@ const postUpdateTK = async (req, res) => {
   try {
     // Cập nhật bảng đầu tiên
     connection = await createPoolConnection();
+    
     const query1 =
       "UPDATE role SET MaPhongBan = ?, Quyen = ?, isKhoa = ? WHERE TenDangNhap = ?";
     await connection.query(query1, [MaPhongBan, Quyen, Khoa, TenDangNhap]);
@@ -265,6 +365,20 @@ const postUpdateTK = async (req, res) => {
     const query2 =
       "UPDATE taikhoannguoidung SET id_User = ?, MatKhau = ? WHERE TenDangNhap = ?";
     await connection.query(query2, [id_User, MatKhau, TenDangNhap]);
+
+    // Ghi log đơn giản
+    try {
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoaLog = 'DAOTAO';
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
+      
+      const logMessage = `Admin đã thay đổi mật khẩu cho tài khoản: ${TenDangNhap}`;
+        
+      await connection.query(logSql, [userId, tenNhanVien, khoaLog, 'Admin Log', logMessage]);
+    } catch (logError) {
+      console.error('Lỗi khi ghi log:', logError);
+    }
 
     res.redirect("/thongTinTK?UpdateTK=Success");
   } catch (error) {
@@ -284,6 +398,12 @@ const postUpdateBoMon = async (req, res) => {
     const id_BoMon = req.params;
     const id = id_BoMon.id_BoMon;
     const { MaPhongBan, MaBoMon, TenBoMon, TruongBoMon } = req.body;
+    
+    // Lấy dữ liệu cũ trước khi cập nhật
+    const getOldDataQuery = "SELECT * FROM bomon WHERE id_BoMon = ?";
+    const [oldData] = await connection.query(getOldDataQuery, [id]);
+    const oldRecord = oldData[0];
+    
     console.log(MaPhongBan, MaBoMon, TenBoMon, TruongBoMon, id);
     const query =
       "UPDATE bomon set MaBoMon = ?, MaPhongBan = ?, TenBoMon = ?, TruongBoMon = ? WHERE id_BoMon = ?";
@@ -295,13 +415,32 @@ const postUpdateBoMon = async (req, res) => {
       id,
     ]);
 
-    // Ghi log khi admin cập nhật bộ môn
+    // Ghi log chi tiết các trường thay đổi
     try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const logMessage = `Admin cập nhật bộ môn ${MaBoMon}: ${TenBoMon}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoaLog = 'DAOTAO';
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
+      
+      let changes = [];
+      if (oldRecord.MaBoMon !== MaBoMon) {
+        changes.push(`MaBoMon: "${oldRecord.MaBoMon}" -> "${MaBoMon}"`);
+      }
+      if (oldRecord.MaPhongBan !== MaPhongBan) {
+        changes.push(`MaPhongBan: "${oldRecord.MaPhongBan}" -> "${MaPhongBan}"`);
+      }
+      if (oldRecord.TenBoMon !== TenBoMon) {
+        changes.push(`TenBoMon: "${oldRecord.TenBoMon}" -> "${TenBoMon}"`);
+      }
+      if (oldRecord.TruongBoMon !== TruongBoMon) {
+        changes.push(`TruongBoMon: "${oldRecord.TruongBoMon}" -> "${TruongBoMon}"`);
+      }
+      
+      const logMessage = changes.length > 0 
+        ? `Admin cập nhật bộ môn ID ${id}: ${changes.join(', ')}`
+        : `Admin cập nhật bộ môn ID ${id}: Không có thay đổi`;
+        
+      await connection.query(logSql, [userId, tenNhanVien, khoaLog, 'Admin Log', logMessage]);
     } catch (logError) {
       console.error('Lỗi khi ghi log:', logError);
     }
