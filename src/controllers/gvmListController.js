@@ -4,7 +4,6 @@ const pool = require("../config/Pool");
 const ExcelJS = require("exceljs");
 const path = require("path"); // Thêm dòng này
 const fs = require("fs"); // Thêm dòng này
-const LogService = require("../services/logService"); // Import LogService for logging
 
 let gvmLists;
 const getGvmList = async (req, res) => {
@@ -18,7 +17,6 @@ const getGvmList = async (req, res) => {
     // Lấy danh sách giảng viên mời
     const isKhoa = req.session.isKhoa;
     const MaPhongBan = req.session.MaPhongBan;
-    console.log("MaPhongBan = ", MaPhongBan);
     let query;
 
     if (isKhoa == 0) {
@@ -35,7 +33,6 @@ const getGvmList = async (req, res) => {
       phongBanList: phongBanList,
     });
   } catch (error) {
-    console.error("Error fetching data:", error);
     res.status(500).send("Internal Server Error");
   }
 };
@@ -44,7 +41,6 @@ const getGvm = async (req, res) => {
   try {
     res.json(gvmLists); // Trả về danh sách giảng viên mời
   } catch (error) {
-    console.error("Error fetching GVM list:", error);
     res.status(500).json({ message: "Internal Server Error" }); // Xử lý lỗi
   }
 };
@@ -264,20 +260,6 @@ const updateWaitingList = async (req, res) => {
     const userName = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
     const userRole = req.session?.role || '';
     const maPhongBan = req.session?.MaPhongBan || '';
-    
-    console.log('Thông tin session khi duyệt GVM:', { 
-      userId, 
-      userName, 
-      userRole,
-      maPhongBan,
-      sessionData: { 
-        userId: req.session.userId,
-        TenNhanVien: req.session.TenNhanVien,
-        username: req.session.username,
-        role: req.session.role,
-        MaPhongBan: req.session.MaPhongBan
-      } 
-    });
 
     // Lấy thông tin giảng viên trước khi cập nhật để so sánh
     const gvmIds = updatedData.map(item => item.id_Gvm);
@@ -382,17 +364,19 @@ const updateWaitingList = async (req, res) => {
         
         // Ghi log nếu có thay đổi
         for (const message of logMessages) {
-          await LogService.logChange(
+          const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+                           VALUES (?, ?, ?, ?, ?, NOW())`;
+          
+          await pool.query(logQuery, [
             userId,
             userName,
+            maPhongBan,
             'Duyệt giảng viên mời',
             message
-          );
-          console.log(`Đã ghi log: ${message}`);
+          ]);
         }
       }
     } catch (logError) {
-      console.error('Lỗi khi ghi log duyệt giảng viên mời:', logError);
       // Tiếp tục với phản hồi ngay cả khi ghi log thất bại
     }
 
@@ -510,13 +494,6 @@ const unCheckedLecturers = async (req, res) => {
     const userName = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
     const userRole = req.session?.role || '';
     const maPhongBan = req.session?.MaPhongBan || '';
-    
-    console.log('Thông tin session khi bỏ duyệt GVM:', { 
-      userId, 
-      userName, 
-      userRole,
-      maPhongBan
-    });
 
     // Lấy thông tin giảng viên trước khi cập nhật để so sánh
     const gvmIds = updatedData.map(item => item.id_Gvm);
@@ -605,17 +582,18 @@ const unCheckedLecturers = async (req, res) => {
         } else {
           message = `${userName} hủy tất cả phê duyệt giảng viên mời: ${original.HoTen} (${original.MaGvm})`;
         }
+        const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+                         VALUES (?, ?, ?, ?, ?, NOW())`;
         
-        await LogService.logChange(
+        await pool.query(logQuery, [
           userId,
           userName,
+          maPhongBan,
           'Hủy duyệt giảng viên mời',
           message
-        );
-        console.log(`Đã ghi log: ${message}`);
+        ]);
       }
     } catch (logError) {
-      console.error('Lỗi khi ghi log hủy duyệt giảng viên mời:', logError);
       // Tiếp tục với phản hồi ngay cả khi ghi log thất bại
     }
 

@@ -123,7 +123,6 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
         changeMessage
       ]);
 
-      console.log("Đã ghi log thay đổi thông tin đồ án:", changeMessage);
       return true;
     }
 
@@ -366,11 +365,7 @@ const getDoAnEditRequests = async (req, res) => {
 
     query += " ORDER BY created_at DESC";
 
-    console.log("Executing query:", query);
-    console.log("With params:", queryParams);
-
     const [requests] = await connection.query(query, queryParams);
-    console.log("Query result:", requests);
 
     res.json({
       success: true,
