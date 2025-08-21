@@ -231,12 +231,12 @@ const AdminController = {
           (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
           VALUES (?, ?, ?, ?, NOW())
         `;
-        
+
         const userId = req.session?.userId || 1;
         const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
         const loaiThongTin = 'Admin Log';
         const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien}). Tên bị trùng được đổi thành: ${modifiedName}`;
-        
+
         await connection.query(logQuery, [
           userId,
           tenNhanVien,
@@ -257,12 +257,12 @@ const AdminController = {
         (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = req.session?.userId || 1;
       const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm nhân viên mới: "${TenNhanVien}" (CCCD: ${CCCD}, Mã NV: ${MaNhanVien})`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -304,26 +304,26 @@ const AdminController = {
       const values = [maPhongBan, tenPhongBan, ghiChu, khoa ? 1 : 0];
 
       await connection.execute(query, values);
-      
+
       // Ghi log thêm phòng ban thành công
       const logQuery = `
         INSERT INTO lichsunhaplieu 
         (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = req.session?.userId || 1;
       const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm phòng ban mới: "${tenPhongBan}" (Mã: ${maPhongBan})`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
         loaiThongTin,
         changeMessage
       ]);
-      
+
       res.redirect("/phongBan?themphongbanthanhcong");
     } catch (error) {
       console.error("Lỗi khi thêm phòng ban:", error);
@@ -389,12 +389,12 @@ const AdminController = {
         (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = req.session?.userId || 1;
       const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã tạo tài khoản mới: "${TenDangNhap}" với quyền "${Quyen}"`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
@@ -679,12 +679,12 @@ const AdminController = {
         (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
         VALUES (?, ?, ?, ?, NOW())
       `;
-      
+
       const userId = req.session?.userId || 1;
       const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm bộ môn mới: "${TenBoMon}" (Mã: ${MaBoMon}, Phòng ban: ${MaPhongBan})`;
-      
+
       await connection.query(logQuery, [
         userId,
         tenNhanVien,

@@ -15,7 +15,13 @@ const getaccountList = async (req, res) => {
   let connection;
   try {
     query =
-      "SELECT DISTINCT nhanvien.TenNhanVien, taikhoannguoidung.TenDangNhap, taikhoannguoidung.id_User, taikhoannguoidung.matkhau, role.Quyen, nhanvien.MaPhongBan, role.isKhoa FROM taikhoannguoidung INNER JOIN nhanvien ON taikhoannguoidung.id_User = nhanvien.id_User INNER JOIN role ON taikhoannguoidung.TenDangNhap = role.TenDangNhap ORDER BY taikhoannguoidung.id_User ASC"; // Truy vấn lấy tất cả người dùng
+      `SELECT DISTINCT nhanvien.TenNhanVien, taikhoannguoidung.TenDangNhap, taikhoannguoidung.id_User, taikhoannguoidung.matkhau, role.Quyen, nhanvien.MaPhongBan, role.isKhoa 
+      FROM taikhoannguoidung 
+      INNER JOIN nhanvien ON taikhoannguoidung.id_User = nhanvien.id_User 
+      INNER JOIN role ON taikhoannguoidung.TenDangNhap = role.TenDangNhap
+      where taikhoannguoidung.is_hide = 0
+      ORDER BY taikhoannguoidung.id_User ASC`; // Truy vấn lấy tất cả người dùng
+
     connection = await createPoolConnection(); // Kết nối tới cơ sở dữ liệu
     const [results, fields] = await connection.query(query); // Thực hiện truy vấn
     accountLists = results; // Gán kết quả vào accountLists
@@ -34,7 +40,12 @@ const getnhanvienList = async (req, res) => {
   let connection;
   try {
     query =
-      "SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau, nhanvien.PhanTramMienGiam  From nhanvien LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan  ORDER BY nhanvien.id_User ASC"; // Truy vấn lấy tất cả người dùng
+      `SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau, nhanvien.PhanTramMienGiam  
+      From nhanvien 
+      LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User 
+      LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan
+      where taikhoannguoidung.is_hide = 0
+      ORDER BY nhanvien.id_User ASC`; // Truy vấn lấy tất cả người dùng
     connection = await createPoolConnection(); // Kết nối tới cơ sở dữ liệu
     const [results, fields] = await connection.query(query); // Thực hiện truy vấn
     nhanvienLists = results; // Gán kết quả vào nhanvienLists
@@ -430,11 +441,11 @@ const deleteMessage = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    
+
     // Lấy thông tin thông báo trước khi xóa để ghi log
     const getQuery = `SELECT * FROM thongbao WHERE id = ?`;
     const [messageData] = await connection.query(getQuery, [id]);
-    
+
     const query = `DELETE FROM thongbao WHERE id = ?`;
     await connection.query(query, [id]);
 
@@ -606,11 +617,11 @@ const deleteHocPhan = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    
+
     // Lấy thông tin học phần trước khi xóa để ghi log
     const getQuery = "SELECT * FROM hocphan WHERE MaHocPhan = ?";
     const [hocPhanData] = await connection.query(getQuery, [MaHocPhan]);
-    
+
     const query = "DELETE FROM hocphan WHERE MaHocPhan = ?"; // Truy vấn xóa học phần
     const [results] = await connection.query(query, [MaHocPhan]);
 
