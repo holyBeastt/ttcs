@@ -360,6 +360,25 @@
                 legend: {
                   position: "top",
                 },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const rawValue = context.raw || 0;
+                      const chart = context.chart;
+                      const datasets = chart.data.datasets;
+                      const index = context.dataIndex;
+                      const totalAtIndex = datasets.reduce((sum, ds) => {
+                        const v = Array.isArray(ds.data)
+                          ? parseFloat(ds.data[index]) || 0
+                          : 0;
+                        return sum + v;
+                      }, 0);
+                      const percentage = totalAtIndex > 0 ? ((rawValue / totalAtIndex) * 100).toFixed(1) : 0;
+                      const value = (parseFloat(rawValue) || 0).toFixed(2);
+                      return `${context.dataset.label}: ${value} tiết (${percentage}%)`;
+                    },
+                  },
+                },
               },
               scales: {
                 x: {
@@ -435,13 +454,20 @@
             return;
           }
 
+          const totalTong = data.reduce((sum, x) => sum + parseFloat(x.Tongso || 0), 0);
           data.forEach((item) => {
             const row = document.createElement("tr");
+            const mg = parseFloat(item.TongSoTietMoiGiang || 0);
+            const vg = parseFloat(item.TongSoTiet || 0);
+            const rowTotal = mg + vg;
+            const percentMG = rowTotal > 0 ? ((mg / rowTotal) * 100).toFixed(1) : 0;
+            const percentVG = rowTotal > 0 ? ((vg / rowTotal) * 100).toFixed(1) : 0;
+            const percentTong = totalTong > 0 ? ((parseFloat(item.Tongso || 0) / totalTong) * 100).toFixed(1) : 0;
             row.innerHTML = `
-                <td>${item.Khoa}</td>
-                <td>${item.TongSoTietMoiGiang}</td>
-                <td>${item.TongSoTiet}</td>
-                <td>${item.Tongso}</td>
+                <td>${item.Khoa} (${percentTong}%)</td>
+                <td>${mg.toFixed(2)} (${percentMG}%)</td>
+                <td>${vg.toFixed(2)} (${percentVG}%)</td>
+                <td>${parseFloat(item.Tongso || 0).toFixed(2)}</td>
             `;
             tableBody.appendChild(row);
           });
@@ -504,6 +530,7 @@
           const moiGiangCtx = document
             .getElementById("moiGiangPieChart")
             .getContext("2d");
+          const totalMoiGiang = moiGiangData.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
           window.moiGiangPieChart = new Chart(moiGiangCtx, {
             type: "pie",
             data: {
@@ -519,7 +546,37 @@
             options: {
               responsive: true,
               plugins: {
-                legend: { position: "top" },
+                legend: {
+                  position: "top",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, i) => {
+                          const value = data.datasets[0].data[i];
+                          const percentage = totalMoiGiang > 0 ? (((value || 0) / totalMoiGiang) * 100).toFixed(1) : 0;
+                          return {
+                            text: `${label} (${percentage}%)`,
+                            fillStyle: data.datasets[0].backgroundColor[i],
+                            hidden: isNaN(value) || value === 0,
+                            index: i,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const raw = context.raw;
+                      const value = (parseFloat(raw) || 0).toFixed(2);
+                      const percentage = totalMoiGiang > 0 ? (((raw || 0) / totalMoiGiang) * 100).toFixed(1) : 0;
+                      return `${context.label}: ${value} tiết (${percentage}%)`;
+                    },
+                  },
+                },
               },
             },
           });
@@ -528,6 +585,7 @@
           const vuotGioCtx = document
             .getElementById("vuotGioPieChart")
             .getContext("2d");
+          const totalVuotGio = vuotGioData.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
           window.vuotGioPieChart = new Chart(vuotGioCtx, {
             type: "pie",
             data: {
@@ -543,7 +601,37 @@
             options: {
               responsive: true,
               plugins: {
-                legend: { position: "top" },
+                legend: {
+                  position: "top",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, i) => {
+                          const value = data.datasets[0].data[i];
+                          const percentage = totalVuotGio > 0 ? (((value || 0) / totalVuotGio) * 100).toFixed(1) : 0;
+                          return {
+                            text: `${label} (${percentage}%)`,
+                            fillStyle: data.datasets[0].backgroundColor[i],
+                            hidden: isNaN(value) || value === 0,
+                            index: i,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const raw = context.raw;
+                      const value = (parseFloat(raw) || 0).toFixed(2);
+                      const percentage = totalVuotGio > 0 ? (((raw || 0) / totalVuotGio) * 100).toFixed(1) : 0;
+                      return `${context.label}: ${value} tiết (${percentage}%)`;
+                    },
+                  },
+                },
               },
             },
           });
@@ -552,6 +640,7 @@
           const tongTietCtx = document
             .getElementById("tongTietPieChart")
             .getContext("2d");
+          const totalTong = tongSoTietData.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
           window.tongTietPieChart = new Chart(tongTietCtx, {
             type: "pie",
             data: {
@@ -567,7 +656,37 @@
             options: {
               responsive: true,
               plugins: {
-                legend: { position: "top" },
+                legend: {
+                  position: "top",
+                  labels: {
+                    generateLabels: function (chart) {
+                      const data = chart.data;
+                      if (data.labels.length && data.datasets.length) {
+                        return data.labels.map((label, i) => {
+                          const value = data.datasets[0].data[i];
+                          const percentage = totalTong > 0 ? (((value || 0) / totalTong) * 100).toFixed(1) : 0;
+                          return {
+                            text: `${label} (${percentage}%)`,
+                            fillStyle: data.datasets[0].backgroundColor[i],
+                            hidden: isNaN(value) || value === 0,
+                            index: i,
+                          };
+                        });
+                      }
+                      return [];
+                    },
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const raw = context.raw;
+                      const value = (parseFloat(raw) || 0).toFixed(2);
+                      const percentage = totalTong > 0 ? (((raw || 0) / totalTong) * 100).toFixed(1) : 0;
+                      return `${context.label}: ${value} tiết (${percentage}%)`;
+                    },
+                  },
+                },
               },
             },
           });

@@ -242,7 +242,6 @@ function formatDateForDB(dateStr) {
 // hàm xóa 1 dòng
 const deleteRow = async (req, res) => {
   const { tt, dot, ki_hoc, nam_hoc } = req.query; // Lấy ID từ URL
-  console.log("Xóa dòng với tham số:", { tt, dot, ki_hoc, nam_hoc });
 
   let connection;
 
@@ -555,22 +554,24 @@ const addNewRowTKB = async (req, res) => {
   const ki_hoc = data.ki_hoc;
   const nam_hoc = data.nam_hoc;
 
-  let connection;
 
   try {
-    // Kết nối database từ pool
-    connection = await createPoolConnection();
+    // Lấy tt lớn nhất trong bảng course_schedule_details theo dot, ki_hoc, nam_hoc
+    const [maxTTResult] = await pool.query(`
+      select max(tt) as maxTT from course_schedule_details where dot = ? and ki_hoc = ? and nam_hoc = ?`,
+      [dot, ki_hoc, nam_hoc]);
 
     // Tạo câu truy vấn INSERT
     const insertQuery = `
       INSERT INTO course_schedule_details 
-      (course_name, course_code, student_quantity, lecturer, major, ll_total, 
+      (tt, course_name, course_code, student_quantity, lecturer, major, ll_total, 
        bonus_time, ll_code, start_date, end_date, dot, ki_hoc, nam_hoc, qc) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Giá trị cần chèn vào database
     const insertValues = [
+      maxTTResult[0].maxTT + 1 || -1, // Tăng tt từ giá trị lớn nhất
       data.course_name || "",
       data.course_code || "",
       data.student_quantity || "0",
@@ -588,7 +589,7 @@ const addNewRowTKB = async (req, res) => {
     ];
 
     // Thực hiện chèn dữ liệu vào database
-    const [result] = await connection.query(insertQuery, insertValues);
+    const [result] = await pool.query(insertQuery, insertValues);
     const newId = result.insertId; // Lấy ID của dòng vừa thêm
 
     // Trả về dữ liệu đầy đủ của dòng mới
@@ -599,8 +600,6 @@ const addNewRowTKB = async (req, res) => {
   } catch (error) {
     console.error("Lỗi thêm dữ liệu:", error);
     res.status(500).json({ error: "Có lỗi xảy ra khi thêm dữ liệu" });
-  } finally {
-    if (connection) connection.release(); // Trả kết nối về pool
   }
 };
 
@@ -757,8 +756,6 @@ const exportSingleWorksheets = async (req, res) => {
   const { major, dot, ki_hoc, nam_hoc } = req.query;
   let connection;
 
-  console.log("exportSingleWorksheets:", { major, dot, ki_hoc, nam_hoc });
-
   try {
     // Kết nối database từ pool
     connection = await createPoolConnection();
@@ -813,7 +810,6 @@ const exportSingleWorksheets = async (req, res) => {
       let params = [dot, ki_hoc, nam_hoc, m];
 
       const [rows] = await connection.query(query, params);
-      console.log("wsData:", rows); // Kiểm tra dữ liệu trước khi ghi vào file
 
       if (rows.length === 0) continue; // Bỏ qua nếu không có dữ liệu
 
