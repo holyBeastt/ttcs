@@ -20,7 +20,9 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
     }
 
     // Kiểm tra trạng thái duyệt khoa
+    console.log(`🔍 Checking KhoaDuyet: old=${oldData.KhoaDuyet} (${typeof oldData.KhoaDuyet}) vs new=${newData.KhoaDuyet} (${typeof newData.KhoaDuyet})`);
     if (Number(oldData.KhoaDuyet) !== Number(newData.KhoaDuyet)) {
+      console.log(`✅ KhoaDuyet changed!`);
       if (Number(oldData.KhoaDuyet) === 0 && Number(newData.KhoaDuyet) === 1) {
         changeMessage = changeMessage + `Khoa thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.KhoaDuyet) === 1 && Number(newData.KhoaDuyet) === 0) {
@@ -29,7 +31,9 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
     }
 
     // Kiểm tra trạng thái duyệt đào tạo
+    console.log(`🔍 Checking DaoTaoDuyet: old=${oldData.DaoTaoDuyet} (${typeof oldData.DaoTaoDuyet}) vs new=${newData.DaoTaoDuyet} (${typeof newData.DaoTaoDuyet})`);
     if (Number(oldData.DaoTaoDuyet) !== Number(newData.DaoTaoDuyet)) {
+      console.log(`✅ DaoTaoDuyet changed!`);
       if (Number(oldData.DaoTaoDuyet) === 0 && Number(newData.DaoTaoDuyet) === 1) {
         changeMessage = changeMessage + `Đào tạo thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.DaoTaoDuyet) === 1 && Number(newData.DaoTaoDuyet) === 0) {
@@ -38,7 +42,9 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
     }
 
     // Kiểm tra trạng thái duyệt tài chính
+    console.log(`🔍 Checking TaiChinhDuyet: old=${oldData.TaiChinhDuyet} (${typeof oldData.TaiChinhDuyet}) vs new=${newData.TaiChinhDuyet} (${typeof newData.TaiChinhDuyet})`);
     if (Number(oldData.TaiChinhDuyet) !== Number(newData.TaiChinhDuyet)) {
+      console.log(`✅ TaiChinhDuyet changed!`);
       if (Number(oldData.TaiChinhDuyet) === 0 && Number(newData.TaiChinhDuyet) === 1) {
         changeMessage = changeMessage + `Tài chính thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.TaiChinhDuyet) === 1 && Number(newData.TaiChinhDuyet) === 0) {
@@ -108,7 +114,9 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
     }
 
     // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+    console.log(`📝 Final changeMessage: "${changeMessage}"`);
     if (changeMessage !== '') {
+      console.log(`💾 Writing log to database...`);
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
         (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
@@ -123,7 +131,10 @@ const logDoAnChanges = async (connection, oldData, newData, req) => {
         changeMessage
       ]);
 
+      console.log(`✅ Log written successfully!`);
       return true;
+    } else {
+      console.log(`❌ No changes detected, no log written.`);
     }
 
     return false;
