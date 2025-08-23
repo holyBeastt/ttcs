@@ -155,12 +155,6 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
     let changeMessage = '';
     const loaiThongTin = 'Thay đổi thông tin giảng dạy';
     
-    // Debug logging để kiểm tra
-    console.log('=== DEBUG LOGGING ===');
-    console.log('Old KhoaDuyet:', oldData.KhoaDuyet, 'New KhoaDuyet:', newData.KhoaDuyet);
-    console.log('Old DaoTaoDuyet:', oldData.DaoTaoDuyet, 'New DaoTaoDuyet:', newData.DaoTaoDuyet);
-    console.log('Old TaiChinhDuyet:', oldData.TaiChinhDuyet, 'New TaiChinhDuyet:', newData.TaiChinhDuyet);
-    
     // Kiểm tra cột GiaoVienGiangDay
     if (String(oldData.GiaoVienGiangDay || '') !== String(newData.GiaoVienGiangDay || '')) {
       changeMessage = changeMessage + `Giảng Viên giảng dạy cho môn "${newData.LopHocPhan} - ${newData.TenLop}": từ "${oldData.GiaoVienGiangDay || ''}" thành "${newData.GiaoVienGiangDay || ''}". `;
@@ -168,7 +162,6 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
 
     // Kiểm tra cột KhoaDuyet
     if (Number(oldData.KhoaDuyet) !== Number(newData.KhoaDuyet)) {
-      console.log('>>> Khoa Duyet changed:', Number(oldData.KhoaDuyet), '=>', Number(newData.KhoaDuyet));
       if (Number(oldData.KhoaDuyet) === 0 && Number(newData.KhoaDuyet) === 1) {
         changeMessage = changeMessage + `Khoa thay đổi duyệt môn "${newData.LopHocPhan} - ${newData.TenLop}": Đã duyệt. `;
       } else if (Number(oldData.KhoaDuyet) === 1 && Number(newData.KhoaDuyet) === 0) {
@@ -178,7 +171,6 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
 
     // Kiểm tra cột DaoTaoDuyet
     if (Number(oldData.DaoTaoDuyet) !== Number(newData.DaoTaoDuyet)) {
-      console.log('>>> Dao Tao Duyet changed:', Number(oldData.DaoTaoDuyet), '=>', Number(newData.DaoTaoDuyet));
       if (Number(oldData.DaoTaoDuyet) === 0 && Number(newData.DaoTaoDuyet) === 1) {
         changeMessage = changeMessage + `Đào tạo thay đổi duyệt môn "${newData.LopHocPhan} - ${newData.TenLop}": Đã duyệt. `;
       } else if (Number(oldData.DaoTaoDuyet) === 1 && Number(newData.DaoTaoDuyet) === 0) {
@@ -188,7 +180,6 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
 
     // Kiểm tra cột TaiChinhDuyet (Văn phòng)
     if (Number(oldData.TaiChinhDuyet) !== Number(newData.TaiChinhDuyet)) {
-      console.log('>>> Tai Chinh Duyet changed:', Number(oldData.TaiChinhDuyet), '=>', Number(newData.TaiChinhDuyet));
       if (Number(oldData.TaiChinhDuyet) === 0 && Number(newData.TaiChinhDuyet) === 1) {
         changeMessage = changeMessage + `Văn phòng thay đổi duyệt môn "${newData.LopHocPhan} - ${newData.TenLop}": Đã duyệt. `;
       } else if (Number(oldData.TaiChinhDuyet) === 1 && Number(newData.TaiChinhDuyet) === 0) {
@@ -276,13 +267,10 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
 
     // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
     if (changeMessage !== '') {
-      console.log('>>> WRITING LOG:', changeMessage);
       // Lấy thông tin user và khoa từ session
       const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
       const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
       const khoa = req.session?.MaPhongBan || 'Unknown Department';
-      
-      console.log('>>> Session info - userId:', userId, 'tenNhanVien:', tenNhanVien, 'khoa:', khoa);
       
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
@@ -298,10 +286,7 @@ const logQuyChuanChanges = async (connection, oldData, newData, req) => {
         changeMessage
       ]);
 
-      console.log('>>> LOG WRITTEN SUCCESSFULLY');
       return true;
-    } else {
-      console.log('>>> NO CHANGES DETECTED - NO LOG WRITTEN');
     }
 
     return false;
