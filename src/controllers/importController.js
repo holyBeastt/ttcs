@@ -790,12 +790,13 @@ const importTableQC = async (jsonData, req) => {
     if (req && req.session) {
       const logQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
       const userId = req.session.userId || req.session.userInfo?.ID || 0;
       const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+      const khoa = req.session.MaPhongBan || 'Unknown Department';
       const loaiThongTin = "Import file quy chuẩn";
 
       // Lấy thông tin từ dữ liệu đầu tiên nếu có
@@ -808,6 +809,7 @@ const importTableQC = async (jsonData, req) => {
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage,
       ]);

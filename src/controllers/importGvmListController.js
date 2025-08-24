@@ -263,6 +263,35 @@ const saveToDB = async (req, res) => {
         length++;
       }
 
+      // Ghi log việc import giảng viên mời thành công
+      try {
+        const validGvmCount = data.length - duplicateCCCDs.length - khoaFalse.length - boMonFalse.length;
+        if (validGvmCount > 0) {
+          const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+          `;
+
+          const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+          const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+          const khoa = req.session?.MaPhongBan || 'Unknown Department';
+          const loaiThongTin = 'Import giảng viên mời';
+          const changeMessage = `${tenNhanVien} đã thêm mới ${validGvmCount} giảng viên mời từ file vào cơ sở dữ liệu cho khoa ${MaPhongBan}.`;
+          
+          await connection.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+          ]);
+        }
+      } catch (logError) {
+        console.error("Lỗi khi ghi log:", logError);
+        // Không throw error để không ảnh hưởng đến việc import chính
+      }
+
       let mess = "";
 
       if (duplicateCCCDs.length > 0) {

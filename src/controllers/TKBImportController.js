@@ -187,13 +187,39 @@ const importExcelTKB = async (req, res) => {
     ]);
 
     // Insert batch
-    await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO course_schedule_details (
         TT, course_id, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
         day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]
     );
+
+    // Ghi log việc import thời khóa biểu thành công
+    try {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || 'Unknown Department';
+      const loaiThongTin = 'Import thời khóa biểu';
+      const changeMessage = `${tenNhanVien} đã thêm mới lịch học từ file thời khóa biểu vào cơ sở dữ liệu. Kỳ ${ki}, đợt ${dot}, năm học ${nam}.`;
+      
+      await pool.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log:", logError);
+      // Không throw error để không ảnh hưởng đến việc import chính
+    }
 
     res.status(200).json({
       success: true,
