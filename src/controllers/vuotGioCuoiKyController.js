@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 const XLSX = require('xlsx');
 // const { get } = require("../routes/vuotGioCuoiKyRoute");
 
@@ -470,6 +471,32 @@ const insertMyData = async (req, res) => {
       entry.soTietQC,
     ]);
 
+    // Ghi log việc thêm dữ liệu thủ công vượt giờ cuối kỳ sử dụng pool
+    try {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || entry.khoa || 'Unknown Department';
+      const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+      const changeMessage = `${tenNhanVien} đã thêm dữ liệu thủ công vượt giờ cuối kỳ: "${entry.tenHocPhan}" - Lớp: ${entry.lopHocPhan}, Giảng viên: ${entry.hoVaTen}, Hình thức: ${entry.section}, Học kỳ: ${entry.ki}, Năm học: ${entry.nam}, Khoa: ${entry.khoa}, Quy chuẩn: ${entry.soTietQC}.`;
+      
+      await pool.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log:", logError);
+      // Không throw error để không ảnh hưởng đến việc thêm dữ liệu chính
+    }
+
     conn.release();
     res.json({ message: "Dữ liệu đã được import vào cơ sở dữ liệu thành công!" });
   } catch (error) {
@@ -517,6 +544,11 @@ const updateMyData = async (req, res) => {
       const { loai, id, tenHocPhan, lopHocPhan } = item; // Lấy loai và id từ từng phần tử trong mảng
       let section, soBaiCham1, soBaiCham2, tongSoBai, soTietQC;
 
+      // Lấy thông tin dữ liệu cũ trước khi cập nhật để ghi log
+      const getOldDataQuery = `SELECT * FROM ketthuchocphan WHERE id = ?`;
+      const [oldDataRows] = await conn.query(getOldDataQuery, [id]);
+      const oldData = oldDataRows[0];
+
       if (loai === "Ra Đề") {
         section = "Ra Đề";
         soBaiCham1 = 0;
@@ -544,7 +576,7 @@ const updateMyData = async (req, res) => {
         WHERE id = ?
       `;
 
-      await conn.query(query, [
+      const [result] = await conn.query(query, [
         tenHocPhan,
         lopHocPhan,
         section,
@@ -554,6 +586,43 @@ const updateMyData = async (req, res) => {
         soTietQC || 0,
         id
       ]);
+
+      // Ghi log việc cập nhật dữ liệu vượt giờ cuối kỳ sử dụng pool
+      if (result.affectedRows > 0 && oldData) {
+        try {
+          const logQuery = `
+            INSERT INTO lichsunhaplieu 
+            (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+            VALUES (?, ?, ?, ?, ?, NOW())
+          `;
+
+          const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+          const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+          const khoa = req.session?.MaPhongBan || oldData.khoa || 'Unknown Department';
+          const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+          
+          // Tạo message chi tiết về những thay đổi
+          let changes = [];
+          if (oldData.tenhocphan !== tenHocPhan) changes.push(`Tên HP: "${oldData.tenhocphan}" → "${tenHocPhan}"`);
+          if (oldData.lophocphan !== lopHocPhan) changes.push(`Lớp: "${oldData.lophocphan}" → "${lopHocPhan}"`);
+          if (oldData.hinhthuc !== section) changes.push(`Hình thức: "${oldData.hinhthuc}" → "${section}"`);
+          if (oldData.sotietqc !== soTietQC) changes.push(`Quy chuẩn: ${oldData.sotietqc} → ${soTietQC}`);
+          if (oldData.tongso !== tongSoBai) changes.push(`Tổng số: ${oldData.tongso} → ${tongSoBai}`);
+          
+          const changeMessage = `${tenNhanVien} đã cập nhật dữ liệu vượt giờ cuối kỳ ID ${id}: ${changes.length > 0 ? changes.join(', ') : 'Không có thay đổi'} - Giảng viên: ${oldData.giangvien}, Học kỳ: ${oldData.ki}, Năm học: ${oldData.namhoc}.`;
+          
+          await pool.query(logQuery, [
+            userId,
+            tenNhanVien,
+            khoa,
+            loaiThongTin,
+            changeMessage
+          ]);
+        } catch (logError) {
+          console.error("Lỗi khi ghi log:", logError);
+          // Không throw error để không ảnh hưởng đến việc cập nhật chính
+        }
+      }
     }
 
     conn.release();
@@ -572,12 +641,46 @@ const deleteMyData = async (req, res) => {
     const { id } = req.body;
     const conn = await createPoolConnection();
 
+    // Lấy thông tin dữ liệu trước khi xóa để ghi log
+    const getDataQuery = `SELECT * FROM ketthuchocphan WHERE id = ?`;
+    const [dataRows] = await conn.query(getDataQuery, [id]);
+    const deletedData = dataRows[0];
+
     const deleteQuery = `
       DELETE FROM ketthuchocphan 
       WHERE id = ?
     `;
 
     const [result] = await conn.query(deleteQuery, [id]);
+    
+    // Ghi log việc xóa dữ liệu vượt giờ cuối kỳ sử dụng pool
+    if (result.affectedRows > 0 && deletedData) {
+      try {
+        const logQuery = `
+          INSERT INTO lichsunhaplieu 
+          (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+          VALUES (?, ?, ?, ?, ?, NOW())
+        `;
+
+        const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+        const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+        const khoa = req.session?.MaPhongBan || deletedData.khoa || 'Unknown Department';
+        const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+        const changeMessage = `${tenNhanVien} đã xóa dữ liệu vượt giờ cuối kỳ: "${deletedData.tenhocphan}" - Lớp: ${deletedData.lophocphan}, Giảng viên: ${deletedData.giangvien}, Hình thức: ${deletedData.hinhthuc}, Học kỳ: ${deletedData.ki}, Năm học: ${deletedData.namhoc}, Khoa: ${deletedData.khoa}, Quy chuẩn: ${deletedData.sotietqc}.`;
+        
+        await pool.query(logQuery, [
+          userId,
+          tenNhanVien,
+          khoa,
+          loaiThongTin,
+          changeMessage
+        ]);
+      } catch (logError) {
+        console.error("Lỗi khi ghi log:", logError);
+        // Không throw error để không ảnh hưởng đến việc xóa chính
+      }
+    }
+
     conn.release();
 
     if (result.affectedRows > 0) {
@@ -603,6 +706,11 @@ const updateData = async (req, res) => {
     for (const item of dataList) {
       const { loai, id, tenHocPhan, lopHocPhan } = item; // Lấy loai và id từ từng phần tử trong mảng
       let section, soBaiCham1, soBaiCham2, tongSoBai, soTietQC;
+
+      // Lấy thông tin dữ liệu cũ trước khi cập nhật để ghi log
+      const getOldDataQuery = `SELECT * FROM ketthuchocphan WHERE id = ?`;
+      const [oldDataRows] = await conn.query(getOldDataQuery, [id]);
+      const oldData = oldDataRows[0];
 
       if (loai === "Ra Đề") {
         section = "Ra Đề";
@@ -637,7 +745,7 @@ const updateData = async (req, res) => {
         WHERE id = ?
       `;
 
-      await conn.query(query, [
+      const [result] = await conn.query(query, [
         tenHocPhan,
         lopHocPhan,
         section,
@@ -649,6 +757,68 @@ const updateData = async (req, res) => {
         khaothiduyet,
         id
       ]);
+
+      // Ghi log việc cập nhật và duyệt dữ liệu đánh giá cuối kỳ sử dụng pool
+      if (result.affectedRows > 0 && oldData) {
+        try {
+          // Tạo message chi tiết về những thay đổi - chuyển đổi về số để so sánh chính xác
+          let changes = [];
+          if (oldData.tenhocphan !== tenHocPhan) changes.push(`Tên HP: "${oldData.tenhocphan}" → "${tenHocPhan}"`);
+          if (oldData.lophocphan !== lopHocPhan) changes.push(`Lớp: "${oldData.lophocphan}" → "${lopHocPhan}"`);
+          if (oldData.hinhthuc !== section) changes.push(`Hình thức: "${oldData.hinhthuc}" → "${section}"`);
+          
+          // So sánh số cho các trường số
+          const oldSoTietQC = parseInt(oldData.sotietqc) || 0;
+          const newSoTietQC = parseInt(soTietQC) || 0;
+          const oldTongSo = parseInt(oldData.tongso) || 0;
+          const newTongSo = parseInt(tongSoBai) || 0;
+          
+          if (oldSoTietQC !== newSoTietQC) changes.push(`Quy chuẩn: ${oldSoTietQC} → ${newSoTietQC}`);
+          if (oldTongSo !== newTongSo) changes.push(`Tổng số: ${oldTongSo} → ${newTongSo}`);
+          
+          // Ghi log các thay đổi về duyệt - chuyển đổi về số để so sánh chính xác
+          const oldKhoaDuyet = parseInt(oldData.khoaduyet) || 0;
+          const newKhoaDuyet = parseInt(khoaduyet) || 0;
+          const oldKhaoThiDuyet = parseInt(oldData.khaothiduyet) || 0;
+          const newKhaoThiDuyet = parseInt(khaothiduyet) || 0;
+          
+          if (oldKhoaDuyet !== newKhoaDuyet) {
+            const khoaAction = newKhoaDuyet === 1 ? 'đã duyệt' : 'hủy duyệt';
+            changes.push(`Khoa ${khoaAction}`);
+          }
+          if (oldKhaoThiDuyet !== newKhaoThiDuyet) {
+            const khaothiAction = newKhaoThiDuyet === 1 ? 'đã duyệt' : 'hủy duyệt';
+            changes.push(`Khảo thí ${khaothiAction}`);
+          }
+          
+          // Chỉ ghi log khi có thay đổi thực sự
+          if (changes.length > 0) {
+            const logQuery = `
+              INSERT INTO lichsunhaplieu 
+              (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+              VALUES (?, ?, ?, ?, ?, NOW())
+            `;
+
+            const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+            const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+            const khoa = req.session?.MaPhongBan || oldData.khoa || 'Unknown Department';
+            const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+            
+            const changeMessage = `${tenNhanVien} đã cập nhật dữ liệu cuối kỳ cho "${oldData.tenhocphan}": ${changes.join(', ')}.`;
+            
+            await pool.query(logQuery, [
+              userId,
+              tenNhanVien,
+              khoa,
+              loaiThongTin,
+              changeMessage
+            ]);
+          }
+        } catch (logError) {
+          console.error("Lỗi khi ghi log:", logError);
+          // Không throw error để không ảnh hưởng đến việc cập nhật chính
+        }
+      }
     }
 
     conn.release();
