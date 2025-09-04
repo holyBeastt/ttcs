@@ -1,13 +1,11 @@
-const createConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 
 const thongketonghopController = {
   getChartData: async (req, res) => {
-    let connection;
     const { namhoc, kihoc, khoa, hedaotao, type } = req.query;
     const thongkeType = type || "khoa"; // mặc định là theo khoa
 
     try {
-      connection = await createConnection();
 
       if (thongkeType === "hedaotao") {
         // Query cho thống kê theo hệ đào tạo
@@ -73,7 +71,7 @@ const thongketonghopController = {
         params.push(kihoc || "ALL");
         params.push(kihoc || "ALL");
 
-        const [result] = await connection.query(query, params);
+        const [result] = await pool.query(query, params);
         res.json(result);
       } else {
         // Query cho thống kê theo khoa (giữ nguyên code cũ)
@@ -97,7 +95,7 @@ const thongketonghopController = {
 
         query += ` GROUP BY Khoa`;
 
-        const [moiGiangData] = await connection.query(query, params);
+        const [moiGiangData] = await pool.query(query, params);
 
         let queryVuotGio = `
           WITH Final AS (
@@ -164,7 +162,7 @@ const thongketonghopController = {
         paramsVuotGio.push(kihoc || "ALL");
         paramsVuotGio.push(kihoc || "ALL");
 
-        const [vuotGioData] = await connection.query(
+        const [vuotGioData] = await pool.query(
           queryVuotGio,
           paramsVuotGio
         );
@@ -210,23 +208,19 @@ const thongketonghopController = {
       res
         .status(500)
         .json({ success: false, message: "Lỗi máy chủ", error: error.message });
-    } finally {
-      if (connection) connection.release();
     }
   },
 
   getNamHocData: async (req, res) => {
-    let connection;
     try {
-      connection = await createConnection();
 
       // Lấy danh sách năm học
-      const [namHoc] = await connection.query(
+      const [namHoc] = await pool.query(
         "SELECT DISTINCT namhoc as NamHoc FROM hopdonggvmoi ORDER BY namhoc DESC"
       );
 
       // Lấy danh sách kỳ
-      const [ki] = await connection.query(
+      const [ki] = await pool.query(
         "SELECT DISTINCT kihoc as Ki FROM hopdonggvmoi ORDER BY kihoc"
       );
 
@@ -244,8 +238,6 @@ const thongketonghopController = {
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu năm học:", error);
       res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-    } finally {
-      if (connection) connection.release();
     }
   },
 
