@@ -1,17 +1,62 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
-// require("dotenv").config();
 require("dotenv").config({ path: path.join(__dirname, '../.env') });
 const session = require("express-session");
 const login = require("./routes/loginRoute");
-//const importFile = require("./routes/importRoute");
-
-// config engine template
 const configViewEngine = require("./config/viewEngine");
-
 // Middleware for constants
 const constantsMiddleware = require("./middlewares/constantsMiddleware");
+
+
+const app = express();
+const port = process.env.port || 8888;
+const hostname = process.env.HOST_NAME;
+
+app.use(constantsMiddleware);
+app.use(bodyParser.json({ limit: "500mb" }));
+app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+configViewEngine(app);
+
+
+// Thiết lập session trong Express
+app.use(
+  session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    rolling: true, // Gia hạn mỗi request
+    // Đặt true nếu bạn sử dụng HTTPS
+    cookie: { maxAge: 3600000 }, // Session sẽ hết hạn sau 1 giờ không hoạt động
+  })
+);
+
+// cấu hình file tĩnh
+app.use(express.static(path.join(__dirname, "../node_modules")));
+app.use(express.static(path.join(__dirname, "public/images")));
+app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
+app.use(express.static(path.join(__dirname, "public/css"))); // css
+
+// cấu hình ejs
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+
+// cấu hình phiên
+app.use("/", login);
+app.use((req, res, next) => {
+  const publicRoutes = ["/", "/login"];
+
+  // Nếu session không tồn tại & route hiện tại không thuộc danh sách public => Chuyển hướng đến /login
+  if (!req.session.userId && !publicRoutes.includes(req.path)) {
+    return res.redirect("/?sessionExpired=true");
+    //return res.redirect("/");
+  }
+
+  next(); // Tiếp tục xử lý route tiếp theo nếu session hợp lệ
+});
 
 // Cấu hình đường dẫn routes
 const webRoutes = require("./routes/web");
@@ -66,68 +111,13 @@ const hopDongDARoute = require("./routes/hopDongDARoute");
 const phongHocRoute = require("./routes/phongHocRoute");
 const uyNhiemChiRoute = require("./routes/uyNhiemChiRoute");
 
-const app = express();
-const port = process.env.port || 8888;
-const hostname = process.env.HOST_NAME;
+const importFile = require("./routes/importRoute");
+const infoGvm = require("./routes/infoRoute");
+const tableQc = require("./routes/gvmRoute");
+const xoaQCDK = require("./routes/qcdkRoute");
+const nckhRoute = require("./routes/nckhRoute");
+const { backupDatabase } = require("./controllers/backupController");
 
-// Gọi middleware lấy roles và departments
-app.use(constantsMiddleware);
-
-app.use(bodyParser.json({ limit: "500mb" }));
-app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-// config engine template
-configViewEngine(app);
-
-// cấu hình session cho login
-//app.use(express.urlencoded({ extended: true }));
-// app.use(
-//   session({
-//     secret: "your_secret_key",
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: { secure: false }, // set secure: true nếu bạn sử dụng HTTPS
-//   })
-// );
-
-// Thiết lập session trong Express
-app.use(
-  session({
-    secret: "your-secret-key",
-    resave: false,
-    saveUninitialized: true,
-    rolling: true, // Gia hạn mỗi request
-    // Đặt true nếu bạn sử dụng HTTPS
-    cookie: { maxAge: 3600000 }, // Session sẽ hết hạn sau 1 giờ không hoạt động
-  })
-);
-
-app.use(express.static(path.join(__dirname, "../node_modules")));
-app.use(express.static(path.join(__dirname, "public/images")));
-
-// == src of L ==
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-app.use(express.static(path.join(__dirname, "public/js"))); // tệp js
-
-app.use("/", login);
-
-app.use((req, res, next) => {
-  const publicRoutes = ["/", "/login"];
-
-  // Nếu session không tồn tại & route hiện tại không thuộc danh sách public => Chuyển hướng đến /login
-  if (!req.session.userId && !publicRoutes.includes(req.path)) {
-    return res.redirect("/?sessionExpired=true");
-    //return res.redirect("/");
-  }
-
-  next(); // Tiếp tục xử lý route tiếp theo nếu session hợp lệ
-});
-// config res.body
-//app.use(express.json()); // for json
-//app.use(express.urlencoded({ extended: true })); // for form data
 
 // Khai bao route
 app.use("/", webRoutes);
@@ -184,20 +174,6 @@ app.use("/", hopDongDARoute);
 app.use("/", phongHocRoute);
 app.use("/uy-nhiem-chi", uyNhiemChiRoute);
 
-app.listen(port, hostname, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
-
-// Phục vụ các file tĩnh từ thư mục node_modules
-
-//app.use(express.json()); // Thêm dòng này để xử lý JSON
-
-const importFile = require("./routes/importRoute");
-const infoGvm = require("./routes/infoRoute");
-const tableQc = require("./routes/gvmRoute");
-const xoaQCDK = require("./routes/qcdkRoute");
-const nckhRoute = require("./routes/nckhRoute");
-const { backupDatabase } = require("./controllers/backupController");
 
 app.use("/", importFile); // cấu hình import
 app.use("/", infoGvm); // cấu hình import
@@ -205,4 +181,6 @@ app.use("/", tableQc); // cấu hình import
 app.use("/", xoaQCDK);
 app.use("/", nckhRoute);
 
-// Thay đổi giới hạn kích thước payload (ví dụ: 10mb)
+app.listen(port, hostname, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
