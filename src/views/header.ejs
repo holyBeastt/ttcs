@@ -187,6 +187,13 @@
                 <a class="nav-link" href="/api/moi-giang/hd-gvm/img-download-site">Phụ lục minh chứng giảng viên mời</a>
                 <a class="nav-link" href="/api/hd-gvm/additional-file-site">Tải tổng hợp hợp đồng</a>
                 <a class="nav-link" style="display: none" id="suaHD" href="/suaHD">Sửa Thông Tin Hợp Đồng</a>
+                <div class="dropdown-submenu" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUyNhiem" data-bs-toggle="dropdown" aria-expanded="false">Ủy nhiệm chi</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownUyNhiem">
+                    <a class="nav-link" href="/uy-nhiem-chi/tai-uy-nhiem-chi">Tải ủy nhiệm chi</a>
+                    <a class="nav-link" href="/uy-nhiem-chi/sua-mau-uy-nhiem">Sửa mẫu ủy nhiệm</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -510,15 +517,10 @@
       navLink_addFileQC.style.display = "none";
     }
 
-    console.log(maPhongBan)
     if (maPhongBan !== APP_DEPARTMENTS.khaoThi || (userRole !== APP_ROLES.lanhDao_phong && userRole !== APP_ROLES.troLy_phong)) {
       themFileKTHP.style.display = "none";
-      console.log("ẩn thêm file KTHP")
-      console.log(userRole);
-      console.log(APP_ROLES.lanhDao_phong);
     }else {
       themFileKTHP.style.display = "";
-      console.log("hiển thị thêm file KTHP")
     }
   });
 </script>

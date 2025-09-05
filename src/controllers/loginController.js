@@ -1,85 +1,84 @@
 const pool = require("../config/Pool");
-const { use } = require("../routes/adminRoute");
 require("dotenv").config();
 
+/**
+ * Đăng nhập người dùng
+ */
 const login = async (req, res) => {
   const { username, password } = req.body;
-  let connection;
 
   try {
-    // Truy vấn người dùng từ cơ sở dữ liệu
+    // Lấy thông tin user
     const [users] = await pool.query(
-      "SELECT * FROM taikhoannguoidung WHERE TenDangNhap = ?",
+      "SELECT * FROM taikhoannguoidung WHERE TenDangNhap = ? AND MatKhau = ?",
+      [username, password]
+    );
+
+    if (users.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Tên tài khoản hoặc mật khẩu không chính xác" });
+    }
+
+    const user = users[0];
+
+    // Lấy tên nhân viên
+    const [employeeData] = await pool.query(
+      `SELECT TenNhanVien 
+       FROM nhanvien 
+       JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User
+       WHERE TenDangNhap = ?`,
+      [username]
+    );
+    const TenNhanVien = employeeData[0]?.TenNhanVien || null;
+
+    // Lấy vai trò
+    const [roleData] = await pool.query(
+      "SELECT MaPhongBan, Quyen, isKhoa FROM role WHERE TenDangNhap = ?",
       [username]
     );
 
-    // Kiểm tra nếu có người dùng
-    if (users.length > 0) {
-      const user = users[0];
+    const roleInfo = roleData[0] || {};
+    const { MaPhongBan = null, Quyen: role = null, isKhoa = null } = roleInfo;
 
-      // So sánh mật khẩu
-      if (user.MatKhau == password) {
-        req.session.userId = user.id_User; // Lưu id_User vào session
+    // Lưu session
+    Object.assign(req.session, {
+      userId: user.id_User,
+      username,
+      TenNhanVien,
+      role,
+      MaPhongBan,
+      isKhoa,
+      tmp: 0,
+    });
 
-        // Lấy tên người dùng
-        const query = `SELECT TenNhanVien FROM nhanvien 
-            JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User
-            WHERE TenDangNhap = ?`;
-        const [TenNhanViens] = await pool.query(query, [username]);
-        const TenNhanVien = TenNhanViens[0]?.TenNhanVien;
+    // Xác định URL redirect
+    const url = getRedirectUrl(role, isKhoa);
 
-        // Phân quyền người dùng
-        const [roles] = await pool.query(
-          "SELECT MaPhongBan, Quyen, isKhoa FROM role WHERE TenDangNhap = ?",
-          [username]
-        );
-
-        const MaPhongBan = roles[0]?.MaPhongBan; // Kiểm tra an toàn
-        const role = roles[0]?.Quyen; // Kiểm tra an toàn
-        const isKhoa = roles[0]?.isKhoa; // Kiểm tra an toàn
-        req.session.role = role;
-        req.session.MaPhongBan = MaPhongBan;
-        req.session.isKhoa = isKhoa;
-        req.session.TenNhanVien = TenNhanVien; // Lưu tên nhân viên vào session
-        req.session.username = username; // Lưu tên đăng nhập vào session
-
-        // Tạo 1 req.session để dùng làm mẫu
-        req.session.tmp = 0;
-
-        let url;
-
-        if (role === "ADMIN" || role === "") {
-          req.session.role = "ADMIN"; // Gán vai trò admin nếu không có vai trò
-          req.session.MaPhongBan = null;
-          url = "/admin"; // Đăng nhập vào trang admin
-        } else if (isKhoa === 1) {
-          url = "/mainkhoa";
-        } else {
-          url = "/maindt";
-        }
-        //
-
-        // Trả về phản hồi thành công với url
-        return res.status(200).json({
-          url,
-          role,
-          MaPhongBan,
-          isKhoa,
-          TenNhanVien,
-          username,
-          id_User: user.id_User,
-        });
-      } else {
-        return res.status(401).json({ message: "Mật khẩu không chính xác" });
-      }
-    } else {
-      return res.status(404).json({ message: "Tên tài khoản không chính xác" });
-    }
+    // Trả response
+    return res.status(200).json({
+      url,
+      role,
+      MaPhongBan,
+      isKhoa,
+      TenNhanVien,
+      username,
+      id_User: user.id_User,
+    });
   } catch (err) {
-    // Xử lý lỗi
-    console.error(err);
+    console.error("Login error:", err);
     return res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
+
+/**
+ * Xác định URL redirect dựa vào role và isKhoa
+ */
+function getRedirectUrl(role, isKhoa) {
+  if (role === "ADMIN") return "/admin";
+  if (isKhoa === 1) return "/mainkhoa";
+  if (isKhoa === 0) return "/maindt";
+  return "/";
+}
 
 module.exports = login;

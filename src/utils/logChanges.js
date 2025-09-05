@@ -5,21 +5,13 @@ const createPoolConnection = require("../config/databasePool");
  * @param {Object} connection - Kết nối MySQL
  * @param {Object} oldData - Dữ liệu cũ
  * @param {Object} newData - Dữ liệu mới
- * @param {Number} userId - ID người dùng
- * @param {String} tenNhanVien - Tên nhân viên
+ * @param {Object} req - Request object để lấy thông tin session
  * @returns {Boolean} - Kết quả ghi log
  */
-const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanVien = 'ADMIN') => {
+const logDoAnChanges = async (connection, oldData, newData, req) => {
   try {
     let changeMessage = '';
     const loaiThongTin = 'Thay đổi thông tin đồ án';
-    
-    console.log("So sánh dữ liệu cho ID:", oldData.ID);
-    console.log("GiangVien1 - Cũ:", oldData.GiangVien1, "Mới:", newData.GiangVien1, "Giống nhau:", String(oldData.GiangVien1 || '') === String(newData.GiangVien1 || ''));
-    console.log("GiangVien2 - Cũ:", oldData.GiangVien2, "Mới:", newData.GiangVien2, "Giống nhau:", String(oldData.GiangVien2 || '') === String(newData.GiangVien2 || ''));
-    console.log("KhoaDuyet - Cũ:", oldData.KhoaDuyet, "Mới:", newData.KhoaDuyet, "Giống nhau:", Number(oldData.KhoaDuyet) === Number(newData.KhoaDuyet));
-    console.log("NgayBatDau - Cũ:", oldData.NgayBatDau, "Mới:", newData.NgayBatDau);
-    console.log("NgayKetThuc - Cũ:", oldData.NgayKetThuc, "Mới:", newData.NgayKetThuc);
 
     // Kiểm tra cột GiangVien1
     if (String(oldData.GiangVien1 || '') !== String(newData.GiangVien1 || '')) {
@@ -84,9 +76,7 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
         }
       }
     }
-    
-    console.log("Ngày bắt đầu sau khi chuẩn hóa - Cũ:", oldStartDate, "Mới:", newStartDate);
-    
+      
     if (oldStartDate !== newStartDate) {
       changeMessage = changeMessage + `Thay đổi ngày bắt đầu cho đồ án "${newData.TenDeTai}": từ "${oldStartDate}" thành "${newStartDate}". `;
     }
@@ -118,34 +108,36 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
       }
     }
     
-    console.log("Ngày kết thúc sau khi chuẩn hóa - Cũ:", oldEndDate, "Mới:", newEndDate);
-    
     if (oldEndDate !== newEndDate) {
       changeMessage = changeMessage + `Thay đổi ngày kết thúc cho đồ án "${newData.TenDeTai}": từ "${oldEndDate}" thành "${newEndDate}". `;
     }
 
     // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
     if (changeMessage !== '') {
+      // Lấy thông tin user và khoa từ session
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || 'Unknown Department';
+      
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
       await connection.query(insertQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
 
-      console.log("Đã ghi log thay đổi thông tin đồ án:", changeMessage);
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error("Lỗi khi ghi log thay đổi:", error);
     return false;
   }
 };
@@ -155,21 +147,14 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
  * @param {Object} connection - Kết nối MySQL
  * @param {Object} oldData - Dữ liệu cũ
  * @param {Object} newData - Dữ liệu mới
- * @param {Number} userId - ID người dùng
- * @param {String} tenNhanVien - Tên nhân viên
+ * @param {Object} req - Request object để lấy thông tin session
  * @returns {Boolean} - Kết quả ghi log
  */
-const logQuyChuanChanges = async (connection, oldData, newData, userId = 1, tenNhanVien = 'ADMIN') => {
+const logQuyChuanChanges = async (connection, oldData, newData, req) => {
   try {
     let changeMessage = '';
-    let loaiThongTin = '';
+    const loaiThongTin = 'Thay đổi thông tin giảng dạy';
     
-    // Xác định loại thông tin dựa trên giá trị MoiGiang
-    if (Number(newData.MoiGiang) === 1) {
-      loaiThongTin = 'Thay đổi thông tin lớp mời giảng';
-    } else {
-      loaiThongTin = 'Thay đổi thông tin lớp vượt giờ';
-    }
     // Kiểm tra cột GiaoVienGiangDay
     if (String(oldData.GiaoVienGiangDay || '') !== String(newData.GiaoVienGiangDay || '')) {
       changeMessage = changeMessage + `Giảng Viên giảng dạy cho môn "${newData.LopHocPhan} - ${newData.TenLop}": từ "${oldData.GiaoVienGiangDay || ''}" thành "${newData.GiaoVienGiangDay || ''}". `;
@@ -282,26 +267,30 @@ const logQuyChuanChanges = async (connection, oldData, newData, userId = 1, tenN
 
     // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
     if (changeMessage !== '') {
+      // Lấy thông tin user và khoa từ session
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || 'Unknown Department';
+      
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
       await connection.query(insertQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
 
-      console.log("Đã ghi log thay đổi thông tin quy chuẩn:", changeMessage);
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error("Lỗi khi ghi log thay đổi:", error);
     return false;
   }
 };

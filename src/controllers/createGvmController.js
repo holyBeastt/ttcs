@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
-const LogService = require("../services/logService"); // Import LogService for logging
 
 //const gvmList = require("../services/gvmServices");
 const router = express.Router();
@@ -21,7 +20,6 @@ const getGvmLists = async (connection) => {
     // Gửi danh sách giảng viên dưới dạng mảng
     return results; // Chỉ gửi kết quả mảng
   } catch (error) {
-    console.error("Error fetching GVM lists: ", error);
     return;
   }
 };
@@ -169,29 +167,23 @@ let createGvm = async (req, res) => {
 
         // Log the creation of a new guest lecturer
         try {
-          const userId = req.session.userId || 0; // Lấy đúng userId từ session
-          const userName = req.session.TenNhanVien || req.session.username || 'Unknown User';
+          // Lấy thông tin user và khoa từ session
+          const userId = req.session.userId || req.session.userInfo?.ID || 0;
+          const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+          const khoa = req.session.MaPhongBan || 'Unknown Department';
           
-          console.log('Thông tin session khi thêm GVM mới:', { 
-            userId, 
-            userName, 
-            sessionData: { 
-              userId: req.session.userId,
-              TenNhanVien: req.session.TenNhanVien,
-              username: req.session.username
-            } 
-          });
+          const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+                           VALUES (?, ?, ?, ?, ?, NOW())`;
           
-          await LogService.logChange(
+          await connection.query(logQuery, [
             userId,
-            userName,
-            'Thêm giảng viên mời',
-            `Thêm giảng viên mời mới: ${HoTen} - ${MaGvm}`
-          );
+            tenNhanVien,
+            khoa,
+            'Tạo mới giảng viên mời',
+            `Thêm giảng viên mời mới: ${HoTen} (Mã: ${MaGvm}, CCCD: ${CCCD})`
+          ]);
           
-          console.log(`Đã ghi log thêm mới giảng viên mời: ${HoTen} - ${MaGvm}`);
         } catch (logError) {
-          console.error('Error logging new guest lecturer:', logError);
           // Continue with the response even if logging fails
         }
 
@@ -212,7 +204,6 @@ let createGvm = async (req, res) => {
 
         res.redirect("/gvmList?message=insertSuccess");
       } catch (err) {
-        console.error("Error executing query: ", err);
         if (err.code === "ER_DUP_ENTRY") {
           return res.redirect("/gvmList?message=duplicateEntry");
         }
@@ -222,7 +213,6 @@ let createGvm = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Lỗi khi xử lý tải lên: ", error);
     res.status(500).send("Lỗi khi xử lý tải lên");
   } finally {
     if (connection) connection.release();
@@ -250,7 +240,6 @@ const getBoMonList = async (req, res) => {
       maBoMon: results,
     });
   } catch (error) {
-    console.error("Lỗi: ", error);
     res.status(500).send("Đã có lỗi xảy ra");
   } finally {
     if (connection) connection.release(); // Đảm bảo giải phóng kết nối

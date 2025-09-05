@@ -818,6 +818,14 @@ const approveContracts = async (req, res) => {
         }        // If all checks pass, update TaiChinhDuyet = 1 for mời giảng
         let affectedRows = 0;
 
+        // Lấy thông tin session để ghi log
+        const userId = req.session.userId;
+        const tenNhanVien = req.session.TenNhanVien || '';
+        const khoa = req.session.MaPhongBan || '';
+        
+        // Mảng chứa tất cả log entries
+        const logEntries = [];
+
         // For mời giảng, update all faculties if no specific faculty selected
         if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
             // Get all faculties and update each that has all DaoTaoDuyet = 1
@@ -841,8 +849,29 @@ const approveContracts = async (req, res) => {
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                     affectedRows += updateResult.affectedRows;
+                    
+                    // Ghi log cho từng khoa được cập nhật
+                    if (updateResult.affectedRows > 0) {
+                        const noiDungThayDoi = `Duyệt tài chính ${updateResult.affectedRows} hợp đồng mời giảng - Khoa: ${faculty.MaPhongBan}, Đợt: ${dot}, Kì: ${ki}, Năm: ${namHoc}`;
+                        logEntries.push([
+                            userId,
+                            tenNhanVien,
+                            khoa,
+                            'Duyệt hợp đồng mời giảng',
+                            noiDungThayDoi,
+                            new Date()
+                        ]);
+                    }
                 }
             }
+        }
+
+        // Ghi tất cả log entries vào database một lần
+        if (logEntries.length > 0) {
+            await connection.query(
+                `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES ?`,
+                [logEntries]
+            );
         } const facultyText = ' của tất cả khoa';
 
         res.json({
@@ -900,6 +929,14 @@ const unapproveContracts = async (req, res) => {
         // Update TaiChinhDuyet = 0 for mời giảng (reverse of approval)
         let affectedRows = 0;
 
+        // Lấy thông tin session để ghi log
+        const userId = req.session.userId;
+        const tenNhanVien = req.session.TenNhanVien || '';
+        const khoa = req.session.MaPhongBan || '';
+        
+        // Mảng chứa tất cả log entries
+        const logEntries = [];
+
         // For mời giảng, update all faculties if no specific faculty selected
         if (!maPhongBan || maPhongBan === '' || maPhongBan === 'ALL') {
             // Get all faculties and update each that has TaiChinhDuyet = 1
@@ -914,7 +951,28 @@ const unapproveContracts = async (req, res) => {
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 affectedRows += updateResult.affectedRows;
+                
+                // Ghi log cho từng khoa được cập nhật
+                if (updateResult.affectedRows > 0) {
+                    const noiDungThayDoi = `Bỏ duyệt tài chính ${updateResult.affectedRows} hợp đồng mời giảng - Khoa: ${faculty.MaPhongBan}, Đợt: ${dot}, Kì: ${ki}, Năm: ${namHoc}`;
+                    logEntries.push([
+                        userId,
+                        tenNhanVien,
+                        khoa,
+                        'Bỏ duyệt hợp đồng mời giảng',
+                        noiDungThayDoi,
+                        new Date()
+                    ]);
+                }
             }
+        }
+
+        // Ghi tất cả log entries vào database một lần
+        if (logEntries.length > 0) {
+            await connection.query(
+                `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES ?`,
+                [logEntries]
+            );
         } const facultyText = ' của tất cả khoa';
 
         res.json({

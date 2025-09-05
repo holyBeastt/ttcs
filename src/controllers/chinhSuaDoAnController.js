@@ -2,10 +2,13 @@ const createPoolConnection = require("../config/databasePool");
 const ExcelJS = require("exceljs");
 
 // Hàm ghi log thay đổi thông tin đồ án
-const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanVien = 'ADMIN') => {
+const logDoAnChanges = async (connection, oldData, newData, req) => {
   try {
     let changeMessage = '';
     const loaiThongTin = 'Thay đổi thông tin đồ án';
+    const userId = req.session?.userId || req.session?.userInfo?.ID || req.user?.id || 1;
+    const tenNhanVien = req.session?.TenNhanVien || req.session?.userInfo?.TenNhanVien || req.user?.TenNhanVien || 'Unknown';
+    const khoa = req.session?.MaPhongBan || req.session?.userInfo?.MaPhongBan || req.user?.MaPhongBan || req.session?.Khoa || req.user?.Khoa || 'Unknown';
     // Kiểm tra cột GiangVien1
     if (String(oldData.GiangVien1 || '') !== String(newData.GiangVien1 || '')) {
       changeMessage = changeMessage + `Giảng Viên 1 cho đồ án "${newData.TenDeTai}": từ "${oldData.GiangVien1 || ''}" thành "${newData.GiangVien1 || ''}". `;
@@ -17,7 +20,9 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
     }
 
     // Kiểm tra trạng thái duyệt khoa
+    console.log(`🔍 Checking KhoaDuyet: old=${oldData.KhoaDuyet} (${typeof oldData.KhoaDuyet}) vs new=${newData.KhoaDuyet} (${typeof newData.KhoaDuyet})`);
     if (Number(oldData.KhoaDuyet) !== Number(newData.KhoaDuyet)) {
+      console.log(`✅ KhoaDuyet changed!`);
       if (Number(oldData.KhoaDuyet) === 0 && Number(newData.KhoaDuyet) === 1) {
         changeMessage = changeMessage + `Khoa thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.KhoaDuyet) === 1 && Number(newData.KhoaDuyet) === 0) {
@@ -26,7 +31,9 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
     }
 
     // Kiểm tra trạng thái duyệt đào tạo
+    console.log(`🔍 Checking DaoTaoDuyet: old=${oldData.DaoTaoDuyet} (${typeof oldData.DaoTaoDuyet}) vs new=${newData.DaoTaoDuyet} (${typeof newData.DaoTaoDuyet})`);
     if (Number(oldData.DaoTaoDuyet) !== Number(newData.DaoTaoDuyet)) {
+      console.log(`✅ DaoTaoDuyet changed!`);
       if (Number(oldData.DaoTaoDuyet) === 0 && Number(newData.DaoTaoDuyet) === 1) {
         changeMessage = changeMessage + `Đào tạo thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.DaoTaoDuyet) === 1 && Number(newData.DaoTaoDuyet) === 0) {
@@ -35,7 +42,9 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
     }
 
     // Kiểm tra trạng thái duyệt tài chính
+    console.log(`🔍 Checking TaiChinhDuyet: old=${oldData.TaiChinhDuyet} (${typeof oldData.TaiChinhDuyet}) vs new=${newData.TaiChinhDuyet} (${typeof newData.TaiChinhDuyet})`);
     if (Number(oldData.TaiChinhDuyet) !== Number(newData.TaiChinhDuyet)) {
+      console.log(`✅ TaiChinhDuyet changed!`);
       if (Number(oldData.TaiChinhDuyet) === 0 && Number(newData.TaiChinhDuyet) === 1) {
         changeMessage = changeMessage + `Tài chính thay đổi duyệt đồ án "${newData.TenDeTai}": Đã duyệt. `;
       } else if (Number(oldData.TaiChinhDuyet) === 1 && Number(newData.TaiChinhDuyet) === 0) {
@@ -105,22 +114,27 @@ const logDoAnChanges = async (connection, oldData, newData, userId = 1, tenNhanV
     }
 
     // Nếu có thay đổi, ghi lại thông tin vào bảng lichsunhaplieu
+    console.log(`📝 Final changeMessage: "${changeMessage}"`);
     if (changeMessage !== '') {
+      console.log(`💾 Writing log to database...`);
       const insertQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
       await connection.query(insertQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
 
-      console.log("Đã ghi log thay đổi thông tin đồ án:", changeMessage);
+      console.log(`✅ Log written successfully!`);
       return true;
+    } else {
+      console.log(`❌ No changes detected, no log written.`);
     }
 
     return false;
@@ -187,7 +201,7 @@ const updateDoAn = async (req, res) => {
       ]);
       
       // Ghi log thay đổi
-      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
+      await logDoAnChanges(connection, oldData, newData, req);
     }
 
     await connection.commit();
@@ -362,11 +376,7 @@ const getDoAnEditRequests = async (req, res) => {
 
     query += " ORDER BY created_at DESC";
 
-    console.log("Executing query:", query);
-    console.log("With params:", queryParams);
-
     const [requests] = await connection.query(query, queryParams);
-    console.log("Query result:", requests);
 
     res.json({
       success: true,
@@ -467,7 +477,7 @@ const updateDoAnApproval = async (req, res) => {
       }
       
       // Ghi log thay đổi
-      await logDoAnChanges(connection, oldData, newData, req.user?.id, req.user?.TenNhanVien);
+      await logDoAnChanges(connection, oldData, newData, req);
     }
 
     await connection.commit();
@@ -503,7 +513,7 @@ const applyDoAnEdit = async (req, res) => {
     await connection.beginTransaction();
 
     // Sử dụng hàm updateRequest để cập nhật dữ liệu và ghi log
-    await updateRequest(requestId);
+    await updateRequest(requestId, req);
 
     await connection.commit();
 
@@ -815,7 +825,7 @@ const getDoAnChinhThuc = async (req, res) => {
   }
 };
 
-const updateRequest = async (requestId) => {
+const updateRequest = async (requestId, req) => {
   let connection;
   try {
     connection = await createPoolConnection();
@@ -890,15 +900,20 @@ const updateRequest = async (requestId) => {
     // Ghi log thay đổi vào bảng lichsunhaplieu
     const changeMessage = `Giảng viên hướng dẫn cho đồ án "${request[0].lop_hoc_phan}": từ "${request[0].old_value}" thành "${request[0].new_value}".`;
     
+    const userId = req?.session?.userId || req?.session?.userInfo?.ID || req?.user?.id || 1;
+    const tenNhanVien = req?.session?.TenNhanVien || req?.session?.userInfo?.TenNhanVien || req?.user?.TenNhanVien || 'Unknown';
+    const khoa = req?.session?.MaPhongBan || req?.session?.userInfo?.MaPhongBan || req?.user?.MaPhongBan || req?.session?.Khoa || req?.user?.Khoa || 'Unknown';
+    
     const logQuery = `
       INSERT INTO lichsunhaplieu 
-      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-      VALUES (?, ?, ?, ?, NOW())
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
     
     await connection.query(logQuery, [
-      1, // Thay bằng req.user?.id nếu có
-      'ADMIN', // Thay bằng req.user?.TenNhanVien nếu có
+      userId,
+      tenNhanVien,
+      khoa,
       'Thay đổi thông tin đồ án',
       changeMessage
     ]);

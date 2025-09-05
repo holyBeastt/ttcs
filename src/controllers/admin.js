@@ -15,7 +15,13 @@ const getaccountList = async (req, res) => {
   let connection;
   try {
     query =
-      "SELECT DISTINCT nhanvien.TenNhanVien, taikhoannguoidung.TenDangNhap, taikhoannguoidung.id_User, taikhoannguoidung.matkhau, role.Quyen, nhanvien.MaPhongBan, role.isKhoa FROM taikhoannguoidung INNER JOIN nhanvien ON taikhoannguoidung.id_User = nhanvien.id_User INNER JOIN role ON taikhoannguoidung.TenDangNhap = role.TenDangNhap ORDER BY taikhoannguoidung.id_User ASC"; // Truy vấn lấy tất cả người dùng
+      `SELECT DISTINCT nhanvien.TenNhanVien, taikhoannguoidung.TenDangNhap, taikhoannguoidung.id_User, taikhoannguoidung.matkhau, role.Quyen, nhanvien.MaPhongBan, role.isKhoa 
+      FROM taikhoannguoidung 
+      INNER JOIN nhanvien ON taikhoannguoidung.id_User = nhanvien.id_User 
+      INNER JOIN role ON taikhoannguoidung.TenDangNhap = role.TenDangNhap
+      where taikhoannguoidung.is_hide = 0
+      ORDER BY taikhoannguoidung.id_User ASC`; // Truy vấn lấy tất cả người dùng
+
     connection = await createPoolConnection(); // Kết nối tới cơ sở dữ liệu
     const [results, fields] = await connection.query(query); // Thực hiện truy vấn
     accountLists = results; // Gán kết quả vào accountLists
@@ -34,7 +40,12 @@ const getnhanvienList = async (req, res) => {
   let connection;
   try {
     query =
-      "SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau, nhanvien.PhanTramMienGiam  From nhanvien LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan  ORDER BY nhanvien.id_User ASC"; // Truy vấn lấy tất cả người dùng
+      `SELECT nhanvien.id_User, nhanvien.GioiTinh , nhanvien.MaNhanVien, nhanvien.TenNhanVien,  nhanvien.MaPhongBan, nhanvien.ChucVu, nhanvien.MonGiangDayChinh, nhanvien.DienThoai, nhanvien.CCCD, nhanvien.NgayCapCCCD, nhanvien.NoiCapCCCD, nhanvien.HocVi, phongban.TenPhongBan, taikhoannguoidung.TenDangNhap, taikhoannguoidung.MatKhau, nhanvien.PhanTramMienGiam  
+      From nhanvien 
+      LEFT JOIN taikhoannguoidung ON nhanvien.id_User = taikhoannguoidung.id_User 
+      LEFT JOIN phongban ON nhanvien.MaPhongBan = phongban.MaPhongBan
+      where taikhoannguoidung.is_hide = 0
+      ORDER BY nhanvien.id_User ASC`; // Truy vấn lấy tất cả người dùng
     connection = await createPoolConnection(); // Kết nối tới cơ sở dữ liệu
     const [results, fields] = await connection.query(query); // Thực hiện truy vấn
     nhanvienLists = results; // Gán kết quả vào nhanvienLists
@@ -194,17 +205,6 @@ const updatePassword = async (req, res) => {
       "UPDATE taikhoannguoidung SET MatKhau = ? WHERE TenDangNhap = ?";
     await connection.query(updateQuery, [newPassword, TenDangNhap]);
 
-    // Ghi log khi admin cập nhật mật khẩu
-    try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const logMessage = `Admin cập nhật mật khẩu cho tài khoản: ${TenDangNhap}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-    } catch (logError) {
-      console.error('Lỗi khi ghi log:', logError);
-    }
-
     return res.redirect(
       `/changePassword?tenDangNhap=${encodeURIComponent(
         TenDangNhap
@@ -263,11 +263,12 @@ const postNamHoc = async (req, res) => {
 
     // Ghi log khi admin thêm năm học
     try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoa = 'DAOTAO';
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
       const logMessage = `Admin thêm năm học: ${NamHoc}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+      await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
     } catch (logError) {
       console.error('Lỗi khi ghi log:', logError);
     }
@@ -290,11 +291,12 @@ const deleteNamHoc = async (req, res) => {
     if (results.affectedRows > 0) {
       // Ghi log khi admin xóa năm học
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
         const logMessage = `Admin xóa năm học: ${NamHoc}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }
@@ -326,17 +328,6 @@ const addMessage = async (req, res) => {
 
     // Thực hiện câu truy vấn
     await connection.query(query, [MaPhongBan, Title, LoiNhan, DeadlineConvert]);
-
-    // Ghi log khi admin thêm thông báo
-    try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const logMessage = `Admin thêm thông báo cho phòng ban ${MaPhongBan}: ${Title}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-    } catch (logError) {
-      console.error('Lỗi khi ghi log:', logError);
-    }
 
     // Redirect về trang thay đổi thông báo
     return res.status(200).send({
@@ -380,22 +371,12 @@ const updateMessage = async (req, res) => {
     connection = await createPoolConnection();
     for (let data of globalData) {
       const { tieuDe, loiNhan, deadlineConvert, isChecked, id } = data; // Lấy LoiNhan và Deadline từ body
+      
       // Câu truy vấn SQL
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
 
       // Thực hiện câu truy vấn
       await connection.query(query, [tieuDe, loiNhan, convertToMySQLFormat(deadlineConvert), isChecked, id]);
-
-      // Ghi log khi admin cập nhật thông báo
-      try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-        const logMessage = `Admin cập nhật thông báo ID ${id}: ${tieuDe}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-      } catch (logError) {
-        console.error('Lỗi khi ghi log:', logError);
-      }
     }
 
     // Redirect về trang thay đổi thông báo
@@ -430,24 +411,24 @@ const deleteMessage = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    
+
     // Lấy thông tin thông báo trước khi xóa để ghi log
     const getQuery = `SELECT * FROM thongbao WHERE id = ?`;
     const [messageData] = await connection.query(getQuery, [id]);
-    
+
     const query = `DELETE FROM thongbao WHERE id = ?`;
     await connection.query(query, [id]);
 
-    // Ghi log khi admin xóa thông báo
-    try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const title = messageData.length > 0 ? messageData[0].Title : id;
-      const logMessage = `Admin xóa thông báo ID ${id}: ${title}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-    } catch (logError) {
-      console.error('Lỗi khi ghi log:', logError);
+    // Ghi log xóa thông báo
+    if (messageData.length > 0) {
+      const deletedMessage = messageData[0];
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+      const logContent = `Xóa thông báo: "${deletedMessage.TieuDe}" (ID: ${id})`;
+      await connection.query(logQuery, [1, 'ADMIN', 'DAOTAO', 'DELETE', logContent]);
     }
 
     res.json({
@@ -502,17 +483,6 @@ const postDotDoAn = async (req, res) => {
     const query = `INSERT INTO dotdoan (dotdoan) VALUES (?)`;
     await connection.query(query, [DotDoAn]);
 
-    // Ghi log khi admin thêm đợt đồ án
-    try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const logMessage = `Admin thêm đợt đồ án: ${DotDoAn}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-    } catch (logError) {
-      console.error('Lỗi khi ghi log:', logError);
-    }
-
     res.redirect("/dotDoAn?Success");
   } catch (error) {
     console.error("Lỗi khi cập nhật dữ liệu: ", error);
@@ -531,17 +501,6 @@ const deleteDotDoAn = async (req, res) => {
     const [results] = await connection.query(query, [dotdoan]);
 
     if (results.affectedRows > 0) {
-      // Ghi log khi admin xóa đợt đồ án
-      try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-        const logMessage = `Admin xóa đợt đồ án: ${dotdoan}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
-      } catch (logError) {
-        console.error('Lỗi khi ghi log:', logError);
-      }
-
       res.status(200).json({ message: "Xóa thành công!" });
     } else {
       res.status(404).json({ message: "Không tìm thấy đợt đồ án để xóa." });
@@ -575,19 +534,47 @@ const updateHocPhan = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
+    
+    // Lấy dữ liệu cũ trước khi cập nhật
+    const getOldDataQuery = `SELECT * FROM hocphan WHERE MaHocPhan = ?`;
+    const [oldData] = await connection.query(getOldDataQuery, [MaHocPhan]);
+    const oldRecord = oldData[0];
+    
     const query = `
       UPDATE hocphan 
       SET TenHocPhan = ?, DVHT = ?, KiHoc = ?, Khoa = ?, MaBoMon = ? 
       WHERE MaHocPhan = ?`; // Truy vấn cập nhật học phần
     await connection.execute(query, [TenHocPhan, DVHT, KiHoc, Khoa, MaBoMon, MaHocPhan]);
 
-    // Ghi log khi admin cập nhật học phần
+    // Ghi log chi tiết các trường thay đổi
     try {
-      const userId = req.session.userId || '';
-      const tenNhanVien = req.session.TenNhanVien || '';
-      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-      const logMessage = `Admin cập nhật học phần ${MaHocPhan}: ${TenHocPhan}`;
-      await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoa = 'DAOTAO';
+      const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
+      
+      let changes = [];
+      if (oldRecord.TenHocPhan !== TenHocPhan) {
+        changes.push(`TenHocPhan: "${oldRecord.TenHocPhan}" -> "${TenHocPhan}"`);
+      }
+      if (oldRecord.DVHT !== DVHT) {
+        changes.push(`DVHT: "${oldRecord.DVHT}" -> "${DVHT}"`);
+      }
+      if (oldRecord.KiHoc !== KiHoc) {
+        changes.push(`KiHoc: "${oldRecord.KiHoc}" -> "${KiHoc}"`);
+      }
+      if (oldRecord.Khoa !== Khoa) {
+        changes.push(`Khoa: "${oldRecord.Khoa}" -> "${Khoa}"`);
+      }
+      if (oldRecord.MaBoMon !== MaBoMon) {
+        changes.push(`MaBoMon: "${oldRecord.MaBoMon}" -> "${MaBoMon}"`);
+      }
+      
+      const logMessage = changes.length > 0 
+        ? `Admin cập nhật học phần ${MaHocPhan}: ${changes.join(', ')}`
+        : `Admin cập nhật học phần ${MaHocPhan}: Không có thay đổi`;
+        
+      await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
     } catch (logError) {
       console.error('Lỗi khi ghi log:', logError);
     }
@@ -606,23 +593,24 @@ const deleteHocPhan = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    
+
     // Lấy thông tin học phần trước khi xóa để ghi log
     const getQuery = "SELECT * FROM hocphan WHERE MaHocPhan = ?";
     const [hocPhanData] = await connection.query(getQuery, [MaHocPhan]);
-    
+
     const query = "DELETE FROM hocphan WHERE MaHocPhan = ?"; // Truy vấn xóa học phần
     const [results] = await connection.query(query, [MaHocPhan]);
 
     if (results.affectedRows > 0) {
       // Ghi log khi admin xóa học phần
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
         const tenHocPhan = hocPhanData.length > 0 ? hocPhanData[0].TenHocPhan : MaHocPhan;
         const logMessage = `Admin xóa học phần ${MaHocPhan}: ${tenHocPhan}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }

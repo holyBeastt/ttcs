@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã - Tải Ủy Nhiệm Chi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <style>
+    .loc {
+      align-items: center;
+      gap: 8px;
+    }
+
+    .selectop {
+      height: 38px;
+      vertical-align: middle;
+    }
+
+    .btn {
+      vertical-align: middle;
+    }
+
+    #view {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <%- include('header') %>
+
+  <div class="container-fluid my-4" style="padding-left: 20px">
+    <div class="flex-grow-1">
+      
+      <div class="header-actions">
+        <div class="right" style="margin-top: 0px">
+          <div class="loc d-flex align-items-center">
+            <select class="selectop" id="combobox-dot" style="width: 70px">
+              <option value="">Đợt</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <select class="selectop" id="comboboxki" style="width: 70px">
+              <option value="">Kì</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="Hè">Hè</option>
+            </select>
+            <select class="selectop" id="NamHoc">
+              <option value="">Chọn năm học</option>
+              <option value="2024 - 2025">2024 - 2025</option>
+              <option value="2023 - 2024">2023 - 2024</option>
+              <option value="2022 - 2023">2022 - 2023</option>
+            </select>
+            <select class="selectop" id="MaPhongBan">
+              <option value="ALL">Tất cả khoa</option>
+              <option value="CNTT">CNTT</option>
+              <option value="ATTT">ATTT</option>
+              <option value="KTMT">KTMT</option>
+              <option value="KHMT">KHMT</option>
+              <option value="CNPM">CNPM</option>
+              <option value="ATMMT">ATMMT</option>
+              <option value="DVVT">DVVT</option>
+            </select>
+            <select class="selectop" id="he_dao_tao">
+              <option value="">Tất cả hệ</option>
+              <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
+              <option value="Đại học (Mật mã)">Hệ mật mã</option>
+              <option value="Cao học (Đóng học phí)">Cao học</option>
+              <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="content-section mt-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-file-download me-2"></i>Tải Ủy Nhiệm Chi
+              </h5>
+            </div>
+            <div class="card-body">
+              
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-info-circle text-primary me-2"></i>
+                      <span><strong>Tạo số ủy nhiệm chi và thanh toán</strong></span>
+                    </div>
+                    <div class="row mt-2">
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                          <i class="fas fa-file-invoice-dollar text-success me-2"></i>
+                          <span><strong>Số ủy nhiệm chi tương ứng:</strong> <span id="uyNhiemPreview">001</span></span>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center"> 
+                          <i class="fas fa-receipt text-info me-2"></i>
+                          <span><strong>Số thanh toán tương ứng:</strong> <span id="thanhToanPreview">001</span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                      <i class="fas fa-arrow-right me-1"></i>
+                      Mỗi ủy nhiệm chi sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số ủy nhiệm chi và số thanh toán
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <!-- Starting number input -->
+                  <div id="unifiedStartingNumberDiv" class="mt-3">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <label for="unifiedStartingNumber" class="form-label">
+                          <strong>Số bắt đầu</strong>
+                          <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="unifiedStartingNumber"
+                          name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)">
+                        <small class="text-muted">Số này sẽ được sử dụng làm chỉ số chung cho cả số ủy nhiệm chi và số thanh toán</small>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="p-3 bg-light border rounded">
+                          <div class="mb-2">
+                            <strong>Ủy nhiệm chi:</strong> <span id="uyNhiemExample" class="text-primary">001</span>
+                          </div>
+                          <div>
+                            <strong>Thanh toán:</strong> <span id="thanhToanExample" class="text-info">001</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <!-- Action buttons -->
+                  <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary" id="btn-tao-so">
+                      <i class="fas fa-cog me-1"></i>Tạo số
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-xem-truoc">
+                      <i class="fas fa-eye me-1"></i>Xem trước
+                    </button>
+                    <button type="button" class="btn btn-success" id="btn-tai-uy-nhiem-chi">
+                      <i class="fas fa-download me-1"></i>Tải file ủy nhiệm chi
+                    </button>
+                  </div>
+
+                  <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Sẽ tạo đồng thời cả số ủy nhiệm chi và số thanh toán cho mỗi giảng viên
+                  </small>
+                </div>
+              </div>
+
+              <!-- Results Table -->
+              <div id="resultsDiv" style="display: none;" class="mt-4">
+                <h6><i class="fas fa-list me-2"></i>Danh sách bản ghi hợp đồng</h6>
+                <div class="table-responsive">
+                  <table class="table table-striped table-hover" id="contractsTable">
+                    <thead class="table-dark">
+                      <tr>
+                        <th>STT</th>
+                        <th>Số ủy nhiệm</th>
+                        <th>Họ tên</th>
+                        <th>Khoa</th>
+                        <th>Hệ đào tạo</th>
+                        <th>STK</th>
+                        <th>Ngân hàng</th>
+                      </tr>
+                    </thead>
+                    <tbody id="contractsTableBody">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Loading spinner -->
+              <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Đang tải dữ liệu...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Event listeners
+      document.getElementById('btn-tao-so').addEventListener('click', taoSo);
+      document.getElementById('btn-xem-truoc').addEventListener('click', xemTruoc);
+      document.getElementById('btn-tai-uy-nhiem-chi').addEventListener('click', taiUyNhiemChi);
+      
+      // Update preview numbers when starting number changes
+      document.getElementById('unifiedStartingNumber').addEventListener('input', updatePreviewNumbers);
+    });
+
+    // Cập nhật số xem trước
+    function updatePreviewNumbers() {
+      const startingNumber = parseInt(document.getElementById('unifiedStartingNumber').value) || 1;
+      const formattedNumber = startingNumber.toString().padStart(3, '0');
+      
+      document.getElementById('uyNhiemPreview').textContent = formattedNumber;
+      document.getElementById('thanhToanPreview').textContent = formattedNumber;
+      document.getElementById('uyNhiemExample').textContent = formattedNumber;
+      document.getElementById('thanhToanExample').textContent = formattedNumber;
+    }
+
+    // Tạo số ủy nhiệm chi và thanh toán
+    function taoSo() {
+      const filters = getFilters();
+      
+      if (!validateFilters(filters)) {
+        return;
+      }
+
+      const startingNumber = parseInt(document.getElementById('unifiedStartingNumber').value) || 1;
+
+      Swal.fire({
+        title: 'Tạo số ủy nhiệm chi',
+        text: `Bạn có chắc chắn muốn tạo số bắt đầu từ ${startingNumber.toString().padStart(3, '0')}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Tạo',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Đang tạo số...',
+            text: 'Vui lòng chờ trong giây lát',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          // Simulate API call for setup
+          fetch('/uy-nhiem-chi/api/setup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              dot: filters.dot,
+              ki: filters.ki,
+              namHoc: filters.namHoc,
+              khoa: filters.khoa,
+              heDaoTao: filters.heDaoTao,
+              startingNumber: startingNumber
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Thành công',
+                text: `Đã tạo số cho ${data.count || 0} bản ghi`,
+                icon: 'success'
+              });
+            } else {
+              throw new Error(data.message || 'Có lỗi xảy ra');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Lỗi',
+              text: error.message || 'Có lỗi xảy ra khi tạo số',
+              icon: 'error'
+            });
+          });
+        }
+      });
+    }
+
+    // Xem trước dữ liệu (gọi API thật)
+    function xemTruoc() {
+      const filters = getFilters();
+      
+      if (!validateFilters(filters)) {
+        return;
+      }
+
+      showLoading(true);
+
+      fetch('/uy-nhiem-chi/api/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(filters)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          displayResults(data.data || []);
+          Swal.fire({
+            title: 'Thành công',
+            text: `Đã tìm thấy ${(data.data || []).length} bản ghi ủy nhiệm chi`,
+            icon: 'success'
+          });
+        } else {
+          throw new Error(data.message || 'Có lỗi xảy ra');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Lỗi',
+          text: error.message || 'Có lỗi xảy ra khi tải dữ liệu',
+          icon: 'error'
+        });
+      })
+      .finally(() => {
+        showLoading(false);
+      });
+    }
+
+    // Tải ủy nhiệm chi (gọi API thật)
+    function taiUyNhiemChi() {
+      const filters = getFilters();
+      
+      if (!validateFilters(filters)) {
+        return;
+      }
+
+      // Hiển thị loading
+      Swal.fire({
+        title: 'Đang tạo file...',
+        text: 'Vui lòng chờ trong giây lát',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch('/uy-nhiem-chi/api/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filters: filters })
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Có lỗi xảy ra');
+          });
+        }
+      })
+      .then(blob => {
+        Swal.close();
+        
+        // Tạo link download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `uy-nhiem-chi-${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        Swal.fire({
+          title: 'Thành công',
+          text: 'File ủy nhiệm chi đã được tải xuống',
+          icon: 'success'
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Lỗi',
+          text: error.message || 'Có lỗi xảy ra khi tải ủy nhiệm chi',
+          icon: 'error'
+        });
+      });
+    }
+
+    // Lấy bộ lọc
+    function getFilters() {
+      return {
+        dot: document.getElementById('combobox-dot').value,
+        ki: document.getElementById('comboboxki').value,
+        namHoc: document.getElementById('NamHoc').value,
+        khoa: document.getElementById('MaPhongBan').value,
+        heDaoTao: document.getElementById('he_dao_tao').value
+      };
+    }
+
+    // Validate bộ lọc
+    function validateFilters(filters) {
+      if (!filters.dot || !filters.ki || !filters.namHoc) {
+        Swal.fire({
+          title: 'Thông báo',
+          text: 'Vui lòng chọn đầy đủ đợt, kỳ và năm học',
+          icon: 'warning'
+        });
+        return false;
+      }
+      return true;
+    }
+
+    // Hiển thị kết quả xem trước
+    function displayResults(data) {
+      const tbody = document.getElementById('contractsTableBody');
+      tbody.innerHTML = '';
+      
+      if (data && data.length > 0) {
+        data.forEach((item, index) => {
+          const row = `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.SoUyNhiem ? String(item.SoUyNhiem).padStart(3, '0') : '<span class="text-muted">Chưa tạo</span>'}</td>
+              <td>${item.HoTen || ''}</td>
+              <td>${item.TenPhongBan || item.MaPhongBan || ''}</td>
+              <td>${item.he_dao_tao || ''}</td>
+              <td>${item.STK || ''}</td>
+              <td>${item.NganHang || ''}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+        
+        document.getElementById('resultsDiv').style.display = 'block';
+      } else {
+        document.getElementById('resultsDiv').style.display = 'none';
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+    }
+
+    // Initialize preview numbers
+    updatePreviewNumbers();
+  </script>
+</body>
+
+</html>

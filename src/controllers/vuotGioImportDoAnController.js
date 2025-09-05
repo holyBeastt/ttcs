@@ -992,18 +992,20 @@ const saveToTableDoantotnghiep = async (req, res) => {
     // Ghi log việc import file đồ án thành công
     const logQuery = `
       INSERT INTO lichsunhaplieu 
-      (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-      VALUES (?, ?, ?, ?, NOW())
+      (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
 
-    const userId = req.session?.userId || 1;
-    const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+    const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+    const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+    const khoa = req.session?.MaPhongBan || 'Unknown Department';
     const loaiThongTin = 'Import đồ án';
     const changeMessage = `${tenNhanVien} đã thêm mới ${result.affectedRows} đồ án từ file vào cơ sở dữ liệu. Học kỳ ${Ki}, đợt ${Dot}, năm học ${namHoc}, khoa ${MaPhongBan}, hệ đào tạo ${he_dao_tao}.`;
     
     await connection.query(logQuery, [
       userId,
       tenNhanVien,
+      khoa,
       loaiThongTin,
       changeMessage
     ]);

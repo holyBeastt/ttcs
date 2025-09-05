@@ -65,18 +65,20 @@ const adminPhongHocController = {
       // Ghi log thêm phòng học thành công
       const logQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
       
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
       const changeMessage = `${tenNhanVien} đã thêm phòng học mới: "${Phong}" tại tòa nhà "${ToaNha}"`;
       
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
@@ -97,27 +99,51 @@ const adminPhongHocController = {
     try {
       connection = await createConnection();
       
+      // Lấy dữ liệu cũ trước khi cập nhật
+      const getOldDataQuery = "SELECT * FROM phonghoc WHERE STT = ?";
+      const [oldData] = await connection.query(getOldDataQuery, [STT]);
+      const oldRecord = oldData[0];
+      
       // Kiểm tra số tầng trước khi cập nhật
       await checkFloorValidity(connection, Phong, ToaNha);
       
       const query = "UPDATE phonghoc SET phong = ?, toanha = ?, loaiphong = ?, GhiChu = ? WHERE STT = ?";
       await connection.query(query, [Phong, ToaNha, LoaiPhong, GhiChu, STT]);
       
-      // Ghi log cập nhật phòng học thành công
+      // Ghi log chi tiết các trường thay đổi
       const logQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
       
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+      const userId = 1;
+      const tenNhanVien = 'ADMIN';
+      const khoa = 'DAOTAO';
       const loaiThongTin = 'Admin Log';
-      const changeMessage = `${tenNhanVien} đã cập nhật phòng học: "${Phong}" tại tòa nhà "${ToaNha}" (STT: ${STT})`;
+      
+      let changes = [];
+      if (oldRecord.phong !== Phong) {
+        changes.push(`Phong: "${oldRecord.phong}" -> "${Phong}"`);
+      }
+      if (oldRecord.toanha !== ToaNha) {
+        changes.push(`ToaNha: "${oldRecord.toanha}" -> "${ToaNha}"`);
+      }
+      if (oldRecord.loaiphong !== LoaiPhong) {
+        changes.push(`LoaiPhong: "${oldRecord.loaiphong}" -> "${LoaiPhong}"`);
+      }
+      if (oldRecord.GhiChu !== GhiChu) {
+        changes.push(`GhiChu: "${oldRecord.GhiChu}" -> "${GhiChu}"`);
+      }
+      
+      const changeMessage = changes.length > 0 
+        ? `Admin cập nhật phòng học STT ${STT}: ${changes.join(', ')}`
+        : `Admin cập nhật phòng học STT ${STT}: Không có thay đổi`;
       
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage
       ]);
@@ -148,18 +174,20 @@ const adminPhongHocController = {
       if (phongInfo.length > 0) {
         const logQuery = `
           INSERT INTO lichsunhaplieu 
-          (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-          VALUES (?, ?, ?, ?, NOW())
+          (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+          VALUES (?, ?, ?, ?, ?, NOW())
         `;
         
-        const userId = req.session?.userId || 1;
-        const tenNhanVien = req.session?.TenNhanVien || 'ADMIN';
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
         const loaiThongTin = 'Admin Log';
         const changeMessage = `${tenNhanVien} đã xóa phòng học: "${phongInfo[0].phong}" tại tòa nhà "${phongInfo[0].toanha}" (STT: ${STT})`;
         
         await connection.query(logQuery, [
           userId,
           tenNhanVien,
+          khoa,
           loaiThongTin,
           changeMessage
         ]);
@@ -219,11 +247,12 @@ const adminPhongHocController = {
 
       // Ghi log khi admin thêm tòa nhà
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
         const logMessage = `Admin thêm tòa nhà: ${TenToaNha}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }
@@ -243,6 +272,12 @@ const adminPhongHocController = {
     let connection;
     try {
       connection = await createConnection();
+      
+      // Lấy dữ liệu cũ trước khi cập nhật
+      const getOldDataQuery = "SELECT * FROM toanha WHERE STT = ?";
+      const [oldData] = await connection.query(getOldDataQuery, [STT]);
+      const oldRecord = oldData[0];
+      
       console.log('Updating toanha:', { STT, TenToaNha, SoTang, GhiChu });
       const query = "UPDATE toanha SET TenToaNha = ?, SoTang = ?, GhiChu = ? WHERE STT = ?";
       const [result] = await connection.query(query, [TenToaNha, SoTang, GhiChu, STT]);
@@ -252,13 +287,29 @@ const adminPhongHocController = {
         return res.status(404).json({ success: false, message: "Không tìm thấy tòa nhà để cập nhật" });
       }
 
-      // Ghi log khi admin cập nhật tòa nhà
+      // Ghi log chi tiết các trường thay đổi
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
-        const logMessage = `Admin cập nhật tòa nhà STT ${STT}: ${TenToaNha}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
+        
+        let changes = [];
+        if (oldRecord.TenToaNha !== TenToaNha) {
+          changes.push(`TenToaNha: "${oldRecord.TenToaNha}" -> "${TenToaNha}"`);
+        }
+        if (oldRecord.SoTang !== SoTang) {
+          changes.push(`SoTang: "${oldRecord.SoTang}" -> "${SoTang}"`);
+        }
+        if (oldRecord.GhiChu !== GhiChu) {
+          changes.push(`GhiChu: "${oldRecord.GhiChu}" -> "${GhiChu}"`);
+        }
+        
+        const logMessage = changes.length > 0 
+          ? `Admin cập nhật tòa nhà STT ${STT}: ${changes.join(', ')}`
+          : `Admin cập nhật tòa nhà STT ${STT}: Không có thay đổi`;
+          
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }
@@ -293,12 +344,13 @@ const adminPhongHocController = {
 
       // Ghi log khi admin xóa tòa nhà
       try {
-        const userId = req.session.userId || '';
-        const tenNhanVien = req.session.TenNhanVien || '';
-        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, NOW())`;
+        const userId = 1;
+        const tenNhanVien = 'ADMIN';
+        const khoa = 'DAOTAO';
+        const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
         const tenToaNha = toaNhaData.length > 0 ? toaNhaData[0].TenToaNha : STT;
         const logMessage = `Admin xóa tòa nhà STT ${STT}: ${tenToaNha}`;
-        await connection.query(logSql, [userId, tenNhanVien, 'Admin Log', logMessage]);
+        await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
       } catch (logError) {
         console.error('Lỗi khi ghi log:', logError);
       }

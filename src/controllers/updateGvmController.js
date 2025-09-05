@@ -7,7 +7,6 @@ const appRoot = require("app-root-path");
 
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
-const LogService = require("../services/logService"); // Import LogService for logging
 
 const getUpdateGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id);
@@ -177,17 +176,13 @@ const postUpdateGvm = async (req, res) => {
     );
     if (origResults && origResults.length > 0) {
       originalGvmData = origResults[0];
-      console.log(`Fetched original data for GVM ID: ${IdGvm}`);
-    } else {
-      console.log(`No original data found for GVM ID: ${IdGvm}`);
     }
   } catch (err) {
-    console.error(`Error fetching original data for GVM ID: ${IdGvm}`, err);
+    // Error fetching original data
   }
 
   upload(req, res, async function (err) {
     if (err) {
-      console.error("Error uploading files: ", err);
       // Xóa các file đã upload (nếu có)
       if (req.files) {
         Object.values(req.files).forEach((fileArray) => {
@@ -350,7 +345,6 @@ const postUpdateGvm = async (req, res) => {
       // Log changes if original data is available
       if (originalGvmData) {
         try {
-          console.log("Bắt đầu ghi log thay đổi thông tin giảng viên mời");
           // Prepare new data object for comparison
           const newData = {
             HoTen,
@@ -387,32 +381,29 @@ const postUpdateGvm = async (req, res) => {
           
           // Log changes if there are any
           if (changeMessage) {
-            const userId = req.session?.userId || 1; // Mặc định là 1 nếu không có
-            const userName = req.session?.TenNhanVien || req.session?.username || 'ADMIN'; // Lấy tên nhân viên từ session
+            // Lấy thông tin user và khoa từ session
+            const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+            const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+            const khoa = req.session?.MaPhongBan || 'Unknown Department';
             
-            console.log('Thông tin session:', { userId, userName });
-            console.log('Nội dung thay đổi:', changeMessage);
+            const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+                             VALUES (?, ?, ?, ?, ?, NOW())`;
             
-            await LogService.logChange(
+            await pool.query(logQuery, [
               userId,
-              userName,
-              'Thay đổi thông tin giảng viên mời',
+              tenNhanVien,
+              khoa,
+              'Cập nhật thông tin giảng viên mời',
               changeMessage
-            );
-            
-            console.log(`Đã ghi log thay đổi thông tin giảng viên mời: ${changeMessage}`);
-          } else {
-            console.log('Không phát hiện thay đổi để ghi log');
+            ]);
           }
         } catch (logError) {
-          console.error('Error logging guest lecturer changes:', logError);
           // Continue with the response even if logging fails
         }
       }
       
       res.redirect("/api/gvm/waiting-list/render?message=insertSuccess");
     } catch (err) {
-      console.error("Error executing query: ", err);
       res.redirect("/api/gvm/waiting-list/render?message=insertFalse");
     }
   });

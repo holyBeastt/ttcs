@@ -147,6 +147,49 @@ const updateQCGvm = async (req, res) => {
       }
 
       await connection.query(updateQuery, updateValues);
+
+      // Ghi log cho việc duyệt với thông tin chi tiết
+      const userId = req.session.userId || req.session.userInfo?.ID || 0;
+      const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+      const maPhongBan = req.session.MaPhongBan || 'Unknown Department';
+      
+      // Lấy tên phòng ban thực tế từ database
+      let tenPhongBan = maPhongBan;
+      try {
+        const [phongBanInfo] = await connection.query(
+          "SELECT TenPhongBan FROM phongban WHERE MaPhongBan = ?",
+          [maPhongBan]
+        );
+        if (phongBanInfo.length > 0) {
+          tenPhongBan = phongBanInfo[0].TenPhongBan;
+        }
+      } catch (error) {
+        console.log("Không lấy được tên phòng ban:", error);
+      }
+
+      let logContent = [];
+      if (KhoaDuyet === 1) {
+        logContent.push(`${tenPhongBan} thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+      }
+      if (DaoTaoDuyet === 1) {
+        logContent.push(`Đào tạo thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+      }
+      if (TaiChinhDuyet === 1) {
+        logContent.push(`Tài chính thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+      }
+
+      if (logContent.length > 0) {
+        await connection.query(
+          "INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())",
+          [
+            userId,
+            tenNhanVien,
+            maPhongBan,
+            "Thay đổi thông tin giảng dạy",
+            logContent.join(". ")
+          ]
+        );
+      }
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });

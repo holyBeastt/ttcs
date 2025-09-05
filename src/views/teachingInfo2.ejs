@@ -223,79 +223,104 @@
       cursor: default;
     }
   </style>
-  <style>
-    .summary-container {
-      font-size: 12px;
-      position: fixed;
-      bottom: 20px;
-      right: 10px;
-      /* giảm khoảng cách bên phải */
-      z-index: 1050;
-      display: flex;
-      align-items: flex-end;
-    }
+<style>
+  .summary-container {
+  position: fixed;
+  bottom: 20px;
+  right: 10px;
+  z-index: 1050;
+  display: flex;
+  align-items: flex-end;
+  font-size: 12px;
+}
 
-    .floating-box {
-      width: 200px;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      display: none;
-      transition: all 0.3s ease;
-    }
+.floating-box {
+  width: 220px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  display: none;
+  transition: all 0.3s ease;
+}
 
-    .detail-popup {
-      position: absolute;
-      bottom: 60px;
-      right: 0;
-      width: 100%;
-      max-height: 200px;
-      overflow-y: auto;
-      background-color: #f8f9fa;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      display: none;
-    }
+.detail-popup {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  display: none;
+}
 
-    .toggle-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: #0d6efd;
-      color: white;
-      border: none;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: 8px;
-      cursor: pointer;
-    }
+.toggle-btn {
+  width: 40px;
+  height: 40px;
+  margin-left: 8px;
+  border: none;
+  border-radius: 50%;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
 
-    .toggle-btn svg {
-      width: 20px;
-      height: 20px;
-      transition: transform 0.3s ease;
-    }
+.toggle-btn:hover {
+  background: #0b5ed7;
+}
 
-    .detail-item {
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
+.toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
 
-    .xem-chi-tiet {
-      font-style: italic;
-      text-decoration: underline;
-      font-size: 12px;
-      color: #007bff;
-      cursor: pointer;
-      margin-top: 6px;
-      display: inline-block;
-    }
-  </style>
+.detail-item,
+.xem-chi-tiet {
+  font-size: 12px;
+}
+
+.xem-chi-tiet {
+  margin-top: 6px;
+  display: inline-block;
+  font-style: italic;
+  text-decoration: underline;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.khoa-summary {
+  margin-bottom: 2px;
+  padding: 5px 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.khoa-summary h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+}
+
+.khoa-summary p {
+  margin: 3px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+</style>
 </head>
 
 <body>
@@ -431,36 +456,38 @@
           </tbody>
         </table>
         <!-- Floating Summary Container -->
-        <div class="summary-container">
-          <div class="floating-box" id="summaryBox">
-            <div>
-              <strong>Tổng tiết mời giảng:</strong>
-              <span id="tietMoi">0</span>
-            </div>
-            <div>
-              <strong>Tổng tiết cơ hữu:</strong>
-              <span id="tietCoHuu">0</span>
-            </div>
-            <div>
-              <strong>Tổng số tiết:</strong>
-              <span id="tongTiet">0</span>
-            </div>
-
-            <!-- Link xem chi tiết -->
-            <div>
-              <span id="xemChiTiet" class="xem-chi-tiet popup-font-size">Xem chi tiết</span>
+          <div class="summary-container">
+            <div class="floating-box" id="summaryBox">
+              <div>
+                <strong>Tổng tiết mời giảng:</strong>
+                <span id="tietMoi">0</span>
+                (<span id="percentMoi">0%</span>)
+              </div>
+              <div>
+                <strong>Tổng tiết cơ hữu:</strong>
+                <span id="tietCoHuu">0</span>
+                (<span id="percentCoHuu">0%</span>)
+              </div>
+              <div>
+                <strong>Tổng số tiết:</strong>
+                <span id="tongTiet">0</span>
+              </div>
             </div>
 
-            <div class="detail-popup" id="popupChiTiet"></div>
+            <button class="toggle-btn" id="toggleBtn">
+              <!-- Mũi tên SVG -->
+              <svg
+                id="arrowIcon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                viewBox="0 0 24 24"
+              >
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
+            </button>
           </div>
-
-          <button class="toggle-btn" id="toggleBtn">
-            <!-- Mũi tên SVG -->
-            <svg id="arrowIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-              <path d="M15 6l-6 6 6 6" />
-            </svg>
-          </button>
-        </div>
       </div>
       <!-- Label tổng số tiết tách riêng với bảng -->
       <div class="total-label">
@@ -602,7 +629,7 @@
         await Promise.all([
           fetch("/gv-cohuu"),
           fetch("/gv-moi"),
-          fetch("/thong-tin-giang-day", {
+          fetch("/api/v1/qc/thong-tin-giang-day", {
             method: "POST", // Sử dụng phương thức POST
             headers: {
               "Content-Type": "application/json", // Đặt Content-Type là application/json
@@ -651,7 +678,11 @@
         const VPCheck = rs.VPCheck;
         tongTiet = rs.tongTiet;
 
-        loadDataPopup();
+        console.log("tongTiet", tongTiet);
+
+        debugger
+
+        loadDataPopup(tongTiet);
 
 
         localStorage.setItem("check", JSON.stringify(check));
@@ -667,70 +698,62 @@
       }
     }
 
-    const loadDataPopup = async () => {
-      // Phần popup hiển thị tổng số tiết
-      const tietMapMoi = tongTiet.detailMoiGiang;
-      const tietMapCoHuu = tongTiet.detailCoHuu;
+    const loadDataPopup = async (tongTiet) => {
+      const summaryBox = document.getElementById("summaryBox");
+      summaryBox.innerHTML = ""; // clear cũ
 
-      document.getElementById("tietMoi").innerText =
-        tongTiet.tongTietMoiGiang;
-      document.getElementById("tietCoHuu").innerText = tongTiet.tongTietCoHuu;
-      document.getElementById("tongTiet").innerText = tongTiet.tongTietAll;
+      let blocks = [];
 
-      const popup = document.getElementById("popupChiTiet");
-      const xemChiTiet = document.getElementById("xemChiTiet");
+      if (tongTiet.thongKeTheoKhoa && tongTiet.thongKeAll) {
+        tongTiet.thongKeTheoKhoa.forEach((item) => {
+          const block = renderBlock(item);
+          summaryBox.appendChild(block);
+          blocks.push(block);
+        });
 
-      xemChiTiet.addEventListener("click", (e) => {
-        e.stopPropagation();
-        popup.innerHTML = "";
+        // Render ALL
+        summaryBox.appendChild(renderBlock(tongTiet.thongKeAll));
+      } else {
+        // Trường hợp chỉ có 1 object
+        summaryBox.appendChild(renderBlock(tongTiet));
+      }
 
-        // --- Phần Mời Giảng ---
-        const titleMoi = document.createElement("h6");
-        titleMoi.innerText = "Giảng viên mời:";
-        popup.appendChild(titleMoi);
+      // Nếu nhiều hơn 5 block thì bật scroll
+      if (blocks.length > 3) {
+        summaryBox.style.maxHeight = "300px";
+        summaryBox.style.overflowY = "auto";
+      } else {
+        summaryBox.style.maxHeight = "none";
+        summaryBox.style.overflowY = "visible";
+      }
 
-        for (let gv in tietMapMoi) {
-          const div = document.createElement("div");
-          div.className = "detail-item";
-          div.innerText = `${gv}: ${tietMapMoi[gv]} tiết`;
-          popup.appendChild(div);
-        }
-
-        // --- Phần Cơ Hữu ---
-        const titleCoHuu = document.createElement("h6");
-        titleCoHuu.innerText = "Giảng viên cơ hữu:";
-        titleCoHuu.style.marginTop = "10px";
-        popup.appendChild(titleCoHuu);
-
-        for (let gv in tietMapCoHuu) {
-          const div = document.createElement("div");
-          div.className = "detail-item";
-          div.innerText = `${gv}: ${tietMapCoHuu[gv]} tiết`;
-          popup.appendChild(div);
-        }
-
-        popup.style.display = "block";
-      });
-
-      document.addEventListener("click", () => {
-        popup.style.display = "none";
-      });
-
-      popup.addEventListener("click", (e) => e.stopPropagation());
-
+      // Toggle hiển thị box tổng kết
       const toggleBtn = document.getElementById("toggleBtn");
       const arrowIcon = document.getElementById("arrowIcon");
-      const summaryBox = document.getElementById("summaryBox");
 
-      let isVisible = false;
-      toggleBtn.addEventListener("click", () => {
+      let isVisible = true;
+      summaryBox.style.display = "block";
+
+      toggleBtn.onclick = () => {
         isVisible = !isVisible;
         summaryBox.style.display = isVisible ? "block" : "none";
-        arrowIcon.style.transform = isVisible ?
-          "rotate(180deg)" :
-          "rotate(0deg)";
-      });
+        arrowIcon.style.transform = isVisible ? "rotate(180deg)" : "rotate(0deg)";
+      };
     };
+
+          // Hàm render 1 block khoa
+      const renderBlock = (item) => {
+        const block = document.createElement("div");
+        block.className = "khoa-summary";
+        block.innerHTML = `
+          <h4>Khoa: ${item.MaPhongBan}</h4>
+          <p><b>Tổng tiết mời giảng:</b> ${item.tongTietMoiGiang} (${item.phanTramMoiGiang})</p>
+          <p><b>Tổng tiết cơ hữu:</b> ${item.tongTietCoHuu} (${item.phanTramCoHuu})</p>
+          <p><b>Tổng số tiết:</b> ${item.tongTietAll}</p>
+        `;
+        return block;
+      };
+
 
 
     // Hàm render bảng

@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 
 const addClass = async (req, res) => {
   const MaPhongBan = req.params.MaPhongBan;
@@ -139,6 +140,32 @@ const addClass = async (req, res) => {
       he_dao_tao,
       DoiTuong,
     ]);
+
+    // Ghi log việc thêm lớp ngoài quy chuẩn thành công sử dụng pool
+    try {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || MaPhongBan || 'Unknown Department';
+      const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+      const changeMessage = `${tenNhanVien} đã thêm lớp ngoài quy chuẩn: "${TenHocPhan}" - Lớp: ${Lop}, Giảng viên: ${GiangVien}, Học kỳ: ${HocKy}, Năm học: ${NamHoc}, Khoa: ${MaPhongBan}.`;
+      
+      await pool.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log:", logError);
+      // Không throw error để không ảnh hưởng đến việc thêm lớp chính
+    }
 
     res.status(200).send({ message: "Thêm lớp thành công" });
   } catch (error) {
@@ -770,6 +797,33 @@ const deletelopngoaiquychuan = async (req, res) => {
       result.NamHoc,
       result.Lop,
     ]);
+
+    // Ghi log việc xóa lớp ngoài quy chuẩn sử dụng pool
+    try {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || result.Khoa || 'Unknown Department';
+      const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+      const changeMessage = `${tenNhanVien} đã xóa lớp ngoài quy chuẩn: "${result.TenHocPhan}" - Lớp: ${result.Lop}, Giảng viên: ${result.GiangVien}, Học kỳ: ${result.HocKy}, Năm học: ${result.NamHoc}, Khoa: ${result.Khoa}.`;
+      
+      await pool.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log:", logError);
+      // Không throw error để không ảnh hưởng đến việc xóa chính
+    }
+
     res.json({
       success: true,
     });
@@ -790,6 +844,17 @@ const updatelopngoaiquychuan = async (req, res) => {
   const connection = await createPoolConnection();
 
   try {
+    // Lấy dữ liệu cũ trước khi cập nhật để so sánh
+    const oldDataMap = new Map();
+    for (let data of globalData) {
+      const { MaGiangDay } = data;
+      const queryOldData = `SELECT * FROM lopngoaiquychuan WHERE MaGiangDay = ?`;
+      const [oldRows] = await connection.query(queryOldData, [MaGiangDay]);
+      if (oldRows.length > 0) {
+        oldDataMap.set(MaGiangDay, oldRows[0]);
+      }
+    }
+
     // Duyệt qua mỗi phần tử trong globalData và cập nhật vào bảng giangday
     for (let data of globalData) {
       const {
@@ -888,6 +953,76 @@ const updatelopngoaiquychuan = async (req, res) => {
         he_dao_tao,
         MaGiangDay,
       ]);
+    }
+
+    // Ghi log việc cập nhật lớp ngoài quy chuẩn sử dụng pool
+    try {
+      const logQuery = `
+        INSERT INTO lichsunhaplieu 
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+
+      const userId = req.session?.userId || req.session?.userInfo?.ID || 0;
+      const tenNhanVien = req.session?.TenNhanVien || req.session?.username || 'Unknown User';
+      const khoa = req.session?.MaPhongBan || 'Unknown Department';
+      const loaiThongTin = 'Thay đổi thông tin vượt giờ';
+      
+      // Tạo message chi tiết về những thay đổi
+      let changeDetails = [];
+      for (let data of globalData) {
+        const oldData = oldDataMap.get(data.MaGiangDay);
+        if (oldData) {
+          let itemChanges = [];
+          
+          if (oldData.TenHocPhan !== data.tenHocPhan) {
+            itemChanges.push(`Tên học phần: "${oldData.TenHocPhan}" → "${data.tenHocPhan}"`);
+          }
+          if (oldData.SoTC !== data.soTC) {
+            itemChanges.push(`Số TC: ${oldData.SoTC} → ${data.soTC}`);
+          }
+          if (oldData.Lop !== data.maLop) {
+            itemChanges.push(`Lớp: "${oldData.Lop}" → "${data.maLop}"`);
+          }
+          if (oldData.SoSV !== data.soSV) {
+            itemChanges.push(`Số SV: ${oldData.SoSV} → ${data.soSV}`);
+          }
+          if (oldData.LenLop !== data.soTietTKB) {
+            itemChanges.push(`Số tiết TKB: ${oldData.LenLop} → ${data.soTietTKB}`);
+          }
+          if (oldData.QuyChuan !== data.soTietQC) {
+            itemChanges.push(`Quy chuẩn: ${oldData.QuyChuan} → ${data.soTietQC}`);
+          }
+          if (oldData.HinhThucKTGiuaKy !== data.hinhThucKTGiuaKy) {
+            itemChanges.push(`Hình thức KT giữa kỳ: "${oldData.HinhThucKTGiuaKy}" → "${data.hinhThucKTGiuaKy}"`);
+          }
+          if (oldData.HeSoT7CN !== data.heSoT7CN) {
+            itemChanges.push(`Hệ số T7CN: ${oldData.HeSoT7CN} → ${data.heSoT7CN}`);
+          }
+          if (oldData.he_dao_tao !== data.he_dao_tao) {
+            itemChanges.push(`Hệ đào tạo: "${oldData.he_dao_tao}" → "${data.he_dao_tao}"`);
+          }
+          
+          if (itemChanges.length > 0) {
+            changeDetails.push(`Lớp "${data.tenHocPhan}" - ${data.maLop}: ${itemChanges.join(', ')}`);
+          }
+        }
+      }
+      
+      const changeMessage = changeDetails.length > 0 
+        ? `${tenNhanVien} đã cập nhật thông tin ${globalData.length} lớp ngoài quy chuẩn: ${changeDetails.join('; ')}.`
+        : `${tenNhanVien} đã cập nhật ${globalData.length} lớp ngoài quy chuẩn nhưng không có thay đổi thực tế.`;
+      
+      await pool.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    } catch (logError) {
+      console.error("Lỗi khi ghi log:", logError);
+      // Không throw error để không ảnh hưởng đến việc cập nhật chính
     }
 
     // Gửi phản hồi thành công
@@ -1090,6 +1225,21 @@ const getTTVuotGio = async (req, res) => {
             FROM giuaky 
             WHERE TRIM(GiangVien) = TRIM(?) AND HocKy = ? AND he_dao_tao LIKE ? AND NamHoc = ? ORDER BY DoiTuong`;
 
+    //Truy vấn ketthuchocphan
+    const query2 = `
+                    SELECT *,
+                          CASE 
+                            WHEN TRIM(LOWER(doituong)) = TRIM(LOWER('Đóng hp')) 
+                            THEN 1 
+                            ELSE 2 
+                          END AS nhom
+                    FROM ketthuchocphan 
+                    WHERE TRIM(LOWER(giangvien)) = TRIM(LOWER(?)) 
+                      AND ki = ? 
+                      AND namhoc = ? 
+                    ORDER BY nhom, doituong
+                  `;
+
     // Tạo các mảng kết quả giống mã cũ
     const [rows11] = await connection.query(query, [
       TenNhanVien,
@@ -1156,6 +1306,21 @@ const getTTVuotGio = async (req, res) => {
       "%Đóng học phí%",
       Nam,
     ]);
+
+    const [rowsA31All] = await connection.query(query2, [
+      TenNhanVien,
+      1,
+      Nam,
+    ]);
+    const rows31 = rowsA31All.filter(r => r.nhom === 2);
+    const rows32   = rowsA31All.filter(r => r.nhom === 1);
+    const [rowsA32All] = await connection.query(query2, [
+      TenNhanVien,
+      2,
+      Nam,
+    ]);
+    const rows33= rowsA32All.filter(r => r.nhom === 2);
+    const rows34   = rowsA32All.filter(r => r.nhom === 1);
     const queryB = `
         SELECT *, 
             CASE 
@@ -1325,6 +1490,10 @@ const getTTVuotGio = async (req, res) => {
       rows22: rows22,
       rows23: rows23,
       rows24: rows24,
+      rows31: rows31,
+      rows32: rows32,
+      rows33: rows33,
+      rows34: rows34,
       rowsB: rowsB,
       rowsC1: rowsC1,
       rowsC2: rowsC2,

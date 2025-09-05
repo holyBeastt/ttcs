@@ -64,7 +64,7 @@ if (isKhoa == 1) {
         hideTableHeadersByIds(["labelKhoaRaDe", "labelKhoaCoiThi", "labelKhoaChamThi"])
         document.getElementById("update-qc").style.display = "none"
       }
-    } else if (MaPhongBan === "KT&ĐBCL") {
+    } else if (MaPhongBan === APP_DEPARTMENTS?.khaoThi) {
       console.log("KT&ĐBCL role detected")
       if( role !== window.APP_ROLES?.lanhDao_phong && role !== window.APP_ROLES?.troLy_phong) {
         hideTableHeadersByIds([
@@ -86,7 +86,7 @@ if (isKhoa == 1) {
       document.getElementById("update-qc").style.display = "none"
     }
 
-    if (MaPhongBan === "KT&ĐBCL") {
+    if (MaPhongBan === APP_DEPARTMENTS?.khaoThi) {
       if (role === window.APP_ROLES?.lanhDao_phong) {
         document.getElementById("checkAllKhoaRaDe").style.display = "none"
         document.getElementById("checkAllKhoaCoiThi").style.display = "none"
@@ -360,6 +360,7 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
   }else {
     editable = false; // Non-editable if already saved
   }
+  
   // STT
   const sttCell = document.createElement("td")
   sttCell.textContent = index + 1 // Use the passed index for STT
@@ -495,12 +496,15 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
       khoaCell.style.display = "none"
     }
   } else {
-    if (maPhongBan === "KT&ĐBCL") {
+    if (maPhongBan === APP_DEPARTMENTS?.khaoThi) {
       console.log(`MaPhongBan: ${maPhongBan}, userRole: ${role}`)
       if( role === window.APP_ROLES?.lanhDao_phong){
         khaoThiCell.style.display = ""
         khoaCell.style.display = ""
         khoaCell.style.pointerEvents = "none"
+        if (row.khaothiduyet === 0) {
+          khaoThiCell.style.pointerEvents = "none"
+        }
       }else if (role === window.APP_ROLES?.troLy_phong) {
         khaoThiCell.style.display = ""
         khoaCell.style.display = ""
@@ -516,7 +520,7 @@ function createTableCells(tableRow, row, examType, role, MaPhongBan, isKhoa, ind
 
   // Vô hiệu nếu đã được duyệt
   if(row.daluu === 0){
-    if (row.khaothiduyet && (maPhongBan !== "KT&ĐBCL" || role !== window.APP_ROLES?.lanhDao_phong)) {
+    if (row.khaothiduyet && (maPhongBan !== APP_DEPARTMENTS?.khaoThi || role !== window.APP_ROLES?.lanhDao_phong)) {
       khoaCheckbox.disabled = true
       khaoThiCheckbox.disabled = true
     }

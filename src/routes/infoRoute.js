@@ -9,8 +9,8 @@ const obj3 = require("../controllers/importController"); //
 router.get("/info", obj.getTeachingInfo1);
 router.get("/info2", obj.getTeachingInfo2);
 
-// thông tin đầy đủ của bảng quy chuẩn
-router.post("/thong-tin-giang-day", (req, res) => obj.renderInfo(req, res));
+// Hiển thị thông tin đầy đủ của bảng quy chuẩn
+router.post("/api/v1/qc/thong-tin-giang-day", (req, res) => obj.renderInfo(req, res));
 
 // thông tin bảng quy chuẩn dùng cho site quy chuẩn chính thức
 router.post("/quy-chuan-chinh-thuc", (req, res) => obj2.getTableQC(req, res));

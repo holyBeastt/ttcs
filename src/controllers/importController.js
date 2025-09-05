@@ -790,12 +790,13 @@ const importTableQC = async (jsonData, req) => {
     if (req && req.session) {
       const logQuery = `
         INSERT INTO lichsunhaplieu 
-        (id_User, TenNhanVien, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
-        VALUES (?, ?, ?, ?, NOW())
+        (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
-      const userId = req.session?.userId || 1;
-      const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+      const userId = req.session.userId || req.session.userInfo?.ID || 0;
+      const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+      const khoa = req.session.MaPhongBan || 'Unknown Department';
       const loaiThongTin = "Import file quy chuẩn";
 
       // Lấy thông tin từ dữ liệu đầu tiên nếu có
@@ -808,6 +809,7 @@ const importTableQC = async (jsonData, req) => {
       await connection.query(logQuery, [
         userId,
         tenNhanVien,
+        khoa,
         loaiThongTin,
         changeMessage,
       ]);
@@ -1203,6 +1205,25 @@ const updateChecked = async (req, res) => {
       // Lấy kết nối từ createPoolConnection
       connection = await createPoolConnection();
 
+      // Lấy thông tin user từ session để ghi log
+      const userId = req.session.userId || req.session.userInfo?.ID || 0;
+      const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+      const maPhongBan = req.session.MaPhongBan || 'Unknown Department';
+      
+      // Lấy tên phòng ban thực tế từ database
+      let tenPhongBan = maPhongBan;
+      try {
+        const [phongBanInfo] = await connection.query(
+          "SELECT TenPhongBan FROM phongban WHERE MaPhongBan = ?",
+          [maPhongBan]
+        );
+        if (phongBanInfo.length > 0) {
+          tenPhongBan = phongBanInfo[0].TenPhongBan;
+        }
+      } catch (error) {
+        console.log("Không lấy được tên phòng ban:", error);
+      }
+
       // Tạo mảng các Promise cho từng item trong jsonData
       const updatePromises = jsonData.map((item) => {
         return new Promise((resolve, reject) => {
@@ -1296,12 +1317,44 @@ const updateChecked = async (req, res) => {
           ];
 
           // Thực hiện truy vấn cập nhật
-          connection.query(queryUpdate, values, (err, results) => {
+          connection.query(queryUpdate, values, async (err, results) => {
             if (err) {
               console.error("Error:", err);
               reject(err);
               return;
             }
+
+            // Ghi log cho việc duyệt nếu có thay đổi duyệt
+            if (results.affectedRows > 0) {
+              try {
+                let logContent = [];
+                if (KhoaDuyet === 1) {
+                  logContent.push(`${tenPhongBan} thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+                }
+                if (DaoTaoDuyet === 1) {
+                  logContent.push(`Đào tạo thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+                }
+                if (TaiChinhDuyet === 1) {
+                  logContent.push(`Tài chính thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+                }
+
+                if (logContent.length > 0) {
+                  await connection.query(
+                    "INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())",
+                    [
+                      userId,
+                      tenNhanVien,
+                      maPhongBan,
+                      "Thay đổi thông tin giảng dạy",
+                      logContent.join(". ")
+                    ]
+                  );
+                }
+              } catch (logError) {
+                console.error("Lỗi ghi log:", logError);
+              }
+            }
+
             resolve(results);
           });
         });
@@ -1689,8 +1742,8 @@ const updateQC = async (req, res) => {
   const jsonData = req.body;
 
   // Lấy ID người dùng và tên người dùng từ session
-  const userId = req.session?.userId || 1;
-  const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+  const userId = req.session.userId || req.session.userInfo?.ID || 0;
+  const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
 
   console.log("User ID:", userId);
   console.log("User Name:", tenNhanVien);
@@ -1930,8 +1983,7 @@ const updateQC = async (req, res) => {
             connection,
             oldData,
             updatedRow,
-            userId,
-            tenNhanVien
+            req
           );
         }
       }
@@ -1965,8 +2017,8 @@ const capNhatTen_BoMon = async (req, res) => {
   const { GiaoVienGiangDay, BoMon, ID } = req.body;
 
   // Lấy ID người dùng và tên người dùng từ session
-  const userId = req.session?.userId || 1;
-  const tenNhanVien = req.session?.TenNhanVien || "ADMIN";
+  const userId = req.session.userId || req.session.userInfo?.ID || 0;
+  const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
 
   console.log("User ID:", userId);
   console.log("User Name:", tenNhanVien);
@@ -2028,8 +2080,7 @@ const capNhatTen_BoMon = async (req, res) => {
         connection,
         oldData,
         newData,
-        userId,
-        tenNhanVien
+        req
       );
 
       return res.status(200).json({ message: "Cập nhật thành công!" });
@@ -2062,6 +2113,25 @@ const phongBanDuyet = async (req, res) => {
       return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
     }
 
+    // Lấy thông tin user từ session để ghi log
+    const userId = req.session.userId || req.session.userInfo?.ID || 0;
+    const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
+    const maPhongBan = req.session.MaPhongBan || 'Unknown Department';
+    
+    // Lấy tên phòng ban thực tế từ database
+    let tenPhongBan = maPhongBan;
+    try {
+      const [phongBanInfo] = await connection.query(
+        "SELECT TenPhongBan FROM phongban WHERE MaPhongBan = ?",
+        [maPhongBan]
+      );
+      if (phongBanInfo.length > 0) {
+        tenPhongBan = phongBanInfo[0].TenPhongBan;
+      }
+    } catch (error) {
+      console.log("Không lấy được tên phòng ban:", error);
+    }
+
     // Giới hạn số lượng bản ghi mỗi batch (để tránh quá tải query)
     const batchSize = 100;
     const batches = [];
@@ -2071,6 +2141,20 @@ const phongBanDuyet = async (req, res) => {
 
     // Xử lý từng batch
     for (const batch of batches) {
+      
+      // Lấy dữ liệu cũ trước khi cập nhật để ghi log
+      const ids = batch.map(item => item.ID);
+      const [oldDataRows] = await connection.query(
+        `SELECT ID, LopHocPhan, TenLop, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet FROM ${tableName} WHERE ID IN (${ids.map(() => "?").join(", ")})`,
+        ids
+      );
+      
+      // Tạo map từ ID đến dữ liệu cũ
+      const oldDataMap = {};
+      for (const row of oldDataRows) {
+        oldDataMap[row.ID] = row;
+      }
+      
       let updateQuery = `
         UPDATE ${tableName}
         SET 
@@ -2078,13 +2162,11 @@ const phongBanDuyet = async (req, res) => {
       `;
 
       const updateValues = [];
-      const ids = [];
 
       batch.forEach((item) => {
         const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
         updateQuery += ` WHEN ID = ? THEN ?`;
         updateValues.push(ID, KhoaDuyet);
-        ids.push(ID);
       });
 
       updateQuery += ` END, DaoTaoDuyet = CASE `;
@@ -2109,6 +2191,57 @@ const phongBanDuyet = async (req, res) => {
 
       // Thực hiện truy vấn cập nhật hàng loạt
       await connection.query(updateQuery, updateValues);
+
+      // Ghi log cho từng item trong batch - so sánh với dữ liệu cũ
+      for (const item of batch) {
+        const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
+        const oldData = oldDataMap[ID];
+        
+        if (oldData) {
+          const { LopHocPhan, TenLop } = oldData;
+          let logContent = [];
+          
+          // Ghi log cho Khoa duyệt
+          if (Number(oldData.KhoaDuyet) !== Number(KhoaDuyet)) {
+            if (Number(KhoaDuyet) === 1) {
+              logContent.push(`${tenPhongBan} thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+            } else {
+              logContent.push(`${tenPhongBan} thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Hủy duyệt`);
+            }
+          }
+          
+          // Ghi log cho Đào tạo duyệt
+          if (Number(oldData.DaoTaoDuyet) !== Number(DaoTaoDuyet)) {
+            if (Number(DaoTaoDuyet) === 1) {
+              logContent.push(`Đào tạo thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+            } else {
+              logContent.push(`Đào tạo thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Hủy duyệt`);
+            }
+          }
+          
+          // Ghi log cho Tài chính duyệt  
+          if (Number(oldData.TaiChinhDuyet) !== Number(TaiChinhDuyet)) {
+            if (Number(TaiChinhDuyet) === 1) {
+              logContent.push(`Tài chính thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Đã duyệt`);
+            } else {
+              logContent.push(`Tài chính thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Hủy duyệt`);
+            }
+          }
+
+          if (logContent.length > 0) {
+            await connection.query(
+              "INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())",
+              [
+                userId,
+                tenNhanVien,
+                maPhongBan,
+                "Thay đổi thông tin giảng dạy",
+                logContent.join(". ")
+              ]
+            );
+          }
+        }
+      }
     }
 
     res.status(200).json({ message: "Cập nhật thành công" });
