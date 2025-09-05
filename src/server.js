@@ -105,7 +105,7 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "../node_modules")));
 app.use(express.static(path.join(__dirname, "public/images")));
-app.use(express.static(path.join(__dirname, "public/css")));
+app.use(express.static(path.join(__dirname, "public")));
 
 
 // == src of L ==
