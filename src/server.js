@@ -105,6 +105,8 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "../node_modules")));
 app.use(express.static(path.join(__dirname, "public/images")));
+app.use(express.static(path.join(__dirname, "public/css")));
+
 
 // == src of L ==
 app.set("view engine", "ejs");
