@@ -13,6 +13,10 @@ const app = express();
 const port = process.env.port || 8888;
 const hostname = process.env.HOST_NAME;
 
+// Thiết lập MIME types tường minh
+express.static.mime.define({'text/css': ['css']});
+express.static.mime.define({'application/javascript': ['js']});
+
 app.use(constantsMiddleware);
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
@@ -43,11 +47,15 @@ app.use(express.static(path.join(__dirname, "public/css"))); // css
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-
 // cấu hình phiên
 app.use("/", login);
 app.use((req, res, next) => {
   const publicRoutes = ["/", "/login"];
+  
+  // Bỏ qua xác thực cho các file static (CSS, JS, images, etc.)
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|svg)$/i)) {
+    return next();
+  }
 
   // Nếu session không tồn tại & route hiện tại không thuộc danh sách public => Chuyển hướng đến /login
   if (!req.session.userId && !publicRoutes.includes(req.path)) {
