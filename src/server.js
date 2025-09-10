@@ -1,7 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
-require("dotenv").config();
+// require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, '../.env') });
 const session = require("express-session");
 const login = require("./routes/loginRoute");
 //const importFile = require("./routes/importRoute");
@@ -104,6 +105,8 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "../node_modules")));
 app.use(express.static(path.join(__dirname, "public/images")));
+app.use(express.static(path.join(__dirname, "public")));
+
 
 // == src of L ==
 app.set("view engine", "ejs");
