@@ -429,7 +429,7 @@ const previewContract = async (req, res) => {
     const data = {
       Số_hợp_đồng: "       ",
       Số_thanh_lý: "       ",
-      Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
+      Ngày_bắt_đầu: formatDateVietnamese(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: teacher.GioiTinh === "Nam" ? "Ông" : "Bà",
       Họ_và_tên: teacher.GiangVien || teacher.HoTen,
@@ -872,7 +872,7 @@ const downloadContract = async (req, res) => {
 
     // Prepare data for template (same as previewContract)
     const data = {
-      Ngày_bắt_đầu: formatDate(teacher.NgayBatDau),
+      Ngày_bắt_đầu: formatDateVietnamese(teacher.NgayBatDau),
       Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
       Danh_xưng: teacher.GioiTinh === "Nam" ? "Ông" : "Bà",
       Họ_và_tên: teacher.GiangVien || teacher.HoTen,
@@ -1038,6 +1038,15 @@ function formatDate(date) {
   const month = (d.getMonth() + 1).toString().padStart(2, "0");
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
+}
+
+function formatDateVietnamese(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  return `ngày ${day} tháng ${month} năm ${year}`;
 }
 
 function formatDate1(date) {

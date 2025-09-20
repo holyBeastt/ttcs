@@ -1,6 +1,6 @@
 const express = require("express");
 const mysql = require("mysql2/promise"); // Ensure you have mysql2 installed
-const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 
 const postUpdateNV = async (req, res) => {
   // Lấy các thông tin từ form
@@ -38,14 +38,28 @@ const postUpdateNV = async (req, res) => {
     // Chuẩn hóa giá trị của HSL
     const validHSL = HSL === "" ? 0 : Number(HSL.toString().replace(",", "."));
 
-    connection = await createPoolConnection(); // Lấy kết nối từ pool
+    connection = await pool.getConnection(); // Lấy kết nối từ pool
 
-    // Lấy dữ liệu cũ để so sánh thay đổi
+    // Lấy dữ liệu cũ để so sánh thay đổi từ bảng nhanvien
     const [nhanVien] = await connection.execute(
       "SELECT * FROM nhanvien WHERE id_User = ?",
       [Id_User]
     );
     const oldRecord = nhanVien[0];
+
+    // Lấy dữ liệu cũ từ bảng taikhoannguoidung để lấy TenDangNhap cũ
+    const [oldTaiKhoan] = await connection.execute(
+      "SELECT TenDangNhap FROM taikhoannguoidung WHERE id_User = ?",
+      [Id_User]
+    );
+    const oldTenDangNhap = oldTaiKhoan[0] ? oldTaiKhoan[0].TenDangNhap : '';
+
+    // Lấy dữ liệu cũ từ bảng role để lấy Quyen cũ
+    const [oldRole] = await connection.execute(
+      "SELECT Quyen FROM role WHERE TenDangNhap = ?",
+      [oldTenDangNhap]
+    );
+    const oldQuyen = oldRole[0] ? oldRole[0].Quyen : '';
 
     // Kiểm tra nhân viên có tồn tại không
     if (nhanVien.length === 0) {
@@ -255,18 +269,42 @@ const postUpdateNV = async (req, res) => {
     if (oldRecord.Luong !== Luong) {
       changes.push(`Luong: "${oldRecord.Luong}" -> "${Luong}"`);
     }
+    // Thêm kiểm tra cho các trường dropdown
+    if (oldRecord.TinhTrangGiangDay !== tinhTrangGiangDay) {
+      const oldStatus = oldRecord.TinhTrangGiangDay == 1 ? "Đang giảng dạy" : "Đã ngừng giảng dạy";
+      const newStatus = tinhTrangGiangDay == 1 ? "Đang giảng dạy" : "Đã ngừng giảng dạy";
+      changes.push(`TinhTrangGiangDay: "${oldStatus}" -> "${newStatus}"`);
+    }
+    if (oldQuyen !== Quyen) {
+      const formatQuyen = (quyenValue) => {
+        switch(quyenValue) {
+          case '1': return 'Admin';
+          case '2': return 'Trưởng khoa';
+          case '3': return 'Phụ trách bộ môn';
+          case '4': return 'Giảng viên';
+          case '5': return 'Nhân viên';
+          default: return quyenValue;
+        }
+      };
+      const oldQuyenText = formatQuyen(oldQuyen);
+      const newQuyenText = formatQuyen(Quyen);
+      changes.push(`Quyen: "${oldQuyenText}" -> "${newQuyenText}"`);
+    }
+    if (oldTenDangNhap !== TenDangNhap) {
+      changes.push(`TenDangNhap: "${oldTenDangNhap}" -> "${TenDangNhap}"`);
+    }
     
-    const changeMessage = changes.length > 0 
-      ? `Admin cập nhật nhân viên ID ${Id_User}: ${changes.join(', ')}`
-      : `Admin cập nhật nhân viên ID ${Id_User}: Không có thay đổi`;
-    
-    await connection.query(logQuery, [
-      userId,
-      tenNhanVien,
-      khoa,
-      loaiThongTin,
-      changeMessage
-    ]);
+    // Chỉ ghi log khi có thay đổi
+    if (changes.length > 0) {
+      const changeMessage = `Admin cập nhật nhân viên ID ${Id_User}: ${changes.join(', ')}`;
+      await connection.query(logQuery, [
+        userId,
+        tenNhanVien,
+        khoa,
+        loaiThongTin,
+        changeMessage
+      ]);
+    }
 
     res
       .status(200)
@@ -285,7 +323,7 @@ const postUpdateNV = async (req, res) => {
 const postUpdatePhongBan = async (req, res) => {
   let connection;
   try {
-    connection = await createPoolConnection();
+    connection = await pool.getConnection();
     const MaPhongBan = req.params.MaPhongBan;
     const { tenPhongBan, ghiChu, khoa } = req.body;
     const isKhoa = khoa ? 1 : 0;
@@ -355,7 +393,7 @@ const postUpdateTK = async (req, res) => {
 
   try {
     // Cập nhật bảng đầu tiên
-    connection = await createPoolConnection();
+    connection = await pool.getConnection();
     
     const query1 =
       "UPDATE role SET MaPhongBan = ?, Quyen = ?, isKhoa = ? WHERE TenDangNhap = ?";
@@ -394,7 +432,7 @@ const postUpdateTK = async (req, res) => {
 const postUpdateBoMon = async (req, res) => {
   let connection;
   try {
-    connection = await createPoolConnection();
+    connection = await pool.getConnection();
     const id_BoMon = req.params;
     const id = id_BoMon.id_BoMon;
     const { MaPhongBan, MaBoMon, TenBoMon, TruongBoMon } = req.body;
