@@ -705,7 +705,7 @@
       const role = localStorage.getItem("userRole");
       const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-      // Nút duyệt và bỏ duyệt: chỉ hiển thị với role Trợ lý
+      // Nút duyệt và bỏ duyệt: chỉ hiển thị với role Trợ lý của Văn phòng
       if (role == APP_ROLES.troLy_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
         $('#approveContractBtn').show();
         $('#unapproveContractBtn').show();
@@ -714,15 +714,16 @@
         $('#unapproveContractBtn').hide();
       }
 
-      // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo
+      // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo của Văn phòng
       if (role == APP_ROLES.lanhDao_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
         $('#saveDataMoiGiang').show();
       } else {
         $('#saveDataMoiGiang').hide();
       }
 
-      // Show/hide action columns based on user permissions
-      if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
+      // Show/hide action columns based on user permissions - mở rộng cho cả phòng và khoa
+      if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) || 
+          (role == APP_ROLES.lanhDao_khoa || role == APP_ROLES.gv_cnbm_khoa)) {
         // Show action column in summary table
         $('#summaryTable th.action-col, #summaryTable td.action-col').show();
 

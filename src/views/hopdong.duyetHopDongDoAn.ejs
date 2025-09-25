@@ -2096,7 +2096,7 @@
         const MaPhongBan = localStorage.getItem("MaPhongBan");
         const loaiHopDong = $('#loaiHopDong').val();
 
-        // Nút duyệt và bỏ duyệt: chỉ hiển thị với role Trợ lý
+        // Nút duyệt và bỏ duyệt: chỉ hiển thị với role Trợ lý của Văn phòng
         if (role == APP_ROLES.troLy_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
           $('#approveContractBtn').show();
           $('#unapproveContractBtn').show();
@@ -2105,7 +2105,7 @@
           $('#unapproveContractBtn').hide();
         }
 
-        // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo và khi loại hợp đồng là "Đồ án"
+        // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo của Văn phòng và khi loại hợp đồng là "Đồ án"
         if (role == APP_ROLES.lanhDao_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong && loaiHopDong === 'Đồ án') {
           $('#saveDataDoAn').show();
         } else {
@@ -2124,7 +2124,9 @@
       function showActionColumns() {
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
-        const shouldShowActions = ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.vanPhong);
+        // Mở rộng quyền xem chi tiết và xem trước cho cả phòng và khoa
+        const shouldShowActions = ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) || 
+                                  (role == APP_ROLES.lanhDao_khoa || role == APP_ROLES.gv_cnbm_khoa));
 
         // Control action column headers
         const actionHeader1 = document.getElementById("action-header-1");
