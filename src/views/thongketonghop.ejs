@@ -311,10 +311,18 @@
             }
 
             const response = await fetch(url);
+            
+            if (!response.ok) {
+              console.error("Lỗi API:", response.status, response.statusText);
+              document.getElementById("chart").style.display = "none";
+              return;
+            }
+            
             const data = await response.json();
+            console.log("Data received:", data);
 
-            if (!data || data.length === 0) {
-              console.log("Không có dữ liệu");
+            if (!data || !Array.isArray(data) || data.length === 0) {
+              console.log("Không có dữ liệu hoặc dữ liệu không hợp lệ");
               document.getElementById("chart").style.display = "none";
               return;
             }
@@ -428,12 +436,26 @@
             }
 
             const response = await fetch(url);
+            
+            if (!response.ok) {
+              console.error("Lỗi API:", response.status, response.statusText);
+              const tableBody = document.querySelector("table tbody");
+              tableBody.innerHTML = "";
+              const row = tableBody.insertRow();
+              const cell = row.insertCell(0);
+              cell.colSpan = 4;
+              cell.style.textAlign = "center";
+              cell.textContent = "Lỗi khi tải dữ liệu";
+              return;
+            }
+            
             const data = await response.json();
+            console.log("Table data received:", data);
 
             const tableBody = document.querySelector("table tbody");
             tableBody.innerHTML = "";
 
-            if (!data || data.length === 0) {
+            if (!data || !Array.isArray(data) || data.length === 0) {
               const row = tableBody.insertRow();
               const cell = row.insertCell(0);
               cell.colSpan = 4;
@@ -447,24 +469,24 @@
               "#thongketonghopTable thead th:first-child"
             ).textContent = currentType === "hedaotao" ? "Hệ đào tạo" : "Khoa";
 
+            // Tính tổng để tính phần trăm (chỉ tính một lần)
+            const totalMoiGiang = data.reduce(
+              (sum, item) => sum + parseFloat(item.TongSoTietMoiGiang || 0),
+              0
+            );
+            const totalVuotGio = data.reduce(
+              (sum, item) => sum + parseFloat(item.TongSoTiet || 0),
+              0
+            );
+            const totalTong = data.reduce(
+              (sum, item) => sum + parseFloat(item.Tongso || 0),
+              0
+            );
+
             data.forEach((item) => {
               const row = document.createElement("tr");
               const khoaSVT =
                 currentType === "hedaotao" ? item.Khoa : item.Khoa; // item.Khoa will contain he_dao_tao when currentType is hedaotao
-
-              // Tính tổng để tính phần trăm
-              const totalMoiGiang = data.reduce(
-                (sum, item) => sum + parseFloat(item.TongSoTietMoiGiang || 0),
-                0
-              );
-              const totalVuotGio = data.reduce(
-                (sum, item) => sum + parseFloat(item.TongSoTiet || 0),
-                0
-              );
-              const totalTong = data.reduce(
-                (sum, item) => sum + parseFloat(item.Tongso || 0),
-                0
-              );
 
               // Phần trăm "Tổng số" theo toàn bảng để hiển thị ở cột Khoa
               const percentageTong =
@@ -525,14 +547,22 @@
             }
 
             const response = await fetch(url);
-            const data = await response.json();
-
-            if (!data || data.length === 0) {
-              document.getElementById("moiGiangPieChart").style.display =
-                "none";
+            
+            if (!response.ok) {
+              console.error("Lỗi API:", response.status, response.statusText);
+              document.getElementById("moiGiangPieChart").style.display = "none";
               document.getElementById("vuotGioPieChart").style.display = "none";
-              document.getElementById("tongTietPieChart").style.display =
-                "none";
+              document.getElementById("tongTietPieChart").style.display = "none";
+              return;
+            }
+            
+            const data = await response.json();
+            console.log("Pie chart data received:", data);
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+              document.getElementById("moiGiangPieChart").style.display = "none";
+              document.getElementById("vuotGioPieChart").style.display = "none";
+              document.getElementById("tongTietPieChart").style.display = "none";
               return;
             }
 

@@ -19,7 +19,7 @@ const thongketonghopController = {
               GREATEST(
                 0, 
                 SUM(gd.quychuan + COALESCE(gk.TotalSoTietKT, 0)) - 
-                (300 * ((100 - COALESCE(nv.PhanTramMienGiam, 0)) / 100))
+                (300 * ((100 - COALESCE(MAX(nv.PhanTramMienGiam), 0)) / 100))
               ) AS SoTietVuotGio
             FROM 
               giangday gd 
