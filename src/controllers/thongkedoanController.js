@@ -9,7 +9,67 @@ const thongkedoanController = {
 
     try {
       connection = await createConnection();
+      if (khoa === "ALL") {
+        // Params cho từng truy vấn
+        const paramsCoHuu = [];
+        const paramsMoiGiang = [];
+        let whereCoHuu = "WHERE isMoiGiang = 0";
+        let whereMoiGiang = "WHERE isMoiGiang = 1";
 
+        if (namhoc && namhoc !== "ALL") {
+          whereCoHuu += " AND NamHoc = ?";
+          paramsCoHuu.push(namhoc);
+          whereMoiGiang += " AND NamHoc = ?";
+          paramsMoiGiang.push(namhoc);
+        }
+        if (dot && dot !== "ALL") {
+          whereCoHuu += " AND Dot = ?";
+          paramsCoHuu.push(dot);
+          whereMoiGiang += " AND Dot = ?";
+          paramsMoiGiang.push(dot);
+        }
+        if (ki && ki !== "ALL") {
+          whereCoHuu += " AND Ki = ?";
+          paramsCoHuu.push(ki);
+          whereMoiGiang += " AND Ki = ?";
+          paramsMoiGiang.push(ki);
+        }
+
+        // Tổng hợp theo khoa cho cơ hữu
+        const [cohuuKhoa] = await connection.query(`
+          SELECT 
+            MaPhongBan AS MaPhongBan,
+            COUNT(DISTINCT GiangVien) AS soGiangVien,
+            SUM(SoTiet) AS soTiet,
+            COUNT(ID) AS soDoAn
+          FROM exportdoantotnghiep
+          ${whereCoHuu}
+          GROUP BY MaPhongBan
+          ORDER BY soDoAn DESC
+        `, paramsCoHuu);
+      
+        // Tổng hợp theo khoa cho mời giảng
+        const [moigiangKhoa] = await connection.query(`
+          SELECT 
+            MaPhongBan,
+            COUNT(DISTINCT GiangVien) AS soGiangVien,
+            SUM(SoTiet) AS soTiet,
+            COUNT(ID) AS soDoAn
+          FROM exportdoantotnghiep
+          ${whereMoiGiang}
+          GROUP BY MaPhongBan
+          ORDER BY soDoAn DESC
+        `, paramsMoiGiang);
+      
+        // Trả về dữ liệu tổng hợp
+        res.json({
+          success: true,
+          cohuuKhoa,
+          moigiangKhoa,
+          isAllKhoa: true
+        });
+        return;
+      }
       // Truy vấn dữ liệu cho cả cơ hữu và mời giảng
       query = `
             SELECT 
