@@ -9,6 +9,7 @@ const { isNull } = require("util");
 const mammoth = require("mammoth");
 const JSZip = require("jszip");
 const pdf = require("pdf-parse");
+const fsp = fs.promises;
 
 // Hàm kiểm tra một row có được merge từ cột đầu tiên đến cột cuối cùng hay không
 // kiểm tra row chứa dòng chia Khoa
@@ -24,196 +25,105 @@ function isRowMerged(sheet, rowIndex, totalColumns) {
   });
 }
 
-// hàm v2 có thêm xử lí 1 sheet nhiều khoakhoa
-async function convertExcelToJSON(filePath) {
+async function convertExcelToJSON(optsOrPath) {
+  const opts = (typeof optsOrPath === 'string')
+    ? { filePath: optsOrPath }
+    : (optsOrPath || {});
+  const { buffer, filePath } = opts;
+
   try {
-    // Đọc file Excel
-    const workbook = XLSX.readFile(filePath);
+    let workbook;
+    let absToRead;
+
+    if (buffer && buffer.length) {
+      // Đọc từ buffer (memoryStorage)
+      workbook = XLSX.read(buffer, { type: 'buffer' });
+    } else if (filePath) {
+      // Chuẩn hóa path tuyệt đối
+      const absGiven = path.isAbsolute(filePath) ? filePath : path.resolve(filePath);
+      absToRead = absGiven;
+
+      // Nếu không tồn tại, thử biến thể /src/uploads/ (Linux) hoặc \src\uploads\ (Windows)
+      try {
+        await fsp.access(absToRead, fs.constants.R_OK);
+      } catch {
+        const alt = absGiven.replace(
+          new RegExp(`\\${path.sep}uploads\\${path.sep}`),
+          `${path.sep}src${path.sep}uploads${path.sep}`
+        );
+        await fsp.access(alt, fs.constants.R_OK);
+        absToRead = alt;
+      }
+
+      workbook = XLSX.readFile(absToRead);
+    } else {
+      throw new Error('No buffer or filePath provided');
+    }
+
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-
-    // Đọc toàn bộ dữ liệu dưới dạng mảng 2D (mỗi phần tử là 1 row dưới dạng mảng)
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    if (rows.length === 0) {
-      throw new Error("File Excel rỗng!");
-    }
+    if (!rows.length) throw new Error('File Excel rỗng!');
 
-    // Tìm dòng chứa header. key nhận biết header là STT
-    const headerRowIndex = rows.findIndex((row) => {
-      return row[0] === "STT";
-    });
-
+    const headerRowIndex = rows.findIndex((row) => String(row?.[0] ?? '').trim() === 'STT');
     if (headerRowIndex === -1) {
-      throw new Error(
-        "Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần."
-      );
+      throw new Error('Không tìm thấy dòng tiêu đề chứa STT, Số TC, Lớp học phần.');
     }
 
-    // Xác định header và tổng số cột từ dòng tiêu đề
     const header = rows[headerRowIndex];
     const totalColumns = header.length;
-    // Lấy các dòng dữ liệu phía sau dòng tiêu đề
     const dataRows = rows.slice(headerRowIndex + 1);
 
     const jsonObjects = [];
-    const specialSubstring = "Các học phần thuộc Khoa";
-    let currentKhoa = ""; // Biến lưu nhóm Khoa hiện tại (được xác định từ row merge)
+    const specialSubstring = 'Các học phần thuộc Khoa';
+    let currentKhoa = '';
 
     dataRows.forEach((row, i) => {
-      // Tính chỉ số row thực trong file (với 0 là dòng đầu tiên)
       const actualRowIndex = headerRowIndex + 1 + i;
+      const merged = (typeof isRowMerged === 'function')
+        ? isRowMerged(sheet, actualRowIndex, totalColumns)
+        : false;
 
-      // Nếu row được merge toàn bộ từ cột 0 đến totalColumns - 1
-      if (isRowMerged(sheet, actualRowIndex, totalColumns)) {
-        // Lấy giá trị của ô đầu tiên của dòng merge
-        const cellValue = row[0] || "";
-        // console.log(cellValue)
-        // Sử dụng regex để tìm chuỗi sau từ "Khoa"
-        // \S+ sẽ lấy phần chữ liên tiếp không có khoảng trắng sau "Khoa"
-        const regex = /Khoa\s*(\S+)/i;
-        const match = cellValue.match(regex);
-        if (match && match[1]) {
-          currentKhoa = match[1].trim();
-        }
-        // Dòng merge chỉ dùng để xác định nhóm, không thêm vào kết quả JSON
+      if (merged) {
+        const cellValue = (row?.[0] ?? '').toString();
+        const match = cellValue.match(/Khoa\s*(\S+)/i);
+        if (match?.[1]) currentKhoa = match[1].trim();
         return;
       }
 
-      // Tạo đối tượng từ row: mapping các key (header) với giá trị tương ứng của row
       const obj = {};
-      header.forEach((colName, index) => {
-        // Loại bỏ \r\n trong key
-        const cleanKey = colName.replace(/[\r\n]+/g, "");
-        // Lấy giá trị và loại bỏ \r\n nếu là chuỗi
-        let value = row[index] !== undefined ? row[index] : "";
-        if (typeof value === "string") {
-          value = value.replace(/[\r\n]+/g, "");
-        }
+      header.forEach((colName, idx) => {
+        const cleanKey = String(colName ?? '').replace(/[\r\n]+/g, '');
+        let value = row?.[idx] ?? '';
+        if (typeof value === 'string') value = value.replace(/[\r\n]+/g, '');
         obj[cleanKey] = value;
       });
 
-      // Luôn thêm key "Khoa" vào đối tượng, nếu không có dòng merge thì giá trị sẽ là ""
-      obj["Khoa"] = currentKhoa.replace(/[\r\n]+/g, "");
+      obj['Khoa'] = String(currentKhoa ?? '').replace(/[\r\n]+/g, '');
 
-      // Kiểm tra số lượng giá trị rỗng trong đối tượng
-      const emptyCount = Object.values(obj).reduce((count, value) => {
-        return (
-          count +
-          (value === "" || value === null || value === undefined ? 1 : 0)
-        );
-      }, 0);
+      const emptyCount = Object.values(obj).reduce(
+        (acc, v) => acc + (v === '' || v == null ? 1 : 0), 0
+      );
 
-      // Kiểm tra cả key và value xem có chứa chuỗi đặc biệt không
       const containsSpecial =
-        Object.keys(obj).some((key) => key.includes(specialSubstring)) ||
-        Object.values(obj).some(
-          (val) => typeof val === "string" && val.includes(specialSubstring)
-        );
+        Object.keys(obj).some((k) => k.includes(specialSubstring)) ||
+        Object.values(obj).some((v) => typeof v === 'string' && v.includes(specialSubstring));
 
-      // Nếu có nhiều hơn 6 giá trị rỗng và không chứa chuỗi đặc biệt, bỏ qua đối tượng đó
-      if (emptyCount > 6 && !containsSpecial) {
-        return;
-      }
+      if (emptyCount > 6 && !containsSpecial) return;
 
       jsonObjects.push(obj);
     });
 
-    // Nếu cần xóa file sau khi xử lý, có thể mở dòng dưới
-    fs.unlinkSync(filePath);
+    // ✅ Xoá file sau khi xử lý (chỉ khi có filePath)
+    if (absToRead) {
+      fsp.unlink(absToRead).catch(() => {});
+    }
 
     return jsonObjects;
-  } catch (error) {
-    throw new Error("Cannot read file!: " + error.message);
+  } catch (err) {
+    throw new Error('Cannot read file!: ' + (err?.message || String(err)));
   }
 }
-
-// Hàm v1 có xử lí 1 sheet 1 khoa, nhiều sheet nhiều khoakhoa
-// const convertExcelToJSON = async (filePath) => {
-//   try {
-//     const workbook = XLSX.readFile(filePath);
-//     const sheetNames = workbook.SheetNames; // Lấy danh sách tất cả các sheet
-//     let jsonObjects = [];
-
-//     if (sheetNames.length === 1) {
-//       // === Trường hợp 1: Chỉ có 1 sheet, giữ nguyên logic cũ ===
-//       const sheetName = sheetNames[0];
-//       const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//       const data = worksheet;
-//       const header = data[0]; // Lấy tiêu đề
-//       const keys = Object.keys(header);
-//       const dataObjects = data.slice(1);
-
-//       jsonObjects = dataObjects.map((values) => {
-//         return keys.reduce((acc, key) => {
-//           acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-//           return acc;
-//         }, {});
-//       });
-//     } else {
-//       // === Trường hợp 2: Có nhiều sheet, mỗi sheet thêm key "Khoa" ===
-//       sheetNames.forEach((sheetName) => {
-//         const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//         if (worksheet.length === 0) return; // Bỏ qua sheet rỗng
-
-//         const header = worksheet[0];
-//         const keys = Object.keys(header);
-//         const dataObjects = worksheet.slice(1);
-
-//         const sheetData = dataObjects.map((values) => {
-//           const obj = keys.reduce((acc, key) => {
-//             acc[header[key]] = values[key] !== undefined ? values[key] : 0;
-//             return acc;
-//           }, {});
-//           obj.Khoa = sheetName; // Gán thêm key "Khoa"
-//           return obj;
-//         });
-
-//         jsonObjects = jsonObjects.concat(sheetData);
-//       });
-//     }
-
-//     fs.unlinkSync(filePath); // Xóa tệp sau khi xử lý
-
-//     validateFileExcelQC(jsonObjects);
-//     console.log("Convert file quy chuẩn thành công");
-//     return jsonObjects;
-//   } catch (err) {
-//     throw new Error("Cannot read file!: " + err.message);
-//   }
-// };
-
-// Hàm chuyển dữ liệu thiếu thành 0 khi import bằng file excel
-const validateFileExcelQC = (data) => {
-  // Kiểm tra nếu dữ liệu trống
-  if (!data || data.length === 0) {
-    throw new Error("Dữ liệu đầu vào không hợp lệ: Dữ liệu trống");
-  }
-
-  // Duyệt qua từng đối tượng trong dữ liệu
-  for (let i = 0; i < data.length; i++) {
-    const record = data[i];
-
-    // Duyệt qua từng key trong đối tượng
-    Object.keys(record).forEach((key) => {
-      // Trim giá trị và kiểm tra nếu nó là chuỗi rỗng hoặc undefined, null
-      if (
-        record[key] === null ||
-        record[key] === undefined ||
-        String(record[key]).trim() === ""
-      ) {
-        record[key] = 0; // Gán giá trị là 0 nếu không hợp lệ
-      } else {
-        // Nếu không rỗng, trim giá trị (nếu cần)
-        record[key] = String(record[key]).trim();
-      }
-    });
-  }
-
-  // console.log("Dữ liệu đã được validate và chỉnh sửa");
-  return data;
-};
 
 // Hàm xử lí mảng chuỗi dữ liệu của các lớp thành mảng các đối tượng
 const parseDataToObjects = (lines) => {
