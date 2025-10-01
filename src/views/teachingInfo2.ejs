@@ -1225,6 +1225,9 @@
       const dot = document.getElementById('combobox-dot').value;
       const ki = document.getElementById('comboboxki').value;
       const namHoc = document.getElementById('NamHoc').value;
+      
+      // Lấy giá trị khoa đang lọc
+      const filterKhoa = document.getElementById('filterKhoa').value;
 
       try {
         // Gửi dữ liệu đến controller để xử lý
@@ -1233,7 +1236,10 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ renderData: globalData }),
+          body: JSON.stringify({ 
+            renderData: globalData,
+            filterKhoa: filterKhoa // Gửi thêm thông tin khoa đang lọc
+          }),
         });
 
         if (!response.ok) {
@@ -1245,7 +1251,15 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `thong_tin_giang_day_${dot}_${ki}_${namHoc}.xlsx`;
+        
+        // Tạo tên file có thêm thông tin khoa nếu có lọc
+        let fileName = `thong_tin_giang_day_${dot}_${ki}_${namHoc}`;
+        if (filterKhoa && filterKhoa.trim() !== '') {
+          fileName += `_${filterKhoa}`;
+        }
+        fileName += '.xlsx';
+        
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

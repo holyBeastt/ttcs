@@ -17,12 +17,21 @@ function generateGroupCode(data) {
 // Hàm xuất dữ liệu thông tin giảng dạy ra Excel
 const exportTeachingInfoToExcel = async (req, res) => {
   try {
-    const { renderData } = req.body;
+    const { renderData, filterKhoa } = req.body;
 
     if (!renderData || renderData.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Không có dữ liệu để xuất file"
+      });
+    }
+
+    // Lọc dữ liệu theo khoa nếu có filterKhoa
+    let filteredData = renderData;
+    if (filterKhoa && filterKhoa.trim() !== '') {
+      filteredData = renderData.filter(item => {
+        const khoaValue = item.Khoa || '';
+        return khoaValue.toLowerCase().includes(filterKhoa.toLowerCase());
       });
     }
 
@@ -86,7 +95,7 @@ const exportTeachingInfoToExcel = async (req, res) => {
     }));
 
     // Thêm dữ liệu thô từ teachingInfo2.ejs
-    renderData.forEach((item, index) => {
+    filteredData.forEach((item, index) => {
       const row = worksheet.addRow([
         index + 1, // TT
         `${item.LopHocPhan} (${item.TenLop})`, // Học phần

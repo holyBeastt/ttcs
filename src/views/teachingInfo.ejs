@@ -2295,6 +2295,9 @@
         const dot = document.getElementById('combobox-dot').value;
         const ki = document.getElementById('comboboxki').value;
         const namHoc = document.getElementById('NamHoc').value;
+        
+        // Lấy thông tin khoa từ localStorage
+        const MaPhongBan = localStorage.getItem("MaPhongBan");
 
         try {
           // Gửi dữ liệu đến controller để xử lý
@@ -2315,7 +2318,15 @@
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = `thong_tin_giang_day_${dot}_${ki}_${namHoc}.xlsx`;
+          
+          // Tạo tên file có thêm thông tin khoa
+          let fileName = `thong_tin_giang_day_${dot}_${ki}_${namHoc}`;
+          if (MaPhongBan && MaPhongBan.trim() !== '') {
+            fileName += `_${MaPhongBan}`;
+          }
+          fileName += '.xlsx';
+          
+          a.download = fileName;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
