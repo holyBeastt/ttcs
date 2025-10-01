@@ -353,129 +353,296 @@
           const dot = $("#dot").val();
           const ki = $("#ki").val();
 
-          console.log("NamHoc:", namhoc, "Khoa:", khoa, "Dot:", dot, "Kì:", ki); // Debugging
-
           $.ajax({
             url: "/data",
             method: "GET",
             data: { namhoc, khoa, dot, ki },
             success: function (response) {
               if (response.success) {
+                // ======= XỬ LÝ TRƯỜNG HỢP KHOA = ALL =======
+                if (response.isAllKhoa && Array.isArray(response.cohuuKhoa) && Array.isArray(response.moigiangKhoa)) {
+                  // Tính tổng số tiết
+                  const totalCoHuu = response.cohuuKhoa.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
+                  const totalMoiGiang = response.moigiangKhoa.reduce((sum, item) => sum + parseFloat(item.soTiet || 0), 0);
+                  const totalSoTiet = totalCoHuu + totalMoiGiang;
+
+                  // Tính phần trăm
+                  const percentCoHuu = totalSoTiet > 0 ? ((totalCoHuu / totalSoTiet) * 100).toFixed(1) : 0;
+                  const percentMoiGiang = totalSoTiet > 0 ? ((totalMoiGiang / totalSoTiet) * 100).toFixed(1) : 0;
+
+                  // Hiển thị tổng số tiết
+                  $("#totalCoHuu").text(`${totalCoHuu} (${percentCoHuu}%)`);
+                  $("#totalMoiGiang").text(`${totalMoiGiang} (${percentMoiGiang}%)`);
+                  $("#totalSoTiet").text(totalSoTiet);
+
+                  // Vẽ biểu đồ Cơ hữu theo khoa (có %)
+                  const cohuuLabels = response.cohuuKhoa.map(item => item.MaPhongBan || "Không rõ");
+                  const cohuuValues = response.cohuuKhoa.map(item => item.soTiet || 0);
+                  const cohuuPercents = cohuuValues.map(val => totalCoHuu > 0 ? ((val / totalCoHuu) * 100).toFixed(1) : 0);
+
+                  if (window.chartCoHuu instanceof Chart) window.chartCoHuu.destroy();
+                  const ctxCoHuu = document.getElementById("chartCoHuu").getContext("2d");
+                  window.chartCoHuu = new Chart(ctxCoHuu, {
+                      type: "bar",
+                      data: {
+                          labels: cohuuLabels,
+                          datasets: [{
+                              label: "Số tiết quy đổi (Cơ hữu)",
+                              data: cohuuValues,
+                              backgroundColor: "blue",
+                              borderColor: "yellow",
+                              borderWidth: 3,
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          plugins: {
+                              tooltip: {
+                                  callbacks: {
+                                      label: function(context) {
+                                          const value = context.raw;
+                                          const percent = totalCoHuu > 0 ? ((value / totalCoHuu) * 100).toFixed(1) : 0;
+                                          return `${context.label}: ${value} (${percent}%)`;
+                                      }
+                                  }
+                              },
+                              title: { display: true, text: "Cơ hữu theo khoa", font: { size: 18 } }
+                          },
+                          scales: { y: { beginAtZero: true } }
+                      }
+                  });
+
+                  // Hiển thị bảng tổng hợp Cơ hữu (có % ở cột số tiết quy đổi)
+                  let htmlCoHuu = `
+                      <h3>Bảng tổng hợp Cơ hữu theo khoa</h3>
+                      <table class="table table-bordered my-2" border="1">
+                          <thead>
+                              <tr>
+                                  <th>STT</th>
+                                  <th>Khoa</th>
+                                  <th>Số lượng giảng viên</th>
+                                  <th>Số đồ án</th>
+                                  <th>Số tiết quy đổi</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                  `;
+                  response.cohuuKhoa.forEach((item, idx) => {
+                      const percent = totalCoHuu > 0 ? ((item.soTiet / totalCoHuu) * 100).toFixed(1) : 0;
+                      htmlCoHuu += `
+                          <tr>
+                              <td>${idx + 1}</td>
+                              <td>${item.MaPhongBan}</td>
+                              <td>${item.soGiangVien}</td>
+                              <td>${item.soDoAn}</td>
+                              <td>${item.soTiet} (${percent}%)</td>
+                          </tr>
+                      `;
+                  });
+                  htmlCoHuu += `</tbody></table>`;
+                  $("#coHuuTable").html(htmlCoHuu);
+
+                  // Biểu đồ và bảng cho Mời giảng (có %)
+                  const moigiangLabels = response.moigiangKhoa.map(item => item.MaPhongBan || "Không rõ");
+                  const moigiangValues = response.moigiangKhoa.map(item => item.soTiet || 0);
+                  const moigiangPercents = moigiangValues.map(val => totalMoiGiang > 0 ? ((val / totalMoiGiang) * 100).toFixed(1) : 0);
+
+                  if (window.chartMoiGiang instanceof Chart) window.chartMoiGiang.destroy();
+                  const ctxMoiGiang = document.getElementById("chartMoiGiang").getContext("2d");
+                  window.chartMoiGiang = new Chart(ctxMoiGiang, {
+                      type: "bar",
+                      data: {
+                          labels: moigiangLabels,
+                          datasets: [{
+                              label: "Số tiết quy đổi (Mời giảng)",
+                              data: moigiangValues,
+                              backgroundColor: "green",
+                              borderColor: "orange",
+                              borderWidth: 3,
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          plugins: {
+                              tooltip: {
+                                  callbacks: {
+                                      label: function(context) {
+                                          const value = context.raw;
+                                          const percent = totalMoiGiang > 0 ? ((value / totalMoiGiang) * 100).toFixed(1) : 0;
+                                          return `${context.label}: ${value} (${percent}%)`;
+                                      }
+                                  }
+                              },
+                              title: { display: true, text: "Mời giảng theo khoa", font: { size: 18 } }
+                          },
+                          scales: { y: { beginAtZero: true } }
+                      }
+                  });
+
+                  let htmlMoiGiang = `
+                      <h3>Bảng tổng hợp Mời giảng theo khoa</h3>
+                      <table class="table table-bordered my-2" border="1">
+                          <thead>
+                              <tr>
+                                  <th>STT</th>
+                                  <th>Khoa</th>
+                                  <th>Số lượng giảng viên</th>
+                                  <th>Số đồ án</th>
+                                  <th>Số tiết quy đổi</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                  `;
+                  response.moigiangKhoa.forEach((item, idx) => {
+                      const percent = totalMoiGiang > 0 ? ((item.soTiet / totalMoiGiang) * 100).toFixed(1) : 0;
+                      htmlMoiGiang += `
+                          <tr>
+                              <td>${idx + 1}</td>
+                              <td>${item.MaPhongBan}</td>
+                              <td>${item.soGiangVien}</td>
+                              <td>${item.soDoAn}</td>
+                              <td>${item.soTiet} (${percent}%)</td>
+                          </tr>
+                      `;
+                  });
+                  htmlMoiGiang += `</tbody></table>`;
+                  $("#moiGiangTable").html(htmlMoiGiang);
+
+                  // Không render bảng chi tiết nữa!
+                  return;
+                }
+
+                // ======= NẾU KHÔNG PHẢI KHOA = ALL, render bảng chi tiết như cũ =======
                 const coHuu = response.coHuu;
                 const moiGiang = response.moiGiang;
-                $("#totalSoTiet").text(response.totalSoTiet || 0);
-                $("#totalCoHuu").text(response.totalCoHuu || 0);
-                $("#totalMoiGiang").text(response.totalMoiGiang || 0);
+                const totalCoHuu = response.totalCoHuu || 0;
+                const totalMoiGiang = response.totalMoiGiang || 0;
+                const totalSoTiet = response.totalSoTiet || (totalCoHuu + totalMoiGiang);
+
+                // Tính phần trăm
+                const percentCoHuu = totalSoTiet > 0 ? ((totalCoHuu / totalSoTiet) * 100).toFixed(1) : 0;
+                const percentMoiGiang = totalSoTiet > 0 ? ((totalMoiGiang / totalSoTiet) * 100).toFixed(1) : 0;
+
+                // Hiển thị tổng số tiết có %
+                $("#totalCoHuu").text(`${totalCoHuu} (${percentCoHuu}%)`);
+                $("#totalMoiGiang").text(`${totalMoiGiang} (${percentMoiGiang}%)`);
+                $("#totalSoTiet").text(totalSoTiet);
 
                 // Labels và values cho biểu đồ Cơ hữu
-                const coHuuLabels = coHuu.map(
-                  (item) => item.GiangVien || "Không rõ"
-                );
-                const coHuuValues = coHuu.map((item) => item.soDoAn); // Số đồ án
+                const coHuuLabels = coHuu.map(item => item.GiangVien || "Không rõ");
+                const coHuuValues = coHuu.map(item => item.soDoAn);
 
                 // Labels và values cho biểu đồ Mời giảng
-                const moiGiangLabels = moiGiang.map(
-                  (item) => item.GiangVien || "Không rõ"
-                );
-                const moiGiangValues = moiGiang.map((item) => item.soDoAn); // Số đồ án
+                const moiGiangLabels = moiGiang.map(item => item.GiangVien || "Không rõ");
+                const moiGiangValues = moiGiang.map(item => item.soDoAn);
 
                 // Hủy biểu đồ cũ nếu tồn tại
-                if (window.chartCoHuu instanceof Chart)
-                  window.chartCoHuu.destroy();
-                if (window.chartMoiGiang instanceof Chart)
-                  window.chartMoiGiang.destroy();
+                if (window.chartCoHuu instanceof Chart) window.chartCoHuu.destroy();
+                if (window.chartMoiGiang instanceof Chart) window.chartMoiGiang.destroy();
 
                 // Tạo biểu đồ Cơ hữu
-                const ctxCoHuu = document
-                  .getElementById("chartCoHuu")
-                  .getContext("2d");
+                const ctxCoHuu = document.getElementById("chartCoHuu").getContext("2d");
                 window.chartCoHuu = new Chart(ctxCoHuu, {
                   type: "bar",
                   data: {
                     labels: coHuuLabels,
-                    datasets: [
-                      {
-                        label: "Số đồ án (Cơ hữu)",
-                        data: coHuuValues,
-                        backgroundColor: "blue",
-                        borderColor: "yellow",
-                        borderWidth: 3,
-                      },
-                    ],
+                    datasets: [{
+                      label: "Số đồ án (Cơ hữu)",
+                      data: coHuuValues,
+                      backgroundColor: "blue",
+                      borderColor: "yellow",
+                      borderWidth: 3,
+                    }],
                   },
                   options: {
                     responsive: true,
                     plugins: {
-                      title: {
-                        display: true,
-                        text: "Cơ hữu",
-                        font: { size: 18 },
-                      },
+                      title: { display: true, text: "Cơ hữu", font: { size: 18 } }
                     },
-                    scales: { y: { beginAtZero: true } },
-                  },
+                    scales: { y: { beginAtZero: true } }
+                  }
                 });
 
                 // Tạo biểu đồ Mời giảng
-                const ctxMoiGiang = document
-                  .getElementById("chartMoiGiang")
-                  .getContext("2d");
+                const ctxMoiGiang = document.getElementById("chartMoiGiang").getContext("2d");
                 window.chartMoiGiang = new Chart(ctxMoiGiang, {
                   type: "bar",
                   data: {
                     labels: moiGiangLabels,
-                    datasets: [
-                      {
-                        label: "Số đồ án (Mời giảng)",
-                        data: moiGiangValues,
-                        backgroundColor: "green",
-                        borderColor: "orange",
-                        borderWidth: 3,
-                      },
-                    ],
+                    datasets: [{
+                      label: "Số đồ án (Mời giảng)",
+                      data: moiGiangValues,
+                      backgroundColor: "green",
+                      borderColor: "orange",
+                      borderWidth: 3,
+                    }],
                   },
                   options: {
                     responsive: true,
                     plugins: {
-                      title: {
-                        display: true,
-                        text: "Mời giảng",
-                        font: { size: 18 },
-                      },
+                      title: { display: true, text: "Mời giảng", font: { size: 18 } }
                     },
-                    scales: { y: { beginAtZero: true } },
-                  },
+                    scales: { y: { beginAtZero: true } }
+                  }
                 });
 
                 // Hiển thị bảng chi tiết Cơ hữu
-                const coHuuTableBody = $("#coHuuTable tbody");
-                coHuuTableBody.empty(); // Xóa dữ liệu cũ
+                let htmlCoHuu = `
+                  <h3>Bảng chi tiết Cơ hữu</h3>
+                  <table class="table table-bordered my-2" border="1" id="coHuuTable">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Tên Giảng Viên</th>
+                        <th>Khoa</th>
+                        <th>Số đồ án</th>
+                        <th>Số tiết quy đổi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                `;
                 coHuu.forEach((item, index) => {
-                  coHuuTableBody.append(`
-                                  <tr>
-                                      <td>${index + 1}</td>
-                                      <td>${item.GiangVien || "Không rõ"}</td>
-                                      <td>${item.MaPhongBan || "Không rõ"}</td>
-                                      <td>${item.soDoAn}</td>
-                                      <td>${item.soTiet}</td>
-                                  </tr>
-                              `);
+                  htmlCoHuu += `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${item.GiangVien || "Không rõ"}</td>
+                      <td>${item.MaPhongBan || "Không rõ"}</td>
+                      <td>${item.soDoAn}</td>
+                      <td>${item.soTiet}</td>
+                    </tr>
+                  `;
                 });
+                htmlCoHuu += `</tbody></table>`;
+                $("#coHuuTable").html(htmlCoHuu);
 
                 // Hiển thị bảng chi tiết Mời giảng
-                const moiGiangTableBody = $("#moiGiangTable tbody");
-                moiGiangTableBody.empty(); // Xóa dữ liệu cũ
+                let htmlMoiGiang = `
+                  <h3>Bảng chi tiết Mời giảng</h3>
+                  <table class="table table-bordered my-2" border="1" id="moiGiangTable">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Tên Giảng Viên</th>
+                        <th>Khoa</th>
+                        <th>Số đồ án</th>
+                        <th>Số tiết quy đổi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                `;
                 moiGiang.forEach((item, index) => {
-                  moiGiangTableBody.append(`
-                                  <tr>
-                                      <td>${index + 1}</td>
-                                      <td>${item.GiangVien || "Không rõ"}</td>
-                                      <td>${item.MaPhongBan || "Không rõ"}</td>
-                                      <td>${item.soDoAn}</td>
-                                      <td>${item.soTiet}</td>
-                                  </tr>
-                              `);
+                  htmlMoiGiang += `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${item.GiangVien || "Không rõ"}</td>
+                      <td>${item.MaPhongBan || "Không rõ"}</td>
+                      <td>${item.soDoAn}</td>
+                      <td>${item.soTiet}</td>
+                    </tr>
+                  `;
                 });
+                htmlMoiGiang += `</tbody></table>`;
+                $("#moiGiangTable").html(htmlMoiGiang);
               } else {
                 alert("Không thể tải dữ liệu từ server.");
               }
