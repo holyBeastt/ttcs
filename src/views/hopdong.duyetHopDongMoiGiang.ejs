@@ -1542,23 +1542,17 @@
 
         if (lecturerName.includes(searchText)) {
           row.show();
-          // Add to totals if row is visible 
-          // Column 7 is "Số tiết", Column 8 is "Số tiền", Column 9 is "Trừ thuế", Column 10 is "Thực nhận"
-          // (Note: Column indexes remain the same even after adding "Trạng thái" column because it's added before the action column)
-          const soTietText = row.find('td:nth-child(7)').text();
-          const thanhTienText = row.find('td:nth-child(8)').text();
-          const thueText = row.find('td:nth-child(9)').text();
-          const thucNhanText = row.find('td:nth-child(10)').text();
-
-          const soTiet = parseFloat(soTietText) || 0;
-          const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
-          const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
-          const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
-
-          totalQC += soTiet;
-          totalThanhTienAll += parseFloat(totalThanhTien) || 0;
-          totalThueAll += parseFloat(totalThue) || 0;
-          totalThucNhanAll += parseFloat(totalThucNhan) || 0;
+          
+          // Use data from original array instead of parsing HTML
+          const teacherData = window.teacherTableData[index];
+          
+          if (teacherData) {
+            // Add to totals using clean data from the original source
+            totalQC += parseFloat(teacherData.TongSoTiet) || 0;
+            totalThanhTienAll += parseFloat(teacherData.ThanhTien) || 0;
+            totalThueAll += parseFloat(teacherData.Thue) || 0;
+            totalThucNhanAll += parseFloat(teacherData.ThucNhan) || 0;
+          }
         } else {
           row.hide();
         }
@@ -1587,12 +1581,18 @@
       let totalThucNhan = 0;
       let totalGiangVien = 0;
 
-      groups.each(function() {
+      // Use original data from window.heDaoTaoDetailData
+      const heDaoTaoData = window.heDaoTaoDetailData || [];
+
+      groups.each(function(groupIndex) {
         const group = $(this);
         const teacherRows = group.find('tbody tr');
         let hasVisibleTeacher = false;
 
-        teacherRows.each(function() {
+        // Get the training program data for this group
+        const programData = heDaoTaoData[groupIndex];
+
+        teacherRows.each(function(rowIndex) {
           const row = $(this);
           const teacherName = row.find('td:nth-child(3)').text().toLowerCase(); // Column 3 is teacher name
 
@@ -1600,22 +1600,17 @@
             row.show();
             hasVisibleTeacher = true;
 
-            // Add to totals for visible teachers
-            const soTietText = row.find('td:nth-child(7)').text();
-            const thanhTienText = row.find('td:nth-child(8)').text();
-            const thueText = row.find('td:nth-child(9)').text();
-            const thucNhanText = row.find('td:nth-child(10)').text();
-
-            const soTiet = parseFloat(soTietText) || 0;
-            const thanhTien = parseFloat(thanhTienText.replace(/[^\d.-]/g, '')) || 0;
-            const thue = parseFloat(thueText.replace(/[^\d.-]/g, '')) || 0;
-            const thucNhan = parseFloat(thucNhanText.replace(/[^\d.-]/g, '')) || 0;
-
-            totalSoTiet += soTiet;
-            totalThanhTien += thanhTien;
-            totalThue += thue;
-            totalThucNhan += thucNhan;
-            totalGiangVien += 1;
+            // Use data from original array instead of parsing HTML
+            if (programData && programData.chiTietGiangVien && programData.chiTietGiangVien[rowIndex]) {
+              const teacherData = programData.chiTietGiangVien[rowIndex];
+              
+              // Add to totals using clean data from the original source
+              totalSoTiet += parseFloat(teacherData.SoTiet) || 0;
+              totalThanhTien += parseFloat(teacherData.ThanhTien) || 0;
+              totalThue += parseFloat(teacherData.Thue) || 0;
+              totalThucNhan += parseFloat(teacherData.ThucNhan) || 0;
+              totalGiangVien += 1;
+            }
           } else {
             row.hide();
           }
