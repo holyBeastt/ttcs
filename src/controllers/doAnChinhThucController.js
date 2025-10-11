@@ -281,7 +281,7 @@ const updateDoAn = async (req, res) => {
                 (arr) =>
                   arr.HoTen?.trim() === GiangVien?.trim() &&
                   arr.BienChe?.trim().toLowerCase() ===
-                    BienChe?.toLowerCase() &&
+                  BienChe?.toLowerCase() &&
                   arr.CCCD?.trim() === CCCD?.trim()
               );
 
@@ -395,43 +395,43 @@ const updateDoAn = async (req, res) => {
         SET
           GiangVien1 = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien1)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien1)}`
+          )
+          .join(" ")}
           END,
           GiangVien2 = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien2)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.GiangVien2)}`
+          )
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -1312,8 +1312,6 @@ const saveToExportDoAn = async (req, res) => {
       ]);
     }
 
-    console.log("data = ", data);
-
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
     const values = [];
     let isHDChinh, isMoiGiang;
@@ -1348,12 +1346,13 @@ const saveToExportDoAn = async (req, res) => {
               item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
             // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-            const normalizedGV1 = GiangVien.replace(
-              /\s*\(.*?\)\s*/g,
-              ""
-            ).trim();
+            // const normalizedGV1 = GiangVien.replace(
+            //   /\s*\(.*?\)\s*/g,
+            //   ""
+            // ).trim();
+            const normalizedGV1 = GiangVien.trim();
             matchedItem1 = allGV.find(
-              (arr) => arr.HoTenReal.trim() == normalizedGV1
+              (arr) => arr.HoTen.trim() == normalizedGV1
             );
 
             if (!matchedItem1) {
@@ -1364,12 +1363,13 @@ const saveToExportDoAn = async (req, res) => {
             }
           } else {
             // Chuẩn hóa tên giảng viên để so sánh (loại bỏ ngoặc)
-            const normalizedGV1 = item.GiangVien1.replace(
-              /\s*\(.*?\)\s*/g,
-              ""
-            ).trim();
+            // const normalizedGV1 = item.GiangVien1.replace(
+            //   /\s*\(.*?\)\s*/g,
+            //   ""
+            // ).trim();
+            const normalizedGV1 = item.GiangVien1.trim();
             matchedItem1 = uniqueGV.find(
-              (arr) => arr.HoTenReal.trim() == normalizedGV1
+              (arr) => arr.HoTen.trim() == normalizedGV1
             );
             if (!matchedItem1) {
               errors.push(
@@ -1438,21 +1438,23 @@ const saveToExportDoAn = async (req, res) => {
                 item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
               // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-              const normalizedGV2 = GiangVien.replace(
-                /\s*\(.*?\)\s*/g,
-                ""
-              ).trim();
+              // const normalizedGV2 = GiangVien.replace(
+              //   /\s*\(.*?\)\s*/g,
+              //   ""
+              // ).trim();
+              const normalizedGV2 = GiangVien.trim();
               matchedItem2 = allGV.find(
-                (arr) => arr.HoTenReal.trim() == normalizedGV2
+                (arr) => arr.HoTen.trim() == normalizedGV2
               );
             } else {
               // Chuẩn hóa tên giảng viên 2 để so sánh (loại bỏ ngoặc)
-              const normalizedGV2 = item.GiangVien2.replace(
-                /\s*\(.*?\)\s*/g,
-                ""
-              ).trim();
+              // const normalizedGV2 = item.GiangVien2.replace(
+              //   /\s*\(.*?\)\s*/g,
+              //   ""
+              // ).trim();
+              const normalizedGV2 = item.GiangVien2.trim();
               matchedItem2 = uniqueGV.find(
-                (arr) => arr.HoTenReal.trim() == normalizedGV2
+                (arr) => arr.HoTen.trim() == normalizedGV2
               );
               if (!matchedItem2) {
                 errors.push(
@@ -1547,47 +1549,6 @@ const saveToExportDoAn = async (req, res) => {
   }
 };
 
-// const updateDoAnDateAll = async (req, res) => {
-//   const jsonData = req.body;
-
-//   let connection;
-
-//   try {
-//     // Lấy kết nối từ createPoolConnection
-//     connection = await createPoolConnection();
-
-//     // Duyệt qua từng phần tử trong jsonData
-//     for (let item of jsonData) {
-//       const { ID, NgayBatDau, NgayKetThuc } = item;
-
-//       let updateQuery, updateValues;
-
-//       // Nếu chưa duyệt đầy đủ, tiến hành cập nhật
-//       updateQuery = `
-//       UPDATE doantotnghiep
-//       SET
-//         NgayBatDau = ?,
-//         NgayKetThuc = ?
-//       WHERE ID = ?
-//     `;
-
-//       updateValues = [
-//         isNaN(new Date(NgayBatDau).getTime()) ? null : NgayBatDau,
-//         isNaN(new Date(NgayKetThuc).getTime()) ? null : NgayKetThuc,
-//         ID,
-//       ];
-
-//       await connection.query(updateQuery, updateValues);
-//     }
-
-//     res.status(200).json({ message: "Cập nhật thành công" });
-//   } catch (error) {
-//     console.error("Lỗi cập nhật:", error);
-//     res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
-//   } finally {
-//     if (connection) connection.release(); // Trả kết nối về pool
-//   }
-// };
 
 const updateDoAnDateAll = async (req, res) => {
   const jsonData = req.body;

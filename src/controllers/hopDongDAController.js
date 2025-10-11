@@ -266,27 +266,27 @@ const formatDateForExcel = (dateValue) => {
       if (trimmed === '' || trimmed === '0000-00-00') {
         return null;
       }
-      
+
       // Xử lý định dạng YYYY-MM-DD từ database
       if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const parts = trimmed.split('-');
         const year = parts[0];
         const month = parts[1];
         const day = parts[2];
-        
+
         // Kiểm tra giá trị hợp lệ
         if (year < 1900 || month < 1 || month > 12 || day < 1 || day > 31) {
           return null;
         }
-        
+
         // Trả về string định dạng DD/MM/YYYY
         return `${day}/${month}/${year}`;
       }
-      
+
       // Fallback cho các định dạng khác
       const parsed = new Date(trimmed);
       if (isNaN(parsed.getTime())) return null;
-      
+
       const day = String(parsed.getDate()).padStart(2, '0');
       const month = String(parsed.getMonth() + 1).padStart(2, '0');
       const year = parsed.getFullYear();
@@ -668,7 +668,7 @@ GROUP BY
       // Tính toán chính xác: nếu ThucNhan là tiền sau thuế (90%), thì tiền trước thuế = ThucNhan / 0.9
       const tienTruocThue = Math.round(item.ThucNhan / 0.9);
       const thuePhaiTra = tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế
-      
+
       return {
         stt: index + 1,
         contractNumber: item.SoHopDong,
@@ -695,9 +695,8 @@ GROUP BY
     const zipOutputDir = path.join(__dirname, "..", "public", "tempZips");
     fs.mkdirSync(zipOutputDir, { recursive: true });
 
-    const zipName = `HopDong_${he_dao_tao}_Dot${dot}_${namHoc}_${
-      khoa || "all"
-    }.zip`;
+    const zipName = `HopDong_${he_dao_tao}_Dot${dot}_${namHoc}_${khoa || "all"
+      }.zip`;
     const zipPath = path.join(zipOutputDir, zipName);
 
     const archive = archiver("zip", { zlib: { level: 9 } });
@@ -1245,9 +1244,9 @@ const getExportData = async (
     WHERE 
       ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
     GROUP BY 
-      ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-      ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-      ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
+      ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
+      ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
+      ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
     `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -1288,9 +1287,9 @@ const getExportData = async (
       WHERE 
         ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
-        ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-        ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-        ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
+        ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
+        ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
+        ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
       `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
@@ -1331,9 +1330,9 @@ const getExportData = async (
       WHERE 
         ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
       GROUP BY 
-        ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
-        ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
-        ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, ed.NgayCapCCCD, gv.MonGiangDayChinh
+        ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
+        ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
+        ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
       `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
@@ -1518,8 +1517,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1834,8 +1833,8 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           item.GiangVien,
@@ -2294,33 +2293,33 @@ function createTransferDetailDocument(
     });
     const dataRows = data.length
       ? data.map(
-          (row, idx) =>
-            new TableRow({
-              children: [
-                createCell((idx + 1).toString()),
-                createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
-                createCell(row.HoTen || ""),
-                createCell(row.MaSoThue || ""),
-                createCell(row.STK || ""),
-                createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
-                createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
-              ],
-            })
-        )
+        (row, idx) =>
+          new TableRow({
+            children: [
+              createCell((idx + 1).toString()),
+              createCell((row.SoHopDong || "") + "  /HĐ-ĐT", false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
+              createCell(row.HoTen || ""),
+              createCell(row.MaSoThue || ""),
+              createCell(row.STK || ""),
+              createCell(row.NganHang || "", false, 4800), // Ô Tại ngân hàng với width cố định
+              createCell(row.ThucNhan ? formatVND(row.ThucNhan) : ""),
+            ],
+          })
+      )
       : Array.from({ length: 4 }).map(
-          () =>
-            new TableRow({
-              children: [
-                createCell(""), // STT
-                createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
-                createCell(""), // Đơn vị thụ hưởng
-                createCell(""), // Mã số thuế
-                createCell(""), // Số tài khoản
-                createCell("", false, 4800), // Tại ngân hàng với width cố định
-                createCell(""), // Số tiền
-              ],
-            })
-        );
+        () =>
+          new TableRow({
+            children: [
+              createCell(""), // STT
+              createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
+              createCell(""), // Đơn vị thụ hưởng
+              createCell(""), // Mã số thuế
+              createCell(""), // Số tài khoản
+              createCell("", false, 4800), // Tại ngân hàng với width cố định
+              createCell(""), // Số tiền
+            ],
+          })
+      );
 
     const totalAmount = calculateTotal(data);
     const formattedTotalAmount = formatVND(totalAmount);
@@ -2548,7 +2547,7 @@ function createTaxReportWorkbook(records) {
 
   // Cột header
   worksheet.addRow(['STT', 'Số HĐ', 'Người thực hiện', 'Nội dung chi tiêu', 'Số CCCD', 'Ngày cấp', 'Nơi cấp', 'Địa chỉ CCCD', 'Mã số thuế', 'Số tiền', 'Trừ thuế', 'Còn lại']);
-  
+
   // Cài đặt độ rộng cột vừa đủ với nội dung
   worksheet.columns = [
     { key: 'stt', width: 5 },                    // STT - chỉ cần vừa số
@@ -2564,7 +2563,7 @@ function createTaxReportWorkbook(records) {
     { key: 'taxDeducted', width: 16 },           // Trừ thuế - định dạng #,##0
     { key: 'netAmount', width: 16 }              // Còn lại - định dạng #,##0
   ];
-  
+
   worksheet.getRow(7).font = { bold: true, size: 11 };
   worksheet.autoFilter = 'A7:L7';
   worksheet.views = [{ state: 'frozen', ySplit: 7 }];
@@ -2585,7 +2584,7 @@ function createTaxReportWorkbook(records) {
     record.taxDeducted,
     record.netAmount
   ]);
-  
+
   dataRows.forEach(row => {
     worksheet.addRow(row);
   });
@@ -2593,7 +2592,7 @@ function createTaxReportWorkbook(records) {
   // Áp dụng định dạng số có dấu phẩy cho các cột tiền tệ
   const dataStartRow = 8;
   const dataEndRow = worksheet.lastRow.number; // Dòng cuối của dữ liệu (không bao gồm tổng cộng)
-  
+
   // Định dạng cột F (Ngày cấp CCCD) - định dạng ngày DD/MM/YYYY
   for (let row = dataStartRow; row <= dataEndRow; row++) {
     const cell = worksheet.getCell(`F${row}`);
@@ -2601,7 +2600,7 @@ function createTaxReportWorkbook(records) {
       cell.numFmt = 'dd/mm/yyyy';
     }
   }
-  
+
   // Định dạng cột J (Số tiền), K (Trừ thuế), L (Còn lại)
   for (let row = dataStartRow; row <= dataEndRow; row++) {
     ['J', 'K', 'L'].forEach(col => {
@@ -2623,7 +2622,7 @@ function createTaxReportWorkbook(records) {
   worksheet.mergeCells(`A${totalRow}:I${totalRow}`);
   worksheet.getRow(totalRow).font = { bold: true };
   worksheet.getRow(totalRow).alignment = { horizontal: 'right' };
-  
+
   // Áp dụng định dạng số có dấu phẩy cho dòng tổng cộng
   ['J', 'K', 'L'].forEach(col => {
     worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
