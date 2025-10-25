@@ -265,27 +265,27 @@ const formatDateForExcel = (dateValue) => {
       if (trimmed === '' || trimmed === '0000-00-00') {
         return null;
       }
-      
+
       // Xử lý định dạng YYYY-MM-DD từ database
       if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const parts = trimmed.split('-');
         const year = parts[0];
         const month = parts[1];
         const day = parts[2];
-        
+
         // Kiểm tra giá trị hợp lệ
         if (year < 1900 || month < 1 || month > 12 || day < 1 || day > 31) {
           return null;
         }
-        
+
         // Trả về string định dạng DD/MM/YYYY
         return `${day}/${month}/${year}`;
       }
-      
+
       // Fallback cho các định dạng khác
       const parsed = new Date(trimmed);
       if (isNaN(parsed.getTime())) return null;
-      
+
       const day = String(parsed.getDate()).padStart(2, '0');
       const month = String(parsed.getMonth() + 1).padStart(2, '0');
       const year = parsed.getFullYear();
@@ -662,7 +662,7 @@ const exportMultipleContracts = async (req, res) => {
       // Tính toán chính xác: nếu ThucNhan là tiền sau thuế (90%), thì tiền trước thuế = ThucNhan / 0.9
       const tienTruocThue = Math.round(item.ThucNhan / 0.9);
       const thuePhaiTra = tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế
-      
+
       return {
         stt: index + 1,
         contractNumber: item.SoHopDong,
@@ -686,7 +686,7 @@ const exportMultipleContracts = async (req, res) => {
     console.log("Tạo file bảng kê tổng hợp thuế thành công");
 
     console.log("Bắt đầu tạo file ZIP...");
-    
+
     // Tạo thư mục cho ZIP file bên ngoài tempDir
     const zipOutputDir = path.join(__dirname, '..', 'public', 'tempZips');
     if (!fs.existsSync(zipOutputDir)) {
@@ -695,18 +695,18 @@ const exportMultipleContracts = async (req, res) => {
 
     const zipFileName = `HopDong_GiangDay_Dot${dot}_Ki${ki}_${namHoc}_${khoa || "all"}.zip`;
     const zipPath = path.join(zipOutputDir, zipFileName);
-    
+
     const archive = archiver("zip", {
       zlib: { level: 9 },
     });
     const output = fs.createWriteStream(zipPath);
 
     archive.pipe(output);
-    
+
     // Thêm từng file thay vì toàn bộ directory
     const files = fs.readdirSync(tempDir);
     console.log(`Found ${files.length} files to archive:`, files);
-    
+
     files.forEach(file => {
       const filePath = path.join(tempDir, file);
       archive.file(filePath, { name: file });
@@ -747,12 +747,12 @@ const exportMultipleContracts = async (req, res) => {
             }
             fs.rmdirSync(tempDir);
           }
-          
+
           // Xóa file ZIP
           if (fs.existsSync(zipPath)) {
             fs.unlinkSync(zipPath);
           }
-          
+
           console.log("Cleanup completed successfully");
         } catch (error) {
           console.error("Error cleaning up temporary directory:", error);
@@ -861,17 +861,19 @@ const exportAdditionalInfoGvm = async (req, res) => {
     MIN(hd.NgayBatDau) AS NgayBatDau,
     MAX(hd.NgayKetThuc) AS NgayKetThuc,
     SUM(hd.SoTiet) AS SoTiet,
-    hd.SoTien,
-    hd.TruThue,
+    SUM(hd.SoTien) AS SoTien,
+    SUM(hd.TruThue) AS TruThue,
     hd.NgayCap,
-    hd.ThucNhan,
+    SUM(hd.ThucNhan) AS ThucNhan,
     hd.NgayNghiemThu,
     hd.Dot,
     hd.KiHoc,
     hd.NamHoc,
     hd.MaPhongBan,
     hd.MaBoMon,
-    hd.NoiCongTac
+    hd.NoiCongTac,
+    hd.SoHopDong,
+    hd.SoThanhLyHopDong
   FROM
     hopdonggvmoi hd
   JOIN
@@ -880,8 +882,9 @@ const exportAdditionalInfoGvm = async (req, res) => {
     hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.he_dao_tao = ?
   GROUP BY
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-    hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+    hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, hd.NgayNghiemThu, hd.Dot, 
+    hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+    hd.SoHopDong, hd.SoThanhLyHopDong`;
 
     let params = [dot, ki, namHoc, loaiHopDong];
 
@@ -906,27 +909,30 @@ const exportAdditionalInfoGvm = async (req, res) => {
       MIN(hd.NgayBatDau) AS NgayBatDau,
       MAX(hd.NgayKetThuc) AS NgayKetThuc,
       SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
+      SUM(hd.SoTien) AS SoTien,
+      SUM(hd.TruThue) AS TruThue,
       hd.NgayCap,
-      hd.ThucNhan,
+      SUM(hd.ThucNhan) AS ThucNhan,
       hd.NgayNghiemThu,
       hd.Dot,
       hd.KiHoc,
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      hd.NoiCongTac  
+      hd.NoiCongTac,
+      hd.SoHopDong,
+      hd.SoThanhLyHopDong 
     FROM
       hopdonggvmoi hd
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  -- Giả sử có khóa ngoại giữa hai bảng
     WHERE
-                hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
+      hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.MaPhongBan like ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, 
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+      hd.SoHopDong, hd.SoThanhLyHopDong`;
       params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
     }
     if (teacherName) {
@@ -949,27 +955,30 @@ const exportAdditionalInfoGvm = async (req, res) => {
       MIN(hd.NgayBatDau) AS NgayBatDau,
       MAX(hd.NgayKetThuc) AS NgayKetThuc,
       SUM(hd.SoTiet) AS SoTiet,
-      hd.SoTien,
-      hd.TruThue,
+      SUM(hd.SoTien) AS SoTien,
+      SUM(hd.TruThue) AS TruThue,
       hd.NgayCap,
-      hd.ThucNhan,
+      SUM(hd.ThucNhan) AS ThucNhan,
       hd.NgayNghiemThu,
       hd.Dot,
       hd.KiHoc,
       hd.NamHoc,
       hd.MaPhongBan,
       hd.MaBoMon,
-      hd.NoiCongTac
+      hd.NoiCongTac,
+      hd.SoHopDong,
+      hd.SoThanhLyHopDong
     FROM
       hopdonggvmoi hd
     JOIN
       gvmoi gv ON hd.id_Gvm = gv.id_Gvm  
     WHERE
-              hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
+      hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ? AND hd.HoTen LIKE ? AND hd.he_dao_tao = ?
     GROUP BY
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
-      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
-      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
+      hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap,
+      hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
+      hd.SoHopDong, hd.SoThanhLyHopDong`;
 
       params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
     }
