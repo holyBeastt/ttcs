@@ -1811,6 +1811,8 @@
               icon: "success",
               confirmButtonText: "OK"
             });
+            // Tự động cập nhật cột "Đã lưu" sau khi lưu thành công
+            updateContractStatusForTeachers();
           })
           .catch(error => {
             console.error("Có lỗi xảy ra:", error);

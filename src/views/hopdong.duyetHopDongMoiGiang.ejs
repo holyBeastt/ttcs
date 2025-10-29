@@ -2039,6 +2039,10 @@
             width: 'auto',
             padding: '20px'
           });
+          // Tự động cập nhật cột "Đã lưu" sau khi lưu thành công
+          // Cập nhật cho cả view theo giảng viên và theo hệ đào tạo
+          loadContractStatusForTeachers();
+          loadContractStatusForHeDaoTao();
         })
         .catch(error => {
           console.error("Error sending signal:", error);
