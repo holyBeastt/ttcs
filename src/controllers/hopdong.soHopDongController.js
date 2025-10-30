@@ -36,34 +36,34 @@ const getHopDongList = async (req, res) => {
     let query = `
       SELECT
         hd.id_Gvm,
-        hd.DienThoai,
-        hd.Email,
-        hd.MaSoThue,
-        hd.DanhXung,
+        MAX(hd.DienThoai) AS DienThoai,
+        MAX(hd.Email) AS Email,
+        MAX(hd.MaSoThue) AS MaSoThue,
+        MAX(hd.DanhXung) AS DanhXung,
         hd.HoTen,
-        hd.NgaySinh,
-        hd.HocVi,
-        hd.ChucVu,
-        hd.HSL,
+        MAX(hd.NgaySinh) AS NgaySinh,
+        MAX(hd.HocVi) AS HocVi,
+        MAX(hd.ChucVu) AS ChucVu,
+        MAX(hd.HSL) AS HSL,
         hd.CCCD,
-        hd.NoiCapCCCD,
-        hd.DiaChi,
-        hd.STK,
-        hd.NganHang,
+        MAX(hd.NoiCapCCCD) AS NoiCapCCCD,
+        MAX(hd.DiaChi) AS DiaChi,
+        MAX(hd.STK) AS STK,
+        MAX(hd.NganHang) AS NganHang,
         MIN(hd.NgayBatDau) AS NgayBatDau,
         MAX(hd.NgayKetThuc) AS NgayKetThuc,
         SUM(hd.SoTiet) AS SoTiet,
         SUM(hd.SoTien) AS SoTien,
         SUM(hd.TruThue) AS TruThue,
-        hd.NgayCap,
+        MAX(hd.NgayCap) AS NgayCap,
         SUM(hd.ThucNhan) AS ThucNhan,
-        hd.NgayNghiemThu,
+        MAX(hd.NgayNghiemThu) AS NgayNghiemThu,
         hd.Dot,
         hd.KiHoc,
         hd.NamHoc,
         hd.MaPhongBan,
-        hd.MaBoMon,
-        hd.NoiCongTac,
+        MAX(hd.MaBoMon) AS MaBoMon,
+        MAX(hd.NoiCongTac) AS NoiCongTac,
         hd.he_dao_tao AS he_dao_tao
       FROM
         hopdonggvmoi hd
@@ -98,6 +98,10 @@ const getHopDongList = async (req, res) => {
         hd.CCCD,
         hd.id_Gvm,
         hd.HoTen,
+        hd.Dot,
+        hd.KiHoc,
+        hd.NamHoc,
+        hd.MaPhongBan,
         hd.he_dao_tao
     `;
 
@@ -441,8 +445,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       SELECT
         hd.id_Gvm,
         hd.HoTen,
-        hd.SoHopDong,
-        hd.SoThanhLyHopDong,
+        MAX(hd.SoHopDong) AS SoHopDong,
+        MAX(hd.SoThanhLyHopDong) AS SoThanhLyHopDong,
         hd.Dot,
         hd.KiHoc,
         hd.NamHoc,
@@ -452,8 +456,9 @@ const previewSoHopDongMoiGiang = async (req, res) => {
         SELECT *
         FROM hopdonggvmoi
         ${whereConditions}
-      ) hd      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
-      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen, hd.he_dao_tao
+      ) hd
+      JOIN gvmoi gv ON hd.id_Gvm = gv.id_Gvm
+      GROUP BY hd.CCCD, hd.id_Gvm, hd.HoTen, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.he_dao_tao
       ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
     `;
 
