@@ -532,14 +532,20 @@
             // Nếu là khóa học đầu tiên của giảng viên, thêm thông tin giảng viên với rowspan
             if (courseIndex === 0) {
               tr.classList.add("teacher-group");
+
+              // Nếu chưa duyệt thì thêm dòng “⏳ Chưa duyệt”
+              const duyetText = course.hoc_vien_duyet === 0 ? `<div title="Chưa được duyệt bởi học viện" style="font-size: 12px; margin-top: 3px">⏳ Chưa duyệt</div>` : "";
+
               tr.innerHTML = `
-        <td rowspan="${courses.length - 1}">${index}</td>
-        <td rowspan="${courses.length - 1}">${
-                course.GiangVien + `<br>(GVM ${course.MaPhongBan})`
-              }</td>
-      `;
+                <td rowspan="${courses.length - 1}">${index}</td>
+                <td rowspan="${courses.length - 1}">
+                  ${course.GiangVien}<br>(GVM ${course.MaPhongBan})
+                  ${duyetText}
+                </td>
+              `;
               index++;
             }
+
 
             if (Number.parseFloat(tongSoTietBaoGomDoAn) > 300) {
               tr.classList.add("alert-sotiet");
@@ -547,16 +553,16 @@
 
             // Thêm các ô dữ liệu cho môn học
             tr.innerHTML += `
-      <td>${course.TenHocPhan}</td>
-      <td>${course.Lop}</td>
-      <td>${course.SoTinChi}</td>
-      <td>${course.Dot}</td>
-      <td>${course.KiHoc}</td>
-      <td>${course.NamHoc}</td>
-      <td>${formatDate(course.NgayBatDau)}</td>
-      <td>${formatDate(course.NgayKetThuc)}</td>
-      <td>${course.SoTiet}</td>
-    `;
+            <td>${course.TenHocPhan}</td>
+            <td>${course.Lop}</td>
+            <td>${course.SoTinChi}</td>
+            <td>${course.Dot}</td>
+            <td>${course.KiHoc}</td>
+            <td>${course.NamHoc}</td>
+            <td>${formatDate(course.NgayBatDau)}</td>
+            <td>${formatDate(course.NgayKetThuc)}</td>
+            <td>${course.SoTiet}</td>
+          `;
 
             // Nếu là khóa học đầu tiên của giảng viên, thêm thông tin tổng số tiết, phòng ban và nút xem chi tiết
             if (courseIndex === 0) {
