@@ -30,12 +30,90 @@
 
     .selectop {
       height: 38px;
-      /* Match button height */
       vertical-align: middle;
+      border: 1px solid #ced4da;
+      border-radius: 0.375rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      background-color: #fff;
+      color: #495057;
+      text-align: left;
+      box-sizing: border-box;
+    }
+
+    .selectop:hover {
+      border-color: #adb5bd;
+    }
+
+    .selectop:focus {
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      outline: 0;
+    }
+
+    /* Styling riêng cho dropdown buttons - chỉ áp dụng cho .dropdown-toggle */
+    button.selectop.dropdown-toggle {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100% !important;
+      height: 38px !important;
+      padding: 0.375rem 0.75rem !important;
+      font-size: 1rem !important;
+      font-weight: 400 !important;
+      line-height: 1.5 !important;
+      text-align: left !important;
+      background-image: none !important;
+      background-color: #fff !important;
+      border: 1px solid #ced4da !important;
+      border-radius: 0.375rem !important;
+      color: #495057 !important;
+      box-shadow: none !important;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    }
+
+    button.selectop.dropdown-toggle:hover {
+      background-color: #fff !important;
+      border-color: #adb5bd !important;
+      color: #495057 !important;
+      box-shadow: none !important;
+    }
+
+    button.selectop.dropdown-toggle:focus,
+    button.selectop.dropdown-toggle:active,
+    button.selectop.dropdown-toggle.show {
+      background-color: #fff !important;
+      border-color: #86b7fe !important;
+      color: #495057 !important;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+      outline: 0 !important;
+    }
+
+    button.selectop.dropdown-toggle::after {
+      border-top: 0.3em solid #495057 !important;
+      border-right: 0.3em solid transparent !important;
+      border-bottom: 0 !important;
+      border-left: 0.3em solid transparent !important;
+      margin-left: auto !important;
+      vertical-align: 0 !important;
+      content: "" !important;
     }
 
     .btn {
       vertical-align: middle;
+    }
+
+    /* Đảm bảo dropdown buttons có cùng styling với select */
+    .dropdown button.selectop {
+      width: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      box-sizing: border-box !important;
+    }
+
+    .dropdown button.selectop::after {
+      margin-left: auto !important;
     }
 
     #view {
@@ -63,6 +141,109 @@
       color: #6c757d !important;
       font-style: italic;
     }
+
+    /* CSS cho multi-select checkbox dropdown */
+    .checkbox-dropdown {
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 0;
+      min-width: 200px;
+    }
+    
+    .checkbox-dropdown .dropdown-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    
+    .checkbox-dropdown .dropdown-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .checkbox-dropdown input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    
+    .selected-items {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+      max-height: 60px;
+      overflow-y: auto;
+      padding: 4px;
+      border-radius: 4px;
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .selected-items:empty {
+      display: none;
+    }
+    
+    /* Đảm bảo dropdown container có position relative */
+    .dropdown {
+      position: relative !important;
+    }
+    
+    .selected-tag {
+      background: #0d6efd;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    
+    .remove-tag {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      line-height: 1;
+      padding: 0 2px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: background-color 0.2s ease;
+    }
+    
+    .remove-tag:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Scrollbar styling for selected items */
+    .selected-items::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    
+    .selected-items::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 2px;
+    }
+    
+    .selected-items::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 2px;
+    }
+    
+    .selected-items::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
   </style>
 </head>
 
@@ -78,19 +259,57 @@
               <select class="selectop" id="combobox-dot" style="width: 70px">
                 <option value="">Đợt</option>
               </select>
-              <select class="selectop" id="comboboxki" style="width: 70px">
+              <select class="selectop" id="comboboxki" style="width: 75px">
                 <option value="">Kì</option>
               </select>
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
               </select>
-              <select class="selectop" id="MaPhongBan">
-                <option value="ALL">Tất cả khoa</option>
-              </select> <select class="selectop" id="he_dao_tao">
-                <option value="">Tất cả hệ</option>
-                <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
-                <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
-              </select>
+              
+              <!-- Multi-select Khoa với checkbox -->
+              <div class="dropdown" style="width: 180px;">
+                <button class="selectop dropdown-toggle" 
+                        type="button" 
+                        id="khoaDropdown" 
+                        data-bs-toggle="dropdown"
+                        style="width: 100%;">
+                  <span id="khoaButtonText">Khoa</span>
+                </button>
+                <div class="dropdown-menu checkbox-dropdown w-100" id="khoaCheckboxMenu">
+                  <label class="dropdown-item">
+                    <input type="checkbox" value="ALL" id="selectAllKhoa" /> 
+                    <strong>Tất cả khoa</strong>
+                  </label>
+                  <div class="dropdown-divider"></div>
+                  <!-- Các khoa sẽ được load động từ API -->
+                </div>
+                <div class="selected-items" id="selectedKhoa"></div>
+              </div>
+
+              <!-- Multi-select Hệ đào tạo với checkbox -->
+              <div class="dropdown" style="width: 150px;">
+                <button class="selectop dropdown-toggle" 
+                        type="button" 
+                        id="heDropdown" 
+                        data-bs-toggle="dropdown"
+                        style="width: 100%;">
+                  <span id="heButtonText">Hệ đào tạo</span>
+                </button>
+                <div class="dropdown-menu checkbox-dropdown w-100" id="heCheckboxMenu">
+                  <label class="dropdown-item">
+                    <input type="checkbox" value="ALL" id="selectAllHe" /> 
+                    <strong>Tất cả hệ</strong>
+                  </label>
+                  <div class="dropdown-divider"></div>
+                  <label class="dropdown-item">
+                    <input type="checkbox" value="Đồ án (Đại học)" /> Đồ án (Đại học)
+                  </label>
+                  <label class="dropdown-item">
+                    <input type="checkbox" value="Đồ án (Cao học)" /> Đồ án (Cao học)
+                  </label>
+                </div>
+                <div class="selected-items" id="selectedHe"></div>
+              </div>
             </div>
           </div>
 
@@ -259,6 +478,158 @@
       <script src="/js/moigiang/hideBtn.js"></script>
       <!-- Contract numbers specific script for Đồ án -->
       <script>
+        // ===== MULTI-SELECT FUNCTIONALITY =====
+        let selectedKhoaValues = [];
+        let selectedHeValues = [];
+
+        // Khởi tạo multi-select cho khoa và hệ đào tạo
+        function initMultiSelect() {
+          // Khoa multi-select
+          initSingleMultiSelect('khoaCheckboxMenu', 'khoaButtonText', 'selectedKhoa', 'selectAllKhoa', 
+            selectedKhoaValues, 'Khoa', updateKhoaDisplay);
+          
+          // Hệ đào tạo multi-select
+          initSingleMultiSelect('heCheckboxMenu', 'heButtonText', 'selectedHe', 'selectAllHe', 
+            selectedHeValues, 'Hệ đào tạo', updateHeDisplay);
+        }
+
+        function initSingleMultiSelect(containerId, buttonTextId, selectedDisplayId, selectAllId, 
+                                      selectedArray, defaultText, updateCallback) {
+          const container = document.getElementById(containerId);
+          const buttonText = document.getElementById(buttonTextId);
+          const selectedDisplay = document.getElementById(selectedDisplayId);
+          const selectAll = document.getElementById(selectAllId);
+          
+          // Xử lý checkbox clicks
+          container.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox') {
+              const value = e.target.value;
+              
+              if (value === 'ALL') {
+                // Toggle tất cả
+                const allCheckboxes = container.querySelectorAll('input[type="checkbox"]:not([value="ALL"])');
+                allCheckboxes.forEach(cb => {
+                  cb.checked = e.target.checked;
+                });
+                
+                if (e.target.checked) {
+                  selectedArray.length = 0;
+                  selectedArray.push('ALL');
+                } else {
+                  selectedArray.length = 0;
+                }
+              } else {
+                // Xử lý checkbox riêng lẻ
+                if (e.target.checked) {
+                  if (!selectedArray.includes(value)) {
+                    selectedArray.push(value);
+                  }
+                  // Bỏ "ALL" nếu chọn riêng lẻ
+                  if (selectedArray.includes('ALL')) {
+                    const allIndex = selectedArray.indexOf('ALL');
+                    selectedArray.splice(allIndex, 1);
+                    selectAll.checked = false;
+                  }
+                } else {
+                  const index = selectedArray.indexOf(value);
+                  if (index > -1) {
+                    selectedArray.splice(index, 1);
+                  }
+                  selectAll.checked = false;
+                }
+              }
+              
+              updateCallback();
+            }
+          });
+        }
+
+        function updateKhoaDisplay() {
+          updateDisplay('khoaButtonText', 'selectedKhoa', selectedKhoaValues, 'Khoa', 'khoaCheckboxMenu');
+        }
+
+        function updateHeDisplay() {
+          updateDisplay('heButtonText', 'selectedHe', selectedHeValues, 'Hệ đào tạo', 'heCheckboxMenu');
+        }
+
+        function updateDisplay(buttonTextId, selectedDisplayId, selectedArray, defaultText, containerId) {
+          const buttonText = document.getElementById(buttonTextId);
+          const selectedDisplay = document.getElementById(selectedDisplayId);
+          const container = document.getElementById(containerId);
+          
+          // Luôn hiển thị text cố định cho button
+          buttonText.textContent = defaultText;
+          
+          // Cập nhật tags
+          selectedDisplay.innerHTML = '';
+          selectedArray.forEach(value => {
+            if (value === 'ALL') {
+              // Hiển thị tag "ALL" khi chọn tất cả
+              const tag = document.createElement('span');
+              tag.className = 'selected-tag';
+              const displayText = defaultText.includes('Khoa') ? 'Tất cả khoa' : 'Tất cả hệ đào tạo';
+              tag.innerHTML = `${displayText} <span class="remove-tag" onclick="removeTag('${containerId}', '${value}')">×</span>`;
+              selectedDisplay.appendChild(tag);
+            } else {
+              const checkbox = container.querySelector(`input[value="${value}"]`);
+              const label = checkbox.closest('label').textContent.trim();
+              const tag = document.createElement('span');
+              tag.className = 'selected-tag';
+              tag.innerHTML = `${label} <span class="remove-tag" onclick="removeTag('${containerId}', '${value}')">×</span>`;
+              selectedDisplay.appendChild(tag);
+            }
+          });
+        }
+
+        // Hàm remove tag
+        function removeTag(containerId, value) {
+          const container = document.getElementById(containerId);
+          const checkbox = container.querySelector(`input[value="${value}"]`);
+          checkbox.checked = false;
+          checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // Hàm lấy giá trị đã chọn
+        function getSelectedKhoa() {
+          if (selectedKhoaValues.includes('ALL') || selectedKhoaValues.length === 0) {
+            return ['ALL']; // Trả về ['ALL'] thay vì empty array
+          }
+          return selectedKhoaValues;
+        }
+
+        function getSelectedHe() {
+          if (selectedHeValues.includes('ALL') || selectedHeValues.length === 0) {
+            return ['ALL']; // Trả về ['ALL'] thay vì empty array  
+          }
+          return selectedHeValues;
+        }
+
+        // ===== CÁC HÀM GỐC ĐÃ SỬA ĐỔI =====
+
+        // Load danh sách khoa cho checkbox dropdown
+        function loadKhoaList() {
+          $.get('/api/khoa-list')
+            .done(function(response) {
+              if (response.success && response.data) {
+                const khoaMenu = $('#khoaCheckboxMenu');
+                // Xóa các item cũ (trừ "Tất cả khoa" và divider)
+                khoaMenu.find('.dropdown-item:not(:first-child):not(.dropdown-divider)').remove();
+                
+                // Thêm các khoa mới
+                response.data.forEach(khoa => {
+                  const item = `
+                    <label class="dropdown-item">
+                      <input type="checkbox" value="${khoa.MaPhongBan}" /> ${khoa.MaPhongBan}
+                    </label>
+                  `;
+                  khoaMenu.append(item);
+                });
+              }
+            })
+            .fail(function() {
+              console.error('Không thể load danh sách khoa');
+            });
+        }
         // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu
         function updateNumberPreview() {
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
@@ -275,8 +646,8 @@
           const dot = $('#combobox-dot').val();
           const ki = $('#comboboxki').val();
           const nam = $('#NamHoc').val();
-          const khoa = $('#MaPhongBan').val();
-          const heDaoTao = $('#he_dao_tao').val();
+          const khoaList = getSelectedKhoa();
+          const heDaoTaoList = getSelectedHe();
 
           if (!dot || !ki || !nam) {
             showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
@@ -297,10 +668,12 @@
             dot: dot,
             ki: ki,
             nam: nam,
-            khoa: khoa,
-            heDaoTao: heDaoTao,
+            khoaList: getSelectedKhoa(),
+            heDaoTaoList: getSelectedHe(),
             startingNumber: startingNumber
           };
+
+          console.log('Sending data to preview:', data);
 
           // Gọi API preview đồng bộ cho đồ án
           $.post('/api/preview-so-hop-dong-do-an', data)
@@ -416,8 +789,8 @@
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
             nam: $('#NamHoc').val(),
-            khoa: $('#MaPhongBan').val(),
-            heDaoTao: $('#he_dao_tao').val(),
+            khoaList: getSelectedKhoa(),
+            heDaoTaoList: getSelectedHe(),
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
             contractsData: tableData
           };
@@ -543,9 +916,11 @@
             dot: dot,
             ki: ki,
             nam: nam,
-            khoa: $('#MaPhongBan').val(),
-            heDaoTao: $('#he_dao_tao').val()
+            khoaList: JSON.stringify(getSelectedKhoa()),
+            heDaoTaoList: JSON.stringify(getSelectedHe())
           };
+
+          console.log('Sending params to loadContracts:', params);
 
           $.get('/api/hopdong-doan-list', params)
             .done(function (response) {
@@ -672,6 +1047,23 @@
           // Ẩn các phần tử không cần thiết ban đầu
           $('#startingNumberDiv').hide();
           $('#terminationStartingNumberDiv').hide();
+
+          // Load danh sách khoa trước
+          loadKhoaList();
+
+          // Đặt mặc định là "Tất cả" cho cả khoa và hệ đào tạo
+          selectedKhoaValues = ['ALL'];
+          selectedHeValues = ['ALL'];
+
+          // Khởi tạo multi-select sau khi load khoa
+          setTimeout(() => {
+            initMultiSelect();
+            // Set mặc định cho checkboxes
+            $('#selectAllKhoa').prop('checked', true);
+            $('#selectAllHe').prop('checked', true);
+            updateKhoaDisplay();
+            updateHeDisplay();
+          }, 500);
 
           // Khởi tạo giao diện
           updateNumberPreview();

@@ -26,4 +26,7 @@ router.post('/api/preview-so-hop-dong-moi-giang', soHopDongController.previewSoH
 // xem trước khi tạo số hợp đồng đồ án
 router.post('/api/preview-so-hop-dong-do-an', soHopDongController.previewSoHopDongDoAn);
 
+// Lấy danh sách khoa
+router.get('/api/khoa-list', soHopDongController.getKhoaList);
+
 module.exports = router;

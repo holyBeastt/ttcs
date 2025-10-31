@@ -17,17 +17,38 @@ const getHopDongList = async (req, res) => {
   let connection;
   try {
     const isKhoa = req.session.isKhoa;
-    // Hỗ trợ cả param nam hoặc namHoc từ client
-    let { dot, ki, namHoc: nh, nam, khoa, heDaoTao, teacherName } = req.query;
+    // Hỗ trợ cả param nam hoặc namHoc từ client, thêm support cho arrays
+    let { dot, ki, namHoc: nh, nam, khoa, heDaoTao, khoaList, heDaoTaoList, teacherName } = req.query;
     const namHoc = nh || nam;
 
     // Bắt buộc
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
     }
-    // Quyền khoa
+
+    // Parse arrays từ query string nếu cần (support cả old và new format)
+    let parsedKhoaList = khoaList || (khoa ? [khoa] : null);
+    let parsedHeDaoTaoList = heDaoTaoList || (heDaoTao ? [heDaoTao] : null);
+    
+    if (typeof parsedKhoaList === 'string') {
+      try {
+        parsedKhoaList = JSON.parse(parsedKhoaList);
+      } catch (e) {
+        parsedKhoaList = [parsedKhoaList];
+      }
+    }
+    
+    if (typeof parsedHeDaoTaoList === 'string') {
+      try {
+        parsedHeDaoTaoList = JSON.parse(parsedHeDaoTaoList);
+      } catch (e) {
+        parsedHeDaoTaoList = [parsedHeDaoTaoList];
+      }
+    }
+
+    // Quyền khoa - override nếu user là khoa
     if (isKhoa == 1) {
-      khoa = req.session.MaPhongBan;
+      parsedKhoaList = [req.session.MaPhongBan];
     }
 
     connection = await createPoolConnection();
@@ -64,7 +85,9 @@ const getHopDongList = async (req, res) => {
         hd.MaPhongBan,
         MAX(hd.MaBoMon) AS MaBoMon,
         MAX(hd.NoiCongTac) AS NoiCongTac,
-        hd.he_dao_tao AS he_dao_tao
+        hd.he_dao_tao AS he_dao_tao,
+        MIN(hd.SoHopDong) AS SoHopDong,
+        MIN(hd.SoThanhLyHopDong) AS SoThanhLyHopDong
       FROM
         hopdonggvmoi hd
       JOIN
@@ -76,23 +99,37 @@ const getHopDongList = async (req, res) => {
     `;
     const params = [dot, ki, namHoc];
 
-    // Thêm lọc hệ đào tạo nếu có
-    if (heDaoTao && heDaoTao.trim() !== "") {
-      query += ` AND hd.he_dao_tao = ?`;
-      params.push(heDaoTao);
+    // Thêm filter hệ đào tạo chỉ khi có giá trị cụ thể
+    if (parsedHeDaoTaoList && 
+        Array.isArray(parsedHeDaoTaoList) && 
+        parsedHeDaoTaoList.length > 0 && 
+        !parsedHeDaoTaoList.includes('ALL') &&
+        !parsedHeDaoTaoList.includes('') &&
+        parsedHeDaoTaoList[0] !== '') {
+      const placeholders = parsedHeDaoTaoList.map(() => '?').join(',');
+      query += ` AND hd.he_dao_tao IN (${placeholders})`;
+      params.push(...parsedHeDaoTaoList);
     }
 
-    // Lọc khoa nếu cần
-    if (khoa && khoa !== "ALL") {
-      query += ` AND hd.MaPhongBan LIKE ?`;
-      params.push(`%${khoa}%`);
+    // Thêm filter khoa chỉ khi có giá trị cụ thể
+    if (parsedKhoaList && 
+        Array.isArray(parsedKhoaList) && 
+        parsedKhoaList.length > 0 && 
+        !parsedKhoaList.includes('ALL') &&
+        !parsedKhoaList.includes('') &&
+        parsedKhoaList[0] !== '') {
+      const placeholders = parsedKhoaList.map(() => '?').join(',');
+      query += ` AND hd.MaPhongBan IN (${placeholders})`;
+      params.push(...parsedKhoaList);
     }
 
     // Lọc theo tên giáo viên nếu có
     if (teacherName && teacherName.trim() !== "") {
       query += ` AND hd.HoTen LIKE ?`;
       params.push(`%${teacherName}%`);
-    }    // GROUP BY đúng y hệt exportMultipleContracts
+    }
+
+    // GROUP BY đúng y hệt exportMultipleContracts
     query += `
       GROUP BY
         hd.CCCD,
@@ -103,8 +140,16 @@ const getHopDongList = async (req, res) => {
         hd.NamHoc,
         hd.MaPhongBan,
         hd.he_dao_tao
+      ORDER BY
+        hd.MaPhongBan,
+        hd.he_dao_tao,
+        hd.HoTen
     `;
 
+    console.log('getHopDongList query:', query);
+    console.log('getHopDongList params:', params);
+    console.log('parsedKhoaList:', parsedKhoaList);
+    console.log('parsedHeDaoTaoList:', parsedHeDaoTaoList);
 
     const [rows] = await connection.execute(query, params);
 
@@ -150,7 +195,6 @@ const setupSoHopDongToanBo22 = async (req, res) => {
     // Check if contractsData is provided (new approach)
     if (contractsData && Array.isArray(contractsData) && contractsData.length > 0) {
       // Use the contracts data extracted from the preview table
-      console.log('Using contracts data from preview table:', contractsData.length, 'contracts');
 
       // Bắt đầu transaction
       await connection.beginTransaction(); let updatedCount = 0;
@@ -208,9 +252,7 @@ const setupSoHopDongToanBo22 = async (req, res) => {
 
           if (updateResult.affectedRows > 0) {
             updatedCount += updateResult.affectedRows;
-            console.log(`Updated ${updateResult.affectedRows} records for teacher: ${contract.HoTen}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}, id_Gvm: ${contract.id_Gvm || 'N/A'}`);
           } else {
-            console.warn(`No records updated for teacher: ${contract.HoTen}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}, id_Gvm: ${contract.id_Gvm || 'N/A'}`);
             failedCount++;
           }
 
@@ -231,7 +273,6 @@ const setupSoHopDongToanBo22 = async (req, res) => {
 
     } else {
       // Fallback to original approach if no contractsData provided
-      console.log('No contracts data provided, using original database query approach');
 
       // Build query để lấy danh sách hợp đồng cần cập nhật, nhóm theo khoa và hệ đào tạo
       let query = `
@@ -421,7 +462,14 @@ const setupSoHopDongToanBo = async (req, res) => {
 const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber } = req.body;
+
+    // Support both old single values and new array format
+    const parsedKhoaList = khoaList || (khoa ? [khoa] : []);
+    const parsedHeDaoTaoList = heDaoTaoList || (heDaoTao ? [heDaoTao] : []);
+
+    console.log('previewSoHopDongMoiGiang - parsedKhoaList:', parsedKhoaList);
+    console.log('previewSoHopDongMoiGiang - parsedHeDaoTaoList:', parsedHeDaoTaoList);
 
     connection = await createPoolConnection();
 
@@ -429,22 +477,35 @@ const previewSoHopDongMoiGiang = async (req, res) => {
     let whereConditions = 'WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?';
     const params = [dot, ki, nam];
 
-    // Thêm điều kiện hệ đào tạo vào subquery
-    if (heDaoTao && heDaoTao.trim() !== '') {
-      whereConditions += ' AND he_dao_tao = ?';
-      params.push(heDaoTao);
+    // Thêm điều kiện hệ đào tạo vào subquery (với mảng)
+    if (parsedHeDaoTaoList && 
+        Array.isArray(parsedHeDaoTaoList) && 
+        parsedHeDaoTaoList.length > 0 && 
+        !parsedHeDaoTaoList.includes('ALL') &&
+        !parsedHeDaoTaoList.includes('') &&
+        parsedHeDaoTaoList[0] !== '') {
+      const placeholders = parsedHeDaoTaoList.map(() => '?').join(',');
+      whereConditions += ` AND he_dao_tao IN (${placeholders})`;
+      params.push(...parsedHeDaoTaoList);
     }
 
-    // Thêm điều kiện khoa vào subquery
-    if (khoa && khoa !== 'ALL') {
-      whereConditions += ' AND MaPhongBan = ?';
-      params.push(khoa);
+    // Thêm điều kiện khoa vào subquery (với mảng)
+    if (parsedKhoaList && 
+        Array.isArray(parsedKhoaList) && 
+        parsedKhoaList.length > 0 && 
+        !parsedKhoaList.includes('ALL') &&
+        !parsedKhoaList.includes('') &&
+        parsedKhoaList[0] !== '') {
+      const placeholders = parsedKhoaList.map(() => '?').join(',');
+      whereConditions += ` AND MaPhongBan IN (${placeholders})`;
+      params.push(...parsedKhoaList);
     }
 
     let query = `
       SELECT
         hd.id_Gvm,
         hd.HoTen,
+        hd.CCCD,
         MAX(hd.SoHopDong) AS SoHopDong,
         MAX(hd.SoThanhLyHopDong) AS SoThanhLyHopDong,
         hd.Dot,
@@ -462,6 +523,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       ORDER BY hd.MaPhongBan, hd.he_dao_tao, hd.HoTen
     `;
 
+    console.log('previewSoHopDongMoiGiang query:', query);
+    console.log('previewSoHopDongMoiGiang params:', params);
 
     const [rows] = await connection.execute(query, params);
 
@@ -534,16 +597,37 @@ const getHopDongDoAnList = async (req, res) => {
   try {
     const isKhoa = req.session.isKhoa;
     // Hỗ trợ cả param nam hoặc namHoc từ client
-    let { dot, ki, namHoc: nh, nam, khoa, heDaoTao, teacherName } = req.query;
+    let { dot, ki, namHoc: nh, nam, khoaList, heDaoTaoList, teacherName } = req.query;
     const namHoc = nh || nam;
 
     // Bắt buộc
     if (!dot || !ki || !namHoc) {
       return res.status(400).send("Thiếu thông tin đợt, kỳ hoặc năm học");
     }
-    // Quyền khoa
+    
+    // Parse arrays từ query string nếu cần
+    let parsedKhoaList = khoaList;
+    let parsedHeDaoTaoList = heDaoTaoList;
+    
+    if (typeof khoaList === 'string') {
+      try {
+        parsedKhoaList = JSON.parse(khoaList);
+      } catch (e) {
+        parsedKhoaList = [khoaList];
+      }
+    }
+    
+    if (typeof heDaoTaoList === 'string') {
+      try {
+        parsedHeDaoTaoList = JSON.parse(heDaoTaoList);
+      } catch (e) {
+        parsedHeDaoTaoList = [heDaoTaoList];
+      }
+    }
+    
+    // Quyền khoa - override khoaList nếu user là khoa
     if (isKhoa == 1) {
-      khoa = req.session.MaPhongBan;
+      parsedKhoaList = [req.session.MaPhongBan];
     }
 
     connection = await createPoolConnection();
@@ -556,16 +640,32 @@ const getHopDongDoAnList = async (req, res) => {
     ];
     const params = [dot, ki, namHoc];
 
-    // Thêm filter hệ đào tạo nếu có
-    if (heDaoTao && heDaoTao.trim() !== '') {
-      whereClauses.push('ed.he_dao_tao = ?');
-      params.push(heDaoTao.trim());
+    // Thêm filter hệ đào tạo chỉ khi có giá trị cụ thể (không phải ALL, không empty, không undefined)
+    if (parsedHeDaoTaoList && 
+        Array.isArray(parsedHeDaoTaoList) && 
+        parsedHeDaoTaoList.length > 0 && 
+        !parsedHeDaoTaoList.includes('ALL') &&
+        !parsedHeDaoTaoList.includes('') &&
+        parsedHeDaoTaoList[0] !== '') {
+      const placeholders = parsedHeDaoTaoList.map(() => '?').join(',');
+      whereClauses.push(`ed.he_dao_tao IN (${placeholders})`);
+      params.push(...parsedHeDaoTaoList);
+    } else {
+      // Skipped he_dao_tao filter - using all
     }
 
-    // Thêm filter khoa nếu không phải "ALL"
-    if (khoa && khoa !== 'ALL') {
-      whereClauses.push('gv.MaPhongBan LIKE ?');
-      params.push(`%${khoa}%`);
+    // Thêm filter khoa chỉ khi có giá trị cụ thể (không phải ALL, không empty, không undefined)
+    if (parsedKhoaList && 
+        Array.isArray(parsedKhoaList) && 
+        parsedKhoaList.length > 0 && 
+        !parsedKhoaList.includes('ALL') &&
+        !parsedKhoaList.includes('') &&
+        parsedKhoaList[0] !== '') {
+      const placeholders = parsedKhoaList.map(() => '?').join(',');
+      whereClauses.push(`gv.MaPhongBan IN (${placeholders})`);
+      params.push(...parsedKhoaList);
+    } else {
+      // Skipped khoa filter - using all
     }
 
     // Thêm filter theo tên giáo viên nếu có
@@ -638,7 +738,7 @@ const getHopDongDoAnList = async (req, res) => {
 const previewSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoa, heDaoTao, startingNumber } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber } = req.body;
 
     connection = await createPoolConnection();
 
@@ -650,16 +750,32 @@ const previewSoHopDongDoAn = async (req, res) => {
     ];
     const params = [dot, ki, nam];
 
-    // --- Thêm filter he_dao_tao nếu có ---
-    if (heDaoTao && heDaoTao.trim() !== '') {
-      whereClauses.push('ed.he_dao_tao = ?');
-      params.push(heDaoTao.trim());
+    // --- Thêm filter heDaoTaoList chỉ khi có giá trị cụ thể ---
+    if (heDaoTaoList && 
+        Array.isArray(heDaoTaoList) && 
+        heDaoTaoList.length > 0 && 
+        !heDaoTaoList.includes('ALL') &&
+        !heDaoTaoList.includes('') &&
+        heDaoTaoList[0] !== '') {
+      const placeholders = heDaoTaoList.map(() => '?').join(',');
+      whereClauses.push(`ed.he_dao_tao IN (${placeholders})`);
+      params.push(...heDaoTaoList);
+    } else {
+      // Preview: Skipped he_dao_tao filter - using all
     }
 
-    // --- Thêm filter khoa nếu không phải "ALL" ---
-    if (khoa && khoa !== 'ALL') {
-      whereClauses.push('gv.MaPhongBan LIKE ?');
-      params.push(`%${khoa}%`);
+    // --- Thêm filter khoaList chỉ khi có giá trị cụ thể ---
+    if (khoaList && 
+        Array.isArray(khoaList) && 
+        khoaList.length > 0 && 
+        !khoaList.includes('ALL') &&
+        !khoaList.includes('') &&
+        khoaList[0] !== '') {
+      const placeholders = khoaList.map(() => '?').join(',');
+      whereClauses.push(`gv.MaPhongBan IN (${placeholders})`);
+      params.push(...khoaList);
+    } else {
+      // Preview: Skipped khoa filter - using all
     }
 
     const whereSQL = whereClauses.length
@@ -825,9 +941,7 @@ const setupSoHopDongDoAn22 = async (req, res) => {
 
           if (updateResult.affectedRows > 0) {
             updatedCount += updateResult.affectedRows;
-            console.log(`Updated ${updateResult.affectedRows} do an records for teacher: ${contract.HoTen}, CCCD: ${contract.CCCD}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}`);
           } else {
-            console.warn(`No do an records updated for teacher: ${contract.HoTen}, CCCD: ${contract.CCCD}, he_dao_tao: ${heDaoTaoToUse || 'N/A'}`);
             failedCount++;
           }
 
@@ -849,7 +963,6 @@ const setupSoHopDongDoAn22 = async (req, res) => {
 
     } else {
       // Fallback to original approach if no contractsData provided
-      console.log('No contracts data provided, using original database query approach for do an');
 
       // Build query để lấy danh sách hợp đồng đồ án cần cập nhật
       const whereClauses = [
@@ -944,7 +1057,7 @@ const setupSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, contractsData } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, contractsData } = req.body;
 
     // Validate required input
     if (!dot || !ki || !nam) {
@@ -1052,6 +1165,29 @@ const setupSoHopDongDoAn = async (req, res) => {
   }
 };
 
+// Lấy danh sách khoa cho multi-select
+const getKhoaList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT MaPhongBan, TenPhongBan FROM phongban WHERE isKhoa = 1 ORDER BY MaPhongBan";
+    const [result] = await connection.query(query);
+    console.log('getKhoaList result:', result);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error("Error getting khoa list:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy danh sách khoa"
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 module.exports = {
   getSoHopDongPage,
   getHopDongList,
@@ -1061,5 +1197,6 @@ module.exports = {
   getSoHopDongDoAnPage,
   previewSoHopDongDoAn,
   getHopDongDoAnList,
-  setupSoHopDongDoAn
+  setupSoHopDongDoAn,
+  getKhoaList
 };
