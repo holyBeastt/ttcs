@@ -534,7 +534,7 @@
               tr.classList.add("teacher-group");
 
               // Nếu chưa duyệt thì thêm dòng “⏳ Chưa duyệt”
-              const duyetText = course.hoc_vien_duyet === 0 ? `<div title="Chưa được duyệt bởi học viện" style="font-size: 12px; margin-top: 3px">⏳ Chưa duyệt</div>` : "";
+              const duyetText = course.hoc_vien_duyet === 0 ? `<div title="Chưa được duyệt bởi học viện" style="font-size: 12px; margin-top: 3px; color: #8a4fff; font-weight: 600;">⏳ Chưa duyệt</div>` : "";
 
               tr.innerHTML = `
                 <td rowspan="${courses.length - 1}">${index}</td>
