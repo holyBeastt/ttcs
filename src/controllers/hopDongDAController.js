@@ -390,7 +390,6 @@ GROUP BY
     ed.NganHang,
     ed.NoiCongTac,
     ed.Dot,
-    ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
@@ -407,7 +406,7 @@ GROUP BY
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
+    ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
     ed.SoThanhLyHopDong
   `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
@@ -434,7 +433,6 @@ GROUP BY
     ed.NganHang,
     ed.NoiCongTac,
     ed.Dot,
-    ed.KhoaDaoTao,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
@@ -451,7 +449,7 @@ GROUP BY
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
-    ed.Dot, ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
+    ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
     ed.SoThanhLyHopDong
   `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
