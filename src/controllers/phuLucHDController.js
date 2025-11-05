@@ -1166,7 +1166,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         SELECT * FROM phuLucSauDH
         UNION
         SELECT * FROM phuLucDH
-    )    SELECT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
+    )    
+    SELECT DISTINCT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
     FROM table_ALL t
     LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
         AND t.Dot = hd.Dot 
@@ -1177,7 +1178,7 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     `;
 
     let params = [dot, ki, namHoc, loaiHopDong]; if (khoa && khoa !== "ALL") {
-      query += ` AND t.Khoa = ?`;
+      query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
 
