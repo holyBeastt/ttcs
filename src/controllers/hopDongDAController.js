@@ -1228,7 +1228,6 @@ const getExportData = async (
       ed.NoiCongTac,
       ed.Dot,
       ed.ki,
-      ed.KhoaDaoTao,
       MIN(ed.NgayBatDau) AS NgayBatDau,
       MAX(ed.NgayKetThuc) AS NgayKetThuc,
       SUM(ed.SoTiet) AS SoTiet,
@@ -1244,7 +1243,7 @@ const getExportData = async (
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
       ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-      ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+      ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
     `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -1271,7 +1270,6 @@ const getExportData = async (
         ed.NoiCongTac,
         ed.Dot,
         ed.ki,
-        ed.KhoaDaoTao,
         MIN(ed.NgayBatDau) AS NgayBatDau,
         MAX(ed.NgayKetThuc) AS NgayKetThuc,
         SUM(ed.SoTiet) AS SoTiet,
@@ -1287,7 +1285,7 @@ const getExportData = async (
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-        ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
       `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
@@ -1314,7 +1312,6 @@ const getExportData = async (
         ed.NoiCongTac,
         ed.Dot,
         ed.ki,
-        ed.KhoaDaoTao,
         MIN(ed.NgayBatDau) AS NgayBatDau,
         MAX(ed.NgayKetThuc) AS NgayKetThuc,
         SUM(ed.SoTiet) AS SoTiet,
@@ -1330,7 +1327,7 @@ const getExportData = async (
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-        ed.KhoaDaoTao, ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
       `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
