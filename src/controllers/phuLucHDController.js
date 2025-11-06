@@ -215,7 +215,7 @@ const getExportPhuLucGiangVienMoiPath = async (
     const titleRow1 = summarySheet.addRow(["Học Viện Kỹ thuật Mật Mã"]);
     titleRow1.font = { name: "Times New Roman", bold: true, size: 16 };
     titleRow1.alignment = { vertical: "middle", horizontal: "center" };
-    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`);    const titleRow2 = summarySheet.addRow(["Phụ lục"]);
+    summarySheet.mergeCells(`A${titleRow1.number}:C${titleRow1.number}`); const titleRow2 = summarySheet.addRow(["Phụ lục"]);
     titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
     titleRow2.alignment = { horizontal: "center", vertical: "middle" };
     summarySheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
@@ -330,8 +330,8 @@ const getExportPhuLucGiangVienMoiPath = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;        // Thêm hàng dữ liệu vào sheet tổng hợp
+              ? "ThS"
+              : item.HocVi;        // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
           stt,
           item.GiangVien,
@@ -647,22 +647,22 @@ const getExportPhuLucGiangVienMoiPath = async (
         const hocKyLaMa = convertToRoman(item.HocKy);
         // Viết tắt Học vị
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet.addRow([
-          index + 1, // STT
-          item.GiangVien,
-          item.TenHocPhan,
-          item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN"),
-          thoiGianThucHien,
-          hocKyLaMa, // Sử dụng số La Mã cho Học kỳ
-          item.DiaChi,
-          hocViVietTat, // Sử dụng viết tắt cho Học vị
-          item.HSL.toLocaleString("vi-VN"),
-          mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
-          soTien.toLocaleString("vi-VN"), // Định dạng số tiền
-          truThue.toLocaleString("vi-VN"),
-          thucNhan.toLocaleString("vi-VN"),
-        ]);
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi; const row = worksheet.addRow([
+            index + 1, // STT
+            item.GiangVien,
+            item.TenHocPhan,
+            item.Lop,
+            (item.SoTiet || 0).toLocaleString("vi-VN"),
+            thoiGianThucHien,
+            hocKyLaMa, // Sử dụng số La Mã cho Học kỳ
+            item.DiaChi,
+            hocViVietTat, // Sử dụng viết tắt cho Học vị
+            item.HSL.toLocaleString("vi-VN"),
+            mucThanhToan.toLocaleString("vi-VN"), // Mức thanh toán
+            soTien.toLocaleString("vi-VN"), // Định dạng số tiền
+            truThue.toLocaleString("vi-VN"),
+            thucNhan.toLocaleString("vi-VN"),
+          ]);
         row.font = { name: "Times New Roman", size: 13 };
 
         // Bật wrapText cho các ô dữ liệu và căn giữa
@@ -934,22 +934,22 @@ const getExportPhuLucGiangVienMoiPath = async (
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
         const hocKyLaMa = convertToRoman(item.HocKy);
         const hocViVietTat =
-          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi;        const row = worksheet2.addRow([
-          index + 1,
-          item.GiangVien,
-          item.TenHocPhan,
-          item.Lop,
-          (item.SoTiet || 0).toLocaleString("vi-VN"),
-          thoiGianThucHien,
-          hocKyLaMa,
-          item.DiaChi,
-          hocViVietTat,
-          item.HSL.toLocaleString("vi-VN"),
-          mucThanhToan.toLocaleString("vi-VN"),
-          soTien.toLocaleString("vi-VN"),
-          truThue.toLocaleString("vi-VN"),
-          thucNhan.toLocaleString("vi-VN"),
-        ]);
+          hocVi === "Tiến sĩ" ? "TS" : hocVi === "Thạc sĩ" ? "ThS" : hocVi; const row = worksheet2.addRow([
+            index + 1,
+            item.GiangVien,
+            item.TenHocPhan,
+            item.Lop,
+            (item.SoTiet || 0).toLocaleString("vi-VN"),
+            thoiGianThucHien,
+            hocKyLaMa,
+            item.DiaChi,
+            hocViVietTat,
+            item.HSL.toLocaleString("vi-VN"),
+            mucThanhToan.toLocaleString("vi-VN"),
+            soTien.toLocaleString("vi-VN"),
+            truThue.toLocaleString("vi-VN"),
+            thucNhan.toLocaleString("vi-VN"),
+          ]);
         row.font = { name: "Times New Roman", size: 13 };
         row.eachCell((cell, colNumber) => {
           cell.alignment = {
@@ -1119,13 +1119,13 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         success: false,
         message: "Thiếu thông tin đợt, kỳ hoặc năm học",
       });
-    }    let query = `
+    } let query = `
       WITH 
     phuLucSauDH AS (
         SELECT DISTINCT
             TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) AS GiangVien, 
             qc.TenLop AS Lop, 
-            ROUND(qc.QuyChuan * 0.3, 2) AS SoTiet, 
+            ROUND(qc.QuyChuan * 0.7, 2) AS SoTiet, 
             qc.LopHocPhan AS TenHocPhan, 
             qc.KiHoc AS HocKy,
             gv.HocVi, 
@@ -1171,7 +1171,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
         SELECT * FROM phuLucSauDH
         UNION
         SELECT * FROM phuLucDH
-    )    SELECT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
+    )    
+    SELECT DISTINCT t.*, hd.SoHopDong, hd.SoThanhLyHopDong 
     FROM table_ALL t
     LEFT JOIN hopdonggvmoi hd ON t.CCCD = hd.CCCD 
         AND t.Dot = hd.Dot 
@@ -1181,8 +1182,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
     WHERE t.Dot = ? AND t.KiHoc = ? AND t.NamHoc = ? AND t.he_dao_tao = ?
     `;
 
-    let params = [dot, ki, namHoc, loaiHopDong];    if (khoa && khoa !== "ALL") {
-      query += ` AND t.Khoa = ?`;
+    let params = [dot, ki, namHoc, loaiHopDong]; if (khoa && khoa !== "ALL") {
+      query += ` AND hd.MaPhongBan = ?`;
       params.push(khoa);
     }
 
