@@ -408,10 +408,21 @@
           </div> <!-- Main content area -->
           <div class="content-section mt-4">
             <div class="card">
-              <div class="card-header">
+              <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                   <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng đồ án
                 </h5>
+                <!-- Bộ lọc theo tên giảng viên -->
+                <div class="d-flex align-items-center">
+                  <label for="searchTeacher" class="form-label me-2 mb-0">
+                    <i class="fas fa-search me-1"></i>Tìm kiếm:
+                  </label>
+                  <input type="text" 
+                         class="form-control" 
+                         id="searchTeacher" 
+                         placeholder="Nhập tên giảng viên..."
+                         style="width: 250px;">
+                </div>
               </div>
               <div class="card-body">
                 <!-- Results Table -->
@@ -664,16 +675,20 @@
           showLoading(true);
           showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
 
+          const teacherName = $('#searchTeacher').val().trim();
+
           const data = {
             dot: dot,
             ki: ki,
             nam: nam,
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
-            startingNumber: startingNumber
+            startingNumber: startingNumber,
+            teacherName: teacherName
           };
 
           console.log('Sending data to preview:', data);
+          console.log('Teacher name for preview:', teacherName);
 
           // Gọi API preview đồng bộ cho đồ án
           $.post('/api/preview-so-hop-dong-do-an', data)
@@ -785,6 +800,7 @@
           /* ────────────────────────────────────────────────────────
              2. Gom các giá trị từ form
           ────────────────────────────────────────────────────────── */
+          const teacherName = $('#searchTeacher').val().trim();
           const data = {
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
@@ -792,7 +808,8 @@
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
-            contractsData: tableData
+            contractsData: tableData,
+            teacherName: teacherName
           };
 
           console.log('data contract đồ án:', data.contractsData);
@@ -912,15 +929,19 @@
           $('#noDataMessage').hide();
           $('#resultsDiv').hide();
 
+          const teacherName = $('#searchTeacher').val().trim();
+
           const params = {
             dot: dot,
             ki: ki,
             nam: nam,
             khoaList: JSON.stringify(getSelectedKhoa()),
-            heDaoTaoList: JSON.stringify(getSelectedHe())
+            heDaoTaoList: JSON.stringify(getSelectedHe()),
+            teacherName: teacherName
           };
 
           console.log('Sending params to loadContracts:', params);
+          console.log('Teacher name search:', teacherName);
 
           $.get('/api/hopdong-doan-list', params)
             .done(function (response) {
@@ -1073,6 +1094,31 @@
           $('#contractTypeIcon').addClass('text-primary');
           $('#previewContractBtn').addClass('btn-outline-primary');
           $('#executeContractBtn').addClass('btn-success');
+
+          // Thêm event listener cho tìm kiếm tên giảng viên
+          $('#searchTeacher').on('input', debounce(function() {
+            const dot = $('#combobox-dot').val();
+            const ki = $('#comboboxki').val();
+            const nam = $('#NamHoc').val();
+            
+            // Chỉ tự động tìm kiếm khi đã chọn đủ điều kiện cơ bản
+            if (dot && ki && nam) {
+              loadContracts();
+            }
+          }, 500)); // Debounce 500ms để tránh gọi API quá nhiều
+
+          // Hàm debounce để giảm số lần gọi API
+          function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+              const later = function() {
+                clearTimeout(timeout);
+                func(...args);
+              };
+              clearTimeout(timeout);
+              timeout = setTimeout(later, wait);
+            };
+          }
         });
       </script>
 </body>
