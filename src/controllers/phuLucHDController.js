@@ -224,10 +224,15 @@ const getExportPhuLucGiangVienMoiPath = async (
     const firstSoHopDong = data[0]?.SoHopDong || '';
     const firstSoThanhLyHopDong = data[0]?.SoThanhLyHopDong || '';
 
-    // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
-    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== ''
-      ? `Hợp đồng số: ${firstSoHopDong}MG/HĐ-ĐT `
-      : `Hợp đồng số:             MG/HĐ-ĐT `;
+    // // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    // const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+    //   ? `Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `
+    //   : `Hợp đồng số:             /HĐ-ĐT `;
+
+      // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+    const summaryContractNumber = firstSoHopDong && firstSoHopDong.trim() !== '' 
+      ? `Hợp đồng số:             /HĐ-ĐT `
+      : `Hợp đồng số:             /HĐ-ĐT `;
 
     const titleRow3 = summarySheet.addRow([summaryContractNumber]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
@@ -235,9 +240,9 @@ const getExportPhuLucGiangVienMoiPath = async (
     summarySheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
     // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
-    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ''
-      ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}MG/HĐNT-ĐT `
-      : `Kèm theo biên bản nghiệm thu Hợp đồng số:             MG/HĐNT-ĐT `;
+    const summaryVerificationNumber = firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== '' 
+      ? `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT `
+      : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT `;
 
     const titleRow4 = summarySheet.addRow([
       summaryVerificationNumber,
@@ -506,9 +511,9 @@ const getExportPhuLucGiangVienMoiPath = async (
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
-      const contractNumber = soHopDong && soHopDong.trim() !== ''
-        ? `Hợp đồng số: ${soHopDong}MG/HĐ-ĐT ${formattedEarliestDate}`
-        : `Hợp đồng số:             MG/HĐ-ĐT ${formattedEarliestDate}`;
+      const contractNumber = soHopDong && soHopDong.trim() !== '' 
+        ? `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+        : `Hợp đồng số:             /HĐ-ĐT ${formattedEarliestDate}`;
 
       const titleRow3 = worksheet.addRow([
         contractNumber,
@@ -817,9 +822,9 @@ const getExportPhuLucGiangVienMoiPath = async (
       // worksheet2.mergeCells(`A${titleRow3_2.number}:L${titleRow3_2.number}`);
 
       // Xử lý soThanhLyHopDong_2: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
-      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== ''
-        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}MG/HĐNT-ĐT ${formattedEarliestDate_2}`
-        : `Kèm theo biên bản nghiệm thu Hợp đồng số:             MG/HĐNT-ĐT ${formattedEarliestDate_2}`;
+      const contractNumberWithVerification = soThanhLyHopDong_2 && soThanhLyHopDong_2.trim() !== '' 
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong_2}/HĐNT-ĐT ${formattedEarliestDate_2}`
+        : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT ${formattedEarliestDate_2}`;
 
       const titleRow4_2 = worksheet2.addRow([
         contractNumberWithVerification,
