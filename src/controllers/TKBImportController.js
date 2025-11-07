@@ -164,12 +164,12 @@ const importExcelTKB = async (req, res) => {
       row.tt,
       row.course_code,
       row.credit_hours,
-      row.student_quantity,
+      row.student_quantity || 0,
       row.student_bonus || 0,
       row.bonus_time || 1, // Nếu không có giá trị thì mặc định là 1
-      row.ll_code,
-      row.ll_total,
-      row.qc,
+      row.ll_code || 0,
+      row.ll_total || 0,
+      row.qc || 0,
       row.course_name,
       row.study_format,
       row.periods_per_week,
@@ -208,7 +208,7 @@ const importExcelTKB = async (req, res) => {
       const khoa = req.session?.MaPhongBan || 'Unknown Department';
       const loaiThongTin = 'Import thời khóa biểu';
       const changeMessage = `${tenNhanVien} đã thêm mới lịch học từ file thời khóa biểu vào cơ sở dữ liệu. Kỳ ${ki}, đợt ${dot}, năm học ${nam}.`;
-      
+
       await pool.query(logQuery, [
         userId,
         tenNhanVien,
