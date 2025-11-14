@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Học Viện Kỹ Thuật Mật Mã - Cơ sở miền bắc</title>
+  <title>Học Viện Kỹ Thuật Mật Mã - Phân hiệu học viện</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
   <link rel="stylesheet" href="/css/styles.css" />
@@ -17,11 +17,6 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-  <!-- Link thư viện tabulator -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
-
-  <!-- Custom CSS for better alignment -->
   <style>
     .loc {
       align-items: center;
@@ -30,7 +25,6 @@
 
     .selectop {
       height: 38px;
-      /* Match button height */
       vertical-align: middle;
       border: 1px solid #ced4da;
       border-radius: 0.375rem;
@@ -52,7 +46,21 @@
       outline: 0;
     }
 
-    /* Styling riêng cho dropdown buttons - chỉ áp dụng cho .dropdown-toggle */
+    /* Khoa display styling */
+    .khoa-display {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      background-color: #e3f2fd;
+      border: 2px solid #1976d2;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      color: #1976d2;
+      min-width: 120px;
+    }
+
+    /* Styling cho dropdown hệ đào tạo */
     button.selectop.dropdown-toggle {
       display: flex !important;
       align-items: center !important;
@@ -100,7 +108,6 @@
       content: "" !important;
     }
 
-    /* Đảm bảo dropdown buttons có cùng styling với select */
     .dropdown button.selectop {
       width: 100% !important;
       display: flex !important;
@@ -121,19 +128,7 @@
       margin-top: 15px;
     }
 
-    /* Styles for contract type display */
-    .contract-type-display {
-      padding: 10px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-
-    #contractTypeIndicator {
-      transition: all 0.3s ease;
-      font-size: 1rem;
-    }
-
-    /* CSS cho multi-select checkbox dropdown */
+    /* CSS cho multi-select checkbox dropdown cho hệ đào tạo */
     .checkbox-dropdown {
       max-height: 250px;
       overflow-y: auto;
@@ -180,7 +175,6 @@
       display: none;
     }
     
-    /* Đảm bảo dropdown container có position relative */
     .dropdown {
       position: relative !important;
     }
@@ -250,38 +244,22 @@
             <div class="loc d-flex align-items-center">
               <select class="selectop" id="combobox-dot" style="width: 70px">
                 <option value="">Đợt</option>
-
               </select>
               <select class="selectop" id="comboboxki" style="width: 70px">
                 <option value="">Kì</option>
-
               </select>
               <select class="selectop" id="NamHoc">
                 <option value="">Chọn năm học</option>
               </select>
               
-              <!-- Multi-select Khoa với checkbox -->
-              <div class="dropdown" style="width: 180px;">
-                <button class="selectop dropdown-toggle" 
-                        type="button" 
-                        id="khoaDropdown" 
-                        data-bs-toggle="dropdown"
-                        style="width: 100%;">
-                  <span id="khoaButtonText">Khoa</span>
-                </button>
-                <div class="dropdown-menu checkbox-dropdown w-100" id="khoaCheckboxMenu">
-                  <label class="dropdown-item">
-                    <input type="checkbox" value="ALL" id="selectAllKhoa" /> 
-                    <strong>Tất cả khoa</strong>
-                  </label>
-                  <div class="dropdown-divider"></div>
-                  <!-- Các khoa sẽ được load động từ API -->
-                </div>
-                <div class="selected-items" id="selectedKhoa"></div>
+              <!-- Khoa cố định - ĐTPH -->
+              <div class="khoa-display">
+                <i class="fas fa-building me-2"></i>
+                <strong>Khoa: ĐTPH</strong>
               </div>
 
               <!-- Multi-select Hệ đào tạo với checkbox -->
-              <div class="dropdown" style="width: 150px;">
+              <div class="dropdown" style="width: 180px;">
                 <button class="selectop dropdown-toggle" 
                         type="button" 
                         id="heDropdown" 
@@ -319,14 +297,14 @@
             <div class="card">
               <div class="card-header">
                 <h5 class="mb-0">
-                  <i class="fas fa-cog me-2"></i>Tạo số hợp đồng và số thanh lý hợp đồng - Cơ sở miền bắc
+                  <i class="fas fa-cog me-2"></i>Tạo số hợp đồng và số thanh lý hợp đồng - Phân hiệu học viện
                 </h5>
               </div>
               <div class="card-body">
 
                 <div class="row mb-3">
                   <div class="col-12">
-                    <div class="alert alert-success">
+                    <div class="alert alert-info">
                       <div class="row">
                         <div class="col-md-6">
                           <div class="d-flex align-items-center">
@@ -352,13 +330,6 @@
 
                 <div class="row">
                   <div class="col-md-6">
-                    <div class="form-check">
-                      <!-- <input class="form-check-input" type="radio" name="setupMode" id="mode1" value="toan_bo" checked> -->
-                      <!-- <label class="form-check-label" for="mode1">
-                    <strong>Tự động tăng cho toàn bộ</strong>
-                    <small class="text-muted d-block">Tăng dần từ số bắt đầu cho tất cả hợp đồng trong điều kiện đã chọn</small>
-                  </label> -->
-                    </div> <!-- Starting number input -->
                     <div id="unifiedStartingNumberDiv" class="mt-3" style="display: block;">
                       <div class="row">
                         <div class="col-md-6">
@@ -374,9 +345,6 @@
                             lý</small>
                         </div>
                         <div class="col-md-6">
-                          <!-- <label class="form-label">
-                        <strong>Ví dụ định dạng số</strong>
-                      </label> -->
                           <div class="p-3 bg-light border rounded">
                             <div class="mb-2">
                               <strong>Hợp đồng:</strong> <span id="contractExample"
@@ -392,7 +360,7 @@
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <!-- Unified action buttons that adapt based on contract type -->
+                    <!-- Unified action buttons -->
                     <div class="d-flex gap-2 mt-4" id="unifiedContractButtons">
                       <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
                         onclick="handleContractOperation('previewContract')">
@@ -419,7 +387,7 @@
             <div class="card">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                  <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng - Cơ sở miền bắc
+                  <i class="fas fa-file-contract me-2"></i>Danh sách hợp đồng - Phân hiệu học viện
                 </h5>
                 <!-- Bộ lọc theo tên giảng viên -->
                 <div class="d-flex align-items-center">
@@ -442,7 +410,7 @@
                         <tr>
                           <th>STT</th>
                           <th>Họ tên giảng viên</th>
-                          <th>Khoa - Hệ đào tạo</th>
+                          <th>Hệ đào tạo</th>
                           <th>Số HĐ hiện tại</th>
                           <th>Số TL hiện tại</th>
                           <th>Số HĐ mới</th>
@@ -454,7 +422,6 @@
                     </table>
                   </div>
                 </div>
-
 
                 <!-- Loading spinner -->
                 <div id="loadingSpinner" class="text-center py-4" style="display: none;">
@@ -488,43 +455,26 @@
         </div>
       </div>
 
-      <!-- link cá site -->
+      <!-- External scripts -->
       <script src="/js/moigiang/href.js"></script>
-      <!-- năm học, khoa -->
       <script src="/js/moigiang/getdata.js"></script>
-      <!-- ẩn các nút theo role -->
-      <script src="/js/moigiang/hideBtn.js"></script> <!-- Contract numbers specific script -->
+      <script src="/js/moigiang/hideBtn.js"></script>
+      
+      <!-- ĐTPH specific script -->
       <script>
-        // ===== MULTI-SELECT FUNCTIONALITY =====
-        let selectedKhoaValues = [];
+        // ===== CONSTANTS FOR ĐTPH =====
+        const FIXED_KHOA = 'ĐTPH';
         let selectedHeValues = [];
 
-        // Khởi tạo multi-select cho khoa và hệ đào tạo
-        function initMultiSelect() {
-          console.log('Initializing multi-select...');
-          // Khoa multi-select
-          initSingleMultiSelect('khoaCheckboxMenu', 'khoaButtonText', 'selectedKhoa', 'selectAllKhoa', 
-            selectedKhoaValues, 'Khoa', updateKhoaDisplay);
-          
-          // Hệ đào tạo multi-select
-          initSingleMultiSelect('heCheckboxMenu', 'heButtonText', 'selectedHe', 'selectAllHe', 
-            selectedHeValues, 'Hệ đào tạo', updateHeDisplay);
-        }
-
-        function initSingleMultiSelect(containerId, buttonTextId, selectedDisplayId, selectAllId, 
-                                      selectedArray, defaultText, updateCallback) {
-          console.log('Initializing single multi-select for:', containerId);
-          const container = document.getElementById(containerId);
-          const buttonText = document.getElementById(buttonTextId);
-          const selectedDisplay = document.getElementById(selectedDisplayId);
-          const selectAll = document.getElementById(selectAllId);
+        // ===== SIMPLIFIED MULTI-SELECT FOR HỆ ĐÀO TẠO =====
+        function initHeMultiSelect() {
+          console.log('Initializing hệ đào tạo multi-select...');
+          const container = document.getElementById('heCheckboxMenu');
+          const buttonText = document.getElementById('heButtonText');
+          const selectedDisplay = document.getElementById('selectedHe');
           
           if (!container || !buttonText || !selectedDisplay) {
-            console.error('Missing elements for multi-select:', {
-              container: !!container,
-              buttonText: !!buttonText,
-              selectedDisplay: !!selectedDisplay
-            });
+            console.error('Missing elements for hệ đào tạo multi-select');
             return;
           }
           
@@ -532,8 +482,7 @@
           container.addEventListener('change', function(e) {
             if (e.target.type === 'checkbox') {
               const value = e.target.value;
-              console.log('Checkbox changed:', value, 'checked:', e.target.checked);
-              console.log('Current selectedArray before change:', [...selectedArray]);
+              console.log('Hệ đào tạo checkbox changed:', value, 'checked:', e.target.checked);
               
               if (value === 'ALL') {
                 // Toggle tất cả
@@ -543,10 +492,10 @@
                 });
                 
                 if (e.target.checked) {
-                  selectedArray.length = 0;
-                  selectedArray.push('ALL');
+                  selectedHeValues.length = 0;
+                  selectedHeValues.push('ALL');
                 } else {
-                  selectedArray.length = 0;
+                  selectedHeValues.length = 0;
                 }
               } else {
                 // Xử lý checkbox riêng lẻ
@@ -555,51 +504,42 @@
                   const selectAllCheckbox = container.querySelector('input[value="ALL"]');
                   if (selectAllCheckbox) selectAllCheckbox.checked = false;
                   // Xóa 'ALL' khỏi array nếu có
-                  const allIndex = selectedArray.indexOf('ALL');
-                  if (allIndex > -1) selectedArray.splice(allIndex, 1);
+                  const allIndex = selectedHeValues.indexOf('ALL');
+                  if (allIndex > -1) selectedHeValues.splice(allIndex, 1);
                   // Thêm giá trị mới
-                  if (!selectedArray.includes(value)) {
-                    selectedArray.push(value);
+                  if (!selectedHeValues.includes(value)) {
+                    selectedHeValues.push(value);
                   }
                 } else {
-                  const index = selectedArray.indexOf(value);
+                  const index = selectedHeValues.indexOf(value);
                   if (index > -1) {
-                    selectedArray.splice(index, 1);
+                    selectedHeValues.splice(index, 1);
                   }
                 }
               }
               
-              console.log('Current selectedArray after change:', [...selectedArray]);
-              updateCallback();
+              console.log('Current selectedHeValues:', [...selectedHeValues]);
+              updateHeDisplay();
             }
           });
         }
 
-        function updateKhoaDisplay() {
-          updateDisplay('khoaButtonText', 'selectedKhoa', selectedKhoaValues, 'Khoa', 'khoaCheckboxMenu');
-        }
-
         function updateHeDisplay() {
-          updateDisplay('heButtonText', 'selectedHe', selectedHeValues, 'Hệ đào tạo', 'heCheckboxMenu');
-        }
-
-        function updateDisplay(buttonTextId, selectedDisplayId, selectedArray, defaultText, containerId) {
-          const buttonText = document.getElementById(buttonTextId);
-          const selectedDisplay = document.getElementById(selectedDisplayId);
-          const container = document.getElementById(containerId);
+          const buttonText = document.getElementById('heButtonText');
+          const selectedDisplay = document.getElementById('selectedHe');
+          const container = document.getElementById('heCheckboxMenu');
           
           // Luôn hiển thị text cố định cho button
-          buttonText.textContent = defaultText;
+          buttonText.textContent = 'Hệ đào tạo';
           
           // Cập nhật tags
           selectedDisplay.innerHTML = '';
-          selectedArray.forEach(value => {
+          selectedHeValues.forEach(value => {
             if (value === 'ALL') {
               // Hiển thị tag "ALL" khi chọn tất cả
               const tag = document.createElement('span');
               tag.className = 'selected-tag';
-              const displayText = defaultText.includes('Khoa') ? 'Tất cả khoa' : 'Tất cả hệ đào tạo';
-              tag.innerHTML = `${displayText} <span class="remove-tag" onclick="removeTag('${containerId}', '${value}')">×</span>`;
+              tag.innerHTML = `Tất cả hệ đào tạo <span class="remove-tag" onclick="removeHeTag('${value}')">×</span>`;
               selectedDisplay.appendChild(tag);
             } else {
               const checkbox = container.querySelector(`input[value="${value}"]`);
@@ -607,16 +547,16 @@
                 const label = checkbox.closest('label').textContent.trim();
                 const tag = document.createElement('span');
                 tag.className = 'selected-tag';
-                tag.innerHTML = `${label} <span class="remove-tag" onclick="removeTag('${containerId}', '${value}')">×</span>`;
+                tag.innerHTML = `${label} <span class="remove-tag" onclick="removeHeTag('${value}')">×</span>`;
                 selectedDisplay.appendChild(tag);
               }
             }
           });
         }
 
-        // Hàm remove tag
-        function removeTag(containerId, value) {
-          const container = document.getElementById(containerId);
+        // Hàm remove tag cho hệ đào tạo
+        function removeHeTag(value) {
+          const container = document.getElementById('heCheckboxMenu');
           if (container) {
             const checkbox = container.querySelector(`input[value="${value}"]`);
             if (checkbox) {
@@ -628,19 +568,7 @@
 
         // Hàm lấy giá trị đã chọn
         function getSelectedKhoa() {
-          console.log('selectedKhoaValues:', selectedKhoaValues);
-          if (selectedKhoaValues.length === 0 || selectedKhoaValues.includes('ALL')) {
-            // Khi chọn "ALL", trả về tất cả khoa trừ ĐTPH cho site cơ sở miền bắc
-            const allKhoa = [];
-            $('#khoaCheckboxMenu input[type="checkbox"]:not(#selectAllKhoa)').each(function() {
-              const value = $(this).val();
-              if (value !== 'ĐTPH') {
-                allKhoa.push(value);
-              }
-            });
-            return allKhoa.length > 0 ? allKhoa : ['ALL'];
-          }
-          return selectedKhoaValues;
+          return [FIXED_KHOA]; // Luôn trả về ĐTPH
         }
 
         function getSelectedHe() {
@@ -651,39 +579,6 @@
           return selectedHeValues;
         }
 
-        // Load danh sách khoa cho checkbox dropdown
-        function loadKhoaList() {
-          console.log('Loading khoa list...');
-          $.get('/api/khoa-list')
-            .done(function(response) {
-              console.log('Khoa list response:', response);
-              if (response.success && response.data) {
-                const khoaMenu = $('#khoaCheckboxMenu');
-                // Xóa các item cũ (trừ "Tất cả khoa" và divider)
-                khoaMenu.find('.dropdown-item:not(:first-child):not(.dropdown-divider)').remove();
-                
-                // Thêm các khoa mới, loại bỏ ĐTPH cho site cơ sở miền bắc
-                response.data.forEach(khoa => {
-                  // Ẩn khoa ĐTPH cho site cơ sở miền bắc
-                  if (khoa.MaPhongBan === 'ĐTPH') {
-                    return; // Bỏ qua, không thêm vào menu
-                  }
-                  
-                  console.log('Adding khoa:', khoa);
-                  const item = `
-                    <label class="dropdown-item">
-                      <input type="checkbox" value="${khoa.MaPhongBan}" /> ${khoa.MaPhongBan}
-                    </label>
-                  `;
-                  khoaMenu.append(item);
-                });
-              }
-            })
-            .fail(function() {
-              console.error('Không thể load danh sách khoa');
-            });
-        }
-        
         // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu
         function updateNumberPreview() {
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
@@ -695,16 +590,13 @@
           $('#terminationExample').text(`${formattedNumber}/HĐNT-ĐT`);
         }
 
-        // ===== CÁC HÀM GỐC ĐÃ SỬA ĐỔI =====
+        // ===== CORE FUNCTIONS (REUSED FROM ORIGINAL) =====
 
-        // Khởi tạo giao diện khi trang load
         // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý
         function previewSynchronizedSetup() {
           const dot = $('#combobox-dot').val();
           const ki = $('#comboboxki').val();
           const nam = $('#NamHoc').val();
-          const khoaList = getSelectedKhoa();
-          const heDaoTaoList = getSelectedHe();
 
           if (!dot || !ki || !nam) {
             showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
@@ -727,17 +619,14 @@
             dot: dot,
             ki: ki,
             nam: nam,
-            khoaList: getSelectedKhoa(),
+            khoaList: getSelectedKhoa(), // Luôn ['ĐTPH']
             heDaoTaoList: getSelectedHe(),
             loaiHopDong: "Mời giảng",
             startingNumber: startingNumber,
             teacherName: teacherName
           };
 
-          console.log('Sending data to preview API:', data);
-          console.log('KhoaList for preview:', getSelectedKhoa());
-          console.log('HeDaoTaoList for preview:', getSelectedHe());
-          console.log('Teacher name for preview:', teacherName);
+          console.log('Sending data to preview API (ĐTPH):', data);
 
           // Gọi API preview đồng bộ
           $.post('/api/preview-so-hop-dong-moi-giang', data)
@@ -773,7 +662,9 @@
           if (!startingNumber || startingNumber < 1) {
             showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
             return;
-          }          // Dialog xác nhận chi tiết
+          }
+
+          // Dialog xác nhận chi tiết
           const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
           const terminationExample = String(startingNumber).padStart(3, '0') + '/HĐNT-ĐT';
 
@@ -781,13 +672,14 @@
             title: 'Xác nhận tạo số hợp đồng và số thanh lý',
             html: `<div class="text-start">
                  <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
+                 <p>Khoa: <strong>${FIXED_KHOA}</strong></p>
                  <div class="row mt-3">
                    <div class="col-6">
                        <span>Hợp đồng: <strong class="text-primary">${contractExample}</strong></span>
                      </div>
                    </div>
                    <div class="col-6">
-                     <div class="d-flex align-items-center">                       <i class="fas fa-file-times text-info me-2"></i>
+                     <div class="d-flex align-items-center">
                        <span>Thanh lý: <strong class="text-info">${terminationExample}</strong></span>
                      </div>
                    </div>
@@ -811,26 +703,21 @@
         function performSynchronizedSetup() {
           showLoading(true);
 
-          /* ────────────────────────────────────────────────────────
-             1. Trích dữ liệu từ bảng <tbody id="contractsTableBody">
-          ────────────────────────────────────────────────────────── */
+          // Trích dữ liệu từ bảng
           const tableData = [];
-          let lastGroupInfo = '';                     // nhớ lại groupInfo của dòng đầu nhóm
+          let lastGroupInfo = '';
 
           $('#contractsTableBody tr').each(function () {
             const $cells = $(this).find('td');
 
-            // Bỏ qua dòng placeholder “Không có dữ liệu…”
             if (!$cells.length) return;
             if ($cells.first().attr('colspan')) return;
 
             let rowData = null;
 
-            /* ─── DÒNG ĐẦU NHÓM: có 7 ô ─────────────────────────── */
             if ($cells.length === 7) {
-              lastGroupInfo = $cells.eq(2).text().trim();   // lưu lại cho các dòng sau
-              console.log("lastGroupInfo:", lastGroupInfo);
-
+              lastGroupInfo = $cells.eq(2).text().trim();
+              
               rowData = {
                 HoTen: $cells.eq(1).text().trim(),
                 groupInfo: lastGroupInfo,
@@ -841,12 +728,10 @@
                 newSoThanhLy: $cells.eq(6).find('strong').text().trim() ||
                   $cells.eq(6).text().trim()
               };
-
-              /* ─── DÒNG TIẾP THEO: chỉ 6 ô (thiếu ô group) ───────── */
             } else if ($cells.length === 6) {
               rowData = {
                 HoTen: $cells.eq(1).text().trim(),
-                groupInfo: lastGroupInfo,          // dùng lại giá trị đã lưu
+                groupInfo: lastGroupInfo,
                 currentSoHopDong: $cells.eq(2).text().trim(),
                 currentSoThanhLy: $cells.eq(3).text().trim(),
                 newSoHopDong: $cells.eq(4).find('strong').text().trim() ||
@@ -854,12 +739,10 @@
                 newSoThanhLy: $cells.eq(5).find('strong').text().trim() ||
                   $cells.eq(5).text().trim()
               };
-
             } else {
-              return; // cấu trúc không khớp => bỏ qua
+              return;
             }
 
-            /* ─── Chỉ giữ những dòng đã sinh Số HĐ mới ──────────── */
             if (rowData.HoTen &&
               rowData.newSoHopDong &&
               rowData.newSoHopDong !== 'Chưa tạo') {
@@ -867,15 +750,12 @@
             }
           });
 
-          /* ────────────────────────────────────────────────────────
-             2. Gom các giá trị từ form
-          ────────────────────────────────────────────────────────── */
           const teacherName = $('#searchTeacher').val().trim();
           const data = {
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
             nam: $('#NamHoc').val(),
-            khoaList: getSelectedKhoa(),
+            khoaList: getSelectedKhoa(), // ['ĐTPH']
             heDaoTaoList: getSelectedHe(),
             loaiHopDong: "Mời giảng",
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
@@ -883,13 +763,8 @@
             teacherName: teacherName
           };
 
-          console.log('data contract mời giảng:', data);
-          console.log('KhoaList for execution:', data.khoaList);
-          console.log('HeDaoTaoList for execution:', data.heDaoTaoList);
+          console.log('data contract ĐTPH:', data);
 
-          /* ────────────────────────────────────────────────────────
-             3. Gửi dữ liệu lên server
-          ────────────────────────────────────────────────────────── */
           $.post('/api/setup-so-hopdong-toan-bo', data)
             .done(function (response) {
               if (response.success) {
@@ -899,10 +774,7 @@
                   icon: 'success',
                   confirmButtonText: 'OK'
                 }).then(() => {
-                  loadContracts();                         // refresh danh sách
-                  if ($('#unifiedSummaryDiv').is(':visible')) {
-                    loadUnifiedSummary();                  // refresh summary nếu đang mở
-                  }
+                  loadContracts();
                 });
               } else {
                 showError(response.message || 'Có lỗi xảy ra khi cài đặt');
@@ -928,7 +800,7 @@
               groupedContracts[he][khoa].forEach((contract, idx) => {
                 rows.push({
                   ...contract,
-                  groupInfo: `${khoa} - ${he}`,
+                  groupInfo: he, // Chỉ hiển thị hệ đào tạo vì khoa đã fix
                   index: rows.length + 1
                 });
               });
@@ -947,10 +819,8 @@
             return;
           }
 
-          // Bây giờ render từng row, và chỉ in ô groupInfo ở lần đầu của mỗi nhóm
+          // Render từng row với grouping theo hệ đào tạo
           let lastGroup = null;
-
-          // Chuẩn bị spanCount cho mỗi nhóm
           const groupSizes = {};
           rows.forEach(r => {
             groupSizes[r.groupInfo] = (groupSizes[r.groupInfo] || 0) + 1;
@@ -976,7 +846,7 @@
             tr += `<td>${r.index}</td>`;
             tr += `<td>${r.HoTen}</td>`;
 
-            // chỉ in groupInfo/rowspan khi lần đầu của nhóm
+            // Chỉ hiển thị hệ đào tạo
             if (isNewGroup) {
               tr += `<td rowspan="${rowspan}">${r.groupInfo}</td>`;
               lastGroup = r.groupInfo;
@@ -1006,14 +876,12 @@
           }
 
           showLoading(true);
-          $('#noDataMessage').hide();
           $('#resultsDiv').hide();
 
-          const selectedKhoa = getSelectedKhoa();
           const selectedHe = getSelectedHe();
           const teacherName = $('#searchTeacher').val().trim();
           
-          console.log('Selected Khoa for API call:', selectedKhoa);
+          console.log('Selected Khoa for API call (ĐTPH):', getSelectedKhoa());
           console.log('Selected He for API call:', selectedHe);
           console.log('Teacher name search:', teacherName);
           
@@ -1021,41 +889,36 @@
             dot: dot,
             ki: ki,
             nam: nam,
-            khoaList: JSON.stringify(selectedKhoa),
+            khoaList: JSON.stringify(getSelectedKhoa()), // ['ĐTPH']
             heDaoTaoList: JSON.stringify(selectedHe),
             loaiHopDong: "Mời giảng",
             teacherName: teacherName
           };
 
-          console.log('Sending params to loadContracts:', params);
+          console.log('Sending params to loadContracts (ĐTPH):', params);
 
           $.get('/api/hopdong-list', params)
             .done(function (response) {
               if (response.success) {
-                console.log('Contracts loaded:', response.data);
+                console.log('Contracts loaded (ĐTPH):', response.data);
                 displayContracts(response.data);
-                $('#setupInstruction').hide();
-                $('#terminationSetupInstruction').hide();
               } else {
                 showError(response.message || 'Có lỗi xảy ra khi tải danh sách hợp đồng');
-                $('#noDataMessage').show();
               }
             })
             .fail(function () {
               showError('Có lỗi xảy ra khi kết nối với server');
-              $('#noDataMessage').show();
             })
             .always(function () {
               showLoading(false);
             });
         }
 
-        // Hiển thị danh sách hợp đồng theo nhóm khoa-hệ
+        // Hiển thị danh sách hợp đồng theo nhóm hệ đào tạo
         function displayContracts(grouped) {
           const tbody = $('#contractsTableBody');
           tbody.empty();
 
-          // Kiểm tra nếu không có nhóm nào
           const systems = Object.keys(grouped);
           if (systems.length === 0) {
             tbody.append(`
@@ -1070,23 +933,19 @@
           }
 
           let idx = 0;
-          // Duyệt từng hệ đào tạo
           systems.forEach(system => {
             const faculties = grouped[system];
             const facultyKeys = Object.keys(faculties);
-            // Duyệt từng khoa trong hệ
             facultyKeys.forEach(faculty => {
               const list = faculties[faculty];
               const rowSpan = list.length;
-              // Duyệt từng hợp đồng trong nhóm này
+              
               list.forEach((contract, j) => {
                 idx++;
                 const isFirst = (j === 0);
 
-                // Số hợp đồng cũ / soạn trước
                 const currentContractNumber = contract.SoHopDong || '<span class="text-muted">Chưa có</span>';
                 const currentTerminationNumber = contract.SoThanhLyHopDong || '<span class="text-muted">Chưa có</span>';
-                // Số hợp đồng mới (preview)
                 const newContractNumber = '<span class="text-muted">Chưa có</span>';
                 const newTerminationNumber = '<span class="text-muted">Chưa có</span>';
 
@@ -1103,7 +962,7 @@
                     <td>${contract.HoTen || ''}</td>
                     ${isFirst
                       ? `<td rowspan="${rowSpan}" class="text-center align-middle bg-light">
-                         <strong>${faculty} – ${system}</strong>
+                         <strong>${system}</strong>
                        </td>`
                       : ''
                     }
@@ -1120,7 +979,7 @@
           $('#resultsDiv').show();
         }
 
-        // Hiển thị/ẩn loading spinner
+        // Utility functions
         function showLoading(show) {
           if (show) {
             $('#loadingSpinner').show();
@@ -1129,13 +988,12 @@
           }
         }
 
-        // Hiển thị thông báo thành công
         function showSuccess(message) {
           $('#successMessage').text(message);
-          const toast = new bootstrap.Toast($('#successToast')[0]); toast.show();
+          const toast = new bootstrap.Toast($('#successToast')[0]); 
+          toast.show();
         }
 
-        // Hiển thị thông báo lỗi
         function showError(message) {
           $('#errorMessage').text(message);
           const toast = new bootstrap.Toast($('#errorToast')[0]);
@@ -1144,7 +1002,6 @@
 
         // Xử lý các thao tác hợp đồng theo loại
         function handleContractOperation(operation) {
-          // Điều hướng tới hàm phù hợp dựa trên thao tác
           switch (operation) {
             case 'load':
               loadContracts();
@@ -1160,38 +1017,22 @@
 
         // Khởi tạo giao diện khi document ready
         $(document).ready(function () {
-          console.log('Document ready, initializing...');
+          console.log('Document ready, initializing ĐTPH site...');
           
-          // Ẩn các phần tử không cần thiết ban đầu
-          $('#startingNumberDiv').hide();
-          $('#terminationStartingNumberDiv').hide();
-
-          // Load danh sách khoa trước
-          loadKhoaList();
-
-          // Đặt mặc định là "Tất cả" cho cả khoa và hệ đào tạo
-          selectedKhoaValues = ['ALL'];
+          // Đặt mặc định cho hệ đào tạo
           selectedHeValues = ['ALL'];
 
-          // Khởi tạo multi-select sau khi load khoa
+          // Khởi tạo multi-select cho hệ đào tạo
           setTimeout(() => {
-            console.log('Initializing multi-select after timeout...');
-            initMultiSelect();
-            // Set mặc định cho checkboxes "Tất cả"
-            $('#selectAllKhoa').prop('checked', true);
+            console.log('Initializing hệ đào tạo multi-select...');
+            initHeMultiSelect();
+            // Set mặc định cho checkbox "Tất cả"
             $('#selectAllHe').prop('checked', true);
-            
-            updateKhoaDisplay();
             updateHeDisplay();
           }, 500);
 
           // Khởi tạo giao diện
           updateNumberPreview();
-
-          // Áp dụng giao diện ban đầu dựa trên loại hợp đồng được chọn
-          $('#contractTypeAlert').addClass('alert-primary');
-          $('#previewContractBtn').addClass('btn-outline-primary');
-          $('#executeContractBtn').addClass('btn-success');
 
           // Thêm event handler cho số bắt đầu thay đổi
           $('#unifiedStartingNumber').on('input', updateNumberPreview);
@@ -1202,13 +1043,12 @@
             const ki = $('#comboboxki').val();
             const nam = $('#NamHoc').val();
             
-            // Chỉ tự động tìm kiếm khi đã chọn đủ điều kiện cơ bản
             if (dot && ki && nam) {
               loadContracts();
             }
-          }, 500)); // Debounce 500ms để tránh gọi API quá nhiều
+          }, 500));
 
-          // Hàm debounce để giảm số lần gọi API
+          // Hàm debounce
           function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {

@@ -220,7 +220,22 @@ body {
   left: 100%; 
   z-index: 1000;
 }
+
+.dropdown-menu2{
+  color: white !important;
+  background-color: #3eacff;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%; 
+  z-index: 1001;
+}
+
 .dropdown-submenu:hover .dropdown-menu1 {
+  display: block;
+}
+
+.dropdown-submenu:hover .dropdown-menu2 {
   display: block;
 }
 .dropdown-menu .dropdown-item1:hover {

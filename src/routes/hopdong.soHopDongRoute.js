@@ -5,8 +5,14 @@ const soHopDongController = require('../controllers/hopdong.soHopDongController'
 // Route to display contract numbers page
 router.get('/sohopdong', soHopDongController.getSoHopDongPage);
 
+// Route to display contract numbers page for ĐTPH
+router.get('/sohopdong-dtph', soHopDongController.getSoHopDongDTPHPage);
+
 // Route to display contract numbers page for đồ án
 router.get('/sohopdong-doan', soHopDongController.getSoHopDongDoAnPage);
+
+// Route to display contract numbers page for đồ án ĐTPH
+router.get('/sohopdong-doan-dtph', soHopDongController.getSoHopDongDoAnDTPHPage);
 
 // lấy data của số hợp đồng mời giảng
 router.get('/api/hopdong-list', soHopDongController.getHopDongList);

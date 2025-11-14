@@ -4,11 +4,25 @@ const getSoHopDongPage = async (req, res) => {
   try {
     // Render the contract numbers page
     res.render('hopdong.soHopDongMoiGiang.ejs', {
-      title: 'Quản lý Số Hợp Đồng',
+      title: 'Quản lý Số Hợp Đồng - Cơ sở miền bắc',
       user: req.user || {}
     });
   } catch (error) {
     console.error('Error rendering so hop dong page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const getSoHopDongDTPHPage = async (req, res) => {
+  try {
+    // Render the ĐTPH contract numbers page
+    res.render('hopdong.soHopDongMgDTPH.ejs', {
+      title: 'Quản lý Số Hợp Đồng - Phân hiệu học viện',
+      user: req.user || {},
+      khoaName: 'ĐTPH'
+    });
+  } catch (error) {
+    console.error('Error rendering so hop dong ĐTPH page:', error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -582,11 +596,26 @@ const getSoHopDongDoAnPage = async (req, res) => {
   try {
     // Render the contract numbers page
     res.render('hopdong.soHopDongDoAn.ejs', {
-      title: 'Số đồ án',
+      title: 'Số đồ án - Cơ sở miền bắc',
       user: req.user || {}
     });
   } catch (error) {
     console.error('Error rendering so hop dong do an page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+// Lấy site đồ án ĐTPH
+const getSoHopDongDoAnDTPHPage = async (req, res) => {
+  try {
+    // Render the ĐTPH thesis contract numbers page
+    res.render('hopdong.soHopDongDoAnDTPH.ejs', {
+      title: 'Số đồ án - Phân hiệu học viện',
+      user: req.user || {},
+      khoaName: 'ĐTPH'
+    });
+  } catch (error) {
+    console.error('Error rendering so hop dong do an ĐTPH page:', error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -1190,11 +1219,13 @@ const getKhoaList = async (req, res) => {
 
 module.exports = {
   getSoHopDongPage,
+  getSoHopDongDTPHPage,
   getHopDongList,
   setupSoHopDongToanBo,
   previewSoHopDongMoiGiang,
 
   getSoHopDongDoAnPage,
+  getSoHopDongDoAnDTPHPage,
   previewSoHopDongDoAn,
   getHopDongDoAnList,
   setupSoHopDongDoAn,
