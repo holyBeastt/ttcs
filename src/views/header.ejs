@@ -174,19 +174,16 @@
                     <a class="nav-link" href="/duyet-hop-dong-do-an">Hợp đồng đồ án</a>
                   </div>
                 </div>
-                <!-- Đào tạo - Tạo số hợp đồng mời giảng -->
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMoiGiang" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng mời giảng</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownMoiGiang">
+                <div class="dropdown-submenu" id="nav-tao-so-hop-dong-moi-giang" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractMoiGiang" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng mời giảng</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContractMoiGiang">
                     <a class="nav-link" href="/sohopdong">Cơ sở miền bắc</a>
                     <a class="nav-link" href="/sohopdong-dtph">Phân hiệu học viện</a>
                   </div>
                 </div>
-                
-                <!-- Đào tạo - Tạo số hợp đồng đồ án -->
-                <div class="dropdown-submenu" style="width: 100%">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDoAn" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng đồ án</a>
-                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownDoAn">
+                <div class="dropdown-submenu" id="nav-tao-so-hop-dong-do-an" style="width: 100%">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContractDoAn" data-bs-toggle="dropdown" aria-expanded="false">Đào tạo - Tạo số hợp đồng đồ án</a>
+                  <div class="dropdown-menu1" aria-labelledby="navbarDropdownContractDoAn">
                     <a class="nav-link" href="/sohopdong-doan">Cơ sở miền bắc</a>
                     <a class="nav-link" href="/sohopdong-doan-dtph">Phân hiệu học viện</a>
                   </div>
@@ -390,7 +387,8 @@
       const addNewFileGvm = document.getElementById("addNewFileGvm");
       const actionButton3 = document.getElementById("actionButton3");
       const actionButtonBackup = document.getElementById("backup-btn");
-      const navTaoSoHopDong = document.getElementById("nav-tao-so-hop-dong");
+      const navTaoSoHopDongMoiGiang = document.getElementById("nav-tao-so-hop-dong-moi-giang");
+      const navTaoSoHopDongDoAn = document.getElementById("nav-tao-so-hop-dong-do-an");
 
       if (isKhoa === "0" || role === APP_ROLES.gv) {
         addNewFileGvm.style.display = "none"; // Ẩn addNewFileGvm nếu isKhoa = 0
@@ -398,9 +396,11 @@
 
       // Ẩn "Đào tạo - Tạo số hợp đồng" nếu không phải role "<%= APP_ROLES.troLy_phong %>" và MaPhongBan "<%= APP_DEPARTMENTS.daoTao %>"
       if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan === APP_DEPARTMENTS.daoTao) {
-        navTaoSoHopDong.style.display = "block";
+        navTaoSoHopDongMoiGiang.style.display = "block";
+        navTaoSoHopDongDoAn.style.display = "block";
       } else {
-        navTaoSoHopDong.style.display = "none";
+        navTaoSoHopDongMoiGiang.style.display = "none";
+        navTaoSoHopDongDoAn.style.display = "none";
       }
 
       // Ẩn button import đồ án
