@@ -33,6 +33,8 @@ router.post("/api/doan/quy-chuan/update-do-an", doAnChinhThuc.updateDoAn);
 // Lưu dữ liệu vào table export đồ án tốt nghiệp
 router.post("/saveToExportDoAn", doAnChinhThuc.saveToExportDoAn);
 
+router.patch("/api/v1/doan/unsave-all", doAnChinhThuc.unsaveAll);
+
 // Chèn ngày all
 router.post("/updateDoAnDateAll", doAnChinhThuc.updateDoAnDateAll);
 

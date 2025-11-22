@@ -62,28 +62,28 @@ router.post("/save-data",
 // router.post("/ban-hanh", (req, res) => obj.importTableQC(req.body, res));
 
 // Định tuyến cho POST request tới /index / save - data
-router.post("/ban-hanh", 
+router.post("/ban-hanh",
   // role.checkDaotaoRoleThiHanh, 
   async (req, res) => {
-  try {
-    // Gọi hàm xử lý dữ liệu import - truyền cả req để có thể ghi log với thông tin người dùng
-    const result = await obj.importTableQC(req.body, req);
+    try {
+      // Gọi hàm xử lý dữ liệu import - truyền cả req để có thể ghi log với thông tin người dùng
+      const result = await obj.importTableQC(req.body, req);
 
-    // Kiểm tra kết quả trả về và phản hồi cho client
-    if (result == true) {
-      res.status(200).json({ success: true, message: "Ban hành thành công" });
-    } else {
-      res.status(500).json({ success: false, message: "Ban hành thất bại" });
+      // Kiểm tra kết quả trả về và phản hồi cho client
+      if (result == true) {
+        res.status(200).json({ success: true, message: "Ban hành thành công" });
+      } else {
+        res.status(500).json({ success: false, message: "Ban hành thất bại" });
+      }
+    } catch (error) {
+      console.error("Lỗi server:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi trong quá trình lưu dữ liệu!",
+        error,
+      });
     }
-  } catch (error) {
-    console.error("Lỗi server:", error);
-    res.status(500).json({
-      success: false,
-      message: "Lỗi trong quá trình lưu dữ liệu!",
-      error,
-    });
-  }
-});
+  });
 
 // kiểm tra tồn tại dữ liệu ban hành
 // router.post("/kiem-tra", (req, res) => obj2.getTableTam(req, res));
@@ -127,6 +127,8 @@ router.post("/xoa-file",
   obj.deleteFile);
 
 router.post("/submitData2", obj.submitData2);
+
+router.patch("/api/v1/moi-giang/unsave-all", obj.unsaveAll);
 
 router.post('/update/:NamHoc/:Ki/:Dot', obj.updateBanHanh);
 
