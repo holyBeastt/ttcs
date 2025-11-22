@@ -353,7 +353,8 @@ SELECT
   ed.NamHoc,
   gv.MaPhongBan,
   ed.SoHopDong,
-  ed.SoThanhLyHopDong
+  ed.SoThanhLyHopDong,
+  ed.CoSoDaoTao
 FROM
   gvmoi gv
 JOIN 
@@ -396,7 +397,8 @@ GROUP BY
     ed.NamHoc,
     gv.MaPhongBan,
     ed.SoHopDong,
-    ed.SoThanhLyHopDong
+    ed.SoThanhLyHopDong,
+    ed.CoSoDaoTao
   FROM 
     gvmoi gv
   JOIN 
@@ -439,7 +441,8 @@ GROUP BY
     ed.NamHoc,
     gv.MaPhongBan,
     ed.SoHopDong,
-    ed.SoThanhLyHopDong
+    ed.SoThanhLyHopDong,
+    ed.CoSoDaoTao
   FROM 
     gvmoi gv
   JOIN 
@@ -590,6 +593,7 @@ GROUP BY
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
         Khóa: teacher.KhoaDaoTao,
         Ngành: tenNganh,
+        Cơ_sở_đào_tạo: teacher.CoSoDaoTao
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
@@ -1155,6 +1159,7 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       Ngành: tenNganh,
       Số_hợp_đồng: teacher.SoHopDong || "",
       Số_thanh_lý: teacher.SoThanhLyHopDong || "",
+      Cơ_sở_đào_tạo: teacher.CoSoDaoTao
     };
     // Chọn template dựa trên loại hợp đồng
     let templateFileName = "HopDongDA.docx";
@@ -1237,7 +1242,8 @@ const getExportData = async (
       gv.MaPhongBan,
       gv.MonGiangDayChinh as MaBoMon,
       ed.SoHopDong,
-      ed.SoThanhLyHopDong
+      ed.SoThanhLyHopDong,
+      ed.CoSoDaoTao
     FROM
       gvmoi gv
     JOIN 
@@ -1281,7 +1287,8 @@ const getExportData = async (
         gv.MaPhongBan,
         gv.MonGiangDayChinh as MaBoMon,
         ed.SoHopDong,
-        ed.SoThanhLyHopDong
+        ed.SoThanhLyHopDong,
+        ed.CoSoDaoTao
       FROM 
         gvmoi gv
       JOIN 
@@ -1325,7 +1332,8 @@ const getExportData = async (
         gv.MaPhongBan,
         gv.MonGiangDayChinh as MaBoMon,
         ed.SoHopDong,
-        ed.SoThanhLyHopDong
+        ed.SoThanhLyHopDong,
+        ed.CoSoDaoTao
       FROM 
         gvmoi gv
       JOIN 
@@ -1371,7 +1379,8 @@ const getAppendixData = async (
           gv.HSL,
           gv.DiaChi,
           edt.SoHopDong,
-          edt.SoThanhLyHopDong
+          edt.SoThanhLyHopDong,
+          edt.CoSoDaoTao
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
       WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1
@@ -1710,7 +1719,7 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
       const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
 
       // Xử lý hiển thị số hợp đồng
-      const contractTitle = soHopDong && soHopDong.trim() !== '' 
+      const contractTitle = soHopDong && soHopDong.trim() !== ''
         ? `Hợp đồng số: ${soHopDong}`
         : `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate}`;
 
@@ -1720,7 +1729,7 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
       worksheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
       // Xử lý hiển thị số thanh lý
-      const verificationTitle = soThanhLyHopDong && soThanhLyHopDong.trim() !== '' 
+      const verificationTitle = soThanhLyHopDong && soThanhLyHopDong.trim() !== ''
         ? `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số: ${soThanhLyHopDong}`
         : `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`;
 

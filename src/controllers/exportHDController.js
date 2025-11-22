@@ -362,7 +362,8 @@ const exportMultipleContracts = async (req, res) => {
     hd.MaBoMon,
     hd.NoiCongTac,
     hd.SoHopDong,
-    hd.SoThanhLyHopDong
+    hd.SoThanhLyHopDong,
+    hd.CoSoDaoTao
   FROM
     hopdonggvmoi hd
   JOIN
@@ -373,7 +374,7 @@ const exportMultipleContracts = async (req, res) => {
     hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, hd.NgayNghiemThu, hd.Dot, 
     hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
-    hd.SoHopDong, hd.SoThanhLyHopDong`;
+    hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
 
     let params = [dot, ki, namHoc, loaiHopDong];
 
@@ -410,7 +411,8 @@ const exportMultipleContracts = async (req, res) => {
       hd.MaBoMon,
       hd.NoiCongTac,
       hd.SoHopDong,
-      hd.SoThanhLyHopDong 
+      hd.SoThanhLyHopDong,
+      hd.CoSoDaoTao
     FROM
       hopdonggvmoi hd
     JOIN
@@ -456,7 +458,8 @@ const exportMultipleContracts = async (req, res) => {
       hd.MaBoMon,
       hd.NoiCongTac,
       hd.SoHopDong,
-      hd.SoThanhLyHopDong
+      hd.SoThanhLyHopDong,
+      hd.CoSoDaoTao
     FROM
       hopdonggvmoi hd
     JOIN
@@ -589,6 +592,7 @@ const exportMultipleContracts = async (req, res) => {
         Thời_gian_thực_hiện: thoiGianThucHien,
         Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac,
+        Cơ_sở_đào_tạo: teacher.CoSoDaoTao
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
@@ -825,7 +829,7 @@ const getExportHDSite = async (req, res) => {
   }
 };
 
-// Phụ lục minh chứng GVM
+// Tải tổng hợp hợp đồng
 const exportAdditionalInfoGvm = async (req, res) => {
   let connection;
   try {
@@ -873,7 +877,8 @@ const exportAdditionalInfoGvm = async (req, res) => {
     hd.MaBoMon,
     hd.NoiCongTac,
     hd.SoHopDong,
-    hd.SoThanhLyHopDong
+    hd.SoThanhLyHopDong,
+    hd.CoSoDaoTao
   FROM
     hopdonggvmoi hd
   JOIN
@@ -921,7 +926,8 @@ const exportAdditionalInfoGvm = async (req, res) => {
       hd.MaBoMon,
       hd.NoiCongTac,
       hd.SoHopDong,
-      hd.SoThanhLyHopDong 
+      hd.SoThanhLyHopDong,
+      hd.CoSoDaoTao
     FROM
       hopdonggvmoi hd
     JOIN
@@ -967,7 +973,8 @@ const exportAdditionalInfoGvm = async (req, res) => {
       hd.MaBoMon,
       hd.NoiCongTac,
       hd.SoHopDong,
-      hd.SoThanhLyHopDong
+      hd.SoThanhLyHopDong,
+      hd.CoSoDaoTao
     FROM
       hopdonggvmoi hd
     JOIN
@@ -1269,6 +1276,7 @@ const generateContractForTeacher = async (
     Nơi_công_tác: teacher.NoiCongTac,
     Số_hợp_đồng: teacher.SoHopDong || "",
     Số_thanh_lý: teacher.SoThanhLyHopDong || "",
+    Cơ_sở_đào_tạo: teacher.CoSoDaoTao,
   };
 
   let templateFileName;

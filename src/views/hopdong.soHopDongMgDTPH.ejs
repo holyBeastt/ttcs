@@ -333,7 +333,7 @@
                   <div class="col-md-6">
                     <div id="unifiedStartingNumberDiv" class="mt-3" style="display: block;">
                       <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="unifiedStartingNumber" class="form-label">
                             <strong>Số bắt đầu</strong>
                             <span class="text-danger">*</span>
@@ -342,7 +342,7 @@
                             name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="kiHieuHopDong" class="form-label">
                             <strong>Kí hiệu hợp đồng</strong>
                             <span class="text-danger">*</span>
@@ -351,7 +351,7 @@
                             name="kiHieuHopDong" value="HĐ-ĐT" placeholder="Nhập kí hiệu hợp đồng"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="kiHieuThanhLy" class="form-label">
                             <strong>Kí hiệu thanh lý</strong>
                             <span class="text-danger">*</span>
@@ -359,6 +359,14 @@
                           <input type="text" class="form-control" id="kiHieuThanhLy"
                             name="kiHieuThanhLy" value="HĐNT-ĐT" placeholder="Nhập kí hiệu thanh lý"
                             oninput="updateNumberPreview()">
+                        </div>
+                        <div class="col-md-6">
+                          <label for="coSoDaoTao" class="form-label">
+                            <strong>Cơ sở đào tạo</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" class="form-control" id="coSoDaoTao"
+                            name="coSoDaoTao" value="Phân hiệu Học viện Kỹ thuật mật mã" placeholder="Nhập cơ sở đào tạo">
                         </div>
                       </div>
                       <div class="row mt-3">
@@ -432,6 +440,7 @@
                           <th>STT</th>
                           <th>Họ tên giảng viên</th>
                           <th>Hệ đào tạo</th>
+                          <th>Cơ sở đào tạo</th>
                           <th>Số HĐ hiện tại</th>
                           <th>Số TL hiện tại</th>
                           <th>Số HĐ mới</th>
@@ -647,6 +656,8 @@
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
+          const coSoDaoTao = $('#coSoDaoTao').val() || 'Phân hiệu Học viện Kỹ thuật mật mã';
+
           const data = {
             dot: dot,
             ki: ki,
@@ -657,6 +668,7 @@
             startingNumber: startingNumber,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
+            coSoDaoTao: coSoDaoTao,
             teacherName: teacherName
           };
 
@@ -804,6 +816,7 @@
           });
 
           const teacherName = $('#searchTeacher').val().trim();
+          const coSoDaoTao = $('#coSoDaoTao').val() || 'Phân hiệu Học viện Kỹ thuật mật mã';
           const data = {
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
@@ -814,6 +827,7 @@
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
             kiHieuHopDong: $('#kiHieuHopDong').val() || 'HĐ-ĐT',
             kiHieuThanhLy: $('#kiHieuThanhLy').val() || 'HĐNT-ĐT',
+            coSoDaoTao: coSoDaoTao,
             contractsData: tableData,
             teacherName: teacherName
           };
@@ -909,6 +923,8 @@
               lastGroup = r.groupInfo;
             }
 
+            const coSoDaoTao = $('#coSoDaoTao').val() || 'Phân hiệu Học viện Kỹ thuật mật mã';
+            tr += `<td>${coSoDaoTao}</td>`;
             tr += `<td>${oldContractNumber}</td>`;
             tr += `<td>${oldTerminationNumber}</td>`;
             tr += `<td>${newContractNumber}</td>`;
@@ -1023,6 +1039,7 @@
                        </td>`
                       : ''
                     }
+                    <td>${contract.CoSoDaoTao || ($('#coSoDaoTao').val() || 'Phân hiệu Học viện Kỹ thuật mật mã')}</td>
                     <td>${currentContractNumber}</td>
                     <td>${currentTerminationNumber}</td>
                     <td>${newContractNumber}</td>

@@ -358,7 +358,7 @@
                     <!-- Starting number input -->
                     <div id="unifiedStartingNumberDiv" class="mt-3">
                       <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="unifiedStartingNumber" class="form-label">
                             <strong>Số bắt đầu</strong>
                             <span class="text-danger">*</span>
@@ -367,7 +367,7 @@
                             name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="kiHieuHopDong" class="form-label">
                             <strong>Kí hiệu hợp đồng</strong>
                             <span class="text-danger">*</span>
@@ -376,7 +376,7 @@
                             name="kiHieuHopDong" value="HĐ-ĐT" placeholder="Nhập kí hiệu hợp đồng"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                           <label for="kiHieuThanhLy" class="form-label">
                             <strong>Kí hiệu thanh lý</strong>
                             <span class="text-danger">*</span>
@@ -384,6 +384,14 @@
                           <input type="text" class="form-control" id="kiHieuThanhLy"
                             name="kiHieuThanhLy" value="HĐNT-ĐT" placeholder="Nhập kí hiệu thanh lý"
                             oninput="updateNumberPreview()">
+                        </div>
+                        <div class="col-md-6">
+                          <label for="coSoDaoTao" class="form-label">
+                            <strong>Cơ sở đào tạo</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" class="form-control" id="coSoDaoTao"
+                            name="coSoDaoTao" value="Học viện Kỹ thuật mật mã" placeholder="Nhập cơ sở đào tạo">
                         </div>
                       </div>
                       <div class="row mt-3">
@@ -458,6 +466,7 @@
                           <th>STT</th>
                           <th>Họ tên giảng viên</th>
                           <th>Khoa - Hệ đào tạo</th>
+                          <th>Cơ sở đào tạo</th>
                           <th>Số HĐ hiện tại</th>
                           <th>Số TL hiện tại</th>
                           <th>Số HĐ mới</th>
@@ -716,6 +725,7 @@
           const teacherName = $('#searchTeacher').val().trim();
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
+          const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
 
           const data = {
             dot: dot,
@@ -726,11 +736,11 @@
             startingNumber: startingNumber,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
+            coSoDaoTao: coSoDaoTao,
             teacherName: teacherName
           };
 
-          console.log('Sending data to preview:', data);
-          console.log('Teacher name for preview:', teacherName);
+
 
           // Gọi API preview đồng bộ cho đồ án
           $.post('/api/preview-so-hop-dong-do-an', data)
@@ -857,6 +867,7 @@
           const teacherName = $('#searchTeacher').val().trim();
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
+          const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
           const data = {
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
@@ -866,17 +877,20 @@
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
+            coSoDaoTao: coSoDaoTao,
             contractsData: tableData,
             teacherName: teacherName
           };
 
           console.log('data contract đồ án:', data.contractsData);
+          console.log('Full setup data being sent:', data);
 
           /* ────────────────────────────────────────────────────────
              3. Gửi dữ liệu lên server cho đồ án
           ────────────────────────────────────────────────────────── */
           $.post('/api/setup-so-hopdong-do-an', data)
             .done(function (response) {
+              console.log('Setup response received:', response);
               if (response.success) {
                 Swal.fire({
                   title: 'Thành công!',
@@ -920,7 +934,7 @@
           if (rows.length === 0) {
             tbody.append(`
               <tr>
-                <td colspan="7" class="text-center text-muted">
+                <td colspan="8" class="text-center text-muted">
                   Không có dữ liệu để hiển thị
                 </td>
               </tr>
@@ -961,6 +975,9 @@
               tr += `<td rowspan="${rowspan}">${r.groupInfo}</td>`;
               lastGroup = r.groupInfo;
             }
+
+            // Thêm cột cơ sở đào tạo
+            tr += `<td class="text-info">${$('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã'}</td>`;
 
             tr += `<td>${oldContractNumber}</td>`;
             tr += `<td>${oldTerminationNumber}</td>`;
@@ -1026,7 +1043,7 @@
           if (systems.length === 0) {
             tbody.append(`
               <tr>
-                <td colspan="7" class="text-center text-muted">
+                <td colspan="8" class="text-center text-muted">
                   <i class="fas fa-inbox"></i> Không có dữ liệu để hiển thị
                 </td>
               </tr>

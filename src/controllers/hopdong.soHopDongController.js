@@ -101,7 +101,8 @@ const getHopDongList = async (req, res) => {
         MAX(hd.NoiCongTac) AS NoiCongTac,
         hd.he_dao_tao AS he_dao_tao,
         MIN(hd.SoHopDong) AS SoHopDong,
-        MIN(hd.SoThanhLyHopDong) AS SoThanhLyHopDong
+        MIN(hd.SoThanhLyHopDong) AS SoThanhLyHopDong,
+        MAX(hd.CoSoDaoTao) AS CoSoDaoTao
       FROM
         hopdonggvmoi hd
       JOIN
@@ -375,7 +376,7 @@ const setupSoHopDongToanBo = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, contractsData, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    const { dot, ki, nam, contractsData, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
 
     // Validate required input
     if (!dot || !ki || !nam) {
@@ -392,6 +393,9 @@ const setupSoHopDongToanBo = async (req, res) => {
         message: 'Thiếu kí hiệu hợp đồng hoặc kí hiệu thanh lý'
       });
     }
+
+    // Default co so dao tao if not provided
+    const finalCoSoDaoTao = coSoDaoTao || 'Học viện Kỹ thuật mật mã';
 
     // Require contract data to proceed
     if (!contractsData || !Array.isArray(contractsData) || contractsData.length === 0) {
@@ -428,12 +432,13 @@ const setupSoHopDongToanBo = async (req, res) => {
         // Build update query
         let updateQuery = `
           UPDATE hopdonggvmoi
-          SET SoHopDong = ?, SoThanhLyHopDong = ?
+          SET SoHopDong = ?, SoThanhLyHopDong = ?, CoSoDaoTao = ?
           WHERE Dot = ? AND KiHoc = ? AND NamHoc = ? AND HoTen = ?
         `;
         const params = [
           contract.newSoHopDong,
           contract.newSoThanhLy,
+          finalCoSoDaoTao,
           dot,
           ki,
           nam,
@@ -487,7 +492,7 @@ const setupSoHopDongToanBo = async (req, res) => {
 const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
 
     // Support both old single values and new array format
     const parsedKhoaList = khoaList || (khoa ? [khoa] : []);
@@ -496,6 +501,7 @@ const previewSoHopDongMoiGiang = async (req, res) => {
     // Validate ki hieu
     const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
     const finalKiHieuThanhLy = kiHieuThanhLy || 'HĐNT-ĐT';
+    const finalCoSoDaoTao = coSoDaoTao || 'Học viện Kỹ thuật mật mã';
 
     console.log('previewSoHopDongMoiGiang - parsedKhoaList:', parsedKhoaList);
     console.log('previewSoHopDongMoiGiang - parsedHeDaoTaoList:', parsedHeDaoTaoList);
@@ -782,7 +788,7 @@ const getHopDongDoAnList = async (req, res) => {
 const previewSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
     
     // Default kí hiệu
     const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
@@ -1105,10 +1111,12 @@ const setupSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoaList, heDaoTaoList, contractsData, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, contractsData, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
     
-    console.log('[DEBUG] setupSoHopDongDoAn - kiHieuHopDong:', kiHieuHopDong);
-    console.log('[DEBUG] setupSoHopDongDoAn - kiHieuThanhLy:', kiHieuThanhLy);
+
+
+    // Set default value for coSoDaoTao
+    const finalCoSoDaoTao = coSoDaoTao || 'Học viện Kỹ thuật mật mã';
 
     // Validate required input
     if (!dot || !ki || !nam) {
@@ -1154,27 +1162,29 @@ const setupSoHopDongDoAn = async (req, res) => {
           continue;
         }
 
-        // Build update query
+        // Build update query - include CoSoDaoTao
         let updateQuery = `
           UPDATE exportdoantotnghiep
-          SET SoHopDong = ?, SoThanhLyHopDong = ?
+          SET SoHopDong = ?, SoThanhLyHopDong = ?, CoSoDaoTao = ?
           WHERE Dot = ? AND ki = ? AND NamHoc = ? AND CCCD = ?
         `;
         const params = [
           contract.newSoHopDong,
           contract.newSoThanhLy,
+          finalCoSoDaoTao,
           dot,
           ki,
           nam,
           contract.CCCD
         ];
 
-        // Conditionally add he_dao_tao
-        const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
-        if (heDaoTaoToUse && heDaoTaoToUse.trim() && heDaoTaoToUse !== 'Không xác định') {
-          updateQuery += ' AND he_dao_tao = ?';
-          params.push(heDaoTaoToUse);
-        }
+
+        
+        // const heDaoTaoToUse = contract.he_dao_tao || extractedHeDaoTao;
+        // if (heDaoTaoToUse && heDaoTaoToUse.trim() && heDaoTaoToUse !== 'Không xác định') {
+        //   updateQuery += ' AND he_dao_tao = ?';
+        //   params.push(heDaoTaoToUse);
+        // }
 
         // Check for undefined params
         if (params.some(p => p === undefined)) {
@@ -1183,8 +1193,11 @@ const setupSoHopDongDoAn = async (req, res) => {
           continue;
         }
 
+
+
         // Execute update
         const [result] = await connection.execute(updateQuery, params);
+        
         if (result.affectedRows > 0) {
           updatedCount += result.affectedRows;
         } else {
