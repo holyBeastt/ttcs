@@ -116,7 +116,7 @@ async function convertExcelToJSON(optsOrPath) {
 
     // ✅ Xoá file sau khi xử lý (chỉ khi có filePath)
     if (absToRead) {
-      fsp.unlink(absToRead).catch(() => {});
+      fsp.unlink(absToRead).catch(() => { });
     }
 
     return jsonObjects;
@@ -856,8 +856,8 @@ const importTableTam = async (jsonData) => {
       item["Số SV"] || 0,
       item["Số tiết lên lớp được tính QC"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
-        0,
+      item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
       item["Ghi chú"] || null,
@@ -1119,7 +1119,7 @@ const updateChecked = async (req, res) => {
       const userId = req.session.userId || req.session.userInfo?.ID || 0;
       const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
       const maPhongBan = req.session.MaPhongBan || 'Unknown Department';
-      
+
       // Lấy tên phòng ban thực tế từ database
       let tenPhongBan = maPhongBan;
       try {
@@ -1816,62 +1816,62 @@ const updateQC = async (req, res) => {
         SET
           GiaoVienGiangDay = CASE ID
             ${updates
-              .map(
-                (u) =>
-                  `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
-              )
-              .join(" ")}
+          .map(
+            (u) =>
+              `WHEN ${u.ID} THEN ${connection.escape(u.GiaoVienGiangDay)}`
+          )
+          .join(" ")}
           END,
           MoiGiang = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.MoiGiang}`).join(" ")}
           END,
           BoMon = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.BoMon)}`)
+          .join(" ")}
           END,
           GhiChu = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${connection.escape(u.GhiChu)}`)
+          .join(" ")}
           END,
           KhoaDuyet = CASE ID
             ${updates.map((u) => `WHEN ${u.ID} THEN ${u.KhoaDuyet}`).join(" ")}
           END,
           DaoTaoDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.DaoTaoDuyet}`)
+          .join(" ")}
           END,
           TaiChinhDuyet = CASE ID
             ${updates
-              .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
-              .join(" ")}
+          .map((u) => `WHEN ${u.ID} THEN ${u.TaiChinhDuyet}`)
+          .join(" ")}
           END,
           NgayBatDau = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayBatDau
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayBatDau
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayBatDau)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           NgayKetThuc = CASE ID
             ${updates
-              .map((u) =>
-                u.NgayKetThuc
-                  ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
-                  : `WHEN ${u.ID} THEN NULL`
-              )
-              .join(" ")}
+          .map((u) =>
+            u.NgayKetThuc
+              ? `WHEN ${u.ID} THEN ${connection.escape(u.NgayKetThuc)}`
+              : `WHEN ${u.ID} THEN NULL`
+          )
+          .join(" ")}
           END,
           he_dao_tao = CASE ID
             ${updates
-              .map(
-                (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
-              )
-              .join(" ")}
+          .map(
+            (u) => `WHEN ${u.ID} THEN ${connection.escape(u.he_dao_tao)}`
+          )
+          .join(" ")}
           END
         WHERE ID IN (${updateIDs.join(", ")});
       `;
@@ -2027,7 +2027,7 @@ const phongBanDuyet = async (req, res) => {
     const userId = req.session.userId || req.session.userInfo?.ID || 0;
     const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
     const maPhongBan = req.session.MaPhongBan || 'Unknown Department';
-    
+
     // Lấy tên phòng ban thực tế từ database
     let tenPhongBan = maPhongBan;
     try {
@@ -2051,20 +2051,20 @@ const phongBanDuyet = async (req, res) => {
 
     // Xử lý từng batch
     for (const batch of batches) {
-      
+
       // Lấy dữ liệu cũ trước khi cập nhật để ghi log
       const ids = batch.map(item => item.ID);
       const [oldDataRows] = await connection.query(
         `SELECT ID, LopHocPhan, TenLop, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet FROM ${tableName} WHERE ID IN (${ids.map(() => "?").join(", ")})`,
         ids
       );
-      
+
       // Tạo map từ ID đến dữ liệu cũ
       const oldDataMap = {};
       for (const row of oldDataRows) {
         oldDataMap[row.ID] = row;
       }
-      
+
       let updateQuery = `
         UPDATE ${tableName}
         SET 
@@ -2106,11 +2106,11 @@ const phongBanDuyet = async (req, res) => {
       for (const item of batch) {
         const { ID, KhoaDuyet, DaoTaoDuyet, TaiChinhDuyet } = item;
         const oldData = oldDataMap[ID];
-        
+
         if (oldData) {
           const { LopHocPhan, TenLop } = oldData;
           let logContent = [];
-          
+
           // Ghi log cho Khoa duyệt
           if (Number(oldData.KhoaDuyet) !== Number(KhoaDuyet)) {
             if (Number(KhoaDuyet) === 1) {
@@ -2119,7 +2119,7 @@ const phongBanDuyet = async (req, res) => {
               logContent.push(`${tenPhongBan} thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Hủy duyệt`);
             }
           }
-          
+
           // Ghi log cho Đào tạo duyệt
           if (Number(oldData.DaoTaoDuyet) !== Number(DaoTaoDuyet)) {
             if (Number(DaoTaoDuyet) === 1) {
@@ -2128,7 +2128,7 @@ const phongBanDuyet = async (req, res) => {
               logContent.push(`Đào tạo thay đổi duyệt môn "${LopHocPhan} - ${TenLop}": Hủy duyệt`);
             }
           }
-          
+
           // Ghi log cho Tài chính duyệt  
           if (Number(oldData.TaiChinhDuyet) !== Number(TaiChinhDuyet)) {
             if (Number(TaiChinhDuyet) === 1) {
@@ -3154,6 +3154,38 @@ const submitData2 = async (req, res) => {
   }
 };
 
+const unsaveAll = async (req, res) => {
+  const { dot, ki, namHoc } = req.body;
+
+  try {
+    const updateQuery = `
+      UPDATE quychuan
+      SET TaiChinhDuyet = 0, daluu = 0
+      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;
+    `;
+
+    const delGiangDayQuery = `
+      DELETE FROM giangday
+      WHERE Dot = ? AND HocKy = ? AND NamHoc = ?;
+    `;
+
+    const delHopDongQuery = `
+      DELETE FROM hopdonggvmoi
+      WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?;
+    `;
+
+    await pool.query(updateQuery, [dot, ki, namHoc]);
+    await pool.query(delGiangDayQuery, [dot, ki, namHoc]);
+    await pool.query(delHopDongQuery, [dot, ki, namHoc]);
+
+    return res.status(200).json({ success: true, message: "Bỏ lưu thành công." });
+
+  } catch (error) {
+    console.error("Lỗi khi bỏ duyệt mời giảng:", error);
+    return res.status(500).json({ error: "Đã xảy ra lỗi khi bỏ duyệt." });
+  }
+}
+
 module.exports = {
   handleUploadAndRender,
   importJSONToDB,
@@ -3170,6 +3202,7 @@ module.exports = {
   phongBanDuyet,
   updateBanHanh,
   updateDateAll,
+  unsaveAll,
 
   // Debug endpoint để kiểm tra session
   checkSession: (req, res) => {

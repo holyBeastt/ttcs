@@ -1549,6 +1549,37 @@ const saveToExportDoAn = async (req, res) => {
   }
 };
 
+const unsaveAll = async (req, res) => {
+  const { Dot, Ki, NamHoc } = req.body;
+
+  try {
+    const updateQuery = `
+      UPDATE doantotnghiep
+      SET TaiChinhDuyet = 0, daluu = 0
+      WHERE Dot = ? AND ki = ? AND NamHoc = ?`;
+
+    const delQuery = `
+      DELETE FROM exportdoantotnghiep
+      WHERE Dot = ? AND ki = ? AND NamHoc = ?`;
+
+    await pool.query(updateQuery, [Dot, Ki, NamHoc]);
+    await pool.query(delQuery, [Dot, Ki, NamHoc]);
+
+    res.status(200).json({
+      success: true,
+      message: "Bỏ duyệt dữ liệu đồ án thành công",
+    });
+
+
+  } catch (error) {
+    console.error("Lỗi khi bỏ duyệt đồ án:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Lỗi khi bỏ duyệt đồ án" });
+  }
+
+};
+
 
 const updateDoAnDateAll = async (req, res) => {
   const jsonData = req.body;
@@ -1990,4 +2021,5 @@ module.exports = {
   SaveNote,
   DoneNote,
   exportToWord,
+  unsaveAll,
 };

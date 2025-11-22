@@ -309,14 +309,14 @@
       border-color: #0056b3;
     }
 
-    #unapproveContractBtn {
+    .btn-warning-custom {
       background-color: #ffc107;
       border: 1px solid #ffc107;
       border-radius: 4px;
       color: #212529;
     }
 
-    #unapproveContractBtn:hover {
+    .btn-warning-custom:hover {
       background-color: #e0a800;
       border-color: #d39e00;
     }
@@ -458,11 +458,14 @@
             <button id="approveContractBtn" class="btn btn-success" style="display: none;">
               Duyệt hợp đồng
             </button>
-            <button id="unapproveContractBtn" class="btn btn-warning" style="display: none;">
+            <button id="unapproveContractBtn" class="btn btn-warning-custom" style="display: none;">
               Bỏ duyệt hợp đồng
             </button>
             <button id="saveDataMoiGiang" class="btn btn-warning" style="height: 45px; display: none;">
               Lưu dữ liệu hợp đồng mời giảng
+            </button>
+            <button id="unsaveDataMoiGiang" class="btn btn-warning-custom" style="display: none;">
+              Bỏ lưu dữ liệu hợp đồng mời giảng
             </button>
           </div>
         </div>
@@ -717,8 +720,10 @@
       // Nút lưu hợp đồng: chỉ hiển thị với role Lãnh đạo của Văn phòng
       if (role == APP_ROLES.lanhDao_phong && MaPhongBan == APP_DEPARTMENTS.vanPhong) {
         $('#saveDataMoiGiang').show();
+        $('#unsaveDataMoiGiang').show();
       } else {
         $('#saveDataMoiGiang').hide();
+        $('#unsaveDataMoiGiang').hide();
       }
 
       // Show/hide action columns based on user permissions - mở rộng cho cả phòng và khoa
@@ -826,6 +831,11 @@
       // Handle save contract data for Moi Giang
       $('#saveDataMoiGiang').on('click', function() {
         saveContractDataMoiGiang();
+      });
+
+      // Handle unsave contract data for Moi Giang
+      $('#unsaveDataMoiGiang').on('click', function() {
+        unsaveContractDataMoiGiang();
       });
 
       // Handle modal close events
@@ -1990,6 +2000,36 @@
       });
     }
 
+    function updateBrowserStatus (dot, ki, namHoc) {
+      const loaiHopDong = $('#loaiHopDong').val();
+
+      $.ajax({
+        url: '/api/unapprove-contracts',
+        type: 'POST',
+        data: {
+          dot: dot,
+          ki: ki,
+          namHoc: namHoc,
+          maPhongBan: "ALL",
+          loaiHopDong: loaiHopDong
+        },
+        success: function(response) {
+          if (response.success) {
+            // Không alert — chỉ load lại dữ liệu
+            loadContractData();
+          } else {
+            // Không popup — chỉ ghi log cho dev
+            console.error('Lỗi bỏ duyệt:', response.message);
+          }
+        },
+        error: function() {
+          // Không popup — im lặng, hoặc ghi console để dev xem
+          console.error('Lỗi kết nối server khi gọi unapprove-contracts');
+        }
+      });
+    }
+
+
     // Function to save contract data for Moi Giang (from teachingInfo2.ejs)
     function saveContractDataMoiGiang() {
       // Validate required fields
@@ -2057,6 +2097,76 @@
           showLoading(false);
         });
     }
+
+    unsaveContractDataMoiGiang = () => {
+      // Validate required fields
+      const dot = $('#combobox-dot').val();
+      const ki = $('#comboboxki').val();
+      const namHoc = $('#NamHoc').val();
+
+      if (!dot || !ki || !namHoc) {
+        Swal.fire({
+          title: 'Lỗi!',
+          text: 'Vui lòng chọn đầy đủ Đợt, Kỳ và Năm học',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      const duLieu = {
+        dot: dot,
+        ki: ki,
+        namHoc: namHoc
+      };
+
+      // Show loading
+      showLoading(true);
+
+      fetch("/api/v1/moi-giang/unsave-all", {
+          method: "PATCH",
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(duLieu)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          Swal.fire({
+            title: 'Thông báo',
+            html: data.message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            width: 'auto',
+            padding: '20px'
+          });
+          // Tự động cập nhật cột "Đã lưu" sau khi lưu thành công
+          // Cập nhật cho cả view theo giảng viên và theo hệ đào tạo
+          loadContractStatusForTeachers();
+          loadContractStatusForHeDaoTao();
+          // Cập nhật lại phần duyệt
+          updateBrowserStatus(dot, ki, namHoc);
+        })
+        .catch(error => {
+          console.error("Error sending signal:", error);
+          Swal.fire({
+            title: 'Lỗi!',
+            text: 'Đã xảy ra lỗi trong quá trình lưu dữ liệu.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        })
+        .finally(() => {
+          showLoading(false);
+        });
+    }
+
 
     // Add keyboard shortcut to close modal with Escape key
     $(document).keydown(function(e) {
