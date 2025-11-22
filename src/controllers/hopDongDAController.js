@@ -1153,6 +1153,8 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
       Khóa: teacher.KhoaDaoTao,
       Ngành: tenNganh,
+      Số_hợp_đồng: teacher.SoHopDong || "",
+      Số_thanh_lý: teacher.SoThanhLyHopDong || "",
     };
     // Chọn template dựa trên loại hợp đồng
     let templateFileName = "HopDongDA.docx";
@@ -1233,7 +1235,9 @@ const getExportData = async (
       SUM(ed.SoTiet) AS SoTiet,
       ed.NamHoc,
       gv.MaPhongBan,
-      gv.MonGiangDayChinh as MaBoMon
+      gv.MonGiangDayChinh as MaBoMon,
+      ed.SoHopDong,
+      ed.SoThanhLyHopDong
     FROM
       gvmoi gv
     JOIN 
@@ -1243,7 +1247,7 @@ const getExportData = async (
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
       ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-      ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+      ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong
     `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -1275,7 +1279,9 @@ const getExportData = async (
         SUM(ed.SoTiet) AS SoTiet,
         ed.NamHoc,
         gv.MaPhongBan,
-        gv.MonGiangDayChinh as MaBoMon
+        gv.MonGiangDayChinh as MaBoMon,
+        ed.SoHopDong,
+        ed.SoThanhLyHopDong
       FROM 
         gvmoi gv
       JOIN 
@@ -1317,7 +1323,9 @@ const getExportData = async (
         SUM(ed.SoTiet) AS SoTiet,
         ed.NamHoc,
         gv.MaPhongBan,
-        gv.MonGiangDayChinh as MaBoMon
+        gv.MonGiangDayChinh as MaBoMon,
+        ed.SoHopDong,
+        ed.SoThanhLyHopDong
       FROM 
         gvmoi gv
       JOIN 
@@ -1327,7 +1335,7 @@ const getExportData = async (
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong
       `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
@@ -1361,7 +1369,9 @@ const getAppendixData = async (
           edt.NgayKetThuc,
           gv.HocVi,
           gv.HSL,
-          gv.DiaChi
+          gv.DiaChi,
+          edt.SoHopDong,
+          edt.SoThanhLyHopDong
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
       WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1
@@ -1695,16 +1705,26 @@ const generateAppendixContract = async (tienLuongList, data, tempDir) => {
       // Định dạng ngày bắt đầu sớm nhất thành chuỗi
       const formattedEarliestDate = formatVietnameseDate(earliestDate);
 
-      const titleRow3 = worksheet.addRow([
-        `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate}`,
-      ]);
+      // Lấy SoHopDong và SoThanhLyHopDong từ dữ liệu giảng viên
+      const soHopDong = giangVienData[0]?.SoHopDong || '';
+      const soThanhLyHopDong = giangVienData[0]?.SoThanhLyHopDong || '';
+
+      // Xử lý hiển thị số hợp đồng
+      const contractTitle = soHopDong && soHopDong.trim() !== '' 
+        ? `Hợp đồng số: ${soHopDong}`
+        : `Hợp đồng số:    /HĐ-ĐT ${formattedEarliestDate}`;
+
+      const titleRow3 = worksheet.addRow([contractTitle]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow3.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow3.number}:L${titleRow3.number}`);
 
-      const titleRow4 = worksheet.addRow([
-        `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`,
-      ]);
+      // Xử lý hiển thị số thanh lý
+      const verificationTitle = soThanhLyHopDong && soThanhLyHopDong.trim() !== '' 
+        ? `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số: ${soThanhLyHopDong}`
+        : `Kèm theo biên bản nghiệm thu và thanh lý Hợp đồng số:     /HĐ-ĐT ${formattedEarliestDate}`;
+
+      const titleRow4 = worksheet.addRow([verificationTitle]);
       titleRow4.font = { name: "Times New Roman", bold: true, size: 16 };
       titleRow4.alignment = { horizontal: "center", vertical: "middle" };
       worksheet.mergeCells(`A${titleRow4.number}:M${titleRow4.number}`);

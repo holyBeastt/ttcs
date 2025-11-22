@@ -341,7 +341,7 @@ const setupSoHopDongToanBo22 = async (req, res) => {
             throw new Error('Database row missing required MaHopDong field');
           }
 
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
 
           const updateQuery = `UPDATE hopdonggvmoi SET SoHopDong = ? WHERE MaHopDong = ?`;
           await connection.execute(updateQuery, [soHopDong, row.MaHopDong]);
@@ -375,13 +375,21 @@ const setupSoHopDongToanBo = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, contractsData } = req.body;
+    const { dot, ki, nam, contractsData, kiHieuHopDong, kiHieuThanhLy } = req.body;
 
     // Validate required input
     if (!dot || !ki || !nam) {
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin bắt buộc: đợt, kì, năm học'
+      });
+    }
+
+    // Validate ki hieu
+    if (!kiHieuHopDong || !kiHieuThanhLy) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu kí hiệu hợp đồng hoặc kí hiệu thanh lý'
       });
     }
 
@@ -414,6 +422,9 @@ const setupSoHopDongToanBo = async (req, res) => {
           continue;
         }
 
+        // contract.newSoHopDong already has format [số]/[kí hiệu] from preview
+        // No need to append kiHieuHopDong again
+        
         // Build update query
         let updateQuery = `
           UPDATE hopdonggvmoi
@@ -476,11 +487,15 @@ const setupSoHopDongToanBo = async (req, res) => {
 const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy } = req.body;
 
     // Support both old single values and new array format
     const parsedKhoaList = khoaList || (khoa ? [khoa] : []);
     const parsedHeDaoTaoList = heDaoTaoList || (heDaoTao ? [heDaoTao] : []);
+
+    // Validate ki hieu
+    const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
+    const finalKiHieuThanhLy = kiHieuThanhLy || 'HĐNT-ĐT';
 
     console.log('previewSoHopDongMoiGiang - parsedKhoaList:', parsedKhoaList);
     console.log('previewSoHopDongMoiGiang - parsedHeDaoTaoList:', parsedHeDaoTaoList);
@@ -571,8 +586,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}`,
-            newSoThanhLy: `${str}`
+            newSoHopDong: `${str}/${finalKiHieuHopDong}`,
+            newSoThanhLy: `${str}/${finalKiHieuThanhLy}`
           };
         });
       });
@@ -767,7 +782,11 @@ const getHopDongDoAnList = async (req, res) => {
 const previewSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    
+    // Default kí hiệu
+    const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
+    const finalKiHieuThanhLy = kiHieuThanhLy || 'HĐNT-ĐT';
 
     connection = await createPoolConnection();
 
@@ -874,8 +893,8 @@ const previewSoHopDongDoAn = async (req, res) => {
           const str = String(num++).padStart(3, '0');
           return {
             ...item,
-            newSoHopDong: `${str}`,
-            newSoThanhLy: `${str}`
+            newSoHopDong: `${str}/${finalKiHieuHopDong}`,
+            newSoThanhLy: `${str}/${finalKiHieuThanhLy}`
           };
         });
       });
@@ -1047,8 +1066,8 @@ const setupSoHopDongDoAn22 = async (req, res) => {
         const group = groupedData[groupKey];
 
         for (const row of group) {
-          const soHopDong = `${String(currentNumber).padStart(3, '0')}`;
-          const soThanhLy = `${String(currentNumber).padStart(3, '0')}`;
+          const soHopDong = `${String(currentNumber).padStart(3, '0')}/HĐ-ĐT`;
+          const soThanhLy = `${String(currentNumber).padStart(3, '0')}/HĐNT-ĐT`;
 
           const updateQuery = `
             UPDATE exportdoantotnghiep 
@@ -1086,7 +1105,10 @@ const setupSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoaList, heDaoTaoList, contractsData } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, contractsData, kiHieuHopDong, kiHieuThanhLy } = req.body;
+    
+    console.log('[DEBUG] setupSoHopDongDoAn - kiHieuHopDong:', kiHieuHopDong);
+    console.log('[DEBUG] setupSoHopDongDoAn - kiHieuThanhLy:', kiHieuThanhLy);
 
     // Validate required input
     if (!dot || !ki || !nam) {

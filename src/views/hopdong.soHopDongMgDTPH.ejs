@@ -305,25 +305,26 @@
                 <div class="row mb-3">
                   <div class="col-12">
                     <div class="alert alert-info">
+                      <div class="mb-2">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Định dạng số được tạo:</strong>
+                      </div>
                       <div class="row">
                         <div class="col-md-6">
-                          <div class="d-flex align-items-center">
+                          <div class="d-flex align-items-center mb-1">
                             <i class="fas fa-file-contract text-primary me-2"></i>
-                            <span><strong>Số hợp đồng (ví dụ):</strong> <span
-                                id="contractPreview">001/HĐ-ĐT</span></span>
+                            <span><strong>Số hợp đồng:</strong> <code>[Số]/[Kí hiệu HĐ]</code></span>
                           </div>
+                          <small class="text-muted ms-3">Ví dụ: 001/HĐ-ĐT</small>
                         </div>
                         <div class="col-md-6">
-                          <div class="d-flex align-items-center"> <i class="fas fa-file-times text-info me-2"></i>
-                            <span><strong>Số thanh lý tương ứng:</strong> <span
-                                id="terminationPreview">001/HĐNT-ĐT</span></span>
+                          <div class="d-flex align-items-center mb-1">
+                            <i class="fas fa-file-times text-info me-2"></i>
+                            <span><strong>Số thanh lý:</strong> <code>[Số]/[Kí hiệu TL]</code></span>
                           </div>
+                          <small class="text-muted ms-3">Ví dụ: 001/HĐNT-ĐT</small>
                         </div>
                       </div>
-                      <small class="text-muted mt-2 d-block">
-                        <i class="fas fa-arrow-right me-1"></i>
-                        Mỗi hợp đồng sẽ nhận được cùng một chỉ số (001, 002, 003...) cho cả số hợp đồng và số thanh lý
-                      </small>
                     </div>
                   </div>
                 </div>
@@ -332,7 +333,7 @@
                   <div class="col-md-6">
                     <div id="unifiedStartingNumberDiv" class="mt-3" style="display: block;">
                       <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                           <label for="unifiedStartingNumber" class="form-label">
                             <strong>Số bắt đầu</strong>
                             <span class="text-danger">*</span>
@@ -340,19 +341,42 @@
                           <input type="number" class="form-control" id="unifiedStartingNumber"
                             name="unifiedStartingNumber" value="1" min="1" placeholder="Nhập số bắt đầu (VD: 1)"
                             oninput="updateNumberPreview()">
-                          <small class="text-muted">Số này sẽ được sử dụng làm chỉ số chung cho cả số hợp đồng và số
-                            thanh
-                            lý</small>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                          <label for="kiHieuHopDong" class="form-label">
+                            <strong>Kí hiệu hợp đồng</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" class="form-control" id="kiHieuHopDong"
+                            name="kiHieuHopDong" value="HĐ-ĐT" placeholder="Nhập kí hiệu hợp đồng"
+                            oninput="updateNumberPreview()">
+                        </div>
+                        <div class="col-md-4">
+                          <label for="kiHieuThanhLy" class="form-label">
+                            <strong>Kí hiệu thanh lý</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" class="form-control" id="kiHieuThanhLy"
+                            name="kiHieuThanhLy" value="HĐNT-ĐT" placeholder="Nhập kí hiệu thanh lý"
+                            oninput="updateNumberPreview()">
+                        </div>
+                      </div>
+                      <div class="row mt-3">
+                        <div class="col-12">
                           <div class="p-3 bg-light border rounded">
-                            <div class="mb-2">
-                              <strong>Hợp đồng:</strong> <span id="contractExample"
-                                class="text-primary">001/HĐ-ĐT</span>
-                            </div>
-                            <div>
-                              <strong>Thanh lý:</strong> <span id="terminationExample"
-                                class="text-info">001/HĐNT-ĐT</span>
+                            <div class="row">
+                              <div class="col-md-6">
+                                <div class="mb-2">
+                                  <strong>Ví dụ số hợp đồng:</strong> <span id="contractExample"
+                                    class="text-primary">001/HĐ-ĐT</span>
+                                </div>
+                              </div>
+                              <div class="col-md-6">
+                                <div>
+                                  <strong>Ví dụ số thanh lý:</strong> <span id="terminationExample"
+                                    class="text-info">001/HĐNT-ĐT</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -372,10 +396,7 @@
                       </button>
                     </div>
 
-                    <small class="text-muted mt-2 d-block">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng
-                    </small>
+
                   </div>
                 </div>
               </div>
@@ -579,33 +600,41 @@
           return selectedHeValues;
         }
 
-        // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu
+        // Cập nhật ví dụ số hợp đồng khi người dùng thay đổi số bắt đầu hoặc kí hiệu
         function updateNumberPreview() {
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
           const formattedNumber = String(startingNumber).padStart(3, '0');
+          const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
+          const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
-          $('#contractPreview').text(`${formattedNumber}/HĐ-ĐT`);
-          $('#terminationPreview').text(`${formattedNumber}/HĐNT-ĐT`);
-          $('#contractExample').text(`${formattedNumber}/HĐ-ĐT`);
-          $('#terminationExample').text(`${formattedNumber}/HĐNT-ĐT`);
+          $('#contractExample').text(`${formattedNumber}/${kiHieuHopDong}`);
+          $('#terminationExample').text(`${formattedNumber}/${kiHieuThanhLy}`);
         }
 
         // ===== CORE FUNCTIONS (REUSED FROM ORIGINAL) =====
 
         // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý
         function previewSynchronizedSetup() {
+          console.log('[DEBUG DTPH] Starting previewSynchronizedSetup...');
+          
           const dot = $('#combobox-dot').val();
           const ki = $('#comboboxki').val();
           const nam = $('#NamHoc').val();
+          
+          console.log('[DEBUG DTPH] Basic values:', { dot, ki, nam });
 
           if (!dot || !ki || !nam) {
+            console.log('[DEBUG DTPH] Missing required fields');
             showError('Vui lòng chọn đầy đủ Đợt, Kì và Năm trước khi xem trước');
             return;
           }
 
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          
+          console.log('[DEBUG DTPH] Starting number:', startingNumber);
 
           if (!startingNumber || startingNumber < 1) {
+            console.log('[DEBUG DTPH] Invalid starting number');
             showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
             return;
           }
@@ -615,6 +644,9 @@
 
           const teacherName = $('#searchTeacher').val().trim();
 
+          const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
+          const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
+
           const data = {
             dot: dot,
             ki: ki,
@@ -623,23 +655,33 @@
             heDaoTaoList: getSelectedHe(),
             loaiHopDong: "Mời giảng",
             startingNumber: startingNumber,
+            kiHieuHopDong: kiHieuHopDong,
+            kiHieuThanhLy: kiHieuThanhLy,
             teacherName: teacherName
           };
 
-          console.log('Sending data to preview API (ĐTPH):', data);
+          console.log('[DEBUG DTPH] Final data being sent:', data);
+          console.log('[DEBUG DTPH] Ki hieu hop dong:', data.kiHieuHopDong);
+          console.log('[DEBUG DTPH] Ki hieu thanh ly:', data.kiHieuThanhLy);
+          console.log('[DEBUG DTPH] Starting number:', data.startingNumber);
 
           // Gọi API preview đồng bộ
           $.post('/api/preview-so-hop-dong-moi-giang', data)
             .done(function (response) {
+              console.log('[DEBUG DTPH] Preview response received:', response);
               if (response.success) {
+                console.log('[DEBUG DTPH] Response data:', response.data);
                 displaySynchronizedPreviewResults(response.data);
                 showSuccess('Xem trước đồng bộ thành công. Kiểm tra kết quả bên dưới.');
               } else {
+                console.log('[DEBUG DTPH] Preview failed:', response.message);
                 showError(response.message || 'Có lỗi xảy ra khi xem trước đồng bộ');
               }
             })
-            .fail(function () {
-              showError('Chưa có dữ liệu hợp đồng');
+            .fail(function (xhr, status, error) {
+              console.error('[DEBUG DTPH] Preview request failed:', { xhr, status, error });
+              console.error('[DEBUG DTPH] Response text:', xhr.responseText);
+              showError('Lỗi kết nối server khi preview: ' + error);
             })
             .always(function () {
               showLoading(false);
@@ -658,30 +700,41 @@
           }
 
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
+          const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
           if (!startingNumber || startingNumber < 1) {
             showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
             return;
           }
 
+          if (!kiHieuHopDong.trim()) {
+            showError('Vui lòng nhập kí hiệu hợp đồng');
+            return;
+          }
+
+          if (!kiHieuThanhLy.trim()) {
+            showError('Vui lòng nhập kí hiệu thanh lý');
+            return;
+          }
+
           // Dialog xác nhận chi tiết
-          const contractExample = String(startingNumber).padStart(3, '0') + '/HĐ-ĐT';
-          const terminationExample = String(startingNumber).padStart(3, '0') + '/HĐNT-ĐT';
+          const contractExample = String(startingNumber).padStart(3, '0');
+          const terminationExample = String(startingNumber).padStart(3, '0');
 
           Swal.fire({
             title: 'Xác nhận tạo số hợp đồng và số thanh lý',
             html: `<div class="text-start">
                  <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
                  <p>Khoa: <strong>${FIXED_KHOA}</strong></p>
+                 <p>Kí hiệu hợp đồng: <strong>${kiHieuHopDong}</strong></p>
+                 <p>Kí hiệu thanh lý: <strong>${kiHieuThanhLy}</strong></p>
                  <div class="row mt-3">
-                   <div class="col-6">
-                       <span>Hợp đồng: <strong class="text-primary">${contractExample}</strong></span>
-                     </div>
+                   <div class="col-12 mb-2">
+                       <span>Số hợp đồng: <strong class="text-primary">${contractExample}</strong> | Kí hiệu: <strong>${kiHieuHopDong}</strong></span>
                    </div>
-                   <div class="col-6">
-                     <div class="d-flex align-items-center">
-                       <span>Thanh lý: <strong class="text-info">${terminationExample}</strong></span>
-                     </div>
+                   <div class="col-12">
+                       <span>Số thanh lý: <strong class="text-info">${terminationExample}</strong> | Kí hiệu: <strong>${kiHieuThanhLy}</strong></span>
                    </div>
                  </div>
                </div>`,
@@ -759,6 +812,8 @@
             heDaoTaoList: getSelectedHe(),
             loaiHopDong: "Mời giảng",
             startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
+            kiHieuHopDong: $('#kiHieuHopDong').val() || 'HĐ-ĐT',
+            kiHieuThanhLy: $('#kiHieuThanhLy').val() || 'HĐNT-ĐT',
             contractsData: tableData,
             teacherName: teacherName
           };
@@ -790,11 +845,13 @@
 
         // Hiển thị kết quả preview đồng bộ
         function displaySynchronizedPreviewResults(groupedContracts) {
+          console.log('[DEBUG DTPH] Displaying preview results:', groupedContracts);
           const tbody = $('#contractsTableBody');
           tbody.empty();
 
           // Flatten data để dễ xử lý
           const rows = [];
+          console.log('[DEBUG DTPH] Starting to flatten data...');
           Object.keys(groupedContracts).forEach(he => {
             Object.keys(groupedContracts[he]).forEach(khoa => {
               groupedContracts[he][khoa].forEach((contract, idx) => {
@@ -1034,8 +1091,10 @@
           // Khởi tạo giao diện
           updateNumberPreview();
 
-          // Thêm event handler cho số bắt đầu thay đổi
+          // Thêm event handler cho số bắt đầu và kí hiệu thay đổi
           $('#unifiedStartingNumber').on('input', updateNumberPreview);
+          $('#kiHieuHopDong').on('input', updateNumberPreview);
+          $('#kiHieuThanhLy').on('input', updateNumberPreview);
 
           // Thêm event listener cho tìm kiếm tên giảng viên
           $('#searchTeacher').on('input', debounce(function() {

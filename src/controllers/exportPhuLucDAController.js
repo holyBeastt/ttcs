@@ -213,7 +213,7 @@ const getExportPhuLucDAPath = async (
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
       const contractNumber =
         soHopDong && soHopDong.trim() !== ""
-          ? `Hợp đồng số: ${soHopDong}/HĐ-ĐT ${formattedEarliestDate}`
+          ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
           : `Hợp đồng số:      /HĐ-ĐT ${formattedEarliestDate}`;
 
       const titleRow3 = worksheet.addRow([contractNumber]);
@@ -528,7 +528,7 @@ const getExportPhuLucDAPath = async (
       // Xử lý soThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
       const verificationContractNumber =
         soThanhLyHopDong && soThanhLyHopDong.trim() !== ""
-          ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong}/HĐNT-ĐT ${formattedEarliestDate}`
+          ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong} ${formattedEarliestDate}`
           : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT ${formattedEarliestDate}`;
 
       const titleRow4_2 = worksheet2.addRow([verificationContractNumber]);
@@ -827,7 +827,7 @@ const getExportPhuLucDAPath = async (
     // Xử lý firstSoHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
     const summaryContractNumber =
       firstSoHopDong && firstSoHopDong.trim() !== ""
-        ? `Hợp đồng số: ${firstSoHopDong}/HĐ-ĐT `
+        ? `Hợp đồng số: ${firstSoHopDong} `
         : `Hợp đồng số:             /HĐ-ĐT `;
     const titleRow3 = summarySheet.addRow([summaryContractNumber]);
     titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
@@ -837,7 +837,7 @@ const getExportPhuLucDAPath = async (
     // Xử lý firstSoThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
     const summaryVerificationNumber =
       firstSoThanhLyHopDong && firstSoThanhLyHopDong.trim() !== ""
-        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong}/HĐNT-ĐT `
+        ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${firstSoThanhLyHopDong} `
         : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT `;
 
     const titleRow4 = summarySheet.addRow([summaryVerificationNumber]);

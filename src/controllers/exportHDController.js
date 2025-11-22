@@ -1267,6 +1267,8 @@ const generateContractForTeacher = async (
     Thời_gian_thực_hiện: thoiGianThucHien,
     Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
     Nơi_công_tác: teacher.NoiCongTac,
+    Số_hợp_đồng: teacher.SoHopDong || "",
+    Số_thanh_lý: teacher.SoThanhLyHopDong || "",
   };
 
   let templateFileName;
@@ -1347,10 +1349,18 @@ const getAppendixData = async (
           qc.KiHoc,
           qc.NamHoc,
           qc.Khoa,
-          qc.he_dao_tao
+          qc.he_dao_tao,
+          hd.SoHopDong,
+          hd.SoThanhLyHopDong
       FROM quychuan qc
       JOIN gvmoi gv 
           ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen 
+      LEFT JOIN hopdonggvmoi hd 
+          ON gv.id_Gvm = hd.id_Gvm 
+          AND qc.Dot = hd.Dot 
+          AND qc.KiHoc = hd.KiHoc 
+          AND qc.NamHoc = hd.NamHoc
+          AND qc.he_dao_tao = hd.he_dao_tao
       WHERE qc.GiaoVienGiangDay LIKE '%,%'
   ),
   phuLucDH AS (
@@ -1369,10 +1379,18 @@ const getAppendixData = async (
           qc.KiHoc,
           qc.NamHoc,
           qc.Khoa,
-          qc.he_dao_tao
+          qc.he_dao_tao,
+          hd.SoHopDong,
+          hd.SoThanhLyHopDong
       FROM quychuan qc
       JOIN gvmoi gv 
           ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
+      LEFT JOIN hopdonggvmoi hd 
+          ON gv.id_Gvm = hd.id_Gvm 
+          AND qc.Dot = hd.Dot 
+          AND qc.KiHoc = hd.KiHoc 
+          AND qc.NamHoc = hd.NamHoc
+          AND qc.he_dao_tao = hd.he_dao_tao
       WHERE qc.MoiGiang = 1 AND qc.GiaoVienGiangDay NOT LIKE '%,%'
   ),
   table_ALL AS (
