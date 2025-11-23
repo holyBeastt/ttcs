@@ -365,7 +365,7 @@ GROUP BY
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
   ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-  ed.SoThanhLyHopDong
+  ed.SoThanhLyHopDong, ed.CoSoDaoTao
 `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -409,7 +409,7 @@ GROUP BY
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
     ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-    ed.SoThanhLyHopDong
+    ed.SoThanhLyHopDong, ed.CoSoDaoTao
   `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
@@ -453,7 +453,7 @@ GROUP BY
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
     ed.Dot, ed.NamHoc, gv.MaPhongBan,ed.NgayCapCCCD,ed.Ki, ed.SoHopDong,
-    ed.SoThanhLyHopDong
+    ed.SoThanhLyHopDong, ed.CoSoDaoTao
   `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
@@ -1256,7 +1256,7 @@ const getExportData = async (
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
       ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-      ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong
+      ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong, ed.CoSoDaoTao
     `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
@@ -1301,7 +1301,7 @@ const getExportData = async (
       GROUP BY 
         ed.CCCD, gv.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh
+        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.CoSoDaoTao, ed.SoHopDong, ed.SoThanhLyHopDong
       `;
       params = [dot, ki, namHoc, `%${khoa}%`, he_dao_tao];
     }
@@ -1346,7 +1346,7 @@ const getExportData = async (
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
-        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong
+        ed.NamHoc, gv.MaPhongBan, gv.MonGiangDayChinh, ed.SoHopDong, ed.SoThanhLyHopDong, ed.CoSoDaoTao
       `;
       params = [dot, ki, namHoc, `%${teacherName}%`, he_dao_tao];
     }
