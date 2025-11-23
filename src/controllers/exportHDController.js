@@ -594,7 +594,7 @@ const exportMultipleContracts = async (req, res) => {
         Thời_gian_thực_hiện: thoiGianThucHien,
         Mức_tiền: tienLuong.SoTien.toLocaleString("vi-VN"),
         Nơi_công_tác: teacher.NoiCongTac,
-        Cơ_sở_đào_tạo: teacher.CoSoDaoTao
+        Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
@@ -1279,7 +1279,7 @@ const generateContractForTeacher = async (
     Nơi_công_tác: teacher.NoiCongTac,
     Số_hợp_đồng: teacher.SoHopDong || "",
     Số_thanh_lý: teacher.SoThanhLyHopDong || "",
-    Cơ_sở_đào_tạo: teacher.CoSoDaoTao,
+    Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
   };
 
   let templateFileName;

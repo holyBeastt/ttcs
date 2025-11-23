@@ -595,7 +595,7 @@ GROUP BY
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
         Khóa: teacher.KhoaDaoTao,
         Ngành: tenNganh,
-        Cơ_sở_đào_tạo: teacher.CoSoDaoTao
+        Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
       };
       // Chọn template dựa trên loại hợp đồng
       let templateFileName;
@@ -1162,7 +1162,7 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       Ngành: tenNganh,
       Số_hợp_đồng: teacher.SoHopDong || "",
       Số_thanh_lý: teacher.SoThanhLyHopDong || "",
-      Cơ_sở_đào_tạo: teacher.CoSoDaoTao
+      Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
     };
     // Chọn template dựa trên loại hợp đồng
     let templateFileName = "HopDongDA.docx";
