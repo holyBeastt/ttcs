@@ -543,6 +543,7 @@ const exportMultipleContracts = async (req, res) => {
       // Ghi dữ liệu cho thống kê chuyển khoản
       summaryData.push({
         HoTen: teacher.HoTen,
+        DienThoai: teacher.DienThoai,
         MaSoThue: teacher.MaSoThue,
         STK: teacher.STK,
         NganHang: teacher.NganHang,
@@ -552,6 +553,7 @@ const exportMultipleContracts = async (req, res) => {
 
       summaryData2.push({
         HoTen: teacher.HoTen,
+        DienThoai: teacher.DienThoai,
         MaSoThue: teacher.MaSoThue,
         STK: teacher.STK,
         NganHang: teacher.NganHang,
@@ -676,6 +678,7 @@ const exportMultipleContracts = async (req, res) => {
         issueDate: formatDateForExcel(teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NgayCap),
         issuePlace: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.NoiCapCCCD || '',
         idAddress: teachers.find(t => t.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim() === item.HoTen)?.DiaChi || '',
+        phoneNumber: item.DienThoai,
         taxCode: item.MaSoThue,
         amount: tienTruocThue, // Tổng tiền trước thuế
         taxDeducted: thuePhaiTra, // Thuế 10%
@@ -1350,6 +1353,7 @@ const getAppendixData = async (
           qc.KiHoc AS HocKy,
           gv.HocVi, 
           gv.HSL,
+          gv.DienThoai,
           qc.NgayBatDau, 
           qc.NgayKetThuc,
           gv.DiaChi,
@@ -1380,6 +1384,7 @@ const getAppendixData = async (
           qc.KiHoc AS HocKy,
           gv.HocVi, 
           gv.HSL,
+          gv.DienThoai,
           qc.NgayBatDau, 
           qc.NgayKetThuc,
           gv.DiaChi,
@@ -2565,6 +2570,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
         createHeaderCell("STT", true),
         createHeaderCell("Số HĐ", true, 1950), // Đặt width cố định 1950 twips cho cột Số HĐ (tăng 50px)
         createHeaderCell("Đơn vị thụ hưởng\n(hoặc cá nhân)", true),
+        createHeaderCell("SĐT", true),
         createHeaderCell("Mã số thuế", true),
         createHeaderCell("Số tài khoản", true),
         createHeaderCell("Tại ngân hàng", true, 4800), // Đặt width cố định 3600 twips (gấp 3 lần cột Số HĐ)
@@ -2578,6 +2584,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
               createCell((idx + 1).toString()),
               createCell((row.SoHopDong || '') + '   /HĐ-ĐT', false, 1950), // Ô Số HĐ với width cố định (tăng 50px)
               createCell(row.HoTen || ""),
+              createCell(row.DienThoai || ""),
               createCell(row.MaSoThue || ""),
               createCell(row.STK || ""),
               createCell(row.NganHang || "", false, 4800),
@@ -2592,6 +2599,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
               createCell(""), // STT
               createCell("", false, 1950), // Số HĐ với width cố định (tăng 50px)
               createCell(""), // Đơn vị thụ hưởng
+              createCell(""), // SĐT
               createCell(""), // Mã số thuế
               createCell(""), // Số tài khoản
               createCell("", false, 4800), // Tại ngân hàng với width cố định
@@ -2621,7 +2629,7 @@ function createTransferDetailDocument(data = [], noiDung = "", truocthue_or_saut
             }),
           ],
           verticalAlign: VerticalAlign.CENTER,
-          columnSpan: 6,
+          columnSpan: 7,
           margins: {
             top: 50,
             bottom: 50,
@@ -2813,17 +2821,17 @@ function createTaxReportWorkbook(records) {
   worksheet.addRow(['HỌC VIỆN KỸ THUẬT MẬT MÃ']);
   worksheet.addRow([]);
   worksheet.addRow(['BẢNG KÊ TỔNG HỢP THUẾ']);
-  worksheet.addRow(['Hợp đồng hướng dẫn đồ án tốt nghiệp']);
+  // worksheet.addRow(['Hợp đồng hướng dẫn đồ án tốt nghiệp']);
   worksheet.addRow([]);
 
   [1, 2, 4, 5].forEach(rowNum => {
-    worksheet.mergeCells(`A${rowNum}:L${rowNum}`);
+    worksheet.mergeCells(`A${rowNum}:M${rowNum}`);
     worksheet.getRow(rowNum).font = { bold: true, size: rowNum === 4 ? 13 : 11 };
     worksheet.getRow(rowNum).alignment = { horizontal: 'center' };
   });
 
   // Cột header
-  worksheet.addRow(['STT', 'Số HĐ', 'Người thực hiện', 'Nội dung chi tiêu', 'Số CCCD', 'Ngày cấp', 'Nơi cấp', 'Địa chỉ CCCD', 'Mã số thuế', 'Số tiền', 'Trừ thuế', 'Còn lại']);
+  worksheet.addRow(['STT', 'Số HĐ', 'Người thực hiện', 'Nội dung chi tiêu', 'Số CCCD', 'Ngày cấp', 'Nơi cấp', 'Địa chỉ CCCD', 'SĐT', 'Mã số thuế', 'Số tiền', 'Trừ thuế', 'Còn lại']);
 
   // Cài đặt độ rộng cột vừa đủ với nội dung
   worksheet.columns = [
@@ -2835,6 +2843,7 @@ function createTaxReportWorkbook(records) {
     { key: 'issueDate', width: 12 },             // Ngày cấp - DD/MM/YYYY
     { key: 'issuePlace', width: 25 },            // Nơi cấp - tên cơ quan
     { key: 'idAddress', width: 40 },             // Địa chỉ CCCD - địa chỉ đầy đủ
+    { key: 'phoneNumber', width: 14 },           // SĐT - số điện thoại
     { key: 'taxCode', width: 14 },               // Mã số thuế - 10-13 chữ số
     { key: 'amount', width: 16 },                // Số tiền - định dạng #,##0
     { key: 'taxDeducted', width: 16 },           // Trừ thuế - định dạng #,##0
@@ -2842,7 +2851,7 @@ function createTaxReportWorkbook(records) {
   ];
 
   worksheet.getRow(7).font = { bold: true, size: 11 };
-  worksheet.autoFilter = 'A7:L7';
+  worksheet.autoFilter = 'A7:M7';
   worksheet.views = [{ state: 'frozen', ySplit: 7 }];
 
   // Chèn dữ liệu bắt đầu từ hàng 8
@@ -2856,6 +2865,7 @@ function createTaxReportWorkbook(records) {
     record.issueDate,
     record.issuePlace,
     record.idAddress,
+    record.phoneNumber,
     record.taxCode,
     record.amount,
     record.taxDeducted,
@@ -2878,9 +2888,9 @@ function createTaxReportWorkbook(records) {
     }
   }
 
-  // Định dạng cột J (Số tiền), K (Trừ thuế), L (Còn lại)
+  // Định dạng cột K (Số tiền), L (Trừ thuế), M (Còn lại)
   for (let row = dataStartRow; row <= dataEndRow; row++) {
-    ['J', 'K', 'L'].forEach(col => {
+    ['K', 'L', 'M'].forEach(col => {
       const cell = worksheet.getCell(`${col}${row}`);
       if (cell.value && typeof cell.value === 'number') {
         cell.numFmt = '#,##0';
@@ -2890,18 +2900,18 @@ function createTaxReportWorkbook(records) {
 
   // Footer: Tổng cộng - sử dụng dataEndRow đã được tính chính xác ở trên
   worksheet.addRow([
-    'Tổng cộng:', '', '', '', '', '', '', '', '',
-    { formula: `SUM(J${dataStartRow}:J${dataEndRow})` },
+    'Tổng cộng:', '', '', '', '', '', '', '', '', '',
     { formula: `SUM(K${dataStartRow}:K${dataEndRow})` },
-    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` }
+    { formula: `SUM(L${dataStartRow}:L${dataEndRow})` },
+    { formula: `SUM(M${dataStartRow}:M${dataEndRow})` }
   ]);
   const totalRow = worksheet.lastRow.number;
-  worksheet.mergeCells(`A${totalRow}:I${totalRow}`);
+  worksheet.mergeCells(`A${totalRow}:J${totalRow}`);
   worksheet.getRow(totalRow).font = { bold: true };
   worksheet.getRow(totalRow).alignment = { horizontal: 'right' };
 
   // Áp dụng định dạng số có dấu phẩy cho dòng tổng cộng
-  ['J', 'K', 'L'].forEach(col => {
+  ['K', 'L', 'M'].forEach(col => {
     worksheet.getCell(`${col}${totalRow}`).numFmt = '#,##0';
   });
 
@@ -2918,14 +2928,14 @@ function createTaxReportWorkbook(records) {
   const textRowVal = `Bằng chữ: ${numberToWords(totalAmount)} đồng chẵn.`;
   worksheet.addRow([textRowVal]);
   const textRow = worksheet.lastRow.number;
-  worksheet.mergeCells(`A${textRow}:L${textRow}`);
+  worksheet.mergeCells(`A${textRow}:M${textRow}`);
   worksheet.getRow(textRow).font = { italic: true, size: 10 };
 
   // Ngày tháng năm
   worksheet.addRow([]);
-  worksheet.addRow(['', '', '', '', '', '', '', `Ngày ... tháng ... năm 2025`, '', '', '']);
+  worksheet.addRow(['', '', '', '', '', '', '', '', `Ngày ... tháng ... năm 2025`, '', '', '', '']);
   const dateRow = worksheet.lastRow.number;
-  worksheet.mergeCells(`I${dateRow}:L${dateRow}`);
+  worksheet.mergeCells(`J${dateRow}:M${dateRow}`);
   worksheet.getRow(dateRow).font = { size: 10 };
   worksheet.getRow(dateRow).alignment = { horizontal: 'center' };
 
