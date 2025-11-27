@@ -585,7 +585,7 @@ const themTKBVaoQCDK = async (req, res) => {
 
         return res.status(200).json({
           status: "warning",
-          message: "Những dòng không trùng khoa với CSDL sẽ không được chuyển",
+          message: "Thêm dữ liệu thành công nhưng Những dòng không trùng khoa với CSDL sẽ không được chuyển",
         });
 
       }
