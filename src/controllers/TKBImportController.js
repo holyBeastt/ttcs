@@ -65,7 +65,7 @@ const importExcelTKB = async (req, res) => {
       "Mã HP": "course_code",
       "Số TC": "credit_hours",
       "LL": "ll_code",
-      "Số \nSV": "student_quantity",
+      "Số SV": "student_quantity",
       "HS lớp đông": "student_bonus",
       "Ngoài giờ HC": "bonus_time",
       "LL thực": "ll_code_actual",
@@ -76,8 +76,8 @@ const importExcelTKB = async (req, res) => {
       "Thứ": "day_of_week",
       "Tiết học": "period_range",
       "Phòng học": "classroom",
-      "Ngày BĐ\n(tuần)": "start_date",
-      "Ngày KT\n(tuần)": "end_date",
+      "Ngày BĐ": "start_date",
+      "Ngày KT": "end_date",
       "Giáo Viên": "lecturer",
     };
 
@@ -158,6 +158,9 @@ const importExcelTKB = async (req, res) => {
           break;
         case row.student_quantity >= 41:
           row.student_bonus = 1.1;
+          break;
+        default:
+          row.student_bonus = 1.0;
           break;
       }
 
