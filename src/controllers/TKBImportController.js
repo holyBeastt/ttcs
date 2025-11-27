@@ -315,7 +315,7 @@ const importExcelTKB = async (req, res) => {
       await pool.query(`UPDATE ki SET trangthai = ? WHERE value = ?`, [1, ki]);
       await pool.query(`UPDATE dot SET trangthai = ? WHERE value = ?`, [1, dot]);
 
-      console.log(`✅ Đã cập nhật trạng thái: Năm ${nam}, Kỳ ${ki}, Đợt ${dot}`);
+      console.log(`Đã cập nhật trạng thái: Năm ${nam}, Kỳ ${ki}, Đợt ${dot}`);
     } catch (statusError) {
       console.error("⚠️ Lỗi cập nhật trạng thái thẻ năm học:", statusError);
       // Không throw error để không làm gián đoạn quy trình chính
