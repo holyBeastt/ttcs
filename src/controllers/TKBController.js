@@ -22,6 +22,7 @@ const getDataTKBChinhThuc = async (req, res) => {
   const baseSelect = `
     SELECT 
       tt,
+      MAX(credit_hours) AS credit_hours,
       MIN(id) AS id,
       MAX(course_id) AS course_id,
       MAX(course_name) AS course_name,
@@ -29,7 +30,6 @@ const getDataTKBChinhThuc = async (req, res) => {
       MAX(lecturer) AS lecturer,
       MIN(start_date) AS start_date,
       MAX(end_date) AS end_date,
-      MAX(ll_code) AS ll_code,
       MAX(ll_total) AS ll_total,
       MAX(student_quantity) AS student_quantity,
       MAX(student_bonus) AS student_bonus,
@@ -38,7 +38,8 @@ const getDataTKBChinhThuc = async (req, res) => {
       MAX(dot) AS dot,
       MAX(ki_hoc) AS ki_hoc,
       MAX(nam_hoc) AS nam_hoc,
-      MAX(note) AS note
+      MAX(note) AS note,
+      MAX(he_dao_tao) AS he_dao_tao
     FROM course_schedule_details
   `;
 
@@ -83,15 +84,48 @@ const getDataTKBChinhThuc = async (req, res) => {
   }
 };
 
+const getBonusTimeForHeDaoTao = (oldHeDaoTao, newHeDaoTao, bonus_time) => {
+  let tmp = 1;
+
+  // Tính xem có phải lớp ngoài giờ không
+  if (oldHeDaoTao.includes("Đại học")) {
+    if (bonus_time == 1.5)
+      tmp = 1.5;
+  }
+
+  if (oldHeDaoTao.includes("Cao học")) {
+    if (bonus_time == 2.25)
+      tmp = 1.5;
+  }
+
+  if (newHeDaoTao.includes("Nghiên cứu sinh")) {
+    if (bonus_time == 3)
+      tmp = 1.5;
+  }
+
+  // Tính lại hệ số ngoài giờ
+  if (newHeDaoTao.includes("Đại học"))
+    return 1 * tmp;
+
+  if (newHeDaoTao.includes("Cao học"))
+    return 1.5 * tmp;
+
+  if (newHeDaoTao.includes("Nghiên cứu sinh"))
+    return 2.0 * tmp;
+}
+
 const updateRowTKB = async (req, res) => {
-  let { tt, dot, ki_hoc, nam_hoc, field, value, data } = req.body;
+  let { tt, dot, ki_hoc, nam_hoc, field, value, oldValue, data } = req.body;
+
   let connection;
+
+  console.log("Cập nhật dòng:", req.body);
 
   try {
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
     if (field === "student_quantity") {
-      let student_bonus = 1;
+      let student_bonus = 0;
 
       // 🛠 Kiểm tra giá trị nhập vào có phải số không
       if (isNaN(value) || value < 0) {
@@ -131,7 +165,7 @@ const updateRowTKB = async (req, res) => {
       value = parseFloat(value.replace(",", "."));
 
       if (isNaN(value) || value < 0) {
-        return res.status(400).json({ message: "Hệ số T7/CN không hợp lệ" });
+        return res.status(400).json({ message: "Hệ số ngoài giờ không hợp lệ" });
       }
 
       const qc = data.student_bonus * value * data.ll_total;
@@ -176,7 +210,21 @@ const updateRowTKB = async (req, res) => {
       const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
-    } else if (field === "note") {
+    } else if (field === "he_dao_tao") {
+
+      data.bonus_time = getBonusTimeForHeDaoTao(oldValue, value, data.bonus_time);
+
+      const qc = data.student_bonus * data.bonus_time * data.ll_total;
+
+      const updateQuery = `
+        UPDATE course_schedule_details 
+        SET he_dao_tao = ?, bonus_time = ?, qc = ? 
+        WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?`;
+      const updateValues = [value, data.bonus_time, qc, tt, dot, ki_hoc, nam_hoc];
+
+      await connection.query(updateQuery, updateValues);
+    }
+    else if (field === "note") {
 
       if (typeof value !== "string") {
         return res.status(400).json({ message: "Ghi chú không hợp lệ" });
@@ -207,6 +255,7 @@ const updateRowTKB = async (req, res) => {
       `SELECT
         tt,
         MIN(id) AS id,
+        MAX(credit_hours) AS credit_hours,
         MAX(course_id) AS course_id,
         MAX(course_name) AS course_name,
         MAX(major) AS major,
@@ -222,7 +271,8 @@ const updateRowTKB = async (req, res) => {
         MAX(dot) AS dot,
         MAX(ki_hoc) AS ki_hoc,
         MAX(nam_hoc) AS nam_hoc,
-        MAX(note) AS note
+        MAX(note) AS note,
+        MAX(he_dao_tao) AS he_dao_tao
       FROM course_schedule_details 
         WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?
         group by tt`,

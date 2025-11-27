@@ -529,14 +529,14 @@
         const headersMap = {
           id: { name: "ID", width: 70 },
           major: { name: "Khoa", width: 100 },
-          ll_code: {
-            name: "CTĐT",
-            width: 0,
-          },
+          // ll_code: {
+          //   name: "CTĐT",
+          //   width: 0,
+          // },
           ll_total: { name: "LL", width: 50 },
           student_quantity: { name: "Số SV", width: 70 },
           student_bonus: { name: "HS lớp đông", width: 100 },
-          bonus_time: { name: "HS T7/CN", width: 90 },
+          bonus_time: { name: "HS ngoài giờ", width: 90 },
           course_id: { name: "Mã học phần", width: 100 },
           lecturer: { name: "Giảng viên theo TKB", width: 150 },
           credit_hours: { name: "Số TC", width: 80 },
@@ -644,6 +644,19 @@
             })),
         ];
 
+        // Danh sách option cho combobox hệ đào tạo
+        const heDaoTaoOptions = ["Đại học (Đóng học phí)", "Đại học (Mật mã)", "Cao học (Đóng học phí)", "Nghiên cứu sinh (Đóng học phí)"];
+
+        // Gán combobox cho cột he_dao_tao
+        const heDaoTaoCol = columnDefs.find(col => col.field === "he_dao_tao");
+        if (heDaoTaoCol) {
+          heDaoTaoCol.cellEditor = "agSelectCellEditor";
+          heDaoTaoCol.cellEditorParams = {
+            values: heDaoTaoOptions,
+          };
+          heDaoTaoCol.editable = true;
+        }
+
         columnDefs.push({
           headerName: "Ghi chú",
           field: "note",
@@ -679,7 +692,7 @@
 
         // Xử lý khi ô được chỉnh sửa
         async function onCellValueChanged(event) {
-          const { data, colDef, newValue } = event;
+          const { data, colDef, newValue, oldValue } = event;
           const id = data.id;
           const tt = data.tt;
           const dot = data.dot;
@@ -692,7 +705,7 @@
             const response = await fetch("/api/v1/tkb/update-row", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tt, dot, ki_hoc, nam_hoc, field, value: newValue, data }),
+              body: JSON.stringify({ tt, dot, ki_hoc, nam_hoc, field, value: newValue, oldValue, data }),
             });
 
             const updatedRow = await response.json();

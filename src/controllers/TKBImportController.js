@@ -1,6 +1,34 @@
 const XLSX = require("xlsx");
 const pool = require("../config/Pool");
 
+function getFirstParenthesesContent(str) {
+  const match = str.match(/\(([^)]+)\)/);
+  return match ? match[1] : null;
+}
+
+function extractPrefix(str) {
+  const match = str.match(/^[A-Za-z]+/);
+  return match ? match[0] : "";
+}
+
+async function getHeDaoTao(classType) {
+  // tách phần chữ cái trước dãy số
+  const prefix = extractPrefix(classType);
+
+  // Lấy tất cả cấu hình
+  const [rows] = await pool.query(`
+      SELECT viet_tat, gia_tri_so_sanh 
+      FROM kitubatdau
+  `);
+
+  // Tìm đúng viet_tat
+  const found = rows.find(r => r.viet_tat.toUpperCase() === prefix.toUpperCase());
+
+  // Nếu không tìm thấy → mặc định
+  return found ? found.gia_tri_so_sanh : "Đại học (Đóng học phí)";
+}
+
+
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
   let lastTTValue = JSON.parse(req.body.lastTTValue);
@@ -64,7 +92,7 @@ const importExcelTKB = async (req, res) => {
       "TT": "tt",
       "Mã HP": "course_code",
       "Số TC": "credit_hours",
-      "LL": "ll_code",
+      "LL": "ll_total",
       "Số SV": "student_quantity",
       "HS lớp đông": "student_bonus",
       "Ngoài giờ HC": "bonus_time",
@@ -87,6 +115,7 @@ const importExcelTKB = async (req, res) => {
       "A": "ATTT",
     }
 
+    // Đặt lại theo tên các trường dữ liệu trong database
     const renamedData = allData.map((row) => {
       const newRow = {};
       for (const [oldKey, newKey] of Object.entries(renameMap)) {
@@ -128,18 +157,45 @@ const importExcelTKB = async (req, res) => {
 
     for (let i = 0; i < renamedData.length; i++) {
       const row = renamedData[i];
+      // Tìm hệ đào tạo của lớp học phần
+      const classType = getFirstParenthesesContent(row.course_name) || "";
+
+      row.he_dao_tao = await getHeDaoTao(classType);
+
+      row.bonus_time = 1;
+
+      if (row.he_dao_tao.includes("Cao học")) {
+        row.bonus_time = 1.5;
+      } else if (row.he_dao_tao.includes("Nghiên cứu sinh")) {
+        row.bonus_time = 2.0;
+      }
 
       // Thêm period_start, period_end, ll_total vào từng dòng
+      let tmp = 0;
       if (row.period_range.includes("->")) {
         const [start, end] = row.period_range.split("->");
         row.period_start = start || null;
         row.period_end = end || null;
+
+        if (start >= 13) {
+          tmp++;
+        }
       } else {
         row.period_start = null;
         row.period_end = null;
       }
 
-      row.ll_total = tongTietMap[row.course_name] || 0;
+      const dayOfWeek = row.day_of_week.trim().toUpperCase();
+      if (dayOfWeek == "CN" || dayOfWeek == "7") {
+        tmp++;
+      }
+
+      if (tmp > 0) {
+        row.bonus_time = row.bonus_time * 1.5;
+      }
+
+      // Số tiết lên lớp theo Ngày bắt đầu, ngày kết thúc và tiết học
+      //row.ll_total = tongTietMap[row.course_name] || 0;
 
       // Quy chuẩn = số tiết lên lớp * hệ số ngoài giờ * hệ số lớp đông
       row.student_bonus = 0;
@@ -164,8 +220,7 @@ const importExcelTKB = async (req, res) => {
           break;
       }
 
-      const bonusTime = row.bonus_time ? Number(row.bonus_time) : 1;
-      row.qc = row.ll_total * bonusTime * row.student_bonus;
+      row.qc = row.ll_total * row.bonus_time * row.student_bonus;
 
       // Gán lại tt phục vụ quy chuẩn
       if (i > 0) {
@@ -207,6 +262,7 @@ const importExcelTKB = async (req, res) => {
       formatDateForMySQL(parseDateDDMMYY(row.end_date)),
       row.lecturer,
       row.major,
+      row.he_dao_tao,
       dot,
       ki,
       nam,
@@ -216,7 +272,7 @@ const importExcelTKB = async (req, res) => {
     const insertResult = await pool.query(
       `INSERT INTO course_schedule_details (
         TT, course_id, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
-        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, dot, ki_hoc, nam_hoc
+        day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]
     );
