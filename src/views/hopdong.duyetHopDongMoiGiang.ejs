@@ -1009,6 +1009,52 @@
         }
         totalGiangVien += giangVienList.length;
 
+        // Calculate department-wise totals for this training program
+        let dtphThanhTien = 0, dtphThucNhan = 0, dtphSoTiet = 0, dtphGiangVien = 0;
+        let otherThanhTien = 0, otherThucNhan = 0, otherSoTiet = 0, otherGiangVien = 0;
+
+        giangVienList.forEach(gv => {
+          const thanhTien = parseFloat(gv.ThanhTien) || 0;
+          const thucNhan = parseFloat(gv.ThucNhan) || 0;
+          const soTiet = parseFloat(gv.SoTiet) || 0;
+          
+          // Check if teacher belongs to ĐTPH department - using exact same data as table display
+          const tenPhongBan = (gv.MaPhongBan || gv.TenPhongBan || 'N/A').toString();
+          console.log('Department for', gv.HoTen, ':', tenPhongBan); // Debug log
+          
+          // More flexible matching for ĐTPH variations
+          const normalizedName = tenPhongBan.toLowerCase().trim()
+            .replace(/\s+/g, ' ') // normalize spaces
+            .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
+            .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
+            .replace(/[ìíịỉĩ]/g, 'i')
+            .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
+            .replace(/[ùúụủũưừứựửữ]/g, 'u')
+            .replace(/[ỳýỵỷỹ]/g, 'y')
+            .replace(/đ/g, 'd');
+            
+          const isDTPH = normalizedName.includes('dtph') || 
+                        normalizedName.includes('dao tao pho thong') ||
+                        normalizedName.includes('pho thong') ||
+                        normalizedName === 'dtph' ||
+                        tenPhongBan.toUpperCase().includes('DTPH') ||
+                        tenPhongBan.includes('ĐTPH');
+          
+          if (isDTPH) {
+            dtphThanhTien += thanhTien;
+            dtphThucNhan += thucNhan;
+            dtphSoTiet += soTiet;
+            dtphGiangVien++;
+            console.log('ĐTPH teacher found:', gv.HoTen, tenPhongBan); // Debug log
+          } else {
+            otherThanhTien += thanhTien;
+            otherThucNhan += thucNhan;
+            otherSoTiet += soTiet;
+            otherGiangVien++;
+            console.log('Other department teacher:', gv.HoTen, tenPhongBan); // Debug log
+          }
+        });
+
         // Create group container
         const groupContainer = $(`
             <div class="training-program-group">              <div class="training-program-header">
@@ -1024,13 +1070,29 @@
                 </div>                <div class="summary-item">
                   <i class="fas fa-clock me-1"></i>
                   <span class="summary-value">${formatSoTiet(heDaoTao.SoTiet)}</span> tiết
-                </div><div class="summary-item">
+                </div>
+                
+                <!-- ĐTPH Department Summary -->
+                ${dtphGiangVien > 0 ? `
+                <div class="summary-item">
+                  ĐTPH (${dtphGiangVien} GV): Tiền <strong>${formatCurrency(dtphThanhTien)}</strong> - Thực nhận <strong>${formatCurrency(dtphThucNhan)}</strong>
+                </div>
+                ` : ''}
+                
+                <!-- Other Departments Summary -->
+                ${otherGiangVien > 0 ? `
+                <div class="summary-item">
+                  Miền bắc (${otherGiangVien} GV): Tiền <strong>${formatCurrency(otherThanhTien)}</strong> - Thực nhận <strong>${formatCurrency(otherThucNhan)}</strong>
+                </div>
+                ` : ''}
+
+                <div class="summary-item">
                   <i class="fas fa-money-bill-wave me-1"></i>
-                  Số tiền: <span class="summary-value">${formatCurrency(heDaoTao.ThanhTien)}</span>
+                  Tổng tiền: <span class="summary-value">${formatCurrency(heDaoTao.ThanhTien)}</span>
                 </div>
                 <div class="summary-item">
                   <i class="fas fa-hand-holding-usd me-1"></i>
-                  Thực nhận: <span class="summary-value">${formatCurrency(heDaoTao.ThucNhan)}</span>
+                  Tổng thực nhận: <span class="summary-value">${formatCurrency(heDaoTao.ThucNhan)}</span>
                 </div>
               </div>
               
