@@ -548,12 +548,30 @@ const themTKBVaoQCDK = async (req, res) => {
 
     await connection.query(updateQuery, updateValues);
 
+    // ✅ Thêm xử lý cập nhật trạng thái thẻ năm học (tương tự ban hành)
+    try {
+      // Đặt tất cả trạng thái về 0
+      await connection.query(`UPDATE namhoc SET trangthai = ?`, [0]);
+      await connection.query(`UPDATE ki SET trangthai = ?`, [0]);
+      await connection.query(`UPDATE dot SET trangthai = ?`, [0]);
+
+      // Chỉ kích hoạt năm/kỳ/đợt được chọn
+      await connection.query(`UPDATE namhoc SET trangthai = ? WHERE NamHoc = ?`, [1, nam_hoc]);
+      await connection.query(`UPDATE ki SET trangthai = ? WHERE value = ?`, [1, ki_hoc]);
+      await connection.query(`UPDATE dot SET trangthai = ? WHERE value = ?`, [1, dot]);
+
+      console.log(`✅ Đã cập nhật trạng thái: Năm ${nam_hoc}, Kỳ ${ki_hoc}, Đợt ${dot}`);
+    } catch (statusError) {
+      console.error("⚠️ Lỗi cập nhật trạng thái thẻ năm học:", statusError);
+      // Không throw error để không làm gián đoạn quy trình chính
+    }
+
     return res.status(201).json({
       status: "success",
-      message: "Thêm dữ liệu vào quy chuẩn dự kiến thành công"
+      message: "Thêm dữ liệu vào quy chuẩn dự kiến thành công và đã cập nhật trạng thái năm học"
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật dữ liệu:", err);
+    console.error("Lỗi khi cập nhật dữ liệu:", error);
     res.status(500).json({
       status: "error",
       message: "Có lỗi xảy ra khi cập nhật dữ liệu"
