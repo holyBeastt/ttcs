@@ -22,7 +22,6 @@ const getDataTKBChinhThuc = async (req, res) => {
   const baseSelect = `
     SELECT 
       tt,
-      MAX(credit_hours) AS credit_hours,
       MIN(id) AS id,
       MAX(course_id) AS course_id,
       MAX(course_name) AS course_name,
@@ -98,7 +97,7 @@ const getBonusTimeForHeDaoTao = (oldHeDaoTao, newHeDaoTao, bonus_time) => {
       tmp = 1.5;
   }
 
-  if (newHeDaoTao.includes("Nghiên cứu sinh")) {
+  if (oldHeDaoTao.includes("Nghiên cứu sinh")) {
     if (bonus_time == 3)
       tmp = 1.5;
   }
@@ -255,7 +254,6 @@ const updateRowTKB = async (req, res) => {
       `SELECT
         tt,
         MIN(id) AS id,
-        MAX(credit_hours) AS credit_hours,
         MAX(course_id) AS course_id,
         MAX(course_name) AS course_name,
         MAX(major) AS major,
