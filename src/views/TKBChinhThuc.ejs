@@ -569,7 +569,7 @@
               field: key,
               headerName: headersMap[key]?.name || key,
               width: headersMap[key]?.width || 100,
-              editable: canEdit && key !== "student_bonus" && key !== "id",
+              editable: canEdit && key !== "student_bonus" && key !== "id" && key !== "bonus_time",
               hide: key === "semester" || key === "id" || key === "tt" || key === "course_id" 
               || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note', // Ẩn cột không cần thiết
               headerClass: "custom-header",
