@@ -141,6 +141,29 @@ const importExcelTKB = async (req, res) => {
 
       row.ll_total = tongTietMap[row.course_name] || 0;
 
+      // Quy chuẩn = số tiết lên lớp * hệ số ngoài giờ * hệ số lớp đông
+      row.student_bonus = 0;
+      switch (true) {
+        case row.student_quantity >= 101:
+          row.student_bonus = 1.5;
+          break;
+        case row.student_quantity >= 81:
+          row.student_bonus = 1.4;
+          break;
+        case row.student_quantity >= 66:
+          row.student_bonus = 1.3;
+          break;
+        case row.student_quantity >= 51:
+          row.student_bonus = 1.2;
+          break;
+        case row.student_quantity >= 41:
+          row.student_bonus = 1.1;
+          break;
+      }
+
+      const bonusTime = row.bonus_time ? Number(row.bonus_time) : 1;
+      row.qc = row.ll_total * bonusTime * row.student_bonus;
+
       // Gán lại tt phục vụ quy chuẩn
       if (i > 0) {
         // Chỉnh sửa tt phục vụ quy chuẩn

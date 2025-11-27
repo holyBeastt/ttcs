@@ -591,11 +591,12 @@ const addNewRowTKB = async (req, res) => {
     // Thực hiện chèn dữ liệu vào database
     const [result] = await pool.query(insertQuery, insertValues);
     const newId = result.insertId; // Lấy ID của dòng vừa thêm
+    const newTT = insertValues[0]; // Lấy tt của dòng vừa thêm
 
     // Trả về dữ liệu đầy đủ của dòng mới
     res.status(200).json({
       message: "Dòng đã được thêm thành công",
-      data: { id: newId, ...req.body }, // Gửi lại dữ liệu đã thêm
+      data: { id: newId, tt: newTT, ...req.body }, // Gửi lại dữ liệu đã thêm
     });
   } catch (error) {
     console.error("Lỗi thêm dữ liệu:", error);
