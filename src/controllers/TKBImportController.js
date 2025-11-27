@@ -247,6 +247,24 @@ const importExcelTKB = async (req, res) => {
       // Không throw error để không ảnh hưởng đến việc import chính
     }
 
+    // ✅ Thêm xử lý cập nhật trạng thái thẻ năm học (tương tự ban hành)
+    try {
+      // Đặt tất cả trạng thái về 0
+      await pool.query(`UPDATE namhoc SET trangthai = ?`, [0]);
+      await pool.query(`UPDATE ki SET trangthai = ?`, [0]);
+      await pool.query(`UPDATE dot SET trangthai = ?`, [0]);
+
+      // Chỉ kích hoạt năm/kỳ/đợt được chọn
+      await pool.query(`UPDATE namhoc SET trangthai = ? WHERE NamHoc = ?`, [1, nam]);
+      await pool.query(`UPDATE ki SET trangthai = ? WHERE value = ?`, [1, ki]);
+      await pool.query(`UPDATE dot SET trangthai = ? WHERE value = ?`, [1, dot]);
+
+      console.log(`✅ Đã cập nhật trạng thái: Năm ${nam}, Kỳ ${ki}, Đợt ${dot}`);
+    } catch (statusError) {
+      console.error("⚠️ Lỗi cập nhật trạng thái thẻ năm học:", statusError);
+      // Không throw error để không làm gián đoạn quy trình chính
+    }
+
     res.status(200).json({
       success: true,
       message: "Đọc file và lưu thành công",

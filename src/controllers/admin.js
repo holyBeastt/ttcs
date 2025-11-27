@@ -24,7 +24,7 @@ const getHeSoLopDongSite = async (req, res) => {
 const getHeSoLopDongData = async (req, res) => {
 
   try {
-    const [data] = await pool.query("SELECT * FROM hesolopdong ORDER BY SoSinhVien ASC");
+    const [data] = await pool.query("SELECT * FROM he_so_lop_dong ORDER BY student_quantity ASC");
 
     return res.status(200).json({
       success: true,

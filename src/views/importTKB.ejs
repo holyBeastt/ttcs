@@ -281,19 +281,13 @@
       // Hàm gửi yêu cầu xóa dữ liệu
       function deleteFile(semester, formData) {
         const { dot, ki, nam } = semester;
-        const body = {
-          major: "ALL",
-          dot: dot,
-          ki: ki,
-          nam: nam,
-        };
+        const major = "ALL";
 
-        fetch("/api/delete-data-TKB", {
-          method: "POST",
+        fetch(`/api/v1/tkb/all?major=${major}&dot=${dot}&ki_hoc=${ki}&nam_hoc=${nam}`, {
+          method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
         })
           .then((response) => {
             if (!response.ok) {

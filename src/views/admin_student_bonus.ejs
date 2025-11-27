@@ -25,20 +25,30 @@
     <%- include('adminHeader') %>
 
     <div class="container mt-4">
-    <h3>Hệ số lớp đông</h3>
-    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 600px;"></div>
+      <h3>Hệ số lớp đông</h3>
+      <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 600px;"></div>
+      <div class="mb-3 d-flex gap-2">
+      <button id="btnAdd" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Thêm dòng
+      </button>
     </div>
 
-    <!-- AG Grid CSS & JS -->
+    </div>
+
+    <!-- AG Grid Styles -->
     <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"
+      rel="stylesheet"
+      href="https://unpkg.com/ag-grid-community/styles/ag-grid.css"
     />
     <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"
+      rel="stylesheet"
+      href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+
+    <!-- AG Grid Script -->
+    <!-- <script src="https://unpkg.com/ag-grid-community@29.3.2/dist/ag-grid-community.min.js"></script> -->
+
+    <script src="/js/TKB/ag-grid-community.min.js"></script>
 
     <!-- jQuery và jQuery UI -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -54,20 +64,131 @@
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded'){
-            loadData();
-        }
+<script>
+let gridOptions;  // <<< Quan trọng
 
-        loadData = async (req, res) => {
-            try {
-                fetch('/api/v1/admin/he-so-lop-dong-data')
-                .then(response => response.json())
-            } catch (error) {
-                console.error("Lỗi khi tải dữ liệu:", error);
-            }
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+});
+
+// Lấy dữ liệu
+async function loadData() {
+    try {
+        const response = await fetch('/api/v1/admin/he-so-lop-dong-data');
+        if (!response.ok) throw new Error("Lỗi khi tải dữ liệu từ server");
+
+        const json = await response.json();
+        if (!json.success) throw new Error(json.message || "Lỗi dữ liệu");
+
+        renderTable(json.data);
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+        Swal.fire({ icon: 'error', text: "Không thể tải dữ liệu từ server" });
+    }
+}
+
+// Render AG Grid
+function renderTable(renderData) {
+const columnDefs = [
+    { 
+        headerName: 'Số sinh viên',
+        field: 'student_to',
+        editable: true,
+        cellEditor: 'agNumberCellEditor',
+        valueFormatter: params => {
+            const to = params.data.student_to ?? 0;
+            const from = params.data.student_from ?? 0;
+            return `${from} - ${to}`;
         }
-    </script>
+    },
+    { 
+        headerName: 'Hệ số lớp đông',
+        field: 'student_bonus',
+        editable: true
+    },
+    {
+        headerName: 'Hành động',
+        field: 'actions',
+        width: 120,
+        cellRenderer: params => `
+            <button class="btn btn-danger btn-sm delete-row">
+                <i class="bi bi-trash"></i>
+            </button>
+        `
+    }
+];
+
+
+    gridOptions = {    // <<< GÁN vào biến global
+        columnDefs,
+        rowData: renderData,
+        defaultColDef: { resizable: true, sortable: true, flex: 1 },
+        rowHeight: 50,
+        singleClickEdit: true,
+    };
+
+    const eGridDiv = document.getElementById('myGrid');
+    new agGrid.Grid(eGridDiv, gridOptions);
+}
+
+// Nút thêm dòng
+document.getElementById('btnAdd').addEventListener('click', () => {
+
+    const rowCount = gridOptions.api.getDisplayedRowCount();
+
+    let newFrom = 0;
+    let newTo = 0;
+
+    if (rowCount > 0) {
+        const top = gridOptions.api.getDisplayedRowAtIndex(0).data;
+        const curFrom = Number(top.student_from);
+        const curTo = Number(top.student_to);
+
+        newFrom = curTo + 1;
+        newTo = curTo + 10;
+
+    } else {
+        newFrom = 0;
+        newTo = 10;
+    }
+
+    const newRow = {
+        student_from: newFrom,
+        student_to: newTo,
+        student_bonus: 0
+    };
+
+    gridOptions.api.applyTransaction({ add: [newRow], addIndex: 0 });
+});
+
+
+
+
+// Nút xóa từng dòng
+document.addEventListener('click', function (e) {
+    if (e.target.closest('.delete-row')) {
+
+        const rowElement = e.target.closest('.ag-row');
+        const rowIndex = rowElement.getAttribute('row-id');
+
+        const rowNode = gridOptions.api.getDisplayedRowAtIndex(rowIndex);
+
+        Swal.fire({
+            icon: 'warning',
+            text: 'Bạn có chắc muốn xóa dòng này?',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then(result => {
+            if (result.isConfirmed) {
+                gridOptions.api.applyTransaction({ remove: [rowNode.data] });
+            }
+        });
+    }
+});
+</script>
+
+
 
 </body>
 </html>
