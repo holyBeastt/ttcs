@@ -711,9 +711,9 @@
             const updatedRow = await response.json();
 
             if (response.ok) {
-              const rowNode = gridOptions.api.getRowNode(id);
+              const rowNode = gridOptions.api.getRowNode(tt); // lúc đầu là id
               if (rowNode) {
-                rowNode.setData(updatedRow);
+                rowNode.setData(updatedRow); // Cp nhật data của row
               } else {
                 console.error(
                   "⚠️ Không tìm thấy dòng để cập nhật:",
@@ -746,10 +746,10 @@
 
         // Tạo bảng AG Grid
         gridOptions = {
-          getRowId: (params) => params.data.id, // Xác định dòng theo `id`
+          //getRowId: (params) => params.data.id, // Xác định dòng theo `id`
           columnDefs: columnDefs,
           rowData: renderData,
-
+          getRowId: params => params.data.tt,
           defaultColDef: {
             resizable: true,
             sortable: true,
@@ -806,8 +806,12 @@
           });
 
           const newRow = await response.json();
-
+          debugger
           if (response.ok) {
+            debugger
+
+            // Thêm vào renderData
+            //renderData.push(newRow.data);
 
             // ✅ Thêm dòng mới vào bảng AG Grid
             gridOptions.api.applyTransaction({ add: [newRow.data] });
@@ -825,42 +829,84 @@
         }
       }
 
-
       async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
 
-        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
-          try {
-            const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
+  if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
+    try {
+      const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-            if (!response.ok) {
-              throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
-            }
-
-            // Cập nhật lại dữ liệu cục bộ
-            renderData = renderData.filter((row) => row.tt != tt);
-
-            // Cập nhật lại bảng AG Grid
-            gridOptions.api.setRowData(renderData);
-
-            // Hiển thị thông báo thành công
-            Toastify({
-              text: "✅ Xóa thành công!",
-              duration: 1000,
-              gravity: "top",
-              position: "right",
-              backgroundColor: "#4CAF50",
-            }).showToast();
-          } catch (error) {
-            console.error("Lỗi khi xóa dòng:", error);
-            alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
-          }
-        }
+      if (!response.ok) {
+        throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
       }
+
+      // XÓA ĐÚNG CÁI DÒNG TRONG AG GRID
+      gridOptions.api.applyTransaction({
+        remove: [{ tt }]
+      });
+      console.log("Dòng đã xóa khỏi AG Grid", renderData);
+
+      // XÓA TRONG RENDERDATA
+      renderData = renderData.filter(row => row.tt !== tt);
+
+      console.log("Dòng đã xóa thành công", renderData);
+
+      Toastify({
+        text: "✅ Xóa thành công!",
+        duration: 1000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#4CAF50",
+      }).showToast();
+
+    } catch (error) {
+      console.error("Lỗi khi xóa dòng:", error);
+      alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
+    }
+  }
+}
+
+
+      // async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
+
+      //   if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
+      //     try {
+      //       const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
+      //         method: "DELETE",
+      //         headers: {
+      //           "Content-Type": "application/json",
+      //         },
+      //       });
+
+      //       if (!response.ok) {
+      //         throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
+      //       }
+
+
+      //       // Cập nhật lại dữ liệu cục bộ
+      //       renderData = renderData.filter((row) => row.tt != tt);
+
+      //       // Cập nhật lại bảng AG Grid
+      //       gridOptions.api.setRowData(renderData);
+
+      //       // Hiển thị thông báo thành công
+      //       Toastify({
+      //         text: "✅ Xóa thành công!",
+      //         duration: 1000,
+      //         gravity: "top",
+      //         position: "right",
+      //         backgroundColor: "#4CAF50",
+      //       }).showToast();
+      //     } catch (error) {
+      //       console.error("Lỗi khi xóa dòng:", error);
+      //       alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
+      //     }
+      //   }
+      // }
 
       // Xóa
       document.getElementById("xoa-TKB").addEventListener("click", async () => {
