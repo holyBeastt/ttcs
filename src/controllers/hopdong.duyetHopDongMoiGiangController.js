@@ -1115,8 +1115,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             // Query to get detailed teacher info for this training program
             let teacherQuery = `
     SELECT
-        MIN(qc.NgayBatDau) AS NgayBatDau,          -- ✅ BỔ SUNG
-        MAX(qc.NgayKetThuc) AS NgayKetThuc,        -- ✅ BỔ SUNG
+        MIN(qc.NgayBatDau) AS NgayBatDau,         
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,        
         gv.id_Gvm,
         gv.HoTen,
         gv.GioiTinh,
@@ -1225,18 +1225,43 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         const [sotietResult] = await connection.query(sotietQuery);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
 
-        // Calculate totals for training program view
-        let totalSoTietHeDaoTao = 0;
-        let totalThanhTienHeDaoTao = 0;
-        let totalThueHeDaoTao = 0;
-        let totalThucNhanHeDaoTao = 0;
+        // Calculate totals for training program view - Tách riêng ĐTPH và khác
+        let totalDTPH = {
+            totalSoTietHeDaoTao: 0,
+            totalThanhTienHeDaoTao: 0,
+            totalThueHeDaoTao: 0,
+            totalThucNhanHeDaoTao: 0
+        };
 
-        results.forEach(heDaoTao => {
-            totalSoTietHeDaoTao += parseFloat(heDaoTao.SoTiet) || 0;
-            totalThanhTienHeDaoTao += parseFloat(heDaoTao.ThanhTien) || 0;
-            totalThueHeDaoTao += parseFloat(heDaoTao.Thue) || 0;
-            totalThucNhanHeDaoTao += parseFloat(heDaoTao.ThucNhan) || 0;
-        });
+        let totalMienBac = {
+            totalSoTietHeDaoTao: 0,
+            totalThanhTienHeDaoTao: 0,
+            totalThueHeDaoTao: 0,
+            totalThucNhanHeDaoTao: 0
+        };
+
+        // Lấy dữ liệu chi tiết để phân loại theo khoa
+        for (const heDaoTao of enhancedResults) {
+            // Duyệt qua từng giảng viên trong hệ đào tạo để phân loại theo khoa
+            heDaoTao.chiTietGiangVien.forEach(giangVien => {
+                const soTiet = parseFloat(giangVien.SoTiet) || 0;
+                const thanhTien = parseFloat(giangVien.ThanhTien) || 0;
+                const thue = parseFloat(giangVien.Thue) || 0;
+                const thucNhan = parseFloat(giangVien.ThucNhan) || 0;
+
+                if (giangVien.MaPhongBan === 'ĐTPH') {
+                    totalDTPH.totalSoTietHeDaoTao += soTiet;
+                    totalDTPH.totalThanhTienHeDaoTao += thanhTien;
+                    totalDTPH.totalThueHeDaoTao += thue;
+                    totalDTPH.totalThucNhanHeDaoTao += thucNhan;
+                } else {
+                    totalMienBac.totalSoTietHeDaoTao += soTiet;
+                    totalMienBac.totalThanhTienHeDaoTao += thanhTien;
+                    totalMienBac.totalThueHeDaoTao += thue;
+                    totalMienBac.totalThucNhanHeDaoTao += thucNhan;
+                }
+            });
+        }
 
         res.json({
             success: true,
@@ -1244,12 +1269,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             enhancedData: enhancedResults,  // Include detailed data with teacher information
             SoTietDinhMuc: SoTietDinhMuc,
             message: `Tải dữ liệu thành công`,
-            // Include calculated totals for training program view
+            // Include calculated totals for training program view - Tách riêng ĐTPH và Miền Bắc
             totalsByHeDaoTao: {
-                totalSoTietHeDaoTao: totalSoTietHeDaoTao,
-                totalThanhTienHeDaoTao: totalThanhTienHeDaoTao,
-                totalThueHeDaoTao: totalThueHeDaoTao,
-                totalThucNhanHeDaoTao: totalThucNhanHeDaoTao
+                DTPH: totalDTPH,
+                MIEN_BAC: totalMienBac,
+                // Giữ lại tổng chung nếu cần
+                TONG_CHUNG: {
+                    totalSoTietHeDaoTao: totalDTPH.totalSoTietHeDaoTao + totalMienBac.totalSoTietHeDaoTao,
+                    totalThanhTienHeDaoTao: totalDTPH.totalThanhTienHeDaoTao + totalMienBac.totalThanhTienHeDaoTao,
+                    totalThueHeDaoTao: totalDTPH.totalThueHeDaoTao + totalMienBac.totalThueHeDaoTao,
+                    totalThucNhanHeDaoTao: totalDTPH.totalThucNhanHeDaoTao + totalMienBac.totalThucNhanHeDaoTao
+                }
             }
         });
 

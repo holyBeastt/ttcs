@@ -120,7 +120,7 @@
 
               currentGroup.push(row);
 
-              let teacherNameCell = row.cells[5]; // Giả sử tên giảng viên ở cột thứ 2
+              let teacherNameCell = row.cells[4]; // Giả sử tên giảng viên ở cột thứ 2
               if (teacherNameCell) {
                 let teacherName = teacherNameCell.textContent.toLowerCase();
                 if (teacherName.includes(input)) {
@@ -159,7 +159,7 @@
 
               currentGroup.push(row);
 
-              let teacherNameCell = row.cells[3]; // Giả sử tên giảng viên ở cột thứ 2
+              let teacherNameCell = row.cells[3]; // Giả sử tên đăng nhập ở cột thứ 3
               if (teacherNameCell) {
                 let teacherName = teacherNameCell.textContent.toLowerCase();
                 if (teacherName.includes(input)) {
@@ -196,7 +196,6 @@
               <th>ID User</th>
               <th>Tên Nhân Viên</th>
               <th>Tên tài khoản</th>
-              <th>Mật khẩu</th>
               <th>Mã Phòng ban</th>
               <th>Quyền</th>
               <th>Khoa</th>
@@ -214,7 +213,6 @@
               <td><%= accountLists[i].TenNhanVien %></td>
               <td><%= accountLists[i].TenDangNhap %></td>
               <!-- Hiển thị email -->
-              <td><%= accountLists[i].matkhau %></td>
               <td><%= accountLists[i].MaPhongBan %></td>
               <td><%= accountLists[i].Quyen %></td>
               <td><%= accountLists[i].isKhoa %></td>
@@ -229,7 +227,7 @@
             </tr>
             <% } %> <% } else { %>
             <tr>
-              <td colspan="3">Không có tài khoản nào.</td>
+              <td colspan="8">Không có tài khoản nào.</td>
             </tr>
             <% } %>
           </tbody>

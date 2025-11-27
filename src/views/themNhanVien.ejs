@@ -260,26 +260,20 @@
             const quyenSelect = document.getElementById("Quyen");
             quyenSelect.innerHTML = ""; // Xóa các option cũ
 
-            // Biến để xác định phòng Khảo Thí
-            const phongKhaoThi = (maPhongBan === APP_DEPARTMENTS.khaoThi && data.isKhoa === 0);
-
             // Kiểm tra isKhoa và cập nhật quyền dựa theo giá trị
             if (data.isKhoa === 1) {
+              // Quyền cho các khoa (phòng ban học thuật)
               quyenSelect.innerHTML = `
           <option value="${APP_ROLES.gv}">Giảng Viên</option>
           <option value="${APP_ROLES.gv_cnbm}">Giáo vụ - Chủ nhiệm bộ môn</option>
           <option value="${APP_ROLES.lanhDao_khoa}">Lãnh đạo khoa</option>`;
-            } else if (phongKhaoThi) {
-              // Trường hợp riêng cho phòng Khảo Thí (KT)
-              quyenSelect.innerHTML = `
-          <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo phòng</option>
-          <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>
-          <option value="${APP_ROLES.thuong}">Thường</option>`;
             } else {
-              // Các phòng ban hành chính khác
+              // Quyền cho các phòng ban hành chính (isKhoa = 0)
+              // Tất cả phòng ban hành chính đều có cấu trúc quyền tương tự
               quyenSelect.innerHTML = `
           <option value="${APP_ROLES.thuong}">Thường</option>
-          <option value="${APP_ROLES.troLy_phong}">Trợ lý</option>`;
+          <option value="${APP_ROLES.troLy_phong}">Trợ lý phòng</option>
+          <option value="${APP_ROLES.lanhDao_phong}">Lãnh đạo phòng</option>`;
             }
           })
           .catch((error) => console.error("Error:", error));

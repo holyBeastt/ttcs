@@ -97,7 +97,6 @@
               <th>Nơi cấp CCCD</th>
               <th>Học vị</th>
               <th>Tên đăng nhập</th>
-              <th>Mật khẩu</th>
               <th>Hành động</th>
             </tr>
           </thead>
@@ -128,7 +127,6 @@
               <td><%= nhanvienLists[i].NoiCapCCCD %></td>
               <td><%= nhanvienLists[i].HocVi %></td>
               <td><%= nhanvienLists[i].TenDangNhap %></td>
-              <td><%= nhanvienLists[i].MatKhau %></td>
               <td class="d-flex" style="border: none">
                 <button
                   class="action-button edit"
@@ -146,7 +144,7 @@
             </tr>
             <% } %> <% } else { %>
             <tr>
-              <td colspan="3">Không có tài khoản nào.</td>
+              <td colspan="16">Không có tài khoản nào.</td>
             </tr>
             <% } %>
           </tbody>
