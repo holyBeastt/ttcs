@@ -343,9 +343,12 @@
             throw new Error(data.message || "Lỗi xử lý file");
           }
 
+          // ✅ Sau khi import thành công, cập nhật trạng thái năm học
+          await updateYearStatus(semester);
+
           Swal.fire({
             title: "Thông báo",
-            html: data.message,
+            html: data.message + "<br><br>✅ Đã cập nhật trạng thái năm học đang hoạt động",
             icon: "success",
             confirmButtonText: "OK",
             width: "auto",
@@ -360,6 +363,26 @@
             icon: "error",
             confirmButtonText: "OK",
           });
+        }
+      }
+
+      // ✅ Hàm cập nhật trạng thái năm học (tương tự ban hành)
+      async function updateYearStatus(semester) {
+        try {
+          const response = await fetch(`/update/${semester.nam}/${semester.ki}/${semester.dot}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          });
+
+          if (!response.ok) {
+            console.error("❌ Lỗi cập nhật trạng thái năm học");
+          } else {
+            console.log("✅ Đã cập nhật trạng thái năm học thành công");
+          }
+        } catch (error) {
+          console.error("❌ Lỗi kết nối khi cập nhật trạng thái:", error);
         }
       }
 
@@ -428,8 +451,13 @@
                 );
               });
 
-              // Tự động chọn năm học hiện tại nếu có trong danh sách
-              if ($("#NamHoc option[value='" + currentAcademicYear + "']").length > 0) {
+              // ✅ Tự động chọn năm học đang hoạt động (trangthai = 1 - hiển thị đầu tiên)
+              if (response.NamHoc.length > 0) {
+                $("#NamHoc").val(response.NamHoc[0].NamHoc);
+              }
+              
+              // Fallback: Nếu không có năm nào, thử chọn năm hiện tại
+              if (!$("#NamHoc").val() && $("#NamHoc option[value='" + currentAcademicYear + "']").length > 0) {
                 $("#NamHoc").val(currentAcademicYear);
               }
 

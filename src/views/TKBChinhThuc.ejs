@@ -1118,6 +1118,11 @@
                 );
               });
 
+              // ✅ Tự động chọn năm học đang hoạt động (trangthai = 1 - hiển thị đầu tiên)
+              if (response.NamHoc.length > 0) {
+                $("#NamHoc").val(response.NamHoc[0].NamHoc);
+              }
+
               response.Ki.forEach(function (item) {
                 $("#comboboxki").append(
                   `<option value="${item.value}">${item.Ki}</option>`
