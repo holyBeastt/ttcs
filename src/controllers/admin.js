@@ -1,5 +1,6 @@
 const express = require("express");
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
 const router = express.Router();
 const mysql = require("mysql2/promise");
 const { getBoMon } = require("./adminController");
@@ -10,6 +11,31 @@ let departmentLists;
 let nhanvienLists;
 let idUserLists;
 let query;
+
+const getHeSoLopDongSite = async (req, res) => {
+  try {
+    res.render("admin_student_bonus.ejs");
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu:", error);
+    res.status(500).send("Lỗi hệ thống");
+  }
+};
+
+const getHeSoLopDongData = async (req, res) => {
+
+  try {
+    const [data] = await pool.query("SELECT * FROM hesolopdong ORDER BY SoSinhVien ASC");
+
+    return res.status(200).json({
+      success: true,
+      data: data,
+      message: "Lấy dữ liệu hệ số lớp đông thành công",
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy dữ liệu:", error);
+    res.status(500).send("Lỗi khi lấy dữ liệu hệ số lớp đông");
+  }
+}
 
 const getaccountList = async (req, res) => {
   let connection;
@@ -371,7 +397,7 @@ const updateMessage = async (req, res) => {
     connection = await createPoolConnection();
     for (let data of globalData) {
       const { tieuDe, loiNhan, deadlineConvert, isChecked, id } = data; // Lấy LoiNhan và Deadline từ body
-      
+
       // Câu truy vấn SQL
       const query = `UPDATE thongbao SET Title = ?, LoiNhan = ?, Deadline = ?, HetHan = ? WHERE id = ?`;
 
@@ -534,12 +560,12 @@ const updateHocPhan = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    
+
     // Lấy dữ liệu cũ trước khi cập nhật
     const getOldDataQuery = `SELECT * FROM hocphan WHERE MaHocPhan = ?`;
     const [oldData] = await connection.query(getOldDataQuery, [MaHocPhan]);
     const oldRecord = oldData[0];
-    
+
     const query = `
       UPDATE hocphan 
       SET TenHocPhan = ?, DVHT = ?, KiHoc = ?, Khoa = ?, MaBoMon = ? 
@@ -552,7 +578,7 @@ const updateHocPhan = async (req, res) => {
       const tenNhanVien = 'ADMIN';
       const khoa = 'DAOTAO';
       const logSql = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) VALUES (?, ?, ?, ?, ?, NOW())`;
-      
+
       let changes = [];
       if (oldRecord.TenHocPhan !== TenHocPhan) {
         changes.push(`TenHocPhan: "${oldRecord.TenHocPhan}" -> "${TenHocPhan}"`);
@@ -569,11 +595,11 @@ const updateHocPhan = async (req, res) => {
       if (oldRecord.MaBoMon !== MaBoMon) {
         changes.push(`MaBoMon: "${oldRecord.MaBoMon}" -> "${MaBoMon}"`);
       }
-      
-      const logMessage = changes.length > 0 
+
+      const logMessage = changes.length > 0
         ? `Admin cập nhật học phần ${MaHocPhan}: ${changes.join(', ')}`
         : `Admin cập nhật học phần ${MaHocPhan}: Không có thay đổi`;
-        
+
       await connection.query(logSql, [userId, tenNhanVien, khoa, 'Admin Log', logMessage]);
     } catch (logError) {
       console.error('Lỗi khi ghi log:', logError);
@@ -651,4 +677,6 @@ module.exports = {
   getHocPhanList,
   updateHocPhan,
   deleteHocPhan,
+  getHeSoLopDongSite,
+  getHeSoLopDongData
 };

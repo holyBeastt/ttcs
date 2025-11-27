@@ -47,6 +47,7 @@ const {
   transferFacultyData,
   mergeFacultyData,
 } = require("../controllers/adminController");
+
 const {
   getaccountList,
   getnhanvienList,
@@ -71,7 +72,10 @@ const {
   getHocPhanList,
   updateHocPhan,
   deleteHocPhan,
+  getHeSoLopDongSite,
+  getHeSoLopDongData
 } = require("../controllers/admin");
+
 const {
   postUpdateNV,
   postUpdatePhongBan,
@@ -156,6 +160,10 @@ router.post("/kytubatdau", postKyTuBD);
 router.delete("/kytubatdau/:lop_vi_du", deleteKyTuBD);
 router.put("/kytubatdau/:lop_vi_du", updateKyTuBD);
 router.post("/kytubatdau/check", checkKyTuBD);
+
+// Hệ số lớp đông
+router.get("/api/v1/admin/he-so-lop-dong", getHeSoLopDongSite);
+router.get("/api/v1/admin/he-so-lop-dong-data", getHeSoLopDongData);
 
 //Tiền lương
 router.get("/tienluong", getTienLuong);
