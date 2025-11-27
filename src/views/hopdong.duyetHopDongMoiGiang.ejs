@@ -1095,10 +1095,51 @@
         });
 
         container.append(groupContainer);
-      }); // Update total display
+      }); // Update total display with separate DTPH and MIEN_BAC totals
       const totalElement = document.getElementById("totalHeDaoTao");
       if (totalElement) {
-        totalElement.innerHTML = `
+        let totalHtml = '';
+        
+        // Display DTPH totals if available
+        if (serverTotals && serverTotals.DTPH) {
+          totalHtml += `
+            <div class="row mb-2" style="background-color: #1976d2; color: white; padding: 12px; border-radius: 5px; font-weight: bold; border: 2px solid #1565c0;">
+              <div class="col-12" style="font-size: 18px; margin-bottom: 8px;"><strong>🏢 TỔNG ĐTPH:</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Số tiết: <strong>${formatSoTiet(serverTotals.DTPH.totalSoTietHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thành tiền: <strong>${formatCurrency(serverTotals.DTPH.totalThanhTienHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thuế: <strong>${formatCurrency(serverTotals.DTPH.totalThueHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thực nhận: <strong>${formatCurrency(serverTotals.DTPH.totalThucNhanHeDaoTao)}</strong></div>
+            </div>
+          `;
+        }
+        
+        // Display MIEN_BAC totals if available
+        if (serverTotals && serverTotals.MIEN_BAC) {
+          totalHtml += `
+            <div class="row mb-2" style="background-color: #f57c00; color: white; padding: 12px; border-radius: 5px; font-weight: bold; border: 2px solid #ef6c00;">
+              <div class="col-12" style="font-size: 18px; margin-bottom: 8px;"><strong>🌏 TỔNG MIỀN BẮC:</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Số tiết: <strong>${formatSoTiet(serverTotals.MIEN_BAC.totalSoTietHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thành tiền: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThanhTienHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thuế: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThueHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thực nhận: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThucNhanHeDaoTao)}</strong></div>
+            </div>
+          `;
+        }
+        
+        // Display grand total
+        if (serverTotals && serverTotals.TONG_CHUNG) {
+          totalHtml += `
+            <div class="row" style="background-color: #388e3c; color: white; padding: 15px; border-radius: 5px; font-weight: bold; border: 3px solid #2e7d32;">
+              <div class="col-12" style="font-size: 20px; margin-bottom: 10px;"><strong>📊 TỔNG CHUNG:</strong></div>
+              <div class="col-md-3" style="font-size: 17px;">Số tiết: <strong>${formatSoTiet(serverTotals.TONG_CHUNG.totalSoTietHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 17px;">Thành tiền: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThanhTienHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 17px;">Thuế: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThueHeDaoTao)}</strong></div>
+              <div class="col-md-3" style="font-size: 17px;">Thực nhận: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThucNhanHeDaoTao)}</strong></div>
+            </div>
+          `;
+        } else {
+          // Fallback to old format if no server totals
+          totalHtml = `
             <div class="row">
               <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
               <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
@@ -1106,6 +1147,9 @@
               <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
             </div>
           `;
+        }
+        
+        totalElement.innerHTML = totalHtml;
       }
 
       // Display quota information
@@ -1477,15 +1521,60 @@
           `;
         summaryTbody.append(summaryRow);
         rowIndex++;
-      }); // Update total display
+      }); // Update total display with separate DTPH and MIEN_BAC totals
       const totalElement = document.getElementById("totalQC");
-      totalElement.innerHTML = `
-          <div class="row">            <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
+      let totalHtml = '';
+      
+      // Display DTPH totals if available  
+      if (serverTotals && serverTotals.DTPH) {
+        totalHtml += `
+          <div class="row mb-2" style="background-color: #1976d2; color: white; padding: 12px; border-radius: 5px; font-weight: bold; border: 2px solid #1565c0;">
+            <div class="col-12" style="font-size: 18px; margin-bottom: 8px;"><strong>🏢 TỔNG ĐTPH:</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Số tiết QC: <strong>${formatSoTiet(serverTotals.DTPH.totalSoTiet)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thành tiền: <strong>${formatCurrency(serverTotals.DTPH.totalThanhTien)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thuế: <strong>${formatCurrency(serverTotals.DTPH.totalThue)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thực nhận: <strong>${formatCurrency(serverTotals.DTPH.totalThucNhan)}</strong></div>
+          </div>
+        `;
+      }
+      
+      // Display MIEN_BAC totals if available
+      if (serverTotals && serverTotals.MIEN_BAC) {
+        totalHtml += `
+          <div class="row mb-2" style="background-color: #f57c00; color: white; padding: 12px; border-radius: 5px; font-weight: bold; border: 2px solid #ef6c00;">
+            <div class="col-12" style="font-size: 18px; margin-bottom: 8px;"><strong>🌏 TỔNG MIỀN BẮC:</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Số tiết QC: <strong>${formatSoTiet(serverTotals.MIEN_BAC.totalSoTiet)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thành tiền: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThanhTien)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thuế: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThue)}</strong></div>
+            <div class="col-md-3" style="font-size: 16px;">Thực nhận: <strong>${formatCurrency(serverTotals.MIEN_BAC.totalThucNhan)}</strong></div>
+          </div>
+        `;
+      }
+      
+      // Display grand total
+      if (serverTotals && serverTotals.TONG_CHUNG) {
+        totalHtml += `
+          <div class="row" style="background-color: #388e3c; color: white; padding: 15px; border-radius: 5px; font-weight: bold; border: 3px solid #2e7d32;">
+            <div class="col-12" style="font-size: 20px; margin-bottom: 10px;"><strong>📊 TỔNG CHUNG:</strong></div>
+            <div class="col-md-3" style="font-size: 17px;">Số tiết QC: <strong>${formatSoTiet(serverTotals.TONG_CHUNG.totalSoTiet)}</strong></div>
+            <div class="col-md-3" style="font-size: 17px;">Thành tiền: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThanhTien)}</strong></div>
+            <div class="col-md-3" style="font-size: 17px;">Thuế: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThue)}</strong></div>
+            <div class="col-md-3" style="font-size: 17px;">Thực nhận: <strong>${formatCurrency(serverTotals.TONG_CHUNG.totalThucNhan)}</strong></div>
+          </div>
+        `;
+      } else {
+        // Fallback to old format if no server totals
+        totalHtml = `
+          <div class="row">
+            <div class="col-md-3">Tổng số tiết QC: ${formatSoTiet(totalQC)}</div>
             <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTienAll)}</div>
             <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThueAll)}</div>
             <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhanAll)}</div>
           </div>
-        `; // Display quota information
+        `;
+      }
+      
+      totalElement.innerHTML = totalHtml; // Display quota information
       if (SoTietDinhMuc > 0) {
         $('#quotaInfo').html(`
             <div class="alert alert-info">
@@ -1632,15 +1721,16 @@
         } else {
           group.hide();
         }
-      }); // Update total display for training program view
+      }); // Update total display for training program view - simplified for filtered results
       const totalElement = document.getElementById("totalHeDaoTao");
       if (totalElement) {
         totalElement.innerHTML = `
-            <div class="row">
-              <div class="col-md-3">Tổng số tiết: ${formatSoTiet(totalSoTiet)}</div>
-              <div class="col-md-3">Tổng số tiền: ${formatCurrency(totalThanhTien)}</div>
-              <div class="col-md-3">Tổng trừ thuế: ${formatCurrency(totalThue)}</div>
-              <div class="col-md-3">Tổng thực nhận: ${formatCurrency(totalThucNhan)}</div>
+            <div class="row" style="background-color: #6c757d; color: white; padding: 12px; border-radius: 5px; font-weight: bold; border: 2px solid #5a6268;">
+              <div class="col-12" style="font-size: 18px; margin-bottom: 8px;"><strong>🔍 KẾT QUẢ LỌC:</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Số tiết: <strong>${formatSoTiet(totalSoTiet)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thành tiền: <strong>${formatCurrency(totalThanhTien)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thuế: <strong>${formatCurrency(totalThue)}</strong></div>
+              <div class="col-md-3" style="font-size: 16px;">Thực nhận: <strong>${formatCurrency(totalThucNhan)}</strong></div>
             </div>
           `;
       }
