@@ -571,7 +571,7 @@
               width: headersMap[key]?.width || 100,
               editable: canEdit && key !== "student_bonus" && key !== "id",
               hide: key === "semester" || key === "id" || key === "tt" || key === "course_id" 
-              || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc', // Ẩn cột không cần thiết
+              || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note', // Ẩn cột không cần thiết
               headerClass: "custom-header",
               filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
               valueFormatter: (params) => {
@@ -643,6 +643,21 @@
               },
             })),
         ];
+
+        columnDefs.push({
+          headerName: "Ghi chú",
+          field: "note",
+          width: 150,
+          editable: true,
+          cellEditor: "agLargeTextCellEditor",
+          cellEditorPopup: true,
+          cellEditorParams: {
+            maxLength: 400,
+            rows: 6,
+            cols: 40,
+          },
+        });
+
         // Thêm cột "Hành động" nếu role là "<%= APP_ROLES.troLy_phong %>" hoặc "<%= APP_ROLES.lanhDao_phong %>"
         if (role === "<%= APP_ROLES.troLy_phong %>" || role === "<%= APP_ROLES.lanhDao_phong %>") {
           columnDefs.push({

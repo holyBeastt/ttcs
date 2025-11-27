@@ -37,7 +37,8 @@ const getDataTKBChinhThuc = async (req, res) => {
       MAX(qc) AS qc,
       MAX(dot) AS dot,
       MAX(ki_hoc) AS ki_hoc,
-      MAX(nam_hoc) AS nam_hoc
+      MAX(nam_hoc) AS nam_hoc,
+      MAX(note) AS note
     FROM course_schedule_details
   `;
 
@@ -175,7 +176,22 @@ const updateRowTKB = async (req, res) => {
       const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
 
       await connection.query(updateQuery, updateValues);
-    } else {
+    } else if (field === "note") {
+
+      if (typeof value !== "string") {
+        return res.status(400).json({ message: "Ghi chú không hợp lệ" });
+      }
+
+      const updateQuery = `
+        UPDATE course_schedule_details 
+        SET note = ?
+        WHERE tt = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
+
+      const updateValues = [value, tt, dot, ki_hoc, nam_hoc];
+
+      await connection.query(updateQuery, updateValues);
+    }
+    else {
       if (field === "start_date" || field === "end_date") {
         value = formatDateForDB(value);
       }
@@ -205,7 +221,8 @@ const updateRowTKB = async (req, res) => {
         MAX(qc) AS qc,
         MAX(dot) AS dot,
         MAX(ki_hoc) AS ki_hoc,
-        MAX(nam_hoc) AS nam_hoc
+        MAX(nam_hoc) AS nam_hoc,
+        MAX(note) AS note
       FROM course_schedule_details 
         WHERE tt = ? and dot = ? and ki_hoc = ? and nam_hoc = ?
         group by tt`,
