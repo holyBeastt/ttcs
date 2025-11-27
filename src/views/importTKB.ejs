@@ -412,6 +412,10 @@
         $('#comboboxki option[value=""]').remove();
         $('#combobox-dot option[value=""]').remove();
 
+        // Tính toán năm học hiện tại theo định dạng Việt Nam
+        const currentYear = new Date().getFullYear();
+        const currentAcademicYear = `${currentYear} - ${currentYear + 1}`;
+
         $.ajax({
           url: "/getNamHoc",
           method: "GET",
@@ -423,6 +427,11 @@
                   `<option value="${item.NamHoc}">${item.NamHoc}</option>`
                 );
               });
+
+              // Tự động chọn năm học hiện tại nếu có trong danh sách
+              if ($("#NamHoc option[value='" + currentAcademicYear + "']").length > 0) {
+                $("#NamHoc").val(currentAcademicYear);
+              }
 
               response.Ki.forEach(function (item) {
                 console.log(item.Ki);
