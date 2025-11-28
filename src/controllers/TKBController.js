@@ -647,9 +647,9 @@ const addNewRowTKB = async (req, res) => {
     // Tạo câu truy vấn INSERT
     const insertQuery = `
       INSERT INTO course_schedule_details 
-      (tt, course_name, course_code, student_quantity, lecturer, major, ll_total, 
-       bonus_time, ll_code, start_date, end_date, dot, ki_hoc, nam_hoc, qc) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (tt, course_name, course_code, student_quantity, student_bonus, lecturer, major, ll_total, 
+       bonus_time, ll_code, start_date, end_date, he_dao_tao, dot, ki_hoc, nam_hoc, qc) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Giá trị cần chèn vào database
@@ -658,13 +658,15 @@ const addNewRowTKB = async (req, res) => {
       data.course_name || "",
       data.course_code || "",
       data.student_quantity || 0,
+      data.student_bonus || 0,
       data.lecturer || "",
       data.major,
       data.ll_total || 0,
-      data.bonus_time || 0,
+      data.bonus_time || 1,
       data.ll_code || 0,
       data.start_date || null,
       data.end_date || null,
+      data.he_dao_tao || "Đại học (Đóng học phí)",
       dot,
       ki_hoc,
       nam_hoc,

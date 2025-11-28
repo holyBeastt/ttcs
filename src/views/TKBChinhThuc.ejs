@@ -569,7 +569,7 @@
               field: key,
               headerName: headersMap[key]?.name || key,
               width: headersMap[key]?.width || 100,
-              editable: canEdit && key !== "student_bonus" && key !== "id" && key !== "bonus_time",
+              editable: canEdit && key !== "student_bonus" && key !== "id",
               hide: key === "semester" || key === "id" || key === "tt" || key === "course_id" 
               || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note', // Ẩn cột không cần thiết
               headerClass: "custom-header",
@@ -802,6 +802,8 @@
               ll_code: 0,
               ll_total: 0,
               qc: 0,
+              he_dao_tao: "Đại học (Đóng học phí)",
+              bonus_time: 1,
             }),
           });
 
