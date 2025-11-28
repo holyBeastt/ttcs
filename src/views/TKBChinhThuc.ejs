@@ -644,6 +644,20 @@
             })),
         ];
 
+        // Lấy từ localStorage và convert thành mảng string
+        const stored = JSON.parse(localStorage.getItem("KhoaList")) || [];
+        const khoaArray = stored.map(item => item.MaPhongBan);
+
+        // Gắn combobox cho cột Khoa
+        const khoaCol = columnDefs.find(col => col.field === "major");
+        if (khoaCol) {
+            khoaCol.cellEditor = "agSelectCellEditor";
+            khoaCol.cellEditorParams = {
+                values: khoaArray
+            };
+            khoaCol.editable = true;
+        }
+
         // Danh sách option cho combobox hệ đào tạo
         const heDaoTaoOptions = ["Đại học (Đóng học phí)", "Đại học (Mật mã)", "Cao học (Đóng học phí)", "Nghiên cứu sinh (Đóng học phí)"];
 
@@ -1217,7 +1231,7 @@
           success: function (response) {
             // Kiểm tra nếu response thành công
             const MaPhongBan = response.MaPhongBan;
-            localStorage.setItem("MaPhongBanList", JSON.stringify(MaPhongBan));
+            localStorage.setItem("KhoaList", JSON.stringify(MaPhongBan));
             if (response.success) {
               $("#departmentFilter").prepend(
                 '<option value="ALL">Tất cả khoa</option>'
