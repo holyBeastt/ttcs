@@ -73,7 +73,10 @@ const {
   updateHocPhan,
   deleteHocPhan,
   getHeSoLopDongSite,
-  getHeSoLopDongData
+  getHeSoLopDongData,
+  updateBonusTimeRow,
+  createBonusTimeRow,
+  deleteBonusTimeRow,
 } = require("../controllers/admin");
 
 const {
@@ -212,5 +215,12 @@ router.post("/api/admin/department/transfer-faculty-data", transferFacultyData);
 
 // Cập nhật data gộp khoa
 router.post("/api/admin/department/merge-faculty-data", mergeFacultyData);
+
+// Cập nhật hệ số ngoài giờ
+router.put("/api/v1/admin/bonus-time-row", updateBonusTimeRow);
+
+router.post("/api/v1/admin/bonus-time-row", createBonusTimeRow);
+
+router.delete("/api/v1/admin/bonus-time-row/:id", deleteBonusTimeRow);
 
 module.exports = router;

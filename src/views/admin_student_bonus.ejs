@@ -2,7 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Hệ số lớp đông</title>
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
     <link
       rel="stylesheet"
       href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
@@ -64,114 +64,250 @@
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
+    <!-- Toastify  -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+
 <script>
-let gridOptions;  // <<< Quan trọng
+    let gridOptions; 
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+    });
 
-// Lấy dữ liệu
-async function loadData() {
-    try {
-        const response = await fetch('/api/v1/admin/he-so-lop-dong-data');
-        if (!response.ok) throw new Error("Lỗi khi tải dữ liệu từ server");
+    // --- 1. LẤY DỮ LIỆU ---
+    async function loadData() {
+        try {
+            const response = await fetch('/api/v1/admin/he-so-lop-dong-data');
+            if (!response.ok) throw new Error("Lỗi kết nối");
+            const json = await response.json();
+            if (!json.success) throw new Error(json.message);
 
-        const json = await response.json();
-        if (!json.success) throw new Error(json.message || "Lỗi dữ liệu");
-
-        renderTable(json.data);
-    } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
-        Swal.fire({ icon: 'error', text: "Không thể tải dữ liệu từ server" });
-    }
-}
-
-// Render AG Grid
-function renderTable(renderData) {
-const columnDefs = [
-    { 
-        headerName: 'Số sinh viên',
-        field: 'student_to',
-        editable: true,
-        cellEditor: 'agNumberCellEditor',
-        valueFormatter: params => {
-            const to = params.data.student_to ?? 0;
-            const from = params.data.student_from ?? 0;
-            return `${from} - ${to}`;
+            renderTable(json.data);
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', text: "Không thể tải dữ liệu" });
         }
-    },
-    { 
-        headerName: 'Hệ số lớp đông',
-        field: 'student_bonus',
-        editable: true
-    },
-    {
-        headerName: 'Hành động',
-        field: 'actions',
-        width: 120,
-        cellRenderer: params => `
-            <button class="btn btn-danger btn-sm delete-row">
-                <i class="bi bi-trash"></i>
-            </button>
-        `
-    }
-];
-
-
-    gridOptions = {    // <<< GÁN vào biến global
-        columnDefs,
-        rowData: renderData,
-        defaultColDef: { resizable: true, sortable: true, flex: 1 },
-        rowHeight: 50,
-        singleClickEdit: true,
-    };
-
-    const eGridDiv = document.getElementById('myGrid');
-    new agGrid.Grid(eGridDiv, gridOptions);
-}
-
-// Nút thêm dòng
-document.getElementById('btnAdd').addEventListener('click', () => {
-
-    const rowCount = gridOptions.api.getDisplayedRowCount();
-
-    let newFrom = 0;
-    let newTo = 0;
-
-    if (rowCount > 0) {
-        const top = gridOptions.api.getDisplayedRowAtIndex(0).data;
-        const curFrom = Number(top.student_from);
-        const curTo = Number(top.student_to);
-
-        newFrom = curTo + 1;
-        newTo = curTo + 10;
-
-    } else {
-        newFrom = 0;
-        newTo = 10;
     }
 
-    const newRow = {
-        student_from: newFrom,
-        student_to: newTo,
-        student_bonus: 0
-    };
+    // --- 2. HIỂN THỊ BẢNG ---
+    function renderTable(renderData) {
+        // Sắp xếp giảm dần
+        renderData.sort((a, b) => b.student_quantity - a.student_quantity);
 
-    gridOptions.api.applyTransaction({ add: [newRow], addIndex: 0 });
-});
+        const columnDefs = [
+            { 
+                headerName: 'Số sinh viên',
+                field: 'student_quantity',
+                editable: true,
+                cellEditor: 'agNumberCellEditor',
+                
+                // --- Logic Validate (Giữ nguyên của bạn) ---
+                valueSetter: params => {
+                    const newValue = Number(params.newValue);
+                    if (isNaN(newValue)) return false;
 
+                    const rowIndex = params.node.rowIndex;
+                    const rowCount = params.api.getDisplayedRowCount();
+                    
+                    // Check Cận Dưới
+                    let minLimit = 0; 
+                    if (rowIndex < rowCount - 1) {
+                        const nextNode = params.api.getDisplayedRowAtIndex(rowIndex + 1);
+                        if (nextNode && nextNode.data) {
+                            minLimit = Number(nextNode.data.student_quantity) + 1;
+                        }
+                    }
+                    if (newValue <= minLimit) {
+                        Swal.fire('Lỗi', `Giá trị phải lớn hơn ${minLimit}`, 'error');
+                        return false;
+                    }
 
+                    // Check Cận Trên
+                    if (rowIndex > 0) {
+                        const prevNode = params.api.getDisplayedRowAtIndex(rowIndex - 1);
+                        if (prevNode && prevNode.data) {
+                            const maxLimit = Number(prevNode.data.student_quantity) - 2;
+                            if (newValue >= maxLimit) {
+                                Swal.fire('Lỗi', `Giá trị phải nhỏ hơn ${maxLimit}`, 'error');
+                                return false; 
+                            }
+                        }
+                    }
 
+                    params.data.student_quantity = newValue;
+                    return true;
+                },
 
-// Nút xóa từng dòng
-document.addEventListener('click', function (e) {
-    if (e.target.closest('.delete-row')) {
+                // --- Logic Hiển thị Min - Max (Giữ nguyên) ---
+                valueFormatter: params => {
+                    const to = params.data.student_quantity ?? 0;
+                    let from = 0;
+                    const rowIndex = params.node.rowIndex;
+                    const rowCount = params.api.getDisplayedRowCount();
 
-        const rowElement = e.target.closest('.ag-row');
-        const rowIndex = rowElement.getAttribute('row-id');
+                    if (rowIndex < rowCount - 1) {
+                        const nextNode = params.api.getDisplayedRowAtIndex(rowIndex + 1);
+                        if (nextNode && nextNode.data) {
+                            from = Number(nextNode.data.student_quantity) + 1;
+                        }
+                    }
+                    return `${from} - ${to}`;
+                }
+            },
+            { 
+                headerName: 'Hệ số lớp đông',
+                field: 'student_bonus',
+                editable: true
+            },
+            {
+                headerName: 'Hành động',
+                field: 'actions',
+                width: 120,
+                cellRenderer: params => `
+                    <button class="btn btn-danger btn-sm delete-row">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `
+            }
+        ];
 
-        const rowNode = gridOptions.api.getDisplayedRowAtIndex(rowIndex);
+        gridOptions = {
+            columnDefs,
+            rowData: renderData,
+            defaultColDef: { resizable: true, sortable: true, flex: 1 },
+            rowHeight: 50,
+            singleClickEdit: true,
+            
+            // Sự kiện sửa
+            onCellValueChanged: function(params) {
+                // Refresh ngay để tính lại số Min/Max hiển thị
+                params.api.refreshCells({ force: true });
+
+                if (params.oldValue === params.newValue) return;
+
+                saveRowToDatabase(params);
+            }
+        };
+
+        const eGridDiv = document.getElementById('myGrid');
+        new agGrid.Grid(eGridDiv, gridOptions);
+    }
+
+    // --- 3. SỬA LẠI HÀM LƯU (Tránh lặp vô hạn) ---
+    function saveRowToDatabase(params) {
+        const recordId = params.data.id;
+        const fieldName = params.colDef.field;
+        const newValue = params.newValue;
+        const oldValue = params.oldValue;
+
+        fetch('/api/v1/admin/bonus-time-row', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: recordId, field: fieldName, value: newValue })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Toastify({
+                    text: "Cập nhật thành công!",
+                    duration: 1000, // Hiển thị trong 3 giây
+                    gravity: "top", // Đưa thông báo lên trên
+                    position: "right", // Căn lề bên phải
+                    backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
+                }).showToast();
+            } else {
+                throw new Error(data.message || "Lỗi Server");
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi lưu data:', error);
+            Swal.fire('Lỗi!', 'Không thể lưu. Dữ liệu sẽ hoàn tác.', 'error');
+
+            // [QUAN TRỌNG] Cách hoàn tác không gây lặp vô hạn:
+            // 1. Gán trực tiếp vào data gốc (không qua setDataValue)
+            params.data[fieldName] = oldValue;
+            // 2. Yêu cầu vẽ lại ô đó
+            params.api.refreshCells({ force: true });
+        });
+    }
+
+    // --- 4. SỬA LẠI NÚT THÊM (Đồng bộ DB) ---
+    document.getElementById('btnAdd').addEventListener('click', () => {
+        const topNode = gridOptions.api.getDisplayedRowAtIndex(0);
+        let newMaxQuantity = 0;
+
+        // Tính toán số Max mới
+        if (topNode) {
+            const currentMax = Number(topNode.data.student_quantity);
+            newMaxQuantity = currentMax + 11;
+        } else {
+            newMaxQuantity = 10;
+        }
+
+        const newRowData = {
+            student_quantity: newMaxQuantity,
+            student_bonus: 0
+        };
+
+        // GỌI API TẠO MỚI TRƯỚC
+        fetch('/api/v1/admin/bonus-time-row', { // Bạn cần tạo API này ở backend
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newRowData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                // Server trả về ID của dòng mới tạo
+                newRowData.id = data.new_id; // Giả sử server trả về { new_id: 123 }
+
+                // Thêm vào Grid
+                gridOptions.api.applyTransaction({ add: [newRowData], addIndex: 0 });
+                gridOptions.api.refreshCells({ force: true });
+
+                Toastify({
+                    text: "Cập nhật thành công!",
+                    duration: 1000, // Hiển thị trong 3 giây
+                    gravity: "top", // Đưa thông báo lên trên
+                    position: "right", // Căn lề bên phải
+                    backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
+                }).showToast();
+            } else {
+                Swal.fire('Lỗi', data.message, 'error');
+            }
+        })
+        .catch(err => Swal.fire('Lỗi', 'Không thể thêm dòng mới', 'error'));
+    });
+
+    // --- 5. SỬA LẠI NÚT XÓA (Đồng bộ DB) ---
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.delete-row');
+        if (!btn) return;
+
+        // 1. Kiểm tra tổng số dòng hiện có
+        const rowCount = gridOptions.api.getDisplayedRowCount();
+        
+        // 2. Nếu chỉ còn 1 dòng (hoặc ít hơn) -> Báo lỗi và Dừng lại
+        if (rowCount <= 1) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Không thể xóa',
+                text: 'Bạn phải giữ lại ít nhất 1 dòng cấu hình!',
+                confirmButtonText: 'Đã hiểu'
+            });
+            return; // Dừng hàm, không chạy tiếp đoạn Swal xác nhận bên dưới
+        }
+        // -----------------------------
+
+        const rowElement = btn.closest('.ag-row');
+        const rowIndex = rowElement.getAttribute('row-index');
+        const rowNode = gridOptions.api.getDisplayedRowAtIndex(Number(rowIndex));
+
+        if (!rowNode) return;
 
         Swal.fire({
             icon: 'warning',
@@ -181,14 +317,36 @@ document.addEventListener('click', function (e) {
             cancelButtonText: 'Hủy'
         }).then(result => {
             if (result.isConfirmed) {
-                gridOptions.api.applyTransaction({ remove: [rowNode.data] });
+                const idToDelete = rowNode.data.id;
+
+                // SỬA: Truyền ID qua URL (Query String)
+                // Ví dụ: /api/v1/admin/bonus-time-row?id=123
+                fetch(`/api/v1/admin/bonus-time-row/${idToDelete}`, { 
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        gridOptions.api.applyTransaction({ remove: [rowNode.data] });
+                        gridOptions.api.refreshCells({ force: true });
+                        
+                        Toastify({
+                            text: "Xóa thành công!",
+                            duration: 1000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#4CAF50",
+                        }).showToast();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                })
+                .catch(err => Swal.fire('Lỗi', 'Không thể xóa dòng', 'error'));
             }
         });
-    }
-});
+    });
+
 </script>
-
-
-
 </body>
 </html>

@@ -653,6 +653,99 @@ const deleteHocPhan = async (req, res) => {
   }
 };
 
+const updateBonusTimeRow = async (req, res) => {
+  const { id, field, value } = req.body;
+
+  try {
+    const allowedColumns = ['student_quantity', 'student_bonus'];
+
+    // 1. Validate tên cột để tránh SQL Injection
+    if (!allowedColumns.includes(field)) {
+      return res.status(400).json({
+        success: false, // Thêm dòng này
+        message: 'Tên cột không hợp lệ!'
+      });
+    }
+
+    // 2. Query nối chuỗi tên cột (An toàn vì đã check whitelist ở trên)
+    const query = `UPDATE he_so_lop_dong SET ${field} = ? WHERE id = ?`;
+
+    // 3. SỬA LỖI Ở ĐÂY: Chỉ truyền value và id
+    const params = [value, id];
+
+    await pool.query(query, params);
+
+    // 4. Trả về success: true để Frontend nhận biết
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật thành công."
+    });
+
+  } catch (error) {
+    console.error("Lỗi khi cập nhật:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống."
+    });
+  }
+}
+
+const createBonusTimeRow = async (req, res) => {
+  const { student_quantity, student_bonus } = req.body;
+
+  try {
+    const query = `INSERT INTO he_so_lop_dong (student_quantity, student_bonus) VALUES (?, ?)`;
+
+    const [result] = await pool.query(query, [student_quantity, student_bonus]);
+
+    const newId = result.insertId;
+
+    res.status(200).json({
+      success: true,
+      message: "Thêm dòng thành công.",
+      // 3. QUAN TRỌNG: Trả ID này về cho Client
+      new_id: newId,
+      // Trả luôn cả cục data để client tiện dùng nếu cần
+      data: {
+        id: newId,
+        student_quantity,
+        student_bonus
+      }
+    });
+
+  } catch (error) {
+    console.error("Lỗi khi thêm dòng:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống."
+    });
+  }
+}
+
+const deleteBonusTimeRow = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Thiếu ID cần xóa" });
+  }
+
+  try {
+    const query = `DELETE FROM he_so_lop_dong WHERE id = ?`;
+
+    await pool.query(query, [id]);
+    res.status(200).json({
+      success: true,
+      message: "Xóa dòng thành công."
+    });
+  } catch (error) {
+    console.error("Lỗi khi xóa dòng:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống."
+    });
+  }
+};
+
 module.exports = {
   getaccountList,
   getdepartmentList,
@@ -678,5 +771,8 @@ module.exports = {
   updateHocPhan,
   deleteHocPhan,
   getHeSoLopDongSite,
-  getHeSoLopDongData
+  getHeSoLopDongData,
+  updateBonusTimeRow,
+  createBonusTimeRow,
+  deleteBonusTimeRow,
 };
