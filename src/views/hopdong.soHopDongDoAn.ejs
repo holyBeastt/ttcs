@@ -334,30 +334,26 @@
                         <div class="col-md-6">
                           <div class="d-flex align-items-center mb-1">
                             <i class="fas fa-file-contract text-primary me-2"></i>
-                            <span><strong>Số hợp đồng:</strong> <code>[Số]/[Kí hiệu HĐ]</code></span>
+                            <span><strong>Số hợp đồng:</strong> <code>[Số][Kí hiệu sau số]/[Kí hiệu HĐ]</code></span>
                           </div>
-                          <small class="text-muted ms-3">Ví dụ: 001/HĐ-ĐT</small>
+                          <small class="text-muted ms-3">Ví dụ: 001ĐA/HĐ-ĐT</small>
                         </div>
                         <div class="col-md-6">
                           <div class="d-flex align-items-center mb-1">
                             <i class="fas fa-file-times text-info me-2"></i>
-                            <span><strong>Số thanh lý:</strong> <code>[Số]/[Kí hiệu TL]</code></span>
+                            <span><strong>Số thanh lý:</strong> <code>[Số][Kí hiệu sau số]/[Kí hiệu TL]</code></span>
                           </div>
-                          <small class="text-muted ms-3">Ví dụ: 001/HĐNT-ĐT</small>
+                          <small class="text-muted ms-3">Ví dụ: 001ĐA/HĐNT-ĐT</small>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-check">
-                      <!-- Radio buttons for setup mode removed for simplicity -->
-                    </div>
-                    <!-- Starting number input -->
-                    <div id="unifiedStartingNumberDiv" class="mt-3">
-                      <div class="row">
+                <!-- Starting number input -->
+                <div id="unifiedStartingNumberDiv" class="mt-3">
+                      <!-- Row 1: Input fields -->
+                      <div class="row mb-3">
                         <div class="col-md-2">
                           <label for="unifiedStartingNumber" class="form-label">
                             <strong>Số bắt đầu</strong>
@@ -368,6 +364,15 @@
                             oninput="updateNumberPreview()">
                         </div>
                         <div class="col-md-2">
+                          <label for="kiHieuSauSo" class="form-label">
+                            <strong>Kí hiệu sau số</strong>
+                            <span class="text-danger">*</span>
+                          </label>
+                          <input type="text" class="form-control" id="kiHieuSauSo"
+                            name="kiHieuSauSo" value="ĐA" placeholder="VD: ĐA"
+                            oninput="updateNumberPreview()">
+                        </div>
+                        <div class="col-md-3">
                           <label for="kiHieuHopDong" class="form-label">
                             <strong>Kí hiệu hợp đồng</strong>
                             <span class="text-danger">*</span>
@@ -376,7 +381,7 @@
                             name="kiHieuHopDong" value="HĐ-ĐT" placeholder="Nhập kí hiệu hợp đồng"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                           <label for="kiHieuThanhLy" class="form-label">
                             <strong>Kí hiệu thanh lý</strong>
                             <span class="text-danger">*</span>
@@ -385,7 +390,7 @@
                             name="kiHieuThanhLy" value="HĐNT-ĐT" placeholder="Nhập kí hiệu thanh lý"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-2">
                           <label for="coSoDaoTao" class="form-label">
                             <strong>Cơ sở đào tạo</strong>
                             <span class="text-danger">*</span>
@@ -394,45 +399,43 @@
                             name="coSoDaoTao" value="Học viện Kỹ thuật mật mã" placeholder="Nhập cơ sở đào tạo">
                         </div>
                       </div>
-                      <div class="row mt-3">
+                      
+                      <!-- Row 2: Preview examples -->
+                      <div class="row mb-3">
                         <div class="col-12">
-                          <div class="p-3 bg-light border rounded">
-                            <div class="row">
-                              <div class="col-md-6">
-                                <div class="mb-2">
-                                  <strong>Ví dụ số hợp đồng:</strong> <span id="contractExample"
-                                    class="text-primary">001/HĐ-ĐT</span>
-                                </div>
-                              </div>
-                              <div class="col-md-6">
-                                <div>
-                                  <strong>Ví dụ số thanh lý:</strong> <span id="terminationExample"
-                                    class="text-info">001/HĐNT-ĐT</span>
-                                </div>
-                              </div>
+                          <div class="p-3 bg-light border rounded d-flex gap-4">
+                            <div>
+                              <strong>Ví dụ số hợp đồng:</strong> <span id="contractExample"
+                                class="text-primary">001ĐA/HĐ-ĐT</span>
+                            </div>
+                            <div>
+                              <strong>Ví dụ số thanh lý:</strong> <span id="terminationExample"
+                                class="text-info">001ĐA/HĐNT-ĐT</span>
                             </div>
                           </div>
                         </div>
                       </div>
+                      
+                      <!-- Row 3: Action buttons -->
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="d-flex gap-2" id="unifiedContractButtons">
+                            <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
+                              onclick="handleContractOperation('previewContract')">
+                              <i class="fas fa-eye"></i> Xem trước khi tạo
+                            </button>
+                            <button type="button" class="btn btn-success" id="executeContractBtn"
+                              onclick="handleContractOperation('executeContract')">
+                              <i class="fas fa-play"></i> Tạo
+                            </button>
+                          </div>
+                          <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng đồ án (cơ sở miền bắc)
+                          </small>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <!-- Unified action buttons that adapt based on contract type -->
-                    <div class="d-flex gap-2 mt-4" id="unifiedContractButtons">
-                      <button type="button" class="btn btn-outline-primary" id="previewContractBtn"
-                        onclick="handleContractOperation('previewContract')">
-                        <i class="fas fa-eye"></i> Xem trước khi tạo
-                      </button>
-                      <button type="button" class="btn btn-success" id="executeContractBtn"
-                        onclick="handleContractOperation('executeContract')">
-                        <i class="fas fa-play"></i> Tạo
-                      </button>
-                    </div>
-
-                    <small class="text-muted mt-2 d-block">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Sẽ tạo đồng thời cả số hợp đồng và số thanh lý cho mỗi hợp đồng đồ án (cơ sở miền bắc)
-                    </small>
                   </div>
                 </div>
               </div>
@@ -692,11 +695,12 @@
         function updateNumberPreview() {
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
           const formattedNumber = String(startingNumber).padStart(3, '0');
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
-          $('#contractExample').text(`${formattedNumber}/${kiHieuHopDong}`);
-          $('#terminationExample').text(`${formattedNumber}/${kiHieuThanhLy}`);
+          $('#contractExample').text(`${formattedNumber}${kiHieuSauSo}/${kiHieuHopDong}`);
+          $('#terminationExample').text(`${formattedNumber}${kiHieuSauSo}/${kiHieuThanhLy}`);
         }
 
         // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý cho đồ án
@@ -723,9 +727,13 @@
           showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
 
           const teacherName = $('#searchTeacher').val().trim();
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
           const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
+
+          // Ghép kí hiệu sau số vào số hợp đồng
+          const formattedNumber = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
 
           const data = {
             dot: dot,
@@ -733,7 +741,7 @@
             nam: nam,
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
-            startingNumber: startingNumber,
+            startingNumber: formattedNumber,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
             coSoDaoTao: coSoDaoTao,
@@ -770,11 +778,17 @@
           }
 
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
           if (!startingNumber || startingNumber < 1) {
             showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
+            return;
+          }
+
+          if (!kiHieuSauSo.trim()) {
+            showError('Vui lòng nhập kí hiệu sau số');
             return;
           }
 
@@ -789,25 +803,22 @@
           }
 
           // Dialog xác nhận chi tiết
-          const contractExample = String(startingNumber).padStart(3, '0');
-          const terminationExample = String(startingNumber).padStart(3, '0');
+          const contractExample = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
+          const terminationExample = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
 
           Swal.fire({
             title: 'Xác nhận tạo số hợp đồng và số thanh lý đồ án',
             html: `<div class="text-start">
                  <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
+                 <p>Kí hiệu sau số: <strong>${kiHieuSauSo}</strong></p>
+                 <p>Kí hiệu hợp đồng: <strong>${kiHieuHopDong}</strong></p>
+                 <p>Kí hiệu thanh lý: <strong>${kiHieuThanhLy}</strong></p>
                  <div class="row mt-3">
-                   <div class="col-6">
-                     <div class="d-flex align-items-center">
-                       <i class="fas fa-file-contract text-primary me-2"></i>
-                       <span>Số hợp đồng: <strong class="text-primary">${contractExample}</strong> | Kí hiệu: <strong>${kiHieuHopDong}</strong></span>
-                     </div>
+                   <div class="col-12 mb-2">
+                       <span>Số hợp đồng: <strong class="text-primary">${contractExample}/${kiHieuHopDong}</strong></span>
                    </div>
-                   <div class="col-6">
-                     <div class="d-flex align-items-center">
-                       <i class="fas fa-file-times text-info me-2"></i>
-                       <span>Số thanh lý: <strong class="text-info">${terminationExample}</strong> | Kí hiệu: <strong>${kiHieuThanhLy}</strong></span>
-                     </div>
+                   <div class="col-12">
+                       <span>Số thanh lý: <strong class="text-info">${terminationExample}/${kiHieuThanhLy}</strong></span>
                    </div>
                  </div>
                </div>`,
@@ -827,67 +838,31 @@
         function performSynchronizedSetup() {
           showLoading(true);
 
-          /* ────────────────────────────────────────────────────────
-             1. Trích dữ liệu từ bảng <tbody id="contractsTableBody">
-          ────────────────────────────────────────────────────────── */          const tableData = [];
-
-          $('#contractsTableBody tr').each(function () {
-            const $row = $(this);
-            
-            // Bỏ qua dòng placeholder "Không có dữ liệu…"
-            if ($row.find('td[colspan]').length > 0) return;
-            if (!$row.find('td').length) return;
-
-            // Lấy dữ liệu từ data attributes
-            const cccd = $row.data('cccd');
-            const heDaoTao = $row.data('he-dao-tao');
-            const hoTen = $row.data('hoten');
-            const newSoHopDong = $row.data('new-so-hop-dong');
-            const newSoThanhLy = $row.data('new-so-thanh-ly');
-            const khoa = $row.data('khoa');
-
-            // Chỉ giữ những dòng có đầy đủ thông tin và đã tạo số mới
-            if (hoTen && cccd && newSoHopDong && newSoThanhLy && 
-                newSoHopDong !== 'Chưa tạo' && newSoThanhLy !== 'Chưa tạo') {
-              
-              tableData.push({
-                HoTen: hoTen,
-                CCCD: cccd,
-                he_dao_tao: heDaoTao,
-                newSoHopDong: newSoHopDong,
-                newSoThanhLy: newSoThanhLy,
-                groupInfo: khoa ? `${khoa} - ${heDaoTao}` : heDaoTao
-              });
-            }
-          });
-
-          /* ────────────────────────────────────────────────────────
-             2. Gom các giá trị từ form
-          ────────────────────────────────────────────────────────── */
           const teacherName = $('#searchTeacher').val().trim();
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
           const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
+          
+          // Ghép kí hiệu sau số vào số hợp đồng
+          const startNum = parseInt($('#unifiedStartingNumber').val()) || 1;
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
+          const formattedNumber = String(startNum).padStart(3, '0') + kiHieuSauSo;
+          
           const data = {
             dot: $('#combobox-dot').val(),
             ki: $('#comboboxki').val(),
             nam: $('#NamHoc').val(),
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
-            startingNumber: parseInt($('#unifiedStartingNumber').val()) || 1,
+            startingNumber: formattedNumber,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
             coSoDaoTao: coSoDaoTao,
-            contractsData: tableData,
             teacherName: teacherName
           };
 
-          console.log('data contract đồ án:', data.contractsData);
-          console.log('Full setup data being sent:', data);
+          console.log('Setup parameters (Đồ án):', data);
 
-          /* ────────────────────────────────────────────────────────
-             3. Gửi dữ liệu lên server cho đồ án
-          ────────────────────────────────────────────────────────── */
           $.post('/api/setup-so-hopdong-do-an', data)
             .done(function (response) {
               console.log('Setup response received:', response);
@@ -1163,6 +1138,12 @@
 
           // Khởi tạo giao diện
           updateNumberPreview();
+
+          // Thêm event handler cho số bắt đầu và kí hiệu thay đổi
+          $('#unifiedStartingNumber').on('input', updateNumberPreview);
+          $('#kiHieuSauSo').on('input', updateNumberPreview);
+          $('#kiHieuHopDong').on('input', updateNumberPreview);
+          $('#kiHieuThanhLy').on('input', updateNumberPreview);
 
           // Đặt giao diện mặc định cho loại hợp đồng đồ án
           $('#contractTypeAlert').addClass('alert-primary');
