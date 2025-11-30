@@ -18,9 +18,6 @@ router.post("/api/v1/tkb/update-row", TKBController.updateRowTKB);
 // xóa 1 dòng
 router.delete("/TKB-delete-row", TKBController.deleteRow);
 
-// Cập nhật số lượng sinh viên
-router.post("/api/save-student-quantity", TKBController.updateStudentQuantity);
-
 // Lưu từ TKB sang quy chuẩn dự kiến
 router.post("/api/v1/tkb/save-data-to-qcdk", TKBController.themTKBVaoQCDK);
 
