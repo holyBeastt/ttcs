@@ -95,69 +95,103 @@
 
     // --- 2. HIỂN THỊ BẢNG ---
     function renderTable(renderData) {
-        // Sắp xếp giảm dần
+        // 1. Sắp xếp giảm dần (Lớn nhất nằm trên cùng)
         renderData.sort((a, b) => b.student_quantity - a.student_quantity);
+
+        // --- XỬ LÝ DỮ LIỆU RỖNG KHI LOAD LẦN ĐẦU ---
+        // Nếu DB trả về ít hơn 2 dòng, ta phải tạo giả lập để đảm bảo logic không vỡ
+        // (Lưu ý: Tốt nhất backend nên seed data sẵn 2 dòng này)
+        if (renderData.length < 2) {
+             console.warn("Dữ liệu ít hơn 2 dòng, logic có thể hiển thị chưa đẹp mắt.");
+             // Bạn có thể gọi API tạo tự động 2 dòng mặc định ở đây nếu muốn
+        }
 
         const columnDefs = [
             { 
-                headerName: 'Số sinh viên',
+                headerName: 'Từ số sinh viên (Min)',
                 field: 'student_quantity',
-                editable: true,
+                
+                // 1. CHẶN KHÔNG CHO SỬA DÒNG CUỐI (Vì nó luôn bắt đầu từ 0)
+                editable: params => {
+                    const rowIndex = params.node.rowIndex;
+                    const rowCount = params.api.getDisplayedRowCount();
+                    // Nếu là dòng cuối cùng -> Không cho sửa
+                    return rowIndex !== rowCount - 1;
+                },
+                
                 cellEditor: 'agNumberCellEditor',
                 
-                // --- Logic Validate (Giữ nguyên của bạn) ---
+                // --- LOGIC VALIDATE (Giữ nguyên, chỉ chạy cho các dòng trên) ---
                 valueSetter: params => {
                     const newValue = Number(params.newValue);
-                    if (isNaN(newValue)) return false;
+                    if (isNaN(newValue) || newValue < 0) return false;
 
                     const rowIndex = params.node.rowIndex;
                     const rowCount = params.api.getDisplayedRowCount();
                     
-                    // Check Cận Dưới
-                    let minLimit = 0; 
+                    // Logic kiểm tra dòng trên/dưới giữ nguyên...
+                    // ... (Code validation cũ của bạn) ...
+                    
                     if (rowIndex < rowCount - 1) {
-                        const nextNode = params.api.getDisplayedRowAtIndex(rowIndex + 1);
-                        if (nextNode && nextNode.data) {
-                            minLimit = Number(nextNode.data.student_quantity) + 1;
-                        }
+                         const nextNode = params.api.getDisplayedRowAtIndex(rowIndex + 1);
+                         if (nextNode) {
+                             const lowerNeighbor = Number(nextNode.data.student_quantity);
+                             if (newValue <= lowerNeighbor) {
+                                 Swal.fire('Lỗi', `Phải lớn hơn ${lowerNeighbor}`, 'error');
+                                 return false;
+                             }
+                         }
                     }
-                    if (newValue <= minLimit) {
-                        Swal.fire('Lỗi', `Giá trị phải lớn hơn ${minLimit}`, 'error');
-                        return false;
-                    }
-
-                    // Check Cận Trên
                     if (rowIndex > 0) {
-                        const prevNode = params.api.getDisplayedRowAtIndex(rowIndex - 1);
-                        if (prevNode && prevNode.data) {
-                            const maxLimit = Number(prevNode.data.student_quantity) - 2;
-                            if (newValue >= maxLimit) {
-                                Swal.fire('Lỗi', `Giá trị phải nhỏ hơn ${maxLimit}`, 'error');
-                                return false; 
-                            }
-                        }
+                         const prevNode = params.api.getDisplayedRowAtIndex(rowIndex - 1);
+                         if (prevNode) {
+                             const upperNeighbor = Number(prevNode.data.student_quantity);
+                             if (newValue >= upperNeighbor) {
+                                 Swal.fire('Lỗi', `Phải nhỏ hơn ${upperNeighbor}`, 'error');
+                                 return false;
+                             }
+                         }
                     }
 
                     params.data.student_quantity = newValue;
                     return true;
                 },
 
-                // --- Logic Hiển thị Min - Max (Giữ nguyên) ---
+                // --- 2. LOGIC HIỂN THỊ MỚI (QUAN TRỌNG) ---
                 valueFormatter: params => {
-                    const to = params.data.student_quantity ?? 0;
-                    let from = 0;
                     const rowIndex = params.node.rowIndex;
                     const rowCount = params.api.getDisplayedRowCount();
+                    const currentMin = params.data.student_quantity;
 
-                    if (rowIndex < rowCount - 1) {
-                        const nextNode = params.api.getDisplayedRowAtIndex(rowIndex + 1);
-                        if (nextNode && nextNode.data) {
-                            from = Number(nextNode.data.student_quantity) + 1;
-                        }
+                    // TRƯỜNG HỢP 1: DÒNG ĐẦU TIÊN (TOP) -> N đến vô cùng
+                    if (rowIndex === 0) {
+                        return `${currentMin} - vô cùng`;
                     }
-                    return `${from} - ${to}`;
+
+                    // TRƯỜNG HỢP 2: DÒNG CUỐI CÙNG (BOTTOM) -> Luôn là 0 - N
+                    if (rowIndex === rowCount - 1) {
+                        // Lấy dòng bên trên nó
+                        const prevNode = params.api.getDisplayedRowAtIndex(rowIndex - 1);
+                        if (prevNode && prevNode.data) {
+                            // Max của dòng cuối = (Min dòng trên) - 1
+                            const maxOfLast = Number(prevNode.data.student_quantity) - 1;
+                            // ÉP CỨNG SỐ 0 Ở ĐẦU
+                            return `0 - ${maxOfLast}`;
+                        }
+                        return `0 - 0`;
+                    }
+
+                    // TRƯỜNG HỢP 3: CÁC DÒNG Ở GIỮA -> Min - Max
+                    const prevNode = params.api.getDisplayedRowAtIndex(rowIndex - 1);
+                    if (prevNode && prevNode.data) {
+                        const max = Number(prevNode.data.student_quantity) - 1;
+                        return `${currentMin} - ${max}`;
+                    }
+                    
+                    return `${currentMin} - ?`;
                 }
             },
+            // ... các cột khác ...
             { 
                 headerName: 'Hệ số lớp đông',
                 field: 'student_bonus',
@@ -181,14 +215,10 @@
             defaultColDef: { resizable: true, sortable: true, flex: 1 },
             rowHeight: 50,
             singleClickEdit: true,
-            
-            // Sự kiện sửa
             onCellValueChanged: function(params) {
-                // Refresh ngay để tính lại số Min/Max hiển thị
+                // Refresh để vẽ lại số Max của dòng dưới ngay khi dòng trên thay đổi
                 params.api.refreshCells({ force: true });
-
                 if (params.oldValue === params.newValue) return;
-
                 saveRowToDatabase(params);
             }
         };
@@ -196,7 +226,7 @@
         const eGridDiv = document.getElementById('myGrid');
         new agGrid.Grid(eGridDiv, gridOptions);
     }
-
+    
     // --- 3. SỬA LẠI HÀM LƯU (Tránh lặp vô hạn) ---
     function saveRowToDatabase(params) {
         const recordId = params.data.id;
@@ -238,23 +268,24 @@
     // --- 4. SỬA LẠI NÚT THÊM (Đồng bộ DB) ---
     document.getElementById('btnAdd').addEventListener('click', () => {
         const topNode = gridOptions.api.getDisplayedRowAtIndex(0);
-        let newMaxQuantity = 0;
+        let newMin = 0;
 
-        // Tính toán số Max mới
+        // VÍ DỤ: Dòng đầu đang là 10.
+        // Muốn thêm dòng mới là 21. => newMin = 10 + 11.
         if (topNode) {
-            const currentMax = Number(topNode.data.student_quantity);
-            newMaxQuantity = currentMax + 11;
+            const currentTopMin = Number(topNode.data.student_quantity);
+            newMin = currentTopMin + 11; 
         } else {
-            newMaxQuantity = 10;
+            // Trường hợp database rỗng (nên tránh để xảy ra)
+            newMin = 10; 
         }
 
         const newRowData = {
-            student_quantity: newMaxQuantity,
+            student_quantity: newMin, 
             student_bonus: 0
         };
 
-        // GỌI API TẠO MỚI TRƯỚC
-        fetch('/api/v1/admin/bonus-time-row', { // Bạn cần tạo API này ở backend
+        fetch('/api/v1/admin/bonus-time-row', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newRowData)
@@ -262,90 +293,80 @@
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                // Server trả về ID của dòng mới tạo
-                newRowData.id = data.new_id; // Giả sử server trả về { new_id: 123 }
-
-                // Thêm vào Grid
+                newRowData.id = data.new_id;
+                // Thêm vào đầu bảng (index 0)
                 gridOptions.api.applyTransaction({ add: [newRowData], addIndex: 0 });
+                // Refresh để dòng cũ (đang là vô cùng) cập nhật lại thành số cụ thể
                 gridOptions.api.refreshCells({ force: true });
-
-                Toastify({
-                    text: "Cập nhật thành công!",
-                    duration: 1000, // Hiển thị trong 3 giây
-                    gravity: "top", // Đưa thông báo lên trên
-                    position: "right", // Căn lề bên phải
-                    backgroundColor: "#4CAF50", // Màu xanh lá (thành công)
-                }).showToast();
+                
+                Toastify({ text: "Thêm thành công", backgroundColor: "green" }).showToast();
             } else {
                 Swal.fire('Lỗi', data.message, 'error');
             }
-        })
-        .catch(err => Swal.fire('Lỗi', 'Không thể thêm dòng mới', 'error'));
+        });
     });
 
     // --- 5. SỬA LẠI NÚT XÓA (Đồng bộ DB) ---
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.delete-row');
-        if (!btn) return;
+            const btn = e.target.closest('.delete-row');
+            if (!btn) return;
 
-        // 1. Kiểm tra tổng số dòng hiện có
-        const rowCount = gridOptions.api.getDisplayedRowCount();
-        
-        // 2. Nếu chỉ còn 1 dòng (hoặc ít hơn) -> Báo lỗi và Dừng lại
-        if (rowCount <= 1) {
+            // --- KIỂM TRA SỐ LƯỢNG DÒNG ---
+            const rowCount = gridOptions.api.getDisplayedRowCount();
+            
+            // YÊU CẦU: Phải luôn có >= 2 dòng. Nếu đang có 2 dòng thì không cho xóa nữa.
+            if (rowCount <= 2) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Không thể xóa',
+                    text: 'Hệ thống yêu cầu tối thiểu 2 mức cấu hình!',
+                    confirmButtonText: 'Đã hiểu'
+                });
+                return;
+            }
+            // -------------------------------
+
+            const rowElement = btn.closest('.ag-row');
+            const rowIndex = rowElement.getAttribute('row-index');
+            const rowNode = gridOptions.api.getDisplayedRowAtIndex(Number(rowIndex));
+
+            if (!rowNode) return;
+
             Swal.fire({
                 icon: 'warning',
-                title: 'Không thể xóa',
-                text: 'Bạn phải giữ lại ít nhất 1 dòng cấu hình!',
-                confirmButtonText: 'Đã hiểu'
+                text: 'Bạn có chắc muốn xóa dòng này?',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    const idToDelete = rowNode.data.id;
+                    fetch(`/api/v1/admin/bonus-time-row/${idToDelete}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            gridOptions.api.applyTransaction({ remove: [rowNode.data] });
+                            // Refresh để dòng liền kề cập nhật lại hiển thị Max/Vô cùng
+                            gridOptions.api.refreshCells({ force: true });
+
+                            Toastify({
+                                text: "Xóa thành công!",
+                                duration: 1000,
+                                gravity: "top",
+                                position: "right",
+                                backgroundColor: "#4CAF50",
+                            }).showToast();
+                        } else {
+                            swal.fire('Lỗi', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Lỗi xóa:', error);
+                        Swal.fire('Lỗi', 'Không thể xóa dòng này.', 'error');
+                    });
+                }
             });
-            return; // Dừng hàm, không chạy tiếp đoạn Swal xác nhận bên dưới
-        }
-        // -----------------------------
-
-        const rowElement = btn.closest('.ag-row');
-        const rowIndex = rowElement.getAttribute('row-index');
-        const rowNode = gridOptions.api.getDisplayedRowAtIndex(Number(rowIndex));
-
-        if (!rowNode) return;
-
-        Swal.fire({
-            icon: 'warning',
-            text: 'Bạn có chắc muốn xóa dòng này?',
-            showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy'
-        }).then(result => {
-            if (result.isConfirmed) {
-                const idToDelete = rowNode.data.id;
-
-                // SỬA: Truyền ID qua URL (Query String)
-                // Ví dụ: /api/v1/admin/bonus-time-row?id=123
-                fetch(`/api/v1/admin/bonus-time-row/${idToDelete}`, { 
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.success) {
-                        gridOptions.api.applyTransaction({ remove: [rowNode.data] });
-                        gridOptions.api.refreshCells({ force: true });
-                        
-                        Toastify({
-                            text: "Xóa thành công!",
-                            duration: 1000,
-                            gravity: "top",
-                            position: "right",
-                            backgroundColor: "#4CAF50",
-                        }).showToast();
-                    } else {
-                        Swal.fire('Lỗi', data.message, 'error');
-                    }
-                })
-                .catch(err => Swal.fire('Lỗi', 'Không thể xóa dòng', 'error'));
-            }
         });
-    });
 
 </script>
 </body>

@@ -1,11 +1,10 @@
-const express = require("express");
-const multer = require("multer");
-const router = express.Router();
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
 const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
+
+const tkbServices = require("../services/tkbServices");
 
 const getImportTKBSite = async (req, res) => {
   res.render("importTKB.ejs");
@@ -118,8 +117,6 @@ const updateRowTKB = async (req, res) => {
 
   let connection;
 
-  console.log("Cập nhật dòng:", req.body);
-
   try {
     connection = await createPoolConnection(); // Lấy kết nối từ pool
 
@@ -133,23 +130,9 @@ const updateRowTKB = async (req, res) => {
           .json({ message: "Số lượng sinh viên không hợp lệ." });
       }
 
-      switch (true) {
-        case data.student_quantity >= 101:
-          student_bonus = 1.5;
-          break;
-        case data.student_quantity >= 81:
-          student_bonus = 1.4;
-          break;
-        case data.student_quantity >= 66:
-          student_bonus = 1.3;
-          break;
-        case data.student_quantity >= 51:
-          student_bonus = 1.2;
-          break;
-        case data.student_quantity >= 41:
-          student_bonus = 1.1;
-          break;
-      }
+      const bonusRules = await tkbServices.getBonusRules();
+
+      student_bonus = tkbServices.calculateStudentBonus(value, bonusRules);
 
       const qc = student_bonus * data.bonus_time * data.ll_total;
 
@@ -331,108 +314,6 @@ const deleteRow = async (req, res) => {
     return res.status(500).json({ message: "Đã xảy ra lỗi khi xóa dữ liệu." });
   } finally {
     if (connection) connection.release(); // Giải phóng kết nối
-  }
-};
-
-const updateStudentQuantity = async (req, res) => {
-  const jsonData = req.body;
-
-  let connection;
-
-  try {
-    if (!jsonData || jsonData.length === 0) {
-      return res.status(400).json({ message: "Dữ liệu đầu vào trống" });
-    }
-
-    connection = await createPoolConnection();
-
-    const batchSize = 50; // Tùy chỉnh batch size
-    const errors = [];
-
-    for (let i = 0; i < jsonData.length; i += batchSize) {
-      const batch = jsonData.slice(i, i + batchSize);
-
-      let updateQuery = `UPDATE course_schedule_details SET `;
-      const updateValues = [];
-      const ids = [];
-
-      // Map để lưu student_bonus của từng ID
-      const studentBonusMap = new Map();
-
-      // Cập nhật student_quantity
-      let studentQuantityCase = ` student_quantity = CASE`;
-      batch.forEach(({ id, student_quantity }) => {
-        id = Number(id);
-        student_quantity = Number(student_quantity);
-        if (isNaN(id) || isNaN(student_quantity)) {
-          errors.push(`Dữ liệu không hợp lệ cho id ${id}`);
-          return;
-        }
-
-        studentQuantityCase += ` WHEN id = ? THEN ?`;
-        updateValues.push(id, student_quantity);
-
-        if (!ids.includes(id)) ids.push(id);
-      });
-      studentQuantityCase += ` END,`;
-
-      // Cập nhật student_bonus
-      let studentBonusCase = ` student_bonus = CASE`;
-      batch.forEach(({ id, student_quantity }) => {
-        id = Number(id);
-        student_quantity = Number(student_quantity);
-        if (isNaN(id) || isNaN(student_quantity)) return;
-
-        let student_bonus = 1;
-        if (student_quantity >= 101) student_bonus = 1.5;
-        else if (student_quantity >= 81) student_bonus = 1.4;
-        else if (student_quantity >= 66) student_bonus = 1.3;
-        else if (student_quantity >= 51) student_bonus = 1.2;
-        else if (student_quantity >= 41) student_bonus = 1.1;
-
-        studentBonusCase += ` WHEN id = ? THEN ?`;
-        updateValues.push(id, student_bonus);
-
-        // Lưu vào Map
-        studentBonusMap.set(id, student_bonus);
-      });
-      studentBonusCase += ` END,`;
-
-      // Cập nhật qc (Lấy student_bonus từ Map)
-      let qcCase = ` qc = CASE`;
-      batch.forEach(({ id, student_quantity, ll_total, bonus_time }) => {
-        id = Number(id);
-        student_quantity = Number(student_quantity);
-        if (isNaN(id) || isNaN(student_quantity)) return;
-
-        const student_bonus = studentBonusMap.get(id) || 1;
-        const qc =
-          student_bonus * (Number(bonus_time) || 0) * (Number(ll_total) || 0);
-
-        qcCase += ` WHEN id = ? THEN ?`;
-        updateValues.push(id, qc);
-      });
-      qcCase += ` END`;
-
-      // Hoàn thiện query
-      const whereClause = ` WHERE id IN (${ids.map(() => "?").join(", ")})`;
-      updateValues.push(...ids);
-
-      const finalQuery = `${updateQuery} ${studentQuantityCase} ${studentBonusCase} ${qcCase} ${whereClause}`;
-
-      await connection.query(finalQuery, updateValues);
-    }
-
-    if (errors.length > 0) {
-      return res.status(400).json({ success: false, errors });
-    }
-
-    res.status(200).json({ success: true, message: "Cập nhật thành công" });
-  } catch (error) {
-    console.error("❌ Lỗi cập nhật:", error);
-    res.status(500).json({ error: "Có lỗi xảy ra khi cập nhật dữ liệu" });
-  } finally {
-    if (connection) connection.release();
   }
 };
 
@@ -953,94 +834,6 @@ const exportSingleWorksheets = async (req, res) => {
   }
 };
 
-// const insertDataAgain = async (req, res) => {
-//   const { semester } = req.body;
-
-//   let connection;
-
-//   try {
-//     // Kết nối database từ pool
-//     connection = await createPoolConnection();
-
-//     // Lấy dữ liệu đã nhóm lại
-//     let sqlSelect = `SELECT 
-//     course_name, credit_hours, ll_code, ll_total, 
-//     course_code, major, study_format, 
-//     MAX(lecturer) AS lecturer, 
-//     MIN(start_date) AS start_date, 
-//     MAX(end_date) AS end_date,
-//     MAX(bonus_time) AS bonus_time,
-//     MAX(qc) AS qc,
-//     student_quantity, student_bonus, 
-//     bonus_teacher, bonus_total, class_section, course_id
-// FROM course_schedule_details
-// WHERE semester = ?
-// GROUP BY 
-//     course_name, credit_hours, ll_code, ll_total, 
-//     course_code, major, study_format, 
-//     student_quantity, student_bonus,
-//     bonus_teacher, bonus_total, class_section, course_id`;
-
-//     let params = [semester, semester];
-
-//     // Lấy dữ liệu đã nhóm
-//     const [result] = await connection.query(sqlSelect, params);
-
-//     // Xóa dữ liệu cũ
-//     await connection.query(
-//       `DELETE FROM course_schedule_details WHERE semester = ?`,
-//       [semester]
-//     );
-
-//     // Chèn lại dữ liệu
-//     let sqlInsert = `INSERT INTO course_schedule_details (
-//             course_name, credit_hours, ll_code, ll_total, 
-//             course_code, major, study_format, lecturer, 
-//             start_date, end_date, student_quantity, student_bonus, 
-//             bonus_time, bonus_teacher, bonus_total, qc, 
-//             class_section, course_id, semester
-//         ) 
-//         VALUES ?`;
-
-//     const values = result.map((row) => [
-//       row.course_name,
-//       row.credit_hours,
-//       row.ll_code,
-//       row.ll_total,
-//       row.course_code,
-//       row.major,
-//       row.study_format,
-//       row.lecturer,
-//       row.start_date,
-//       row.end_date,
-//       row.student_quantity,
-//       row.student_bonus,
-//       row.bonus_time,
-//       row.bonus_teacher,
-//       row.bonus_total,
-//       row.qc,
-//       row.class_section,
-//       row.course_id,
-//       semester,
-//     ]);
-
-//     if (values.length > 0) {
-//       await connection.query(sqlInsert, [values]);
-//     }
-
-//     res
-//       .status(200)
-//       .json({ message: "Dữ liệu đã được nhóm và chèn lại thành công" });
-//   } catch (error) {
-//     console.error("Lỗi khi xử lý dữ liệu:", error);
-//     res
-//       .status(500)
-//       .json({ error: "Có lỗi xảy ra trong quá trình xử lý dữ liệu" });
-//   } finally {
-//     if (connection) connection.release(); // Trả kết nối về pool
-//   }
-// };
-
 const checkDataTKBExist = async (req, res) => {
   const { dot, ki, nam } = req.body;
 
@@ -1186,7 +979,6 @@ module.exports = {
   getDataTKBChinhThuc,
   updateRowTKB,
   deleteRow,
-  updateStudentQuantity,
   themTKBVaoQCDK,
   addNewRowTKB,
   deleteTKB,

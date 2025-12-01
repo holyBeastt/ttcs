@@ -1,6 +1,8 @@
 const XLSX = require("xlsx");
 const pool = require("../config/Pool");
 
+const tkbServices = require("../services/tkbServices");
+
 function getFirstParenthesesContent(str) {
   const match = str.match(/\(([^)]+)\)/);
   return match ? match[1] : null;
@@ -165,6 +167,9 @@ const importExcelTKB = async (req, res) => {
       }
     }
 
+    // Lấy bảng hệ số lớp đông
+    const bonusRules = await tkbServices.getBonusRules();
+
     let preTT = 0;
 
     for (let i = 0; i < renamedData.length; i++) {
@@ -209,28 +214,11 @@ const importExcelTKB = async (req, res) => {
       // Số tiết lên lớp theo Ngày bắt đầu, ngày kết thúc và tiết học
       //row.ll_total = tongTietMap[row.course_name] || 0;
 
-      // Quy chuẩn = số tiết lên lớp * hệ số ngoài giờ * hệ số lớp đông
-      row.student_bonus = 0;
-      switch (true) {
-        case row.student_quantity >= 101:
-          row.student_bonus = 1.5;
-          break;
-        case row.student_quantity >= 81:
-          row.student_bonus = 1.4;
-          break;
-        case row.student_quantity >= 66:
-          row.student_bonus = 1.3;
-          break;
-        case row.student_quantity >= 51:
-          row.student_bonus = 1.2;
-          break;
-        case row.student_quantity >= 41:
-          row.student_bonus = 1.1;
-          break;
-        default:
-          row.student_bonus = 1.0;
-          break;
-      }
+      // Tính hệ số lớp đông dựa trên số lượng sinh viên
+      row.student_bonus = tkbServices.calculateStudentBonus(
+        parseInt(row.student_quantity) || 0,
+        bonusRules
+      );
 
       row.qc = row.ll_total * row.bonus_time * row.student_bonus;
 
