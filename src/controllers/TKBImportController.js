@@ -32,6 +32,9 @@ async function getHeDaoTao(classType) {
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
   let lastTTValue = JSON.parse(req.body.lastTTValue);
+  const location = (req.body.location || "hvktmm").trim().toLowerCase(); // Mặc định là hvktmm, normalize
+
+  console.log("📍 Location received:", location); // Debug log
 
   const { dot, ki, nam } = semester;
 
@@ -110,27 +113,36 @@ const importExcelTKB = async (req, res) => {
     };
 
     const majorMap = {
-      "C": "CNTT",
-      "D": "ĐTVM",
-      "A": "ATTT",
+      "B": "CB",        // Cơ bản
+      "C": "CNTT",      // Công nghệ thông tin
+      "D": "DTVM",      // Điện tử vi mạch
+      "A": "ATTT",      // An toàn thông tin
+      "M": "MM",        // Mật mã
+      "P": "ĐTPH",      // Địa điểm phân hiệu
     }
 
     // Đặt lại theo tên các trường dữ liệu trong database
-    const renamedData = allData.map((row) => {
+    const renamedData = allData.map((row, index) => {
       const newRow = {};
       for (const [oldKey, newKey] of Object.entries(renameMap)) {
         newRow[newKey] = row[oldKey] ?? "";
       }
       newRow.sheet_name = row.sheet_name;
 
-      // Lấy các chữ cái đầu tiên trong sheet_name
-      const prefixLetters = (row.sheet_name || "").trim().match(/^[A-Za-zÀ-ỹ]+/g)?.[0] || "";
-
-      if (prefixLetters.length > 1) {
-        newRow.major = "CB"; // Khoa Cơ bản
+      // Phân loại Khoa theo địa điểm
+      if (location === "phhv") {
+        // Nếu là Phân hiệu học viện, tất cả row có major = "ĐTPH"
+        newRow.major = "ĐTPH";
       } else {
-        const sheetPrefix = prefixLetters.charAt(0);
-        newRow.major = majorMap[sheetPrefix] || "unknown";
+        // Nếu là Học viện Kỹ thuật mật mã (hvktmm), map theo course_code
+        const courseCode = (newRow.course_code || "").trim().toUpperCase();
+        const firstChar = courseCode.charAt(0);
+        newRow.major = majorMap[firstChar] || "unknown";
+      }
+      
+      // Debug log cho row đầu tiên
+      if (index === 0) {
+        console.log(`📍 Row 0 - Location: "${location}", Course Code: "${newRow.course_code}", Major: "${newRow.major}"`);
       }
 
       return newRow;

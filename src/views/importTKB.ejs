@@ -54,6 +54,12 @@
             <option value="">Chọn năm học</option>
           </select>
 
+          <!-- Combo box Địa điểm -->
+          <select class="selectop mx-1" id="location">
+            <option value="hvktmm" selected>Học viện Kỹ thuật mật mã</option>
+            <option value="phhv">Phân hiệu học viện</option>
+          </select>
+
           <!-- Combo box với các giá trị CNTT, ATTT, DTVT -->
           <!-- <select class="selectop" id="MaPhongBan">
             <option value="ALL">Tất cả khoa</option>
@@ -172,6 +178,12 @@
       document.getElementById("viewTKB").onclick = function () {
         window.location.href = "/getTKBChinhThucSite"; // Thay URL bằng trang bạn muốn chuyển hướng đến
       };
+
+      // Thêm event listener để log khi select địa điểm thay đổi
+      document.getElementById("location").addEventListener("change", function() {
+        const locationValue = this.value || "hvktmm";
+        console.log("📍 Địa điểm đã thay đổi thành:", locationValue);
+      });
     </script>
     <!-- phần chọn file -->
     <script>
@@ -185,6 +197,13 @@
           const dotValue = document.getElementById("combobox-dot").value;
           const kiValue = document.getElementById("comboboxki").value;
           const namValue = document.getElementById("NamHoc").value;
+          
+          // Lấy location mới mỗi lần click (đảm bảo lấy giá trị mới nhất)
+          const locationSelect = document.getElementById("location");
+          const locationValue = (locationSelect.value || "hvktmm").trim(); // Mặc định là hvktmm
+
+          console.log("📍 Frontend - Location selected:", locationValue); // Debug log
+          console.log("📍 Frontend - Location select element value:", locationSelect.value); // Debug log chi tiết
 
           const semester = {
             dot: dotValue,
@@ -214,11 +233,15 @@
           const formData = new FormData();
           formData.append("file", selectedFile); // Tên param "file"
           formData.append("semester", JSON.stringify(semester)); // Thêm param "semester"
+          formData.append("location", locationValue); // Thêm param "location"
+          
+          console.log("📍 FormData - Location được append:", locationValue); // Debug log
+          console.log("📍 FormData - Tất cả keys:", Array.from(formData.keys())); // Debug log
 
-          await checkDataExistence(semester, formData);
+          await checkDataExistence(semester, formData, locationValue);
         });
 
-      async function checkDataExistence(semester, formData) {
+      async function checkDataExistence(semester, formData, location) {
         fetch("/api/check-data-TKB-exist", {
           method: "POST",
           headers: {
@@ -235,10 +258,12 @@
           .then((data) => {
             if (data.exists) {
               formData.append("lastTTValue", JSON.stringify(data.lastTTValue));
+              // Location đã được append ở trên, không cần append lại
               // Hiển thị modal để xác nhận xóa hay chèn
               showModal(semester, formData);
             } else {
               formData.append("lastTTValue", JSON.stringify(data.lastTTValue));
+              // Location đã được append ở trên, không cần append lại
               // Nếu không tồn tại, trực tiếp gọi hàm importFileTKB
               importFileTKB(semester, formData);
             }
