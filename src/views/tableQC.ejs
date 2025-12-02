@@ -561,6 +561,11 @@
               .map((key) => {
                 let cellValue = item[key] !== null ? item[key] : "";
 
+                // Format ngày cho các cột ngày
+                if (key === "NgayBatDau" || key === "NgayKetThuc") {
+                  cellValue = formatDate(cellValue);
+                }
+
                 // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
                 if (key === "MoiGiang") {
                   cellValue = cellValue === 1 ? "Có" : "Không";
