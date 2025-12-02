@@ -509,6 +509,54 @@
       }
 
 
+      // Hàm format ngày tháng năm
+      function formatDate(dateValue) {
+        if (!dateValue) return "";
+        
+        try {
+          let date;
+          
+          // Nếu là string, chuyển thành Date object
+          if (typeof dateValue === "string") {
+            // Xử lý các định dạng khác nhau
+            if (dateValue.includes("T")) {
+              // ISO format: 2024-01-15T00:00:00.000Z
+              date = new Date(dateValue);
+            } else if (dateValue.includes("/")) {
+              // Format: dd/mm/yyyy hoặc mm/dd/yyyy
+              const parts = dateValue.split("/");
+              if (parts.length === 3) {
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+            } else if (dateValue.includes("-")) {
+              // Format: yyyy-mm-dd
+              date = new Date(dateValue);
+            } else {
+              date = new Date(dateValue);
+            }
+          } else if (dateValue instanceof Date) {
+            date = dateValue;
+          } else {
+            return dateValue; // Trả về giá trị gốc nếu không phải ngày
+          }
+          
+          // Kiểm tra ngày hợp lệ
+          if (isNaN(date.getTime())) {
+            return dateValue; // Trả về giá trị gốc nếu ngày không hợp lệ
+          }
+          
+          // Format thành dd/mm/yyyy
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const year = date.getFullYear();
+          
+          return `${day}/${month}/${year}`;
+        } catch (error) {
+          console.error("Error formatting date:", error);
+          return dateValue; // Trả về giá trị gốc nếu có lỗi
+        }
+      }
+
       // Hàm render bảng
       function renderTable() {
         const role = localStorage.getItem("userRole");
@@ -522,14 +570,16 @@
           Dot: "Đợt",
           Ki: "Kì",
           Nam: "Năm",
+          LopHocPhan: "Lớp học phần",
           GiaoVien: "Giảng viên theo TKB",
           SoTinChi: "Số TC",
-          LopHocPhan: "Lớp học phần",
-          LL: "Số tiết lên lớp được tính QC",
-          SoTietCTDT: "Số tiết theo CTĐT",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+          NgayBatDau: "Ngày bắt đầu",
+          NgayKetThuc: "Ngày kết thúc",
+          LL: "Số tiết lên lớp",
           SoSinhVien: "Số SV",
+          // SoTietCTDT: "Số tiết theo CTĐT",
           HeSoLopDong: "Hệ số lớp đông",
+          HeSoT7CN: "Hệ số lên lớp ngoài giờ",
           QuyChuan: "QC",
           GhiChu: "Ghi chú"
         };
@@ -551,6 +601,15 @@
             headerSort: sortableColumns.includes(key) ? true : false,
             formatter: "textarea"
           };
+
+          // Format ngày cho các cột ngày
+          if (key === "NgayBatDau" || key === "NgayKetThuc") {
+            column.formatter = function(cell) {
+              const value = cell.getValue();
+              const formattedDate = formatDate(value);
+              return formattedDate || "";
+            };
+          }
 
           // Đặt độ rộng cho các cột cụ thể
           if (key === "LopHocPhan" || key === "GiaoVien") {
