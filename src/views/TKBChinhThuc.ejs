@@ -622,6 +622,15 @@
                       return true;
                     }
                   }
+                  Toastify({
+                    text: "❌ Ngày không hợp lệ! Vui lòng kiểm tra lại (dd/mm/yyyy)",
+                    duration: 3000,      // Nên để lâu hơn (3s) để user kịp đọc
+                    gravity: "top",
+                    position: "right",
+                    stopOnFocus: true,   // Di chuột vào sẽ dừng biến mất (để user đọc kỹ hơn)
+                    backgroundColor: "#FF5252", // Màu đỏ (Error) hoặc dùng "#FFA000" (Cam - Warning)
+                  }).showToast();
+
 
                   console.warn("❌ Invalid date format:", value);
                   params.data[field] = oldValue;
