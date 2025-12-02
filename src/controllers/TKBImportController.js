@@ -141,7 +141,7 @@ const importExcelTKB = async (req, res) => {
         const firstChar = courseCode.charAt(0);
         newRow.major = majorMap[firstChar] || "unknown";
       }
-      
+
       // Debug log cho row đầu tiên
       if (index === 0) {
         console.log(`📍 Row 0 - Location: "${location}", Course Code: "${newRow.course_code}", Major: "${newRow.major}"`);
@@ -258,8 +258,8 @@ const importExcelTKB = async (req, res) => {
       row.period_start,
       row.period_end,
       row.classroom,
-      formatDateForMySQL(parseDateDDMMYY(row.start_date)),
-      formatDateForMySQL(parseDateDDMMYY(row.end_date)),
+      convertDateToMySQL(row.start_date),
+      convertDateToMySQL(row.end_date),
       row.lecturer,
       row.major,
       row.he_dao_tao,
@@ -333,18 +333,57 @@ const importExcelTKB = async (req, res) => {
 };
 
 function parseDateDDMMYY(str) {
+
   if (!str) return null;
+
   const [day, month, year] = str.split("/").map(Number);
+
   const fullYear = year < 100 ? 2000 + year : year;
+
   return new Date(fullYear, month - 1, day);
+
 }
 
-function formatDateForMySQL(date) {
-  if (!(date instanceof Date) || isNaN(date)) return null;
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+function convertDateToMySQL(str) {
+  if (!str) return null;
+
+  // 1. Cắt chuỗi bằng regex để chấp nhận cả /, -, .
+  const parts = String(str).trim().split(/[\/\-\.]/);
+
+  if (parts.length === 3) {
+    let day = parseInt(parts[0], 10);
+    let month = parseInt(parts[1], 10);
+    let year = parseInt(parts[2], 10);
+
+    // Xử lý năm tắt (vd: 25 -> 2025)
+    if (year < 100) year += 2000;
+
+    // 🔥 2. LOGIC CỨU DỮ LIỆU: Check ngược ngày/tháng
+    // Nếu tháng > 12 mà ngày <= 12 -> Chắc chắn là bị ngược -> Đổi chỗ
+    if (month > 12 && day <= 12) {
+      console.warn(`⚠️ Đảo format ngày: ${str} -> ${month}/${day}/${year}`);
+      [day, month] = [month, day]; // Swap
+    }
+
+    // 3. Kiểm tra ngày hợp lệ chặt chẽ (Chặn ngày 30/02 hoặc tháng 13)
+    // Lưu ý: month trong new Date bắt đầu từ 0
+    const dateObj = new Date(year, month - 1, day);
+
+    // So sánh ngược lại xem JS có tự động nhảy ngày không
+    if (
+      dateObj.getFullYear() === year &&
+      dateObj.getMonth() === month - 1 &&
+      dateObj.getDate() === day
+    ) {
+      // 4. Format chuẩn MySQL YYYY-MM-DD
+      const mm = String(month).padStart(2, "0");
+      const dd = String(day).padStart(2, "0");
+      return `${year}-${mm}-${dd}`;
+    }
+  }
+
+  console.error(`❌ Ngày sai định dạng, set NULL: ${str}`);
+  return null; // Trả về null để MySQL lưu là NULL thay vì ngày sai
 }
 
 module.exports = {

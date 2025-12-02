@@ -574,36 +574,23 @@
               || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note', // Ẩn cột không cần thiết
               headerClass: "custom-header",
               filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
-              valueFormatter: (params) => {
-                if (
-                  params.colDef.field === "start_date" ||
-                  params.colDef.field === "end_date"
-                ) {
-                  if (params.value) {
-                    const date = new Date(params.value);
-                    if (!isNaN(date)) {
-                      return date.toLocaleDateString("vi-VN"); // Hiển thị đúng định dạng dd/mm/yyyy
-                    }
-                  }
-                }
-                return params.value;
-              },
 
               valueGetter: (params) => {
-                if (
-                  params.colDef.field === "start_date" ||
-                  params.colDef.field === "end_date"
-                ) {
-                  const value = params.data[params.colDef.field];
-                  if (value) {
-                    const date = new Date(value);
-                    if (!isNaN(date)) {
-                      return date.toLocaleDateString("vi-VN"); // Giữ nguyên định dạng khi click vào
-                    }
-                  }
+                const field = params.colDef.field;
+
+                if (field === "start_date" || field === "end_date") {
+                  const value = params.data[field];
+                  if (!value) return "";
+
+                  const date = new Date(value);
+                  if (isNaN(date.getTime())) return value;
+
+                  return reFormatDateFromDB(value); // Luôn trả STRING
                 }
-                return params.data[params.colDef.field];
+
+                return params.data[field];
               },
+
               valueSetter: (params) => {
                 const field = params.colDef.field;
                 const oldValue = params.data[field];
@@ -611,30 +598,52 @@
 
                 // ✅ Xử lý riêng cho cột "start_date" và "end_date"
                 if (field === "start_date" || field === "end_date") {
-                  if (!value) return false; // Không cập nhật nếu giá trị rỗng
+                  if (!value) return false;
 
                   const parts = value.split("/");
                   if (parts.length === 3) {
-                    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    const date = new Date(formattedDate);
+                    // Đảm bảo thêm số 0 ở đầu nếu người dùng nhập thiếu (vd: 9 -> 09)
+                    const day = parts[0].padStart(2, "0");
+                    const month = parts[1].padStart(2, "0");
+                    const year = parts[2];
+                    
+                    // Tạo chuỗi chuẩn ISO: yyyy-mm-dd
+                    const formattedIsoDate = `${year}-${month}-${day}`; 
 
-                    if (!isNaN(date)) {
-                      params.data[field] = value; // Lưu giá trị mới
+                    const date = new Date(formattedIsoDate);
+
+                    // Kiểm tra ngày hợp lệ
+                    if (!isNaN(date.getTime())) {
+                      console.log("✅ Valid date to save:", formattedIsoDate);
+                      
+                      // QUAN TRỌNG: Lưu chuỗi chuẩn ISO vào data, KHÔNG lưu chuỗi dd/mm/yyyy
+                      params.data[field] = formattedIsoDate; 
+                      
                       return true;
                     }
                   }
+                  Toastify({
+                    text: "❌ Ngày không hợp lệ! Vui lòng kiểm tra lại (dd/mm/yyyy)",
+                    duration: 3000,      // Nên để lâu hơn (3s) để user kịp đọc
+                    gravity: "top",
+                    position: "right",
+                    stopOnFocus: true,   // Di chuột vào sẽ dừng biến mất (để user đọc kỹ hơn)
+                    backgroundColor: "#FF5252", // Màu đỏ (Error) hoặc dùng "#FFA000" (Cam - Warning)
+                  }).showToast();
 
-                  params.data[field] = oldValue; // Giữ nguyên giá trị cũ nếu sai định dạng
+
+                  console.warn("❌ Invalid date format:", value);
+                  params.data[field] = oldValue;
                   return false;
                 }
 
-                // ✅ Xử lý các cột khác (nếu có)
+                // ✅ Xử lý các cột khác
                 if (value !== oldValue) {
-                  params.data[field] = value; // Lưu giá trị mới
+                  params.data[field] = value;
                   return true;
                 }
 
-                return false; // Không cập nhật nếu không thay đổi
+                return false;
               },
 
               cellEditor: "agTextCellEditor",
@@ -793,6 +802,21 @@
         }, 100);
       }
 
+      function reFormatDateFromDB(input) {
+        if (!input) return "";
+          const date = new Date(input);
+
+        if (isNaN(date.getTime())) {
+          return input;
+        }
+
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      }
+
       async function addNewRow() {
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
@@ -822,9 +846,7 @@
           });
 
           const newRow = await response.json();
-          debugger
           if (response.ok) {
-            debugger
 
             // Thêm vào renderData
             //renderData.push(newRow.data);

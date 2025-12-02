@@ -352,6 +352,8 @@
         const tableContainer = document.getElementById("tableContainer");
         const dataTable = document.getElementById("dataTable");
 
+        getDataBoMon();
+
         const viewDataBtnDetail = document.getElementById("viewDataBtnDetail");
 
         // Kích hoạt sự kiện click ngay khi trang load nếu là khoa
@@ -548,6 +550,38 @@
           }
         });
       });
+
+      // Lấy dữ liệu
+      const getDataBoMon = async () => {
+        try {
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+          try {
+            const response = await fetch("/bo-mon", {
+              method: "POST", // Thay đổi thành POST
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ MaPhongBan }), // Gửi MaPhongBan trong thân yêu cầu
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `Error: ${response.status} - ${response.statusText}`
+              );
+            }
+
+            const data = await response.json(); // Chuyển đổi dữ liệu JSON
+            localStorage.setItem("boMon", JSON.stringify(data));
+            // Thêm vào bảng hoặc xử lý dữ liệu theo nhu cầu của bạn
+          } catch (error) {
+            console.error("Có lỗi xảy ra khi lấy dữ liệu bộ môn:", error);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Đã xảy ra lỗi khi tải dữ liệu");
+        }
+      };
 
       // Gắn sự kiện click cho nút
       document
