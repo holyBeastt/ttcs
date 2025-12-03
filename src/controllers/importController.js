@@ -616,6 +616,42 @@ const importTableQC = async (jsonData, req) => {
   // console.log(dataGiangVien);
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
+  
+  // Hàm format ngày từ string sang Date object hoặc null
+  const formatDateValue = (dateValue) => {
+    if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
+      return null;
+    }
+    
+    // Nếu đã là Date object
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    // Nếu là string, thử parse
+    if (typeof dateValue === 'string') {
+      // Format dd/mm/yyyy
+      const parts = dateValue.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const year = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      
+      // Thử parse ISO format hoặc các format khác
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    return null;
+  };
+  
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
@@ -637,6 +673,8 @@ const importTableQC = async (jsonData, req) => {
     HeSoLopDong,
     QuyChuan,
     GhiChu,
+    NgayBatDau,
+    NgayKetThuc,
     he_dao_tao,
     DoiTuong,
     isHdChinh
@@ -685,6 +723,10 @@ const importTableQC = async (jsonData, req) => {
       }
     }
 
+    // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
+    const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;
+    const ngayKetThuc = item["NgayKetThuc"] || item["Ngày kết thúc"] || null;
+    
     allValues.push([
       item["Khoa"] || null,
       item["Dot"] || null,
@@ -705,6 +747,8 @@ const importTableQC = async (jsonData, req) => {
       item["HeSoLopDong"] || null,
       item["QuyChuan"] || null,
       item["GhiChu"] || null,
+      formatDateValue(ngayBatDau),
+      formatDateValue(ngayKetThuc),
       he_dao_tao,
       doi_tuong,
       1,
