@@ -18,7 +18,7 @@ const getIndex = (req, res) => {
 };
 
 const getImport = (req, res) => {
-  res.render("import.ejs");
+  res.render("importQC.ejs");
 };
 const getDtaoduyet = (req, res) => {
   res.render("daotaoduyet.ejs");
