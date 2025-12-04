@@ -205,6 +205,7 @@ const updateTableTam = async (req, res) => {
       row.SoTietCTDT || null,
       row.SoTinChi || null,
       row.GhiChu || null,
+      row.he_dao_tao || null,
     ]);
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
@@ -216,7 +217,7 @@ const updateTableTam = async (req, res) => {
 
     // Truy vấn SQL
     const insertUpdateQuery = `
-            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, GhiChu) 
+            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, GhiChu, he_dao_tao) 
             VALUES ?
             ON DUPLICATE KEY UPDATE
                 Khoa = VALUES(Khoa),
@@ -232,7 +233,8 @@ const updateTableTam = async (req, res) => {
                 SoSinhVien = VALUES(SoSinhVien),
                 SoTietCTDT = VALUES(SoTietCTDT),
                 SoTinChi = VALUES(SoTinChi),
-                GhiChu = VALUES(GhiChu);
+                GhiChu = VALUES(GhiChu),
+                he_dao_tao = VALUES(he_dao_tao);
         `;
 
     // Thực thi truy vấn
@@ -391,12 +393,13 @@ const addNewRow = async (req, res) => {
       data.SoSinhVien || null,
       data.SoTietCTDT || null,
       data.SoTinChi || null,
+      data.he_dao_tao || null,
     ];
 
     const insertQuery = `
         INSERT INTO ?? 
-        (Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, he_dao_tao)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
     // Thực thi câu truy vấn INSERT
