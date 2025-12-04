@@ -36,8 +36,6 @@ const importExcelTKB = async (req, res) => {
   let lastTTValue = JSON.parse(req.body.lastTTValue);
   const location = (req.body.location || "hvktmm").trim().toLowerCase(); // Mặc định là hvktmm, normalize
 
-  console.log("📍 Location received:", location); // Debug log
-
   const { dot, ki, nam } = semester;
 
   if (!req.file) {
@@ -45,7 +43,14 @@ const importExcelTKB = async (req, res) => {
   }
 
   try {
-    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const workbook = XLSX.read(req.file.buffer, {
+      type: "buffer",
+      cellDates: false,
+      raw: false,
+      cellText: true,
+    });
+
+    //const workbook = XLSX.read(req.file.buffer, { type: "buffer" }, { cellDates: true });
 
     let allData = [];
 
@@ -53,40 +58,64 @@ const importExcelTKB = async (req, res) => {
       const sheet = workbook.Sheets[sheetName];
 
       // Lấy hàng tiêu đề (row 4 trong file Excel)
-      const headerRow =
-        XLSX.utils.sheet_to_json(sheet, {
-          header: 1,
-          range: 3, // chỉ đọc hàng thứ 4
-        })[0] || [];
+      const headerRow = XLSX.utils.sheet_to_json(sheet, {
+        header: 1,
+        range: 3,
+      })[0] || [];
 
-      // Lọc header rỗng
       const validHeaders = headerRow.map((h) => (h || "").toString().trim());
 
-      // Đọc dữ liệu từ hàng thứ 5 trở đi
-      const data = XLSX.utils.sheet_to_json(sheet, {
+      // Đọc dữ liệu, luôn đọc TEXT
+      const rawRows = XLSX.utils.sheet_to_json(sheet, {
         header: validHeaders,
         range: 4,
         defval: "",
-        raw: false,
-        cellDates: true,
+        raw: false,          // GIỮ TEXT, KHÔNG CHO LẤY SERIAL
+        cellText: true,      // LUÔN LẤY `.w` thay vì `.v`
       });
 
-      // Gắn tên sheet vào từng dòng
-      data.forEach((row) => {
+      // Buộc lấy `.w` cho mọi cell vì sheet_to_json đôi khi trộn .v
+      const range = XLSX.utils.decode_range(sheet["!ref"]);
+
+      rawRows.forEach((row, rowIndex) => {
+        let realRowNumber = rowIndex + 5;  // vì bắt đầu đọc từ dòng 5
+        for (let col = 0; col < validHeaders.length; col++) {
+          const colLetter = XLSX.utils.encode_col(col);
+          const cellAddress = `${colLetter}${realRowNumber}`;
+          const cell = sheet[cellAddress];
+
+          if (cell && cell.w !== undefined) {
+            row[validHeaders[col]] = cell.w; // luôn gán TEXT
+          }
+        }
+
         row.sheet_name = sheetName;
       });
 
-      allData = allData.concat(data);
+      allData = allData.concat(rawRows);
     });
 
     if (allData.length === 0) {
       return res.status(400).json({ message: "File Excel không có dữ liệu." });
     }
 
-    // Xử lý merge: ô trống lấy giá trị từ dòng trên
+    // 1. Định nghĩa danh sách các cột ĐƯỢC PHÉP kế thừa dữ liệu từ dòng trên
+    // Dựa vào ảnh của bạn, đây là các cột thông tin chung bên trái
+    const columnsToMerge = [
+      "TT",
+      "Mã HP",
+      "Số TC",
+      "Lớp học phần",
+      "Giáo Viên",
+      "Số SV"
+    ];
+    // ⚠️ LƯU Ý: KHÔNG đưa 'start_date', 'end_date', 'room', 'lecturer' vào đây
+
+    // 2. Chỉ loop và fill dữ liệu cho các cột trong danh sách trên
     for (let i = 1; i < allData.length; i++) {
       for (const key of Object.keys(allData[i])) {
-        if (allData[i][key] === "") {
+        // Chỉ copy nếu cột nằm trong danh sách cho phép (Allow List)
+        if (columnsToMerge.includes(key) && (allData[i][key] === "" || allData[i][key] === undefined)) {
           allData[i][key] = allData[i - 1][key];
         }
       }
@@ -131,6 +160,11 @@ const importExcelTKB = async (req, res) => {
       }
       newRow.sheet_name = row.sheet_name;
 
+      // 1. Áp dụng masterConvert ngay lập tức cho ngày tháng
+      // Kết quả: "YYYY-MM-DD" hoặc null
+      newRow.start_date = masterConvert(newRow.start_date);
+      newRow.end_date = masterConvert(newRow.end_date);
+
       // Phân loại Khoa theo địa điểm
       if (location === "phhv") {
         // Nếu là Phân hiệu học viện, tất cả row có major = "ĐTPH"
@@ -153,19 +187,40 @@ const importExcelTKB = async (req, res) => {
     // Tính tổng tiết cho mỗi lớp học phần
     const tongTietMap = {};
     for (const row of renamedData) {
-      if (row.period_range && row.period_range.includes("->")) {
-        const [startTiet, endTiet] = row.period_range.split("->").map(Number);
-        const tietBuoi = endTiet - startTiet + 1;
-        const startDate = parseDateDDMMYY(row.start_date);
-        const endDate = parseDateDDMMYY(row.end_date);
-        const soTuan = Math.ceil(
-          (endDate - startDate) / (7 * 24 * 60 * 60 * 1000)
-        );
-        const tongTiet = soTuan * tietBuoi;
-        tongTietMap[row.course_name] =
-          (tongTietMap[row.course_name] || 0) + tongTiet;
+
+      // Kiểm tra period_range phải là string
+      if (
+        typeof row.period_range !== "string" ||
+        !row.period_range.includes("->")
+      ) {
+        continue;
       }
+
+      const [startTiet, endTiet] = row.period_range.split("->").map(Number);
+      if (isNaN(startTiet) || isNaN(endTiet)) continue;
+
+      if (
+        typeof row.start_date !== "string" ||
+        typeof row.end_date !== "string"
+      ) {
+        continue;
+      }
+
+      const startDate = parseDateDDMMYY(row.start_date);
+      const endDate = parseDateDDMMYY(row.end_date);
+      if (!startDate || !endDate) continue;
+
+      const tietBuoi = endTiet - startTiet + 1;
+      const soTuan = Math.ceil(
+        (endDate - startDate) / (7 * 24 * 60 * 60 * 1000)
+      );
+      const tongTiet = soTuan * tietBuoi;
+
+      tongTietMap[row.course_name] =
+        (tongTietMap[row.course_name] || 0) + tongTiet;
     }
+
+
 
     // Lấy bảng hệ số lớp đông
     const bonusRules = await tkbServices.getBonusRules();
@@ -189,12 +244,18 @@ const importExcelTKB = async (req, res) => {
 
       // Thêm period_start, period_end, ll_total vào từng dòng
       let tmp = 0;
-      if (row.period_range.includes("->")) {
-        const [start, end] = row.period_range.split("->");
-        row.period_start = start || null;
-        row.period_end = end || null;
+      // Ép về string nếu là số hoặc kiểu khác
+      const range = (typeof row.period_range === "string")
+        ? row.period_range
+        : (row.period_range != null ? String(row.period_range) : null);
 
-        if (start >= 13) {
+      if (range && range.includes("->")) {
+        const [start, end] = range.split("->").map(Number);
+
+        row.period_start = isNaN(start) ? null : start;
+        row.period_end = isNaN(end) ? null : end;
+
+        if (!isNaN(start) && start >= 13) {
           tmp++;
         }
       } else {
@@ -202,7 +263,12 @@ const importExcelTKB = async (req, res) => {
         row.period_end = null;
       }
 
-      const dayOfWeek = row.day_of_week.trim().toUpperCase();
+
+      // Lấy giá trị thô
+      const rawDay = row.day_of_week;
+
+      // Ép sang chuỗi để xử lý text (trim, uppercase)
+      const dayOfWeek = String(rawDay || "").trim().toUpperCase();
       if (dayOfWeek == "CN" || dayOfWeek == "7") {
         tmp++;
       }
@@ -258,8 +324,8 @@ const importExcelTKB = async (req, res) => {
       row.period_start,
       row.period_end,
       row.classroom,
-      convertDateToMySQL(row.start_date),
-      convertDateToMySQL(row.end_date),
+      row.start_date,
+      row.end_date,
       row.lecturer,
       row.major,
       row.he_dao_tao,
@@ -384,6 +450,61 @@ function convertDateToMySQL(str) {
 
   console.error(`❌ Ngày sai định dạng, set NULL: ${str}`);
   return null; // Trả về null để MySQL lưu là NULL thay vì ngày sai
+}
+
+/**
+ * Hàm 1: Chuyển đổi Serial Number của Excel (VD: 45667) sang Date
+ */
+function excelSerialToDate(serial) {
+  // Excel tính mốc từ 30/12/1899. 
+  // 25569 là số ngày từ 1900 đến 1970 (Unix epoch)
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+
+  // Lưu ý: Excel có bug tính dư 1 ngày nhuận năm 1900, 
+  // nhưng với ngày tháng năm 2025 thì công thức này an toàn.
+  return date_info;
+}
+
+/**
+ * Hàm 2: Format Date Object chuẩn sang chuỗi MySQL YYYY-MM-DD
+ */
+function formatDateToMySQL(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) return null;
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * 🔥 Hàm 3 (QUAN TRỌNG): Hàm tổng hợp xử lý mọi loại dữ liệu đầu vào
+ */
+function masterConvert(input) {
+  if (input === null || input === undefined) return null;
+
+  // TRƯỜNG HỢP A: Nếu Excel trả về Số (như ô O7 trong hình 1)
+  if (typeof input === 'number') {
+    console.log(`📍 Chuyển Serial Excel: ${input} sang Date`);
+    const jsDate = excelSerialToDate(input);
+    return formatDateToMySQL(jsDate);
+  }
+
+  // TRƯỜNG HỢP B: Nếu thư viện đọc file đã tự convert sang Date Object
+  if (input instanceof Date) {
+    console.log(`📍 Định dạng Date Object: ${input}`);
+    return formatDateToMySQL(input);
+  }
+
+  // TRƯỜNG HỢP C: Nếu là Text (như ô O73 trong hình 2) -> Dùng lại hàm cũ của bạn
+  if (typeof input === 'string') {
+    // Gọi lại hàm convertDateToMySQL bạn đã viết ở câu trước
+    // (Lưu ý: Đảm bảo hàm đó trả về string YYYY-MM-DD)
+    return convertDateToMySQL(input);
+  }
+
+  return null;
 }
 
 module.exports = {
