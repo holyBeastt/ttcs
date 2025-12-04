@@ -419,7 +419,8 @@ const previewContract = async (req, res) => {
         if (tienLuong) {
           tienMoiGiang = tienLuong.SoTien;
           tienText = soTiet * tienLuong.SoTien;
-          tienThueText = tienText * 0.1;
+          // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+          tienThueText = tienText <= 2000000 ? 0 : tienText * 0.1;
           tienThucNhanText = tienText - tienThueText;
         }
       }
@@ -864,7 +865,8 @@ const downloadContract = async (req, res) => {
         if (tienLuong) {
           tienMoiGiang = tienLuong.SoTien;
           tienText = soTiet * tienLuong.SoTien;
-          tienThueText = tienText * 0.1;
+          // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+          tienThueText = tienText <= 2000000 ? 0 : tienText * 0.1;
           tienThucNhanText = tienText - tienThueText;
         }
       }

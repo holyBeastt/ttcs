@@ -447,7 +447,8 @@ const exportMultipleContracts = async (req, res) => {
   
         // Tính toán số tiền
         const tienText = tienLuong.SoTien * soTiet;
-        const tienThueText = Math.round(tienText * 0.1);
+        // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+        const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
         const tienThucNhanText = tienText - tienThueText;
         const thoiGianThucHien = formatDateRange(
           teacher.NgayBatDau,
@@ -845,7 +846,8 @@ const exportPhuLucGiangVienMoi = async (req, res) => {
       giangVienData.forEach((item, index) => {
         const soTiet = item.SoTiet;
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+        const truThue = soTien <= 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu <= 2 triệu)
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi

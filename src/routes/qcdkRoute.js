@@ -50,6 +50,11 @@ router.post("/hddk-export-excel", async (req, res) => {
   qcdk.exportToExcel_HDDK(req, res);
 });
 
+// xuất file Excel quy chuẩn chính thức với 19 cột
+router.post("/qcct-export-excel", async (req, res) => {
+  qcdk.exportToExcelQC(req, res);
+});
+
 // sửa số sinh viênviên
 router.post("/qcdk/edit-student-quanity", async (req, res) => {
   qcdk.editStudentQuanity(req, res);

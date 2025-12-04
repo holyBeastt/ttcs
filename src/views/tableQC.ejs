@@ -170,13 +170,14 @@
             style="display: none; position: absolute"
           >
             <!-- <button class="dropdown-item" onclick="exportToPDF()">PDF</button> -->
-            <button class="dropdown-item" onclick="exportToExcel()">
+            <button class="dropdown-item" onclick="exportToExcelQC()">
               Excel
             </button>
             <!-- <button class="dropdown-item" onclick="exportToWord()">Word</button> -->
           </div>
         </div>
         <div id="loading" style="display: none">Loading...</div>
+        <div id="table-info" style="margin-bottom: 10px; font-weight: bold; font-size: 14px;"></div>
         <div class="overflow-auto">
           <table class="table table-bordered">
             <thead>
@@ -271,6 +272,48 @@
           window.URL.revokeObjectURL(url);
         } catch (error) {
           console.error("Error exporting data:", error);
+        }
+      }
+
+      // Hàm xuất Excel với 19 cột (API mới)
+      async function exportToExcelQC() {
+        try {
+          // Gửi renderData trực tiếp, không cần format lại vì BE sẽ xử lý
+          const response = await fetch("/qcct-export-excel", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ renderData: renderData }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to export: ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          const kiHoc = renderData[0]?.KiHoc || renderData[0]?.Ki || "";
+          const namHoc = renderData[0]?.NamHoc || renderData[0]?.Nam || "";
+          a.download = `file_quy_chuan_chinh_thuc_hoc_ki_${kiHoc}_nam_hoc_${namHoc}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          // Đóng menu sau khi xuất file
+          const menu = document.getElementById("file-format-menu");
+          menu.style.display = "none";
+        } catch (error) {
+          console.error("Error exporting data:", error);
+          Swal.fire({
+            title: "Lỗi",
+            text: "Không thể xuất file. Vui lòng thử lại!",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
         }
       }
 
@@ -489,27 +532,33 @@
       }
 
       function renderTable(data) {
-        // Danh sách cột cần hiển thị theo thứ tự (giống tableTam)
+        // Hiển thị thông tin Đợt, Kì, Năm dưới dạng text ghi chú phía trên bảng
+        if (data && data.length > 0) {
+          const dotValue = data[0].Dot || data[0].dot || "";
+          const kiHocValue = data[0].KiHoc || data[0].Ki || "";
+          const namHocValue = data[0].NamHoc || data[0].Nam || "";
+          const infoText = `Đợt: ${dotValue} | Kì: ${kiHocValue} | Năm học: ${namHocValue}`;
+          document.getElementById("table-info").textContent = infoText;
+        }
+
+        // Danh sách cột cần hiển thị (bỏ Đợt, Kì, Năm - đã hiển thị ở text ghi chú)
         const columnsToDisplay = [
-          "Khoa",
-          "Dot",
-          "KiHoc",
-          "NamHoc",
-          "LopHocPhan",
-          "GiaoVien",
-          "SoTinChi",
-          "NgayBatDau",
-          "NgayKetThuc",
-          "LL",
-          "SoSinhVien",
-          "HeSoLopDong",
-          "HeSoT7CN",
-          "QuyChuan",
-          "he_dao_tao",
-          "GhiChu",
-          // Các cột riêng của tableQC
-          "GiaoVienGiangDay",
-          "MoiGiang",
+          "Khoa", // Thêm Khoa ở đầu để phân biệt (không có trong API export)
+          "LopHocPhan", // Lớp học phần
+          "SoTinChi",   // Số TC
+          "TenLop",     // Mã lớp
+          "he_dao_tao", // Hệ đào tạo
+          "GiaoVien",   // Giảng viên theo TKB
+          "GiaoVienGiangDay", // Giảng viên giảng dạy
+          "MoiGiang",   // Mời giảng?
+          "NgayBatDau", // Ngày bắt đầu
+          "NgayKetThuc", // Ngày kết thúc
+          "LL",         // Số tiết LL
+          "SoSinhVien",  // Số SV
+          "HeSoLopDong", // Hệ số lớp đông
+          "HeSoT7CN",    // Hệ số ngoài giờ
+          "QuyChuan",    // Số tiết QC
+          "GhiChu",      // Ghi chú
         ];
 
         const headersMap = {
@@ -521,25 +570,22 @@
           GiaoVien: "Giảng viên theo TKB",
           GiaoVienGiangDay: "Giảng viên giảng dạy",
           MoiGiang: "Mời giảng?",
-          SoTinChi: "Số tín chỉ",
-          TenLop: "Tên lớp",
+          SoTinChi: "Số TC",
+          TenLop: "Mã lớp",
           NgayBatDau: "Ngày bắt đầu",
           NgayKetThuc: "Ngày kết thúc",
-          LL: "Số tiết lên lớp",
+          LL: "Số tiết LL",
           SoSinhVien: "Số SV",
           HeSoLopDong: "Hệ số lớp đông",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ",
-          QuyChuan: "Số tiết quy chuẩn",
+          HeSoT7CN: "Hệ số ngoài giờ",
+          QuyChuan: "Số tiết QC",
           he_dao_tao: "Hệ đào tạo",
           GhiChu: "Ghi chú",
         };
 
-        // Mapping định nghĩa width theo yêu cầu
+        // Mapping định nghĩa width theo yêu cầu (đã bỏ Dot, KiHoc, NamHoc)
         const customWidths = {
           Khoa: "5%",
-          Dot: "5%",
-          KiHoc: "5%",
-          NamHoc: "10%",
           LopHocPhan: "22.5%",
           GiaoVien: "25%",
           GiaoVienGiangDay: "22.5%",
