@@ -28,15 +28,9 @@ const convertExcelToJSON = (req, res) => {
       .json({ message: "No file uploaded", status: "error" });
   }
 
-  console.log("Received file:", req.file);
-
-  let filePath = path.join(p, "uploads", req.file.filename);
-
-  console.log("File path 1:", filePath);
+  //let filePath = path.join(p, "uploads", req.file.filename);
 
   filePath = req.file.path;
-
-  console.log("File path 2:", filePath);
 
   // Đọc file Excel
   readXlsxFile(filePath)
