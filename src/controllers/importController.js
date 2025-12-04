@@ -25,6 +25,24 @@ function isRowMerged(sheet, rowIndex, totalColumns) {
   });
 }
 
+// Reverse mapping từ titleMap (tiếng Việt -> key database) để map dữ liệu từ file Excel xuất ra
+const reverseTitleMap = {
+  "STT": "STT", // Bỏ qua khi import
+  "Số TC": "Số TC",
+  "Lớp học phần": "Lớp học phần",
+  "Giảng viên theo TKB": "Giáo Viên",
+  "Ngày bắt đầu": "Ngày bắt đầu",
+  "Ngày kết thúc": "Ngày kết thúc",
+  "Số tiết lên lớp": "Số tiết lên lớp được tính QC",
+  "Số SV": "Số SV",
+  "Số tiết theo CTĐT": "Số tiết theo CTĐT",
+  "Hệ số lớp đông": "Hệ số lớp đông",
+  "Hệ số lên lớp ngoài giờ": "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+  "QC": "QC",
+  "Hệ đào tạo": "Hệ đào tạo",
+  "Ghi chú": "Ghi chú",
+};
+
 async function convertExcelToJSON(optsOrPath) {
   const opts = (typeof optsOrPath === 'string')
     ? { filePath: optsOrPath }
@@ -93,10 +111,17 @@ async function convertExcelToJSON(optsOrPath) {
 
       const obj = {};
       header.forEach((colName, idx) => {
-        const cleanKey = String(colName ?? '').replace(/[\r\n]+/g, '');
+        const cleanKey = String(colName ?? '').replace(/[\r\n]+/g, '').trim();
         let value = row?.[idx] ?? '';
-        if (typeof value === 'string') value = value.replace(/[\r\n]+/g, '');
-        obj[cleanKey] = value;
+        if (typeof value === 'string') value = value.replace(/[\r\n]+/g, '').trim();
+        
+        // Map từ tên cột tiếng Việt sang key database (nếu có trong reverseTitleMap)
+        const mappedKey = reverseTitleMap[cleanKey] || cleanKey;
+        
+        // Bỏ qua cột STT khi import
+        if (mappedKey !== 'STT') {
+          obj[mappedKey] = value;
+        }
       });
 
       obj['Khoa'] = String(currentKhoa ?? '').replace(/[\r\n]+/g, '');
@@ -591,6 +616,42 @@ const importTableQC = async (jsonData, req) => {
   // console.log(dataGiangVien);
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
+  
+  // Hàm format ngày từ string sang Date object hoặc null
+  const formatDateValue = (dateValue) => {
+    if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
+      return null;
+    }
+    
+    // Nếu đã là Date object
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    // Nếu là string, thử parse
+    if (typeof dateValue === 'string') {
+      // Format dd/mm/yyyy
+      const parts = dateValue.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const year = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      
+      // Thử parse ISO format hoặc các format khác
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    return null;
+  };
+  
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
@@ -612,6 +673,8 @@ const importTableQC = async (jsonData, req) => {
     HeSoLopDong,
     QuyChuan,
     GhiChu,
+    NgayBatDau,
+    NgayKetThuc,
     he_dao_tao,
     DoiTuong,
     isHdChinh
@@ -660,6 +723,10 @@ const importTableQC = async (jsonData, req) => {
       }
     }
 
+    // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
+    const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;
+    const ngayKetThuc = item["NgayKetThuc"] || item["Ngày kết thúc"] || null;
+    
     allValues.push([
       item["Khoa"] || null,
       item["Dot"] || null,
@@ -680,6 +747,8 @@ const importTableQC = async (jsonData, req) => {
       item["HeSoLopDong"] || null,
       item["QuyChuan"] || null,
       item["GhiChu"] || null,
+      formatDateValue(ngayBatDau),
+      formatDateValue(ngayKetThuc),
       he_dao_tao,
       doi_tuong,
       1,
@@ -782,17 +851,22 @@ const updateBanHanh = async (req, res) => {
   }
 };
 
-// hàm này chuẩn hóa tiêu đề trong file quy chuẩn word
+// hàm này chuẩn hóa tiêu đề trong file quy chuẩn word và Excel
 const normalizeKeys = (data) => {
   const keyMap = {
     "Giáo viên": "Giáo Viên", // Chuẩn hóa các biến thể
     "Giáo Viên": "Giáo Viên", // Nếu tên trường là "Giáo Viên" thì chuẩn hóa thành "Giáo Viên"
     "Giao Vien": "Giáo Viên", // Nếu tên trường là "Giao Vien" thì chuẩn hóa thành "Giáo Viên"
     "giáo Viên": "Giáo Viên",
-    "Giáo Viên": "Giáo Viên", // Nếu tên trường là "giáo Viên" (chữ cái viết thường) thì chuẩn hóa thành "Giáo Viên"
+    "Giảng viên theo TKB": "Giáo Viên", // Map từ file Excel xuất ra
     "Số TC": "Số TC", // Các trường khác không thay đổi
     "Số SV": "Số SV",
     "Số tiết lên lớp giờ HC": "Số tiết lên lớp giờ HC",
+    "Số tiết lên lớp": "Số tiết lên lớp được tính QC", // Map từ file Excel xuất ra
+    "Hệ số lên lớp ngoài giờ": "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ", // Map từ file Excel xuất ra
+    "Ngày bắt đầu": "Ngày bắt đầu", // Map từ file Excel xuất ra
+    "Ngày kết thúc": "Ngày kết thúc", // Map từ file Excel xuất ra
+    "Hệ đào tạo": "Hệ đào tạo", // Map từ file Excel xuất ra
     // Thêm các cặp key khác nếu cần
   };
 
@@ -819,15 +893,53 @@ const importTableTam = async (jsonData) => {
       SoTinChi, 
       LopHocPhan, 
       GiaoVien, 
+      NgayBatDau,
+      NgayKetThuc,
       SoTietCTDT, 
       SoSinhVien, 
       LL, 
       HeSoT7CN, 
       HeSoLopDong, 
       QuyChuan,
+      he_dao_tao,
       GhiChu 
     ) VALUES ?
   `;
+
+  // Hàm format ngày từ string sang Date object hoặc null
+  const formatDateValue = (dateValue) => {
+    if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
+      return null;
+    }
+    
+    // Nếu đã là Date object
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    // Nếu là string, thử parse
+    if (typeof dateValue === 'string') {
+      // Format dd/mm/yyyy
+      const parts = dateValue.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const year = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      
+      // Thử parse ISO format hoặc các format khác
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    
+    return null;
+  };
 
   // hàm normalizeKeys chuẩn hóa lại đầu vào
   // phần filter sẽ lọc các lớp có quy chuẩn = 0 thì bỏ qua không thêm vào bảng tạm
@@ -851,15 +963,19 @@ const importTableTam = async (jsonData) => {
       item["Nam"] || null,
       item["Số TC"] || 0,
       item["Lớp học phần"] || null,
-      item["Giáo Viên"] || null,
+      item["Giáo Viên"] || item["Giảng viên theo TKB"] || null,
+      formatDateValue(item["Ngày bắt đầu"]),
+      formatDateValue(item["Ngày kết thúc"]),
       item["Số tiết theo CTĐT"] || 0,
       item["Số SV"] || 0,
-      item["Số tiết lên lớp được tính QC"] || 0,
+      item["Số tiết lên lớp được tính QC"] || item["Số tiết lên lớp"] || 0,
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
       item["Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ"] ||
+      item["Hệ số lên lớp ngoài giờ"] ||
       0,
       item["Hệ số lớp đông"] || 0,
       item["QC"] || 0,
+      item["Hệ đào tạo"] || null,
       item["Ghi chú"] || null,
     ]);
 

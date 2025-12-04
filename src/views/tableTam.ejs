@@ -308,20 +308,7 @@
               menu.style.display = "none";
             }
           });
-        });
-
-      const titleMap = {
-        SoTinChi: "Số TC",
-        LopHocPhan: "Lớp học phần",
-        GiaoVien: "Giáo viên",
-        SoTietCTDT: "Số tiết CTĐT",
-        SoSinhVien: "Số SV",
-        LL: "Số tiết lên lớp được tính QC",
-        HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-        HeSoLopDong: "Hệ số lớp đông",
-        QuyChuan: "Quy chuẩn",
-        GhiChu: "Ghi chú"
-      };
+          });
 
       async function exportToExcel() {
         const requestData = {
@@ -374,16 +361,16 @@
         // Map tiêu đề hiển thị
         const titleMap = {
           STT: "STT",
-          SoTinChi: "Số TC",
           LopHocPhan: "Lớp học phần",
-          GiaoVien: "Giáo Viên",
-          SoTietCTDT: "Số tiết theo CTĐT",
-          SoSinhVien: "Số SV",
-          LL: "Số tiết lên lớp được tính QC",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
-          HeSoLopDong: "Hệ số lớp đông",
-          QuyChuan: "QC",
           Khoa: "Khoa",
+          GiaoVien: "Giảng viên theo TKB",
+          LL: "Số tiết LL",
+          SoSinhVien: "Số SV",
+          HeSoLopDong: "Hệ số lớp đông",
+          HeSoT7CN: "Hệ số ngoài giờ",
+          SoTinChi: "Số TC",
+          // SoTietCTDT: "Số tiết theo CTĐT",
+          QuyChuan: "QC",
         };
 
         // Đặt STT và sắp xếp dữ liệu gửi
@@ -509,6 +496,54 @@
       }
 
 
+      // Hàm format ngày tháng năm
+      function formatDate(dateValue) {
+        if (!dateValue) return "";
+        
+        try {
+          let date;
+          
+          // Nếu là string, chuyển thành Date object
+          if (typeof dateValue === "string") {
+            // Xử lý các định dạng khác nhau
+            if (dateValue.includes("T")) {
+              // ISO format: 2024-01-15T00:00:00.000Z
+              date = new Date(dateValue);
+            } else if (dateValue.includes("/")) {
+              // Format: dd/mm/yyyy hoặc mm/dd/yyyy
+              const parts = dateValue.split("/");
+              if (parts.length === 3) {
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+            } else if (dateValue.includes("-")) {
+              // Format: yyyy-mm-dd
+              date = new Date(dateValue);
+            } else {
+              date = new Date(dateValue);
+            }
+          } else if (dateValue instanceof Date) {
+            date = dateValue;
+          } else {
+            return dateValue; // Trả về giá trị gốc nếu không phải ngày
+          }
+          
+          // Kiểm tra ngày hợp lệ
+          if (isNaN(date.getTime())) {
+            return dateValue; // Trả về giá trị gốc nếu ngày không hợp lệ
+          }
+          
+          // Format thành dd/mm/yyyy
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const year = date.getFullYear();
+          
+          return `${day}/${month}/${year}`;
+        } catch (error) {
+          console.error("Error formatting date:", error);
+          return dateValue; // Trả về giá trị gốc nếu có lỗi
+        }
+      }
+
       // Hàm render bảng
       function renderTable() {
         const role = localStorage.getItem("userRole");
@@ -522,15 +557,18 @@
           Dot: "Đợt",
           Ki: "Kì",
           Nam: "Năm",
+          LopHocPhan: "Lớp học phần",
           GiaoVien: "Giảng viên theo TKB",
           SoTinChi: "Số TC",
-          LopHocPhan: "Lớp học phần",
-          LL: "Số tiết lên lớp được tính QC",
-          SoTietCTDT: "Số tiết theo CTĐT",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+          NgayBatDau: "Ngày bắt đầu",
+          NgayKetThuc: "Ngày kết thúc",
+          LL: "Số tiết lên lớp",
           SoSinhVien: "Số SV",
+          // SoTietCTDT: "Số tiết theo CTĐT",
           HeSoLopDong: "Hệ số lớp đông",
+          HeSoT7CN: "Hệ số lên lớp ngoài giờ",
           QuyChuan: "QC",
+          he_dao_tao: "Hệ đào tạo",
           GhiChu: "Ghi chú"
         };
 
@@ -551,6 +589,15 @@
             headerSort: sortableColumns.includes(key) ? true : false,
             formatter: "textarea"
           };
+
+          // Format ngày cho các cột ngày
+          if (key === "NgayBatDau" || key === "NgayKetThuc") {
+            column.formatter = function(cell) {
+              const value = cell.getValue();
+              const formattedDate = formatDate(value);
+              return formattedDate || "";
+            };
+          }
 
           // Đặt độ rộng cho các cột cụ thể
           if (key === "LopHocPhan" || key === "GiaoVien") {
@@ -628,59 +675,85 @@
       }
 
       // Hàm cập nhật
-      function updateDataInServer() {
-        // So sánh localData với renderData để tìm các thay đổi
-        const changes = localData.filter((localRow) => {
-          const renderRow = renderData.find(
-            (renderRow) => renderRow.ID === localRow.ID
-          );
-          return JSON.stringify(localRow) !== JSON.stringify(renderRow); // So sánh dữ liệu giữa local và render
-        });
+      async function updateDataInServer() {
+        return new Promise((resolve, reject) => {
+          // So sánh localData với renderData để tìm các thay đổi
+          const changes = localData.filter((localRow) => {
+            const renderRow = renderData.find(
+              (renderRow) => renderRow.ID === localRow.ID
+            );
+            return JSON.stringify(localRow) !== JSON.stringify(renderRow); // So sánh dữ liệu giữa local và render
+          });
 
-        if (changes.length > 0) {
-          const apiUrl = "/update-qcdk";
+          if (changes.length > 0) {
+            const apiUrl = "/update-qcdk";
 
-          fetch(apiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(changes),
-          })
-            .then((response) => response.json())
-            .then((rs) => {
-              if (rs.success) {
+            fetch(apiUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(changes),
+            })
+              .then((response) => response.json())
+              .then((rs) => {
+                if (rs.success) {
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: `${rs.message}`,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    width: "auto",
+                    padding: "20px",
+                    timer: 2000, // Tự động đóng sau 2 giây
+                    timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                  }).then(() => {
+                    // Cập nhật renderData sau khi lưu thành công
+                    getDataTable().then(() => {
+                      resolve(true);
+                    }).catch(reject);
+                  });
+                } else {
+                  Swal.fire({
+                    title: "Thông báo",
+                    html: `${rs.message}`,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    width: "auto",
+                    padding: "20px",
+                  }).then(() => {
+                    reject(new Error(rs.message));
+                  });
+                }
+              })
+              .catch((error) => {
+                console.error("Có lỗi khi gửi dữ liệu lên server:", error);
                 Swal.fire({
-                  title: "Thông báo",
-                  html: `${rs.message}`,
-                  icon: "success",
+                  title: "Lỗi",
+                  html: "Có lỗi xảy ra khi cập nhật dữ liệu",
+                  icon: "error",
                   confirmButtonText: "OK",
                   width: "auto",
                   padding: "20px",
-                  timer: 3000, // Tự động đóng sau 3 giây
-                  timerProgressBar: true, // Hiển thị thanh đếm thời gian
-                  didClose: () => {
-                    getDataTable();
-                    renderTable();
-                  },
+                }).then(() => {
+                  reject(error);
                 });
-              }
-            })
-            .catch((error) => {
-              console.error("Có lỗi khi gửi dữ liệu lên server:", error);
+              });
+          } else {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Chưa có dữ liệu thay đổi",
+              icon: "info",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+              timer: 2000, // Tự động đóng sau 2 giây
+              timerProgressBar: true, // Hiển thị thanh đếm thời gian
+            }).then(() => {
+              resolve(false); // Không có thay đổi
             });
-        } else {
-          Swal.fire({
-            title: "Thông báo",
-            html: "Chưa có dữ liệu thay đổi",
-            icon: "info",
-            confirmButtonText: "OK",
-            width: "auto",
-            padding: "20px",
-            timer: 3000, // Tự động đóng sau 3 giây
-            timerProgressBar: true, // Hiển thị thanh đếm thời gian
-          });
-        }
+          }
+        });
       }
 
       // Hàm xóa dòng
@@ -850,6 +923,33 @@
     <script>
       let dataQC = [];
 
+      // Hàm kiểm tra xem có thay đổi chưa được lưu không
+      function hasUnsavedChanges() {
+        if (!localData || !renderData) return false;
+        
+        // So sánh số lượng dữ liệu
+        if (localData.length !== renderData.length) {
+          return true;
+        }
+
+        // So sánh từng dòng dữ liệu
+        for (let i = 0; i < localData.length; i++) {
+          const localRow = localData[i];
+          const renderRow = renderData.find(row => row.ID === localRow.ID);
+          
+          if (!renderRow) {
+            return true; // Có dòng mới được thêm
+          }
+          
+          // So sánh nội dung (loại bỏ các trường không cần so sánh)
+          if (JSON.stringify(localRow) !== JSON.stringify(renderRow)) {
+            return true; // Có thay đổi
+          }
+        }
+        
+        return false;
+      }
+
       // Hàm fetch lần đầu để lấy dữ liệu từ server
       async function fetchData() {
         // Lấy giá trị từ các phần tử đầu vào và kiểm tra xem có tồn tại hay không
@@ -897,14 +997,109 @@
       document
         .getElementById("ban-hanh")
         .addEventListener("click", async function () {
-          // Xác nhận lại hành động ban hành
-          const confirmed = confirm("Bạn có chắc chắn muốn ban hành không?");
-          if (!confirmed) {
-            return; // Thoát nếu người dùng không đồng ý
+          // Kiểm tra xem bảng có dữ liệu đang hiển thị không
+          if (!localData || localData.length === 0) {
+            Swal.fire({
+              title: "Thông báo",
+              html: "Không có dữ liệu trong bảng để ban hành. Vui lòng hiển thị dữ liệu trước.",
+              icon: "warning",
+              confirmButtonText: "OK",
+              width: "auto",
+              padding: "20px",
+            });
+            return;
           }
 
-          // Gọi hàm fetchData để lấy dữ liệu từ server
-          await fetchData();
+          // Kiểm tra xem có thay đổi chưa được lưu không
+          if (hasUnsavedChanges()) {
+            const result = await Swal.fire({
+              title: "Cảnh báo",
+              html: "Bạn có thay đổi chưa được lưu trong bảng. Bạn có muốn cập nhật trước khi ban hành không?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Cập nhật và ban hành",
+              cancelButtonText: "Hủy",
+              width: "auto",
+              padding: "20px",
+            });
+
+            if (result.isConfirmed) {
+              try {
+                // Cập nhật dữ liệu trước
+                await updateDataInServer();
+                // Fetch lại dữ liệu sau khi cập nhật để đảm bảo đồng bộ
+                await fetchData();
+                
+                // So sánh số lượng dữ liệu
+                if (dataQC.length !== localData.length) {
+                  Swal.fire({
+                    title: "Cảnh báo",
+                    html: `Số lượng dữ liệu ban hành (${dataQC.length}) không khớp với số lượng dữ liệu trong bảng (${localData.length}). Vui lòng kiểm tra lại.`,
+                    icon: "warning",
+                    confirmButtonText: "OK",
+                    width: "auto",
+                    padding: "20px",
+                  });
+                  return;
+                }
+              } catch (error) {
+                Swal.fire({
+                  title: "Lỗi",
+                  html: "Không thể cập nhật dữ liệu. Vui lòng thử lại.",
+                  icon: "error",
+                  confirmButtonText: "OK",
+                  width: "auto",
+                  padding: "20px",
+                });
+                return;
+              }
+            } else {
+              return; // Người dùng hủy
+            }
+          } else {
+            // Không có thay đổi, sử dụng dữ liệu đang hiển thị trong bảng
+            dataQC = JSON.parse(JSON.stringify(localData));
+            
+            // So sánh với dữ liệu trên server để đảm bảo đồng bộ
+            await fetchData();
+            
+            // So sánh số lượng dữ liệu
+            if (dataQC.length !== localData.length) {
+              const result = await Swal.fire({
+                title: "Cảnh báo",
+                html: `Số lượng dữ liệu trong bảng (${localData.length}) không khớp với số lượng dữ liệu trên server (${dataQC.length}). Bạn có muốn sử dụng dữ liệu đang hiển thị trong bảng không?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sử dụng dữ liệu trong bảng",
+                cancelButtonText: "Hủy",
+                width: "auto",
+                padding: "20px",
+              });
+              
+              if (!result.isConfirmed) {
+                return; // Người dùng hủy
+              }
+              
+              // Sử dụng dữ liệu trong bảng
+              dataQC = JSON.parse(JSON.stringify(localData));
+            }
+          }
+
+          // Xác nhận lại hành động ban hành
+          const confirmed = await Swal.fire({
+            title: "Xác nhận ban hành",
+            html: `Bạn có chắc chắn muốn ban hành <strong>${dataQC.length}</strong> bản ghi đang hiển thị trong bảng không?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Xác nhận ban hành",
+            cancelButtonText: "Hủy",
+            width: "auto",
+            padding: "20px",
+          });
+
+          if (!confirmed.isConfirmed) {
+            return; // Thoát nếu người dùng không đồng ý
+          }
 
           // Kiểm tra nếu dữ liệu không có gì để gửi
           if (!dataQC || dataQC.length === 0) {

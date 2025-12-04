@@ -1341,28 +1341,34 @@ const exportToExcel = async (req, res) => {
   // 1) Chuẩn bị key và map tiêu đề
   const orderedKeys = [
     "STT",
-    "SoTinChi",
     "LopHocPhan",
     "GiaoVien",
-    "SoTietCTDT",
-    "SoSinhVien",
+    "SoTinChi",
+    "NgayBatDau",
+    "NgayKetThuc",
     "LL",
-    "HeSoT7CN",
+    "SoSinhVien",
+    "SoTietCTDT",
     "HeSoLopDong",
+    "HeSoT7CN",
     "QuyChuan",
+    "he_dao_tao",
     "GhiChu",
   ];
 
   const titleMap = {
     SoTinChi: "Số TC",
     LopHocPhan: "Lớp học phần",
-    GiaoVien: "Giáo Viên",
+    GiaoVien: "Giảng viên theo TKB",
+    NgayBatDau: "Ngày bắt đầu",
+    NgayKetThuc: "Ngày kết thúc",
     SoTietCTDT: "Số tiết theo CTĐT",
     SoSinhVien: "Số SV",
-    LL: "Số tiết lên lớp được tính QC",
-    HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+    LL: "Số tiết lên lớp",
+    HeSoT7CN: "Hệ số lên lớp ngoài giờ",
     HeSoLopDong: "Hệ số lớp đông",
     QuyChuan: "QC",
+    he_dao_tao: "Hệ đào tạo",
     GhiChu: "Ghi chú",
   };
 
@@ -1371,7 +1377,7 @@ const exportToExcel = async (req, res) => {
     key === "STT" ? "STT" : titleMap[key] || key
   );
   // Tổng số cột
-  const totalColumns = headers.length; // 11 cột
+  const totalColumns = headers.length; // 14 cột (bao gồm STT, đã bỏ Khoa, Đợt, Kì, Năm)
 
   // Tạo workbook & worksheet
   const workbook = new ExcelJS.Workbook();
@@ -1454,7 +1460,7 @@ const exportToExcel = async (req, res) => {
 
   // Row 4: dòng trống
   row = worksheet.addRow([]);
-  worksheet.mergeCells(row.number, 1, row.number, 11);
+  worksheet.mergeCells(row.number, 1, row.number, totalColumns);
 
   // ========================
   // PHẦN THÔNG BÁO
@@ -1549,9 +1555,20 @@ const exportToExcel = async (req, res) => {
   const groupedData = renderData.reduce((acc, item) => {
     const department = item.Khoa || "Khac";
     if (!acc[department]) acc[department] = [];
-    const rowData = orderedKeys.map((key) =>
-      key === "STT" ? `${sttCounter++}` : item[key] || ""
-    );
+    const rowData = orderedKeys.map((key) => {
+      if (key === "STT") {
+        return `${sttCounter++}`;
+      } else if (key === "NgayBatDau" || key === "NgayKetThuc") {
+        // Format ngày tháng
+        return item[key] ? formatDate(item[key]) : "";
+      } else if (key === "SoSinhVien" || key === "LL") {
+        // Xử lý NULL: nếu NULL hoặc undefined thì set thành 0
+        const value = item[key];
+        return (value === null || value === undefined || value === "") ? 0 : value;
+      } else {
+        return item[key] || "";
+      }
+    });
     acc[department].push(rowData);
     return acc;
   }, {});
@@ -1730,19 +1747,21 @@ const exportToExcel = async (req, res) => {
   // ĐỘ RỘNG CỘT
   // ========================
   const maxTotalWidth = 150;
-  const colCount = totalColumns; // 11
+  const colCount = totalColumns; // 14
   const sttIndex = orderedKeys.indexOf("STT");
   const soTinChiIndex = orderedKeys.indexOf("SoTinChi");
   const teacherIndex = orderedKeys.indexOf("GiaoVien");
   const lopHocPhanIndex = orderedKeys.indexOf("LopHocPhan");
+  const heDaoTaoIndex = orderedKeys.indexOf("he_dao_tao");
 
   const fixedWidthSTT = 7; // Cột STT + Số TC
-  const fixedWidthTeacher = maxTotalWidth * 0.2; // 20%
-  const fixedWidthLopHocPhan = maxTotalWidth * 0.3; // 30%
+  const fixedWidthTeacher = maxTotalWidth * 0.15; // 15% (giảm từ 20%)
+  const fixedWidthLopHocPhan = maxTotalWidth * 0.2; // 20% (giảm từ 30%)
+  const fixedWidthHeDaoTao = maxTotalWidth * 0.12; // 12% (tăng cho Hệ đào tạo)
 
   const fixedTotal =
-    fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan;
-  const remainingColumnsCount = colCount - 4;
+    fixedWidthSTT * 2 + fixedWidthTeacher + fixedWidthLopHocPhan + fixedWidthHeDaoTao;
+  const remainingColumnsCount = colCount - 5; // Trừ đi STT, SoTinChi, GiaoVien, LopHocPhan, he_dao_tao
   const remainingWidthEach =
     remainingColumnsCount > 0
       ? (maxTotalWidth - fixedTotal) / remainingColumnsCount
@@ -1755,6 +1774,8 @@ const exportToExcel = async (req, res) => {
       worksheet.getColumn(i).width = fixedWidthTeacher;
     } else if (i - 1 === lopHocPhanIndex) {
       worksheet.getColumn(i).width = fixedWidthLopHocPhan;
+    } else if (i - 1 === heDaoTaoIndex) {
+      worksheet.getColumn(i).width = fixedWidthHeDaoTao;
     } else {
       worksheet.getColumn(i).width = remainingWidthEach;
     }

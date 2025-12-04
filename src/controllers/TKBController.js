@@ -345,7 +345,8 @@ const themTKBVaoQCDK = async (req, res) => {
       max(course_code) AS MaHocPhan,
       min(start_date) AS NgayBatDau,
       max(end_date) AS NgayKetThuc,
-      max(qc) AS QuyChuan
+      max(qc) AS QuyChuan,
+      max(he_dao_tao) AS HeDaoTao
     FROM course_schedule_details
     WHERE dot = ? and ki_hoc = ? and nam_hoc = ? and da_luu = 0
   `;
@@ -402,6 +403,7 @@ const themTKBVaoQCDK = async (req, res) => {
             row.NgayBatDau || null,
             row.NgayKetThuc || null,
             row.QuyChuan,
+            row.HeDaoTao || null,
           ]);
         } else {
           maPhongBanFalse.push(row.ID);
@@ -427,6 +429,7 @@ const themTKBVaoQCDK = async (req, res) => {
         row.NgayBatDau || null, // start_date
         row.NgayKetThuc || null, // end_date
         row.QuyChuan, // bonus_total
+        row.HeDaoTao || null, // he_dao_tao
       ]);
     }
 
@@ -440,7 +443,7 @@ const themTKBVaoQCDK = async (req, res) => {
     // Câu lệnh INSERT
     const insertQuery = `
       INSERT INTO tam (Khoa, dot, ki, nam, SoTietCTDT, LL, SoSinhVien, HeSoLopDong, HeSoT7CN, MaBoMon, 
-      GiaoVien, SoTinChi, LopHocPhan, MaHocPhan, NgayBatDau, NgayKetThuc, QuyChuan) 
+      GiaoVien, SoTinChi, LopHocPhan, MaHocPhan, NgayBatDau, NgayKetThuc, QuyChuan, he_dao_tao) 
       VALUES ?
     `;
 

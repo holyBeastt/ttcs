@@ -17,52 +17,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css"
-      rel="stylesheet"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
     <style>
-      /* fixed header nhưng chưa được */
-      .tabulator > .tabulator-header > .tabulator-col {
-        position: sticky !important;
-        top: 0 !important;
-        z-index: 10000 !important;
-      }
-
-      /* phần header */
-      .tabulator
-        .tabulator-header
-        .tabulator-col
-        .tabulator-col-content
-        .tabulator-col-title {
-        /* Ghi đè với thư viện cho đẹp */
-        padding: 10px 5px 0px 5px !important;
-
-        text-align: center !important;
-        /* Canh giữa văn bản */
-        white-space: normal !important;
-        /* Cho phép nội dung xuống dòng */
-        word-wrap: break-word !important;
-        /* Ngắt từ nếu cần */
-        overflow: visible !important;
-        /* Hiển thị hết nội dung, không cắt */
-        word-break: break-word !important;
-        /* Ngắt từ dài thành dòng mới */
-      }
-
-      /* Đảm bảo bảng có chiều rộng 100% */
-      #table-container {
-        width: 100% !important;
-        font-size: 12px !important;
-        /* Thêm style cho bảng nếu cần */
-      }
-
-      /* Thay đổi chiều rộng của tiêu đề cột nếu cần */
-      .tabulator-col .tabulator-sortable .tabulator-col-sorter-element {
-        display: flex !important;
-        flex-wrap: wrap !important;
-      }
 
       .wrap-cell {
         white-space: normal;
@@ -273,7 +228,6 @@
         SoTinChi: "Số TC",
         LopHocPhan: "Lớp học phần",
         GiaoVien: "Giáo viên",
-        SoTietCTDT: "Số tiết CTĐT",
         SoSinhVien: "Số SV",
         LL: "Số tiết lên lớp được tính QC",
         HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
@@ -329,7 +283,6 @@
           "SoTinChi",
           "LopHocPhan",
           "GiaoVien",
-          "SoTietCTDT",
           "SoSinhVien",
           "LL",
           "HeSoT7CN",
@@ -344,7 +297,6 @@
           SoTinChi: "Số TC",
           LopHocPhan: "Lớp học phần",
           GiaoVien: "Giáo Viên",
-          SoTietCTDT: "Số tiết theo CTĐT",
           SoSinhVien: "Số SV",
           LL: "Số tiết lên lớp được tính QC",
           HeSoT7CN: "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
@@ -488,18 +440,56 @@
         }
       }
 
-      function renderTable(data) {
-        // Thêm spinner loading nếu chưa tồn tại
-        let loadingSpinner = document.getElementById("loading-spinner");
-        if (!loadingSpinner) {
-          loadingSpinner = document.createElement("div");
-          loadingSpinner.id = "loading-spinner";
-          loadingSpinner.innerHTML = "Loading...";
-          // Thêm spinner vào container phù hợp, ví dụ: body hoặc container chứa bảng
-          document.body.appendChild(loadingSpinner);
+      // Hàm format ngày tháng năm
+      function formatDate(dateValue) {
+        if (!dateValue) return "";
+        
+        try {
+          let date;
+          
+          // Nếu là string, chuyển thành Date object
+          if (typeof dateValue === "string") {
+            // Xử lý các định dạng khác nhau
+            if (dateValue.includes("T")) {
+              // ISO format: 2024-01-15T00:00:00.000Z
+              date = new Date(dateValue);
+            } else if (dateValue.includes("/")) {
+              // Format: dd/mm/yyyy hoặc mm/dd/yyyy
+              const parts = dateValue.split("/");
+              if (parts.length === 3) {
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+              }
+            } else if (dateValue.includes("-")) {
+              // Format: yyyy-mm-dd
+              date = new Date(dateValue);
+            } else {
+              date = new Date(dateValue);
+            }
+          } else if (dateValue instanceof Date) {
+            date = dateValue;
+          } else {
+            return dateValue; // Trả về giá trị gốc nếu không phải ngày
+          }
+          
+          // Kiểm tra ngày hợp lệ
+          if (isNaN(date.getTime())) {
+            return dateValue; // Trả về giá trị gốc nếu ngày không hợp lệ
+          }
+          
+          // Format thành dd/mm/yyyy
+          const day = String(date.getDate()).padStart(2, "0");
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const year = date.getFullYear();
+          
+          return `${day}/${month}/${year}`;
+        } catch (error) {
+          console.error("Error formatting date:", error);
+          return dateValue; // Trả về giá trị gốc nếu có lỗi
         }
+      }
 
-        // Danh sách cột cần hiển thị
+      function renderTable(data) {
+        // Danh sách cột cần hiển thị theo thứ tự (giống tableTam)
         const columnsToDisplay = [
           "Khoa",
           "Dot",
@@ -507,20 +497,44 @@
           "NamHoc",
           "LopHocPhan",
           "GiaoVien",
+          "SoTinChi",
+          "NgayBatDau",
+          "NgayKetThuc",
+          "LL",
+          "SoSinhVien",
+          "HeSoLopDong",
+          "HeSoT7CN",
+          "QuyChuan",
+          "he_dao_tao",
+          "GhiChu",
+          // Các cột riêng của tableQC
           "GiaoVienGiangDay",
           "MoiGiang",
-          "SoTinChi",
-          "TenLop",
-          "LL",
-          "QuyChuan",
         ];
 
-        // Mapping định nghĩa width theo yêu cầu:
-        // - Khoa, Dot, KiHoc: 5% mỗi cột
-        // - NamHoc: 10%
-        // - LopHocPhan: 22.5%
-        // - GiaoVien: 25%
-        // - GiaoVienGiangDay: 22.5%
+        const headersMap = {
+          Khoa: "Khoa",
+          Dot: "Đợt",
+          KiHoc: "Kì",
+          NamHoc: "Năm",
+          LopHocPhan: "Lớp học phần",
+          GiaoVien: "Giảng viên theo TKB",
+          GiaoVienGiangDay: "Giảng viên giảng dạy",
+          MoiGiang: "Mời giảng?",
+          SoTinChi: "Số tín chỉ",
+          TenLop: "Tên lớp",
+          NgayBatDau: "Ngày bắt đầu",
+          NgayKetThuc: "Ngày kết thúc",
+          LL: "Số tiết lên lớp",
+          SoSinhVien: "Số SV",
+          HeSoLopDong: "Hệ số lớp đông",
+          HeSoT7CN: "Hệ số lên lớp ngoài giờ",
+          QuyChuan: "Số tiết quy chuẩn",
+          he_dao_tao: "Hệ đào tạo",
+          GhiChu: "Ghi chú",
+        };
+
+        // Mapping định nghĩa width theo yêu cầu
         const customWidths = {
           Khoa: "5%",
           Dot: "5%",
@@ -537,28 +551,11 @@
           width: customWidths[col] || "auto",
         }));
 
-        console.log("Columns with width:", columnsWithWidth);
-
         let tableHtml = "";
-
-        const headersMap = {
-          Khoa: "Khoa",
-          Dot: "Đợt",
-          KiHoc: "Kì",
-          NamHoc: "Năm",
-          LopHocPhan: "Lớp học phần",
-          GiaoVien: "Giảng viên theo TKB",
-          GiaoVienGiangDay: "Giảng viên giảng dạy",
-          MoiGiang: "Mời giảng?",
-          SoTinChi: "Số tín chỉ",
-          TenLop: "Tên lớp",
-          LL: "Số tiết lên lớp",
-          QuyChuan: "Số tiết quy chuẩn",
-        };
 
         // Tạo header với width được chỉ định
         columnsWithWidth.forEach((col) => {
-          const newHeaderName = headersMap[col.name] || col.name; // Sử dụng tên cột mới nếu có
+          const newHeaderName = headersMap[col.name] || col.name;
           tableHtml += `<th style="width: ${col.width};">${newHeaderName}</th>`;
         });
         document.getElementById("table-header").innerHTML = tableHtml;
@@ -566,12 +563,17 @@
         // Xóa dữ liệu bảng cũ nếu có trước khi thêm mới
         document.getElementById("data-table-body").innerHTML = "";
 
-        // Render các dòng dữ liệu vào bảng (tạo chuỗi HTML rồi thêm vào một lần)
+        // Render các dòng dữ liệu vào bảng
         const tableRows = data
           .map((item) => {
             let rowHtml = columnsToDisplay
               .map((key) => {
                 let cellValue = item[key] !== null ? item[key] : "";
+
+                // Format ngày cho các cột ngày
+                if (key === "NgayBatDau" || key === "NgayKetThuc") {
+                  cellValue = formatDate(cellValue);
+                }
 
                 // Chuyển đổi 0 và 1 thành 'Có' hoặc 'Không' cho cột MoiGiang
                 if (key === "MoiGiang") {
@@ -585,25 +587,8 @@
           .join("");
 
         document.getElementById("data-table-body").innerHTML = tableRows;
-
-        // Xóa spinner sau khi hoàn thành
-        loadingSpinner.remove();
       }
 
-      // Thêm sự kiện cho nút lọc
-      document.getElementById("filter").addEventListener("click", function () {
-        const rows = document.querySelectorAll("#data-table-body tr");
-        rows.forEach((row) => {
-          const cells = row.getElementsByTagName("td");
-          const moiGiang = cells[2].textContent; // Giả sử "Mời giảng" là cột thứ 3 (index 2)
-          if (moiGiang !== "Có") {
-            // Lọc theo giá trị 'Có' thay vì 1
-            row.style.display = "none"; // Ẩn hàng nếu "Mời giảng" không phải là 'Có'
-          } else {
-            row.style.display = ""; // Hiện hàng nếu "Mời giảng" là 'Có'
-          }
-        });
-      });
     </script>
     <!-- Phần phân quyền -->
     <script>
