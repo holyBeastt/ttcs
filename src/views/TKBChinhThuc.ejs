@@ -475,44 +475,111 @@
       // Mảng khoa ( để validate bảng)
       var khoaArray = [];
 
-      async function getDataTable() {
-        let Dot = document.getElementById("combobox-dot").value;
-        let Ki = document.getElementById("comboboxki").value;
-        let Nam = document.getElementById("NamHoc").value;
-        let Khoa = document.getElementById("departmentFilter").value;
+      let gridApi; // Biến toàn cục để lưu trữ gridApi
 
-        const body = {
-          Khoa: Khoa,
-          Dot: Dot,
-          Ki: Ki,
-          Nam: Nam,
-        };
+      // async function getDataTable() {
+      //   let Dot = document.getElementById("combobox-dot").value;
+      //   let Ki = document.getElementById("comboboxki").value;
+      //   let Nam = document.getElementById("NamHoc").value;
+      //   let Khoa = document.getElementById("departmentFilter").value;
 
-        try {
-          const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          });
+      //   const body = {
+      //     Khoa: Khoa,
+      //     Dot: Dot,
+      //     Ki: Ki,
+      //     Nam: Nam,
+      //   };
 
-          if (!response.ok) {
-            throw new Error(
-              "Network response was not ok: " + response.statusText
-            );
-          }
+      //   try {
+      //     const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //       body: JSON.stringify(body),
+      //     });
 
-          const data = await response.json();
-          renderData = data; // Lưu dữ liệu vào biến renderData
+      //     if (!response.ok) {
+      //       throw new Error(
+      //         "Network response was not ok: " + response.statusText
+      //       );
+      //     }
 
-          // Gọi hàm renderTable để hiển thị dữ liệu
-          renderTable();
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          alert("Có lỗi xảy ra khi gọi API: " + error.message);
-        }
+      //     const data = await response.json();
+      //     renderData = data; // Lưu dữ liệu vào biến renderData
+
+      //     // Gọi hàm renderTable để hiển thị dữ liệu
+      //     renderTable();
+      //   } catch (error) {
+      //     console.error("Error fetching data:", error);
+      //     alert("Có lỗi xảy ra khi gọi API: " + error.message);
+      //   }
+      // }
+
+async function getDataTable() {
+  // 1. Get current filter values
+  const Dot = document.getElementById("combobox-dot").value;
+  const Ki = document.getElementById("comboboxki").value;
+  const Nam = document.getElementById("NamHoc").value;
+  const Khoa = document.getElementById("departmentFilter").value;
+
+  const body = {
+    Khoa: Khoa,
+    Dot: Dot,
+    Ki: Ki,
+    Nam: Nam,
+  };
+
+  try {
+    // 2. Show loading overlay if grid exists
+    if (gridApi) gridApi.showLoadingOverlay();
+
+    // 3. Call API (Using your POST endpoint)
+    const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok: " + response.statusText);
+    }
+
+    const data = await response.json();
+    
+    // 4. Update global data variable
+    renderData = data; 
+
+    // 5. SMART UPDATE: Check if Grid exists
+    if (gridApi) {
+      // If grid exists, just swap the data inside (No flicker)
+      gridApi.setRowData(renderData);
+
+      // Handle Empty State
+      if (renderData.length === 0) {
+        gridApi.showNoRowsOverlay();
+      } else {
+        gridApi.hideOverlay();
       }
+      
+      console.log("♻️ Data updated via AG Grid API");
+    } else {
+      // If grid doesn't exist yet, build it from scratch
+      renderTable();
+    }
+
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    if (gridApi) gridApi.hideOverlay(); // Hide loading if error
+    Swal.fire({
+        title: "Lỗi",
+        text: "Có lỗi xảy ra khi gọi API: " + error.message,
+        icon: "error"
+    });
+  }
+}
 
       let gridOptions; // Khai báo biến toàn cục
 
@@ -520,9 +587,23 @@
         const role = localStorage.getItem("userRole");
         const rowHeight = 50; // Chiều cao mỗi dòng
 
+        // ✅ 2. OPTIMIZATION: If grid already exists, just update data and stop.
+        // This prevents the table from being destroyed and recreated.
+        if (gridApi) {
+          gridApi.setRowData(renderData);
+          
+          // Handle empty data display inside the grid
+          if (renderData.length === 0) {
+            gridApi.showNoRowsOverlay();
+          } else {
+            gridApi.hideOverlay();
+          }
+          return; // ⛔ EXIT FUNCTION HERE
+        }
+
+        // Handle case where Grid doesn't exist yet and there is no data
         if (renderData.length === 0) {
-          document.getElementById("table-container").innerHTML =
-            "<p>Không có dữ liệu</p>";
+          document.getElementById("table-container").innerHTML = "<p class='text-center mt-3'>Không có dữ liệu</p>";
           return;
         }
 
@@ -790,6 +871,14 @@
           singleClickEdit: true, // Nhấn vào ô là có thể sửa ngay
           enterMovesDownAfterEdit: true, // Nhấn Enter hoặc mũi tên xuống sẽ xuống ô tiếp theo
           suppressClickEdit: false, // Cho phép click vào ô để sửa ngay
+
+          // 🔥 NEW: Capture API when grid is ready
+          onGridReady: (params) => {
+              gridApi = params.api; // Assign to global variable
+              params.api.sizeColumnsToFit(); // Resize columns
+          },
+          // Optional: Templates for empty states
+          overlayNoRowsTemplate: '<span style="padding: 10px;">Không có dữ liệu</span>',
         };
 
         const tableContainer = document.getElementById("table-container");
@@ -797,9 +886,9 @@
         new agGrid.Grid(tableContainer, gridOptions);
 
         // ✅ Tự động căn chỉnh cột
-        setTimeout(() => {
-          gridOptions.api.sizeColumnsToFit();
-        }, 100);
+        // setTimeout(() => {
+        //   gridOptions.api.sizeColumnsToFit();
+        // }, 100);
       }
 
       function reFormatDateFromDB(input) {
@@ -869,82 +958,44 @@
 
       async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
 
-  if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
-    try {
-      const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
+          try {
+            const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
 
-      if (!response.ok) {
-        throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
+            if (!response.ok) {
+              throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
+            }
+
+            // XÓA ĐÚNG CÁI DÒNG TRONG AG GRID
+            gridOptions.api.applyTransaction({
+              remove: [{ tt }]
+            });
+            console.log("Dòng đã xóa khỏi AG Grid", renderData);
+
+            // XÓA TRONG RENDERDATA
+            renderData = renderData.filter(row => row.tt !== tt);
+
+            console.log("Dòng đã xóa thành công", renderData);
+
+            Toastify({
+              text: "✅ Xóa thành công!",
+              duration: 1000,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#4CAF50",
+            }).showToast();
+
+          } catch (error) {
+            console.error("Lỗi khi xóa dòng:", error);
+            alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
+          }
+        }
       }
-
-      // XÓA ĐÚNG CÁI DÒNG TRONG AG GRID
-      gridOptions.api.applyTransaction({
-        remove: [{ tt }]
-      });
-      console.log("Dòng đã xóa khỏi AG Grid", renderData);
-
-      // XÓA TRONG RENDERDATA
-      renderData = renderData.filter(row => row.tt !== tt);
-
-      console.log("Dòng đã xóa thành công", renderData);
-
-      Toastify({
-        text: "✅ Xóa thành công!",
-        duration: 1000,
-        gravity: "top",
-        position: "right",
-        backgroundColor: "#4CAF50",
-      }).showToast();
-
-    } catch (error) {
-      console.error("Lỗi khi xóa dòng:", error);
-      alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
-    }
-  }
-}
-
-
-      // async function deleteRow(id, tt, dot, ki_hoc, nam_hoc, stt) {
-
-      //   if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt} ?`)) {
-      //     try {
-      //       const response = await fetch(`/TKB-delete-row?tt=${tt}&dot=${dot}&ki_hoc=${ki_hoc}&nam_hoc=${nam_hoc}`, {
-      //         method: "DELETE",
-      //         headers: {
-      //           "Content-Type": "application/json",
-      //         },
-      //       });
-
-      //       if (!response.ok) {
-      //         throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
-      //       }
-
-
-      //       // Cập nhật lại dữ liệu cục bộ
-      //       renderData = renderData.filter((row) => row.tt != tt);
-
-      //       // Cập nhật lại bảng AG Grid
-      //       gridOptions.api.setRowData(renderData);
-
-      //       // Hiển thị thông báo thành công
-      //       Toastify({
-      //         text: "✅ Xóa thành công!",
-      //         duration: 1000,
-      //         gravity: "top",
-      //         position: "right",
-      //         backgroundColor: "#4CAF50",
-      //       }).showToast();
-      //     } catch (error) {
-      //       console.error("Lỗi khi xóa dòng:", error);
-      //       alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
-      //     }
-      //   }
-      // }
 
       // Xóa
       document.getElementById("xoa-TKB").addEventListener("click", async () => {
@@ -990,6 +1041,10 @@
             confirmButtonText: "OK",
             width: "auto",
             padding: "20px",
+          }).then(() => {
+            // Sau khi người dùng nhấn OK, tải lại bảng dữ liệu
+            getDataTable();
+            //reloadTableData();
           });
         } catch (error) {
           Swal.fire({
