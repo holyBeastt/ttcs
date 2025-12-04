@@ -1,70 +1,48 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-var appRoot = require("app-root-path");
 const router = express.Router();
-const fs = require("fs");
 
 const {
   createGvm,
   getBoMonList,
 } = require("../controllers/createGvmController");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user"; // Sử dụng Họ tên làm định danh
-    let Khoa = req.session.MaPhongBan; // Lấy thông tin Khoa từ session
-    let BoMon = req.body.monGiangDayChinh; // Lấy thông tin Bộ môn từ body
+const storage = multer.memoryStorage();
 
-    // Tạo đường dẫn thư mục chứa các folder con: Khoa/BoMon/HoTen
-    const userFolderPath =
-      appRoot + `/Giang_Vien_Moi/${Khoa}/${BoMon}/${HoTen}`;
-
-    // Kiểm tra và tạo thư mục con nếu chưa tồn tại
-    if (!fs.existsSync(userFolderPath)) {
-      fs.mkdirSync(userFolderPath, { recursive: true });
-    }
-
-    // Trả về đường dẫn để lưu file
-    cb(null, userFolderPath);
-  },
-  filename: function (req, file, cb) {
-    let HoTen = req.body.HoTen ? req.body.HoTen : "unknown-user";
-    let Khoa = req.session.MaPhongBan; // Lấy thông tin Khoa từ session
-    let fieldName = file.fieldname; // Tên trường (fieldname) để phân loại file
-
-    if (fieldName === "fileBoSung") {
-      fieldName = `${Khoa}_${HoTen}`;
-    }
-
-    if (fieldName === "FileLyLich") {
-      fieldName = `${Khoa}_Lý lịch_${HoTen}`;
-    }
-
-    // Tạo tên file theo fieldname (với tên người dùng và fieldname làm định danh)
-    let fileName = `${fieldName}${path.extname(file.originalname)}`;
-    cb(null, fileName); // Đặt tên file theo định dạng: HoTen_fieldname.extension
-  },
-});
+// escape string để tránh lỗi regex
+const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const imageFilter = function (req, file, cb) {
-  if (file == undefined) return;
-  // Accept images only
-  const allowedExtensions = process.env.ALLOWED_FILE_EXTENSIONS.split(",")
-    .map((ext) => ext.trim()) // bỏ khoảng trắng nếu có
-    .join("|"); // nối thành regex pattern
+  // luôn phải gọi cb để multer không bị treo
+  if (!file) return cb(null, false);
+
+  // extensions từ .env
+  const allowedExtensions = (process.env.ALLOWED_FILE_EXTENSIONS || "jpg,png,pdf,jpeg")
+    .split(",")
+    .map(ext => escapeRegExp(ext.trim()))
+    .join("|");
 
   const extensionRegex = new RegExp(`\\.(${allowedExtensions})$`, "i");
 
-  // Dùng trong middleware hoặc hàm kiểm tra
+  // check tên file
   if (!file.originalname.match(extensionRegex)) {
     return cb(new Error("Chỉ cho phép các định dạng file hợp lệ!"), false);
+  }
+
+  // check MIME type để tránh đổi tên file
+  const allowedMimes = ["image/jpeg", "image/png", "application/pdf"];
+  if (!allowedMimes.includes(file.mimetype)) {
+    return cb(new Error("MIME không hợp lệ!"), false);
   }
 
   cb(null, true);
 };
 
-let upload = multer({ storage: storage, fileFilter: imageFilter });
+let upload = multer({
+  storage: storage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // giới hạn 5MB
+});
 
 router.post(
   "/daotaonhap",
@@ -72,7 +50,7 @@ router.post(
     { name: "truocCCCD", maxCount: 1 },
     { name: "sauCCCD", maxCount: 1 },
     { name: "bangTotNghiep", maxCount: 1 },
-    { name: "FileLyLich", maxCount: 1 }, // Thêm dòng này để upload file PDF
+    { name: "FileLyLich", maxCount: 1 },
     { name: "fileBoSung", maxCount: 1 },
     { name: "QrCode", maxCount: 1 },
   ]),
