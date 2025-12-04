@@ -30,6 +30,8 @@ const convertExcelToJSON = (req, res) => {
 
   const filePath = path.join(p, "uploads", req.file.filename);
 
+  console.log("File path:", filePath);
+
   // Đọc file Excel
   readXlsxFile(filePath)
     .then((rows) => {
@@ -278,7 +280,7 @@ const saveToDB = async (req, res) => {
           const khoa = req.session?.MaPhongBan || 'Unknown Department';
           const loaiThongTin = 'Import giảng viên mời';
           const changeMessage = `${tenNhanVien} đã thêm mới ${validGvmCount} giảng viên mời từ file vào cơ sở dữ liệu cho khoa ${MaPhongBan}.`;
-          
+
           await connection.query(logQuery, [
             userId,
             tenNhanVien,
