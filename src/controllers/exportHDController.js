@@ -522,7 +522,8 @@ const exportMultipleContracts = async (req, res) => {
 
       // Tính toán số tiền
       const tienText = tienLuong.SoTien * soTiet;
-      const tienThueText = Math.round(tienText * 0.1);
+      // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+      const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
@@ -548,6 +549,7 @@ const exportMultipleContracts = async (req, res) => {
         STK: teacher.STK,
         NganHang: teacher.NganHang,
         ThucNhan: tienThucNhanText,
+        TongTien: tienText, // Lưu tổng tiền trước thuế để tính toán chính xác
         SoHopDong: teacher.SoHopDong,
       });
 
@@ -665,9 +667,10 @@ const exportMultipleContracts = async (req, res) => {
 
     // Tạo file Excel báo cáo thuế
     const taxReportData = summaryData.map((item, index) => {
-      // Tính toán chính xác: nếu ThucNhan là tiền sau thuế (90%), thì tiền trước thuế = ThucNhan / 0.9
-      const tienTruocThue = Math.round(item.ThucNhan / 0.9);
-      const thuePhaiTra = tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế
+      // Sử dụng TongTien nếu có, nếu không thì tính ngược từ ThucNhan
+      const tienTruocThue = item.TongTien || (item.ThucNhan <= 2000000 ? item.ThucNhan : Math.round(item.ThucNhan / 0.9));
+      // Nếu số tiền <= 2 triệu thì không có thuế
+      const thuePhaiTra = tienTruocThue <= 2000000 ? 0 : tienTruocThue - item.ThucNhan; // = 10% của tiền trước thuế (hoặc 0 nếu <= 2 triệu)
 
       return {
         stt: index + 1,
@@ -1241,7 +1244,8 @@ const generateContractForTeacher = async (
   }
 
   const tienText = tienLuong.SoTien * soTiet;
-  const tienThueText = Math.round(tienText * 0.1);
+  // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+  const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
   const tienThucNhanText = tienText - tienThueText;
   const thoiGianThucHien = formatDateRange(
     teacher.NgayBatDau,
@@ -1563,7 +1567,8 @@ const generateAppendixContract = async (
       giangVienData.forEach((item) => {
         const soTiet = item.SoTiet;
         const soTien = tinhSoTien(item, soTiet, tienLuongList); // Tính toán soTien
-        const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
+        // Nếu số tiền <= 2 triệu đồng thì không tính thuế
+        const truThue = soTien <= 2000000 ? 0 : soTien * 0.1; // Trừ Thuế = 10% của Số Tiền (hoặc 0 nếu <= 2 triệu)
         const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
         const tienLuong = tienLuongList.find(
           (tl) => tl.he_dao_tao === item.he_dao_tao && tl.HocVi === item.HocVi

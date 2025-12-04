@@ -334,16 +334,16 @@
                         <div class="col-md-6">
                           <div class="d-flex align-items-center mb-1">
                             <i class="fas fa-file-contract text-primary me-2"></i>
-                            <span><strong>Số hợp đồng:</strong> <code>[Số][Kí hiệu sau số]/[Kí hiệu HĐ]</code></span>
+                            <span><strong>Số hợp đồng:</strong> <code>[Kí hiệu trước số][Số][Kí hiệu sau số]/[Kí hiệu HĐ]</code></span>
                           </div>
-                          <small class="text-muted ms-3">Ví dụ: 001ĐA/HĐ-ĐT</small>
+                          <small class="text-muted ms-3">Ví dụ: aa001xx/HDDT</small>
                         </div>
                         <div class="col-md-6">
                           <div class="d-flex align-items-center mb-1">
                             <i class="fas fa-file-times text-info me-2"></i>
-                            <span><strong>Số thanh lý:</strong> <code>[Số][Kí hiệu sau số]/[Kí hiệu TL]</code></span>
+                            <span><strong>Số thanh lý:</strong> <code>[Kí hiệu trước số][Số][Kí hiệu sau số]/[Kí hiệu TL]</code></span>
                           </div>
-                          <small class="text-muted ms-3">Ví dụ: 001ĐA/HĐNT-ĐT</small>
+                          <small class="text-muted ms-3">Ví dụ: aa001xx/HDDT</small>
                         </div>
                       </div>
                     </div>
@@ -354,6 +354,14 @@
                 <div id="unifiedStartingNumberDiv" class="mt-3">
                       <!-- Row 1: Input fields -->
                       <div class="row mb-3">
+                        <div class="col-md-2">
+                          <label for="kiHieuTruocSo" class="form-label">
+                            <strong>Kí hiệu trước số</strong>
+                          </label>
+                          <input type="text" class="form-control" id="kiHieuTruocSo"
+                            name="kiHieuTruocSo" value="" placeholder="VD: aa"
+                            oninput="updateNumberPreview()">
+                        </div>
                         <div class="col-md-2">
                           <label for="unifiedStartingNumber" class="form-label">
                             <strong>Số bắt đầu</strong>
@@ -366,13 +374,12 @@
                         <div class="col-md-2">
                           <label for="kiHieuSauSo" class="form-label">
                             <strong>Kí hiệu sau số</strong>
-                            <span class="text-danger">*</span>
                           </label>
                           <input type="text" class="form-control" id="kiHieuSauSo"
-                            name="kiHieuSauSo" value="ĐA" placeholder="VD: ĐA"
+                            name="kiHieuSauSo" value="" placeholder="VD: xx"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                           <label for="kiHieuHopDong" class="form-label">
                             <strong>Kí hiệu hợp đồng</strong>
                             <span class="text-danger">*</span>
@@ -381,7 +388,7 @@
                             name="kiHieuHopDong" value="HĐ-ĐT" placeholder="Nhập kí hiệu hợp đồng"
                             oninput="updateNumberPreview()">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                           <label for="kiHieuThanhLy" class="form-label">
                             <strong>Kí hiệu thanh lý</strong>
                             <span class="text-danger">*</span>
@@ -406,11 +413,11 @@
                           <div class="p-3 bg-light border rounded d-flex gap-4">
                             <div>
                               <strong>Ví dụ số hợp đồng:</strong> <span id="contractExample"
-                                class="text-primary">001ĐA/HĐ-ĐT</span>
+                                class="text-primary">aa001xx/HDDT</span>
                             </div>
                             <div>
                               <strong>Ví dụ số thanh lý:</strong> <span id="terminationExample"
-                                class="text-info">001ĐA/HĐNT-ĐT</span>
+                                class="text-info">aa001xx/HDDT</span>
                             </div>
                           </div>
                         </div>
@@ -695,12 +702,17 @@
         function updateNumberPreview() {
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
           const formattedNumber = String(startingNumber).padStart(3, '0');
-          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
+          const kiHieuTruocSo = $('#kiHieuTruocSo').val() || '';
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || '';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
-          $('#contractExample').text(`${formattedNumber}${kiHieuSauSo}/${kiHieuHopDong}`);
-          $('#terminationExample').text(`${formattedNumber}${kiHieuSauSo}/${kiHieuThanhLy}`);
+          // Định dạng: [kí hiệu trước số][số][kí hiệu sau số]/[kí hiệu hợp đồng]
+          const contractNumber = `${kiHieuTruocSo}${formattedNumber}${kiHieuSauSo}/${kiHieuHopDong}`;
+          const terminationNumber = `${kiHieuTruocSo}${formattedNumber}${kiHieuSauSo}/${kiHieuThanhLy}`;
+
+          $('#contractExample').text(contractNumber);
+          $('#terminationExample').text(terminationNumber);
         }
 
         // Xem trước cài đặt đồng bộ số hợp đồng và thanh lý cho đồ án
@@ -727,13 +739,15 @@
           showSuccess('Đang xem trước cài đặt đồng bộ số hợp đồng và thanh lý...');
 
           const teacherName = $('#searchTeacher').val().trim();
-          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
+          const kiHieuTruocSo = $('#kiHieuTruocSo').val() || '';
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || '';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
           const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
 
-          // Ghép kí hiệu sau số vào số hợp đồng
-          const formattedNumber = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
+          // Ghép kí hiệu trước số, số, và kí hiệu sau số vào số hợp đồng
+          const formattedNumber = String(startingNumber).padStart(3, '0');
+          const fullNumber = kiHieuTruocSo + formattedNumber + kiHieuSauSo;
 
           const data = {
             dot: dot,
@@ -741,7 +755,9 @@
             nam: nam,
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
-            startingNumber: formattedNumber,
+            startingNumber: fullNumber,
+            kiHieuTruocSo: kiHieuTruocSo,
+            kiHieuSauSo: kiHieuSauSo,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
             coSoDaoTao: coSoDaoTao,
@@ -778,17 +794,13 @@
           }
 
           const startingNumber = parseInt($('#unifiedStartingNumber').val()) || 1;
-          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
+          const kiHieuTruocSo = $('#kiHieuTruocSo').val() || '';
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || '';
           const kiHieuHopDong = $('#kiHieuHopDong').val() || 'HĐ-ĐT';
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
 
           if (!startingNumber || startingNumber < 1) {
             showError('Vui lòng nhập số bắt đầu hợp lệ (≥ 1)');
-            return;
-          }
-
-          if (!kiHieuSauSo.trim()) {
-            showError('Vui lòng nhập kí hiệu sau số');
             return;
           }
 
@@ -803,14 +815,16 @@
           }
 
           // Dialog xác nhận chi tiết
-          const contractExample = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
-          const terminationExample = String(startingNumber).padStart(3, '0') + kiHieuSauSo;
+          const formattedNumber = String(startingNumber).padStart(3, '0');
+          const contractExample = kiHieuTruocSo + formattedNumber + kiHieuSauSo;
+          const terminationExample = kiHieuTruocSo + formattedNumber + kiHieuSauSo;
 
           Swal.fire({
             title: 'Xác nhận tạo số hợp đồng và số thanh lý đồ án',
             html: `<div class="text-start">
                  <p>Số bắt đầu: <strong>${startingNumber}</strong></p>
-                 <p>Kí hiệu sau số: <strong>${kiHieuSauSo}</strong></p>
+                 <p>Kí hiệu trước số: <strong>${kiHieuTruocSo || '(trống)'}</strong></p>
+                 <p>Kí hiệu sau số: <strong>${kiHieuSauSo || '(trống)'}</strong></p>
                  <p>Kí hiệu hợp đồng: <strong>${kiHieuHopDong}</strong></p>
                  <p>Kí hiệu thanh lý: <strong>${kiHieuThanhLy}</strong></p>
                  <div class="row mt-3">
@@ -843,10 +857,12 @@
           const kiHieuThanhLy = $('#kiHieuThanhLy').val() || 'HĐNT-ĐT';
           const coSoDaoTao = $('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã';
           
-          // Ghép kí hiệu sau số vào số hợp đồng
+          // Ghép kí hiệu trước số, số, và kí hiệu sau số vào số hợp đồng
           const startNum = parseInt($('#unifiedStartingNumber').val()) || 1;
-          const kiHieuSauSo = $('#kiHieuSauSo').val() || 'ĐA';
-          const formattedNumber = String(startNum).padStart(3, '0') + kiHieuSauSo;
+          const kiHieuTruocSo = $('#kiHieuTruocSo').val() || '';
+          const kiHieuSauSo = $('#kiHieuSauSo').val() || '';
+          const formattedNumber = String(startNum).padStart(3, '0');
+          const fullNumber = kiHieuTruocSo + formattedNumber + kiHieuSauSo;
           
           const data = {
             dot: $('#combobox-dot').val(),
@@ -854,7 +870,9 @@
             nam: $('#NamHoc').val(),
             khoaList: getSelectedKhoa(),
             heDaoTaoList: getSelectedHe(),
-            startingNumber: formattedNumber,
+            startingNumber: fullNumber,
+            kiHieuTruocSo: kiHieuTruocSo,
+            kiHieuSauSo: kiHieuSauSo,
             kiHieuHopDong: kiHieuHopDong,
             kiHieuThanhLy: kiHieuThanhLy,
             coSoDaoTao: coSoDaoTao,
@@ -1063,6 +1081,7 @@
                        </td>`
                     : ''
                   }
+                    <td>${contract.CoSoDaoTao || ($('#coSoDaoTao').val() || 'Học viện Kỹ thuật mật mã')}</td>
                     <td>${currentContractNumber}</td>
                     <td>${currentTerminationNumber}</td>
                     <td>${newContractNumber}</td>
@@ -1140,6 +1159,7 @@
           updateNumberPreview();
 
           // Thêm event handler cho số bắt đầu và kí hiệu thay đổi
+          $('#kiHieuTruocSo').on('input', updateNumberPreview);
           $('#unifiedStartingNumber').on('input', updateNumberPreview);
           $('#kiHieuSauSo').on('input', updateNumberPreview);
           $('#kiHieuHopDong').on('input', updateNumberPreview);

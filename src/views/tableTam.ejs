@@ -552,6 +552,23 @@
         const tableBody = document.getElementById("data-table-body");
         const tableHeader = document.getElementById("table-header");
 
+        // Danh sách cột cần hiển thị theo thứ tự giống tableQC.ejs
+        const columnsToDisplay = [
+          "Khoa",
+          "LopHocPhan",
+          "SoTinChi",
+          "he_dao_tao",
+          "GiaoVien",
+          "NgayBatDau",
+          "NgayKetThuc",
+          "LL",
+          "SoSinhVien",
+          "HeSoLopDong",
+          "HeSoT7CN",
+          "QuyChuan",
+          "GhiChu"
+        ];
+
         const headersMap = {
           Khoa: "Khoa",
           Dot: "Đợt",
@@ -578,7 +595,7 @@
         // Cột cho phép lọc
         const filterTableColumns = ["LopHocPhan", "GiaoVien"];
 
-        const columns = Object.keys(headersMap).map((key) => {
+        const columns = columnsToDisplay.map((key) => {
           const column = {
             // headerFilterPlaceholder: "Tìm kiếm...", // Văn bản hiển thị trong ô
             // headerFilter: filterTableColumns.includes(key) ? true : false, // Bật chức năng lọc cho tiêu đề cột
@@ -809,6 +826,7 @@
           SoSinhVien: 0,
           HeSoLopDong: 0,
           QuyChuan: 0,
+          he_dao_tao: null,
         };
 
         // Gửi dữ liệu lên server
