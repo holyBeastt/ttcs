@@ -196,7 +196,7 @@ const setupSoHopDongToanBo = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao, teacherName } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuTruocSo, kiHieuSauSo, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao, teacherName } = req.body;
 
     // Validate required input
     if (!dot || !ki || !nam) {
@@ -214,8 +214,35 @@ const setupSoHopDongToanBo = async (req, res) => {
       });
     }
 
-    // Validate startingNumber
-    if (!startingNumber || startingNumber < 1) {
+    // Parse startingNumber và kí hiệu
+    // startingNumber có thể là số thuần hoặc đã format (string)
+    let startNum;
+    let prefix = kiHieuTruocSo || '';
+    let suffix = kiHieuSauSo || '';
+    
+    if (typeof startingNumber === 'string' && startingNumber.trim() !== '') {
+      // Nếu là string, thử parse số từ giữa (format: prefix + số + suffix)
+      const numberMatch = startingNumber.match(/(\d+)/);
+      if (numberMatch) {
+        startNum = parseInt(numberMatch[1], 10);
+        // Nếu không có kiHieuTruocSo/sauSo từ request, thử extract từ startingNumber
+        if (!kiHieuTruocSo && !kiHieuSauSo) {
+          const beforeNumber = startingNumber.substring(0, numberMatch.index);
+          const afterNumber = startingNumber.substring(numberMatch.index + numberMatch[0].length);
+          prefix = beforeNumber;
+          suffix = afterNumber;
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Số bắt đầu không hợp lệ'
+        });
+      }
+    } else {
+      startNum = parseInt(startingNumber, 10);
+    }
+
+    if (!startNum || startNum < 1) {
       return res.status(400).json({
         success: false,
         message: 'Số bắt đầu phải lớn hơn hoặc bằng 1'
@@ -288,20 +315,18 @@ const setupSoHopDongToanBo = async (req, res) => {
     // Begin transaction
     await connection.beginTransaction();
     
-    // Tách số thuần từ startingNumber đã format (VD: "001MG" -> 1)
-    const baseNumberMatch = startingNumber.toString().match(/^(\d+)/);
-    let num = baseNumberMatch ? parseInt(baseNumberMatch[1], 10) : 1;
-    
-    // Lấy phần suffix (VD: "MG" từ "001MG")
-    const suffix = startingNumber.toString().replace(/^\d+/, '');
+    // Sử dụng số bắt đầu đã parse và kí hiệu trước/sau số
+    let num = startNum;
     
     let updatedCount = 0;
     let failedCount = 0;
 
     // Sinh số HĐ và UPDATE từng contract
+    // Format: [kí hiệu trước số][số 3 chữ số][kí hiệu sau số]
     for (const row of rows) {
       try {
-        const str = String(num++).padStart(3, '0') + suffix;
+        const formattedNumber = String(num++).padStart(3, '0');
+        const str = prefix + formattedNumber + suffix;
         const newSoHopDong = `${str}/${kiHieuHopDong}`;
         const newSoThanhLy = `${str}/${kiHieuThanhLy}`;
 
@@ -357,7 +382,7 @@ const setupSoHopDongToanBo = async (req, res) => {
 const previewSoHopDongMoiGiang = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
+    const { dot, ki, nam, khoa, heDaoTao, khoaList, heDaoTaoList, startingNumber, kiHieuTruocSo, kiHieuSauSo, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
 
     // Support both old single values and new array format
     const parsedKhoaList = khoaList || (khoa ? [khoa] : []);
@@ -367,6 +392,30 @@ const previewSoHopDongMoiGiang = async (req, res) => {
     const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
     const finalKiHieuThanhLy = kiHieuThanhLy || 'HĐNT-ĐT';
     const finalCoSoDaoTao = coSoDaoTao || 'Học viện Kỹ thuật mật mã';
+    
+    // Parse startingNumber và kí hiệu
+    let startNum;
+    let prefix = kiHieuTruocSo || '';
+    let suffix = kiHieuSauSo || '';
+    
+    if (typeof startingNumber === 'string' && startingNumber.trim() !== '') {
+      // Nếu là string, thử parse số từ giữa (format: prefix + số + suffix)
+      const numberMatch = startingNumber.match(/(\d+)/);
+      if (numberMatch) {
+        startNum = parseInt(numberMatch[1], 10);
+        // Nếu không có kiHieuTruocSo/sauSo từ request, thử extract từ startingNumber
+        if (!kiHieuTruocSo && !kiHieuSauSo) {
+          const beforeNumber = startingNumber.substring(0, numberMatch.index);
+          const afterNumber = startingNumber.substring(numberMatch.index + numberMatch[0].length);
+          prefix = beforeNumber;
+          suffix = afterNumber;
+        }
+      } else {
+        startNum = 1; // Default nếu không parse được
+      }
+    } else {
+      startNum = parseInt(startingNumber, 10) || 1;
+    }
 
     connection = await createPoolConnection();
 
@@ -441,14 +490,9 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       return acc;
     }, {});
 
-    // Khởi số bắt đầu 1 lần duy nhất, rồi tăng dần liên tục
-    // startingNumber đã được format sẵn từ FE (VD: "001MG")
-    // Tách số thuần để tăng dần
-    const baseNumberMatch = startingNumber.toString().match(/^(\d+)/);
-    let num = baseNumberMatch ? parseInt(baseNumberMatch[1], 10) : 1;
-    
-    // Lấy phần suffix (VD: "MG" từ "001MG")
-    const suffix = startingNumber.toString().replace(/^\d+/, '');
+    // Khởi số bắt đầu và tăng dần liên tục
+    // Format: [kí hiệu trước số][số 2 chữ số][kí hiệu sau số]
+    let num = startNum;
     
     const result = {};
 
@@ -456,7 +500,8 @@ const previewSoHopDongMoiGiang = async (req, res) => {
       result[he] = {};
       Object.keys(grouped[he]).sort().forEach(khoaKey => {
         result[he][khoaKey] = grouped[he][khoaKey].map(item => {
-          const str = String(num++).padStart(3, '0') + suffix;
+          const formattedNumber = String(num++).padStart(3, '0');
+          const str = prefix + formattedNumber + suffix;
           return {
             ...item,
             newSoHopDong: `${str}/${finalKiHieuHopDong}`,
@@ -655,11 +700,35 @@ const getHopDongDoAnList = async (req, res) => {
 const previewSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
-    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuTruocSo, kiHieuSauSo, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao } = req.body;
     
     // Default kí hiệu
     const finalKiHieuHopDong = kiHieuHopDong || 'HĐ-ĐT';
     const finalKiHieuThanhLy = kiHieuThanhLy || 'HĐNT-ĐT';
+    
+    // Parse startingNumber và kí hiệu
+    let startNum;
+    let prefix = kiHieuTruocSo || '';
+    let suffix = kiHieuSauSo || '';
+    
+    if (typeof startingNumber === 'string' && startingNumber.trim() !== '') {
+      // Nếu là string, thử parse số từ giữa (format: prefix + số + suffix)
+      const numberMatch = startingNumber.match(/(\d+)/);
+      if (numberMatch) {
+        startNum = parseInt(numberMatch[1], 10);
+        // Nếu không có kiHieuTruocSo/sauSo từ request, thử extract từ startingNumber
+        if (!kiHieuTruocSo && !kiHieuSauSo) {
+          const beforeNumber = startingNumber.substring(0, numberMatch.index);
+          const afterNumber = startingNumber.substring(numberMatch.index + numberMatch[0].length);
+          prefix = beforeNumber;
+          suffix = afterNumber;
+        }
+      } else {
+        startNum = 1; // Default nếu không parse được
+      }
+    } else {
+      startNum = parseInt(startingNumber, 10) || 1;
+    }
 
     connection = await createPoolConnection();
 
@@ -755,11 +824,9 @@ const previewSoHopDongDoAn = async (req, res) => {
       return acc;
     }, {});
 
-    // Gán số hợp đồng liên tục
-    // startingNumber đã được format sẵn từ FE (VD: "001MG")
-    const baseNumberMatch = startingNumber.toString().match(/^(\d+)/);
-    let num = baseNumberMatch ? parseInt(baseNumberMatch[1], 10) : 1;
-    const suffix = startingNumber.toString().replace(/^\d+/, '');
+    // Khởi số bắt đầu và tăng dần liên tục
+    // Format: [kí hiệu trước số][số 3 chữ số][kí hiệu sau số]
+    let num = startNum;
     
     const result = {};
 
@@ -767,7 +834,8 @@ const previewSoHopDongDoAn = async (req, res) => {
       result[he] = {};
       Object.keys(grouped[he]).sort().forEach(khoaKey => {
         result[he][khoaKey] = grouped[he][khoaKey].map(item => {
-          const str = String(num++).padStart(3, '0') + suffix;
+          const formattedNumber = String(num++).padStart(3, '0');
+          const str = prefix + formattedNumber + suffix;
           return {
             ...item,
             newSoHopDong: `${str}/${finalKiHieuHopDong}`,
@@ -794,7 +862,7 @@ const setupSoHopDongDoAn = async (req, res) => {
   let connection;
   try {
     connection = await createPoolConnection();
-    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao, teacherName } = req.body;
+    const { dot, ki, nam, khoaList, heDaoTaoList, startingNumber, kiHieuTruocSo, kiHieuSauSo, kiHieuHopDong, kiHieuThanhLy, coSoDaoTao, teacherName } = req.body;
 
     // Validate required input
     if (!dot || !ki || !nam) {
@@ -812,8 +880,35 @@ const setupSoHopDongDoAn = async (req, res) => {
       });
     }
 
-    // Validate startingNumber
-    if (!startingNumber || startingNumber < 1) {
+    // Parse startingNumber và kí hiệu
+    // startingNumber có thể là số thuần hoặc đã format (string)
+    let startNum;
+    let prefix = kiHieuTruocSo || '';
+    let suffix = kiHieuSauSo || '';
+    
+    if (typeof startingNumber === 'string' && startingNumber.trim() !== '') {
+      // Nếu là string, thử parse số từ giữa (format: prefix + số + suffix)
+      const numberMatch = startingNumber.match(/(\d+)/);
+      if (numberMatch) {
+        startNum = parseInt(numberMatch[1], 10);
+        // Nếu không có kiHieuTruocSo/sauSo từ request, thử extract từ startingNumber
+        if (!kiHieuTruocSo && !kiHieuSauSo) {
+          const beforeNumber = startingNumber.substring(0, numberMatch.index);
+          const afterNumber = startingNumber.substring(numberMatch.index + numberMatch[0].length);
+          prefix = beforeNumber;
+          suffix = afterNumber;
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Số bắt đầu không hợp lệ'
+        });
+      }
+    } else {
+      startNum = parseInt(startingNumber, 10);
+    }
+
+    if (!startNum || startNum < 1) {
       return res.status(400).json({
         success: false,
         message: 'Số bắt đầu phải lớn hơn hoặc bằng 1'
@@ -902,18 +997,18 @@ const setupSoHopDongDoAn = async (req, res) => {
     // Begin transaction
     await connection.beginTransaction();
     
-    // Tách số thuần từ startingNumber đã format
-    const baseNumberMatch = startingNumber.toString().match(/^(\d+)/);
-    let num = baseNumberMatch ? parseInt(baseNumberMatch[1], 10) : 1;
-    const suffix = startingNumber.toString().replace(/^\d+/, '');
+    // Sử dụng số bắt đầu đã parse và kí hiệu trước/sau số
+    let num = startNum;
     
     let updatedCount = 0;
     let failedCount = 0;
 
     // Sinh số HĐ và UPDATE từng contract
+    // Format: [kí hiệu trước số][số 3 chữ số][kí hiệu sau số]
     for (const row of rows) {
       try {
-        const str = String(num++).padStart(3, '0') + suffix;
+        const formattedNumber = String(num++).padStart(3, '0');
+        const str = prefix + formattedNumber + suffix;
         const newSoHopDong = `${str}/${kiHieuHopDong}`;
         const newSoThanhLy = `${str}/${kiHieuThanhLy}`;
 
