@@ -1,16 +1,62 @@
-const express = require("express");
-const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
+const path = require("path");
+const fs = require("fs");
+const appRoot = require("app-root-path");
 
-//const gvmList = require("../services/gvmServices");
-const router = express.Router();
+const fsp = fs.promises;
 
-// Cấu hình multer để lưu file tạm thời trong thư mục 'uploads'
-// const upload = multer({
-//   dest: "uploads/", // Đường dẫn thư mục lưu trữ file
-// });
+const buildFileName = (fieldName, khoa, hoTen, originalName) => {
+  let computedField = fieldName;
 
-const upload = multer().single("truocCCCD");
+  if (fieldName === "fileBoSung") {
+    computedField = `${khoa}_${hoTen}`;
+  }
+
+  if (fieldName === "FileLyLich") {
+    computedField = `${khoa}_Lý lịch_${hoTen}`;
+  }
+
+  return `${computedField}${path.extname(originalName)}`;
+};
+
+const prepareFilePlan = (files, { khoa, boMon, hoTen }) => {
+  if (!files || !boMon || !hoTen || !khoa) {
+    return {};
+  }
+
+  const plan = {};
+
+  Object.entries(files).forEach(([fieldName, fileList]) => {
+    if (!Array.isArray(fileList) || !fileList[0]) {
+      return;
+    }
+
+    const file = fileList[0];
+    const filename = buildFileName(fieldName, khoa, hoTen, file.originalname);
+
+    plan[fieldName] = {
+      filename,
+      buffer: file.buffer,
+    };
+  });
+
+  return plan;
+};
+
+const persistFilePlan = async (plan, folderPath) => {
+  if (!plan || Object.keys(plan).length === 0) {
+    return;
+  }
+
+  await fsp.mkdir(folderPath, { recursive: true });
+
+  await Promise.all(
+    Object.values(plan).map(({ filename, buffer }) => {
+      const filePath = path.join(folderPath, filename);
+      return fsp.writeFile(filePath, buffer);
+    })
+  );
+};
 
 const getGvmLists = async (connection) => {
   try {
@@ -103,115 +149,119 @@ let createGvm = async (req, res) => {
     }
     HoTen = modifiedName; // Cập nhật tên cuối cùng
 
-    // Xử lý upload file
-    upload(req, res, async function (err) {
-      if (req.fileValidationError) {
-        return res.send(req.fileValidationError);
-        // } else if (!req.files || Object.keys(req.files).length === 0) {
-        //   return res.send("Please select images to upload");
-      } else if (err) {
-        return res.send(err);
-      }
+    const filePlan = prepareFilePlan(req.files, {
+      khoa,
+      boMon: MonGiangDayChinh,
+      hoTen: HoTen,
+    });
 
-      let truocCCCD = req.files["truocCCCD"]
-        ? req.files["truocCCCD"][0].filename
-        : null;
-      let sauCCCD = req.files["sauCCCD"]
-        ? req.files["sauCCCD"][0].filename
-        : null;
-      let bangTotNghiep = req.files["bangTotNghiep"]
-        ? req.files["bangTotNghiep"][0].filename
-        : null;
-      let FileLyLich = req.files["FileLyLich"]
-        ? req.files["FileLyLich"][0].filename
-        : null;
-      let fileBoSung = req.files["fileBoSung"]
-        ? req.files["fileBoSung"][0].filename
-        : null;
-      let QrCode = req.files["QrCode"] ? req.files["QrCode"][0].filename : null;
+    let truocCCCD = filePlan["truocCCCD"] ? filePlan["truocCCCD"].filename : null;
+    let sauCCCD = filePlan["sauCCCD"] ? filePlan["sauCCCD"].filename : null;
+    let bangTotNghiep = filePlan["bangTotNghiep"]
+      ? filePlan["bangTotNghiep"].filename
+      : null;
+    let FileLyLich = filePlan["FileLyLich"]
+      ? filePlan["FileLyLich"].filename
+      : null;
+    let fileBoSung = filePlan["fileBoSung"]
+      ? filePlan["fileBoSung"].filename
+      : null;
+    QrCode = filePlan["QrCode"] ? filePlan["QrCode"].filename : QrCode;
 
-      const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung, QrCode)
+    const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung, QrCode)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
+    try {
+      await connection.query(query, [
+        MaGvm,
+        HoTen,
+        GioiTinh,
+        NgaySinh,
+        CCCD,
+        NgayCapCCCD,
+        NoiCapCCCD,
+        NoiCongTac,
+        DiaChi,
+        DienThoai,
+        email,
+        MaSoThue,
+        HocVi,
+        ChucVu,
+        HeSoLuong,
+        STK,
+        NganHang,
+        truocCCCD,
+        sauCCCD,
+        bangTotNghiep,
+        FileLyLich,
+        MaPhongBan,
+        tinhTrangGiangDay,
+        BangTotNghiepLoai,
+        MonGiangDayChinh,
+        isQuanDoi,
+        fileBoSung,
+        QrCode,
+      ]);
+
+      // Log the creation of a new guest lecturer
       try {
-        await connection.query(query, [
-          MaGvm,
-          HoTen,
-          GioiTinh,
-          NgaySinh,
-          CCCD,
-          NgayCapCCCD,
-          NoiCapCCCD,
-          NoiCongTac,
-          DiaChi,
-          DienThoai,
-          email,
-          MaSoThue,
-          HocVi,
-          ChucVu,
-          HeSoLuong,
-          STK,
-          NganHang,
-          truocCCCD,
-          sauCCCD,
-          bangTotNghiep,
-          FileLyLich,
-          MaPhongBan,
-          tinhTrangGiangDay,
-          BangTotNghiepLoai,
-          MonGiangDayChinh,
-          isQuanDoi,
-          fileBoSung,
-          QrCode,
-        ]);
+        // Lấy thông tin user và khoa từ session
+        const userId = req.session.userId || req.session.userInfo?.ID || 0;
+        const tenNhanVien =
+          req.session.TenNhanVien || req.session.username || "Unknown User";
+        const khoaSession = req.session.MaPhongBan || "Unknown Department";
 
-        // Log the creation of a new guest lecturer
-        try {
-          // Lấy thông tin user và khoa từ session
-          const userId = req.session.userId || req.session.userInfo?.ID || 0;
-          const tenNhanVien = req.session.TenNhanVien || req.session.username || 'Unknown User';
-          const khoa = req.session.MaPhongBan || 'Unknown Department';
-          
-          const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
+        const logQuery = `INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi)
                            VALUES (?, ?, ?, ?, ?, NOW())`;
-          
-          await connection.query(logQuery, [
-            userId,
-            tenNhanVien,
-            khoa,
-            'Tạo mới giảng viên mời',
-            `Thêm giảng viên mời mới: ${HoTen} (Mã: ${MaGvm}, CCCD: ${CCCD})`
-          ]);
-          
-        } catch (logError) {
-          // Continue with the response even if logging fails
-        }
 
-        if (duplicateName.length > 0) {
-          const message = "Tên giảng viên bị trùng sẽ được lưu như sau";
-          const encodedMessage = encodeURIComponent(message);
-
-          // Mã hóa duplicateName và nối với thông điệp
-          const encodedDuplicateNames = encodeURIComponent(
-            duplicateName.join(", ")
-          );
-
-          // Nối thông điệp và danh sách tên đã mã hóa
-          return res.redirect(
-            `/gvmList?message=${encodedMessage}&duplicateName=${encodedDuplicateNames}`
-          );
-        }
-
-        res.redirect("/gvmList?message=insertSuccess");
-      } catch (err) {
-        if (err.code === "ER_DUP_ENTRY") {
-          return res.redirect("/gvmList?message=duplicateEntry");
-        }
-        return res.redirect("/gvmList?message=insertFalse");
-      } finally {
-        connection.release();
+        await connection.query(logQuery, [
+          userId,
+          tenNhanVien,
+          khoaSession,
+          "Tạo mới giảng viên mời",
+          `Thêm giảng viên mời mới: ${HoTen} (Mã: ${MaGvm}, CCCD: ${CCCD})`,
+        ]);
+      } catch (logError) {
+        // Continue with the response even if logging fails
       }
-    });
+
+      const folderPath = path.join(
+        appRoot.path || appRoot,
+        "Giang_Vien_Moi",
+        khoa,
+        MonGiangDayChinh,
+        HoTen
+      );
+
+      try {
+        await persistFilePlan(filePlan, folderPath);
+      } catch (fileError) {
+        await connection.query("DELETE FROM gvmoi WHERE MaGvm = ?", [MaGvm]);
+        return res.redirect("/gvmList?message=fileSaveFailed");
+      }
+
+      if (duplicateName.length > 0) {
+        const message = "Tên giảng viên bị trùng sẽ được lưu như sau";
+        const encodedMessage = encodeURIComponent(message);
+
+        // Mã hóa duplicateName và nối với thông điệp
+        const encodedDuplicateNames = encodeURIComponent(
+          duplicateName.join(", ")
+        );
+
+        // Nối thông điệp và danh sách tên đã mã hóa
+        return res.redirect(
+          `/gvmList?message=${encodedMessage}&duplicateName=${encodedDuplicateNames}`
+        );
+      }
+
+      res.redirect("/gvmList?message=insertSuccess");
+    } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        return res.redirect("/gvmList?message=duplicateEntry");
+      }
+      return res.redirect("/gvmList?message=insertFalse");
+    }
   } catch (error) {
     res.status(500).send("Lỗi khi xử lý tải lên");
   } finally {

@@ -636,14 +636,16 @@ const exportMultipleWorksheets = async (req, res) => {
         `SELECT 
         max(id) as id,
         tt,
-        min(credit_hours) as credit_hours,
-        min(course_name) as course_name,
-        min(lecturer) as lecturer,
-        min(ll_code) as ll_code,
-        min(student_quantity) as student_quantity,
-        min(ll_total) as ll_total,
+        max(credit_hours) as credit_hours,
+        max(course_name) as course_name,
+        max(lecturer) as lecturer,
+        max(student_quantity) as student_quantity,
+        max(ll_total) as ll_total,
         max(bonus_time) as bonus_time,
         max(student_bonus) as student_bonus,
+        min(start_date) as start_date,
+        max(end_date) as end_date,
+        max(he_dao_tao) as he_dao_tao,
         max(qc) as qc 
         FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
         group by tt`;
@@ -654,15 +656,18 @@ const exportMultipleWorksheets = async (req, res) => {
 
       // Định nghĩa tiêu đề cột
       const headers = [
-        "TT",
+        "STT",
         "Số TC",
         "Lớp học phần",
-        "Giáo Viên",
-        "Số tiết theo CTĐT",
+        "Giáo viên",
+        //"Số tiết CTĐT",
+        "Lên lớp",
         "Số SV",
-        "Số tiết lên lớp được tính QC",
-        "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
         "Hệ số lớp đông",
+        "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+        "Ngày BĐ",
+        "Ngày KT",
+        "Hệ đào tạo",
         "QC",
       ];
 
@@ -672,11 +677,13 @@ const exportMultipleWorksheets = async (req, res) => {
         item.credit_hours,
         item.course_name,
         item.lecturer,
-        item.ll_code,
-        item.student_quantity,
         item.ll_total,
-        item.bonus_time,
+        item.student_quantity,
         item.student_bonus,
+        item.bonus_time,
+        formatDate(item.start_date),
+        formatDate(item.end_date),
+        item.he_dao_tao,
         item.qc,
       ]);
 
@@ -746,12 +753,15 @@ const exportSingleWorksheets = async (req, res) => {
       "Số TC",
       "Lớp học phần",
       "Giáo viên",
-      "Số tiết CTĐT",
-      "Số SV",
+      //"Số tiết CTĐT",
       "Lên lớp",
-      "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+      "Số SV",
       "Hệ số lớp đông",
-      "Quy chuẩn",
+      "Hệ số lên lớp ngoài giờ HC/ Thạc sĩ/ Tiến sĩ",
+      "Ngày BĐ",
+      "Ngày KT",
+      "Hệ đào tạo",
+      "QC",
     ];
 
     // **📌 Tạo workbook và worksheet**
@@ -766,14 +776,16 @@ const exportSingleWorksheets = async (req, res) => {
         `SELECT 
         max(id) as id,
         tt,
-        min(credit_hours) as credit_hours,
-        min(course_name) as course_name,
-        min(lecturer) as lecturer,
-        min(ll_code) as ll_code,
-        min(student_quantity) as student_quantity,
-        min(ll_total) as ll_total,
+        max(credit_hours) as credit_hours,
+        max(student_quantity) as student_quantity,
+        max(course_name) as course_name,
+        max(lecturer) as lecturer,
+        max(ll_total) as ll_total,
         max(bonus_time) as bonus_time,
         max(student_bonus) as student_bonus,
+        min(start_date) as start_date,
+        max(end_date) as end_date,
+        max(he_dao_tao) as he_dao_tao,
         max(qc) as qc 
         FROM course_schedule_details WHERE dot = ? and ki_hoc = ? and nam_hoc = ? AND major = ?
         group by tt`;
@@ -792,11 +804,13 @@ const exportSingleWorksheets = async (req, res) => {
         item.credit_hours,
         item.course_name,
         item.lecturer,
-        item.ll_code,
-        item.student_quantity,
         item.ll_total,
-        item.bonus_time,
+        item.student_quantity,
         item.student_bonus,
+        item.bonus_time,
+        formatDate(item.start_date),
+        formatDate(item.end_date),
+        item.he_dao_tao,
         item.qc,
       ]);
 
@@ -836,6 +850,19 @@ const exportSingleWorksheets = async (req, res) => {
     if (connection) connection.release(); // Trả kết nối về pool
   }
 };
+
+function formatDate(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d)) return date; // nếu không phải ngày hợp lệ thì trả raw
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
 
 const checkDataTKBExist = async (req, res) => {
   const { dot, ki, nam } = req.body;

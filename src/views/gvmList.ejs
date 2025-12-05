@@ -169,25 +169,6 @@
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
     <script>
-      // // Tìm kiếm giảng viên mời theo tên
-      // function searchClass() {
-      //   let input = document.getElementById("searchInput").value.toLowerCase();
-      //   let table = document.getElementById("classTable");
-      //   let tr = table.getElementsByTagName("tr");
-
-      //   for (let i = 1; i < tr.length; i++) {
-      //     let td = tr[i].getElementsByTagName("td")[2];
-      //     if (td) {
-      //       let textValue = td.textContent || td.innerText;
-      //       if (textValue.toLowerCase().indexOf(input) > -1) {
-      //         tr[i].style.display = "";
-      //       } else {
-      //         tr[i].style.display = "none";
-      //       }
-      //     }
-      //   }
-      // }
-
       // // Tìm kiếm theo bộ môn
       function searchBoMon() {
         const input = document.getElementById('searchBoMon');
@@ -226,11 +207,7 @@
       // Lấy query string từ URL
       const urlParams = new URLSearchParams(window.location.search);
       const message = urlParams.get("message");
-
-      // Lấy phần tử div để hiển thị thông báo
-      const messageDiv = document.getElementById("message");
-
-      // Hiển thị thông báo dựa trên giá trị của message
+      const duplicateName = urlParams.get("duplicateName");
 
       if (message === "insertSuccess") {
         Swal.fire({
@@ -238,32 +215,58 @@
           html: "Thành công",
           icon: 'success',
           confirmButtonText: 'OK',
-          width: 'auto', // Tự động điều chỉnh chiều rộng
-          padding: '20px', // Giữ khoảng cách cho nội dung
+          width: 'auto',
+          padding: '20px',
         });
+
       } else if (message === "duplicateCCCD") {
         Swal.fire({
           title: 'Thông báo',
           html: "Số CCCD đã tồn tại. Vui lòng kiểm tra lại số CCCD.",
           icon: 'info',
           confirmButtonText: 'OK',
-          width: 'auto', // Tự động điều chỉnh chiều rộng
-          padding: '20px', // Giữ khoảng cách cho nội dung
+          width: 'auto',
+          padding: '20px',
         });
+
+      } else if (duplicateName) {
+        Swal.fire({
+          title: 'Thông báo',
+          html: `
+            ${decodeURIComponent(message)}:<br>
+            <b>${decodeURIComponent(duplicateName)}</b>
+          `,
+          icon: 'info',
+          confirmButtonText: 'OK',
+          width: 'auto',
+          padding: '20px',
+        });
+
       } else if (message === "insertFalse") {
         Swal.fire({
           title: 'Thông báo',
           html: "Đã xảy ra lỗi trong quá trình thêm giảng viên.",
           icon: 'error',
           confirmButtonText: 'OK',
-          width: 'auto', // Tự động điều chỉnh chiều rộng
-          padding: '20px', // Giữ khoảng cách cho nội dung
+          width: 'auto',
+          padding: '20px',
         });
-      } else if (message == null) {
-        // alert(message);
-      } else {
-        alert(message);
+
+      } else if (message == null){
+        // Không làm gì cả nếu message là null
       }
+       else {
+        // Không có thông báo để hiển thị
+        Swal.fire({
+          title: 'Lỗi',
+          html: "Đã xảy ra trường hợp không xác định, vui lòng liên hệ với quản trị viên.",
+          icon: 'error',
+          showConfirmButton: false,
+          width: 'auto',
+          padding: '0px',
+        })
+      }
+
 
 
       // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
