@@ -25,6 +25,7 @@ async function extractFileData(req, res) {
   }
 
   const filePath = path.join(p, "uploads", req.file.filename);
+  console.log(`[Import ĐA] File uploaded: ${req.file.originalname}`);
 
   try {
     // Kiểm tra định dạng file
@@ -46,6 +47,7 @@ async function extractFileData(req, res) {
 
     if (fileExtension === ".pdf") {
       // Xử lý file PDF
+      console.log('[Import ĐA] Xử lý file PDF...');
       const dataBuffer = fs.readFileSync(filePath);
       const pdfData = await pdf(dataBuffer);
       content = pdfData.text; // Nội dung PDF dạng text
@@ -53,10 +55,12 @@ async function extractFileData(req, res) {
       tableData = processPdfFile(content);
     } else if (fileExtension === ".docx") {
       // Xử lý file Word (DOCX)
+      console.log('[Import ĐA] Xử lý file DOCX...');
       content = await processWordFile(filePath);
       tableData = processWordData(content);
     } else if (fileExtension === ".xlsx") {
-      // Xử lý file Word (DOCX)
+      // Xử lý file Excel (XLSX)
+      console.log('[Import ĐA] Xử lý file XLSX...');
       content = await processExcelFile(filePath);
       tableData = processExcelData(content);
     } else {
@@ -65,6 +69,7 @@ async function extractFileData(req, res) {
         .json({ message: "Unsupported file type", status: "error" });
     }
 
+    console.log(`[Import ĐA] Xử lý thành công ${tableData.length} đồ án`);
     res.json({
       message: "File uploaded and processed successfully",
       content: tableData,
@@ -72,11 +77,18 @@ async function extractFileData(req, res) {
       allGV: allGV, // Danh sách tất cả giảng viên
     });
   } catch (err) {
-    console.error("Lỗi khi xử lý file:", err);
-    res.status(500).json({ message: "Lỗi khi xử lý file!", error: err });
+    console.error("[Import ĐA] Lỗi khi xử lý file:", err.message);
+    res.status(500).json({ message: "Lỗi khi xử lý file!", error: err.message });
   } finally {
-    // Xóa file tạm
-    fs.unlinkSync(filePath);
+    // Xóa file tạm nếu tồn tại
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log('[Import ĐA] Đã xóa file tạm');
+      }
+    } catch (unlinkErr) {
+      console.error('[Import ĐA] Không thể xóa file tạm:', unlinkErr.message);
+    }
   }
 }
 
@@ -537,16 +549,17 @@ function cutUntilTT(data) {
 // Xử lý file Word bằng Mammoth
 async function processWordFile(filePath) {
   try {
+    console.log('[Import ĐA] Đọc file Word:', filePath);
     const fileBuffer = fs.readFileSync(filePath);
 
     // Chuyển file Word sang text
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
     const data = cutUntilTT(result.value);
-    // console.log(data)
+    console.log('[Import ĐA] Đọc file Word thành công');
     return data;
   } catch (error) {
-    console.error("Lỗi khi đọc file Word:", error);
-    throw new Error("Không thể xử lý file Word.");
+    console.error("[Import ĐA] Lỗi khi đọc file Word:", error.message);
+    throw new Error(`Không thể xử lý file Word: ${error.message}`);
   }
 }
 
@@ -750,6 +763,7 @@ const saveToDB = async (req, res) => {
   const MaPhongBan = req.query.MaPhongBan;
   const data = req.body;
 
+  console.log(`[Import ĐA] Bắt đầu lưu ${data.length} đồ án vào DB`);
   let connection;
   try {
     connection = await createPoolConnection(); // Kết nối đến DB
@@ -884,6 +898,7 @@ const saveToDB = async (req, res) => {
     // Thực thi câu lệnh SQL với mảng values
     const [result] = await connection.query(sql, [values]);
 
+    console.log(`[Import ĐA] Lưu thành công ${result.affectedRows} bản ghi`);
     // Gửi phản hồi thành công
     res.status(200).json({
       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
@@ -909,6 +924,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
   const data = req.body;
   const defaultDate = "2000-01-01"; // hoặc ngày nào bạn muốn làm mặc định
 
+  console.log(`[Import ĐA] Lưu ${data.length} đồ án - Khoa: ${MaPhongBan}, Kỳ: ${Ki}, Đợt: ${Dot}`);
   let connection;
   try {
     connection = await createPoolConnection(); // Kết nối đến DB
@@ -1010,6 +1026,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
       changeMessage
     ]);
 
+    console.log(`[Import ĐA] Lưu thành công ${result.affectedRows} đồ án vào bảng doantotnghiep`);
     // Gửi phản hồi thành công
     res.status(200).json({
       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
@@ -1030,8 +1047,8 @@ const getImportDoAn = (req, res) => {
 };
 
 const checkExistDataFile = async (req, res) => {
-  console.log("Thực hiện kiểm tra dữ liệu trong đồ án");
   const { Khoa, Dot, Ki, Nam, he_dao_tao } = req.body;
+  console.log(`[Import ĐA] Kiểm tra tồn tại: Khoa ${Khoa}, Kỳ ${Ki}, Đợt ${Dot}, Năm ${Nam}`);
 
   let connection;
 
@@ -1054,7 +1071,7 @@ const checkExistDataFile = async (req, res) => {
     // Kết quả trả về từ cơ sở dữ liệu
     const exist = results[0].exist === 1; // True nếu tồn tại, False nếu không tồn tại
 
-    console.log("trùng ", exist);
+    console.log(`[Import ĐA] Dữ liệu ${exist ? 'đã tồn tại' : 'chưa tồn tại'}`);
     if (exist) {
       return res.status(200).json({
         message: "Dữ liệu đã tồn tại trong cơ sở dữ liệu",
@@ -1078,6 +1095,7 @@ const deleteDataDoAnExist = async (req, res) => {
   const tableName = process.env.DB_TABLE_TAM; // Lấy tên bảng từ biến môi trường
   const { Khoa, Dot, Ki, Nam, he_dao_tao } = req.body;
 
+  console.log(`[Import ĐA] Xóa dữ liệu cũ: Khoa ${Khoa}, Kỳ ${Ki}, Đợt ${Dot}`);
   let connection;
 
   try {
@@ -1097,12 +1115,11 @@ const deleteDataDoAnExist = async (req, res) => {
     ]);
 
     if (results.affectedRows === 0) {
+      console.log('[Import ĐA] Không tìm thấy dữ liệu để xóa');
       return res.status(404).json({ message: "Không tìm thấy dữ liệu" });
     }
 
-    console.log(
-      "Xóa dữ liệu bảng Tam ( trường hợp khi tại dữ liệu cũ ) thành công"
-    );
+    console.log(`[Import ĐA] Xóa thành công ${results.affectedRows} bản ghi`);
     return res.status(200).json({ message: "Xóa thành công" });
   } catch (err) {
     console.error(err);
