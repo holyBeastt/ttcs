@@ -433,54 +433,6 @@
           .catch((error) => console.error("Error:", error));
       });
     </script>
-
-    <!-- <script >
-        $(document).ready(function() {
-    $('form').on('submit', function(event) {
-       event.preventDefault(); // Ngăn chặn hành động submit mặc định
-
-        var formData = $(this).serializeArray(); // Lấy tất cả dữ liệu từ form
-        var formObject = {};
-
-        $.each(formData, function(index, field) {
-            formObject[field.name] = field.value; // Chuyển đổi dữ liệu thành đối tượng
-        });
-
-        console.log(formObject); // Hiển thị dữ liệu trong console
-        });
-    });
-    </script> -->
-    <!-- <script>
-        $(document).ready(function() {
-            $('form').on('submit', function(event) {
-                event.preventDefault(); // Ngăn chặn hành động submit mặc định
-        
-                var formData = $(this).serializeArray(); // Lấy tất cả dữ liệu từ form
-                var formObject = {};
-        
-                $.each(formData, function(index, field) {
-                    formObject[field.name] = field.value; // Chuyển đổi dữ liệu thành đối tượng
-                });
-        
-                console.log(formObject); // Hiển thị dữ liệu trong console
-        
-                // Gửi dữ liệu đến server
-                $.ajax({
-                    url: $(this).attr('action'), // URL lấy từ thuộc tính action của form
-                    type: 'POST',
-                    data: formObject, // Gửi dữ liệu đã thu thập
-                    success: function(response) {
-                        console.log('Dữ liệu đã được gửi thành công:', response);
-                        // Bạn có thể thực hiện thêm các hành động khác tại đây
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Đã xảy ra lỗi khi gửi dữ liệu:', error);
-                    }
-                });
-            });
-        });
-        
-    </script> -->
     <script>
       // Lấy query string từ URL
       const urlParams = new URLSearchParams(window.location.search);
