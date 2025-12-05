@@ -33,8 +33,18 @@ const calculateStudentBonus = (student_quantity, bonusRules) => {
   return 0.0;
 };
 
+const getHeDaoTaoList = async () => {
+  const [rows] = await pool.query(`
+    SELECT viet_tat, gia_tri_so_sanh 
+    FROM kitubatdau
+  `);
+  return rows;
+}
+
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getBonusRules,
-  calculateStudentBonus
+  calculateStudentBonus,
+  getHeDaoTaoList
 };

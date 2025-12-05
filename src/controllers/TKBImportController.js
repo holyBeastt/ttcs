@@ -13,23 +13,15 @@ function extractPrefix(str) {
   return match ? match[0] : "";
 }
 
-async function getHeDaoTao(classType) {
-  // tách phần chữ cái trước dãy số
+function getHeDaoTao(classType, heDaoTaoArr) {
   const prefix = extractPrefix(classType);
 
-  // Lấy tất cả cấu hình
-  const [rows] = await pool.query(`
-      SELECT viet_tat, gia_tri_so_sanh 
-      FROM kitubatdau
-  `);
+  const found = heDaoTaoArr.find(
+    r => r.viet_tat.toUpperCase() === prefix.toUpperCase()
+  );
 
-  // Tìm đúng viet_tat
-  const found = rows.find(r => r.viet_tat.toUpperCase() === prefix.toUpperCase());
-
-  // Nếu không tìm thấy → mặc định
   return found ? found.gia_tri_so_sanh : "Đại học (Đóng học phí)";
 }
-
 
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
@@ -43,6 +35,13 @@ const importExcelTKB = async (req, res) => {
   }
 
   try {
+    // Lấy các dữ liệu cần thiết trước khi xử lý file để chỉ query 1 lần
+    // Lấy bảng hệ số lớp đông
+    const bonusRules = await tkbServices.getBonusRules();
+
+    // Lấy bảng hệ đào tạo
+    const heDaoTaoArr = await tkbServices.getHeDaoTaoList();
+
     const workbook = XLSX.read(req.file.buffer, {
       type: "buffer",
       cellDates: false,
@@ -107,9 +106,10 @@ const importExcelTKB = async (req, res) => {
       "Số TC",
       "Lớp học phần",
       "Giáo Viên",
-      "Số SV"
+      "Số SV",
+      "ST/ tuần",
     ];
-    // ⚠️ LƯU Ý: KHÔNG đưa 'start_date', 'end_date', 'room', 'lecturer' vào đây
+    // LƯU Ý: KHÔNG đưa 'start_date', 'end_date', 'room', 'lecturer' vào đây
 
     // 2. Chỉ loop và fill dữ liệu cho các cột trong danh sách trên
     for (let i = 1; i < allData.length; i++) {
@@ -220,11 +220,6 @@ const importExcelTKB = async (req, res) => {
         (tongTietMap[row.course_name] || 0) + tongTiet;
     }
 
-
-
-    // Lấy bảng hệ số lớp đông
-    const bonusRules = await tkbServices.getBonusRules();
-
     let preTT = 0;
 
     for (let i = 0; i < renamedData.length; i++) {
@@ -232,7 +227,7 @@ const importExcelTKB = async (req, res) => {
       // Tìm hệ đào tạo của lớp học phần
       const classType = getFirstParenthesesContent(row.course_name) || "";
 
-      row.he_dao_tao = await getHeDaoTao(classType);
+      row.he_dao_tao = await getHeDaoTao(classType, heDaoTaoArr);
 
       row.bonus_time = 1;
 
@@ -304,7 +299,6 @@ const importExcelTKB = async (req, res) => {
         row.tt = ++lastTTValue;
       }
     }
-
 
     // Chuẩn bị values để insert
     const values = renamedData.map((row) => [
