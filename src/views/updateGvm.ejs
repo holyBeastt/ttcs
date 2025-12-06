@@ -268,21 +268,21 @@
                 <div class="col-md-6">
                   <label>File bổ sung:</label>
                   <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.fileBoSung %>"
-                    download>
+                    target="_blank" id="linkFileBoSung">
                     <%= value.fileBoSung %>
                   </a>
                   <input class="form-control" type="file" name="fileBoSung" id="fileBoSung">
                   <input type="hidden" name="oldFileBoSung" value="<%= value.fileBoSung %>">
                   <p style="font-size:13px; font-style:italic; color:#2E8B57;">
-                  (*) File pdf/word cần chứa ảnh CCCD mặt trước + mặt sau (ở trong cùng 1 trang); 
-                  trang thứ 2 chứa bằng tốt nghiệp cao nhất.
+                    (*) File pdf/word cần chứa ảnh CCCD mặt trước + mặt sau (ở trong cùng 1 trang); 
+                    trang thứ 2 chứa bằng tốt nghiệp cao nhất.
                   </p>
-
                 </div>
+
                 <div class="col-md-6">
                   <label>File lý lịch (PDF):</label>
                   <a href="/<%= value.MaPhongBan %>/<%= value.MonGiangDayChinh %>/<%= value.HoTen %>/<%= value.FileLyLich %>"
-                    target="_blank">
+                    target="_blank" id="linkFileLyLich">
                     <%= value.FileLyLich %>
                   </a>
                   <input class="form-control" type="file" name="FileLyLich" id="FileLyLich">
@@ -495,91 +495,115 @@
       }
     </script>
 
-    <script>
+<script>
       document.addEventListener('DOMContentLoaded', function () {
-        // Mặt trước CCCD
-        const imgTruocInput = document.getElementById('imgtruocinput');
-        const imgTruocElement = document.getElementById('imgtruoc');
-        const linkTruocElement = document.getElementById('linktruoc');
+        // Cấu hình: Giới hạn 5MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-        // Mặt sau CCCD
-        const imgSauInput = document.getElementById('sauCCCD');
-        const imgSauElement = document.getElementById('imgsau');
-        const linkSauElement = document.getElementById('linksau');
+        // DANH SÁCH CẤU HÌNH INPUT
+        // inputId: ID của thẻ input file
+        // imgId: ID của thẻ img preview (để null nếu không có ảnh preview)
+        // linkId: ID của thẻ a chứa link file cũ/preview PDF
+        const mapping = [
+          // 1. Mặt trước CCCD
+          { inputId: 'imgtruocinput', imgId: 'imgtruoc', linkId: 'linktruoc' },
+          // 2. Mặt sau CCCD
+          { inputId: 'sauCCCD', imgId: 'imgsau', linkId: 'linksau' },
+          // 3. Bằng tốt nghiệp
+          { inputId: 'bangTotNghiep', imgId: 'imgbang', linkId: 'linkbang' },
+          // 4. QR Code
+          { inputId: 'QrCodeInput', imgId: 'QrCodeImg', linkId: 'QrCodePdf' },
+          // 5. File Bổ Sung (Không có ảnh preview -> imgId: null)
+          { inputId: 'fileBoSung', imgId: null, linkId: 'linkFileBoSung' },
+          // 6. File Lý Lịch (Không có ảnh preview -> imgId: null)
+          { inputId: 'FileLyLich', imgId: null, linkId: 'linkFileLyLich' }
+        ];
 
-        // Hình ảnh bằng cấp cao nhất
-        const imgBangInput = document.getElementById('bangTotNghiep');
-        const imgBangElement = document.getElementById('imgbang');
-        const linkBangElement = document.getElementById('linkbang');
+        // Gắn sự kiện vòng lặp
+        mapping.forEach(item => {
+          const inputEl = document.getElementById(item.inputId);
+          const imgEl = item.imgId ? document.getElementById(item.imgId) : null;
+          const linkEl = document.getElementById(item.linkId);
 
-        // Hình ảnh Qr Code
-        const QrInput = document.getElementById('QrCodeInput');
-        const QrElement = document.getElementById('QrCodeImg');
-        const linkQrElement = document.getElementById('QrCodePdf');
-
-        // Xử lý hiển thị file mặt trước CCCD
-        imgTruocInput.addEventListener('change', function (event) {
-          const file = event.target.files[0];
-          handleFilePreview(file, imgTruocElement, linkTruocElement);
+          if (inputEl) {
+            inputEl.addEventListener('change', function (event) {
+              const file = event.target.files[0];
+              handleFilePreview(file, imgEl, linkEl, inputEl);
+            });
+          }
         });
 
-        // Xử lý hiển thị file mặt sau CCCD
-        imgSauInput.addEventListener('change', function (event) {
-          const file = event.target.files[0];
-          handleFilePreview(file, imgSauElement, linkSauElement);
-        });
+        // HÀM XỬ LÝ CHUNG
+        function handleFilePreview(file, imgElement, linkElement, inputElement) {
+          // Nếu user cancel chọn file -> Giữ nguyên trạng thái cũ
+          if (!file) return;
 
-        // Xử lý hiển thị file bằng cấp cao nhất
-        imgBangInput.addEventListener('change', function (event) {
-          const file = event.target.files[0];
-          handleFilePreview(file, imgBangElement, linkBangElement);
-        });
-
-        // Xử lý hiển thị file Qr Code
-        QrInput.addEventListener('change', function (event) {
-          const file = event.target.files[0];
-          handleFilePreview(file, QrElement, linkQrElement);
-        });
-
-        // Hàm xử lý hiển thị file
-        function handleFilePreview(file, imgElement, linkElement) {
-          if (!file) {
-            imgElement.style.display = 'none';
-            linkElement.style.display = 'none';
-            return;
+          // 1. KIỂM TRA DUNG LƯỢNG (QUAN TRỌNG)
+          if (file.size > MAX_FILE_SIZE) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            Swal.fire({
+              title: 'File quá lớn!',
+              html: `File nặng <b>${sizeMB} MB</b>.<br>Vui lòng tải file dưới <b>5MB</b>.`,
+              icon: 'warning',
+              confirmButtonText: 'Chọn lại'
+            });
+            inputElement.value = ''; // Reset input
+            return; // Dừng ngay lập tức
           }
 
+          // 2. XỬ LÝ PREVIEW
           const fileType = file.type;
+          const fileName = file.name;
           const reader = new FileReader();
 
-          // Xử lý ảnh
+          // A. Trường hợp là ẢNH (Image)
           if (fileType.startsWith('image/')) {
             reader.onload = function (e) {
-              imgElement.src = e.target.result;
-              imgElement.style.display = 'block';
-              linkElement.style.display = 'none';
+              // Nếu có chỗ hiện ảnh thì hiện
+              if (imgElement) {
+                imgElement.src = e.target.result;
+                imgElement.style.display = 'block';
+              }
+              // Ẩn link PDF cũ đi (nếu có)
+              if (linkElement) linkElement.style.display = 'none';
             };
             reader.readAsDataURL(file);
           }
-          // Xử lý PDF
+          
+          // B. Trường hợp là PDF
           else if (fileType === 'application/pdf') {
             reader.onload = function (e) {
-              linkElement.href = e.target.result;
-              linkElement.textContent = `Xem file PDF`;
-              linkElement.style.display = 'block';
-              imgElement.style.display = 'none';
+              if (linkElement) {
+                linkElement.href = e.target.result;
+                linkElement.target = "_blank";
+                linkElement.textContent = `Xem file PDF mới: ${fileName}`;
+                linkElement.style.display = 'block';
+                // Đổi màu text để người dùng biết là file mới
+                linkElement.style.color = '#0d6efd'; 
+                linkElement.style.fontStyle = 'italic';
+              }
+              // Ẩn ảnh cũ đi
+              if (imgElement) imgElement.style.display = 'none';
             };
             reader.readAsDataURL(file);
           }
-          // Xử lý file không hợp lệ
+          
+          // C. Trường hợp file Word/Excel/Khác (Không xem trước được trên trình duyệt)
           else {
-            alert('Chỉ chấp nhận tệp hình ảnh hoặc PDF!');
-            imgElement.style.display = 'none';
-            linkElement.style.display = 'none';
+            // Với file bổ sung (thường là word), ta chỉ cập nhật tên file text
+            if (linkElement) {
+                // Không set href blob vì browser không mở được file word blob trực tiếp
+                linkElement.removeAttribute('href'); 
+                linkElement.style.display = 'block';
+                linkElement.textContent = `Đã chọn file: ${fileName}`;
+                linkElement.style.color = '#198754'; // Màu xanh lá
+                linkElement.style.textDecoration = 'none';
+                linkElement.style.cursor = 'default';
+            }
+            if (imgElement) imgElement.style.display = 'none';
           }
         }
       });
-
     </script>
     <script>
       document.getElementById("changePasswordLink").addEventListener("click", function (event) {
