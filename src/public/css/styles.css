@@ -896,3 +896,41 @@ select{
     text-transform: uppercase;
     height: 40px;
   }
+
+  .sortable {
+    cursor: pointer;
+    user-select: none; /* Ngăn bôi đen text khi click nhanh */
+    position: relative;
+  }
+
+  .sortable:hover {
+    background-color: #0056b3; /* Màu hover khác một chút */
+  }
+
+  /* Icon sort */
+  .sort-icon {
+    margin-left: 5px;
+    font-size: 0.8em;
+    display: inline-block;
+    width: 12px;
+  }
+  
+  .sort-icon::after {
+    content: '\f0dc'; /* FontAwesome sort icon mặc định */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    opacity: 0.3;
+    display: inline-block;
+  }
+
+  /* Khi đang sort tăng dần */
+  .sortable.sort-asc .sort-icon::after {
+    content: '\f0de';
+    opacity: 1;
+  }
+
+  /* Khi đang sort giảm dần */
+  .sortable.sort-desc .sort-icon::after {
+    content: '\f0dd'; 
+    opacity: 1;
+  }

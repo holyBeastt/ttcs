@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Học Viện Kỹ Thuật Mật Mã</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <style>
+      /* Định dạng cho bảng */
+      .table {
+        width: 95%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 20px;
+        font-size: 0.9em;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #dee2e6;
+        border-right: 2px solid #dee2e6;
+        border-left: 2px solid #dee2e6;
+      }
+
+      .table th {
+        background-color: blue;
+        color: white;
+        font-weight: bold;
+        border-right: 2px solid #fff;
+        text-align: center;
+      }
+
+      .table th:last-child {
+        border-right: 2px solid #dee2e6;
+      }
+
+      .table tbody tr {
+        border-bottom: 1px solid #dddddd;
+        transition: all 0.3s ease;
+      }
+
+      .table tbody tr:nth-child(even) {
+        background-color: #f3f3f3;
+      }
+
+      .table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f5f5f5;
+        transform: scale(1.01);
+      }
+
+      .table td {
+        text-align: center;
+      }
+
+      /* Định dạng cho tiêu đề */
+      h3 {
+        color: #009879;
+        text-align: center;
+        margin: 30px 0;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+      }
+
+      h3:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: #009879;
+      }
+
+      /* Định dạng cho combobox */
+      .form-select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background-color: white;
+        transition: all 0.3s ease;
+        margin: 5px;
+        min-width: 150px;
+      }
+
+      .form-select:focus {
+        border-color: #009879;
+        box-shadow: 0 0 0 0.2rem rgba(0, 152, 121, 0.25);
+      }
+
+      .selectop {
+        margin-top: 5px;
+      }
+
+      /* Container cho các controls */
+      .controls-container {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        gap: 10px;
+        margin: 20px;
+        flex-wrap: wrap;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .table {
+          font-size: 0.8em;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Phần header -->
+    <%- include('header') %>
+
+    <!-- Phần nội dung -->
+    <div class="d-flex justify-content-start align-items-end mb-3">
+      <!-- Combo box Kỳ học -->
+      <select
+        class="form-select mx-1 selectop"
+        id="kihoc"
+        style="width: 150px"
+      >
+      </select>
+
+      <!-- Combo box Năm học -->
+      <select
+        class="form-select mx-1 selectop"
+        style="width: 200px"
+        id="NamHoc"
+      ></select>
+
+      <!-- Combo box Khoa -->
+      <select
+        class="form-select mx-1 selectop"
+        id="Khoa"
+        style="width: 160px"
+      ></select>
+
+      <!-- Combo box Hệ đào tạo -->
+      <select
+        class="form-select mx-1 selectop"
+        id="HeDaoTao"
+        style="width: auto"
+      ></select>
+    </div>
+
+    <h3>Thống kê môn học theo khoa</h3>
+
+    <div id="tableContainer" style="margin: 20px">
+      <table class="table table-bordered my-2" border="1" id="thongkeMonHocTable">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Môn học</th>
+            <th class="sortable" data-column="TongSoLop">Tổng số lớp <span class="sort-icon"></span></th>
+            <th class="sortable" data-column="SoLopMoi">Số lớp mời <span class="sort-icon"></span></th>
+            <th class="sortable" data-column="SoLopVuotGio">Số lớp vượt giờ <span class="sort-icon"></span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dữ liệu sẽ được hiển thị ở đây -->
+        </tbody>
+      </table>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Biến để lưu trữ dữ liệu gốc và trạng thái sort
+        let originalData = [];
+        let currentSort = { column: null, direction: null }; // null: none, 'asc': ascending, 'desc': descending
+
+        // Hàm render bảng dữ liệu
+        function renderTableData(dataToRender) {
+          const tbody = $("#thongkeMonHocTable tbody");
+          tbody.empty();
+
+          if (dataToRender.length === 0) {
+            tbody.append(
+              '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>'
+            );
+            return;
+          }
+
+          let stt = 1;
+          dataToRender.forEach(function (item) {
+            const row = `
+              <tr>
+                <td>${stt++}</td>
+                <td>${item.BoMon || "N/A"}</td>
+                <td>${item.TongSoLop || 0}</td>
+                <td>${item.SoLopMoi || 0}</td>
+                <td>${item.SoLopVuotGio || 0}</td>
+              </tr>
+            `;
+            tbody.append(row);
+          });
+        }
+
+        // Hàm sort bảng dữ liệu
+        function sortTableData(column) {
+          if (currentSort.column === column) {
+            if (currentSort.direction === null) {
+              currentSort.direction = 'desc';
+            } else if (currentSort.direction === 'desc') {
+              currentSort.direction = 'asc';
+            } else {
+              currentSort.column = null;
+              currentSort.direction = null;
+              renderTableData(originalData); // Reset to original order
+              updateSortIcons();
+              return;
+            }
+          } else {
+            currentSort.column = column;
+            currentSort.direction = 'desc';
+          }
+
+          const sortedData = [...originalData];
+          sortedData.sort(function (a, b) {
+            const aValue = parseFloat(a[column]) || 0;
+            const bValue = parseFloat(b[column]) || 0;
+
+            if (currentSort.direction === 'desc') {
+              return bValue - aValue;
+            } else {
+              return aValue - bValue;
+            }
+          });
+
+          renderTableData(sortedData);
+          updateSortIcons();
+        }
+
+        // Hàm cập nhật icon sort
+        function updateSortIcons() {
+          $('.sortable').removeClass('sort-desc sort-asc');
+          if (currentSort.column && currentSort.direction) {
+            const columnHeader = $(`.sortable[data-column="${currentSort.column}"]`);
+            columnHeader.addClass(`sort-${currentSort.direction}`);
+          }
+        }
+
+        // Event listener cho sortable columns
+        $(document).on('click', '.sortable', function() {
+          const column = $(this).data('column');
+          sortTableData(column);
+        });
+
+        // Khởi tạo combobox Khoa
+        $.ajax({
+          url: "/getKhoamonhoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              $("#Khoa").empty();
+              $("#Khoa").append(
+                '<option value="ALL">Tất cả khoa</option>'
+              );
+
+              response.MaPhongBan.forEach(function (item) {
+                $("#Khoa").append(
+                  `<option value="${item.MaPhongBan}">${item.MaPhongBan}</option>`
+                );
+              });
+
+              // Đặt giá trị mặc định nếu cần
+              const MaPhongBan = localStorage.getItem("MaPhongBan");
+              const isKhoa = localStorage.getItem("isKhoa");
+
+              if (isKhoa == 1 && MaPhongBan) {
+                const exists = $("#Khoa option").filter(function () {
+                  return $(this).val() === MaPhongBan;
+                }).length;
+
+                if (!exists) {
+                  $("#Khoa").append(
+                    `<option value="${MaPhongBan}">${MaPhongBan}</option>`
+                  );
+                }
+
+                $("#Khoa").val(MaPhongBan);
+                $("#Khoa").prop("disabled", true);
+              } else if (isKhoa == 0) {
+                $("#Khoa").val("ALL");
+              }
+
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+          },
+        });
+
+        // Khởi tạo combobox Năm học và Kỳ học
+        $.ajax({
+          url: "/getNamHocmonhoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              // Thêm dữ liệu năm học
+              response.NamHoc.forEach(function (item) {
+                $("#NamHoc").append(
+                  `<option value="${item.NamHoc}">${
+                    item.NamHoc === "ALL" ? "Tất cả năm" : item.NamHoc
+                  }</option>`
+                );
+              });
+              if (response.MaxNamHoc) {
+                $("#NamHoc").val(response.MaxNamHoc).trigger("change");
+              }
+
+              // Thêm dữ liệu kỳ học
+              response.Ki.forEach(function (item) {
+                $("#kihoc").append(
+                  `<option value="${item.Ki}">${
+                    item.Ki === "ALL" ? "Cả năm" : item.Ki
+                  }</option>`
+                );
+              });
+              $("#kihoc").val("ALL");
+
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu:", error);
+            fetchThongkeData();
+          },
+        });
+
+        // Khởi tạo combobox Hệ đào tạo
+        $.ajax({
+          url: "/getHeDaoTaomonhoc",
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              $("#HeDaoTao").empty();
+              $("#HeDaoTao").append(
+                '<option value="ALL">Tất cả hệ</option>'
+              );
+
+              response.HeDaoTao.forEach(function (item) {
+                $("#HeDaoTao").append(
+                  `<option value="${item.HeDaoTao}">${item.HeDaoTao}</option>`
+                );
+              });
+              $("#HeDaoTao").val("ALL");
+
+              fetchThongkeData();
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu hệ đào tạo:", error);
+          },
+        });
+
+        function fetchThongkeData() {
+          const namhoc = $("#NamHoc").val();
+          const khoa = $("#Khoa").val();
+          const hedaotao = $("#HeDaoTao").val();
+          const kihoc = $("#kihoc").val();
+
+          $.ajax({
+            url: "/api/thongkemonhoc-data",
+            method: "GET",
+            data: { namhoc, khoa, hedaotao, kihoc },
+            success: function (response) {
+              if (response.success) {
+                const data = response.data;
+                // Lưu dữ liệu gốc
+                originalData = data;
+                currentSort = { column: null, direction: null };
+                // Render dữ liệu
+                renderTableData(data);
+                updateSortIcons();
+              } else {
+                alert("Không thể tải dữ liệu từ server.");
+              }
+            },
+            error: function (error) {
+              console.error("Lỗi:", error);
+              const tbody = $("#thongkeMonHocTable tbody");
+              tbody.empty();
+              tbody.append(
+                '<tr><td colspan="8" style="text-align: center; color: red;">Lỗi khi tải dữ liệu</td></tr>'
+              );
+            },
+          });
+        }
+
+        // Event listeners
+        $("#NamHoc, #Khoa, #HeDaoTao, #kihoc").on("change", function() {
+          currentSort = { column: null, direction: null }; // Reset sort on filter change
+          fetchThongkeData();
+        });
+      });
+    </script>
+
+    <script>
+      document
+        .getElementById("changeMessage")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+          if (MaPhongBan) {
+            window.location.href = `/changeMessage/${MaPhongBan}`;
+          } else {
+            alert("Không tìm thấy MaPhongBan trong localStorage.");
+          }
+        });
+    </script>
+
+    <script>
+      document
+        .getElementById("changePasswordLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          const tenDangNhap = localStorage.getItem("TenDangNhap");
+
+          if (tenDangNhap) {
+            window.location.href = `/changePassword?tenDangNhap=${encodeURIComponent(
+              tenDangNhap
+            )}`;
+          } else {
+            alert("Không tìm thấy TenDangNhap trong localStorage.");
+          }
+        });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const role = localStorage.getItem("userRole");
+        const isKhoa = localStorage.getItem("isKhoa");
+
+        const actionButton = document.getElementById("changeMessage");
+        if (
+          role === APP_ROLES.troLy_phong ||
+          role === APP_ROLES.lanhDao_phong
+        ) {
+          actionButton.style.display = "";
+        } else {
+          actionButton.style.display = "none";
+        }
+      });
+    </script>
+    <script>
+      document
+        .getElementById("infome")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          const id_User = localStorage.getItem("id_User");
+          if (id_User) {
+            window.location.href = `/infome/${id_User}`;
+          } else {
+            alert("Không tìm thấy id_User trong localStorage.");
+          }
+        });
+    </script>
+  </body>
+</html>
+
