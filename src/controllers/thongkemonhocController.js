@@ -3,7 +3,7 @@ const createConnection = require("../config/databasePool");
 const thongkemonhocController = {
   showThongkemonhocPage: (req, res) => {
     try {
-      res.render("thongkeMonHoc");
+      res.render("thongkemonhoc");
     } catch (error) {
       console.error("Lỗi khi render trang thống kê môn học:", error);
       console.error("Stack trace:", error.stack);
