@@ -20,14 +20,13 @@ const thongkemonhocController = {
       // Sử dụng alias (tên giả) cho bảng để query gọn hơn và dễ sửa tên bảng
       let query = `
         SELECT 
-          bm.TenBoMon AS BoMon,
+          TenHocPhan,
           he_dao_tao AS HeDaoTao,
           COUNT(*) AS TongSoLop,
           SUM(CASE WHEN id_User = 1 THEN 1 ELSE 0 END) AS SoLopMoi,
           SUM(CASE WHEN id_User != 1 OR id_User IS NULL THEN 1 ELSE 0 END) AS SoLopVuotGio
         FROM giangday gd
-        LEFT JOIN bomon bm ON gd.BoMon = bm.MaBoMon
-        WHERE gd.BoMon IS NOT NULL AND gd.BoMon != ''
+        WHERE TenHocPhan IS NOT NULL AND TenHocPhan != ''
       `;
 
       const params = [];
@@ -49,8 +48,8 @@ const thongkemonhocController = {
       }
 
       query += `
-        GROUP BY bm.TenBoMon, gd.he_dao_tao
-        ORDER BY bm.TenBoMon ASC, gd.he_dao_tao ASC
+        GROUP BY TenHocPhan, HeDaoTao
+        ORDER BY TenHocPhan ASC, HeDaoTao ASC
       `;
 
       console.log("Executing Query:", query); // Log query ra server để debug nếu lỗi
