@@ -17,6 +17,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
+
     <style>
       /* CSS cho bảng */
       .table {
@@ -118,6 +119,18 @@
 
       .dropdown-item:hover {
         background-color: #f8f9fa;
+      }
+
+      .tkb-input {
+        width: 263px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .tkb-input-container {
+        margin-left: 5px;
+        margin-bottom: 10px;
       }
     </style>
     <style>
@@ -243,6 +256,16 @@
         </div>
 
         <div>
+          <div class="tkb-input-container">
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo Tên..."
+                class="search tkb-input"
+                id="find-by-class-name"
+              />           
+          </div>
+
+          <!-- Bảng dữ liệu -->
           <div
             id="table-container"
             class="ag-theme-alpine"
@@ -654,7 +677,7 @@ async function getDataTable() {
               hide: key === "semester" || key === "id" || key === "tt" || key === "course_id" 
               || key === 'dot' || key === 'ki_hoc' || key === 'nam_hoc' || key === 'note', // Ẩn cột không cần thiết
               headerClass: "custom-header",
-              filter: key === "course_name" ? true : false, // ✅ Chỉ bật filter cho cột course_name
+              filter: false,
 
               valueGetter: (params) => {
                 const field = params.colDef.field;
@@ -885,6 +908,16 @@ async function getDataTable() {
         tableContainer.innerHTML = ""; // Xóa nội dung cũ trước khi tạo bảng mới
         new agGrid.Grid(tableContainer, gridOptions);
 
+        // ✅ THÊM ĐOẠN NÀY: Xử lý tìm kiếm Global từ bên ngoài
+        const searchInput = document.getElementById("find-by-class-name");
+        if (searchInput) {
+            searchInput.addEventListener("input", function (e) {
+                if (gridApi) {
+                    // Tính năng tìm kiếm nhanh trên toàn bộ dữ liệu đang hiển thị
+                    gridApi.setQuickFilter(e.target.value); 
+                }
+            });
+        }
         // ✅ Tự động căn chỉnh cột
         // setTimeout(() => {
         //   gridOptions.api.sizeColumnsToFit();
