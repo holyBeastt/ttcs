@@ -1,5 +1,4 @@
 const createConnection = require("../config/databasePool");
-const pool = require("../config/Pool");
 
 const thongkemonhocController = {
   showThongkemonhocPage: (req, res) => {
@@ -58,13 +57,20 @@ const thongkemonhocController = {
       });
     } catch (err) {
       console.error("Lỗi khi truy vấn cơ sở dữ liệu:", err);
+      console.error("Stack trace:", err.stack);
       res.status(500).json({
         success: false,
         message: "Lỗi máy chủ",
-        error: err.message,
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
       });
     } finally {
-      if (connection) connection.release();
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
     }
   },
 
@@ -83,11 +89,15 @@ const thongkemonhocController = {
         "SELECT DISTINCT HocKy as Ki FROM giangday WHERE HocKy IS NOT NULL ORDER BY HocKy"
       );
 
-      const maxNamHoc = namHoc.length > 0 ? namHoc[0].NamHoc : "ALL";
+      const maxNamHoc = namHoc && namHoc.length > 0 ? namHoc[0].NamHoc : "ALL";
 
       // Thêm "Tất cả năm" và "Cả năm" vào đầu danh sách
-      namHoc.unshift({ NamHoc: "ALL" });
-      hocKy.unshift({ Ki: "ALL" });
+      if (Array.isArray(namHoc)) {
+        namHoc.unshift({ NamHoc: "ALL" });
+      }
+      if (Array.isArray(hocKy)) {
+        hocKy.unshift({ Ki: "ALL" });
+      }
 
       res.json({
         success: true,
@@ -97,9 +107,20 @@ const thongkemonhocController = {
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu năm học:", error);
-      res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+      console.error("Stack trace:", error.stack);
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi máy chủ",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
     } finally {
-      if (connection) connection.release();
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
     }
   },
 
@@ -121,12 +142,20 @@ const thongkemonhocController = {
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu phòng ban:", error);
+      console.error("Stack trace:", error.stack);
       res.status(500).json({
         success: false,
         message: "Lỗi server",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
       });
     } finally {
-      if (connection) connection.release();
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
     }
   },
 
@@ -148,12 +177,20 @@ const thongkemonhocController = {
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu khoa:", error);
+      console.error("Stack trace:", error.stack);
       res.status(500).json({
         success: false,
         message: "Lỗi server",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
       });
     } finally {
-      if (connection) connection.release();
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
     }
   },
 
@@ -164,15 +201,27 @@ const thongkemonhocController = {
       const [hedaotao] = await connection.query(
         "SELECT DISTINCT he_dao_tao as HeDaoTao FROM giangday WHERE he_dao_tao IS NOT NULL ORDER BY he_dao_tao"
       );
+
       res.json({
         success: true,
         HeDaoTao: hedaotao,
       });
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu hệ đào tạo:", error);
-      res.json({ success: false });
+      console.error("Stack trace:", error.stack);
+      res.status(500).json({ 
+        success: false,
+        message: "Lỗi server",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
     } finally {
-      if (connection) connection.release();
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
     }
   },
 };
