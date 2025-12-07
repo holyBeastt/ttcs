@@ -1,13 +1,9 @@
 const createConnection = require("../config/databasePool");
-// const pool = require("../config/Pool"); // Bỏ nếu không dùng để tránh rác code
-
-// ĐỊNH NGHĨA TÊN BẢNG CHÍNH XÁC (Kiểm tra kỹ trong HeidiSQL)
-const TABLE_NAME = "giangday"; // Hoặc "GiangDay" tùy vào DB của bạn
 
 const thongkemonhocController = {
   showThongkemonhocPage: (req, res) => {
     try {
-      res.render("thongkemonhoc");
+      res.render("thongkeMonHoc");
     } catch (error) {
       console.error("Lỗi khi render trang thống kê môn học:", error);
       console.error("Stack trace:", error.stack);
