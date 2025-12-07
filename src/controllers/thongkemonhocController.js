@@ -1,8 +1,43 @@
 const createConnection = require("../config/databasePool");
 
 const thongkemonhocController = {
-  showThongkemonhocPage: (req, res) => {
-    res.render("thongkeMonHoc");
+  showThongkemonhocPage: async (req, res) => {
+    try {
+      res.render("thongkemonhoc");
+    } catch (error) {
+      console.error("Lỗi khi render trang thống kê môn học:", error);
+      console.error("Stack trace:", error.stack);
+      res.status(500).send("Lỗi khi tải trang thống kê môn học: " + (error.message || error));
+    }
+  },
+
+  // Endpoint test để kiểm tra kết nối
+  testConnection: async (req, res) => {
+    let connection;
+    try {
+      connection = await createConnection();
+      const [result] = await connection.query("SELECT 1 as test");
+      res.json({
+        success: true,
+        message: "Kết nối database thành công",
+        data: result
+      });
+    } catch (error) {
+      console.error("Lỗi test connection:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi kết nối database",
+        error: error.message
+      });
+    } finally {
+      if (connection) {
+        try {
+          connection.release();
+        } catch (releaseErr) {
+          console.error("Lỗi khi release connection:", releaseErr);
+        }
+      }
+    }
   },
 
   getThongkemonhocData: async (req, res) => {
