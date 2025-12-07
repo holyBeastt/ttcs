@@ -75,6 +75,18 @@
         text-align: center;
       }
 
+      /* Định dạng cho hàng tổng */
+      .table tfoot tr {
+        background-color: #e8f4f8;
+        font-weight: bold;
+        border-top: 2px solid #009879;
+      }
+
+      .table tfoot td {
+        text-align: center;
+        padding: 12px;
+      }
+
       /* Định dạng cho tiêu đề */
       h3 {
         color: #009879;
@@ -163,13 +175,6 @@
         id="Khoa"
         style="width: 160px"
       ></select>
-
-      <!-- Combo box Hệ đào tạo -->
-      <select
-        class="form-select mx-1 selectop"
-        id="HeDaoTao"
-        style="width: auto"
-      ></select>
     </div>
 
     <h3>Thống kê môn học theo khoa</h3>
@@ -180,6 +185,7 @@
           <tr>
             <th>STT</th>
             <th>Môn học</th>
+            <th>Hệ đào tạo</th>
             <th class="sortable" data-column="TongSoLop">Tổng số lớp <span class="sort-icon"></span></th>
             <th class="sortable" data-column="SoLopMoi">Số lớp mời <span class="sort-icon"></span></th>
             <th class="sortable" data-column="SoLopVuotGio">Số lớp vượt giờ <span class="sort-icon"></span></th>
@@ -188,6 +194,9 @@
         <tbody>
           <!-- Dữ liệu sẽ được hiển thị ở đây -->
         </tbody>
+        <tfoot>
+          <!-- Hàng tổng sẽ được hiển thị ở đây -->
+        </tfoot>
       </table>
     </div>
 
@@ -202,28 +211,54 @@
         // Hàm render bảng dữ liệu
         function renderTableData(dataToRender) {
           const tbody = $("#thongkeMonHocTable tbody");
+          const tfoot = $("#thongkeMonHocTable tfoot");
           tbody.empty();
+          tfoot.empty();
 
           if (dataToRender.length === 0) {
             tbody.append(
-              '<tr><td colspan="5" style="text-align: center;">Không có dữ liệu</td></tr>'
+              '<tr><td colspan="6" style="text-align: center;">Không có dữ liệu</td></tr>'
             );
             return;
           }
 
           let stt = 1;
+          let sumTongSoLop = 0;
+          let sumSoLopMoi = 0;
+          let sumSoLopVuotGio = 0;
+
           dataToRender.forEach(function (item) {
+            const tongSoLop = parseInt(item.TongSoLop) || 0;
+            const soLopMoi = parseInt(item.SoLopMoi) || 0;
+            const soLopVuotGio = parseInt(item.SoLopVuotGio) || 0;
+
+            sumTongSoLop += tongSoLop;
+            sumSoLopMoi += soLopMoi;
+            sumSoLopVuotGio += soLopVuotGio;
+
             const row = `
               <tr>
                 <td>${stt++}</td>
                 <td>${item.BoMon || "N/A"}</td>
-                <td>${item.TongSoLop || 0}</td>
-                <td>${item.SoLopMoi || 0}</td>
-                <td>${item.SoLopVuotGio || 0}</td>
+                <td>${item.HeDaoTao || "N/A"}</td>
+                <td>${tongSoLop}</td>
+                <td>${soLopMoi}</td>
+                <td>${soLopVuotGio}</td>
               </tr>
             `;
             tbody.append(row);
           });
+
+          // Thêm hàng tổng
+          const totalRow = `
+            <tr style="background-color: #e8f4f8; font-weight: bold;">
+              <td colspan="3" style="text-align: center;">TỔNG</td>
+              <td>${sumTongSoLop}</td>
+              <td>${sumSoLopMoi}</td>
+              <td>${sumSoLopVuotGio}</td>
+            </tr>
+          `;
+          tfoot.append(totalRow);
         }
 
         // Hàm sort bảng dữ liệu
@@ -359,42 +394,15 @@
           },
         });
 
-        // Khởi tạo combobox Hệ đào tạo
-        $.ajax({
-          url: "/getHeDaoTaomonhoc",
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              $("#HeDaoTao").empty();
-              $("#HeDaoTao").append(
-                '<option value="ALL">Tất cả hệ</option>'
-              );
-
-              response.HeDaoTao.forEach(function (item) {
-                $("#HeDaoTao").append(
-                  `<option value="${item.HeDaoTao}">${item.HeDaoTao}</option>`
-                );
-              });
-              $("#HeDaoTao").val("ALL");
-
-              fetchThongkeData();
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu hệ đào tạo:", error);
-          },
-        });
-
         function fetchThongkeData() {
           const namhoc = $("#NamHoc").val();
           const khoa = $("#Khoa").val();
-          const hedaotao = $("#HeDaoTao").val();
           const kihoc = $("#kihoc").val();
 
           $.ajax({
             url: "/api/thongkemonhoc-data",
             method: "GET",
-            data: { namhoc, khoa, hedaotao, kihoc },
+            data: { namhoc, khoa, kihoc },
             success: function (response) {
               if (response.success) {
                 const data = response.data;
@@ -411,16 +419,18 @@
             error: function (error) {
               console.error("Lỗi:", error);
               const tbody = $("#thongkeMonHocTable tbody");
+              const tfoot = $("#thongkeMonHocTable tfoot");
               tbody.empty();
+              tfoot.empty();
               tbody.append(
-                '<tr><td colspan="8" style="text-align: center; color: red;">Lỗi khi tải dữ liệu</td></tr>'
+                '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi khi tải dữ liệu</td></tr>'
               );
             },
           });
         }
 
         // Event listeners
-        $("#NamHoc, #Khoa, #HeDaoTao, #kihoc").on("change", function() {
+        $("#NamHoc, #Khoa, #kihoc").on("change", function() {
           currentSort = { column: null, direction: null }; // Reset sort on filter change
           fetchThongkeData();
         });

@@ -5,8 +5,6 @@ const thongkemonhocController = {
     try {
       res.render("thongkemonhoc");
     } catch (error) {
-      console.error("Lỗi khi render trang thống kê môn học:", error);
-      console.error("Stack trace:", error.stack);
       res.status(500).send("Lỗi khi tải trang: " + (error.message || error));
     }
   },
@@ -14,7 +12,7 @@ const thongkemonhocController = {
   getThongkemonhocData: async (req, res) => {
     let connection;
     // Lấy tham số và ép kiểu chuỗi để tránh lỗi undefined
-    const { namhoc, khoa, hedaotao, kihoc } = req.query;
+    const { namhoc, khoa, kihoc } = req.query;
 
     try {
       connection = await createConnection();
@@ -22,12 +20,14 @@ const thongkemonhocController = {
       // Sử dụng alias (tên giả) cho bảng để query gọn hơn và dễ sửa tên bảng
       let query = `
         SELECT 
-          BoMon,
+          bm.TenBoMon AS BoMon,
+          he_dao_tao AS HeDaoTao,
           COUNT(*) AS TongSoLop,
           SUM(CASE WHEN id_User = 1 THEN 1 ELSE 0 END) AS SoLopMoi,
           SUM(CASE WHEN id_User != 1 OR id_User IS NULL THEN 1 ELSE 0 END) AS SoLopVuotGio
-        FROM giangday
-        WHERE BoMon IS NOT NULL AND BoMon != ''
+        FROM giangday gd
+        LEFT JOIN bomon bm ON gd.BoMon = bm.MaBoMon
+        WHERE gd.BoMon IS NOT NULL AND gd.BoMon != ''
       `;
 
       const params = [];
@@ -41,11 +41,6 @@ const thongkemonhocController = {
       if (khoa && khoa !== "ALL") {
         query += " AND Khoa = ?";
         params.push(khoa);
-      }
-
-      if (hedaotao && hedaotao !== "ALL") {
-        query += " AND he_dao_tao = ?";
-        params.push(hedaotao);
       }
 
       if (kihoc && kihoc !== "ALL") {
