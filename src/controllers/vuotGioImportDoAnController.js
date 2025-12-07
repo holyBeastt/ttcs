@@ -273,7 +273,6 @@ function processWordData(content) {
   // console.log(invalidIndexes);
 
   const result = tableData.map((row) => {
-    console.log("GiangVien raw: " + row.GiangVien);
     let [GiangVien1, GiangVien2] = row.GiangVien.join(", ")
       .split(",")
       .map((gv) => gv.trim()); // Loại bỏ khoảng trắng đầu cuối
