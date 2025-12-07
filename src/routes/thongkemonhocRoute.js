@@ -9,6 +9,5 @@ router.get("/thongkemonhoc", showThongkemonhocPage);
 router.get("/api/thongkemonhoc-data", thongkemonhocController.getThongkemonhocData);
 router.get("/getNamHocmonhoc", thongkemonhocController.getNamHocData);
 router.get("/getKhoamonhoc", thongkemonhocController.getKhoaData);
-router.get("/getHeDaoTaomonhoc", thongkemonhocController.getHeDaoTaoOptions);
 
 module.exports = router;
