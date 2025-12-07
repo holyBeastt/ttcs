@@ -49,8 +49,8 @@ const thongkemonhocController = {
       }
 
       query += `
-        GROUP BY BoMon
-        ORDER BY BoMon ASC
+        GROUP BY bm.TenBoMon, gd.he_dao_tao
+        ORDER BY bm.TenBoMon ASC, gd.he_dao_tao ASC
       `;
 
       console.log("Executing Query:", query); // Log query ra server để debug nếu lỗi
