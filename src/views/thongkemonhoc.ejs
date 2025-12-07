@@ -428,9 +428,9 @@
     </script>
 
     <script>
-      document
-        .getElementById("changeMessage")
-        .addEventListener("click", function (event) {
+      const changeMessageBtn = document.getElementById("changeMessage");
+      if (changeMessageBtn) {
+        changeMessageBtn.addEventListener("click", function (event) {
           event.preventDefault();
           const MaPhongBan = localStorage.getItem("MaPhongBan");
 
@@ -440,12 +440,13 @@
             alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
         });
+      }
     </script>
 
     <script>
-      document
-        .getElementById("changePasswordLink")
-        .addEventListener("click", function (event) {
+      const changePasswordLink = document.getElementById("changePasswordLink");
+      if (changePasswordLink) {
+        changePasswordLink.addEventListener("click", function (event) {
           event.preventDefault();
           const tenDangNhap = localStorage.getItem("TenDangNhap");
 
@@ -457,27 +458,40 @@
             alert("Không tìm thấy TenDangNhap trong localStorage.");
           }
         });
+      }
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const role = localStorage.getItem("userRole");
-        const isKhoa = localStorage.getItem("isKhoa");
+        try {
+          const role = localStorage.getItem("userRole");
+          const isKhoa = localStorage.getItem("isKhoa");
 
-        const actionButton = document.getElementById("changeMessage");
-        if (
-          role === APP_ROLES.troLy_phong ||
-          role === APP_ROLES.lanhDao_phong
-        ) {
-          actionButton.style.display = "";
-        } else {
-          actionButton.style.display = "none";
+          const actionButton = document.getElementById("changeMessage");
+          if (actionButton) {
+            // Kiểm tra APP_ROLES có tồn tại không
+            if (typeof APP_ROLES !== 'undefined') {
+              if (
+                role === APP_ROLES.troLy_phong ||
+                role === APP_ROLES.lanhDao_phong
+              ) {
+                actionButton.style.display = "";
+              } else {
+                actionButton.style.display = "none";
+              }
+            } else {
+              // Nếu APP_ROLES không tồn tại, ẩn button
+              actionButton.style.display = "none";
+            }
+          }
+        } catch (error) {
+          console.error("Lỗi khi xử lý role:", error);
         }
       });
     </script>
     <script>
-      document
-        .getElementById("infome")
-        .addEventListener("click", function (event) {
+      const infomeLink = document.getElementById("infome");
+      if (infomeLink) {
+        infomeLink.addEventListener("click", function (event) {
           event.preventDefault();
           const id_User = localStorage.getItem("id_User");
           if (id_User) {
@@ -486,6 +500,7 @@
             alert("Không tìm thấy id_User trong localStorage.");
           }
         });
+      }
     </script>
   </body>
 </html>

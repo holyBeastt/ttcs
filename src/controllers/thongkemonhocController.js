@@ -6,7 +6,13 @@ const TABLE_NAME = "giangday"; // Hoặc "GiangDay" tùy vào DB của bạn
 
 const thongkemonhocController = {
   showThongkemonhocPage: (req, res) => {
-    res.render("thongkemonhoc");
+    try {
+      res.render("thongkemonhoc");
+    } catch (error) {
+      console.error("Lỗi khi render trang thống kê môn học:", error);
+      console.error("Stack trace:", error.stack);
+      res.status(500).send("Lỗi khi tải trang: " + (error.message || error));
+    }
   },
 
   getThongkemonhocData: async (req, res) => {
@@ -135,8 +141,24 @@ const thongkemonhocController = {
   },
 
   getKhoaData: async (req, res) => {
-    // Hàm này logic y hệt getPhongBanOptions, nên xem xét gộp lại hoặc gọi chung
-    return thongkemonhocController.getPhongBanOptions(req, res);
+    // Hàm này logic y hệt getPhongBanOptions, nên gọi lại code tương tự
+    let connection;
+    try {
+      connection = await createConnection();
+      const [phongBan] = await connection.query(
+        `SELECT DISTINCT Khoa as MaPhongBan FROM giangday WHERE Khoa IS NOT NULL ORDER BY Khoa`
+      );
+
+      res.json({
+        success: true,
+        MaPhongBan: phongBan,
+      });
+    } catch (error) {
+      console.error("Lỗi tại getKhoaData:", error);
+      res.status(500).json({ success: false, message: error.message });
+    } finally {
+      if (connection) connection.release();
+    }
   },
 
   getHeDaoTaoOptions: async (req, res) => {
