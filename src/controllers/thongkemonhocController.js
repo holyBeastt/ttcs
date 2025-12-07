@@ -6,7 +6,7 @@ const TABLE_NAME = "giangday"; // Hoặc "GiangDay" tùy vào DB của bạn
 
 const thongkemonhocController = {
   showThongkemonhocPage: (req, res) => {
-    res.render("thongkeMonHoc");
+    res.render("thongkemonhoc");
   },
 
   getThongkemonhocData: async (req, res) => {
