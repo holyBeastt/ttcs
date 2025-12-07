@@ -120,6 +120,15 @@ function cleanName(name) {
   return name;
 }
 
+// Chuẩn hóa lại tên giảng viên 2 trường hợp chuỗi chuẩn NFC và NFD
+function normalizeString(str) {
+  if (!str) return "";
+  return str
+    .normalize("NFC") // Chuyển đổi tổ hợp (a + dấu) thành dựng sẵn (ạ) -> Fix lỗi 17 vs 15 ký tự
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // Xóa các ký tự zero-width (ẩn) nếu có
+    .trim(); // Xóa khoảng trắng đầu cuối
+}
+
 function processWordData(content) {
   const lines = content.split("\n");
   const tableData = []; // Mảng để lưu dữ liệu của tất cả các sinh viên
@@ -268,17 +277,21 @@ function processWordData(content) {
       .split(",")
       .map((gv) => gv.trim()); // Loại bỏ khoảng trắng đầu cuối
 
+    // Tạo biến chuẩn hóa để dùng cho việc SO SÁNH (giữ nguyên chữ hoa thường để hiển thị đẹp, hoặc lowerCase nếu cần)
+    const gv1Compare = normalizeString(GiangVien1).toLowerCase();
+    const gv2Compare = GiangVien2 ? normalizeString(GiangVien2).toLowerCase() : "";
+
     // So sánh tên giảng viên trong đồ án với tên trong csdl xem đã có chưa
-    // Kiểm tra GiangVien1 có trong uniqueGV không
+    // Kiểm tra GiangVien1
     const isGiangVien1InUniqueGV = uniqueGV.some(
-      (giangVien) => giangVien.HoTen.trim() === GiangVien1
+      (giangVien) => normalizeString(giangVien.HoTen).toLowerCase() === gv1Compare
     );
 
-    // Kiểm tra GiangVien2 có trong uniqueGV không
-    let isGiangVien2InUniqueGV;
+    // Kiểm tra GiangVien2
+    let isGiangVien2InUniqueGV = false;
     if (GiangVien2 !== undefined) {
       isGiangVien2InUniqueGV = uniqueGV.some(
-        (giangVien) => giangVien.HoTen.trim() === GiangVien2
+        (giangVien) => normalizeString(giangVien.HoTen).toLowerCase() === gv2Compare
       );
     }
     // Tạo 2 biến để lưu giá trị so sánh bên client
