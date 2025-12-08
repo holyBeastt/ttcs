@@ -175,6 +175,15 @@
         id="Khoa"
         style="width: 160px"
       ></select>
+
+      <!-- Ô tìm kiếm môn học -->
+      <input
+        type="text"
+        id="searchMonHoc"
+        class="form-control mx-1 selectop"
+        style="width: 200px; margin-bottom: 4px;"
+        placeholder="Tìm kiếm"
+      />
     </div>
 
     <h3>Thống kê môn học theo khoa</h3>
@@ -206,6 +215,7 @@
       $(document).ready(function () {
         // Biến để lưu trữ dữ liệu gốc và trạng thái sort
         let originalData = [];
+        let searchKeyword = "";
         let currentSort = { column: null, direction: null }; // null: none, 'asc': ascending, 'desc': descending
 
         // Hàm render bảng dữ liệu
@@ -261,6 +271,16 @@
           tfoot.append(totalRow);
         }
 
+        // Hàm lọc dữ liệu theo từ khóa môn học
+        function getFilteredData() {
+          if (!searchKeyword) return originalData;
+          const keyword = searchKeyword.toLowerCase();
+          return originalData.filter((item) => {
+            const name = (item.TenHocPhan || item.BoMon || "").toString().toLowerCase();
+            return name.includes(keyword);
+          });
+        }
+
         // Hàm sort bảng dữ liệu
         function sortTableData(column) {
           if (currentSort.column === column) {
@@ -271,7 +291,7 @@
             } else {
               currentSort.column = null;
               currentSort.direction = null;
-              renderTableData(originalData); // Reset to original order
+              renderTableData(getFilteredData()); // Reset to original order (sau khi lọc)
               updateSortIcons();
               return;
             }
@@ -280,7 +300,7 @@
             currentSort.direction = 'desc';
           }
 
-          const sortedData = [...originalData];
+          const sortedData = [...getFilteredData()];
           sortedData.sort(function (a, b) {
             const aValue = parseFloat(a[column]) || 0;
             const bValue = parseFloat(b[column]) || 0;
@@ -310,6 +330,22 @@
           const column = $(this).data('column');
           sortTableData(column);
         });
+
+        // Hàm áp dụng lọc + sort và render
+        function applyFiltersAndRender() {
+          const filtered = getFilteredData();
+          if (currentSort.column && currentSort.direction) {
+            const sortedData = [...filtered].sort(function (a, b) {
+              const aValue = parseFloat(a[currentSort.column]) || 0;
+              const bValue = parseFloat(b[currentSort.column]) || 0;
+              return currentSort.direction === 'desc' ? bValue - aValue : aValue - bValue;
+            });
+            renderTableData(sortedData);
+          } else {
+            renderTableData(filtered);
+          }
+          updateSortIcons();
+        }
 
         // Khởi tạo combobox Khoa
         $.ajax({
@@ -410,8 +446,7 @@
                 originalData = data;
                 currentSort = { column: null, direction: null };
                 // Render dữ liệu
-                renderTableData(data);
-                updateSortIcons();
+                applyFiltersAndRender();
               } else {
                 alert("Không thể tải dữ liệu từ server.");
               }
@@ -433,6 +468,13 @@
         $("#NamHoc, #Khoa, #kihoc").on("change", function() {
           currentSort = { column: null, direction: null }; // Reset sort on filter change
           fetchThongkeData();
+        });
+
+        // Tìm kiếm môn học
+        $("#searchMonHoc").on("input", function() {
+          searchKeyword = $(this).val().trim();
+          // Khi tìm kiếm, giữ trạng thái sort hiện tại
+          applyFiltersAndRender();
         });
       });
     </script>

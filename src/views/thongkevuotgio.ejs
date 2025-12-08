@@ -217,20 +217,30 @@
 </div>
 
   <h3>Bảng chi tiết số tiết vượt giờ</h3>
-  <div class="total-labels-container">
-      <div class="total-label">
-          <label>Số tiết tính vượt giờ: <span class="value" id="totalSoTietGiangDay">0</span></label>
-        </div>
-        <div class="total-label" id="totalSTPHTContainer">
-            <label>Số tiết phải hoàn thành: <span class="value" id="totalSTPHT">0</span></label>
-        </div>
-        <div class="total-label" id="totalSTMGContainer">
-            <label>Số tiết miễn giảm: <span class="value" id="totalSTMG">0</span></label>
-        </div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px; margin: 10px 0;">
+    <div class="total-labels-container" style="display:flex; flex-wrap:wrap; gap:8px;">
         <div class="total-label">
-            <label>Tổng số tiết vượt giờ (được thanh toán): <span class="value" id="total">0</span></label>
-        </div>
-</div>
+            <label>Số tiết tính vượt giờ: <span class="value" id="totalSoTietGiangDay">0</span></label>
+          </div>
+          <div class="total-label" id="totalSTPHTContainer">
+              <label>Số tiết phải hoàn thành: <span class="value" id="totalSTPHT">0</span></label>
+          </div>
+          <div class="total-label" id="totalSTMGContainer">
+              <label>Số tiết miễn giảm: <span class="value" id="totalSTMG">0</span></label>
+          </div>
+          <div class="total-label">
+              <label>Tổng số tiết vượt giờ (được thanh toán): <span class="value" id="total">0</span></label>
+          </div>
+    </div>
+    <!-- Ô lọc họ tên (hiển thị khi Khoa/Hệ khác ALL) -->
+    <input
+      type="text"
+      id="searchHoTen"
+      class="form-control selectop"
+      style="width: 240px; display: none;"
+      placeholder="Tìm kiếm theo họ tên"
+    />
+  </div>
   <table class="table table-bordered my-2" id="thongkevuotgioTable">
       <thead>
           <tr>
@@ -259,6 +269,7 @@ $(document).ready(function () {
         column: null,
         direction: null // null, 'desc', 'asc'
     };
+    let nameFilter = "";
 
     let currentType = "khoa"; // "khoa" hoặc "hedaotao"
 
@@ -292,6 +303,7 @@ $(document).ready(function () {
         $('#Khoa').show();
         $('#HeDaoTao').hide();
         fetchThongkevuotgioData();
+        toggleSearchVisibility();
     };
 
     document.getElementById("toggleHeDaoTao").onclick = function () {
@@ -304,8 +316,37 @@ $(document).ready(function () {
         loadHeDaoTaoCombobox('ALL', function() {
             document.getElementById('HeDaoTao').value = 'ALL';
             fetchThongkevuotgioData();
+            toggleSearchVisibility();
         });
     };
+
+    // Lọc theo họ tên (chỉ ảnh hưởng bảng, không ảnh hưởng biểu đồ/tổng)
+    function getFilteredData(khoa, hedaotao) {
+        if (nameFilter && (
+            (currentType === "khoa" && khoa !== 'ALL') ||
+            (currentType === "hedaotao" && hedaotao !== 'ALL')
+        )) {
+            const keyword = nameFilter.toLowerCase();
+            return originalData.filter(item =>
+                (item.GiangVien || "").toString().toLowerCase().includes(keyword)
+            );
+        }
+        return originalData;
+    }
+
+    function toggleSearchVisibility() {
+        const khoaVal = $('#Khoa').val();
+        const heVal = $('#HeDaoTao').val();
+        const shouldShow = (currentType === 'khoa' && khoaVal && khoaVal !== 'ALL') ||
+                           (currentType === 'hedaotao' && heVal && heVal !== 'ALL');
+        const $input = $('#searchHoTen');
+        if (shouldShow) {
+            $input.show();
+        } else {
+            nameFilter = "";
+            $input.val('').hide();
+        }
+    }
 
     // Sửa fetchThongkevuotgioData để lấy đúng giá trị lọc
     async function fetchThongkevuotgioData() {
@@ -416,26 +457,29 @@ $(document).ready(function () {
 
 
 
-            // Cập nhật tổng số tiết
-            const total = data.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
+            // Áp dụng lọc theo họ tên (nếu có)
+            const dataToRender = getFilteredData(khoa, hedaotao);
+
+            // Cập nhật tổng số tiết (dựa trên toàn bộ dữ liệu, không phụ thuộc lọc bảng)
+            const total = originalData.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
             document.getElementById('total').textContent = total.toFixed(2);
 
-            // Cập nhật tổng số tiết giảng dạy
+            // Cập nhật tổng số tiết giảng dạy (toàn bộ dữ liệu)
             let totalSoTietGiangDay;
             if (currentType === "khoa" && khoa === 'ALL') {
-                totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
+                totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
             } else {
-                totalSoTietGiangDay = data.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+                totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
             }
             document.getElementById('totalSoTietGiangDay').textContent = totalSoTietGiangDay.toFixed(2);
 
             // Cập nhật số tiết phải hoàn thành và miễn giảm
             if (currentType === "khoa" && khoa !== 'ALL' || currentType === "hedaotao" && hedaotao !== 'ALL') {
-                const totalSTPHT = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(item.STPHT) : 0), 0);
+                const totalSTPHT = originalData.reduce((sum, item) => sum + (item.STPHT ? parseFloat(item.STPHT) : 0), 0);
                 document.getElementById('totalSTPHT').textContent = totalSTPHT.toFixed(2);
                 document.getElementById('totalSTPHTContainer').style.display = 'block';
 
-                const totalSTMG = data.reduce((sum, item) => sum + (item.STPHT ? parseFloat(300-item.STPHT) : 0), 0);
+                const totalSTMG = originalData.reduce((sum, item) => sum + (item.STPHT ? parseFloat(300-item.STPHT) : 0), 0);
                 document.getElementById('totalSTMG').textContent = totalSTMG.toFixed(2);
                 document.getElementById('totalSTMGContainer').style.display = 'block';
             } else {
@@ -443,11 +487,12 @@ $(document).ready(function () {
                 document.getElementById('totalSTMGContainer').style.display = 'none';
             }
 
-            // Render dữ liệu
-            renderTableData(data, khoa, hedaotao, totalSoTietGiangDay, total);
+            // Render dữ liệu (chỉ bảng)
+            renderTableData(dataToRender, khoa, hedaotao, totalSoTietGiangDay, total);
 
-            // Cập nhật biểu đồ
+            // Cập nhật biểu đồ giữ dữ liệu gốc
             updateCharts(originalData, currentType, khoa, hedaotao);
+            toggleSearchVisibility();
 
         } catch (error) {
             console.error('Error in fetchThongkevuotgioData:', error);
@@ -547,14 +592,8 @@ $(document).ready(function () {
                 // Reset về trạng thái ban đầu
                 currentSort.column = null;
                 currentSort.direction = null;
-                const total = originalData.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
-                let totalSoTietGiangDay;
-                if (currentType === "khoa" && khoa === 'ALL') {
-                    totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
-                } else {
-                    totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
-                }
-                renderTableData(originalData, khoa, hedaotao, totalSoTietGiangDay, total);
+                const baseData = getFilteredData(khoa, hedaotao);
+                renderTableData(baseData, khoa, hedaotao, 0, 0);
                 updateSortIcons();
                 return;
             }
@@ -565,7 +604,7 @@ $(document).ready(function () {
         }
 
         // Tạo bản sao của dữ liệu để sort
-        const sortedData = [...originalData];
+        const sortedData = [...getFilteredData(khoa, hedaotao)];
 
         sortedData.sort(function (a, b) {
             let aValue, bValue;
@@ -584,14 +623,7 @@ $(document).ready(function () {
             }
         });
 
-        const total = sortedData.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
-        let totalSoTietGiangDay;
-        if (currentType === "khoa" && khoa === 'ALL') {
-            totalSoTietGiangDay = sortedData.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
-        } else {
-            totalSoTietGiangDay = sortedData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
-        }
-        renderTableData(sortedData, khoa, hedaotao, totalSoTietGiangDay, total);
+        renderTableData(sortedData, khoa, hedaotao, 0, 0);
         updateSortIcons();
     }
 
@@ -772,14 +804,30 @@ $(document).ready(function () {
     document.getElementById('NamHoc').addEventListener('change', function() {
         currentSort = { column: null, direction: null };
         fetchThongkevuotgioData();
+        toggleSearchVisibility();
     });
     document.getElementById('Khoa').addEventListener('change', function() {
         currentSort = { column: null, direction: null };
         fetchThongkevuotgioData();
+        toggleSearchVisibility();
     });
     document.getElementById('HeDaoTao').addEventListener('change', function() {
         currentSort = { column: null, direction: null };
         fetchThongkevuotgioData();
+        toggleSearchVisibility();
+    });
+
+    // Lọc họ tên (chỉ áp dụng khi Khoa/Hệ ≠ ALL, chỉ ảnh hưởng bảng)
+    $('#searchHoTen').on('input', function() {
+        nameFilter = $(this).val().trim();
+        currentSort = { column: null, direction: null };
+        const khoa = document.getElementById('Khoa').value;
+        const hedaotao = document.getElementById('HeDaoTao').value;
+        // Không gọi API, chỉ áp dụng trên dữ liệu hiện có
+        const dataToRender = getFilteredData(khoa, hedaotao);
+        renderTableData(dataToRender, khoa, hedaotao, 0, 0);
+        updateCharts(originalData, currentType, khoa, hedaotao);
+        updateSortIcons();
     });
 
     // Lấy danh sách năm học
