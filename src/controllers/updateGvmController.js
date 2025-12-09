@@ -119,6 +119,7 @@ const postUpdateGvm = async (req, res) => {
   let oldQrCode = req.body.oldQrCode;
 
   let isQuanDoi = req.body.thuocQuanDoi;
+  let isNghiHuu = req.body.isNghiHuu;
 
   // Kiểm tra HSL
   // Nếu là chuỗi, thay dấu phẩy bằng dấu chấm
@@ -305,6 +306,7 @@ const postUpdateGvm = async (req, res) => {
       TinhTrangGiangDay = ?, 
       MonGiangDayChinh = ?,
       isQuanDoi = ?,
+      isNghiHuu = ?,
       fileBoSung = ?,
       QrCode = ?
     WHERE id_Gvm = ?`;
@@ -337,6 +339,7 @@ const postUpdateGvm = async (req, res) => {
         tinhTrangGiangDay,
         MonGiangDayChinh,
         isQuanDoi,
+        isNghiHuu,
         fileBoSung,
         QrCode,
         IdGvm,

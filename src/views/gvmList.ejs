@@ -62,12 +62,18 @@
                 </option>
                 <% }); %>
             </select>
+            <select id="filterNghiHuu" class="filter">
+              <option value="ALL">Tất cả</option>
+              <option value="0">Chưa nghỉ hưu</option>
+              <option value="1">Đã nghỉ hưu</option>
+            </select>
             <script>
               // Hàm lọc chung
               function filterTable() {
                 let nameInput = document.getElementById("searchInput").value.toLowerCase();
                 let boMonInput = document.getElementById('searchBoMon').value.toLowerCase();
                 let departmentFilter = document.getElementById("filterByDepartment").value.trim();
+                let nghiHuuFilter = document.getElementById("filterNghiHuu").value.trim();
 
                 let table = document.getElementById("classTable");
                 let tr = table.getElementsByTagName("tr");
@@ -76,19 +82,22 @@
                   let nameCell = tr[i].getElementsByTagName("td")[2]; // Tên giảng viên
                   let boMonCell = tr[i].getElementsByTagName("td")[5]; // Bộ môn
                   let departmentCell = tr[i].getElementsByTagName("td")[4]; // Khoa
+                  let nghiHuuCell = tr[i].getElementsByTagName("td")[6]; // Đã nghỉ hưu (hidden)
 
                   // Lấy giá trị từ các ô
                   let nameValue = nameCell ? nameCell.textContent.toLowerCase() : '';
                   let boMonValue = boMonCell ? boMonCell.textContent.toLowerCase() : '';
                   let departmentValue = departmentCell ? departmentCell.textContent.trim() : '';
+                  let nghiHuuValue = nghiHuuCell ? nghiHuuCell.textContent.trim() : '';
 
                   // Kiểm tra điều kiện lọc
                   let nameMatch = nameValue.includes(nameInput);
                   let boMonMatch = boMonValue.includes(boMonInput);
                   let departmentMatch = (departmentFilter === "all" || departmentValue === departmentFilter);
+                  let nghiHuuMatch = (nghiHuuFilter === "ALL" || nghiHuuValue === nghiHuuFilter);
 
                   // Hiện hoặc ẩn hàng dựa trên các điều kiện
-                  if (nameMatch && boMonMatch && departmentMatch) {
+                  if (nameMatch && boMonMatch && departmentMatch && nghiHuuMatch) {
                     tr[i].style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
                   } else {
                     tr[i].style.display = "none"; // Ẩn hàng nếu không khớp
@@ -100,6 +109,7 @@
               document.getElementById("searchInput").addEventListener("keyup", filterTable);
               document.getElementById("searchBoMon").addEventListener("keyup", filterTable);
               document.getElementById("filterByDepartment").addEventListener("change", filterTable);
+              document.getElementById("filterNghiHuu").addEventListener("change", filterTable);
             </script>
           </div>
           <table class="class-table" id="classTable">
@@ -111,6 +121,7 @@
                 <th>Ngày sinh</th>
                 <th style="display: none;">Khoa</th>
                 <th>Bộ môn</th>
+                <th style="display: none;">isNghiHuu</th>
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -126,6 +137,9 @@
                     </td>
                     <td>
                       <%= gvmLists[i].HoTen %>
+                      <% if (gvmLists[i].isNghiHuu == 1) { %>
+                        <span class="badge bg-secondary" style="font-size: 10px;">Đã nghỉ hưu</span>
+                      <% } %>
                     </td>
                     <td>
                       <%= new Date(gvmLists[i].NgaySinh).toLocaleDateString('vi-VN', options) %>
@@ -135,6 +149,9 @@
                     </td>
                     <td id="BoMon">
                       <%= gvmLists[i].MonGiangDayChinh %>
+                    </td>
+                    <td style="display: none;">
+                      <%= gvmLists[i].isNghiHuu || 0 %>
                     </td>
                     <td>
                       <button class="action-button view"

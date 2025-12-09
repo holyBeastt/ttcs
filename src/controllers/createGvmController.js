@@ -106,6 +106,7 @@ let createGvm = async (req, res) => {
     const MaPhongBan = khoa;
     let QrCode = req.body.QrCode;
     let isQuanDoi = req.body.thuocQuanDoi;
+    let isNghiHuu = req.body.isNghiHuu;
 
     // Kiểm tra HSL
     // Nếu là chuỗi, thay dấu phẩy bằng dấu chấm
@@ -168,8 +169,8 @@ let createGvm = async (req, res) => {
       : null;
     QrCode = filePlan["QrCode"] ? filePlan["QrCode"].filename : QrCode;
 
-    const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, fileBoSung, QrCode)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO gvmoi (MaGvm, HoTen, GioiTinh, NgaySinh, CCCD, NgayCapCCCD, NoiCapCCCD, NoiCongTac, DiaChi, DienThoai, Email, MaSoThue, HocVi, ChucVu, HSL, STK, NganHang, MatTruocCCCD, MatSauCCCD, BangTotNghiep, FileLyLich, MaPhongBan, TinhTrangGiangDay, BangTotNghiepLoai, MonGiangDayChinh, isQuanDoi, isNghiHuu, fileBoSung, QrCode)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     try {
       await connection.query(query, [
@@ -199,6 +200,7 @@ let createGvm = async (req, res) => {
         BangTotNghiepLoai,
         MonGiangDayChinh,
         isQuanDoi,
+        isNghiHuu,
         fileBoSung,
         QrCode,
       ]);

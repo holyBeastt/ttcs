@@ -104,6 +104,15 @@
                 class="search"
                 id="searchBoMon"
               />
+              <select
+                class="form-select mx-1 selectop"
+                style="width: max-content; display: inline-block; margin-left: 20px"
+                id="filterNghiHuu"
+              >
+                <option value="ALL">Tất cả</option>
+                <option value="0">Chưa nghỉ hưu</option>
+                <option value="1">Đã nghỉ hưu</option>
+              </select>
             </div>
 
             <div id="tableContainer" style="display: none">
@@ -211,6 +220,7 @@
         let boMonInput = document
           .getElementById("searchBoMon")
           .value.toLowerCase();
+        let nghiHuuFilter = document.getElementById("filterNghiHuu").value.trim();
 
         let table = document.getElementById("dataTable");
         let tr = table.getElementsByTagName("tr");
@@ -219,17 +229,20 @@
           // Bỏ qua hàng tiêu đề
           let nameCell = tr[i].getElementsByTagName("td")[3]; // Tên giảng viên
           let boMonCell = tr[i].getElementsByTagName("td")[11]; // Bộ môn
+          let nghiHuuCell = tr[i].getElementsByTagName("td")[19]; // isNghiHuu (hidden)
 
           // Lấy giá trị từ các ô
           let nameValue = nameCell ? nameCell.textContent.toLowerCase() : "";
           let boMonValue = boMonCell ? boMonCell.textContent.toLowerCase() : "";
+          let nghiHuuValue = nghiHuuCell ? nghiHuuCell.textContent.trim() : "";
 
           // Kiểm tra điều kiện lọc
           let nameMatch = nameValue.includes(nameInput);
           let boMonMatch = boMonValue.includes(boMonInput);
+          let nghiHuuMatch = (nghiHuuFilter === "ALL" || nghiHuuValue === nghiHuuFilter);
 
           // Hiện hoặc ẩn hàng dựa trên các điều kiện
-          if (nameMatch && boMonMatch) {
+          if (nameMatch && boMonMatch && nghiHuuMatch) {
             tr[i].style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             tr[i].style.display = "none"; // Ẩn hàng nếu không khớp
@@ -239,6 +252,14 @@
 
       // Gọi hàm lọc khi có thay đổi trong các ô tìm kiếm
       document
+        .getElementById("searchInput")
+        .addEventListener("keyup", filterTable);
+      document
+        .getElementById("searchBoMon")
+        .addEventListener("keyup", filterTable);
+      document
+        .getElementById("filterNghiHuu")
+        .addEventListener("change", filterTable);
         .getElementById("searchInput")
         .addEventListener("keyup", filterTable);
       document
@@ -425,7 +446,11 @@
               row.insertCell(colIndex++).textContent = index + 1; // STT
               row.insertCell(colIndex++).textContent =
                 item.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà";
-              row.insertCell(colIndex++).textContent = item.HoTen;
+              
+              // Cột tên với badge nghỉ hưu
+              const tenCell = row.insertCell(colIndex++);
+              tenCell.innerHTML = item.HoTen + (item.isNghiHuu == 1 ? ' <span class="badge bg-secondary" style="font-size: 10px;">Đã nghỉ hưu</span>' : '');
+              
               row.insertCell(colIndex++).textContent = item.NgaySinh
                 ? new Date(item.NgaySinh).toLocaleDateString("vi-VN", {
                     day: "2-digit",
@@ -540,6 +565,11 @@
                 MaPhongBan != APP_DEPARTMENTS.banGiamDoc || // Chỉ bật nếu là Học viện
                 item.dao_tao_duyet === 0; // Khóa nếu đào tạo chưa duyệt
               hocVienCheckboxTd.appendChild(hocVienCheckbox);
+              
+              // Cột ẩn isNghiHuu để filter
+              const nghiHuuCell = row.insertCell(colIndex++);
+              nghiHuuCell.textContent = item.isNghiHuu || 0;
+              nghiHuuCell.style.display = "none";
             });
 
             // Hiển thị bảng

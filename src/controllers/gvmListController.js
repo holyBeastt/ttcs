@@ -642,6 +642,7 @@ const getGvmListXLSX = async (req, res, rows, MaPhongBan) => {
       { header: "Tại Ngân Hàng", key: "NganHang", width: 20 },
       { header: "Khoa", key: "MaPhongBan", width: 20 },
       { header: "Bộ Môn", key: "MonGiangDayChinh", width: 20 },
+      { header: "Đã nghỉ hưu", key: "isNghiHuu", width: 15 },
     ];
 
     rows.forEach((row, index) => {
@@ -652,6 +653,9 @@ const getGvmListXLSX = async (req, res, rows, MaPhongBan) => {
       row.NgayCapCCCD = row.NgayCapCCCD
         ? new Date(row.NgayCapCCCD).toLocaleDateString("vi-VN")
         : "";
+      
+      // Định dạng trạng thái nghỉ hưu
+      row.isNghiHuu = row.isNghiHuu == 1 ? "Đã nghỉ hưu" : "Chưa nghỉ hưu";
 
       worksheet.addRow({
         stt: index + 1,
