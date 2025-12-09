@@ -229,7 +229,7 @@
           // Bỏ qua hàng tiêu đề
           let nameCell = tr[i].getElementsByTagName("td")[3]; // Tên giảng viên
           let boMonCell = tr[i].getElementsByTagName("td")[11]; // Bộ môn
-          let nghiHuuCell = tr[i].getElementsByTagName("td")[19]; // isNghiHuu (hidden)
+          let nghiHuuCell = tr[i].getElementsByTagName("td")[17]; // isNghiHuu (hidden)
 
           // Lấy giá trị từ các ô
           let nameValue = nameCell ? nameCell.textContent.toLowerCase() : "";
@@ -260,11 +260,6 @@
       document
         .getElementById("filterNghiHuu")
         .addEventListener("change", filterTable);
-        .getElementById("searchInput")
-        .addEventListener("keyup", filterTable);
-      document
-        .getElementById("searchBoMon")
-        .addEventListener("keyup", filterTable);
 
       $(document).ready(function () {
         // Kiểm tra xem jQuery UI có được load không
