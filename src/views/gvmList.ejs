@@ -221,76 +221,87 @@
     </script>
 
     <script>
-      // Lấy query string từ URL
+      // 1. Lấy query string
       const urlParams = new URLSearchParams(window.location.search);
       const message = urlParams.get("message");
       const duplicateName = urlParams.get("duplicateName");
 
-      if (message === "insertSuccess") {
-        Swal.fire({
+      // 2. Cấu hình chung cho SweetAlert (những cái lặp đi lặp lại)
+      const baseSwalConfig = {
+        confirmButtonText: 'OK',
+        width: 'auto',
+        padding: '20px',
+      };
+
+      // 3. Bảng định nghĩa các thông báo (Mapping)
+      // [KEY]: { tiêu đề, nội dung, icon }
+      const messageMap = {
+        insertSuccess: {
           title: 'Thông báo',
           html: "Thành công",
-          icon: 'success',
-          confirmButtonText: 'OK',
-          width: 'auto',
-          padding: '20px',
-        });
-
-      } else if (message === "duplicateCCCD") {
-        Swal.fire({
+          icon: 'success'
+        },
+        duplicateCCCD: {
           title: 'Thông báo',
           html: "Số CCCD đã tồn tại. Vui lòng kiểm tra lại số CCCD.",
-          icon: 'info',
-          confirmButtonText: 'OK',
-          width: 'auto',
-          padding: '20px',
-        });
-
-      } else if (duplicateName) {
-        Swal.fire({
-          title: 'Thông báo',
-          html: `
-            ${decodeURIComponent(message)}:<br>
-            <b>${decodeURIComponent(duplicateName)}</b>
-          `,
-          icon: 'info',
-          confirmButtonText: 'OK',
-          width: 'auto',
-          padding: '20px',
-        });
-
-      } else if (message === "insertFalse") {
-        Swal.fire({
+          icon: 'info'
+        },
+        insertFalse: {
           title: 'Thông báo',
           html: "Đã xảy ra lỗi trong quá trình thêm giảng viên.",
-          icon: 'error',
-          confirmButtonText: 'OK',
-          width: 'auto',
-          padding: '20px',
-        });
+          icon: 'error'
+        },
+        // Thêm các lỗi Upload file mới vào đây dễ dàng
+        FileQuaLon_ToiDa5MB: {
+          title: 'Lỗi Upload',
+          html: "File quá lớn! Vui lòng chỉ tải lên file dưới 5MB.",
+          icon: 'warning'
+        },
+        SaiDinhDangFile: {
+          title: 'Lỗi Định Dạng',
+          html: "File không đúng định dạng cho phép.",
+          icon: 'error'
+        }
+      };
 
-      } else if (message == null){
-        // Không làm gì cả nếu message là null
-      }
-       else {
-        // Không có thông báo để hiển thị
-        Swal.fire({
-          title: 'Lỗi',
-          html: "Đã xảy ra trường hợp không xác định, vui lòng liên hệ với quản trị viên.",
-          icon: 'error',
-          showConfirmButton: false,
-          width: 'auto',
-          padding: '0px',
-        })
-      }
-
-
-
-      // Sau khi hiển thị thông báo, xóa query string để tránh hiển thị lại khi refresh
+      // 4. Logic Xử lý chính
       if (message) {
-        // Sử dụng window.history để xóa query string mà không refresh lại trang
-        const newUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+        let config = null;
+
+        // CASE A: Có tên trùng (Xử lý chuỗi động)
+        if (duplicateName) {
+          config = {
+            title: 'Thông báo',
+            html: `${decodeURIComponent(message)}:<br><b>${decodeURIComponent(duplicateName)}</b>`,
+            icon: 'info'
+          };
+        } 
+        // CASE B: Có trong bảng định nghĩa (messageMap)
+        else if (messageMap[message]) {
+          config = messageMap[message];
+        } 
+        // CASE C: Lỗi lạ không xác định (Default)
+        else {
+          config = {
+            title: 'Lỗi',
+            html: "Đã xảy ra trường hợp không xác định, vui lòng liên hệ với quản trị viên.",
+            icon: 'error',
+            showConfirmButton: false, // Override lại config gốc
+            padding: '0px'
+          };
+        }
+
+        // 5. Hiển thị thông báo & Xóa URL
+        if (config) {
+          Swal.fire({
+            ...baseSwalConfig, // Gộp cấu hình chung
+            ...config          // Ghi đè cấu hình riêng
+          });
+
+          // Xóa query string sạch sẽ
+          const newUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
       }
     </script>
 

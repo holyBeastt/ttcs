@@ -8,9 +8,6 @@ const path = require("path");
 const pdf = require("pdf-parse");
 const mammoth = require("mammoth"); // Sử dụng mammoth để đọc file Word
 
-const parentDir = path.join(__dirname, "..");
-const p = path.join(parentDir, "..");
-
 const XLSX = require("xlsx");
 
 // Tạo biến chung để lưu dữ liệu
@@ -24,8 +21,12 @@ async function extractFileData(req, res) {
       .json({ message: "No file uploaded", status: "error" });
   }
 
-  const filePath = path.join(p, "uploads", req.file.filename);
+  const filePath = req.file.path;
+
+  console.log("Upload file path: " + filePath);
+
   console.log(`[Import ĐA] File uploaded: ${req.file.originalname}`);
+
 
   try {
     // Kiểm tra định dạng file
@@ -119,6 +120,15 @@ function cleanName(name) {
   return name;
 }
 
+// Chuẩn hóa lại tên giảng viên 2 trường hợp chuỗi chuẩn NFC và NFD
+function normalizeString(str) {
+  if (!str) return "";
+  return str
+    .normalize("NFC") // Chuyển đổi tổ hợp (a + dấu) thành dựng sẵn (ạ) -> Fix lỗi 17 vs 15 ký tự
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // Xóa các ký tự zero-width (ẩn) nếu có
+    .trim(); // Xóa khoảng trắng đầu cuối
+}
+
 function processWordData(content) {
   const lines = content.split("\n");
   const tableData = []; // Mảng để lưu dữ liệu của tất cả các sinh viên
@@ -128,122 +138,98 @@ function processWordData(content) {
   let TenGiangVien = "";
   let isGV = false;
 
+  // 1. Đưa hết key về chữ thường để so sánh cho dễ
   const headerKeywords = [
-    "STT",
-    "Sinh viên",
-    "Mã SV",
-    "Tên đề tài",
-    "Họ tên Cán bộ Giảng viên hướng dẫn",
-    "Đơn vị công tác",
+    "stt",
+    "sinh viên",
+    "mã sv",
+    "tên đề tài",
+    "họ tên cán bộ giảng viên hướng dẫn",
+    "đơn vị công tác",
   ];
-  lines.forEach((line) => {
-    line = line.trim(); // Xóa khoảng trắng thừa
-    if (!line) return; // Bỏ qua dòng trống
 
-    // Bỏ qua các dòng tiêu đề (5 dòng chứa từ khóa tiêu đề)
-    if (
-      headerCount < 5 &&
-      headerKeywords.some((keyword) => line.includes(keyword))
-    ) {
+  // 2. Dùng Regex để bắt chức danh (Flag 'i' là không phân biệt hoa thường)
+  // ^: Bắt đầu dòng
+  // ( ... ): Nhóm các trường hợp
+  // \.?: Dấu chấm có thể có hoặc không (ví dụ TS hoặc TS.)
+  const teacherPrefixRegex = /^(1\.|2\.|ts\.?|ths\.?|ks\.?|cn\.?|pgs\.?|gs\.?)/i;
+
+  lines.forEach((originalLine) => {
+    let line = originalLine.trim();
+    if (!line) return;
+
+    // Tạo bản copy chữ thường để so sánh logic (giữ nguyên line gốc để lưu dữ liệu)
+    const lineLower = line.toLowerCase();
+
+    // --- XỬ LÝ TIÊU ĐỀ (MỀM HƠN) ---
+    const isHeaderLine = headerKeywords.some((keyword) => lineLower.includes(keyword));
+
+    if (headerCount < 5 && isHeaderLine) {
       headerCount++;
-      return; // Bỏ qua dòng tiêu đề
-    }
-
-    // Bỏ qua nếu dòng chứa bất kỳ từ khóa tiêu đề nào
-    if (headerKeywords.some((keyword) => line.includes(keyword))) {
       return;
     }
 
-    // console.log(line);
-    // Nếu đã qua 5 dòng tiêu đề, bắt đầu xử lý bảng
+    if (isHeaderLine) {
+      return;
+    }
+
+    // --- XỬ LÝ NỘI DUNG ---
     if (headerCount >= 5) {
-      // Nếu dòng bắt đầu bằng số TT, đây là dòng mới
-      const matchTT = line.match(/^\d+$/); // Kiểm tra dòng chỉ có số
-      // const matchTT = line.match(/^\d+\.$/);
+      // Check STT (số thứ tự)
+      const matchTT = line.match(/^\d+$/);
 
       if (matchTT) {
-        // Lưu dòng trước đó (nếu có)
+        // Lưu dòng cũ
         if (Object.keys(currentRow).length > 0) {
           tableData.push(currentRow);
         }
 
-        // Tách các phần của dòng hiện tại
+        // Reset dòng mới
         currentRow = {
           TT: line,
-          SinhVien: "", // Tên sinh viên
-          MaSV: "", // Mã sinh viên
-          TenDeTai: "", // Tên đề tài
-          GiangVien: [], // Danh sách Giảng viên
+          SinhVien: "",
+          MaSV: "",
+          TenDeTai: "",
+          GiangVien: [],
           GiangVienDefault: "",
         };
         count = 1;
         isGV = false;
-        //
+
       } else if (count == 1) {
         currentRow.SinhVien = line;
         count++;
-        // Kiểm tra xem MaSV có đúng định dạng không, chỉ gán nếu hợp lệ
       } else if (count == 2) {
         currentRow.MaSV = line;
         count++;
       } else if (count == 3) {
         currentRow.TenDeTai = line;
         count++;
-      } else if (
-        /*
-    "PGS\\.?", // Phó Giáo sư (PGS, PGS.)
-    "CN\\.?", // Cử nhân (CN,CN.)
-    "TS\\.?", // Tiễn sĩ (TS, TS.)
-    "KS\\.?", // Kỹ sư (KS, KS.)
-    "T(?:H)?S\\.?", // Tiến sĩ (TS, THS, thS, ...)
-    "PGS\\.T(?:H)?S\\.?", // PGS.TS hoặc PGS.THS.
-    "GS\\.T(?:H)?S\\.?", // GS.TS hoặc GS.THS.
-        */
+      } else if (teacherPrefixRegex.test(line)) {
+        // --- XỬ LÝ GIẢNG VIÊN (DÙNG REGEX THAY VÌ IF DÀI) ---
+        // Regex trên đã thay thế cho toàn bộ đoạn if startsWith dài dòng cũ
 
-        line.startsWith("1.") ||
-        line.startsWith("2.") ||
-        line.toLowerCase().startsWith("ts.") ||
-        line.toLowerCase().startsWith("ts") ||
-        line.toLowerCase().startsWith("ths.") ||
-        line.toLowerCase().startsWith("ths") ||
-        line.toLowerCase().startsWith("ks.") ||
-        line.toLowerCase().startsWith("ks") ||
-        line.toLowerCase().startsWith("cn.") ||
-        line.toLowerCase().startsWith("cn") ||
-        line.toLowerCase().startsWith("pgs.") ||
-        line.toLowerCase().startsWith("pgs") ||
-        line.toLowerCase().startsWith("pgs.ts.") ||
-        line.toLowerCase().startsWith("pgs.ts") ||
-        line.toLowerCase().startsWith("pgs.ths.") ||
-        line.toLowerCase().startsWith("pgs.ths") ||
-        line.toLowerCase().startsWith("gs.ts.") ||
-        line.toLowerCase().startsWith("gs.ts") ||
-        line.toLowerCase().startsWith("gs.ths.") ||
-        line.toLowerCase().startsWith("gs.ths")
-      ) {
         currentRow.GiangVienDefault += line + "\n";
 
+        // Hàm cleanName của bạn (giả sử đã có)
         line = cleanName(line);
-        // console.log("sau clean " + line)
 
         if (!currentRow.GiangVien) {
-          currentRow.GiangVien = []; // Khởi tạo GiangVien nếu chưa có
+          currentRow.GiangVien = [];
         }
 
         isGV = true;
+        TenGiangVien = line;
 
-        TenGiangVien = line; // Nối chuỗi hiện tại vào TenGiangVien
-
-        // Kiểm tra nếu chuỗi có dấu ','
         if (TenGiangVien.includes(",")) {
-          const Ten = TenGiangVien.split(",")[0].trim(); // Lấy tên trước dấu ',' và xóa khoảng trắng
-
-          currentRow.GiangVien.push(Ten); // Thêm tên đã xử lý vào danh sách
-          TenGiangVien = ""; // Reset TenGiangVien để chuẩn bị xử lý dòng tiếp theo
+          const Ten = TenGiangVien.split(",")[0].trim();
+          currentRow.GiangVien.push(Ten);
+          TenGiangVien = "";
         } else {
-          currentRow.GiangVien.push(line.trim()); // Thêm trực tiếp nếu không có dấu ','
+          currentRow.GiangVien.push(line.trim());
         }
       } else {
+        // Các dòng rác hoặc dòng text thừa thuộc về giảng viên
         currentRow.GiangVienDefault += line + "\n";
       }
     }
@@ -267,17 +253,21 @@ function processWordData(content) {
       .split(",")
       .map((gv) => gv.trim()); // Loại bỏ khoảng trắng đầu cuối
 
+    // Tạo biến chuẩn hóa để dùng cho việc SO SÁNH (giữ nguyên chữ hoa thường để hiển thị đẹp, hoặc lowerCase nếu cần)
+    const gv1Compare = normalizeString(GiangVien1).toLowerCase();
+    const gv2Compare = GiangVien2 ? normalizeString(GiangVien2).toLowerCase() : "";
+
     // So sánh tên giảng viên trong đồ án với tên trong csdl xem đã có chưa
-    // Kiểm tra GiangVien1 có trong uniqueGV không
+    // Kiểm tra GiangVien1
     const isGiangVien1InUniqueGV = uniqueGV.some(
-      (giangVien) => giangVien.HoTen.trim() === GiangVien1
+      (giangVien) => normalizeString(giangVien.HoTen).toLowerCase() === gv1Compare
     );
 
-    // Kiểm tra GiangVien2 có trong uniqueGV không
-    let isGiangVien2InUniqueGV;
+    // Kiểm tra GiangVien2
+    let isGiangVien2InUniqueGV = false;
     if (GiangVien2 !== undefined) {
       isGiangVien2InUniqueGV = uniqueGV.some(
-        (giangVien) => giangVien.HoTen.trim() === GiangVien2
+        (giangVien) => normalizeString(giangVien.HoTen).toLowerCase() === gv2Compare
       );
     }
     // Tạo 2 biến để lưu giá trị so sánh bên client
@@ -1017,7 +1007,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
     const khoa = req.session?.MaPhongBan || 'Unknown Department';
     const loaiThongTin = 'Import đồ án';
     const changeMessage = `${tenNhanVien} đã thêm mới ${result.affectedRows} đồ án từ file vào cơ sở dữ liệu. Học kỳ ${Ki}, đợt ${Dot}, năm học ${namHoc}, khoa ${MaPhongBan}, hệ đào tạo ${he_dao_tao}.`;
-    
+
     await connection.query(logQuery, [
       userId,
       tenNhanVien,

@@ -237,7 +237,113 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       $(document).ready(function () {
+        // Biến để lưu trữ dữ liệu gốc và trạng thái sort
+        let originalData = [];
+        let currentSort = {
+          column: null,
+          direction: null // null, 'desc', 'asc'
+        };
+
         let currentType = "khoa"; // "khoa" hoặc "hedaotao"
+
+        // Hàm render bảng dữ liệu
+        function renderTableData(dataToRender) {
+          const tableBody = document.querySelector("#thongketonghopTable tbody");
+          tableBody.innerHTML = "";
+
+          if (!dataToRender || !Array.isArray(dataToRender) || dataToRender.length === 0) {
+            const row = tableBody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.style.textAlign = "center";
+            cell.textContent = "Không có dữ liệu";
+            return;
+          }
+
+          // Tính tổng số để tính phần trăm
+          const totalTong = dataToRender.reduce(
+            (sum, item) => sum + (parseFloat(item.Tongso || 0)),
+            0
+          );
+
+          dataToRender.forEach((item) => {
+            const row = document.createElement("tr");
+            const khoaSVT = item.Khoa;
+
+            // Phần trăm "Tổng số" theo toàn bảng để hiển thị ở cột Khoa
+            const percentageTong =
+              totalTong > 0
+                ? ((parseFloat(item.Tongso || 0) / totalTong) * 100).toFixed(1)
+                : 0;
+
+            // Tính phần trăm THEO HÀNG: MG/(MG+VG) và VG/(MG+VG)
+            const mgValueRow = parseFloat(item.TongSoTietMoiGiang || 0);
+            const vgValueRow = parseFloat(item.TongSoTiet || 0);
+            const rowTotal = mgValueRow + vgValueRow;
+            const percentageMoiGiang =
+              rowTotal > 0 ? ((mgValueRow / rowTotal) * 100).toFixed(1) : 0;
+            const percentageVuotGio =
+              rowTotal > 0 ? ((vgValueRow / rowTotal) * 100).toFixed(1) : 0;
+
+            const tongSoTietMoiGiangSV = parseFloat(
+              item.TongSoTietMoiGiang || 0
+            ).toFixed(2);
+            const tongSoTietSV = parseFloat(item.TongSoTiet || 0).toFixed(2);
+            const tongsoSV = parseFloat(item.Tongso || 0).toFixed(2);
+
+            row.innerHTML = `
+              <td>${khoaSVT} (${percentageTong}%)</td>
+              <td>${tongSoTietMoiGiangSV} (${percentageMoiGiang}%)</td>
+              <td>${tongSoTietSV} (${percentageVuotGio}%)</td>
+              <td>${tongsoSV}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        }
+
+        // Hàm sort bảng dữ liệu
+        function sortTableData(column) {
+          if (currentSort.column === column) {
+            if (currentSort.direction === null) {
+              currentSort.direction = 'desc';
+            } else if (currentSort.direction === 'desc') {
+              currentSort.direction = 'asc';
+            } else {
+              currentSort.column = null;
+              currentSort.direction = null;
+              renderTableData(originalData); // Reset to original order
+              updateSortIcons();
+              return;
+            }
+          } else {
+            currentSort.column = column;
+            currentSort.direction = 'desc';
+          }
+
+          const sortedData = [...originalData];
+          sortedData.sort(function (a, b) {
+            const aValue = parseFloat(a[column]) || 0;
+            const bValue = parseFloat(b[column]) || 0;
+
+            if (currentSort.direction === 'desc') {
+              return bValue - aValue;
+            } else {
+              return aValue - bValue;
+            }
+          });
+
+          renderTableData(sortedData);
+          updateSortIcons();
+        }
+
+        // Hàm cập nhật icon sort
+        function updateSortIcons() {
+          $('.sortable').removeClass('sort-desc sort-asc');
+          if (currentSort.column && currentSort.direction) {
+            const columnHeader = $(`.sortable[data-column="${currentSort.column}"]`);
+            columnHeader.addClass(`sort-${currentSort.direction}`);
+          }
+        }
 
         // Hàm lấy danh sách hệ đào tạo (No longer needed)
         /*
@@ -265,6 +371,7 @@
         // Sửa lại sự kiện chuyển đổi
         document.getElementById("toggleKhoa").onclick = function () {
           currentType = "khoa";
+          currentSort = { column: null, direction: null };
           this.classList.add("active");
           document.getElementById("toggleHeDaoTao").classList.remove("active");
           // $("#Khoa").show(); // Removed
@@ -276,6 +383,7 @@
 
         document.getElementById("toggleHeDaoTao").onclick = function () {
           currentType = "hedaotao";
+          currentSort = { column: null, direction: null };
           this.classList.add("active");
           document.getElementById("toggleKhoa").classList.remove("active");
           // $("#Khoa").hide(); // Removed
@@ -452,6 +560,10 @@
             const data = await response.json();
             console.log("Table data received:", data);
 
+            // Lưu dữ liệu gốc
+            originalData = data;
+            currentSort = { column: null, direction: null };
+
             const tableBody = document.querySelector("table tbody");
             tableBody.innerHTML = "";
 
@@ -464,61 +576,24 @@
               return;
             }
 
-            // Update table header text
-            document.querySelector(
-              "#thongketonghopTable thead th:first-child"
-            ).textContent = currentType === "hedaotao" ? "Hệ đào tạo" : "Khoa";
+            // Update table header với sortable
+            const tableHeader = document.querySelector("#thongketonghopTable thead tr");
+            const headerText = currentType === "hedaotao" ? "Hệ đào tạo" : "Khoa";
+            tableHeader.innerHTML = `
+              <th>${headerText}</th>
+              <th class="sortable" data-column="TongSoTietMoiGiang">Số tiết mời giảng <span class="sort-icon"></span></th>
+              <th class="sortable" data-column="TongSoTiet">Số tiết tính vượt giờ <span class="sort-icon"></span></th>
+              <th class="sortable" data-column="Tongso">Tổng số <span class="sort-icon"></span></th>
+            `;
 
-            // Tính tổng để tính phần trăm (chỉ tính một lần)
-            const totalMoiGiang = data.reduce(
-              (sum, item) => sum + parseFloat(item.TongSoTietMoiGiang || 0),
-              0
-            );
-            const totalVuotGio = data.reduce(
-              (sum, item) => sum + parseFloat(item.TongSoTiet || 0),
-              0
-            );
-            const totalTong = data.reduce(
-              (sum, item) => sum + parseFloat(item.Tongso || 0),
-              0
-            );
-
-            data.forEach((item) => {
-              const row = document.createElement("tr");
-              const khoaSVT =
-                currentType === "hedaotao" ? item.Khoa : item.Khoa; // item.Khoa will contain he_dao_tao when currentType is hedaotao
-
-              // Phần trăm "Tổng số" theo toàn bảng để hiển thị ở cột Khoa
-              const percentageTong =
-                totalTong > 0
-                  ? ((parseFloat(item.Tongso || 0) / totalTong) * 100).toFixed(
-                      1
-                    )
-                  : 0;
-
-              // Tính phần trăm THEO HÀNG: MG/(MG+VG) và VG/(MG+VG)
-              const mgValueRow = parseFloat(item.TongSoTietMoiGiang || 0);
-              const vgValueRow = parseFloat(item.TongSoTiet || 0);
-              const rowTotal = mgValueRow + vgValueRow;
-              const percentageMoiGiang =
-                rowTotal > 0 ? ((mgValueRow / rowTotal) * 100).toFixed(1) : 0;
-              const percentageVuotGio =
-                rowTotal > 0 ? ((vgValueRow / rowTotal) * 100).toFixed(1) : 0;
-
-              const tongSoTietMoiGiangSV = parseFloat(
-                item.TongSoTietMoiGiang || 0
-              ).toFixed(2);
-              const tongSoTietSV = parseFloat(item.TongSoTiet || 0).toFixed(2);
-              const tongsoSV = parseFloat(item.Tongso || 0).toFixed(2);
-
-              row.innerHTML = `
-                        <td>${khoaSVT} (${percentageTong}%)</td>
-                        <td>${tongSoTietMoiGiangSV} (${percentageMoiGiang}%)</td>
-                        <td>${tongSoTietSV} (${percentageVuotGio}%)</td>
-                        <td>${tongsoSV}</td>
-                    `;
-              tableBody.appendChild(row);
+            // Thêm event listener cho sortable columns
+            $(tableHeader).off('click', '.sortable').on('click', '.sortable', function() {
+              const column = $(this).data('column');
+              sortTableData(column);
             });
+
+            // Render dữ liệu
+            renderTableData(data);
           } catch (error) {
             console.error("Lỗi khi tải dữ liệu:", error);
           }
@@ -817,12 +892,14 @@
 
         // Thêm event listeners
         document.getElementById("NamHoc").addEventListener("change", () => {
+          currentSort = { column: null, direction: null };
           fetchData1();
           fetchThongKeMGData();
           fetchData2();
         });
 
         document.getElementById("comboboxki").addEventListener("change", () => {
+          currentSort = { column: null, direction: null };
           fetchData1();
           fetchThongKeMGData();
           fetchData2();

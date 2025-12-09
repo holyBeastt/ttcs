@@ -510,43 +510,89 @@
       });
     </script>
 
-    <script>
-      document
-        .getElementById("truocCCCD")
-        .addEventListener("change", function (event) {
-          displayImage(event, "imagetruocinput");
-        });
+<script>
+      // Cấu hình: 5MB = 5 * 1024 * 1024 bytes
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-      document
-        .getElementById("sauCCCD")
-        .addEventListener("change", function (event) {
-          displayImage(event, "imagesauInput");
-        });
+      // Hàm xử lý chung: Vừa kiểm tra dung lượng, vừa hiển thị ảnh
+      function validateAndPreview(event, imgId) {
+        const input = event.target;
+        const file = input.files[0];
 
-      document
-        .getElementById("bangTotNghiep")
-        .addEventListener("change", function (event) {
-          displayImage(event, "imagebang");
-        });
+        // Nếu người dùng hủy chọn file (không có file) thì thoát
+        if (!file) return;
 
-      document
-        .getElementById("QrCode")
-        .addEventListener("change", function (event) {
-          displayImage(event, "QrCodeImg");
-        });
+        // 1. KIỂM TRA DUNG LƯỢNG
+        if (file.size > MAX_FILE_SIZE) {
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+          
+          // Hiển thị cảnh báo đẹp bằng SweetAlert
+          Swal.fire({
+            title: 'File quá lớn!',
+            html: `File bạn chọn nặng <b>${sizeMB} MB</b>.<br>Vui lòng chọn file nhỏ hơn <b>5MB</b>.`,
+            icon: 'warning',
+            confirmButtonText: 'Đã hiểu'
+          });
 
-      function displayImage(event, imgId) {
-        const file = event.target.files[0];
-        if (file) {
+          // Reset input (xóa file vừa chọn để không gửi lên server)
+          input.value = ""; 
+
+          // Nếu là input ảnh thì ẩn ảnh preview đi (nếu đang hiện ảnh cũ)
+          if (imgId) {
+            const img = document.getElementById(imgId);
+            if (img) {
+              img.src = "";
+              img.style.display = "none";
+            }
+          }
+          return; // Dừng lại, không chạy tiếp phần hiển thị ảnh
+        }
+
+        // 2. HIỂN THỊ ẢNH PREVIEW (Chỉ chạy nếu imgId được truyền vào)
+        if (imgId) {
           const reader = new FileReader();
           reader.onload = function (e) {
             const img = document.getElementById(imgId);
-            img.src = e.target.result;
-            img.style.display = "block";
+            if (img) {
+              img.src = e.target.result;
+              img.style.display = "block";
+            }
           };
           reader.readAsDataURL(file);
         }
       }
+
+      // --- GÁN SỰ KIỆN CHO CÁC INPUT ---
+
+      // 1. Nhóm Input Ảnh (Có hiển thị Preview)
+      document.getElementById("truocCCCD").addEventListener("change", function (e) {
+        validateAndPreview(e, "imagetruocinput");
+      });
+
+      document.getElementById("sauCCCD").addEventListener("change", function (e) {
+        validateAndPreview(e, "imagesauInput");
+      });
+
+      document.getElementById("bangTotNghiep").addEventListener("change", function (e) {
+        validateAndPreview(e, "imagebang");
+      });
+
+      document.getElementById("QrCode").addEventListener("change", function (e) {
+        validateAndPreview(e, "QrCodeImg");
+      });
+
+      // 2. Nhóm Input File khác (PDF, Word...) - Chỉ cần check dung lượng, không cần preview
+      // (Mình thêm đoạn này vì trong form của bạn có input fileBoSung và FileLyLich)
+      const otherFiles = ["fileBoSung", "FileLyLich"];
+      otherFiles.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+          el.addEventListener("change", function(e) {
+            validateAndPreview(e, null); // Truyền null vì không có ảnh để hiển thị
+          });
+        }
+      });
+
     </script>
     <script>
       document

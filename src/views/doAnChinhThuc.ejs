@@ -159,6 +159,14 @@
 
     <!-- SweetAlert2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Toastify  -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+
     <!-- ẩn hiện các chức năng -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -254,138 +262,101 @@
         loadData(); // Gọi hàm loadData khi button được click
       });
 
-
       async function loadData() {
-        try {
-          // Biến để lưu trữ giá trị mặc định
-          let dotValue = document.getElementById('combobox-dot').value;
-          let kiValue = document.getElementById('combobox-ki').value;
-          let namValue = document.getElementById('NamHoc').value;
-          let khoaValue = document.getElementById('MaPhongBan').value;
-          let heDaoTaoValue = document.getElementById('he_dao_tao').value;
+          // 1. Khai báo các DOM elements (Lấy 1 lần dùng nhiều lần)
+          const elDot = document.getElementById('combobox-dot');
+          const elKi = document.getElementById('combobox-ki');
+          const elNam = document.getElementById('NamHoc');
+          const elKhoa = document.getElementById('MaPhongBan');
+          const elHeDaoTao = document.getElementById('he_dao_tao');
 
-          // Hàm cập nhật giá trị từ comboboxes
-          const updateValues = () => {
-            dotValue = document.getElementById('combobox-dot').value;
-            kiValue = document.getElementById('combobox-ki').value;
-            namValue = document.getElementById('NamHoc').value;
-            khoaValue = document.getElementById('MaPhongBan').value;
+          // 2. Hàm lõi: Lấy dữ liệu và Render (Dùng chung cho cả lúc đầu và lúc change)
+          const fetchAndRender = async () => {
 
-            console.log({ dotValue, namValue, kiValue, khoaValue }); // In ra giá trị hiện tại
+              try {
+                  // Lấy giá trị hiện tại
+                  const requestData = {
+                      Khoa: elKhoa.value,
+                      Dot: elDot.value,
+                      Ki: elKi.value,
+                      Nam: elNam.value,
+                      heDaoTaoValue: elHeDaoTao.value // ✅ Đã sửa lỗi thiếu trường này ở code cũ
+                  };
+
+                  // Gọi API
+                  const response = await fetch('/getDataDoAnChinhThuc', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(requestData),
+                  });
+
+                  // Xử lý lỗi HTTP (400, 500...)
+                  if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.message || "Lỗi từ server");
+                  }
+
+                  // Xử lý dữ liệu thành công
+                  const globalData = await response.json();
+
+                  // 3️⃣ KIỂM TRA DỮ LIỆU RỖNG
+                  // Nếu result không tồn tại hoặc mảng rỗng
+                  if (!globalData.result || globalData.result.length === 0) {
+                      // Hiện Toast thông báo nhẹ nhàng
+                      Toastify({
+                          text: "⚠️ Không tìm thấy dữ liệu phù hợp!",
+                          duration: 3000,
+                          gravity: "top",
+                          position: "right",
+                          stopOnFocus: true,
+                          style: {
+                              background: "#f0ad4e", // Màu cam (cảnh báo)
+                              color: "#fff"
+                          }
+                      }).showToast();
+
+                      // Vẫn gọi renderTable với mảng rỗng để XÓA bảng cũ (nếu đang hiển thị dữ liệu cũ)
+                      if (typeof renderTable === 'function') {
+                          renderTable([]); 
+                          // Xóa luôn danh sách quyết định
+                          const listContainer = document.getElementById("SoQD-list");
+                          if (listContainer) listContainer.innerHTML = "";
+                      }
+                      return; // Dừng hàm tại đây
+                  }
+
+                  // Render danh sách Quyết định (nếu có)
+                  const SoQDList = globalData.SoQDList;
+                  const listContainer = document.getElementById("SoQD-list");
+                  if (listContainer && SoQDList) {
+                      listContainer.innerHTML = SoQDList.map(item => `<li>Theo QĐ số: ${item.SoQD}</li>`).join("");
+                  }
+
+                  // Render Bảng
+                  if (typeof renderTable === 'function') {
+                      renderTable(globalData.result);
+                  }
+
+              } catch (error) {
+                  // Xử lý lỗi chung (Mạng, Server, Code...)
+                  console.error('Lỗi tải dữ liệu:', error);
+                  Swal.fire({
+                      title: 'Thông báo',
+                      text: error.message || "Đã có lỗi xảy ra!",
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                  });
+              }
           };
 
-          // Hàm xử lý sự thay đổi ở bất kỳ combobox nào
-          const handleComboboxChange = async () => {
-            updateValues(); // Cập nhật giá trị khi có sự thay đổi
+          // 3. Gắn sự kiện: Khi thay đổi combobox -> Gọi hàm fetchAndRender
+          // Mẹo: Dùng mảng để loop thay vì viết từng dòng
+          // [elDot, elKi, elNam, elKhoa, elHeDaoTao].forEach(el => {
+          //     if (el) el.addEventListener('change', fetchAndRender);
+          // });
 
-            // Tạo đối tượng dữ liệu để gửi
-            const requestData = {
-              Khoa: khoaValue,
-              Dot: dotValue,
-              Ki: kiValue,
-              Nam: namValue,
-              heDaoTaoValue,
-            };
-
-            // Fetch thông tin giảng dạy
-            const teachingResponse = await fetch('/getDataDoAnChinhThuc', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestData),
-            });
-            if (!teachingResponse.ok) {
-              // Lấy thông tin chi tiết lỗi từ server
-              const errorData = await teachingResponse.json();
-              // Hiển thị thông báo lỗi từ server
-              Swal.fire({
-                title: 'Thông báo',
-                html: errorData.message || "Đã có lỗi xảy ra!",
-                icon: 'error',
-                confirmButtonText: 'OK',
-                width: 'auto', // Tự động điều chỉnh chiều rộng
-                padding: '20px', // Giữ khoảng cách cho nội dung
-              });
-              return;
-            }
-            // Xử lý dữ liệu giảng dạy
-            const globalData = await teachingResponse.json();
-
-            const SoQDList = globalData.SoQDList;
-
-            if (SoQDList) {
-              const listContainer = document.getElementById("SoQD-list");
-              listContainer.innerHTML = SoQDList.map(
-                (item) => `<li>Theo QĐ số: ${item.SoQD}</li>`
-              ).join("");
-            }
-
-            // Sau khi có dữ liệu thành công, thực hiện render bảng
-            renderTable(globalData.result); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
-          };
-
-          // Thêm trình lắng nghe sự kiện cho từng combobox
-          document.getElementById('combobox-dot').addEventListener('change', handleComboboxChange);
-          document.getElementById('combobox-ki').addEventListener('change', handleComboboxChange);
-          document.getElementById('NamHoc').addEventListener('change', handleComboboxChange);
-          document.getElementById('MaPhongBan').addEventListener('change', handleComboboxChange);
-
-          // Gọi updateValues để lấy giá trị mặc định ngay khi tải trang
-          updateValues();
-
-          // Tạo đối tượng dữ liệu để gửi ngay khi tải trang
-          const requestData = {
-            Khoa: khoaValue,
-            Dot: dotValue,
-            Ki: kiValue,
-            Nam: namValue,
-          };
-
-          console.log(requestData);
-          // Fetch thông tin giảng dạy ngay khi tải trang
-          const teachingResponse = await fetch('/getDataDoAnChinhThuc', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-          });
-
-          if (!teachingResponse.ok) {
-            // Lấy thông tin chi tiết lỗi từ server
-            const errorData = await teachingResponse.json();
-            // Hiển thị thông báo lỗi từ server
-            Swal.fire({
-              title: 'Thông báo',
-              html: errorData.message || "Đã có lỗi xảy ra!",
-              icon: 'error',
-              confirmButtonText: 'OK',
-              width: 'auto', // Tự động điều chỉnh chiều rộng
-              padding: '20px', // Giữ khoảng cách cho nội dung
-            });
-            return;
-          }
-
-
-          // Xử lý dữ liệu giảng dạy ngay khi tải trang
-          const globalData = await teachingResponse.json();
-
-          const SoQDList = globalData.SoQDList;
-
-          if (SoQDList) {
-            const listContainer = document.getElementById("SoQD-list");
-            listContainer.innerHTML = SoQDList.map(
-              (item) => `<li>${item.SoQD}</li>`
-            ).join("");
-          }
-
-          // Sau khi có dữ liệu thành công, thực hiện render bảng
-          renderTable(globalData.result); // Gọi hàm renderTable sau khi đã có đủ dữ liệu
-
-        } catch (error) {
-          console.error('Đã có lỗi xảy ra:', error);
-        }
+          // 4. Gọi lần đầu tiên ngay khi vào trang
+          await fetchAndRender();
       }
 
       // Hàm renderTable sẽ được sử dụng để render bảng
