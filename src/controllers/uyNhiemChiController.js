@@ -469,7 +469,7 @@ const taiUyNhiemChiController = {
       // Group theo CCCD để tránh duplicate và tổng hợp số tiền
       query += ` 
         GROUP BY hd.CCCD, hd.HoTen, hd.STK, hd.NganHang, hd.MaPhongBan, hd.he_dao_tao, pb.TenPhongBan, hd.MaHopDong, hd.SoHopDong, hd.SoUyNhiem, hd.SoThanhToan, hd.KhoaDuyet, hd.DaoTaoDuyet, hd.TaiChinhDuyet
-        ORDER BY hd.HoTen
+        ORDER BY hd.he_dao_tao, hd.SoUyNhiem
       `;
 
       const [rows] = await connection.execute(query, params);
