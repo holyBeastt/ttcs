@@ -513,7 +513,7 @@ const taiUyNhiemChiController = {
 
       // Query lấy dữ liệu từ hopdonggvmoi
       let query = `
-        SELECT 
+        SELECT DISTINCT
           hd.MaHopDong,
           hd.HoTen,
           hd.CCCD
@@ -536,8 +536,8 @@ const taiUyNhiemChiController = {
         params.push(khoa);
       }
 
-      // Group theo CCCD để tránh duplicate và order theo tên
-      query += ` GROUP BY hd.CCCD ORDER BY hd.HoTen`;
+      // Order theo tên
+      query += ` ORDER BY hd.HoTen`;
 
       const [rows] = await connection.execute(query, params);
 
