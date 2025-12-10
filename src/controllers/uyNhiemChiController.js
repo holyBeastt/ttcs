@@ -157,12 +157,11 @@ const taiUyNhiemChiController = {
 
       // Query lấy dữ liệu từ hopdonggvmoi với SoUyNhiem và SoThanhToan
       let query = `
-        SELECT DISTINCT
-          hd.MaHopDong,
+        SELECT 
           hd.HoTen,
           hd.STK,
           hd.NganHang,
-          hd.SoTien,
+          SUM(hd.SoTien) as SoTien,
           hd.MaPhongBan,
           hd.he_dao_tao,
           hd.CCCD,
@@ -188,8 +187,8 @@ const taiUyNhiemChiController = {
         params.push(khoa);
       }
 
-      // Order theo SoUyNhiem
-      query += ` ORDER BY hd.SoUyNhiem`;
+      // Group by CCCD để tổng hợp SoTien cho cùng người
+      query += ` GROUP BY hd.CCCD, hd.HoTen, hd.STK, hd.NganHang, hd.MaPhongBan, hd.he_dao_tao, hd.SoUyNhiem, hd.SoThanhToan ORDER BY hd.SoUyNhiem`;
 
       const [rows] = await connection.execute(query, params);
 
@@ -262,7 +261,7 @@ const taiUyNhiemChiController = {
         for (let index = 0; index < rows.length; index++) {
           const row = rows[index];
           const soUyNhiem = String(row.SoUyNhiem).padStart(3, '0');
-          const sheetName = `${soUyNhiem}_${row.HoTen.replace(/\s+/g, '_')}`;
+          const sheetName = `${soUyNhiem}_${row.HoTen.replace(/\s+/g, '_')}_${row.CCCD}`;
           
           // Clone worksheet từ template để giữ nguyên toàn bộ định dạng
           const newWorksheet = outputWorkbook.addWorksheet(sheetName);
@@ -516,7 +515,8 @@ const taiUyNhiemChiController = {
         SELECT DISTINCT
           hd.MaHopDong,
           hd.HoTen,
-          hd.CCCD
+          hd.CCCD,
+          hd.he_dao_tao
         FROM hopdonggvmoi hd
         WHERE hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ?
           AND hd.KhoaDuyet = 1 AND hd.DaoTaoDuyet = 1 AND hd.TaiChinhDuyet = 1
@@ -541,36 +541,57 @@ const taiUyNhiemChiController = {
 
       const [rows] = await connection.execute(query, params);
 
+      // Group rows theo he_dao_tao
+      const groupedByHeDaoTao = {};
+      rows.forEach(row => {
+        const heDaoTao = row.he_dao_tao || 'Unknown';
+        if (!groupedByHeDaoTao[heDaoTao]) {
+          groupedByHeDaoTao[heDaoTao] = [];
+        }
+        groupedByHeDaoTao[heDaoTao].push(row);
+      });
+
+      // Lấy danh sách hệ đào tạo và sort
+      const heDaoTaoList = Object.keys(groupedByHeDaoTao).sort();
+
       let updatedCount = 0;
+      let currentStartingNumber = parseInt(startingNumber);
 
-      // Cập nhật số ủy nhiệm chi cho từng người
-      for (let i = 0; i < rows.length; i++) {
-        const newSoUyNhiem = parseInt(startingNumber) + i;
-        const newSoThanhToan = parseInt(startingNumber) + i;
-
-        // Cập nhật SoUyNhiem và SoThanhToan cho tất cả bản ghi của người này
-        const updateQuery = `
-          UPDATE hopdonggvmoi 
-          SET SoUyNhiem = ?, SoThanhToan = ?
-          WHERE CCCD = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-            AND KhoaDuyet = 1 AND DaoTaoDuyet = 1 AND TaiChinhDuyet = 1
-        `;
-
-        // Thêm điều kiện lọc cho update
-        let updateParams = [newSoUyNhiem, newSoThanhToan, rows[i].CCCD, dot, ki, namHoc];
+      // Gán số ủy nhiệm cho từng hệ
+      for (const heDaoTao of heDaoTaoList) {
+        const groupRows = groupedByHeDaoTao[heDaoTao];
         
-        if (heDaoTao && heDaoTao.trim() !== "") {
-          updateQuery += ` AND he_dao_tao = ?`;
-          updateParams.push(heDaoTao);
+        for (let i = 0; i < groupRows.length; i++) {
+          const newSoUyNhiem = currentStartingNumber + i;
+          const newSoThanhToan = currentStartingNumber + i;
+
+          // Cập nhật SoUyNhiem và SoThanhToan cho tất cả bản ghi của người này
+          let updateQuery = `
+            UPDATE hopdonggvmoi 
+            SET SoUyNhiem = ?, SoThanhToan = ?
+            WHERE CCCD = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+              AND KhoaDuyet = 1 AND DaoTaoDuyet = 1 AND TaiChinhDuyet = 1
+          `;
+
+          // Thêm điều kiện lọc cho update
+          let updateParams = [newSoUyNhiem, newSoThanhToan, groupRows[i].CCCD, dot, ki, namHoc];
+          
+          if (heDaoTao && heDaoTao.trim() !== "" && heDaoTao !== 'Unknown') {
+            updateQuery += ` AND he_dao_tao = ?`;
+            updateParams.push(heDaoTao);
+          }
+
+          if (khoa && khoa !== "" && khoa !== "ALL") {
+            updateQuery += ` AND MaPhongBan = ?`;
+            updateParams.push(khoa);
+          }
+
+          await connection.execute(updateQuery, updateParams);
+          updatedCount++;
         }
 
-        if (khoa && khoa !== "" && khoa !== "ALL") {
-          updateQuery += ` AND MaPhongBan = ?`;
-          updateParams.push(khoa);
-        }
-
-        await connection.execute(updateQuery, updateParams);
-        updatedCount++;
+        // Tăng số bắt đầu cho hệ tiếp theo
+        currentStartingNumber += groupRows.length;
       }
 
       // Ghi log
