@@ -131,7 +131,7 @@ WITH DoAnHopDongDuKien AS (
   ) AS Combined
   JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
   JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
-  WHERE Combined.NamHoc = '${NamHoc}'
+  WHERE Combined.NamHoc = '${NamHoc}' and gv.isQuanDoi != 1
 ),
    DaiHocHopDongDuKien AS (
     SELECT
@@ -175,7 +175,7 @@ WITH DoAnHopDongDuKien AS (
     LEFT JOIN 
         tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${NamHoc}'
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${NamHoc}' and gv.isQuanDoi != 1
     ),
     SoTietSauDaiHoc AS (
         SELECT
@@ -221,7 +221,7 @@ WITH DoAnHopDongDuKien AS (
         LEFT JOIN 
             tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
         WHERE
-            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${NamHoc}'
+            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${NamHoc}' and gv.isQuanDoi != 1
     ),
     SauDaiHocHopDongDuKien AS (
         SELECT
@@ -475,7 +475,7 @@ final AS (
         gvmoi.*,
         tsgv.TongSoTiet AS TongSoTietCaNam
     FROM gv_with_tiet
-    JOIN gvmoi ON gv_with_tiet.GiangVien = gvmoi.HoTen
+    JOIN gvmoi ON gv_with_tiet.GiangVien = gvmoi.HoTen and gvmoi.isQuanDoi != 1
     LEFT JOIN TongSoTietGV tsgv ON gv_with_tiet.GiangVien = tsgv.GiangVien
 )
 
