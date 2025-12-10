@@ -68,8 +68,10 @@ const convertToRoman = (num) => {
 
 // Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
+  console.log("[numberToWords] Input:", num, "Type:", typeof num);
   // Làm tròn để tránh lỗi floating-point
   num = Math.round(num);
+  console.log("[numberToWords] After round:", num);
   if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
@@ -116,6 +118,7 @@ const numberToWords = (num) => {
   while (num > 0) {
     const chunk = num % 1000;
     if (chunk) {
+      console.log(`[numberToWords] Processing chunk: ${chunk}, unitIndex: ${unitIndex}`);
       let chunkWords = [];
       const hundreds = Math.floor(chunk / 100);
       const remainder = chunk % 100;
@@ -163,7 +166,9 @@ const numberToWords = (num) => {
   const capitalizeFirstLetter = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1);
 
-  return capitalizeFirstLetter(words.trim() + " đồng");
+  const result = capitalizeFirstLetter(words.trim() + " đồng");
+  console.log("[numberToWords] Output:", result);
+  return result;
 };
 
 // Hàm chuyển đổi số thập phân thành chữ
@@ -523,16 +528,25 @@ const exportMultipleContracts = async (req, res) => {
       }
 
       // Tính toán số tiền
+      console.log("\n========== DEBUG TÍNH TOÁN SỐ TIỀN ==========");
+      console.log("Giảng viên:", teacher.HoTen);
+      console.log("Số tiết (raw):", soTiet, "Type:", typeof soTiet);
+      
       // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
       const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
+      console.log("Số tiết (parsed):", soTietNumber, "Type:", typeof soTietNumber);
+      console.log("Mức tiền/tiết:", tienLuong.SoTien, "Type:", typeof tienLuong.SoTien);
       
       // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
       const tienText = Math.round(tienLuong.SoTien * soTietNumber);
+      console.log("Tổng tiền (trước thuế):", tienText, "Type:", typeof tienText);
       
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
       const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+      console.log("Tiền thuế 10%:", tienThueText);
       
       const tienThucNhanText = tienText - tienThueText;
+      console.log("Tiền thực nhận:", tienThucNhanText);
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
         teacher.NgayKetThuc
@@ -573,8 +587,12 @@ const exportMultipleContracts = async (req, res) => {
 
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
+      console.log("\n----- CONVERT SANG CHỮ -----");
       const bangChuSoTien = numberToWords(tienText);
+      console.log("Bằng chữ số tiền:", bangChuSoTien);
       const bangChuThucNhan = numberToWords(tienThucNhanText);
+      console.log("Bằng chữ thực nhận:", bangChuThucNhan);
+      console.log("==========================================\n");
 
       const data = {
         Số_hợp_đồng: teacher.SoHopDong || "    ",
