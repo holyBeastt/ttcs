@@ -157,7 +157,7 @@ const taiUyNhiemChiController = {
 
       // Query lấy dữ liệu từ hopdonggvmoi với SoUyNhiem và SoThanhToan
       let query = `
-        SELECT 
+        SELECT DISTINCT
           hd.MaHopDong,
           hd.HoTen,
           hd.STK,
@@ -188,8 +188,8 @@ const taiUyNhiemChiController = {
         params.push(khoa);
       }
 
-      // Group theo CCCD để tránh duplicate và order theo SoUyNhiem
-      query += ` GROUP BY hd.CCCD ORDER BY hd.SoUyNhiem`;
+      // Order theo SoUyNhiem
+      query += ` ORDER BY hd.SoUyNhiem`;
 
       const [rows] = await connection.execute(query, params);
 
