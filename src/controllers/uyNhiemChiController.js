@@ -161,7 +161,7 @@ const taiUyNhiemChiController = {
           hd.HoTen,
           hd.STK,
           hd.NganHang,
-          SUM(hd.SoTien) as SoTien,
+          SUM(hd.ThucNhan) as SoTien,
           hd.MaPhongBan,
           hd.he_dao_tao,
           hd.CCCD,
@@ -293,7 +293,19 @@ const taiUyNhiemChiController = {
             if (col.hidden !== undefined) newCol.hidden = col.hidden;
           });
           
-          // Copy merged cells đúng cách
+          // Copy drawings/images
+          if (templateWorksheet.drawings) {
+            templateWorksheet.drawings.forEach(drawing => {
+              try {
+                newWorksheet.addImage(drawing.image, {
+                  tl: drawing.range.tl,
+                  br: drawing.range.br || drawing.range.tl
+                });
+              } catch (e) {
+                console.error('Error copying drawing:', e);
+              }
+            });
+          }
           if (templateWorksheet.model && templateWorksheet.model.merges) {
             templateWorksheet.model.merges.forEach(merge => {
               try {
@@ -686,7 +698,79 @@ const suaMauUyNhiemController = {
   }
 };
 
+// API để load options cho combo box
+const loadOptions = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    // Load dot options
+    const [dotRows] = await connection.execute(`
+      SELECT DISTINCT Dot 
+      FROM hopdonggvmoi 
+      WHERE Dot IS NOT NULL AND Dot != '' 
+      ORDER BY Dot
+    `);
+
+    // Load ki options
+    const [kiRows] = await connection.execute(`
+      SELECT DISTINCT KiHoc 
+      FROM hopdonggvmoi 
+      WHERE KiHoc IS NOT NULL AND KiHoc != '' 
+      ORDER BY KiHoc
+    `);
+
+    // Load nam hoc options
+    const [namHocRows] = await connection.execute(`
+      SELECT DISTINCT NamHoc 
+      FROM hopdonggvmoi 
+      WHERE NamHoc IS NOT NULL AND NamHoc != '' 
+      ORDER BY NamHoc DESC
+    `);
+
+    // Load khoa options
+    const [khoaRows] = await connection.execute(`
+      SELECT DISTINCT pb.MaPhongBan, pb.TenPhongBan 
+      FROM hopdonggvmoi hd
+      LEFT JOIN phongban pb ON hd.MaPhongBan = pb.MaPhongBan
+      WHERE hd.MaPhongBan IS NOT NULL AND hd.MaPhongBan != ''
+      ORDER BY pb.TenPhongBan
+    `);
+
+    // Load he dao tao options
+    const [heDaoTaoRows] = await connection.execute(`
+      SELECT DISTINCT he_dao_tao 
+      FROM hopdonggvmoi 
+      WHERE he_dao_tao IS NOT NULL AND he_dao_tao != '' 
+      ORDER BY he_dao_tao
+    `);
+
+    res.json({
+      success: true,
+      data: {
+        dot: dotRows.map(row => row.Dot),
+        ki: kiRows.map(row => row.KiHoc),
+        namHoc: namHocRows.map(row => row.NamHoc),
+        khoa: khoaRows.map(row => ({ ma: row.MaPhongBan, ten: row.TenPhongBan })),
+        heDaoTao: heDaoTaoRows.map(row => row.he_dao_tao)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in loadOptions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra khi tải options!'
+    });
+  } finally {
+    if (connection) await connection.end();
+  }
+};
+
 module.exports = {
-  taiUyNhiemChiController,
+  taiUyNhiemChiController: {
+    ...taiUyNhiemChiController,
+    loadOptions
+  },
   suaMauUyNhiemController
 };
