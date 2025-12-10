@@ -158,11 +158,10 @@ const taiUyNhiemChiController = {
       // Query lấy dữ liệu từ hopdonggvmoi với SoUyNhiem và SoThanhToan
       let query = `
         SELECT 
-          hd.MaHopDong,
           hd.HoTen,
           hd.STK,
           hd.NganHang,
-          hd.SoTien,
+          SUM(hd.ThucNhan) as SoTien,
           hd.MaPhongBan,
           hd.he_dao_tao,
           hd.CCCD,
@@ -188,8 +187,8 @@ const taiUyNhiemChiController = {
         params.push(khoa);
       }
 
-      // Group theo CCCD để tránh duplicate và order theo SoUyNhiem
-      query += ` GROUP BY hd.CCCD ORDER BY hd.SoUyNhiem`;
+      // Group by CCCD để tổng hợp SoTien cho cùng người
+      query += ` GROUP BY hd.CCCD, hd.HoTen, hd.STK, hd.NganHang, hd.MaPhongBan, hd.he_dao_tao, hd.SoUyNhiem, hd.SoThanhToan ORDER BY hd.SoUyNhiem`;
 
       const [rows] = await connection.execute(query, params);
 
@@ -262,7 +261,7 @@ const taiUyNhiemChiController = {
         for (let index = 0; index < rows.length; index++) {
           const row = rows[index];
           const soUyNhiem = String(row.SoUyNhiem).padStart(3, '0');
-          const sheetName = `${soUyNhiem}_${row.HoTen.replace(/\s+/g, '_')}`;
+          const sheetName = `${soUyNhiem}_${row.HoTen.replace(/\s+/g, '_')}_${row.CCCD}`;
           
           // Clone worksheet từ template để giữ nguyên toàn bộ định dạng
           const newWorksheet = outputWorkbook.addWorksheet(sheetName);
@@ -294,7 +293,19 @@ const taiUyNhiemChiController = {
             if (col.hidden !== undefined) newCol.hidden = col.hidden;
           });
           
-          // Copy merged cells đúng cách
+          // Copy drawings/images
+          if (templateWorksheet.drawings) {
+            templateWorksheet.drawings.forEach(drawing => {
+              try {
+                newWorksheet.addImage(drawing.image, {
+                  tl: drawing.range.tl,
+                  br: drawing.range.br || drawing.range.tl
+                });
+              } catch (e) {
+                console.error('Error copying drawing:', e);
+              }
+            });
+          }
           if (templateWorksheet.model && templateWorksheet.model.merges) {
             templateWorksheet.model.merges.forEach(merge => {
               try {
@@ -458,7 +469,7 @@ const taiUyNhiemChiController = {
       // Group theo CCCD để tránh duplicate và tổng hợp số tiền
       query += ` 
         GROUP BY hd.CCCD, hd.HoTen, hd.STK, hd.NganHang, hd.MaPhongBan, hd.he_dao_tao, pb.TenPhongBan, hd.MaHopDong, hd.SoHopDong, hd.SoUyNhiem, hd.SoThanhToan, hd.KhoaDuyet, hd.DaoTaoDuyet, hd.TaiChinhDuyet
-        ORDER BY hd.HoTen
+        ORDER BY hd.he_dao_tao, hd.SoUyNhiem
       `;
 
       const [rows] = await connection.execute(query, params);
@@ -513,10 +524,11 @@ const taiUyNhiemChiController = {
 
       // Query lấy dữ liệu từ hopdonggvmoi
       let query = `
-        SELECT 
+        SELECT DISTINCT
           hd.MaHopDong,
           hd.HoTen,
-          hd.CCCD
+          hd.CCCD,
+          hd.he_dao_tao
         FROM hopdonggvmoi hd
         WHERE hd.Dot = ? AND hd.KiHoc = ? AND hd.NamHoc = ?
           AND hd.KhoaDuyet = 1 AND hd.DaoTaoDuyet = 1 AND hd.TaiChinhDuyet = 1
@@ -536,41 +548,62 @@ const taiUyNhiemChiController = {
         params.push(khoa);
       }
 
-      // Group theo CCCD để tránh duplicate và order theo tên
-      query += ` GROUP BY hd.CCCD ORDER BY hd.HoTen`;
+      // Order theo tên
+      query += ` ORDER BY hd.HoTen`;
 
       const [rows] = await connection.execute(query, params);
 
+      // Group rows theo he_dao_tao
+      const groupedByHeDaoTao = {};
+      rows.forEach(row => {
+        const heDaoTao = row.he_dao_tao || 'Unknown';
+        if (!groupedByHeDaoTao[heDaoTao]) {
+          groupedByHeDaoTao[heDaoTao] = [];
+        }
+        groupedByHeDaoTao[heDaoTao].push(row);
+      });
+
+      // Lấy danh sách hệ đào tạo và sort
+      const heDaoTaoList = Object.keys(groupedByHeDaoTao).sort();
+
       let updatedCount = 0;
+      let currentStartingNumber = parseInt(startingNumber);
 
-      // Cập nhật số ủy nhiệm chi cho từng người
-      for (let i = 0; i < rows.length; i++) {
-        const newSoUyNhiem = parseInt(startingNumber) + i;
-        const newSoThanhToan = parseInt(startingNumber) + i;
-
-        // Cập nhật SoUyNhiem và SoThanhToan cho tất cả bản ghi của người này
-        const updateQuery = `
-          UPDATE hopdonggvmoi 
-          SET SoUyNhiem = ?, SoThanhToan = ?
-          WHERE CCCD = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
-            AND KhoaDuyet = 1 AND DaoTaoDuyet = 1 AND TaiChinhDuyet = 1
-        `;
-
-        // Thêm điều kiện lọc cho update
-        let updateParams = [newSoUyNhiem, newSoThanhToan, rows[i].CCCD, dot, ki, namHoc];
+      // Gán số ủy nhiệm cho từng hệ
+      for (const heDaoTao of heDaoTaoList) {
+        const groupRows = groupedByHeDaoTao[heDaoTao];
         
-        if (heDaoTao && heDaoTao.trim() !== "") {
-          updateQuery += ` AND he_dao_tao = ?`;
-          updateParams.push(heDaoTao);
+        for (let i = 0; i < groupRows.length; i++) {
+          const newSoUyNhiem = currentStartingNumber + i;
+          const newSoThanhToan = currentStartingNumber + i;
+
+          // Cập nhật SoUyNhiem và SoThanhToan cho tất cả bản ghi của người này
+          let updateQuery = `
+            UPDATE hopdonggvmoi 
+            SET SoUyNhiem = ?, SoThanhToan = ?
+            WHERE CCCD = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ?
+              AND KhoaDuyet = 1 AND DaoTaoDuyet = 1 AND TaiChinhDuyet = 1
+          `;
+
+          // Thêm điều kiện lọc cho update
+          let updateParams = [newSoUyNhiem, newSoThanhToan, groupRows[i].CCCD, dot, ki, namHoc];
+          
+          if (heDaoTao && heDaoTao.trim() !== "" && heDaoTao !== 'Unknown') {
+            updateQuery += ` AND he_dao_tao = ?`;
+            updateParams.push(heDaoTao);
+          }
+
+          if (khoa && khoa !== "" && khoa !== "ALL") {
+            updateQuery += ` AND MaPhongBan = ?`;
+            updateParams.push(khoa);
+          }
+
+          await connection.execute(updateQuery, updateParams);
+          updatedCount++;
         }
 
-        if (khoa && khoa !== "" && khoa !== "ALL") {
-          updateQuery += ` AND MaPhongBan = ?`;
-          updateParams.push(khoa);
-        }
-
-        await connection.execute(updateQuery, updateParams);
-        updatedCount++;
+        // Tăng số bắt đầu cho hệ tiếp theo
+        currentStartingNumber += groupRows.length;
       }
 
       // Ghi log
@@ -665,7 +698,79 @@ const suaMauUyNhiemController = {
   }
 };
 
+// API để load options cho combo box
+const loadOptions = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+
+    // Load dot options
+    const [dotRows] = await connection.execute(`
+      SELECT DISTINCT Dot 
+      FROM hopdonggvmoi 
+      WHERE Dot IS NOT NULL AND Dot != '' 
+      ORDER BY Dot
+    `);
+
+    // Load ki options
+    const [kiRows] = await connection.execute(`
+      SELECT DISTINCT KiHoc 
+      FROM hopdonggvmoi 
+      WHERE KiHoc IS NOT NULL AND KiHoc != '' 
+      ORDER BY KiHoc
+    `);
+
+    // Load nam hoc options
+    const [namHocRows] = await connection.execute(`
+      SELECT DISTINCT NamHoc 
+      FROM hopdonggvmoi 
+      WHERE NamHoc IS NOT NULL AND NamHoc != '' 
+      ORDER BY NamHoc DESC
+    `);
+
+    // Load khoa options
+    const [khoaRows] = await connection.execute(`
+      SELECT DISTINCT pb.MaPhongBan, pb.TenPhongBan 
+      FROM hopdonggvmoi hd
+      LEFT JOIN phongban pb ON hd.MaPhongBan = pb.MaPhongBan
+      WHERE hd.MaPhongBan IS NOT NULL AND hd.MaPhongBan != ''
+      ORDER BY pb.TenPhongBan
+    `);
+
+    // Load he dao tao options
+    const [heDaoTaoRows] = await connection.execute(`
+      SELECT DISTINCT he_dao_tao 
+      FROM hopdonggvmoi 
+      WHERE he_dao_tao IS NOT NULL AND he_dao_tao != '' 
+      ORDER BY he_dao_tao
+    `);
+
+    res.json({
+      success: true,
+      data: {
+        dot: dotRows.map(row => row.Dot),
+        ki: kiRows.map(row => row.KiHoc),
+        namHoc: namHocRows.map(row => row.NamHoc),
+        khoa: khoaRows.map(row => ({ ma: row.MaPhongBan, ten: row.TenPhongBan })),
+        heDaoTao: heDaoTaoRows.map(row => row.he_dao_tao)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in loadOptions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra khi tải options!'
+    });
+  } finally {
+    if (connection) await connection.end();
+  }
+};
+
 module.exports = {
-  taiUyNhiemChiController,
+  taiUyNhiemChiController: {
+    ...taiUyNhiemChiController,
+    loadOptions
+  },
   suaMauUyNhiemController
 };
