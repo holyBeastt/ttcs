@@ -68,6 +68,8 @@ const convertToRoman = (num) => {
 
 // Hàm chuyển đổi số thành chữ
 const numberToWords = (num) => {
+  // Làm tròn để tránh lỗi floating-point
+  num = Math.round(num);
   if (num === 0) return "Không đồng"; // Xử lý riêng trường hợp 0
 
   const ones = [
@@ -521,9 +523,15 @@ const exportMultipleContracts = async (req, res) => {
       }
 
       // Tính toán số tiền
-      const tienText = tienLuong.SoTien * soTiet;
+      // Đảm bảo soTiet là số và làm tròn để tránh lỗi floating-point
+      const soTietNumber = typeof soTiet === 'string' ? parseFloat(soTiet) : soTiet;
+      
+      // Làm tròn kết quả để tránh lỗi floating-point (27839999.999999996 -> 27840000)
+      const tienText = Math.round(tienLuong.SoTien * soTietNumber);
+      
       // Nếu số tiền <= 2 triệu đồng thì không tính thuế
       const tienThueText = tienText <= 2000000 ? 0 : Math.round(tienText * 0.1);
+      
       const tienThucNhanText = tienText - tienThueText;
       const thoiGianThucHien = formatDateRange(
         teacher.NgayBatDau,
@@ -565,6 +573,9 @@ const exportMultipleContracts = async (req, res) => {
 
       let hoTenTrim = teacher.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
 
+      const bangChuSoTien = numberToWords(tienText);
+      const bangChuThucNhan = numberToWords(tienThucNhanText);
+
       const data = {
         Số_hợp_đồng: teacher.SoHopDong || "    ",
         Số_thanh_lý: teacher.SoThanhLyHopDong || "    ",
@@ -587,10 +598,10 @@ const exportMultipleContracts = async (req, res) => {
         Số_tiết: teacher.SoTiet.toString().replace(".", ","),
         Ngày_kí_hợp_đồng: formatDate(teacher.NgayKi),
         Tiền_text: tienText.toLocaleString("vi-VN"),
-        Bằng_chữ_số_tiền: numberToWords(tienText),
+        Bằng_chữ_số_tiền: bangChuSoTien,
         Tiền_thuế_Text: tienThueText.toLocaleString("vi-VN"),
         Tiền_thực_nhận_Text: tienThucNhanText.toLocaleString("vi-VN"),
-        Bằng_chữ_của_thực_nhận: numberToWords(tienThucNhanText),
+        Bằng_chữ_của_thực_nhận: bangChuThucNhan,
         Kỳ: convertToRoman(teacher.KiHoc),
         Năm_học: teacher.NamHoc,
         Thời_gian_thực_hiện: thoiGianThucHien,
