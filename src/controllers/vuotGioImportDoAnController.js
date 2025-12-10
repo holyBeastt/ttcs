@@ -806,10 +806,10 @@ const saveToDB = async (req, res) => {
         isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
       }
 
-      let SoTiet = 25;
+      let SoTiet = 20;
 
       if (SoNguoi == 2) {
-        SoTiet = 15;
+        SoTiet = 12;
       }
 
       values.push([
@@ -855,7 +855,7 @@ const saveToDB = async (req, res) => {
           isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
         }
 
-        SoTiet = 10; // Giảm số tiết cho giảng viên thứ 2
+        SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2
         values.push([
           row.SinhVien,
           row.MaSV,

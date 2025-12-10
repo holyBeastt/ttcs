@@ -474,189 +474,6 @@ const updateDoAn = async (req, res) => {
   }
 };
 
-// const saveToDB = async (req, res) => {
-//   const NamHoc = req.query.namHoc;
-//   const MaPhongBan = req.query.MaPhongBan;
-//   const data = req.body;
-
-//   let connection;
-//   try {
-//     connection = await createPoolConnection(); // Kết nối đến DB
-//     const errors = []; // Tích lũy lỗi
-
-//     // Tạo mảng 2 chiều chứa tất cả các bản ghi
-//     const values = data.map((row) => {
-//       // Tạo một mảng tạm cho từng bản ghi
-//       const rowValues = [];
-
-//       let SoQD = "không";
-//       // Lưu lần 1
-
-//       // Giá trị Khóa đào tạo
-//       const KhoaDaoTao = row.MaSV.slice(0, 4);
-
-//       // Giá trị Số người
-//       let SoNguoi = 2;
-//       if (row.GiangVien1.trim() == "" || row.GiangVien1 == undefined) {
-//         errors.push(
-//           `Không tìm thấy giảng viên 1: ${row.GiangVien1} của sinh viên ${row.SinhVien}`
-//         );
-//         return;
-//       }
-//       if (
-//         row.GiangVien2 == "null" ||
-//         row.GiangVien2 == null ||
-//         row.GiangVien2 == "" ||
-//         row.GiangVien2 == undefined
-//       ) {
-//         SoNguoi = 1;
-//       }
-//       // Giá trị is hướng dẫn chính
-//       let isHDChinh = 1;
-
-//       // Giá trị Giảng viên
-//       let GiangVien;
-
-//       // Giá trị CCCD và is mời giảng
-//       let CCCD, isMoiGiang;
-//       if (row.GiangVien1.includes("-")) {
-//         GiangVien = row.GiangVien1.split(" - ")[0];
-//         CCCD = row.GiangVien1.split(" - ")[2];
-
-//         if (row.GiangVien1.split(" - ")[1].toLowerCase == "cơ hữu") {
-//           isMoiGiang = 0;
-//         } else {
-//           isMoiGiang = 1;
-//         }
-//       } else {
-//         const matchedItem = uniqueGV.find(
-//           (item) => item.HoTen.trim() == row.GiangVien1.trim()
-//         );
-
-//         if (!matchedItem) {
-//           // Trả về phản hồi nếu không tìm thấy giảng viên
-//           errors.push(
-//             `Không tìm thấy giảng viên 1: ${row.GiangVien1} của sinh viên ${row.SinhVien}`
-//           );
-//           return;
-//         }
-
-//         CCCD = matchedItem.CCCD;
-//         if (matchedItem.BienChe.toLowerCase == "cơ hữu") isMoiGiang = 0;
-//         else isMoiGiang = 1;
-//       }
-
-//       // Giá trị Số tiêt
-//       let SoTiet = 25;
-
-//       if (SoNguoi == 2) SoTiet = 15;
-
-//       // Push các giá trị vào mảng tạm
-//       rowValues.push(
-//         row.SinhVien,
-//         row.MaSV,
-//         KhoaDaoTao,
-//         SoQD,
-//         row.TenDeTai,
-//         SoNguoi,
-//         isHDChinh,
-//         GiangVien,
-//         CCCD,
-//         isMoiGiang,
-//         SoTiet,
-//         row.NgayBatDau,
-//         row.NgayKetThuc,
-//         MaPhongBan,
-//         NamHoc
-//       );
-
-//       // Nếu số người là 2, lưu giảng viên 2
-//       if (SoNguoi == 1) return rowValues; // Nếu số người là 1 thì trả về luôn
-
-//       // Đặt lại các giá trị thay đổi
-//       // Giá trị is hướng dẫn chính
-//       isHDChinh = 0;
-
-//       // Giá trị CCCD và is mời giảng
-//       if (row.GiangVien2.includes("-")) {
-//         GiangVien = row.GiangVien2.split(" - ")[0];
-//         CCCD = row.GiangVien2.split(" - ")[2];
-
-//         if (row.GiangVien1.split(" - ")[1].toLowerCase == "cơ hữu") {
-//           isMoiGiang = 0;
-//         } else {
-//           isMoiGiang = 1;
-//         }
-//       } else {
-//         const matchedItem = uniqueGV.find(
-//           (item) => item.HoTen.trim() == row.GiangVien2.trim()
-//         );
-
-//         if (!matchedItem) {
-//           // Trả về phản hồi nếu không tìm thấy giảng viên
-//           errors.push(
-//             `Không tìm thấy giảng viên 2: ${row.GiangVien2} của sinh viên ${row.SinhVien}`
-//           );
-//           return;
-//         }
-
-//         CCCD = matchedItem.CCCD;
-//         if (matchedItem.BienChe.toLowerCase == "cơ hữu") isMoiGiang = 0;
-//         else isMoiGiang = 1;
-//       }
-
-//       // Giá trị Số tiêt
-//       SoTiet = 10;
-
-//       rowValues.push(
-//         row.SinhVien,
-//         row.MaSV,
-//         KhoaDaoTao,
-//         SoQD,
-//         row.TenDeTai,
-//         SoNguoi,
-//         isHDChinh,
-//         GiangVien,
-//         CCCD,
-//         isMoiGiang,
-//         SoTiet,
-//         row.NgayBatDau,
-//         row.NgayKetThuc,
-//         MaPhongBan,
-//         NamHoc
-//       );
-
-//       // Trả về mảng tạm này
-//       return rowValues;
-//     });
-
-//     // Nếu có lỗi, trả về thông báo lỗi
-//     if (errors.length > 0) {
-//       return res.status(400).json({ message: "Có lỗi xảy ra", errors });
-//     }
-
-//     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
-//     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc)
-//                    VALUES ?`;
-
-//     // Thực thi câu lệnh SQL với mảng values
-//     const [result] = await connection.query(sql, [values]);
-
-//     // Gửi phản hồi thành công
-//     res.status(200).json({
-//       message: "Dữ liệu đã được lưu thành công vào cơ sở dữ liệu.",
-//       insertedRows: result.affectedRows,
-//     });
-//   } catch (error) {
-//     console.error("Lỗi khi lưu dữ liệu vào database:", error);
-//     if (!res.headersSent) {
-//       res.status(500).send("Đã xảy ra lỗi khi lưu dữ liệu vào database!");
-//     }
-//   } finally {
-//     if (connection) connection.release(); // Giải phóng kết nối
-//   }
-// };
-
 const saveToDB = async (req, res) => {
   const NamHoc = req.query.namHoc;
   const MaPhongBan = req.query.MaPhongBan;
@@ -714,10 +531,10 @@ const saveToDB = async (req, res) => {
         isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
       }
 
-      let SoTiet = 25;
+      let SoTiet = 20;
 
       if (SoNguoi == 2) {
-        SoTiet = 15;
+        SoTiet = 12;
       }
 
       values.push([
@@ -763,7 +580,7 @@ const saveToDB = async (req, res) => {
           isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
         }
 
-        SoTiet = 10; // Giảm số tiết cho giảng viên thứ 2
+        SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2
         values.push([
           row.SinhVien,
           row.MaSV,
@@ -878,13 +695,13 @@ const totalNumberOfPeriods = async (connection, data) => {
       if (!gv1Info.ten) return;
 
       if (gv2Info.ten.toLowerCase() === "không") {
-        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 25;
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 20;
       } else if (!gv2Info.ten) {
-        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
-        tongTietDetail["Chưa rõ"] = (tongTietDetail["Chưa rõ"] || 0) + 10;
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 12;
+        tongTietDetail["Chưa rõ"] = (tongTietDetail["Chưa rõ"] || 0) + 8;
       } else {
-        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 15;
-        tongTietDetail[gv2Info.ten] = (tongTietDetail[gv2Info.ten] || 0) + 10;
+        tongTietDetail[gv1Info.ten] = (tongTietDetail[gv1Info.ten] || 0) + 12;
+        tongTietDetail[gv2Info.ten] = (tongTietDetail[gv2Info.ten] || 0) + 8;
       }
     });
 
@@ -1383,10 +1200,10 @@ const saveToExportDoAn = async (req, res) => {
             isMoiGiang = matchedItem1.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
           }
 
-          let SoTiet = 25;
+          let SoTiet = 20;
 
           if (SoNguoi == 2) {
-            SoTiet = 15;
+            SoTiet = 12;
           }
 
           values.push([
@@ -1469,7 +1286,7 @@ const saveToExportDoAn = async (req, res) => {
                 matchedItem2.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
             }
 
-            SoTiet = 10; // Giảm số tiết cho giảng viên thứ 2
+            SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2
             values.push([
               item.SinhVien || null,
               item.MaSV || null,

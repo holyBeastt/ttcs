@@ -88,8 +88,8 @@ const getDuyetHopDongData = async (req, res) => {
           SinhVien,
           MaSV,
           CASE
-            WHEN GiangVien2='không' OR GiangVien2='' THEN 25
-            ELSE 15
+            WHEN GiangVien2='không' OR GiangVien2='' THEN 20
+            ELSE 12
           END AS SoTiet,
           TaiChinhDuyet
         FROM doantotnghiep
@@ -117,7 +117,7 @@ const getDuyetHopDongData = async (req, res) => {
           TenDeTai,
           SinhVien,
           MaSV,
-          10 AS SoTiet,
+          8 AS SoTiet,
           TaiChinhDuyet
         FROM doantotnghiep
         WHERE GiangVien2 IS NOT NULL
@@ -499,8 +499,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     Dot,
                     NamHoc,
                     CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                        ELSE 15
+                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
+                        ELSE 12
                     END AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien1 IS NOT NULL
@@ -518,7 +518,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                     Dot,
                     NamHoc,
-                    10 AS SoTiet
+                    8 AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien2 IS NOT NULL 
                     AND GiangVien2 != 'không'
@@ -584,8 +584,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         MaPhongBan,
                         TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                         CASE 
-                            WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                            ELSE 15
+                            WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
+                            ELSE 12
                         END AS SoTiet
                     FROM doantotnghiep
                     WHERE GiangVien1 IS NOT NULL
@@ -598,7 +598,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     SELECT
                         MaPhongBan,
                         TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                        10 AS SoTiet
+                        8 AS SoTiet
                     FROM doantotnghiep
                     WHERE GiangVien2 IS NOT NULL 
                         AND GiangVien2 != 'không'
@@ -631,7 +631,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
                     gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen
-            `;            const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
+            `; const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
 
             // Debug: Check HSL in database results
             if (teacherDetails.length > 0) {
@@ -802,8 +802,8 @@ const debugCompareQueries = async (req, res) => {
                     MaPhongBan,
                     TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                        ELSE 15
+                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
+                        ELSE 12
                     END AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien1 IS NOT NULL
@@ -816,7 +816,7 @@ const debugCompareQueries = async (req, res) => {
                 SELECT
                     MaPhongBan,
                     TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                    10 AS SoTiet
+                    8 AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien2 IS NOT NULL 
                     AND GiangVien2 != 'không'
@@ -842,8 +842,8 @@ const debugCompareQueries = async (req, res) => {
                     MaPhongBan,
                     TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 25
-                        ELSE 15
+                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
+                        ELSE 12
                     END AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien1 IS NOT NULL
@@ -856,7 +856,7 @@ const debugCompareQueries = async (req, res) => {
                 SELECT
                     MaPhongBan,
                     TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                    10 AS SoTiet
+                    8 AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien2 IS NOT NULL 
                     AND GiangVien2 != 'không'
