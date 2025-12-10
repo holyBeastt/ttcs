@@ -20,7 +20,7 @@ const thongkemonhocController = {
       // Sử dụng alias (tên giả) cho bảng để query gọn hơn và dễ sửa tên bảng
       let query = `
         SELECT 
-          TenHocPhan,
+          REGEXP_REPLACE(TenHocPhan, '[^[:alnum:][:space:]]', '') AS TenHocPhanClean,
           he_dao_tao AS HeDaoTao,
           COUNT(*) AS TongSoLop,
           SUM(CASE WHEN id_User = 1 THEN 1 ELSE 0 END) AS SoLopMoi,
@@ -48,8 +48,8 @@ const thongkemonhocController = {
       }
 
       query += `
-        GROUP BY TenHocPhan, HeDaoTao
-        ORDER BY TenHocPhan ASC, HeDaoTao ASC
+        GROUP BY TenHocPhanClean, HeDaoTao
+        ORDER BY TenHocPhanClean ASC, HeDaoTao ASC
       `;
 
       console.log("Executing Query:", query); // Log query ra server để debug nếu lỗi

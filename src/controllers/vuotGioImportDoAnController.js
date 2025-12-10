@@ -290,8 +290,8 @@ function processWordData(content) {
       SinhVien: row.SinhVien.trim(),
       MaSV: row.MaSV.trim(),
       TenDeTai: row.TenDeTai.trim(),
-      GiangVien1: GiangVien1 || null, // Gán giá trị null nếu không có
-      GiangVien2: GiangVien2,
+      GiangVien1: normalizeString(GiangVien1) || null, // Gán giá trị null nếu không có
+      GiangVien2: normalizeString(GiangVien2),
       GiangVien: row.GiangVien.join(", ").trim(), // Loại bỏ khoảng trắng đầu cuối trong chuỗi
       GiangVien1Real: gv1Real,
       GiangVien2Real: gv2Real,
@@ -806,10 +806,10 @@ const saveToDB = async (req, res) => {
         isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
       }
 
-      let SoTiet = 25;
+      let SoTiet = 20;
 
       if (SoNguoi == 2) {
-        SoTiet = 15;
+        SoTiet = 12;
       }
 
       values.push([
@@ -855,7 +855,7 @@ const saveToDB = async (req, res) => {
           isMoiGiang = matchedItem.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
         }
 
-        SoTiet = 10; // Giảm số tiết cho giảng viên thứ 2
+        SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2
         values.push([
           row.SinhVien,
           row.MaSV,

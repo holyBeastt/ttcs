@@ -249,7 +249,7 @@
             const row = `
               <tr>
                 <td>${stt++}</td>
-                <td>${item.TenHocPhan || "N/A"}</td>
+                <td>${item.TenHocPhanClean || "N/A"}</td>
                 <td>${item.HeDaoTao || "N/A"}</td>
                 <td>${tongSoLop}</td>
                 <td>${soLopMoi}</td>
@@ -276,7 +276,7 @@
           if (!searchKeyword) return originalData;
           const keyword = searchKeyword.toLowerCase();
           return originalData.filter((item) => {
-            const name = (item.TenHocPhan || item.BoMon || "").toString().toLowerCase();
+            const name = (item.TenHocPhanClean || item.BoMon || "").toString().toLowerCase();
             return name.includes(keyword);
           });
         }

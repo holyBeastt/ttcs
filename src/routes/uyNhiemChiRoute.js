@@ -40,6 +40,7 @@ router.get('/tai-uy-nhiem-chi', taiUyNhiemChiController.getTaiUyNhiemChiPage);
 router.post('/api/download', taiUyNhiemChiController.downloadUyNhiemChi);
 router.post('/api/preview', taiUyNhiemChiController.previewUyNhiemChi);
 router.post('/api/setup', taiUyNhiemChiController.setupUyNhiemChi);
+router.get('/api/load-options', taiUyNhiemChiController.loadOptions);
 
 // Routes cho Sửa mẫu ủy nhiệm
 router.get('/sua-mau-uy-nhiem', suaMauUyNhiemController.getSuaMauUyNhiemPage);

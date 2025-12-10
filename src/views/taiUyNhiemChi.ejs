@@ -50,39 +50,18 @@
           <div class="loc d-flex align-items-center">
             <select class="selectop" id="combobox-dot" style="width: 70px">
               <option value="">Đợt</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
             </select>
             <select class="selectop" id="comboboxki" style="width: 70px">
               <option value="">Kì</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="Hè">Hè</option>
             </select>
             <select class="selectop" id="NamHoc">
               <option value="">Chọn năm học</option>
-              <option value="2024 - 2025">2024 - 2025</option>
-              <option value="2023 - 2024">2023 - 2024</option>
-              <option value="2022 - 2023">2022 - 2023</option>
             </select>
             <select class="selectop" id="MaPhongBan">
               <option value="ALL">Tất cả khoa</option>
-              <option value="CNTT">CNTT</option>
-              <option value="ATTT">ATTT</option>
-              <option value="KTMT">KTMT</option>
-              <option value="KHMT">KHMT</option>
-              <option value="CNPM">CNPM</option>
-              <option value="ATMMT">ATMMT</option>
-              <option value="DVVT">DVVT</option>
             </select>
             <select class="selectop" id="he_dao_tao">
               <option value="">Tất cả hệ</option>
-              <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
-              <option value="Đại học (Mật mã)">Hệ mật mã</option>
-              <option value="Cao học (Đóng học phí)">Cao học</option>
-              <option value="Nghiên cứu sinh (Đóng học phí)">Nghiên cứu sinh</option>
             </select>
           </div>
         </div>
@@ -459,6 +438,62 @@
     function showLoading(show) {
       document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
     }
+
+    // Load options for combo boxes
+    function loadOptions() {
+      $.ajax({
+        url: '/uy-nhiem-chi/api/load-options',
+        type: 'GET',
+        success: function(response) {
+          if (response.success) {
+            const data = response.data;
+
+            // Load dot options
+            const dotSelect = $('#combobox-dot');
+            dotSelect.empty().append('<option value="">Đợt</option>');
+            data.dot.forEach(dot => {
+              dotSelect.append(`<option value="${dot}">${dot}</option>`);
+            });
+
+            // Load ki options
+            const kiSelect = $('#comboboxki');
+            kiSelect.empty().append('<option value="">Kì</option>');
+            data.ki.forEach(ki => {
+              kiSelect.append(`<option value="${ki}">${ki}</option>`);
+            });
+
+            // Load nam hoc options
+            const namHocSelect = $('#NamHoc');
+            namHocSelect.empty().append('<option value="">Chọn năm học</option>');
+            data.namHoc.forEach(namHoc => {
+              namHocSelect.append(`<option value="${namHoc}">${namHoc}</option>`);
+            });
+
+            // Load khoa options
+            const khoaSelect = $('#MaPhongBan');
+            khoaSelect.empty().append('<option value="ALL">Tất cả khoa</option>');
+            data.khoa.forEach(khoa => {
+              khoaSelect.append(`<option value="${khoa.ma}">${khoa.ten}</option>`);
+            });
+
+            // Load he dao tao options
+            const heDaoTaoSelect = $('#he_dao_tao');
+            heDaoTaoSelect.empty().append('<option value="">Tất cả hệ</option>');
+            data.heDaoTao.forEach(he => {
+              heDaoTaoSelect.append(`<option value="${he}">${he}</option>`);
+            });
+          }
+        },
+        error: function() {
+          console.error('Error loading options');
+        }
+      });
+    }
+
+    // Load options on page load
+    $(document).ready(function() {
+      loadOptions();
+    });
 
     // Initialize preview numbers
     updatePreviewNumbers();
