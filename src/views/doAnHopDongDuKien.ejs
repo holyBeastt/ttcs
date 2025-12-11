@@ -218,35 +218,71 @@
         <ul id="SoQD-list"></ul>
 
         <div>
-          <table style="margin-top: 3px" class="table table-bordered">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Giảng viên hướng</th>
-                <th>Tên đề tài</th>
-                <th>Sinh viên</th>
-                <th>Mã sinh viên</th>
-                <th>Đợt</th>
-                <th>Năm học</th>
-                <th>Ngày bắt đầu</th>
-                <th>Ngày kết thúc</th>
-                <th>Số tiết</th>
-                <th>Tổng số tiết</th>
-                <th>Tổng số tiết cả năm</th>
-                <th>Khoa</th>
-                <!-- Cột Khoa -->
-                <th>Chi tiết giảng viên mời</th>
-              </tr>
-            </thead>
-            <tbody class="teacher-group" id="data-table-body"></tbody>
-          </table>
-
-          <div class="total-label">
-            <!-- <label>Tổng số tiết Lên Lớp: <span class="value" id="totalLL">0</span></label> -->
-            <label
-              >Tổng số tiết: <span class="value" id="totalQC">0</span></label
-            >
+          <h4 class="mt-4 text-primary font-weight-bold">I. Danh sách Giảng viên Dân sự</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th class="align-middle text-center">STT</th>
+                  <th class="align-middle text-center">Giảng viên hướng</th>
+                  <th class="align-middle text-center">Tên đề tài</th>
+                  <th class="align-middle text-center">Sinh viên</th>
+                  <th class="align-middle text-center">Mã sinh viên</th>
+                  <th class="align-middle text-center">Đợt</th>
+                  <th class="align-middle text-center">Năm học</th>
+                  <th class="align-middle text-center">Ngày bắt đầu</th>
+                  <th class="align-middle text-center">Ngày kết thúc</th>
+                  <th class="align-middle text-center">Số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết cả năm</th>
+                  <th class="align-middle text-center">Khoa</th>
+                  <th class="align-middle text-center">Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody class="teacher-group" id="tbody-civilian"></tbody>
+            </table>
+            <div class="total-label">
+              <label>
+                Tổng số tiết: <span id="qc-civilian">0</span>
+              </label>
+            </div>
           </div>
+
+          <h4 class="mt-4 text-danger font-weight-bold">II. Danh sách Giảng viên không tính mời giảng (Quân đội/Công an)</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th class="align-middle text-center">STT</th>
+                  <th class="align-middle text-center">Giảng viên hướng</th>
+                  <th class="align-middle text-center">Tên đề tài</th>
+                  <th class="align-middle text-center">Sinh viên</th>
+                  <th class="align-middle text-center">Mã sinh viên</th>
+                  <th class="align-middle text-center">Đợt</th>
+                  <th class="align-middle text-center">Năm học</th>
+                  <th class="align-middle text-center">Ngày bắt đầu</th>
+                  <th class="align-middle text-center">Ngày kết thúc</th>
+                  <th class="align-middle text-center">Số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết</th>
+                  <th class="align-middle text-center">Tổng số tiết cả năm</th>
+                  <th class="align-middle text-center">Khoa</th>
+                  <th class="align-middle text-center">Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody class="teacher-group" id="tbody-military"></tbody>
+            </table>
+            <div class="total-label">
+              <label>
+                Tổng số tiết: <span id="qc-military">0</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- <div class="total-label mt-3 p-2 bg-light border rounded text-right">
+            <label class="font-weight-bold mb-0" style="font-size: 1.1em;">
+              Tổng số tiết toàn bộ: <span class="text-danger" id="totalQC">0</span>
+            </label>
+          </div> -->
         </div>
         <div
           id="no-data-message"
@@ -296,25 +332,22 @@
             return response.json();
           })
           .then((data) => {
-            // Xóa dữ liệu cũ khỏi bảng trước khi thêm dữ liệu mới
-            document.getElementById("data-table-body").innerHTML = "";
-
-            if (data.length === 0) {
-              document.getElementById("no-data-message").style.display =
-                "block"; // Hiển thị thông báo nếu không có dữ liệu
-            } else {
-              document.getElementById("no-data-message").style.display = "none"; // Ẩn thông báo nếu có dữ liệu
-              SoTietDinhMuc = data.SoTietDinhMuc;
-              SoQDList = data.SoQDList;
-
-              if (SoQDList) {
-                const listContainer = document.getElementById("SoQD-list");
-                listContainer.innerHTML = SoQDList.map(
-                  (item) => `<li>Theo QĐ số: ${item.SoQD}</li>`
-                ).join("");
-              }
-              renderTable(data.groupedByTeacher);
+           // 1. Xử lý logic hiển thị/ẩn thông báo
+            const noDataMsg = document.getElementById("no-data-message");
+            if (!data || data.length === 0 || Object.keys(data.groupedByTeacher).length === 0) {
+              if(noDataMsg) noDataMsg.style.display = "block";
+              document.getElementById("tbody-civilian").innerHTML = "";
+              document.getElementById("tbody-military").innerHTML = "";
+              return;
             }
+            if(noDataMsg) noDataMsg.style.display = "none";
+
+            // 2. Cập nhật thông tin phụ (Số QĐ, Tổng)
+            updateSoQD(data.SoQDList);
+            SoTietDinhMuc = data.SoTietDinhMuc; // Biến global nếu cần
+
+            // 3. Render bảng (Phiên bản tối ưu)
+            renderTable(data.groupedByTeacher);
           })
           .catch((error) => {
             console.error("Error fetching data:", error);
@@ -322,114 +355,135 @@
           });
       });
 
-      function renderTable(data) {
-        const tableBody = document.getElementById("data-table-body");
-        tableBody.innerHTML = ""; // Clear previous data
+      function updateSoQD(list) {
+        const container = document.getElementById("SoQD-list");
+        if (container && list) {
+          container.innerHTML = list.map(item => `<li>Theo QĐ số: ${item.SoQD}</li>`).join("");
+        }
+      }
 
-        let index = 1;
+      function renderTable(groupedData) {
+        // B1: Phân loại dữ liệu thành 2 mảng html string
+        let civilianHTML = "";
+        let militaryHTML = "";
+        
+        let indexCivilian = 1;
+        let indexMilitary = 1;
 
-        // Duyệt qua tất cả các giảng viên trong groupedByTeacher
-        Object.keys(data).forEach((teacher) => {
-          const courses = data[teacher];
-          const totalSoTiet = courses.reduce(
-            (total, course) => total + (parseFloat(course.SoTiet) || 0),
-            0
-          );
+        Object.keys(groupedData).forEach((teacher) => {
+          const courses = groupedData[teacher];
+          if (!courses || courses.length === 0) return;
 
-          // Duyệt qua từng khóa học của giảng viên
-          courses.forEach((course, courseIndex) => {
-            const tr = document.createElement("tr");
-            tr.setAttribute("data-department", course.MaPhongBan);
-            tr.setAttribute("data-dot", course.Dot);
-            //tr.setAttribute('data-ki', course.KiHoc);
-            tr.setAttribute("data-nam", course.NamHoc);
+          // Kiểm tra loại giảng viên (Quân sự hay Dân sự)
+          const isMilitary = (courses[0].isQuanDoi == 1 || courses[0].isQuanDoi == '1');
+          
+          // Tính tổng số tiết của GV này
+          const totalSoTiet = courses.reduce((sum, c) => sum + (parseFloat(c.SoTiet) || 0), 0);
+          
+          // Tạo HTML cho nhóm giảng viên này
+          // Chọn index tương ứng
+          const currentIndex = isMilitary ? indexMilitary++ : indexCivilian++;
+          
+          // Hàm tạo chuỗi HTML cho các dòng
+          const groupRowsHTML = generateGroupHTML(teacher, courses, currentIndex, totalSoTiet);
 
-            // Nếu là môn học đầu tiên của giảng viên, thì cần rowspan
-            if (courseIndex === 0) {
-              tr.classList.add("teacher-group");
-              tr.innerHTML = `
-              <td rowspan="${courses.length}">${index}</td>
-              <td rowspan="${courses.length}">${
-                course.HoTen.split(" - ")[0]
-              }<br /> (GVM ${course.MaPhongBan})
-              </td>
-            `;
-              index++; // Tăng index cho giảng viên tiếp theo
-            }
-
-            // Thêm các ô dữ liệu cho từng môn học
-            tr.innerHTML += `
-            <td>${course.TenDeTai}</td>
-            <td>${course.SinhVien}</td>
-            <td>${course.MaSV}</td>
-            <td>${course.Dot}</td>
-            <td>${course.NamHoc}</td>
-            <td>${formatDate(course.NgayBatDau)}</td>
-            <td>${formatDate(course.NgayKetThuc)}</td>
-            <td>${course.SoTiet}</td>
-          `;
-
-            if (course.TongSoTietCaNam > 300) {
-              tr.classList.add("alert-sotiet");
-            }
-
-            // Nếu là môn học đầu tiên của giảng viên, thêm tổng số tiết và phòng ban
-            if (courseIndex === 0) {
-              tr.innerHTML += `
-              <td rowspan="${courses.length}">${totalSoTiet.toFixed(2)}</td>
-              <td rowspan="${courses.length}">
-                ${
-                  course.TongSoTietCaNam
-                    ? parseFloat(course.TongSoTietCaNam).toFixed(2)
-                    : "0.00"
-                }
-              </td>
-              <td rowspan="${courses.length}">${course.MaPhongBan}</td>
-              <td rowspan="${courses.length}">
-                <button class="action-button view" onclick="viewClass(this, '${
-                  parseInt(course.id_Gvm) - 1
-                }')">👁️</button>
-              </td>
-            `;
-            }
-
-            // Thêm tr vào tbody
-            tableBody.appendChild(tr);
-          });
+          // Cộng dồn vào chuỗi HTML tổng (Nhanh hơn appendChild)
+          if (isMilitary) {
+            militaryHTML += groupRowsHTML;
+          } else {
+            civilianHTML += groupRowsHTML;
+          }
         });
 
+        // B2: Render ra DOM 1 lần duy nhất (Tối ưu Performance)
+        document.getElementById("tbody-civilian").innerHTML = civilianHTML;
+        document.getElementById("tbody-military").innerHTML = militaryHTML;
+
+        // B3: Tính tổng footer
         calculateTotals();
       }
 
-      // tổng quy chuẩn
+      // Hàm sinh HTML string cho 1 nhóm giảng viên
+      function generateGroupHTML(teacherName, courses, index, totalSoTiet) {
+        return courses.map((course, idx) => {
+          const isFirstRow = idx === 0;
+          const rowSpan = isFirstRow ? `rowspan="${courses.length}"` : "";
+          const alertClass = (course.TongSoTietCaNam > 300) ? "alert-sotiet" : "";
+          
+          // Các cột dùng chung (First row cells)
+          const firstRowCells = isFirstRow ? `
+            <td ${rowSpan} class="align-middle">${index}</td>
+            <td ${rowSpan} class="align-middle">
+              ${course.HoTen.split(" - ")[0]}<br/>(GVM ${course.MaPhongBan})
+            </td>
+          ` : "";
+
+          // Các cột thống kê cuối (Last row cells - merged)
+          const lastRowCells = isFirstRow ? `
+            <td ${rowSpan} class="align-middle text-center">${totalSoTiet.toFixed(2)}</td>
+            <td ${rowSpan} class="align-middle text-center">
+              ${course.TongSoTietCaNam ? parseFloat(course.TongSoTietCaNam).toFixed(2) : "0.00"}
+            </td>
+            <td ${rowSpan} class="align-middle">${course.MaPhongBan}</td>
+            <td ${rowSpan} class="align-middle text-center">
+              <button class="action-button view btn btn-sm btn-info" onclick="viewClass(this, '${parseInt(course.id_Gvm) - 1}')">👁️</button>
+            </td>
+          ` : "";
+
+          return `
+            <tr class="${alertClass}" data-department="${course.MaPhongBan}" data-name="${teacherName.toLowerCase()}">
+              ${firstRowCells}
+              <td>${course.TenDeTai}</td>
+              <td>${course.SinhVien}</td>
+              <td>${course.MaSV}</td>
+              <td>${course.Dot}</td>
+              <td>${course.NamHoc}</td>
+              <td>${formatDate(course.NgayBatDau)}</td>
+              <td>${formatDate(course.NgayKetThuc)}</td>
+              <td class="text-center val-sotiet">${course.SoTiet}</td>
+              ${lastRowCells}
+            </tr>
+          `;
+        }).join(""); // Nối tất cả các dòng của GV này thành 1 chuỗi
+      }
+
       function calculateTotals() {
-        let totalQC = 0;
+        // Tính cho bảng Dân sự
+        calculateTableSum("tbody-civilian", "qc-civilian");
+        
+        // Tính cho bảng Quân sự
+        calculateTableSum("tbody-military", "qc-military");
+      }
 
-        // Chọn tất cả các hàng chứa dữ liệu
-        const rows = document.querySelectorAll(
-          "tbody.teacher-group tr[data-department]"
-        );
-        rows.forEach((row) => {
-          // Kiểm tra xem hàng có hiển thị hay không
-          const isVisible = row.style.display != "none";
+      // Hàm tính tổng chung (Reusable Function)
+      function calculateTableSum(tbodyId, outputId) {
+        let total = 0;
+        
+        // 1. Lấy tbody theo ID
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
 
-          if (isVisible) {
-            // Lấy ô QuyChuan theo thứ tự cột (giả định cột QuyChuan là cột thứ 10)
-            const qcCell = row.querySelector("td:nth-child(11)");
-            if (qcCell) {
-              const qcValue = parseFloat(qcCell.textContent.trim());
-              if (!isNaN(qcValue)) {
-                //console.log(totalQC)
-                totalQC += qcValue;
-              }
+        // 2. Lấy tất cả các ô có class "val-sotiet" bên trong tbody này
+        // (Nhờ class này mà ta không lo vấn đề rowspan làm lệch cột)
+        const cells = tbody.querySelectorAll(".val-sotiet");
+
+        cells.forEach(cell => {
+          // Kiểm tra dòng cha có đang ẩn không (nếu có tính năng lọc)
+          const row = cell.closest("tr");
+          if (row && row.style.display !== "none") {
+            const val = parseFloat(cell.textContent.trim());
+            if (!isNaN(val)) {
+              total += val;
             }
           }
         });
 
-        // Hiển thị tổng số tiết QuyChuẩn vào element có id `totalQC`
-        document.getElementById("totalQC").textContent = totalQC.toFixed(2);
+        // 3. Hiển thị kết quả
+        const outputEl = document.getElementById(outputId);
+        if (outputEl) {
+          outputEl.textContent = total.toFixed(2);
+        }
       }
-
       // Hàm format ngày tháng
       function formatDate(dateStr) {
         if (!dateStr) return "N/A";
@@ -449,53 +503,35 @@
       // Tìm kiếm giảng viên mời theo tên
 
       function searchClass() {
-        let input = document.getElementById("searchInput").value.toLowerCase();
-        let table = document.getElementById("data-table-body");
-        let rows = table.getElementsByTagName("tr");
+        // 1. Lấy từ khóa tìm kiếm
+        const input = document.getElementById("searchInput").value.toLowerCase().trim();
 
-        let currentGroup = [];
-        let groupVisible = false;
+        // 2. Hàm tìm kiếm dùng chung cho cả 2 bảng
+        const filterTable = (tbodyId) => {
+          const tbody = document.getElementById(tbodyId);
+          if (!tbody) return;
 
-        for (let i = 0; i < rows.length; i++) {
-          // Bắt đầu từ 1 để bỏ qua hàng tiêu đề
-          let row = rows[i];
+          const rows = tbody.getElementsByTagName("tr");
+          
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            // Lấy tên giảng viên từ attribute ta vừa thêm ở Bước 1
+            const teacherName = row.getAttribute("data-name") || "";
 
-          if (row.classList.contains("teacher-group")) {
-            // Đây là hàng đầu tiên của một nhóm giảng viên mới
-            if (currentGroup) {
-              // Ẩn/hiện nhóm trước đó dựa trên kết quả tìm kiếm
-              setGroupVisibility(currentGroup, groupVisible);
-            }
-
-            currentGroup = [];
-            groupVisible = false;
-          }
-
-          currentGroup.push(row);
-          /*
-          let teacherNameCell = row.cells[1]; // Giả sử tên giảng viên ở cột thứ 2
-          if (teacherNameCell) {
-            let teacherName = teacherNameCell.textContent.toLowerCase();
+            // Kiểm tra trùng khớp
             if (teacherName.includes(input)) {
-              groupVisible = true;
-            }
-          }*/
-
-          if (row.classList.contains("teacher-group")) {
-            let teacherNameCell = row.cells[1]; // cột thứ 2
-            if (teacherNameCell) {
-              let teacherName = teacherNameCell.textContent.toLowerCase();
-              if (teacherName.includes(input)) {
-                groupVisible = true;
-              }
+              row.style.display = ""; // Hiện
+            } else {
+              row.style.display = "none"; // Ẩn
             }
           }
-        }
+        };
 
-        // Xử lý nhóm cuối cùng
-        if (currentGroup) {
-          setGroupVisibility(currentGroup, groupVisible);
-        }
+        // 3. Thực thi tìm kiếm trên cả 2 bảng
+        filterTable("tbody-civilian");
+        //filterTable("tbody-military");
+
+        // 4. Tính lại tổng số sau khi lọc
         calculateTotals();
       }
 

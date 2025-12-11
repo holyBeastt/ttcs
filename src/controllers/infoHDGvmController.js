@@ -509,6 +509,7 @@ WITH DoAnHopDongDuKien AS (
     gv.MaPhongBan,
     Combined.MaPhongBan AS MaKhoaMonHoc,
     Combined.he_dao_tao,
+    gv.isQuanDoi,
     NgayBatDau,
     NgayKetThuc,
     CASE 
@@ -580,7 +581,7 @@ WITH DoAnHopDongDuKien AS (
   ) AS Combined
   JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
   JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
-  WHERE Combined.NamHoc = '${namHoc}' and gv.isQuanDoi != 1
+  WHERE Combined.NamHoc = '${namHoc}'
 ),
    DaiHocHopDongDuKien AS (
     SELECT
@@ -604,6 +605,7 @@ WITH DoAnHopDongDuKien AS (
         qc.Khoa AS MaKhoaMonHoc,
         qc.QuyChuan AS SoTiet,
         qc.he_dao_tao,
+        gv.isQuanDoi,
         qc.NamHoc,
         qc.KiHoc,
         qc.Dot,
@@ -624,7 +626,7 @@ WITH DoAnHopDongDuKien AS (
     LEFT JOIN 
         tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}' AND gv.isQuanDoi != 1
+        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}'
     ),
     SoTietSauDaiHoc AS (
         SELECT
@@ -653,6 +655,7 @@ WITH DoAnHopDongDuKien AS (
                 END, 2
             ) AS SoTiet,
             qc.he_dao_tao,
+            gv.isQuanDoi,
             qc.NamHoc,
             qc.KiHoc,
             qc.Dot,
@@ -670,7 +673,7 @@ WITH DoAnHopDongDuKien AS (
         LEFT JOIN 
             tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
         WHERE
-            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}' AND gv.isQuanDoi != 1
+            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
     ),
     SauDaiHocHopDongDuKien AS (
         SELECT
@@ -694,6 +697,7 @@ WITH DoAnHopDongDuKien AS (
             MaKhoaMonHoc,
             SoTiet,
             he_dao_tao,
+            isQuanDoi,
             NamHoc,
             KiHoc,
             Dot,
@@ -717,6 +721,7 @@ WITH DoAnHopDongDuKien AS (
         id_Gvm,
         GiangVien,
         he_dao_tao,
+        isQuanDoi,
         NgayBatDau,
         NgayKetThuc,
         SoTiet,
@@ -754,6 +759,7 @@ WITH DoAnHopDongDuKien AS (
         'DaiHoc' AS LoaiHopDong,
         id_Gvm,
         HoTen AS GiangVien,
+        isQuanDoi,
         he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
@@ -792,6 +798,7 @@ WITH DoAnHopDongDuKien AS (
         'SauDaiHoc' AS LoaiHopDong,
         id_Gvm,
         HoTen AS GiangVien,
+        isQuanDoi,
         he_dao_tao,
         NgayBatDau,
         NgayKetThuc,
@@ -832,7 +839,7 @@ WITH DoAnHopDongDuKien AS (
             GiangVien
     ),`;
 
-    query += `-- Giảng viên có hướng dẫn sinh viên thuộc khoa (ví dụ khoa  là 'CT')
+    query += `
     gv_lien_quan AS (
         SELECT DISTINCT GiangVien
         FROM tableALL
@@ -876,6 +883,7 @@ WITH DoAnHopDongDuKien AS (
         ta.NoiCongTac,
         ta.BangTotNghiepLoai,
         ta.MonGiangDayChinh,
+        ta.isQuanDoi,
         MAX(TienMoiGiang) AS TienMoiGiang,
         SUM(ThanhTien) AS ThanhTien,
         SUM(Thue) AS Thue,
@@ -938,6 +946,7 @@ WITH DoAnHopDongDuKien AS (
         ta.NoiCongTac,
         ta.BangTotNghiepLoai,
         ta.MonGiangDayChinh,
+        ta.isQuanDoi,
         tsgv.TongSoTiet`;
 
     query += ` ORDER BY 
