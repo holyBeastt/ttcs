@@ -114,10 +114,10 @@ async function convertExcelToJSON(optsOrPath) {
         const cleanKey = String(colName ?? '').replace(/[\r\n]+/g, '').trim();
         let value = row?.[idx] ?? '';
         if (typeof value === 'string') value = value.replace(/[\r\n]+/g, '').trim();
-        
+
         // Map từ tên cột tiếng Việt sang key database (nếu có trong reverseTitleMap)
         const mappedKey = reverseTitleMap[cleanKey] || cleanKey;
-        
+
         // Bỏ qua cột STT khi import
         if (mappedKey !== 'STT') {
           obj[mappedKey] = value;
@@ -616,18 +616,18 @@ const importTableQC = async (jsonData, req) => {
   // console.log(dataGiangVien);
   // Tạo kết nối và thực hiện truy vấn chèn hàng loạt
   const connection = await createPoolConnection();
-  
+
   // Hàm format ngày từ string sang Date object hoặc null
   const formatDateValue = (dateValue) => {
     if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
       return null;
     }
-    
+
     // Nếu đã là Date object
     if (dateValue instanceof Date) {
       return dateValue;
     }
-    
+
     // Nếu là string, thử parse
     if (typeof dateValue === 'string') {
       // Format dd/mm/yyyy
@@ -641,17 +641,17 @@ const importTableQC = async (jsonData, req) => {
           return date;
         }
       }
-      
+
       // Thử parse ISO format hoặc các format khác
       const date = new Date(dateValue);
       if (!isNaN(date.getTime())) {
         return date;
       }
     }
-    
+
     return null;
   };
-  
+
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (
     Khoa,
@@ -726,7 +726,7 @@ const importTableQC = async (jsonData, req) => {
     // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
     const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;
     const ngayKetThuc = item["NgayKetThuc"] || item["Ngày kết thúc"] || null;
-    
+
     allValues.push([
       item["Khoa"] || null,
       item["Dot"] || null,
@@ -911,12 +911,12 @@ const importTableTam = async (jsonData) => {
     if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
       return null;
     }
-    
+
     // Nếu đã là Date object
     if (dateValue instanceof Date) {
       return dateValue;
     }
-    
+
     // Nếu là string, thử parse
     if (typeof dateValue === 'string') {
       // Format dd/mm/yyyy
@@ -930,14 +930,14 @@ const importTableTam = async (jsonData) => {
           return date;
         }
       }
-      
+
       // Thử parse ISO format hoặc các format khác
       const date = new Date(dateValue);
       if (!isNaN(date.getTime())) {
         return date;
       }
     }
-    
+
     return null;
   };
 
@@ -2419,7 +2419,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
         gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
     WHERE
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1
+        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1 AND gvmoi.isQuanDoi != 1
     GROUP BY
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
         gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
@@ -3087,7 +3087,7 @@ JOIN
     gvmoi ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gvmoi.HoTen
 WHERE
     qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.MoiGiang = 1
-    AND (gvmoi.isQuanDoi != 1 OR gvmoi.isQuanDoi IS NULL) 
+    AND gvmoi.isQuanDoi != 1
     AND he_dao_tao NOT LIKE '%Đại học%'   
 GROUP BY
     qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
