@@ -131,7 +131,7 @@ const getDuyetHopDongData = async (req, res) => {
           AND Dot=?
           AND ki=?
       ) da
-      JOIN gvmoi gv ON da.GiangVien = gv.HoTen
+      JOIN gvmoi gv ON da.GiangVien = gv.HoTen and gv.isQuanDoi != 1
       LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
       WHERE 1=1
     `;
@@ -527,7 +527,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     AND NamHoc = ?
                     AND Dot = ?
             ) da
-            JOIN gvmoi gv ON da.GiangVien = gv.HoTen
+            JOIN gvmoi gv ON da.GiangVien = gv.HoTen and gv.isQuanDoi != 1
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
             WHERE 1=1
         `;

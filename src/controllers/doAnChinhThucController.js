@@ -20,87 +20,6 @@ const {
 let tableData;
 let uniqueGV; // Danh sách giảng viên không bị trùng tên
 
-// Tạo mảng riêng để truyền dữ liệu giảng viên bị trùng
-// const getInfoGiangVien = async (req, res) => {
-//   let connection;
-//   try {
-//     connection = await createPoolConnection();
-
-//     // Lấy dữ liệu giảng viên mời
-//     let query = `SELECT HoTen, CCCD FROM GVMOI`;
-//     const [gvms] = await connection.query(query);
-
-//     // Lấy dữ liệu giảng viên cơ hữu
-//     query = `SELECT TenNhanVien, CCCD FROM NHANVIEN`;
-//     const [nvs] = await connection.query(query);
-
-//     // Gộp giảng viên mời và giảng viên cơ hữu vào 1 mảng để so sánh
-//     let arr = [];
-
-//     // Thêm giảng viên mời vào arr
-//     gvms.forEach((item) => {
-//       const normalizedName = item.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
-//       arr.push({
-//         HoTen: item.HoTen,
-//         CCCD: item.CCCD,
-//         BienChe: "Giảng viên mời", // Phân biệt loại
-//         HoTenReal: normalizedName,
-//       });
-//     });
-
-//     // Thêm nhân viên vào arr
-//     nvs.forEach((item) => {
-//       const normalizedName = item.TenNhanVien.replace(
-//         /\s*\(.*?\)\s*/g,
-//         ""
-//       ).trim();
-//       arr.push({
-//         HoTen: item.TenNhanVien,
-//         CCCD: item.CCCD,
-//         BienChe: "Cơ hữu", // Phân biệt loại
-//         HoTenReal: normalizedName,
-//       });
-//     });
-
-//     // Đếm số lần xuất hiện của mỗi tên chuẩn hóa
-//     const nameCount = {};
-
-//     arr.forEach((item) => {
-//       // Chuẩn hóa tên bằng cách loại bỏ nội dung trong ngoặc đơn
-//       const normalizedName = item.HoTen.replace(/\s*\(.*?\)\s*/g, "").trim();
-
-//       if (!nameCount[normalizedName]) {
-//         nameCount[normalizedName] = { count: 0, items: [] };
-//       }
-
-//       nameCount[normalizedName].count += 1;
-//       nameCount[normalizedName].items.push(item);
-//     });
-
-//     // Phân loại giảng viên thành trùng và không trùng
-//     const allGV = [];
-//     const duplicateGV = [];
-//     const uniqueGV = [];
-
-//     Object.values(nameCount).forEach((entry) => {
-//       allGV.push(...entry.items);
-//       if (entry.count > 1) {
-//         duplicateGV.push(...entry.items);
-//       } else {
-//         uniqueGV.push(...entry.items);
-//       }
-//     });
-
-//     // Trả về danh sách giảng viên trùng và không trùng
-//     return { duplicateGV, uniqueGV, allGV };
-//   } catch (error) {
-//     console.error("Error in duplicateGiangVien:", error);
-//     throw error;
-//   } finally {
-//     if (connection) connection.release();
-//   }
-// };
-
 const getInfoGiangVien = async (req, res) => {
   let connection;
   try {
@@ -1024,6 +943,7 @@ const getGVData = async () => {
         STK: item.STK,
         NganHang: item.NganHang,
         MonGiangDayChinh: item.MonGiangDayChinh,
+        isQuanDoi: item.isQuanDoi,
       })),
       ...nvs.map((item) => ({
         HoTen: item.TenNhanVien,
@@ -1045,6 +965,7 @@ const getGVData = async () => {
         STK: null,
         NganHang: null,
         MonGiangDayChinh: null,
+        isQuanDoi: null,
       })),
     ];
 
@@ -1162,11 +1083,6 @@ const saveToExportDoAn = async (req, res) => {
             isMoiGiang =
               item.GiangVien1.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
-            // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-            // const normalizedGV1 = GiangVien.replace(
-            //   /\s*\(.*?\)\s*/g,
-            //   ""
-            // ).trim();
             const normalizedGV1 = GiangVien.trim();
             matchedItem1 = allGV.find(
               (arr) => arr.HoTen.trim() == normalizedGV1
@@ -1177,6 +1093,10 @@ const saveToExportDoAn = async (req, res) => {
                 `\nKhông tìm thấy giảng viên 1: ${item.GiangVien1} của sinh viên ${item.SinhVien}`
               );
               return;
+            }
+
+            if (isMoiGiang === 1 && matchedItem1.isQuanDoi === 1) {
+              isMoiGiang = 0; // Giảng viên mời là quân đội
             }
           } else {
             // Chuẩn hóa tên giảng viên để so sánh (loại bỏ ngoặc)
@@ -1198,6 +1118,10 @@ const saveToExportDoAn = async (req, res) => {
             GiangVien = matchedItem1.HoTen.trim();
             CCCD = matchedItem1.CCCD;
             isMoiGiang = matchedItem1.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
+
+            if (isMoiGiang === 1 && matchedItem1.isQuanDoi === 1) {
+              isMoiGiang = 0; // Giảng viên mời là quân đội
+            }
           }
 
           let SoTiet = 20;
@@ -1254,15 +1178,21 @@ const saveToExportDoAn = async (req, res) => {
               isMoiGiang =
                 item.GiangVien2.split("-")[1].toLowerCase() == "cơ hữu" ? 0 : 1;
 
-              // Chuẩn hóa tên để tìm kiếm (loại bỏ ngoặc)
-              // const normalizedGV2 = GiangVien.replace(
-              //   /\s*\(.*?\)\s*/g,
-              //   ""
-              // ).trim();
               const normalizedGV2 = GiangVien.trim();
               matchedItem2 = allGV.find(
                 (arr) => arr.HoTen.trim() == normalizedGV2
               );
+
+              if (!matchedItem2) {
+                errors.push(
+                  `\nKhông tìm thấy giảng viên 2: ${item.GiangVien2} của sinh viên ${item.SinhVien}`
+                );
+                return;
+              }
+
+              if (isMoiGiang === 1 && matchedItem2.isQuanDoi === 1) {
+                isMoiGiang = 0; // Giảng viên mời là quân đội
+              }
             } else {
               // Chuẩn hóa tên giảng viên 2 để so sánh (loại bỏ ngoặc)
               // const normalizedGV2 = item.GiangVien2.replace(
@@ -1284,6 +1214,10 @@ const saveToExportDoAn = async (req, res) => {
 
               isMoiGiang =
                 matchedItem2.BienChe.toLowerCase() == "cơ hữu" ? 0 : 1;
+
+              if (isMoiGiang === 1 && matchedItem2.isQuanDoi === 1) {
+                isMoiGiang = 0; // Giảng viên mời là quân đội
+              }
             }
 
             SoTiet = 8; // Giảm số tiết cho giảng viên thứ 2

@@ -360,7 +360,7 @@ FROM
 JOIN 
   exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
 WHERE 
-  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
+  ed.Dot = ? AND ed.Ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
 GROUP BY 
   ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
   ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
@@ -404,7 +404,7 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
+    ed.Dot = ? AND ed.Ki = ?  AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.STK,ed.GioiTinh,
@@ -448,7 +448,7 @@ GROUP BY
   JOIN 
     exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
   WHERE 
-    ed.Dot = ? AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
+    ed.Dot = ? AND ed.Ki =? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
   GROUP BY 
     ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.HocVi, ed.ChucVu, 
     ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac,ed.STK, ed.GioiTinh,
@@ -1258,7 +1258,7 @@ const getExportData = async (
     JOIN 
       exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
     WHERE 
-      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ?
+      ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
     GROUP BY 
       ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
       ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
@@ -1303,7 +1303,7 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.MaPhongBan LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
       GROUP BY 
         ed.CCCD, gv.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
@@ -1348,7 +1348,7 @@ const getExportData = async (
       JOIN 
         exportdoantotnghiep ed ON gv.CCCD = ed.CCCD -- Merge qua cột CCCD
       WHERE 
-        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ?
+        ed.Dot = ? AND ed.ki = ? AND ed.NamHoc = ? AND gv.HoTen LIKE ? AND ed.he_dao_tao = ? and gv.isQuanDoi != 1
       GROUP BY 
         ed.CCCD, ed.DienThoai, ed.Email, ed.MaSoThue, ed.GiangVien, ed.NgaySinh, ed.NgayCapCCCD, ed.GioiTinh, ed.STK,
         ed.HocVi, ed.ChucVu, ed.HSL, ed.NoiCapCCCD, ed.DiaChi, ed.NganHang, ed.NoiCongTac, ed.Dot, ed.ki,
@@ -1393,7 +1393,7 @@ const getAppendixData = async (
           edt.CoSoDaoTao
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
-      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1
+      WHERE edt.Dot = ? AND edt.ki = ? AND edt.NamHoc = ? AND edt.he_dao_tao = ? AND edt.isMoiGiang = 1 and gv.isQuanDoi != 1
     `;
 
     let params = [dot, ki, namHoc, he_dao_tao];
