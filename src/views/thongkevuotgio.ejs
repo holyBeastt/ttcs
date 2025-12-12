@@ -581,6 +581,15 @@ $(document).ready(function () {
 
     // Hàm sort dữ liệu
     function sortTableData(column, khoa, hedaotao) {
+        // Tính total và totalSoTietGiangDay từ originalData để phần trăm chính xác
+        const total = originalData.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
+        let totalSoTietGiangDay;
+        if (currentType === "khoa" && khoa === 'ALL') {
+            totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
+        } else {
+            totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+        }
+        
         // Nếu click vào cùng cột
         if (currentSort.column === column) {
             // Chuyển trạng thái: none -> desc -> asc -> none
@@ -593,7 +602,7 @@ $(document).ready(function () {
                 currentSort.column = null;
                 currentSort.direction = null;
                 const baseData = getFilteredData(khoa, hedaotao);
-                renderTableData(baseData, khoa, hedaotao, 0, 0);
+                renderTableData(baseData, khoa, hedaotao, totalSoTietGiangDay, total);
                 updateSortIcons();
                 return;
             }
@@ -623,7 +632,7 @@ $(document).ready(function () {
             }
         });
 
-        renderTableData(sortedData, khoa, hedaotao, 0, 0);
+        renderTableData(sortedData, khoa, hedaotao, totalSoTietGiangDay, total);
         updateSortIcons();
     }
 
@@ -825,7 +834,15 @@ $(document).ready(function () {
         const hedaotao = document.getElementById('HeDaoTao').value;
         // Không gọi API, chỉ áp dụng trên dữ liệu hiện có
         const dataToRender = getFilteredData(khoa, hedaotao);
-        renderTableData(dataToRender, khoa, hedaotao, 0, 0);
+        // Tính total và totalSoTietGiangDay từ originalData để phần trăm chính xác
+        const total = originalData.reduce((sum, item) => sum + parseFloat(item.SoTietVuotGio || 0), 0);
+        let totalSoTietGiangDay;
+        if (currentType === "khoa" && khoa === 'ALL') {
+            totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTietall || 0), 0);
+        } else {
+            totalSoTietGiangDay = originalData.reduce((sum, item) => sum + parseFloat(item.TongSoTiet || 0), 0);
+        }
+        renderTableData(dataToRender, khoa, hedaotao, totalSoTietGiangDay, total);
         updateCharts(originalData, currentType, khoa, hedaotao);
         updateSortIcons();
     });

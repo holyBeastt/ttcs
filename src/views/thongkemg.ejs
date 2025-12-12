@@ -591,7 +591,7 @@
                 }
 
                 // Render dữ liệu (chỉ bảng)
-                renderTableData(dataToRender, khoa, currentType, hedaotao, 0);
+                renderTableData(dataToRender, khoa, currentType, hedaotao, total);
 
                 // Biểu đồ giữ nguyên dữ liệu gốc
                 updateCharts(originalData, khoa, currentType);
@@ -614,6 +614,10 @@
 
         // Hàm sort dữ liệu
         function sortTableData(column) {
+            // Lấy giá trị khoa và hedaotao ngay từ đầu
+            const khoa = document.getElementById('Khoa').value;
+            const hedaotao = document.getElementById('HeDaoTao').value;
+            
             // Nếu click vào cùng cột
             if (currentSort.column === column) {
                 // Chuyển trạng thái: none -> desc -> asc -> none
@@ -625,10 +629,10 @@
                     // Reset về trạng thái ban đầu
                     currentSort.column = null;
                     currentSort.direction = null;
-                    const khoa = document.getElementById('Khoa').value;
-                    const hedaotao = document.getElementById('HeDaoTao').value;
                     const filtered = getFilteredData(khoa, hedaotao);
-                    renderTableData(filtered, khoa, currentType, hedaotao, 0);
+                    // Tính total từ originalData để phần trăm chính xác
+                    const total = originalData.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+                    renderTableData(filtered, khoa, currentType, hedaotao, total);
                     updateSortIcons();
                     return;
                 }
@@ -652,9 +656,9 @@
                 }
             });
 
-            const khoa = document.getElementById('Khoa').value;
-            const hedaotao = document.getElementById('HeDaoTao').value;
-            renderTableData(sortedData, khoa, currentType, hedaotao, 0);
+            // Tính total từ originalData để phần trăm chính xác
+            const total = originalData.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+            renderTableData(sortedData, khoa, currentType, hedaotao, total);
             updateSortIcons();
         }
 
@@ -927,7 +931,9 @@
             const hedaotao = document.getElementById('HeDaoTao').value;
             // Không gọi API, chỉ áp dụng trên dữ liệu hiện có
             const dataToRender = getFilteredData(khoa, hedaotao);
-            renderTableData(dataToRender, khoa, currentType, hedaotao, 0);
+            // Tính total từ originalData để phần trăm chính xác
+            const total = originalData.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+            renderTableData(dataToRender, khoa, currentType, hedaotao, total);
             updateCharts(originalData, khoa, currentType);
             updateSortIcons();
         });
@@ -937,7 +943,9 @@
             const khoa = document.getElementById('Khoa').value;
             const hedaotao = document.getElementById('HeDaoTao').value;
             const dataToRender = getFilteredData(khoa, hedaotao);
-            renderTableData(dataToRender, khoa, currentType, hedaotao, 0);
+            // Tính total từ originalData để phần trăm chính xác
+            const total = originalData.reduce((sum, item) => sum + parseFloat(item.tongsotiet || 0), 0);
+            renderTableData(dataToRender, khoa, currentType, hedaotao, total);
             updateCharts(originalData, khoa, currentType);
             updateSortIcons();
         }
