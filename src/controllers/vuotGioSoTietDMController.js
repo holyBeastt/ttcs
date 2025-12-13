@@ -6,10 +6,10 @@ const renderSoTietDM = async (req, res) => {
   try {
     // Lấy dữ liệu hiện tại
     const [rows] = await pool.execute(
-      "SELECT GiangDay, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
+      "SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
     );
     res.render("vuotGioSoTietDM.ejs", {
-      currentData: rows[0] || { GiangDay: 0, VuotGio: 0, NCKH: 0 },
+      currentData: rows[0] || { GiangDay: 0, GiangDayChuaNghiHuu: 280, GiangDayDaNghiHuu: 560, VuotGio: 0, NCKH: 0 },
     });
   } catch (error) {
     console.error("Lỗi khi render trang soTietDM:", error);
@@ -23,10 +23,10 @@ const renderSoTietDM = async (req, res) => {
 const updateSoTietDM = async (req, res) => {
   const pool = await createPoolConnection();
   try {
-    const { soTietDaoTao, soTietVuotGio, soTietNCKH } = req.body;
+    const { soTietDaoTaoChuaNghiHuu, soTietDaoTaoDaNghiHuu, soTietVuotGio, soTietNCKH } = req.body;
 
     // Validate input
-    if (!soTietDaoTao || !soTietVuotGio || !soTietNCKH) {
+    if (!soTietDaoTaoChuaNghiHuu || !soTietDaoTaoDaNghiHuu || !soTietVuotGio || !soTietNCKH) {
       return res.status(400).json({
         success: false,
         message: "Vui lòng điền đầy đủ thông tin",
@@ -35,7 +35,7 @@ const updateSoTietDM = async (req, res) => {
 
     // Lấy dữ liệu cũ để so sánh thay đổi
     const [oldRecords] = await pool.execute(
-      "SELECT GiangDay, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
+      "SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
     );
     const oldData = oldRecords.length > 0 ? oldRecords[0] : null;
 
@@ -48,15 +48,15 @@ const updateSoTietDM = async (req, res) => {
     if (existingRows[0].count === 0) {
       // Nếu chưa có dữ liệu, thêm mới
       await pool.execute(
-        "INSERT INTO sotietdinhmuc (GiangDay, VuotGio, NCKH) VALUES (?, ?, ?)",
-        [soTietDaoTao, soTietVuotGio, soTietNCKH]
+        "INSERT INTO sotietdinhmuc (GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu, VuotGio, NCKH) VALUES (?, ?, ?, ?, ?)",
+        [soTietDaoTaoChuaNghiHuu, soTietDaoTaoChuaNghiHuu, soTietDaoTaoDaNghiHuu, soTietVuotGio, soTietNCKH]
       );
       isInsert = true;
     } else {
       // Nếu đã có dữ liệu, cập nhật
       await pool.execute(
-        "UPDATE sotietdinhmuc SET GiangDay = ?, VuotGio = ?, NCKH = ?",
-        [soTietDaoTao, soTietVuotGio, soTietNCKH]
+        "UPDATE sotietdinhmuc SET GiangDay = ?, GiangDayChuaNghiHuu = ?, GiangDayDaNghiHuu = ?, VuotGio = ?, NCKH = ?",
+        [soTietDaoTaoChuaNghiHuu, soTietDaoTaoChuaNghiHuu, soTietDaoTaoDaNghiHuu, soTietVuotGio, soTietNCKH]
       );
     }
 
@@ -75,12 +75,15 @@ const updateSoTietDM = async (req, res) => {
     let noiDungThayDoi;
     if (isInsert) {
       // Ghi log thêm mới
-      noiDungThayDoi = `Admin thêm số tiết định mức: Giảng dạy ${soTietDaoTao}, Vượt giờ ${soTietVuotGio}, NCKH ${soTietNCKH}`;
+      noiDungThayDoi = `Admin thêm số tiết định mức: Giảng dạy (Chưa nghỉ hưu) ${soTietDaoTaoChuaNghiHuu}, Giảng dạy (Đã nghỉ hưu) ${soTietDaoTaoDaNghiHuu}, Vượt giờ ${soTietVuotGio}, NCKH ${soTietNCKH}`;
     } else {
       // Ghi log cập nhật với so sánh chi tiết
       let changes = [];
-      if (oldData.GiangDay != soTietDaoTao) {
-        changes.push(`GiangDay: "${oldData.GiangDay}" -> "${soTietDaoTao}"`);
+      if (oldData.GiangDayChuaNghiHuu != soTietDaoTaoChuaNghiHuu) {
+        changes.push(`GiangDay (Chưa nghỉ hưu): "${oldData.GiangDayChuaNghiHuu}" -> "${soTietDaoTaoChuaNghiHuu}"`);
+      }
+      if (oldData.GiangDayDaNghiHuu != soTietDaoTaoDaNghiHuu) {
+        changes.push(`GiangDay (Đã nghỉ hưu): "${oldData.GiangDayDaNghiHuu}" -> "${soTietDaoTaoDaNghiHuu}"`);
       }
       if (oldData.VuotGio != soTietVuotGio) {
         changes.push(`VuotGio: "${oldData.VuotGio}" -> "${soTietVuotGio}"`);
@@ -122,7 +125,7 @@ const getSoTietDM = async (req, res) => {
   try {
     // Lấy dữ liệu hiện tại
     const [rows] = await pool.execute(
-      "SELECT GiangDay, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
+      "SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu, VuotGio, NCKH FROM sotietdinhmuc LIMIT 1"
     );
     const [rows1] = await pool.execute(
       "SELECT *FROM nhanvien WHERE TenNhanVien = ? ", [TenNhanVien]

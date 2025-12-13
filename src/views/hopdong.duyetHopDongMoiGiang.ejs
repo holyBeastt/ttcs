@@ -878,6 +878,9 @@
         data: params,
         success: function(response) {
           if (response.groupedByTeacher && Object.keys(response.groupedByTeacher).length > 0) {
+            // Lưu response để dùng cho các hàm khác
+            window.currentResponse = response;
+            
             displayContractDataInSeparateTables(
               response.groupedByTeacher,
               response.enhancedGroupedByTeacher,
@@ -933,6 +936,9 @@
           if (response.data && response.data.length > 0) {
             showSuccess(`Tải dữ liệu thành công! Tìm thấy ${response.data.length} hệ đào tạo. Xem chi tiết trong bảng bên dưới.`);
 
+            // Lưu response để dùng cho các hàm khác
+            window.currentResponse = response;
+            
             // Hiển thị bảng hệ đào tạo
             displayHeDaoTaoData(response.data, response.enhancedData, response.SoTietDinhMuc, response.totalsByHeDaoTao);
           } else {
@@ -950,6 +956,10 @@
       });
     } // Function to display training program data in grouped format
     function displayHeDaoTaoData(data, enhancedData, SoTietDinhMuc, serverTotals) {
+      // Lưu biến global để dùng cho các hàm khác
+      window.SoTietDinhMucChuaNghiHuu = window.currentResponse?.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
+      window.SoTietDinhMucDaNghiHuu = window.currentResponse?.SoTietDinhMucDaNghiHuu || 560;
+      
       // Hide teacher table and show only training program table
       hideAllTables(); // Use helper function
 
@@ -1129,11 +1139,21 @@
         giangVienList.forEach((gv, index) => {
           // Get teacher's approval status
           const teacherStatus = getApprovalStatus(gv.TaiChinhDuyet);
+          
+          // Debug: Log teacher data
+          console.log('[DEBUG View] Teacher:', gv.HoTen, 'isNghiHuu:', gv.isNghiHuu, 'SoTiet:', gv.SoTiet);
+          
+          // Xác định định mức và hiển thị tên
+          const isNghiHuu = gv.isNghiHuu == 1;
+          const dinhMucGV = isNghiHuu ? window.SoTietDinhMucDaNghiHuu : window.SoTietDinhMucChuaNghiHuu;
+          const displayName = isNghiHuu ? `${gv.HoTen} (Đã nghỉ hưu)` : gv.HoTen;
+          const rowClass = (parseFloat(gv.SoTiet) || 0) > dinhMucGV ? 'alert-sotiet' : '';
+          
           const teacherRow = $(`
-              <tr>
+              <tr class="${rowClass}">
                 <td>${index + 1}</td>
                 <td>${gv.GioiTinh && gv.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà"}</td>
-                <td><strong>${gv.HoTen}</strong></td>
+                <td><strong>${displayName}</strong></td>
                 <td>${gv.MaPhongBan || gv.TenPhongBan || 'N/A'}</td>                <td>${gv.HocVi || 'N/A'}</td>
                 <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
                 <td>${formatSoTiet(gv.SoTiet)}</td>
@@ -1216,9 +1236,13 @@
 
       // Display quota information
       if (SoTietDinhMuc > 0) {
+        const chuaNghiHuu = window.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
+        const daNghiHuu = window.SoTietDinhMucDaNghiHuu || 560;
         $('#quotaInfo').html(`
             <div class="alert alert-info">
-              Định mức giảng dạy: <strong>${SoTietDinhMuc}</strong> tiết/năm
+              <strong>Định mức giảng dạy:</strong><br>
+              • Giảng viên chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm<br>
+              • Giảng viên đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
             </div>
           `);
       } // Show training program results table 
@@ -1388,6 +1412,9 @@
     }
     // Enhanced display function with training program breakdown
     function displayContractDataInSeparateTables(groupedByTeacher, enhancedGroupedByTeacher, SoTietDinhMuc, serverTotals) {
+      // Lưu biến global
+      window.SoTietDinhMucChuaNghiHuu = window.currentResponse?.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
+      window.SoTietDinhMucDaNghiHuu = window.currentResponse?.SoTietDinhMucDaNghiHuu || 560;
 
       console.log("Grouped by teacher data: ", groupedByTeacher);
       console.log("Enhanced grouped by teacher data: ", enhancedGroupedByTeacher);
@@ -1437,6 +1464,9 @@
         const courses = groupedByTeacher[teacherName];
         const teacherData = courses[0]; // Get teacher info from first course
         const enhancedData = enhancedGroupedByTeacher ? enhancedGroupedByTeacher[teacherName] : null;
+        
+        // Lấy thông tin giảng viên từ enhancedData nếu có, fallback về teacherData
+        const teacherInfo = enhancedData && enhancedData.teacherInfo ? enhancedData.teacherInfo : teacherData;
 
         // Calculate total hours for this teacher
         const totalTeacherHours = courses.reduce((total, course) => total + (parseFloat(course.SoTiet) || 0), 0);
@@ -1501,7 +1531,9 @@
           SoHopDong: teacherData.SoHopDong,
           loaiHopDong: teacherData.he_dao_tao || $('#loaiHopDong').val(),
           MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
-          TenPhongBan: teacherData.TenPhongBan, // Add enhanced training program data
+          TenPhongBan: teacherData.TenPhongBan,
+          isNghiHuu: teacherInfo.isNghiHuu, // Lấy từ teacherInfo (có thể là enhancedData hoặc teacherData)
+          // Add enhanced training program data
           trainingPrograms: enhancedData ? enhancedData.trainingPrograms : [],
           hasEnhancedData: !!enhancedData,
           // Add approval status - kiểm tra cả trong trainingPrograms
@@ -1541,11 +1573,21 @@
             return 'Chưa duyệt';
           }
         };
+        
+        // Debug: Log merged data
+        console.log('[DEBUG Summary] Teacher:', mergedData.GiangVien, 'isNghiHuu:', mergedData.isNghiHuu, 'TongSoTiet:', mergedData.TongSoTiet);
+        
+        // Xác định định mức và hiển thị tên
+        const isNghiHuu = mergedData.isNghiHuu == 1;
+        const dinhMucGV = isNghiHuu ? window.SoTietDinhMucDaNghiHuu : window.SoTietDinhMucChuaNghiHuu;
+        const displayTeacherName = isNghiHuu ? `${mergedData.GiangVien} (Đã nghỉ hưu)` : mergedData.GiangVien;
+        const shouldHighlight = (parseFloat(mergedData.TongSoTiet) || 0) > dinhMucGV;
+        
         const summaryRow = `
-            <tr ${mergedData.TongSoTiet > SoTietDinhMuc ? 'class="alert-sotiet"' : ''}>
+            <tr ${shouldHighlight ? 'class="alert-sotiet"' : ''}>
               <td>${rowIndex}</td>
               <td>${mergedData.GioiTinh.toLowerCase() == "nam" ? "Ông" : "Bà"}</td>
-              <td>${mergedData.GiangVien}</td>
+              <td>${displayTeacherName}</td>
               <td>${mergedData.MaPhongBan || 'Chưa xác định'}</td>
               <td>${mergedData.HocVi || 'N/A'}</td>
               <td>${(() => {
@@ -1638,9 +1680,13 @@
       
       totalElement.innerHTML = totalHtml; // Display quota information
       if (SoTietDinhMuc > 0) {
+        const chuaNghiHuu = window.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
+        const daNghiHuu = window.SoTietDinhMucDaNghiHuu || 560;
         $('#quotaInfo').html(`
             <div class="alert alert-info">
-              Định mức giảng dạy: <strong>${SoTietDinhMuc}</strong> tiết/năm
+              <strong>Định mức giảng dạy:</strong><br>
+              • Giảng viên chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm<br>
+              • Giảng viên đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
             </div>
           `);
       } // Show teacher results table and hide training program table

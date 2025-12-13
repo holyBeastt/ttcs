@@ -79,9 +79,14 @@
           <div class="card-body">
             <form id="soTietForm">
               <div class="mb-3">
-                <label for="gioGiangDay" class="form-label">Số tiết giảng dạy</label>
-                <input type="number" class="form-control" id="gioGiangDay" name="gioGiangDay" 
-                    value="<%= currentData.GiangDay %>" required>
+                <label for="gioGiangDayChuaNghiHuu" class="form-label">Số tiết giảng dạy (Giảng viên CHƯA nghỉ hưu)</label>
+                <input type="number" class="form-control" id="gioGiangDayChuaNghiHuu" name="gioGiangDayChuaNghiHuu" 
+                    value="<%= currentData.GiangDayChuaNghiHuu || currentData.GiangDay || 280 %>" required>
+              </div>
+              <div class="mb-3">
+                <label for="gioGiangDayDaNghiHuu" class="form-label">Số tiết giảng dạy (Giảng viên ĐÃ nghỉ hưu)</label>
+                <input type="number" class="form-control" id="gioGiangDayDaNghiHuu" name="gioGiangDayDaNghiHuu" 
+                    value="<%= currentData.GiangDayDaNghiHuu || 560 %>" required>
               </div>
               <div class="mb-3">
                 <label for="gioVuotGio" class="form-label">Số tiết vượt giờ</label>
@@ -133,7 +138,8 @@ document.getElementById('soTietForm').addEventListener('submit', async function(
     submitButton.disabled = true;
     
     const formData = {
-        soTietDaoTao: document.getElementById('gioGiangDay').value,
+        soTietDaoTaoChuaNghiHuu: document.getElementById('gioGiangDayChuaNghiHuu').value,
+        soTietDaoTaoDaNghiHuu: document.getElementById('gioGiangDayDaNghiHuu').value,
         soTietVuotGio: document.getElementById('gioVuotGio').value,
         soTietNCKH: document.getElementById('gioNCKH').value
     };

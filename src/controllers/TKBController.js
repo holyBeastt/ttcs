@@ -7,11 +7,11 @@ const path = require("path");
 const tkbServices = require("../services/tkbServices");
 
 const getImportTKBSite = async (req, res) => {
-  res.render("importTKB.ejs");
+  res.render("tkb.themTKB.ejs");
 };
 
 const getTKBChinhThucSite = async (req, res) => {
-  res.render("TKBChinhThuc.ejs");
+  res.render("tkb.thoiKhoaBieuChinhThuc.ejs");
 };
 
 const getDataTKBChinhThuc = async (req, res) => {
