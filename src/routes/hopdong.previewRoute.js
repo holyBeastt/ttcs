@@ -12,6 +12,5 @@ router.post('/preview-contract-api', previewController.showPreviewPageAPI);
 
 // API routes
 router.post('/api/preview-contract', previewController.previewContract);
-router.post('/api/download-contract', previewController.downloadContract);
 
 module.exports = router;

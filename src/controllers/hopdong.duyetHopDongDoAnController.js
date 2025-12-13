@@ -50,6 +50,7 @@ const getDuyetHopDongData = async (req, res) => {
         gv.STK,
         gv.NganHang,
         gv.MaPhongBan,
+        gv.isNghiHuu,
         da.MaPhongBan AS MaKhoaMonHoc,
         SUM(da.SoTiet) AS SoTiet,
         COALESCE('Đại học','Đại học') AS he_dao_tao,
@@ -147,7 +148,7 @@ const getDuyetHopDongData = async (req, res) => {
         gv.id_Gvm, gv.HoTen, da.MaPhongBan, pb.TenPhongBan,
         gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD,
         gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL,
-        gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan,
+        gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
         da.NamHoc, da.Dot, da.ki,
         gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep,
         gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
@@ -155,6 +156,16 @@ const getDuyetHopDongData = async (req, res) => {
     `;
 
         const [results] = await connection.query(query, params);
+
+        // DEBUG: Log raw database results to check isNghiHuu field
+        if (results.length > 0) {
+            console.log('[DEBUG CONTROLLER] First result from DB:', {
+                HoTen: results[0].HoTen,
+                isNghiHuu: results[0].isNghiHuu,
+                isNghiHuuType: typeof results[0].isNghiHuu,
+                allKeys: Object.keys(results[0])
+            });
+        }
 
         // 1) Gom nhóm theo giảng viên với breakdown chương trình
         const groupedByTeacher = results.reduce((acc, cur) => {
@@ -177,6 +188,7 @@ const getDuyetHopDongData = async (req, res) => {
                         STK: cur.STK,
                         NganHang: cur.NganHang,
                         MaPhongBan: cur.MaPhongBan,
+                        isNghiHuu: cur.isNghiHuu,
                         NgayCapCCCD: cur.NgayCapCCCD,
                         DiaChi: cur.DiaChi,
                         BangTotNghiep: cur.BangTotNghiep,
@@ -254,14 +266,18 @@ const getDuyetHopDongData = async (req, res) => {
         }
 
         // 5) Lấy SoTietDinhMuc
-        const [sotietResult] = await connection.query(`SELECT GiangDay FROM sotietdinhmuc LIMIT 1`);
+        const [sotietResult] = await connection.query(`SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu FROM sotietdinhmuc LIMIT 1`);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
+        const SoTietDinhMucChuaNghiHuu = sotietResult[0]?.GiangDayChuaNghiHuu || SoTietDinhMuc || 280;
+        const SoTietDinhMucDaNghiHuu = sotietResult[0]?.GiangDayDaNghiHuu || 560;
 
         // console.log(enhancedGroupedByTeacher);
         return res.json({
             groupedByTeacher: simplifiedGroupedByTeacher,
             enhancedGroupedByTeacher,
             SoTietDinhMuc,
+            SoTietDinhMucChuaNghiHuu,
+            SoTietDinhMucDaNghiHuu,
         });
 
     } catch (error) {
@@ -564,6 +580,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     gv.STK,
                     gv.NganHang,
                     gv.MaPhongBan,
+                    gv.isNghiHuu,
                     pb.TenPhongBan,
                     
                     SUM(da.SoTiet) AS SoTiet,
@@ -629,11 +646,23 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 GROUP BY
                     gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
                     gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-                    gv.STK, gv.NganHang, gv.MaPhongBan, pb.TenPhongBan
+                    gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu, pb.TenPhongBan
                 ORDER BY SoTiet DESC, gv.HoTen
             `; const [teacherDetails] = await connection.query(teacherQueryWithFilter, teacherParams);
 
-            // Debug: Check HSL in database results
+            // DEBUG: Check isNghiHuu and HSL in database results
+            if (teacherDetails.length > 0) {
+                console.log('[DEBUG CONTROLLER HE DAO TAO] First teacher from DB:', {
+                    teacher: teacherDetails[0].HoTen,
+                    isNghiHuu: teacherDetails[0].isNghiHuu,
+                    isNghiHuuType: typeof teacherDetails[0].isNghiHuu,
+                    HSL: teacherDetails[0].HSL,
+                    HSLType: typeof teacherDetails[0].HSL,
+                    allKeys: Object.keys(teacherDetails[0])
+                });
+            }
+            
+            // Original HSL debug
             if (teacherDetails.length > 0) {
                 console.log('Database HSL Debug for first teacher:', {
                     teacher: teacherDetails[0].HoTen,
@@ -652,9 +681,11 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         }
 
         // Get SoTietDinhMuc
-        const sotietQuery = `SELECT GiangDay FROM sotietdinhmuc LIMIT 1`;
+        const sotietQuery = `SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
-        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0; res.json({
+        const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
+        const SoTietDinhMucChuaNghiHuu = sotietResult[0]?.GiangDayChuaNghiHuu || SoTietDinhMuc || 280;
+        const SoTietDinhMucDaNghiHuu = sotietResult[0]?.GiangDayDaNghiHuu || 560; res.json({
             success: true,
             data: results,
             enhancedData: enhancedResults,  // Include detailed data with teacher information
@@ -781,138 +812,6 @@ const checkContractSaveStatus = async (req, res) => {
 };
 
 /**
- * Debug function to compare results between two functions
- */
-const debugCompareQueries = async (req, res) => {
-    let connection;
-    try {
-        connection = await createPoolConnection();
-        const { dot, ki, namHoc, maPhongBan } = req.body;
-
-        console.log("🔍 DEBUG: Comparing queries for:", { dot, ki, namHoc, maPhongBan });
-
-        // Query 1: getDuyetHopDongData style - detailed by teacher
-        const detailQuery = `
-            SELECT
-                gv.HoTen,
-                SUM(da.SoTiet) AS SoTiet,
-                COUNT(*) as RecordCount
-            FROM (
-                SELECT
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                    CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
-                        ELSE 12
-                    END AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien1 IS NOT NULL
-                    AND GiangVien1 != ''
-                    AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ? AND Dot = ? AND ki = ?
-                
-                UNION ALL
-                
-                SELECT
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                    8 AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien2 IS NOT NULL 
-                    AND GiangVien2 != 'không'
-                    AND GiangVien2 != ''
-                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ? AND Dot = ? AND ki = ?
-            ) da
-            JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-            WHERE 1=1
-            ${maPhongBan && maPhongBan !== "ALL" ? "AND da.MaPhongBan = ?" : ""}
-            GROUP BY gv.HoTen
-            ORDER BY SoTiet DESC
-        `;
-
-        // Query 2: getDuyetHopDongTheoHeDaoTao style - total summary
-        const summaryQuery = `
-            SELECT
-                SUM(da.SoTiet) AS TotalSoTiet,
-                COUNT(DISTINCT da.GiangVien) AS UniqueTeachers,
-                COUNT(*) as TotalRecords
-            FROM (
-                SELECT
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-                    CASE 
-                        WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
-                        ELSE 12
-                    END AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien1 IS NOT NULL
-                    AND GiangVien1 != ''
-                    AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ? AND Dot = ? AND ki = ?
-                
-                UNION ALL
-                
-                SELECT
-                    MaPhongBan,
-                    TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-                    8 AS SoTiet
-                FROM doantotnghiep
-                WHERE GiangVien2 IS NOT NULL 
-                    AND GiangVien2 != 'không'
-                    AND GiangVien2 != ''
-                    AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-                    AND NamHoc = ? AND Dot = ? AND ki = ?
-            ) da
-            JOIN gvmoi gv ON da.GiangVien = gv.HoTen
-            WHERE 1=1
-            ${maPhongBan && maPhongBan !== "ALL" ? "AND da.MaPhongBan = ?" : ""}
-        `;
-
-        let params1 = [namHoc, dot, ki, namHoc, dot, ki];
-        let params2 = [namHoc, dot, ki, namHoc, dot, ki];
-
-        if (maPhongBan && maPhongBan !== "ALL") {
-            params1.push(maPhongBan);
-            params2.push(maPhongBan);
-        }
-
-        const [detailResults] = await connection.query(detailQuery, params1);
-        const [summaryResults] = await connection.query(summaryQuery, params2);
-
-        // Calculate total from detail results
-        const calculatedTotal = detailResults.reduce((sum, row) => sum + parseFloat(row.SoTiet), 0);
-
-        console.log("📊 DETAIL RESULTS:", detailResults);
-        console.log("📈 SUMMARY RESULTS:", summaryResults[0]);
-        console.log("🧮 CALCULATED TOTAL from details:", calculatedTotal);
-
-        res.json({
-            success: true,
-            detailResults: detailResults,
-            summaryResults: summaryResults[0],
-            calculatedTotalFromDetails: calculatedTotal,
-            comparison: {
-                match: Math.abs(calculatedTotal - summaryResults[0].TotalSoTiet) < 0.01,
-                difference: calculatedTotal - summaryResults[0].TotalSoTiet
-            }
-        });
-
-    } catch (error) {
-        console.error("❌ Error in debugCompareQueries:", error);
-        res.status(500).json({
-            success: false,
-            message: "Debug error",
-            error: error.message
-        });
-    } finally {
-        if (connection) {
-            connection.release();
-        }
-    }
-};
-
-/**
  * Check contract financial approval status based on filter conditions
  */
 const checkContractFinancialApprovalStatus = async (req, res) => {
@@ -998,6 +897,5 @@ module.exports = {
     approveContracts,
     unapproveContracts,
     checkContractSaveStatus,
-    checkContractFinancialApprovalStatus,
-    debugCompareQueries
+    checkContractFinancialApprovalStatus
 };

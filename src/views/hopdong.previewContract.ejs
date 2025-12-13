@@ -226,12 +226,9 @@
                 <!-- Action Buttons -->
                 <div class="mt-3 pt-3 border-top" id="action-buttons" style="display: none;">
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="closePreview()">
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="closePreview()">
                             <i class="fas fa-times me-1"></i>Đóng
                         </button>
-                        <!-- <button type="button" class="btn btn-primary btn-sm flex-fill" id="download-btn" onclick="downloadContract()">
-                            <i class="fas fa-download me-1"></i>Tải xuống
-                        </button> -->
                     </div>
                 </div>
             </div>
@@ -296,7 +293,6 @@
     
     <script>
         // Global variables
-        let currentContractBuffer = null;
         let currentContractType = '';
         const teacherData = <%- JSON.stringify(teacherData || {}) %>;
         
@@ -462,9 +458,6 @@
                         // Hide loading
                         $('#loading-state').hide();
                         
-                        // Store buffer for download (DOCX)
-                        currentContractBuffer = data;
-                        
                         // Show PDF preview in iframe
                         const pdfViewer = document.getElementById('pdf-viewer');
                         const blob = new Blob([data], { type: 'application/pdf' });
@@ -494,72 +487,9 @@
                     showError(errorMessage);
                 }
             });
-        }        function downloadContract() {
-            if (!currentContractType) {
-                alert('Vui lòng chọn và xem trước hợp đồng trước khi tải xuống');
-                return;
-            }
-            
-            // Get current contract type from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
-            
-            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
-            let actualHeHopDong = currentContractType;
-            if (currentLoaiHopDong === 'Đồ án') {
-                actualHeHopDong = 'Đồ án';
-            }
-            
-            // Prepare data for download API call - include teacherData
-            const downloadData = {
-                teacherId: '<%= teacherId || "" %>',
-                heHopDong: actualHeHopDong,
-                dot: '<%= dot || "" %>',
-                ki: '<%= ki || "" %>',
-                namHoc: '<%= namHoc || "" %>',
-                teacherData: JSON.stringify(teacherData)
-            };
-            
-            // Create a form to submit download request
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/api/download-contract';
-            form.style.display = 'none';
-            
-            // Add form data
-            for (const key in downloadData) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = downloadData[key];
-                form.appendChild(input);
-            }
-            
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-            
-            // Show success message
-            const toast = $(`
-                <div class="toast position-fixed bottom-0 end-0 m-3" role="alert">
-                    <div class="toast-header bg-success text-white">
-                        <strong class="me-auto">Thành công</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                    </div>
-                    <div class="toast-body">
-                        Đang tải xuống hợp đồng...
-                    </div>
-                </div>
-            `);
-            $('body').append(toast);
-            new bootstrap.Toast(toast[0]).show();
-            
-            // Remove toast after it's hidden
-            toast.on('hidden.bs.toast', function() {
-                $(this).remove();
-            });
         }
-          // Currency formatting function
+        
+        // Currency formatting function
         function formatCurrency(value) {
             if (typeof value === "number" && !isNaN(value)) {
                 return value.toLocaleString("vi-VN", {

@@ -1177,6 +1177,5 @@ module.exports = {
   previewContract,
   showPreviewPage,
   showPreviewPageAPI,
-  showUnifiedPreviewPage, // Add new unified function
-  downloadContract,
+  showUnifiedPreviewPage,
 };
