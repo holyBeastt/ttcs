@@ -468,391 +468,240 @@ const getHDGvmData = async (req, res) => {
 };
 
 // classInfoGVMController lấy hàm này
+// const getHopDongDuKienData = async (req, res) => {
+//   let connection;
+//   try {
+//     connection = await createPoolConnection();
+//     const MaPhongBan = req.session.MaPhongBan;
+//     // Lấy dữ liệu từ session
+//     const isKhoa = req.session.isKhoa;
+
+//     // Lấy dữ liệu từ front-end gửi
+//     const namHoc = req.query.namHoc;
+//     const dot = req.query.dot;
+//     let ki = req.query.ki;
+//     const he_dao_tao = req.query.he_dao_tao;
+//     let khoa = req.query.khoa;
+
+//     // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
+//     if (isKhoa == 1) {
+//       khoa = req.session.MaPhongBan;
+//     }
+//     let params = [];
+
+//     query += `
+//     gv_lien_quan AS (
+//         SELECT DISTINCT GiangVien
+//         FROM tableALL
+//         WHERE tableALL.MaKhoaMonHoc LIKE ?  `;
+
+//     params.push(khoa);
+//     // Nếu không phải là cả năm
+//     if (ki !== "AllKi") {
+//       query += " AND dot = ? AND KiHoc = ?";
+//       params.push(dot, ki);
+//     }
+
+//     query += `)
+//     SELECT 
+//         MIN(ta.Dot) AS Dot,
+//         MIN(ta.KiHoc) AS KiHoc,
+//         ta.NamHoc,
+//         ta.id_Gvm,
+//         ta.GiangVien,
+//         MIN(ta.he_dao_tao) as he_dao_tao,
+//         MIN(ta.NgayBatDau) AS NgayBatDau,
+//         MAX(ta.NgayKetThuc) AS NgayKetThuc,
+//         SUM(ta.SoTiet) AS TongTiet,
+//         ta.GioiTinh,
+//         ta.NgaySinh,
+//         ta.CCCD,
+//         ta.NoiCapCCCD,
+//         ta.Email,
+//         ta.MaSoThue,
+//         ta.HocVi,
+//         ta.ChucVu,
+//         ta.HSL,
+//         ta.DienThoai,
+//         ta.STK,
+//         ta.NganHang,
+//         ta.MaPhongBan,
+//         MIN(ta.MaKhoaMonHoc) AS MaKhoaMonHoc,
+//         ta.NgayCapCCCD,
+//         ta.DiaChi,
+//         ta.BangTotNghiep, 
+//         ta.NoiCongTac,
+//         ta.BangTotNghiepLoai,
+//         ta.MonGiangDayChinh,
+//         ta.isQuanDoi,
+//         MAX(TienMoiGiang) AS TienMoiGiang,
+//         SUM(ThanhTien) AS ThanhTien,
+//         SUM(Thue) AS Thue,
+//         SUM(ThucNhan) AS ThucNhan,
+//         tsgv.TongSoTiet
+//     FROM
+//         tableALL ta
+//     LEFT JOIN 
+//         TongSoTietGV tsgv 
+//     ON 
+//         ta.GiangVien = tsgv.GiangVien
+//     `;
+
+//     if (khoa !== "ALL") {
+//       query += " JOIN gv_lien_quan ON gv_lien_quan.GiangVien = ta.GiangVien";
+//     }
+
+//     query += `
+//     where namhoc = ?`;
+//     params.push(namHoc);
+
+//     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
+//     if (ki !== "AllKi") {
+//       query += " AND dot = ? AND KiHoc = ?";
+//       params.push(dot, ki);
+//     }
+
+//     // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
+//     if (he_dao_tao !== "AllHe") {
+//       query += " AND he_dao_tao = ?";
+//       params.push(he_dao_tao);
+//     }
+
+//     // if (khoa !== "ALL") {
+//     //   query += " AND MaPhongBan =?";
+//     //   params.push(khoa);
+//     // }
+
+//     query += `
+//     GROUP BY 
+//         ta.NamHoc,
+//         ta.id_Gvm,
+//         ta.GiangVien,
+//         ta.GioiTinh,
+//         ta.NgaySinh,
+//         ta.CCCD,
+//         ta.NoiCapCCCD,
+//         ta.Email,
+//         ta.MaSoThue,
+//         ta.HocVi,
+//         ta.ChucVu,
+//         ta.HSL,
+//         ta.DienThoai,
+//         ta.STK,
+//         ta.NganHang,
+//         ta.MaPhongBan,
+//         ta.NgayCapCCCD,
+//         ta.DiaChi,
+//         ta.BangTotNghiep, 
+//         ta.NoiCongTac,
+//         ta.BangTotNghiepLoai,
+//         ta.MonGiangDayChinh,
+//         ta.isQuanDoi,
+//         tsgv.TongSoTiet`;
+
+//     query += ` ORDER BY 
+//       tsgv.TongSoTiet DESC;`;
+
+//     const [rows] = await connection.execute(query, params);
+
+//     // Lấy số tiết định mức
+//     query = `select GiangDay from sotietdinhmuc`;
+//     const [SoTietDinhMucRow] = await connection.query(query);
+
+//     // Lấy tiền mời giảng ứng với mỗi hệ đào tạo
+
+//     const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
+//     const result = { dataDuKien: rows, SoTietDinhMuc };
+//     // Trả dữ liệu về client dưới dạng JSON
+//     res.status(200).json(result);
+//   } catch (error) {
+//     console.error("Error fetching HD Gvm data:", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   } finally {
+//     if (connection) connection.release(); // Trả lại connection cho pool
+//   }
+// };
+
+const { CTE_DO_AN, CTE_DAI_HOC, CTE_SAU_DAI_HOC, CTE_TABLE_ALL } = require('../queries/hopdongQueries'); // Import vào
+
 const getHopDongDuKienData = async (req, res) => {
   let connection;
   try {
-    connection = await createPoolConnection();
-    const MaPhongBan = req.session.MaPhongBan;
-    // Lấy dữ liệu từ session
-    const isKhoa = req.session.isKhoa;
+    // 1. Chuẩn bị dữ liệu đầu vào
+    const { MaPhongBan, isKhoa } = req.session;
+    const { namHoc, dot, ki, he_dao_tao } = req.query;
+    let { khoa } = req.query;
 
-    // Lấy dữ liệu từ front-end gửi
-    const namHoc = req.query.namHoc;
-    const dot = req.query.dot;
-    let ki = req.query.ki;
-    const he_dao_tao = req.query.he_dao_tao;
-    let khoa = req.query.khoa;
-
-    // Nếu là khoa thì chỉ lấy dữ liệu khoa đó
+    // Nếu là tài khoản Khoa, bắt buộc lọc theo Khoa của họ
     if (isKhoa == 1) {
-      khoa = req.session.MaPhongBan;
+      khoa = MaPhongBan;
     }
-    let params = [];
 
-    let query = `
-WITH DoAnHopDongDuKien AS (
-  SELECT
-    gv.id_Gvm,
-    gv.HoTen AS GiangVien,
-    gv.GioiTinh,
-    gv.Email,
-    gv.NgaySinh,
-    gv.CCCD,
-    gv.NoiCapCCCD,
-    gv.MaSoThue,
-    gv.HocVi,
-    gv.ChucVu,
-    gv.HSL,
-    gv.DienThoai,
-    gv.STK,
-    gv.NganHang,
-    gv.MaPhongBan,
-    Combined.MaPhongBan AS MaKhoaMonHoc,
-    Combined.he_dao_tao,
-    gv.isQuanDoi,
-    NgayBatDau,
-    NgayKetThuc,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END AS SoTiet,
-    Dot,
-    ki AS KiHoc,
-    NamHoc,
-    gv.NgayCapCCCD,
-    gv.DiaChi,
-    gv.BangTotNghiep, 
-    gv.NoiCongTac,
-    gv.BangTotNghiepLoai,
-    gv.MonGiangDayChinh,
-    100000 AS TienMoiGiang,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 AS ThanhTien,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 * 0.1 AS Thue,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 * 0.9 AS ThucNhan
+    connection = await createPoolConnection();
 
-  FROM (
-    SELECT
-      NgayBatDau,
-      NgayKetThuc,
-      MaPhongBan,
-      he_dao_tao,
-      TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-      GiangVien2,
-      'GV1' AS Nguon,
-      Dot,
-      ki,
-      NamHoc
-    FROM doantotnghiep
-    WHERE 
-      GiangVien1 IS NOT NULL
-      AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+    // 2. Xây dựng Query động (Dynamic Query Building)
+    const { finalQuery, params } = buildDynamicQuery({
+      namHoc, dot, ki, he_dao_tao, khoa
+    });
 
-    UNION ALL
+    // // --- Dán đoạn này trước khi execute ---
+    // const formatQuery = (sql, params) => {
+    //   return sql.replace(/\?/g, () => {
+    //     const val = params.shift();
+    //     return typeof val === 'string' ? `'${val}'` : val;
+    //   });
+    // };
 
-    SELECT
-      NgayBatDau,
-      NgayKetThuc,
-      MaPhongBan,
-      he_dao_tao,
-      TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-      GiangVien2,
-      'GV2' AS Nguon,
-      Dot,
-      ki,
-      NamHoc
-    FROM doantotnghiep
-    WHERE 
-      GiangVien2 IS NOT NULL 
-      AND GiangVien2 != 'không'
-      AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-  ) AS Combined
-  JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
-  JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
-  WHERE Combined.NamHoc = '${namHoc}'
-),
-   DaiHocHopDongDuKien AS (
-    SELECT
-        NgayBatDau,
-        NgayKetThuc,
-        gv.id_Gvm,
-        gv.GioiTinh,
-        gv.HoTen,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        qc.Khoa AS MaKhoaMonHoc,
-        qc.QuyChuan AS SoTiet,
-        qc.he_dao_tao,
-        gv.isQuanDoi,
-        qc.NamHoc,
-        qc.KiHoc,
-        qc.Dot,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep, 
-		    gv.NoiCongTac,
-		    gv.BangTotNghiepLoai,
-        gv.MonGiangDayChinh,
-        tl.SoTien AS TienMoiGiang,
-        tl.SoTien * qc.QuyChuan AS ThanhTien,
-        tl.SoTien * qc.QuyChuan * 0.1 AS Thue,
-        tl.SoTien * qc.QuyChuan * 0.9 AS ThucNhan
-    FROM 
-        quychuan qc
-    JOIN 
-        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
-    LEFT JOIN 
-        tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
-    WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = '${namHoc}'
-    ),
-    SoTietSauDaiHoc AS (
-        SELECT
-            qc.NgayBatDau,
-            qc.NgayKetThuc,
-            gv.id_Gvm,
-            gv.GioiTinh,
-            gv.HoTen,
-            gv.NgaySinh,
-            gv.CCCD,
-            gv.NoiCapCCCD,
-            gv.Email,
-            gv.MaSoThue,
-            gv.HocVi,
-            gv.ChucVu,
-            gv.HSL,
-            gv.DienThoai,
-            gv.STK,
-            gv.NganHang,
-            gv.MaPhongBan,
-            qc.Khoa AS MaKhoaMonHoc,
-            ROUND(
-                qc.QuyChuan * CASE 
-                    WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 
-                    ELSE 1 
-                END, 2
-            ) AS SoTiet,
-            qc.he_dao_tao,
-            gv.isQuanDoi,
-            qc.NamHoc,
-            qc.KiHoc,
-            qc.Dot,
-            gv.NgayCapCCCD,
-            gv.DiaChi,
-            gv.BangTotNghiep, 
-            gv.NoiCongTac,
-            gv.BangTotNghiepLoai,
-            gv.MonGiangDayChinh,
-            tl.SoTien
-        FROM 
-            quychuan qc
-        JOIN 
-            gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
-        LEFT JOIN 
-            tienluong tl ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
-        WHERE
-            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = '${namHoc}'
-    ),
-    SauDaiHocHopDongDuKien AS (
-        SELECT
-            NgayBatDau,
-            NgayKetThuc,
-            id_Gvm,
-            GioiTinh,
-            HoTen,
-            NgaySinh,
-            CCCD,
-            NoiCapCCCD,
-            Email,
-            MaSoThue,
-            HocVi,
-            ChucVu,
-            HSL,
-            DienThoai,
-            STK,
-            NganHang,
-            MaPhongBan,
-            MaKhoaMonHoc,
-            SoTiet,
-            he_dao_tao,
-            isQuanDoi,
-            NamHoc,
-            KiHoc,
-            Dot,
-            NgayCapCCCD,
-            DiaChi,
-            BangTotNghiep,
-            NoiCongTac,
-            BangTotNghiepLoai,
-            MonGiangDayChinh,
-            SoTien AS TienMoiGiang,
-            ROUND(SoTien * SoTiet, 0) AS ThanhTien,
-            ROUND(SoTien * SoTiet * 0.1, 0) AS Thue,
-            ROUND(SoTien * SoTiet * 0.9, 0) AS ThucNhan
-        FROM SoTietSauDaiHoc
-    ),
-    tableALL AS (SELECT
-        Dot,
-        KiHoc,
-        NamHoc,
-        'DoAn' AS LoaiHopDong,
-        id_Gvm,
-        GiangVien,
-        he_dao_tao,
-        isQuanDoi,
-        NgayBatDau,
-        NgayKetThuc,
-        SoTiet,
-        GioiTinh,
-        NgaySinh,
-        CCCD,
-        NoiCapCCCD,
-        Email,
-        MaSoThue,
-        HocVi,
-        ChucVu,
-        HSL,
-        DienThoai,
-        STK,
-        NganHang,
-        MaPhongBan,
-        MaKhoaMonHoc,
-        NgayCapCCCD,
-        DiaChi,
-        BangTotNghiep, 
-        NoiCongTac,
-        BangTotNghiepLoai,
-        MonGiangDayChinh,
-        TienMoiGiang,
-        ThanhTien,
-        Thue,
-        ThucNhan
-    FROM 
-        DoAnHopDongDuKien
-    UNION ALL
-    SELECT 
-        Dot,
-        KiHoc,
-        NamHoc,
-        'DaiHoc' AS LoaiHopDong,
-        id_Gvm,
-        HoTen AS GiangVien,
-        isQuanDoi,
-        he_dao_tao,
-        NgayBatDau,
-        NgayKetThuc,
-        SoTiet,
-        GioiTinh,
-        NgaySinh,
-        CCCD,
-        NoiCapCCCD,
-        Email,
-        MaSoThue,
-        HocVi,
-        ChucVu,
-        HSL,
-        DienThoai,
-        STK,
-        NganHang,
-        MaPhongBan,
-        MaKhoaMonHoc,
-        NgayCapCCCD,
-        DiaChi,
-        BangTotNghiep, 
-        NoiCongTac,
-        BangTotNghiepLoai,
-        MonGiangDayChinh,
-        TienMoiGiang,
-        ThanhTien,
-        Thue,
-        ThucNhan
-    FROM 
-        DaiHocHopDongDuKien
-    UNION ALL
-    SELECT 
-        Dot,
-        KiHoc,
-        NamHoc,
-        'SauDaiHoc' AS LoaiHopDong,
-        id_Gvm,
-        HoTen AS GiangVien,
-        isQuanDoi,
-        he_dao_tao,
-        NgayBatDau,
-        NgayKetThuc,
-        SoTiet,
-        GioiTinh,
-        NgaySinh,
-        CCCD,
-        NoiCapCCCD,
-        Email,
-        MaSoThue,
-        HocVi,
-        ChucVu,
-        HSL,
-        DienThoai,
-        STK,
-        NganHang,
-        MaPhongBan,
-        MaKhoaMonHoc,
-        NgayCapCCCD,
-        DiaChi,
-        BangTotNghiep, 
-        NoiCongTac,
-        BangTotNghiepLoai,
-        MonGiangDayChinh,
-        TienMoiGiang,
-        ThanhTien,
-        Thue,
-        ThucNhan
-    FROM 
-        SauDaiHocHopDongDuKien),
-    TongSoTietGV AS (
-        SELECT 
-            GiangVien, 
-            SUM(SoTiet) AS TongSoTiet
-        FROM 
-            tableALL
-        GROUP BY 
-            GiangVien
-    ),`;
+    // // Tạo bản sao params để không ảnh hưởng luồng chính
+    // const debugParams = [...params];
+    // console.log("--- FINAL QUERY ---");
+    // console.log(formatQuery(finalQuery, debugParams));
+    // console.log("-------------------");
+    // // --------------------------------------
 
-    query += `
+    // 3. Thực thi song song (Parallel Execution) để nhanh hơn
+    const [rowsHDK, rowsDinhMuc] = await Promise.all([
+      connection.query(finalQuery, params).then(([rows]) => rows),
+      connection.query('SELECT GiangDay FROM sotietdinhmuc').then(([rows]) => rows)
+    ]);
+
+    // 4. Xử lý kết quả
+    const SoTietDinhMuc = rowsDinhMuc[0]?.GiangDay || 0;
+
+    res.status(200).json({
+      dataDuKien: rowsHDK,
+      SoTietDinhMuc
+    });
+
+  } catch (error) {
+    console.error("Error fetching HD Gvm data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// --- Helper Function để build Query ---
+const buildDynamicQuery = ({ namHoc, dot, ki, he_dao_tao, khoa }) => {
+  let params = [namHoc, namHoc, namHoc]; // 3 tham số cho 3 CTE đầu (DoAn, DaiHoc, SauDaiHoc)
+
+  // Xây dựng CTE lọc giảng viên liên quan
+  let gvLienQuanCondition = `WHERE tableALL.MaKhoaMonHoc LIKE ?`;
+  params.push(khoa);
+
+  if (ki !== "AllKi") {
+    gvLienQuanCondition += " AND dot = ? AND KiHoc = ?";
+    params.push(dot, ki);
+  }
+
+  const CTE_GV_LIEN_QUAN = `
     gv_lien_quan AS (
-        SELECT DISTINCT GiangVien
-        FROM tableALL
-        WHERE tableALL.MaKhoaMonHoc LIKE ?  `;
+      SELECT DISTINCT GiangVien FROM tableALL ${gvLienQuanCondition}
+    )
+  `;
 
-    params.push(khoa);
-    // Nếu không phải là cả năm
-    if (ki !== "AllKi") {
-      query += " AND dot = ? AND KiHoc = ?";
-      params.push(dot, ki);
-    }
-
-    query += `)
+  // Câu SELECT chính
+  let mainSelect = `
     SELECT 
         MIN(ta.Dot) AS Dot,
         MIN(ta.KiHoc) AS KiHoc,
@@ -889,88 +738,51 @@ WITH DoAnHopDongDuKien AS (
         SUM(Thue) AS Thue,
         SUM(ThucNhan) AS ThucNhan,
         tsgv.TongSoTiet
-    FROM
-        tableALL ta
-    LEFT JOIN 
-        TongSoTietGV tsgv 
-    ON 
-        ta.GiangVien = tsgv.GiangVien
-    `;
+    FROM tableALL ta
+    LEFT JOIN TongSoTietGV tsgv ON ta.GiangVien = tsgv.GiangVien
+  `;
 
-    if (khoa !== "ALL") {
-      query += " JOIN gv_lien_quan ON gv_lien_quan.GiangVien = ta.GiangVien";
-    }
-
-    query += `
-    where namhoc = ?`;
-    params.push(namHoc);
-
-    // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
-    if (ki !== "AllKi") {
-      query += " AND dot = ? AND KiHoc = ?";
-      params.push(dot, ki);
-    }
-
-    // Kiểm tra nếu ki là "AllKi", không thêm điều kiện lọc theo kỳ
-    if (he_dao_tao !== "AllHe") {
-      query += " AND he_dao_tao = ?";
-      params.push(he_dao_tao);
-    }
-
-    // if (khoa !== "ALL") {
-    //   query += " AND MaPhongBan =?";
-    //   params.push(khoa);
-    // }
-
-    query += `
-    GROUP BY 
-        ta.NamHoc,
-        ta.id_Gvm,
-        ta.GiangVien,
-        ta.GioiTinh,
-        ta.NgaySinh,
-        ta.CCCD,
-        ta.NoiCapCCCD,
-        ta.Email,
-        ta.MaSoThue,
-        ta.HocVi,
-        ta.ChucVu,
-        ta.HSL,
-        ta.DienThoai,
-        ta.STK,
-        ta.NganHang,
-        ta.MaPhongBan,
-        ta.NgayCapCCCD,
-        ta.DiaChi,
-        ta.BangTotNghiep, 
-        ta.NoiCongTac,
-        ta.BangTotNghiepLoai,
-        ta.MonGiangDayChinh,
-        ta.isQuanDoi,
-        tsgv.TongSoTiet`;
-
-    query += ` ORDER BY 
-      tsgv.TongSoTiet DESC;`;
-
-    const [rows] = await connection.execute(query, params);
-
-    // Lấy số tiết định mức
-    query = `select GiangDay from sotietdinhmuc`;
-    const [SoTietDinhMucRow] = await connection.query(query);
-
-    // Lấy tiền mời giảng ứng với mỗi hệ đào tạo
-
-    const SoTietDinhMuc = SoTietDinhMucRow[0]?.GiangDay || 0;
-    const result = { dataDuKien: rows, SoTietDinhMuc };
-    // Trả dữ liệu về client dưới dạng JSON
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error fetching HD Gvm data:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  } finally {
-    if (connection) connection.release(); // Trả lại connection cho pool
+  // Logic JOIN bảng lọc Khoa
+  if (khoa !== "ALL") {
+    mainSelect += " JOIN gv_lien_quan ON gv_lien_quan.GiangVien = ta.GiangVien ";
   }
-};
+
+  // Logic WHERE cuối cùng
+  let whereClauses = ["ta.NamHoc = ?"];
+  params.push(namHoc);
+
+  if (ki !== "AllKi") {
+    whereClauses.push("ta.Dot = ?", "ta.KiHoc = ?");
+    params.push(dot, ki);
+  }
+
+  if (he_dao_tao !== "AllHe") {
+    whereClauses.push("ta.he_dao_tao = ?");
+    params.push(he_dao_tao);
+  }
+
+  // Ghép toàn bộ chuỗi Query
+  const finalQuery = `
+    WITH 
+      ${CTE_DO_AN},
+      ${CTE_DAI_HOC},
+      ${CTE_SAU_DAI_HOC},
+      ${CTE_TABLE_ALL},
+      ${CTE_GV_LIEN_QUAN}
+    ${mainSelect}
+    WHERE ${whereClauses.join(' AND ')}
+    GROUP BY 
+        ta.NamHoc, ta.id_Gvm, ta.GiangVien, ta.GioiTinh, ta.NgaySinh, ta.CCCD,
+        ta.NoiCapCCCD, ta.Email, ta.MaSoThue, ta.HocVi, ta.ChucVu, ta.HSL,
+        ta.DienThoai, ta.STK, ta.NganHang, ta.MaPhongBan, ta.NgayCapCCCD,
+        ta.DiaChi, ta.BangTotNghiep, ta.NoiCongTac, ta.BangTotNghiepLoai,
+        ta.isQuanDoi, ta.MonGiangDayChinh, tsgv.TongSoTiet
+    ORDER BY tsgv.TongSoTiet DESC;
+  `;
+
+  return { finalQuery, params };
+}
+
 
 const getHopDongDuKien = async (req, res) => {
   let connection;
