@@ -331,7 +331,7 @@ const importExcelTKB = async (req, res) => {
     // Insert batch
     const insertResult = await pool.query(
       `INSERT INTO course_schedule_details (
-        TT, course_id, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
+        TT, course_code, credit_hours, student_quantity, student_bonus, bonus_time, ll_code, ll_total, qc, course_name, study_format, periods_per_week, 
         day_of_week, period_start, period_end, classroom, start_date, end_date, lecturer, major, he_dao_tao, dot, ki_hoc, nam_hoc
       ) VALUES ?`,
       [values]
