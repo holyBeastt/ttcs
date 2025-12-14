@@ -20,7 +20,7 @@ function getHeDaoTao(classType, heDaoTaoArr) {
     r => r.viet_tat.toUpperCase() === prefix.toUpperCase()
   );
 
-  return found ? found.gia_tri_so_sanh : "Đại học (Đóng học phí)";
+  return found ? found.gia_tri_so_sanh : "1";
 }
 
 const importExcelTKB = async (req, res) => {
