@@ -500,109 +500,89 @@
 
       let gridApi; // Biến toàn cục để lưu trữ gridApi
 
-      // async function getDataTable() {
-      //   let Dot = document.getElementById("combobox-dot").value;
-      //   let Ki = document.getElementById("comboboxki").value;
-      //   let Nam = document.getElementById("NamHoc").value;
-      //   let Khoa = document.getElementById("departmentFilter").value;
+      // Biến lưu danh sách hệ đào tạo
+      let heDaoTaoList = [];
+      let heDaoTaoMap = {};
 
-      //   const body = {
-      //     Khoa: Khoa,
-      //     Dot: Dot,
-      //     Ki: Ki,
-      //     Nam: Nam,
-      //   };
+      async function getDataTable() {
 
-      //   try {
-      //     const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
-      //       method: "POST",
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       },
-      //       body: JSON.stringify(body),
-      //     });
+        heDaoTaoList = JSON.parse(
+          localStorage.getItem('HE_DAO_TAO_CACHE')
+        ) || [];
 
-      //     if (!response.ok) {
-      //       throw new Error(
-      //         "Network response was not ok: " + response.statusText
-      //       );
-      //     }
+        console.log('heDaoTaoList:', heDaoTaoList);
 
-      //     const data = await response.json();
-      //     renderData = data; // Lưu dữ liệu vào biến renderData
+        // reset map
+        heDaoTaoMap = {};
 
-      //     // Gọi hàm renderTable để hiển thị dữ liệu
-      //     renderTable();
-      //   } catch (error) {
-      //     console.error("Error fetching data:", error);
-      //     alert("Có lỗi xảy ra khi gọi API: " + error.message);
-      //   }
-      // }
+        heDaoTaoList.forEach(item => {
+          heDaoTaoMap[item.id] = item.tenHe;
+        });
 
-async function getDataTable() {
-  // 1. Get current filter values
-  const Dot = document.getElementById("combobox-dot").value;
-  const Ki = document.getElementById("comboboxki").value;
-  const Nam = document.getElementById("NamHoc").value;
-  const Khoa = document.getElementById("departmentFilter").value;
 
-  const body = {
-    Khoa: Khoa,
-    Dot: Dot,
-    Ki: Ki,
-    Nam: Nam,
-  };
+        // 1. Get current filter values
+        const Dot = document.getElementById("combobox-dot").value;
+        const Ki = document.getElementById("comboboxki").value;
+        const Nam = document.getElementById("NamHoc").value;
+        const Khoa = document.getElementById("departmentFilter").value;
 
-  try {
-    // 2. Show loading overlay if grid exists
-    if (gridApi) gridApi.showLoadingOverlay();
+        const body = {
+          Khoa: Khoa,
+          Dot: Dot,
+          Ki: Ki,
+          Nam: Nam,
+        };
 
-    // 3. Call API (Using your POST endpoint)
-    const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+        try {
+          // 2. Show loading overlay if grid exists
+          if (gridApi) gridApi.showLoadingOverlay();
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok: " + response.statusText);
-    }
+          // 3. Call API (Using your POST endpoint)
+          const response = await fetch("/api/v1/tkb/data-tkb-to-render", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          });
 
-    const data = await response.json();
-    
-    // 4. Update global data variable
-    renderData = data; 
+          if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+          }
 
-    // 5. SMART UPDATE: Check if Grid exists
-    if (gridApi) {
-      // If grid exists, just swap the data inside (No flicker)
-      gridApi.setRowData(renderData);
+          const data = await response.json();
+          
+          // 4. Update global data variable
+          renderData = data; 
 
-      // Handle Empty State
-      if (renderData.length === 0) {
-        gridApi.showNoRowsOverlay();
-      } else {
-        gridApi.hideOverlay();
+          // 5. SMART UPDATE: Check if Grid exists
+          if (gridApi) {
+            // If grid exists, just swap the data inside (No flicker)
+            gridApi.setRowData(renderData);
+
+            // Handle Empty State
+            if (renderData.length === 0) {
+              gridApi.showNoRowsOverlay();
+            } else {
+              gridApi.hideOverlay();
+            }
+            
+            console.log("♻️ Data updated via AG Grid API");
+          } else {
+            // If grid doesn't exist yet, build it from scratch
+            renderTable();
+          }
+
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          if (gridApi) gridApi.hideOverlay(); // Hide loading if error
+          Swal.fire({
+              title: "Lỗi",
+              text: "Có lỗi xảy ra khi gọi API: " + error.message,
+              icon: "error"
+          });
+        }
       }
-      
-      console.log("♻️ Data updated via AG Grid API");
-    } else {
-      // If grid doesn't exist yet, build it from scratch
-      renderTable();
-    }
-
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    if (gridApi) gridApi.hideOverlay(); // Hide loading if error
-    Swal.fire({
-        title: "Lỗi",
-        text: "Có lỗi xảy ra khi gọi API: " + error.message,
-        icon: "error"
-    });
-  }
-}
 
       let gridOptions; // Khai báo biến toàn cục
 
@@ -771,18 +751,24 @@ async function getDataTable() {
             khoaCol.editable = true;
         }
 
-        // Danh sách option cho combobox hệ đào tạo
-        const heDaoTaoOptions = ["Đại học (Đóng học phí)", "Đại học (Mật mã)", "Cao học (Đóng học phí)", "Nghiên cứu sinh (Đóng học phí)"];
-
         // Gán combobox cho cột he_dao_tao
         const heDaoTaoCol = columnDefs.find(col => col.field === "he_dao_tao");
+
         if (heDaoTaoCol) {
-          heDaoTaoCol.cellEditor = "agSelectCellEditor";
-          heDaoTaoCol.cellEditorParams = {
-            values: heDaoTaoOptions,
-          };
           heDaoTaoCol.editable = true;
+          heDaoTaoCol.cellEditor = "agSelectCellEditor";
+
+          // 🔥 values = mảng ID
+          heDaoTaoCol.cellEditorParams = {
+            values: heDaoTaoList.map(item => item.id),
+          };
+
+          // 🔥 Hiển thị tên hệ đào tạo
+          heDaoTaoCol.valueFormatter = (params) => {
+            return heDaoTaoMap[params.value] || "";
+          };
         }
+
 
         columnDefs.push({
           headerName: "Ghi chú",
