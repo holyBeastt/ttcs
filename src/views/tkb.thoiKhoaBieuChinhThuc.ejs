@@ -678,8 +678,11 @@
               valueSetter: (params) => {
                 const field = params.colDef.field;
                 const oldValue = params.data[field];
-                const value = params.newValue ? params.newValue.trim() : "";
-
+                const rawValue = params.newValue;
+                const value =
+                  typeof rawValue === "string"
+                    ? rawValue.trim()
+                    : rawValue;
                 // ✅ Xử lý riêng cho cột "start_date" và "end_date"
                 if (field === "start_date" || field === "end_date") {
                   if (!value) return false;
@@ -805,6 +808,7 @@
 
         // Xử lý khi ô được chỉnh sửa
         async function onCellValueChanged(event) {
+          console.log("Cell value changed:", event);
           const { data, colDef, newValue, oldValue } = event;
           const id = data.id;
           const tt = data.tt;
