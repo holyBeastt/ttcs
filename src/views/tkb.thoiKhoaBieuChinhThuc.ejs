@@ -500,9 +500,25 @@
 
       let gridApi; // Biến toàn cục để lưu trữ gridApi
 
+      // Biến lưu danh sách hệ đào tạo
+      let heDaoTaoList = [];
+      let heDaoTaoMap = {};
+
       async function getDataTable() {
-        const cached = localStorage.getItem('HE_DAO_TAO_CACHE');
-        if (!cached) return [];
+
+        heDaoTaoList = JSON.parse(
+          localStorage.getItem('HE_DAO_TAO_CACHE')
+        ) || [];
+
+        console.log('heDaoTaoList:', heDaoTaoList);
+
+        // reset map
+        heDaoTaoMap = {};
+
+        heDaoTaoList.forEach(item => {
+          heDaoTaoMap[item.id] = item.tenHe;
+        });
+
 
         // 1. Get current filter values
         const Dot = document.getElementById("combobox-dot").value;
@@ -735,18 +751,24 @@
             khoaCol.editable = true;
         }
 
-        // Danh sách option cho combobox hệ đào tạo
-        const heDaoTaoOptions = ["Đại học (Đóng học phí)", "Đại học (Mật mã)", "Cao học (Đóng học phí)", "Nghiên cứu sinh (Đóng học phí)"];
-
         // Gán combobox cho cột he_dao_tao
         const heDaoTaoCol = columnDefs.find(col => col.field === "he_dao_tao");
+
         if (heDaoTaoCol) {
-          heDaoTaoCol.cellEditor = "agSelectCellEditor";
-          heDaoTaoCol.cellEditorParams = {
-            values: heDaoTaoOptions,
-          };
           heDaoTaoCol.editable = true;
+          heDaoTaoCol.cellEditor = "agSelectCellEditor";
+
+          // 🔥 values = mảng ID
+          heDaoTaoCol.cellEditorParams = {
+            values: heDaoTaoList.map(item => item.id),
+          };
+
+          // 🔥 Hiển thị tên hệ đào tạo
+          heDaoTaoCol.valueFormatter = (params) => {
+            return heDaoTaoMap[params.value] || "";
+          };
         }
+
 
         columnDefs.push({
           headerName: "Ghi chú",
