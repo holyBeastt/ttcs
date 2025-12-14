@@ -23,8 +23,7 @@ const thongkemgController = {
                 gd.he_dao_tao as hedaotao,
                 COUNT(DISTINCT gd.GiangVien) as sogiangvien,
                 SUM(gd.quychuan) as tongsotiet,
-                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien,
-                gm.isQuanDoi as isQuanDoi
+                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             LEFT JOIN tienluong tl ON gd.he_dao_tao = tl.he_dao_tao AND gm.HocVi = tl.HocVi
@@ -38,8 +37,7 @@ const thongkemgController = {
                 gd.he_dao_tao as hedaotao,
                 gm.HocVi as hocvi,
                 SUM(gd.quychuan) as tongsotiet,
-                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien,
-                gm.isQuanDoi as isQuanDoi
+                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             LEFT JOIN tienluong tl ON gd.he_dao_tao = tl.he_dao_tao AND gm.HocVi = tl.HocVi
@@ -73,8 +71,7 @@ const thongkemgController = {
             SELECT 
                 gd.Khoa as khoa,
                 COUNT(DISTINCT gd.GiangVien) as sogiangvien,
-                SUM(gd.quychuan) as tongsotiet,
-                gm.isQuanDoi as isQuanDoi
+                SUM(gd.quychuan) as tongsotiet
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             WHERE gd.id_Gvm != 1
@@ -83,9 +80,8 @@ const thongkemgController = {
           // Query cho khoa cụ thể
           query = `
             SELECT gd.GiangVien as hoten, 
-                   SUM(gd.quychuan) as tongsotiet,
+                   SUM(gd.quychuan) as tongsotiet
                    gd.he_dao_tao as hedaotao,
-                   gm.isQuanDoi as isQuanDoi
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             WHERE gd.Khoa = ? AND gd.id_Gvm != 1
