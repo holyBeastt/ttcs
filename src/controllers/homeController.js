@@ -18,8 +18,9 @@ const getIndex = (req, res) => {
 };
 
 const getImport = (req, res) => {
-  res.render("importQC.ejs");
+  res.render("quychuan.themFileQuyChuan.ejs");
 };
+
 const getDtaoduyet = (req, res) => {
   res.render("daotaoduyet.ejs");
 };
@@ -46,7 +47,7 @@ const getTeachingInfo = (req, res) => {
   res.render("teachingInfo.ejs");
 };
 const getXemBangQC = (req, res) => {
-  res.render("tableQC.ejs");
+  res.render("quychuan.bangQuyChuanChinhThuc.ejs");
 };
 
 // Khoa

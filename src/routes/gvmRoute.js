@@ -4,9 +4,9 @@ const obj2 = require('../controllers/importGvmController');
 const gvmService = require('../services/gvmServices');
 const router = express.Router();
 
-// Route GET để render trang upload file
+// Route GET để render trang quy chuẩn chính thức
 router.get('/tableQC', (req, res) => {
-  res.render('tableQC'); // render file 'tableQC.ejs' trong thư mục 'views'
+  res.render('quychuan.bangQuyChuanChinhThuc.ejs'); // render file 'quychuan.bangQuyChuanChinhThuc.ejs' trong thư mục 'views'
 });
 
 // // Route để lấy dữ liệu từ bảng quy chuẩn
