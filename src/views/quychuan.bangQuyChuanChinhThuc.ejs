@@ -407,10 +407,25 @@
     </script>
     <!-- hiện các chức năng theo role -->
     <script>
+      // Danh sách hệ đào tạo từ localStorage
+      var heDaoTaoList = [];
+
       document.addEventListener("DOMContentLoaded", function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
+
+        // Load danh sách hệ đào tạo từ localStorage
+        const cached = localStorage.getItem('HE_DAO_TAO_CACHE');
+        if (cached) {
+          try {
+            heDaoTaoList = JSON.parse(cached);
+            console.log('Đã load danh sách hệ đào tạo:', heDaoTaoList);
+          } catch (error) {
+            console.error('Lỗi parse HE_DAO_TAO_CACHE:', error);
+            heDaoTaoList = [];
+          }
+        }
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
         unhideButton2(role, MaPhongBan);
@@ -625,6 +640,13 @@
                 if (key === "MoiGiang") {
                   cellValue = cellValue === 1 ? "Có" : "Không";
                 }
+
+                // Hiển thị tenHe của hệ đào tạo thay vì id
+                if (key === "he_dao_tao" && cellValue && heDaoTaoList.length > 0) {
+                  const found = heDaoTaoList.find(item => item.id === cellValue);
+                  cellValue = found ? found.tenHe : cellValue;
+                }
+
                 return `<td>${cellValue}</td>`;
               })
               .join("");

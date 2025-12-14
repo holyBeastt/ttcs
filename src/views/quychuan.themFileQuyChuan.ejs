@@ -143,6 +143,22 @@
     <!-- phần chọn file -->
     <script>
       let dataTam = [];
+      // Danh sách hệ đào tạo từ localStorage
+      var heDaoTaoList = [];
+
+      // Load danh sách hệ đào tạo từ localStorage khi trang load
+      document.addEventListener("DOMContentLoaded", function () {
+        const cached = localStorage.getItem('HE_DAO_TAO_CACHE');
+        if (cached) {
+          try {
+            heDaoTaoList = JSON.parse(cached);
+            console.log('Đã load danh sách hệ đào tạo:', heDaoTaoList);
+          } catch (error) {
+            console.error('Lỗi parse HE_DAO_TAO_CACHE:', error);
+            heDaoTaoList = [];
+          }
+        }
+      });
 
       function renderTable(data) {
         // Nếu không có dữ liệu, hiển thị thông báo
@@ -175,8 +191,15 @@
           const row = document.createElement("tr");
           headers.forEach(key => {
             const td = document.createElement("td");
-            // Kiểm tra nếu giá trị không phải là null thì hiển thị, ngược lại hiển thị chuỗi rỗng
-            td.textContent = item[key] !== null ? item[key] : "";
+            let cellValue = item[key] !== null ? item[key] : "";
+            
+            // Hiển thị tenHe của hệ đào tạo thay vì id
+            if (key === "he_dao_tao" && cellValue && heDaoTaoList.length > 0) {
+              const found = heDaoTaoList.find(hdt => hdt.id === cellValue);
+              cellValue = found ? found.tenHe : cellValue;
+            }
+            
+            td.textContent = cellValue;
             row.appendChild(td);
           });
           tbody.appendChild(row);

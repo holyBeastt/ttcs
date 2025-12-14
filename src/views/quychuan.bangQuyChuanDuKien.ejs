@@ -261,6 +261,18 @@
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
+        // Load danh sách hệ đào tạo từ localStorage
+        const cached = localStorage.getItem('HE_DAO_TAO_CACHE');
+        if (cached) {
+          try {
+            heDaoTaoList = JSON.parse(cached);
+            console.log('Đã load danh sách hệ đào tạo:', heDaoTaoList);
+          } catch (error) {
+            console.error('Lỗi parse HE_DAO_TAO_CACHE:', error);
+            heDaoTaoList = [];
+          }
+        }
+
         // hideButton2 ẩn các chức năng thêm sửa xóa
         unhideButton2(role, MaPhongBan);
       });
@@ -420,6 +432,8 @@
       var khoaArray = [];
       // Khởi tạo table
       var table;
+      // Danh sách hệ đào tạo từ localStorage
+      var heDaoTaoList = [];
 
       // Hàm getData từ sv
       async function getDataTable() {
@@ -603,17 +617,52 @@
             field: key,
             hozAlign: "center",
             editor: false,
-            headerSort: sortableColumns.includes(key) ? true : false,
-            formatter: "textarea"
+            headerSort: sortableColumns.includes(key) ? true : false
           };
 
-          // Format ngày cho các cột ngày
-          if (key === "NgayBatDau" || key === "NgayKetThuc") {
+          // Cấu hình dropdown cho cột hệ đào tạo
+          if (key === "he_dao_tao") {
+            if (heDaoTaoList.length > 0) {
+              // Tạo options cho select editor: key = id, value = tenHe để hiển thị
+              const selectOptions = {};
+              heDaoTaoList.forEach(item => {
+                selectOptions[item.id] = item.tenHe;
+              });
+              
+              column.editor = "select";
+              column.editorParams = {
+                values: selectOptions,
+                clearable: true,
+                allowEmpty: true,
+                emptyValue: null
+              };
+            }
+            
+            // Formatter để hiển thị tenHe thay vì id - luôn apply
+            column.formatter = function(cell) {
+              const id = cell.getValue();
+              if (!id) return "";
+              
+              // Parse id thành number để so sánh
+              const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+              
+              if (heDaoTaoList.length > 0) {
+                const found = heDaoTaoList.find(item => item.id === numId);
+                if (found) return found.tenHe;
+              }
+              
+              return id; // Fallback về id nếu không tìm thấy
+            };
+          } else if (key === "NgayBatDau" || key === "NgayKetThuc") {
+            // Format ngày cho các cột ngày
             column.formatter = function(cell) {
               const value = cell.getValue();
               const formattedDate = formatDate(value);
               return formattedDate || "";
             };
+          } else {
+            // Formatter mặc định cho các cột khác
+            column.formatter = "textarea";
           }
 
           // Đặt độ rộng cho các cột cụ thể
@@ -649,10 +698,18 @@
           ]; // Danh sách cột không cho chỉnh sửa
 
           columns.forEach((col) => {
+            // Giữ nguyên editor "select" cho cột he_dao_tao, không override
+            if (col.field === "he_dao_tao") {
+              return; // Bỏ qua, giữ nguyên editor đã được cấu hình
+            }
             col.editor = !nonEditableColumns.includes(col.field); // Chỉ chỉnh sửa nếu không nằm trong danh sách
           });
         } else {
           columns.forEach((col) => {
+            // Giữ nguyên editor "select" cho cột he_dao_tao ngay cả khi không có quyền edit
+            if (col.field === "he_dao_tao") {
+              return;
+            }
             col.editor = false; // Không cho phép chỉnh sửa
           });
         }

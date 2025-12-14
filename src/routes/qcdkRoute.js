@@ -5,9 +5,8 @@ const role = require("../controllers/middlewares"); // Check role
 
 // render site quy chuẩn dự kiến
 router.get('/tableTam', (req, res) => {
-  res.render('tableTam'); 
+  res.render('quychuan.bangQuyChuanDuKien.ejs'); 
 });
-
 
 // render bảng theo khoa đợt kì năm
 router.post("/qcdk", (req, res) => qcdk.getTableTam(req, res));
