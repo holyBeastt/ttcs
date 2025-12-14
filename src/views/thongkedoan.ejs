@@ -94,6 +94,69 @@
         max-width: 1000px;
         margin: auto;
       }
+
+      .checkbox-wrapper input {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+      }
+
+      .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .checkmark {
+        position: relative;
+        height: 1.3em;
+        width: 1.3em;
+        background-color: #e0e0e0;
+        border: 3px solid #beddd0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+      }
+
+      .checkbox-wrapper input:checked ~ .checkmark {
+        background-color: #2dc38c;
+        border-color: #2dc38c;
+        box-shadow: 0 0 1px #cef1e4, inset 0 -2.5px 3px #62eab8,
+          inset 0 3px 3px rgba(0, 0, 0, 0.34);
+      }
+
+      .checkbox-wrapper input:not(:checked) ~ .checkmark {
+        background-color: #e0e0e0;
+        border-color: #beddd0;
+      }
+
+      /* Style the checkmark/indicator */
+      .checkbox-wrapper .checkmark:after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 1px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.34);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      /* Show the checkmark when checked */
+      .checkbox-wrapper input:checked ~ .checkmark:after {
+        opacity: 1;
+      }
     </style>
   </head>
 
@@ -106,7 +169,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <div class="d-flex justify-content-start align-items-end mb-3">
+    <div class="d-flex justify-content-start align-items-center mb-3">
       <select
         class="form-select mx-1 selectop"
         id="dot"
@@ -132,6 +195,13 @@
         id="Khoa"
         style="width: 150px"
       ></select>
+
+      <!-- Checkbox Thuộc quân đội -->
+      <label class="checkbox-wrapper ms-3">
+        <input type="checkbox" id="isQuanDoi" />
+        <div class="checkmark"></div>
+        <span style="font-size: 14px;">Thuộc quân đội</span>
+      </label>
     </div>
     <h3>Thống kê số đồ án tốt nghiệp theo giảng viên</h3>
     <div style="margin-top: 20px">
@@ -352,11 +422,12 @@
           const khoa = $("#Khoa").val();
           const dot = $("#dot").val();
           const ki = $("#ki").val();
+          const isQuanDoi = $("#isQuanDoi").is(":checked");
 
           $.ajax({
             url: "/data",
             method: "GET",
-            data: { namhoc, khoa, dot, ki },
+            data: { namhoc, khoa, dot, ki, isQuanDoi: isQuanDoi ? "1" : "" },
             success: function (response) {
               if (response.success) {
                 // ======= XỬ LÝ TRƯỜNG HỢP KHOA = ALL =======
@@ -653,7 +724,7 @@
           });
         }
 
-        $("#NamHoc, #Khoa, #dot, #ki").on("change", fetchThongkeData);
+        $("#NamHoc, #Khoa, #dot, #ki, #isQuanDoi").on("change", fetchThongkeData);
         fetchThongkeData(); // Gọi ngay khi trang được tải
       });
     </script>

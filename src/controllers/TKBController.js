@@ -82,38 +82,66 @@ const getDataTKBChinhThuc = async (req, res) => {
   }
 };
 
-const getBonusTimeForHeDaoTao = (oldHeDaoTao, newHeDaoTao, bonus_time) => {
+const getHeDaoTaoTexts = async (oldHeDaoTaoId, newHeDaoTaoId) => {
+  try {
+    const [[oldRow]] = await pool.query(
+      'SELECT he_dao_tao FROM he_dao_tao WHERE id = ?',
+      [oldHeDaoTaoId]
+    );
+
+    const [[newRow]] = await pool.query(
+      'SELECT he_dao_tao FROM he_dao_tao WHERE id = ?',
+      [newHeDaoTaoId]
+    );
+
+    return {
+      oldHeDaoTao: oldRow?.he_dao_tao || "",
+      newHeDaoTao: newRow?.he_dao_tao || ""
+    };
+  } catch (error) {
+    console.error("Lỗi getHeDaoTaoTexts:", error);
+    return { oldHeDaoTao: "", newHeDaoTao: "" };
+  }
+};
+
+
+const getBonusTimeForHeDaoTao = async (
+  oldHeDaoTaoId,
+  newHeDaoTaoId,
+  bonus_time
+) => {
+
+  const { oldHeDaoTao, newHeDaoTao } =
+    await getHeDaoTaoTexts(oldHeDaoTaoId, newHeDaoTaoId);
+
   let tmp = 1;
 
-  // Tính xem có phải lớp ngoài giờ không
-  if (oldHeDaoTao.includes("Đại học")) {
-    if (bonus_time == 1.5)
-      tmp = 1.5;
+  // 🔹 Xác định hệ số ngoài giờ cũ
+  if (oldHeDaoTao.includes("ĐH") && bonus_time == 1.5) {
+    tmp = 1.5;
   }
 
-  if (oldHeDaoTao.includes("Cao học")) {
-    if (bonus_time == 2.25)
-      tmp = 1.5;
+  if (oldHeDaoTao.includes("CH") && bonus_time == 2.25) {
+    tmp = 1.5;
   }
 
-  if (oldHeDaoTao.includes("Nghiên cứu sinh")) {
-    if (bonus_time == 3)
-      tmp = 1.5;
+  if (oldHeDaoTao.includes("NCS") && bonus_time == 3) {
+    tmp = 1.5;
   }
 
-  // Tính lại hệ số ngoài giờ
-  if (newHeDaoTao.includes("Đại học"))
-    return 1 * tmp;
+  // 🔹 Tính lại theo hệ đào tạo mới
+  if (newHeDaoTao.includes("ĐH")) return 1 * tmp;
+  if (newHeDaoTao.includes("CH")) return 1.5 * tmp;
+  if (newHeDaoTao.includes("NCS")) return 2.0 * tmp;
 
-  if (newHeDaoTao.includes("Cao học"))
-    return 1.5 * tmp;
+  return bonus_time; // fallback
+};
 
-  if (newHeDaoTao.includes("Nghiên cứu sinh"))
-    return 2.0 * tmp;
-}
 
 const updateRowTKB = async (req, res) => {
   let { tt, dot, ki_hoc, nam_hoc, field, value, oldValue, data } = req.body;
+
+  console.log("🚀 ~ file: TKBController.js:216 ~ updateRowTKB ~ data:", req.body);
 
   let connection;
 
@@ -194,7 +222,7 @@ const updateRowTKB = async (req, res) => {
       await connection.query(updateQuery, updateValues);
     } else if (field === "he_dao_tao") {
 
-      data.bonus_time = getBonusTimeForHeDaoTao(oldValue, value, data.bonus_time);
+      data.bonus_time = await getBonusTimeForHeDaoTao(oldValue, value, data.bonus_time);
 
       const qc = data.student_bonus * data.bonus_time * data.ll_total;
 
