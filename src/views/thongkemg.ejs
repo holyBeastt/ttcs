@@ -184,6 +184,74 @@
         background: #1976d2;
         color: #fff;
         }
+
+        /* From Uiverse.io by elijahgummer */
+        /* Hide the default checkbox */
+        .container input {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+        }
+
+        .container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          user-select: none;
+        }
+
+        /* Create a custom checkbox */
+        .checkmark {
+          position: relative;
+          height: 1.3em;
+          width: 1.3em;
+          background-color: #e0e0e0;
+          border: 3px solid #beddd0;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: all 0.3s ease-in-out;
+        }
+
+        /* When the checkbox is checked, modify the checkmark appearance */
+        .container input:checked ~ .checkmark {
+          background-color: #2dc38c;
+          border-color: #2dc38c;
+          box-shadow: 0 0 1px #cef1e4, inset 0 -2.5px 3px #62eab8,
+            inset 0 3px 3px rgba(0, 0, 0, 0.34);
+        }
+
+        /* When the checkbox is not checked, modify the checkmark appearance */
+        .container input:not(:checked) ~ .checkmark {
+          background-color: #e0e0e0;
+          border-color: #beddd0;
+        }
+
+        /* Style the checkmark/indicator */
+        .container .checkmark:after {
+          content: "";
+          position: absolute;
+          left: 5px;
+          top: 1px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+          box-shadow: 0 2px 2px rgba(0, 0, 0, 0.34);
+          opacity: 0;
+          transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Show the checkmark when checked */
+        .container input:checked ~ .checkmark:after {
+          opacity: 1;
+        }
     </style>
 </head>
 
@@ -207,7 +275,7 @@
             </div>
         </div>
         <!-- Bộ lọc -->
-        <div class="d-flex justify-content-start align-items-end mb-3">
+        <div class="d-flex justify-content-start align-items-center mb-3">
             <!-- Combo box kì -->
             <select class="form-select w-100px mx-1 selectop" id="comboboxki"></select>
             <!-- Combo box Năm -->
@@ -216,6 +284,12 @@
             <select class="form-select mx-1 selectop" id="Khoa" style="width: 170px;"></select>
             <!-- Combo box Hệ đào tạo (ẩn mặc định) -->
             <select class="form-select mx-1 selectop" id="HeDaoTao" style="width: fit-content; display: none;"></select>
+            <!-- Checkbox Thuộc quân đội -->
+            <label class="container ms-3">
+                <input type="checkbox" id="isQuanDoi" />
+                <div class="checkmark"></div>
+                <span style="font-size: 14px;">Thuộc quân đội</span>
+            </label>
         </div>
             <div class="overflow-auto">
                 <table class="table table-bordered">
@@ -466,6 +540,7 @@
                 const nam = document.getElementById('NamHoc').value;
                 let khoa = "";
                 let hedaotao = "";
+                const isQuanDoi = document.getElementById('isQuanDoi').checked;
 
                 if (currentType === "khoa") {
                     khoa = document.getElementById('Khoa').value;
@@ -481,6 +556,7 @@
                 if (currentType === "khoa" && khoa) params.append('khoa', khoa);
                 if (currentType === "hedaotao" && hedaotao) params.append('hedaotao', hedaotao);
                 params.append('type', currentType);
+                if (isQuanDoi) params.append('isQuanDoi', '1');
 
                 if (params.toString()) {
                     url += '?' + params.toString();
@@ -921,6 +997,10 @@
             currentSort = { column: null, direction: null };
             fetchThongkemgData();
             toggleSearchVisibility();
+        });
+        document.getElementById('isQuanDoi').addEventListener('change', function() {
+            currentSort = { column: null, direction: null };
+            fetchThongkemgData();
         });
 
         // Lọc họ tên (chỉ áp dụng khi Khoa/Hệ ≠ ALL, chỉ ảnh hưởng bảng)
