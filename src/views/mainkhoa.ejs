@@ -699,7 +699,10 @@
     </script>
 
     <script>
-      $(document).ready(function () {
+      $(document).ready(async function () {
+          // Lấy dữ liệu hệ đào tạo
+          await preloadHeDaoTao();   // gọi 1 lần khi load
+
           // Khởi tạo các combobox
           function initializeComboboxes() {
               // Lấy dữ liệu cho combobox Năm và Kỳ
@@ -789,6 +792,51 @@
           fetchThongKeMGData();
           fetchData2();
         });
+
+        async function preloadHeDaoTao() {
+          console.log('Preload hệ đào tạo');
+
+          const CACHE_KEY = 'HE_DAO_TAO_CACHE';
+          const TTL = 24 * 60 * 60 * 1000; // 24h
+
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            try {
+              const { data, timestamp } = JSON.parse(cached);
+              if (Date.now() - timestamp < TTL) {
+                console.log('Hệ đào tạo: dùng cache');
+                return data;
+              }
+            } catch (e) {
+              console.warn('Cache lỗi, gọi lại API');
+            }
+          }
+
+          console.log('Hệ đào tạo: gọi API');
+          const res = await fetch('/api/gvm/v1/he-dao-tao');
+          const json = await res.json();
+
+          if (!json.success) {
+            console.error('API lỗi');
+            return [];
+          }
+
+          const formattedData = json.data.map(item => ({
+            id: item.id,
+            tenHe: item.he_dao_tao
+          }));
+
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              data: formattedData,
+              timestamp: Date.now()
+            })
+          );
+
+          return formattedData;
+        }
+
     </script>
 
 

@@ -20,14 +20,22 @@ const getGvmLists = async (req, res) => {
 
 const getHeDaoTaoLists = async (req, res) => {
   try {
-    const query = "SELECT id, he_dao_tao FROM `he_dao_tao`";
+    const query = "SELECT id, he_dao_tao FROM he_dao_tao";
     const [results] = await pool.query(query);
-    return results;
+
+    return res.json({
+      success: true,
+      data: results
+    });
   } catch (error) {
-    console.error("Error fetching He Dao Tao lists: ", error);
-    return res.status(500).send("Internal server error");
+    console.error("Error fetching He Dao Tao lists:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
   }
-}
+};
+
 
 // Xuất các hàm để sử dụng trong router
 module.exports = {
