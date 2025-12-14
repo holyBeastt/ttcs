@@ -1,6 +1,7 @@
 const express = require('express');
 const obj = require('../controllers/getTableDBController'); // Import hàm xử lý file từ controller
 const obj2 = require('../controllers/importGvmController');
+const gvmService = require('../services/gvmServices');
 const router = express.Router();
 
 // Route GET để render trang upload file
@@ -43,5 +44,7 @@ router.post('/update-gv-moi', async (req, res) => {
     res.status(500).json({ error: 'Đã xảy ra lỗi khi cập nhật dữ liệu.' }); // Trả về lỗi nếu có
   }
 });
+
+router.get('/api/gvm/v1/he-dao-tao', gvmService.getHeDaoTaoLists);
 
 module.exports = router;
