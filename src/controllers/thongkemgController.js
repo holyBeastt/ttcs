@@ -7,7 +7,7 @@ const thongkemgController = {
 
   getThongkemgData: async (req, res) => {
     let connection;
-    const { kihoc, namhoc, khoa, hedaotao, type } = req.query; // Thêm hedaotao
+    const { kihoc, namhoc, khoa, hedaotao, type, isQuanDoi } = req.query; // Thêm isQuanDoi
     const thongkeType = type || "khoa"; // mặc định là theo khoa
 
     try {
@@ -23,7 +23,8 @@ const thongkemgController = {
                 gd.he_dao_tao as hedaotao,
                 COUNT(DISTINCT gd.GiangVien) as sogiangvien,
                 SUM(gd.quychuan) as tongsotiet,
-                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien
+                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien,
+                gm.isQuanDoi as isQuanDoi
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             LEFT JOIN tienluong tl ON gd.he_dao_tao = tl.he_dao_tao AND gm.HocVi = tl.HocVi
@@ -37,7 +38,8 @@ const thongkemgController = {
                 gd.he_dao_tao as hedaotao,
                 gm.HocVi as hocvi,
                 SUM(gd.quychuan) as tongsotiet,
-                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien
+                SUM(gd.quychuan * IFNULL(tl.SoTien, 0)) as tongtien,
+                gm.isQuanDoi as isQuanDoi
             FROM giangday gd
             LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
             LEFT JOIN tienluong tl ON gd.he_dao_tao = tl.he_dao_tao AND gm.HocVi = tl.HocVi
@@ -54,6 +56,10 @@ const thongkemgController = {
           query += ` AND gd.NamHoc = ?`;
           params.push(namhoc);
         }
+        // Thêm điều kiện lọc isQuanDoi
+        if (isQuanDoi === "1") {
+          query += ` AND gm.isQuanDoi = 1`;
+        }
         // GROUP BY
         if (!hedaotao || hedaotao === "ALL") {
           query += ` GROUP BY gd.he_dao_tao ORDER BY tongsotiet DESC`;
@@ -65,36 +71,44 @@ const thongkemgController = {
           // Query khi chọn tất cả khoa
           query = `
             SELECT 
-                Khoa as khoa,
-                COUNT(DISTINCT GiangVien) as sogiangvien,
-                SUM(quychuan) as tongsotiet
-            FROM giangday 
-            WHERE id_Gvm != 1
+                gd.Khoa as khoa,
+                COUNT(DISTINCT gd.GiangVien) as sogiangvien,
+                SUM(gd.quychuan) as tongsotiet,
+                gm.isQuanDoi as isQuanDoi
+            FROM giangday gd
+            LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
+            WHERE gd.id_Gvm != 1
           `;
         } else {
           // Query cho khoa cụ thể
           query = `
-            SELECT GiangVien as hoten, 
-                   SUM(quychuan) as tongsotiet,
-                   he_dao_tao as hedaotao
-            FROM giangday 
-            WHERE Khoa = ? AND id_Gvm != 1
+            SELECT gd.GiangVien as hoten, 
+                   SUM(gd.quychuan) as tongsotiet,
+                   gd.he_dao_tao as hedaotao,
+                   gm.isQuanDoi as isQuanDoi
+            FROM giangday gd
+            LEFT JOIN gvmoi gm ON gd.id_Gvm = gm.id_Gvm
+            WHERE gd.Khoa = ? AND gd.id_Gvm != 1
           `;
           params.push(khoa);
         }
         // Thêm các điều kiện lọc khác
         if (kihoc && kihoc !== "ALL") {
-          query += ` AND HocKy = ?`;
+          query += ` AND gd.HocKy = ?`;
           params.push(kihoc);
         }
         if (namhoc && namhoc !== "ALL") {
-          query += ` AND NamHoc = ?`;
+          query += ` AND gd.NamHoc = ?`;
           params.push(namhoc);
+        }
+        // Thêm điều kiện lọc isQuanDoi
+        if (isQuanDoi === "1") {
+          query += ` AND gm.isQuanDoi = 1`;
         }
 
         // Thêm GROUP BY
         if (khoa === "ALL") {
-          query += ` GROUP BY Khoa ORDER BY tongsotiet DESC`;
+          query += ` GROUP BY gd.Khoa ORDER BY tongsotiet DESC`;
         } else {
           query += ` GROUP BY hoten, he_dao_tao ORDER BY tongsotiet DESC`;
         }

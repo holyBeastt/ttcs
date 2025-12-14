@@ -2,7 +2,7 @@ const createConnection = require("../config/databasePool");
 
 const thongkedoanController = {
   getData: async (req, res) => {
-    const { namhoc, khoa, dot, ki } = req.query;
+    const { namhoc, khoa, dot, ki, isQuanDoi } = req.query;
     let connection;
     let query;
     const params = [];
@@ -13,51 +13,58 @@ const thongkedoanController = {
         // Params cho từng truy vấn
         const paramsCoHuu = [];
         const paramsMoiGiang = [];
-        let whereCoHuu = "WHERE isMoiGiang = 0";
-        let whereMoiGiang = "WHERE isMoiGiang = 1";
+        let whereCoHuu = "WHERE ed.isMoiGiang = 0";
+        let whereMoiGiang = "WHERE ed.isMoiGiang = 1";
+        let joinClause = "LEFT JOIN gvmoi gm ON ed.CCCD = gm.CCCD";
 
         if (namhoc && namhoc !== "ALL") {
-          whereCoHuu += " AND NamHoc = ?";
+          whereCoHuu += " AND ed.NamHoc = ?";
           paramsCoHuu.push(namhoc);
-          whereMoiGiang += " AND NamHoc = ?";
+          whereMoiGiang += " AND ed.NamHoc = ?";
           paramsMoiGiang.push(namhoc);
         }
         if (dot && dot !== "ALL") {
-          whereCoHuu += " AND Dot = ?";
+          whereCoHuu += " AND ed.Dot = ?";
           paramsCoHuu.push(dot);
-          whereMoiGiang += " AND Dot = ?";
+          whereMoiGiang += " AND ed.Dot = ?";
           paramsMoiGiang.push(dot);
         }
         if (ki && ki !== "ALL") {
-          whereCoHuu += " AND Ki = ?";
+          whereCoHuu += " AND ed.Ki = ?";
           paramsCoHuu.push(ki);
-          whereMoiGiang += " AND Ki = ?";
+          whereMoiGiang += " AND ed.Ki = ?";
           paramsMoiGiang.push(ki);
+        }
+        if (isQuanDoi === "1") {
+          whereCoHuu += " AND gm.isQuanDoi = 1";
+          whereMoiGiang += " AND gm.isQuanDoi = 1";
         }
 
         // Tổng hợp theo khoa cho cơ hữu
         const [cohuuKhoa] = await connection.query(`
           SELECT 
-            MaPhongBan AS MaPhongBan,
-            COUNT(DISTINCT GiangVien) AS soGiangVien,
-            SUM(SoTiet) AS soTiet,
-            COUNT(ID) AS soDoAn
-          FROM exportdoantotnghiep
+            ed.MaPhongBan AS MaPhongBan,
+            COUNT(DISTINCT ed.GiangVien) AS soGiangVien,
+            SUM(ed.SoTiet) AS soTiet,
+            COUNT(ed.ID) AS soDoAn
+          FROM exportdoantotnghiep ed
+          ${joinClause}
           ${whereCoHuu}
-          GROUP BY MaPhongBan
+          GROUP BY ed.MaPhongBan
           ORDER BY soDoAn DESC
         `, paramsCoHuu);
       
         // Tổng hợp theo khoa cho mời giảng
         const [moigiangKhoa] = await connection.query(`
           SELECT 
-            MaPhongBan,
-            COUNT(DISTINCT GiangVien) AS soGiangVien,
-            SUM(SoTiet) AS soTiet,
-            COUNT(ID) AS soDoAn
-          FROM exportdoantotnghiep
+            ed.MaPhongBan,
+            COUNT(DISTINCT ed.GiangVien) AS soGiangVien,
+            SUM(ed.SoTiet) AS soTiet,
+            COUNT(ed.ID) AS soDoAn
+          FROM exportdoantotnghiep ed
+          ${joinClause}
           ${whereMoiGiang}
-          GROUP BY MaPhongBan
+          GROUP BY ed.MaPhongBan
           ORDER BY soDoAn DESC
         `, paramsMoiGiang);
       
@@ -73,37 +80,42 @@ const thongkedoanController = {
       // Truy vấn dữ liệu cho cả cơ hữu và mời giảng
       query = `
             SELECT 
-                GiangVien, 
-                SUM(SoTiet) AS soTiet, 
-                COUNT(ID) AS soDoAn, 
-                MaPhongBan,
-                isMoiGiang
-            FROM exportdoantotnghiep
+                ed.GiangVien, 
+                SUM(ed.SoTiet) AS soTiet, 
+                COUNT(ed.ID) AS soDoAn, 
+                ed.MaPhongBan,
+                ed.isMoiGiang
+            FROM exportdoantotnghiep ed
+            LEFT JOIN gvmoi gm ON ed.CCCD = gm.CCCD
             WHERE 1=1
         `;
 
       if (khoa && khoa !== "ALL") {
-        query += " AND MaPhongBan = ?";
+        query += " AND ed.MaPhongBan = ?";
         params.push(khoa);
       }
 
       if (namhoc && namhoc !== "ALL") {
-        query += " AND NamHoc = ?";
+        query += " AND ed.NamHoc = ?";
         params.push(namhoc);
       }
 
       if (dot && dot !== "ALL") {
-        query += " AND Dot = ?";
+        query += " AND ed.Dot = ?";
         params.push(dot);
       }
 
       if (ki && ki !== "ALL") {
-        query += " AND ki = ?";
+        query += " AND ed.ki = ?";
         params.push(ki);
       }
 
+      if (isQuanDoi === "1") {
+        query += " AND gm.isQuanDoi = 1";
+      }
+
       query += `
-            GROUP BY GiangVien, isMoiGiang, MaPhongBan
+            GROUP BY ed.GiangVien, ed.isMoiGiang, ed.MaPhongBan
             ORDER BY soDoAn DESC
         `;
 
