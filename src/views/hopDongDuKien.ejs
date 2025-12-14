@@ -422,7 +422,15 @@
 
               // Xử lý formatting helper
               const fmtDate = (date) => date ? new Date(date).toLocaleDateString("vi-VN", {day:"2-digit", month:"2-digit", year:"numeric"}) : "";
-              const fmtMoney = (val) => typeof formatCurrency === 'function' ? formatCurrency(val) : Number(val).toLocaleString('vi-VN');
+              const fmtMoney = (val) => {
+                const num = Number(val);
+                if (Number.isNaN(num)) return '0 ₫';
+
+                if (typeof formatCurrency === 'function') {
+                  return formatCurrency(num);
+                }
+                return num.toLocaleString('vi-VN');
+              };
               const alertClass = (item.TongSoTiet > SoTietDinhMuc) ? "alert-sotiet" : "";
               const danhXung = item.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà";
               const tienMoiGiang = heDaoTao === "AllHe" ? "Tùy hệ" : fmtMoney(item.TienMoiGiang);
