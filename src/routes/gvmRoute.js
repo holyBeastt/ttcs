@@ -45,6 +45,13 @@ router.post('/update-gv-moi', async (req, res) => {
   }
 });
 
+// Lấy danh sách hệ đào tạo all gồm cả mời giảng và đồ án
 router.get('/api/gvm/v1/he-dao-tao', gvmService.getHeDaoTaoLists);
+
+// Lấy danh sách hệ đào tạo mời giảng
+router.get('/api/gvm/v1/he-moi-giang', gvmService.getHeMoiGiangLists);
+
+// Lấy danh sách hệ đào tạo đồ án
+router.get('/api/gvm/v1/he-do-an', gvmService.getHeDoAnLists);
 
 module.exports = router;
