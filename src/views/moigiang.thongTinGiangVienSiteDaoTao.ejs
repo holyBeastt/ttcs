@@ -345,10 +345,10 @@
               const tableRows = document.querySelectorAll('#tableBody tr');
 
               tableRows.forEach(row => {
-                const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-                const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-                const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
-                const nameCell1 = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Cột bộ môn
+                const nameCell = row.querySelector('td:nth-child(4)'); // Cột tên giảng viên (cột 4 sau khi thêm STT)
+                const classCell = row.querySelector('td:nth-child(2)'); // Cột học phần (cột 2 sau khi thêm STT)
+                const boMonInput = row.querySelector('td:nth-child(8) input[name="bomon"]'); // Cột bộ môn (cột 8 sau khi thêm STT)
+                const nameCell1 = row.querySelector('td:nth-child(6) input[name="giaovien"]'); // Cột GV giảng dạy (cột 6 sau khi thêm STT)
 
                 const name = nameCell ? nameCell.textContent.toLowerCase() : '';
                 const className = classCell ? classCell.textContent.toLowerCase() : '';
@@ -1762,7 +1762,7 @@
         const tableRows = document.querySelectorAll('#tableBody tr');
 
         tableRows.forEach(row => {
-          const nameInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Lấy input có name="bomon" ở cột thứ 7
+          const nameInput = row.querySelector('td:nth-child(8) input[name="bomon"]'); // Lấy input có name="bomon" ở cột thứ 8 (sau khi thêm STT)
           const checkbox = row.querySelector('input[type="checkbox"]');
 
           if (nameInput) {
@@ -1858,7 +1858,7 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(3)'); // Giả sử tên giảng viên nằm ở cột thứ 3
+          const nameCell = row.querySelector('td:nth-child(4)'); // GV theo TKB nằm ở cột thứ 4 (sau khi thêm STT)
           const name = nameCell.textContent.toLowerCase();
 
           if (name.includes(filter)) {
@@ -1886,7 +1886,7 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(1)'); // Giả sử tên giảng viên nằm ở cột thứ 5
+          const nameCell = row.querySelector('td:nth-child(2)'); // Học phần nằm ở cột thứ 2 (sau khi thêm STT)
           const name = nameCell.textContent.toLowerCase();
 
           if (name.includes(filter)) {
@@ -1912,17 +1912,17 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Giả sử tên giảng viên nằm ở cột thứ 3
+          const nameInput = row.querySelector('td:nth-child(6) input[name="giaovien"]'); // GV giảng dạy nằm ở cột thứ 6 (sau khi thêm STT)
           const checkbox = row.querySelector('input[type="checkbox"]');
           if (nameInput) {
-            const name = nameInput.value.toLowerCase(); // Lấy giá trị của input có name="bomon"
+            const name = nameInput.value.toLowerCase(); // Lấy giá trị của input có name="giaovien"
 
             if (filter === '' || name.includes(filter)) {
               row.style.display = ''; // Hiện hàng nếu khớp hoặc filter trống
-              checkbox.disabled = false; // Kích hoạt checkbox
+              if (checkbox) checkbox.disabled = false; // Kích hoạt checkbox
             } else {
               row.style.display = 'none'; // Ẩn hàng nếu không khớp
-              checkbox.disabled = true; // Vô hiệu hóa checkbox
+              if (checkbox) checkbox.disabled = true; // Vô hiệu hóa checkbox
             }
           }
         });
