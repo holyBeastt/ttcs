@@ -390,10 +390,10 @@
           const tableRows = document.querySelectorAll("#tableBody tr");
 
           tableRows.forEach(row => {
-            const nameCell = row.querySelector("td:nth-child(3)"); // Tên giảng viên
-            const classCell = row.querySelector("td:nth-child(1)"); // Tên học phần
-            const departmentCell = row.querySelector("td:nth-child(6)"); // Khoa
-            const boMonCell = row.querySelector("td:nth-child(7)"); // Bộ môn
+            const nameCell = row.querySelector("td:nth-child(4)"); // Tên giảng viên (cột 4 sau khi thêm STT)
+            const classCell = row.querySelector("td:nth-child(2)"); // Tên học phần (cột 2 sau khi thêm STT)
+            const departmentCell = row.querySelector("td:nth-child(7)"); // Khoa (cột 7 sau khi thêm STT)
+            const boMonCell = row.querySelector("td:nth-child(8)"); // Bộ môn (cột 8 sau khi thêm STT)
 
             // Lấy giá trị từ các ô
             const nameValue = nameCell ? nameCell.textContent.toLowerCase() : '';
@@ -428,6 +428,7 @@
         <table class="text-center" style="width: 100%">
           <thead>
             <tr>
+              <th style="width: 30px">STT</th>
               <th style="width: 200px">Học phần</th>
               <th style="width: 50px">Số TC</th>
               <th style="width: 200px">GV theo TKB</th>
@@ -795,9 +796,15 @@
       const tableBody = document.getElementById("tableBody");
       tableBody.innerHTML = ""; // Xóa nội dung cũ
 
-      data.forEach((row) => {
+      data.forEach((row, index) => {
         const tableRow = document.createElement("tr");
         tableRow.setAttribute("data-id", row.ID);
+
+        // Thêm cột STT
+        const sttTd = document.createElement("td");
+        sttTd.textContent = index + 1;
+        sttTd.style.textAlign = "center";
+        tableRow.appendChild(sttTd);
 
         const lopHocPhanTd = document.createElement("td");
         lopHocPhanTd.textContent = `${row.LopHocPhan} (${row.TenLop})` || "";
