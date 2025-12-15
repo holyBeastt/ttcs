@@ -256,22 +256,13 @@
     </div>
     <!-- hiện các chức năng theo role của site qc dự kiến -->
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         const isKhoa = localStorage.getItem("isKhoa");
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
 
-        // Load danh sách hệ đào tạo từ localStorage
-        const cached = localStorage.getItem('HE_DAO_TAO_CACHE');
-        if (cached) {
-          try {
-            heDaoTaoList = JSON.parse(cached);
-            console.log('Đã load danh sách hệ đào tạo:', heDaoTaoList);
-          } catch (error) {
-            console.error('Lỗi parse HE_DAO_TAO_CACHE:', error);
-            heDaoTaoList = [];
-          }
-        }
+        // Load danh sách hệ đào tạo từ API
+        await loadHeDaoTaoFromAPI();
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
         unhideButton2(role, MaPhongBan);
@@ -432,8 +423,37 @@
       var khoaArray = [];
       // Khởi tạo table
       var table;
-      // Danh sách hệ đào tạo từ localStorage
+      // Danh sách hệ đào tạo từ API
       var heDaoTaoList = [];
+
+      // Hàm load danh sách hệ đào tạo từ API
+      async function loadHeDaoTaoFromAPI() {
+        try {
+          const response = await fetch('/api/gvm/v1/he-moi-giang');
+          if (!response.ok) {
+            throw new Error('Failed to fetch he dao tao list');
+          }
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            // Chuyển đổi data từ API sang format phù hợp
+            // API trả về: {id: 1, he_dao_tao: "Tên hệ"}
+            // Chuyển thành: {id: 1, tenHe: "Tên hệ"}
+            // Đảm bảo id luôn là số để so sánh chính xác
+            heDaoTaoList = result.data.map(item => ({
+              id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
+              tenHe: item.he_dao_tao
+            }));
+            console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+          } else {
+            console.error('API không trả về dữ liệu hợp lệ');
+            heDaoTaoList = [];
+          }
+        } catch (error) {
+          console.error('Lỗi khi gọi API hệ đào tạo:', error);
+          heDaoTaoList = [];
+        }
+      }
 
       // Hàm getData từ sv
       async function getDataTable() {
