@@ -146,7 +146,7 @@ const importExcelTKB = async (req, res) => {
     const majorMap = {
       "B": "CB",        // Cơ bản
       "C": "CNTT",      // Công nghệ thông tin
-      "D": "DTVM",      // Điện tử vi mạch
+      "D": "ĐTVM",      // Điện tử vi mạch
       "A": "ATTT",      // An toàn thông tin
       "M": "MM",        // Mật mã
       "P": "ĐTPH",      // Địa điểm phân hiệu
