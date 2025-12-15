@@ -795,45 +795,37 @@
 
         async function preloadHeDaoTao() {
           const CACHE_KEY = 'HE_DAO_TAO_CACHE';
-          const CACHE_TIME_KEY = 'HE_DAO_TAO_CACHE_TIME';
-          const TTL = 24 * 60 * 60 * 1000; // 24h
 
-          const cached = localStorage.getItem(CACHE_KEY);
-          const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+          // 1️⃣ Lấy cache trước (nếu có)
+          let cached = [];
+          try {
+            cached = JSON.parse(localStorage.getItem(CACHE_KEY)) || [];
+          } catch (e) {}
 
-          // ✅ DÙNG CACHE (TRẢ VỀ MẢNG)
-          if (cached && cachedTime && Date.now() - Number(cachedTime) < TTL) {
-            console.log('Hệ đào tạo: dùng cache');
-            try {
-              return JSON.parse(cached); // 🔥 MẢNG THUẦN
-            } catch (e) {
-              console.warn('Cache lỗi, gọi lại API');
+          // 2️⃣ GỌI API LUÔN (KHÔNG CHECK TTL)
+          try {
+            console.log('Hệ đào tạo: gọi API (force)');
+            const res = await fetch('/api/gvm/v1/he-dao-tao');
+            const json = await res.json();
+
+            if (json.success && Array.isArray(json.data)) {
+              const formattedData = json.data.map(item => ({
+                id: item.id,
+                tenHe: item.he_dao_tao
+              }));
+
+              // 3️⃣ Cập nhật cache
+              localStorage.setItem(CACHE_KEY, JSON.stringify(formattedData));
+
+              return formattedData; // ✅ dùng data mới
             }
+          } catch (err) {
+            console.warn('API lỗi, fallback cache', err);
           }
 
-          // ✅ GỌI API
-          console.log('Hệ đào tạo: gọi API');
-          const res = await fetch('/api/gvm/v1/he-dao-tao');
-          const json = await res.json();
-
-          if (!json.success || !Array.isArray(json.data)) {
-            console.error('API lỗi hoặc data không hợp lệ');
-            return [];
-          }
-
-          // ✅ CHUẨN HÓA DATA
-          const formattedData = json.data.map(item => ({
-            id: item.id,
-            tenHe: item.he_dao_tao
-          }));
-
-          // ✅ LƯU CACHE (CHỈ LƯU MẢNG)
-          localStorage.setItem(CACHE_KEY, JSON.stringify(formattedData));
-          localStorage.setItem(CACHE_TIME_KEY, Date.now());
-
-          return formattedData;
+          // 4️⃣ fallback cache nếu API lỗi
+          return cached;
         }
-
     </script>
 
 
