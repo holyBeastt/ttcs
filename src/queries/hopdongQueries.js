@@ -6,7 +6,7 @@ COALESCE(
     FROM tienluong cfg
     WHERE 
       (cfg.he_dao_tao IS NULL OR cfg.he_dao_tao = ${tableAlias}.he_dao_tao)
-      AND (cfg.Khoa IS NULL OR cfg.Khoa = ${tableAlias}.${khoaCol})
+      AND (cfg.Khoa = 'ALL' OR cfg.Khoa = ${tableAlias}.${khoaCol})
       AND (cfg.HocVi IS NULL OR cfg.HocVi = gv.HocVi)
       AND CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
     ORDER BY cfg.do_uu_tien DESC, cfg.HSL DESC
@@ -16,105 +16,8 @@ COALESCE(
 )
 `;
 
-
 const COL_DON_GIA = `COALESCE(bang_gia.don_gia, 0)`;
 
-
-const CTE_DO_AN = `
-DoAnHopDongDuKien AS (
-  SELECT
-    gv.id_Gvm,
-    gv.HoTen AS GiangVien,
-    gv.GioiTinh,
-    gv.Email,
-    gv.NgaySinh,
-    gv.CCCD,
-    gv.NoiCapCCCD,
-    gv.MaSoThue,
-    gv.HocVi,
-    gv.ChucVu,
-    gv.HSL,
-    gv.DienThoai,
-    gv.STK,
-    gv.NganHang,
-    gv.MaPhongBan,
-    Combined.MaPhongBan AS MaKhoaMonHoc,
-    Combined.he_dao_tao,
-    gv.isQuanDoi,
-    NgayBatDau,
-    NgayKetThuc,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END AS SoTiet,
-    Dot,
-    ki AS KiHoc,
-    NamHoc,
-    gv.NgayCapCCCD,
-    gv.DiaChi,
-    gv.BangTotNghiep, 
-    gv.NoiCongTac,
-    gv.BangTotNghiepLoai,
-    gv.MonGiangDayChinh,
-    100000 AS TienMoiGiang,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 AS ThanhTien,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 * 0.1 AS Thue,
-    CASE 
-      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-      ELSE std.so_tiet_2
-    END * 100000 * 0.9 AS ThucNhan
-
-  FROM (
-    SELECT
-      NgayBatDau,
-      NgayKetThuc,
-      MaPhongBan,
-      he_dao_tao,
-      TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
-      GiangVien2,
-      'GV1' AS Nguon,
-      Dot,
-      ki,
-      NamHoc
-    FROM doantotnghiep
-    WHERE 
-      GiangVien1 IS NOT NULL
-      AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
-
-    UNION ALL
-
-    SELECT
-      NgayBatDau,
-      NgayKetThuc,
-      MaPhongBan,
-      he_dao_tao,
-      TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
-      GiangVien2,
-      'GV2' AS Nguon,
-      Dot,
-      ki,
-      NamHoc
-    FROM doantotnghiep
-    WHERE 
-      GiangVien2 IS NOT NULL 
-      AND GiangVien2 != 'không'
-      AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
-  ) AS Combined
-  JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
-  JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
-  WHERE Combined.NamHoc = ?
-)
-`;
 
 // const CTE_DO_AN = `
 // DoAnHopDongDuKien AS (
@@ -139,14 +42,11 @@ DoAnHopDongDuKien AS (
 //     gv.isQuanDoi,
 //     NgayBatDau,
 //     NgayKetThuc,
-
-//     /* ================== SỐ TIẾT ================== */
 //     CASE 
 //       WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
 //       WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
 //       ELSE std.so_tiet_2
 //     END AS SoTiet,
-
 //     Dot,
 //     ki AS KiHoc,
 //     NamHoc,
@@ -156,34 +56,22 @@ DoAnHopDongDuKien AS (
 //     gv.NoiCongTac,
 //     gv.BangTotNghiepLoai,
 //     gv.MonGiangDayChinh,
-
-//     /* ================== ĐƠN GIÁ ================== */
-//     ${DON_GIA_EXPR('Combined', 'MaPhongBan')} AS TienMoiGiang,
-
-//     /* ================== THÀNH TIỀN ================== */
-//     (
-//       CASE 
-//         WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-//         WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-//         ELSE std.so_tiet_2
-//       END
-//     ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} AS ThanhTien,
-
-//     (
-//       CASE 
-//         WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-//         WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-//         ELSE std.so_tiet_2
-//       END
-//     ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} * 0.1 AS Thue,
-
-//     (
-//       CASE 
-//         WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
-//         WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
-//         ELSE std.so_tiet_2
-//       END
-//     ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} * 0.9 AS ThucNhan
+//     100000 AS TienMoiGiang,
+//     CASE 
+//       WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+//       WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+//       ELSE std.so_tiet_2
+//     END * 100000 AS ThanhTien,
+//     CASE 
+//       WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+//       WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+//       ELSE std.so_tiet_2
+//     END * 100000 * 0.1 AS Thue,
+//     CASE 
+//       WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+//       WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+//       ELSE std.so_tiet_2
+//     END * 100000 * 0.9 AS ThucNhan
 
 //   FROM (
 //     SELECT
@@ -200,8 +88,7 @@ DoAnHopDongDuKien AS (
 //     FROM doantotnghiep
 //     WHERE 
 //       GiangVien1 IS NOT NULL
-//       AND (GiangVien1 NOT LIKE '%-%' 
-//            OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+//       AND (GiangVien1 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
 
 //     UNION ALL
 
@@ -220,14 +107,126 @@ DoAnHopDongDuKien AS (
 //     WHERE 
 //       GiangVien2 IS NOT NULL 
 //       AND GiangVien2 != 'không'
-//       AND (GiangVien2 NOT LIKE '%-%' 
-//            OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+//       AND (GiangVien2 NOT LIKE '%-%' OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
 //   ) AS Combined
 //   JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
 //   JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
 //   WHERE Combined.NamHoc = ?
 // )
 // `;
+
+const CTE_DO_AN = `
+DoAnHopDongDuKien AS (
+  SELECT
+    gv.id_Gvm,
+    gv.HoTen AS GiangVien,
+    gv.GioiTinh,
+    gv.Email,
+    gv.NgaySinh,
+    gv.CCCD,
+    gv.NoiCapCCCD,
+    gv.MaSoThue,
+    gv.HocVi,
+    gv.ChucVu,
+    gv.HSL,
+    gv.DienThoai,
+    gv.STK,
+    gv.NganHang,
+    gv.MaPhongBan,
+    Combined.MaPhongBan AS MaKhoaMonHoc,
+    Combined.he_dao_tao,
+    gv.isQuanDoi,
+    NgayBatDau,
+    NgayKetThuc,
+
+    /* ================== SỐ TIẾT ================== */
+    CASE 
+      WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+      WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+      ELSE std.so_tiet_2
+    END AS SoTiet,
+
+    Dot,
+    ki AS KiHoc,
+    NamHoc,
+    gv.NgayCapCCCD,
+    gv.DiaChi,
+    gv.BangTotNghiep, 
+    gv.NoiCongTac,
+    gv.BangTotNghiepLoai,
+    gv.MonGiangDayChinh,
+
+    /* ================== ĐƠN GIÁ ================== */
+    ${DON_GIA_EXPR('Combined', 'MaPhongBan')} AS TienMoiGiang,
+
+    /* ================== THÀNH TIỀN ================== */
+    (
+      CASE 
+        WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+        WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+        ELSE std.so_tiet_2
+      END
+    ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} AS ThanhTien,
+
+    (
+      CASE 
+        WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+        WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+        ELSE std.so_tiet_2
+      END
+    ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} * 0.1 AS Thue,
+
+    (
+      CASE 
+        WHEN Combined.Nguon = 'GV1' AND Combined.GiangVien2 = 'không' THEN std.tong_tiet
+        WHEN Combined.Nguon = 'GV1' THEN std.so_tiet_1
+        ELSE std.so_tiet_2
+      END
+    ) * ${DON_GIA_EXPR('Combined', 'MaPhongBan')} * 0.9 AS ThucNhan
+
+  FROM (
+    SELECT
+      NgayBatDau,
+      NgayKetThuc,
+      MaPhongBan,
+      he_dao_tao,
+      TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+      GiangVien2,
+      'GV1' AS Nguon,
+      Dot,
+      ki,
+      NamHoc
+    FROM doantotnghiep
+    WHERE 
+      GiangVien1 IS NOT NULL
+      AND (GiangVien1 NOT LIKE '%-%' 
+           OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien1, '-', 2), '-', -1)) = 'Giảng viên mời')
+
+    UNION ALL
+
+    SELECT
+      NgayBatDau,
+      NgayKetThuc,
+      MaPhongBan,
+      he_dao_tao,
+      TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
+      GiangVien2,
+      'GV2' AS Nguon,
+      Dot,
+      ki,
+      NamHoc
+    FROM doantotnghiep
+    WHERE 
+      GiangVien2 IS NOT NULL 
+      AND GiangVien2 != 'không'
+      AND (GiangVien2 NOT LIKE '%-%' 
+           OR TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(GiangVien2, '-', 2), '-', -1)) = 'Giảng viên mời')
+  ) AS Combined
+  JOIN gvmoi gv ON Combined.GiangVien = gv.HoTen
+  JOIN sotietdoan std ON Combined.he_dao_tao = std.he_dao_tao
+  WHERE Combined.NamHoc = ?
+)
+`;
 
 
 const CTE_DAI_HOC = `
@@ -273,7 +272,7 @@ DaiHocHopDongDuKien AS (
     JOIN 
         gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
-        qc.MoiGiang = 1 AND qc.he_dao_tao like '%Đại học%' AND qc.NamHoc = ?
+        qc.MoiGiang = 1 AND qc.NamHoc = ? AND qc.he_dao_tao in (select id from he_dao_tao where cap_do = 1)
     )
 `;
 
@@ -321,7 +320,7 @@ SoTietSauDaiHoc AS (
         JOIN 
             gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
         WHERE
-            qc.he_dao_tao NOT LIKE '%Đại học%' AND qc.NamHoc = ?
+            qc.NamHoc = ? AND qc.he_dao_tao not in (select id from he_dao_tao where cap_do = 1)
     ),
     SauDaiHocHopDongDuKien AS (
         SELECT

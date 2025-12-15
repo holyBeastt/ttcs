@@ -622,7 +622,7 @@ const getHDGvmData = async (req, res) => {
 //   }
 // };
 
-const { CTE_DO_AN, CTE_DAI_HOC, CTE_SAU_DAI_HOC, CTE_TABLE_ALL } = require('../queries/hopdongQueries'); // Import vào
+const { CTE_DO_AN, CTE_DAI_HOC, CTE_SAU_DAI_HOC, CTE_TABLE_ALL } = require('../queries/hopdongQueries');
 
 const getHopDongDuKienData = async (req, res) => {
   let connection;
@@ -631,6 +631,8 @@ const getHopDongDuKienData = async (req, res) => {
     const { MaPhongBan, isKhoa } = req.session;
     const { namHoc, dot, ki, he_dao_tao } = req.query;
     let { khoa } = req.query;
+
+    console.log("Received parameters:", { namHoc, dot, ki, he_dao_tao, khoa, isKhoa, MaPhongBan });
 
     // Nếu là tài khoản Khoa, bắt buộc lọc theo Khoa của họ
     if (isKhoa == 1) {
@@ -756,7 +758,7 @@ const buildDynamicQuery = ({ namHoc, dot, ki, he_dao_tao, khoa }) => {
     params.push(dot, ki);
   }
 
-  if (he_dao_tao !== "AllHe") {
+  if (he_dao_tao !== "0") {
     whereClauses.push("ta.he_dao_tao = ?");
     params.push(he_dao_tao);
   }

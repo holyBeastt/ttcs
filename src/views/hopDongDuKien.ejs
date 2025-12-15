@@ -169,15 +169,6 @@
               </select>
 
               <select class="form-select mx-1 selectop" id="he_dao_tao">
-                <option value="AllHe">Tất cả hệ</option>
-                <option value="Đại học (Đóng học phí)">Hệ đóng học phí</option>
-                <option value="Đại học (Mật mã)">Hệ mật mã</option>
-                <option value="Cao học (Đóng học phí)">Cao học</option>
-                <option value="Nghiên cứu sinh (Đóng học phí)">
-                  Nghiên cứu sinh
-                </option>
-                <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
-                <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
               </select>
 
               <!-- <button id="viewDataBtn" class="btn view">Xem dữ liệu</button> -->
@@ -433,7 +424,7 @@
               };
               const alertClass = (item.TongSoTiet > SoTietDinhMuc) ? "alert-sotiet" : "";
               const danhXung = item.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà";
-              const tienMoiGiang = heDaoTao === "AllHe" ? "Tùy hệ" : fmtMoney(item.TienMoiGiang);
+              const tienMoiGiang = heDaoTao === "0" ? "Tùy hệ" : fmtMoney(item.TienMoiGiang);
 
               return `
                   <tr class="${alertClass}">
@@ -608,6 +599,8 @@
     </script>
     <script>
       $(document).ready(function () {
+        signHeDaoTaoOptions();
+
         $('#NamHoc option[value=""]').remove();
         $('#comboboxki option[value=""]').remove();
         $('#combobox-dot option[value=""]').remove();
@@ -649,6 +642,31 @@
           },
         });
       });
+
+      signHeDaoTaoOptions = () => {
+        const select = document.getElementById('he_dao_tao');
+
+        const heDaoTaoList = JSON.parse(
+          localStorage.getItem('HE_DAO_TAO_CACHE')
+        ) || [];
+
+        // reset option cũ
+        select.innerHTML = '';
+
+        // option ALL
+        const allOption = document.createElement('option');
+        allOption.value = '0';               // hoặc 'AllHe'
+        allOption.textContent = 'Tất cả hệ đào tạo';
+        select.appendChild(allOption);
+
+        // option từng hệ
+        heDaoTaoList.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item.id;
+          option.textContent = item.tenHe;
+          select.appendChild(option);
+        });
+      };
     </script>
 
     <script>
@@ -682,9 +700,9 @@
     </script>
     <script>
       $(document).ready(function () {
-        // Nếu là khoa thì ẩn
         const isKhoa = localStorage.getItem("isKhoa");
 
+        // Nếu là khoa thì ẩn
         if (isKhoa == 1) {
           $("#MaPhongBan").remove(); // ẩn cả label và select nếu bọc trong form-group
           return; // không cần gọi AJAX nữa
