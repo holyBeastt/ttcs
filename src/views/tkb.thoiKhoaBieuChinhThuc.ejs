@@ -1326,7 +1326,9 @@
       });
     </script>
     <script>
-      $(document).ready(function () {
+      $(document).ready(async function () {
+        await preloadHeDaoTao();   // gọi 1 lần khi load
+
         $('#departmentFilter option[value=""]').remove();
         // Gọi AJAX để lấy dữ liệu JSON từ API
         $.ajax({
@@ -1372,6 +1374,40 @@
           },
         });
       });
+
+              async function preloadHeDaoTao() {
+          const CACHE_KEY = 'HE_DAO_TAO_CACHE';
+
+          // 1️⃣ Lấy cache trước (nếu có)
+          let cached = [];
+          try {
+            cached = JSON.parse(localStorage.getItem(CACHE_KEY)) || [];
+          } catch (e) {}
+
+          // 2️⃣ GỌI API LUÔN (KHÔNG CHECK TTL)
+          try {
+            console.log('Hệ đào tạo: gọi API (force)');
+            const res = await fetch('/api/gvm/v1/he-dao-tao');
+            const json = await res.json();
+
+            if (json.success && Array.isArray(json.data)) {
+              const formattedData = json.data.map(item => ({
+                id: item.id,
+                tenHe: item.he_dao_tao
+              }));
+
+              // 3️⃣ Cập nhật cache
+              localStorage.setItem(CACHE_KEY, JSON.stringify(formattedData));
+
+              return formattedData; // ✅ dùng data mới
+            }
+          } catch (err) {
+            console.warn('API lỗi, fallback cache', err);
+          }
+
+          // 4️⃣ fallback cache nếu API lỗi
+          return cached;
+        }
     </script>
     <script>
       document
