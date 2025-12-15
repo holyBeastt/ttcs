@@ -746,38 +746,42 @@
 
         // Gắn combobox cho cột Khoa
         const khoaCol = columnDefs.find(col => col.field === "major");
-        if (khoaCol) {
-            khoaCol.cellEditor = "agSelectCellEditor";
-            khoaCol.cellEditorParams = {
-                values: khoaArray
-            };
-            khoaCol.editable = true;
-        }
 
-        // Gán combobox cho cột he_dao_tao
         const heDaoTaoCol = columnDefs.find(col => col.field === "he_dao_tao");
 
-        if (heDaoTaoCol) {
-          heDaoTaoCol.editable = true;
-          heDaoTaoCol.cellEditor = "agSelectCellEditor";
+        if (khoaCol) {
+          khoaCol.cellEditor = "agSelectCellEditor";
+          khoaCol.cellEditorParams = { values: khoaArray };
+        }
 
-          // 🔥 values = mảng ID
+        if (heDaoTaoCol) {
+          heDaoTaoCol.cellEditor = "agSelectCellEditor";
           heDaoTaoCol.cellEditorParams = {
             values: heDaoTaoList.map(item => item.id),
           };
-
-          // 🔥 Hiển thị tên hệ đào tạo
-          heDaoTaoCol.valueFormatter = (params) => {
-            return heDaoTaoMap[params.value] || "";
-          };
+          heDaoTaoCol.valueFormatter = (params) =>
+            heDaoTaoMap[params.value] || "";
         }
-
 
         columnDefs.push({
           headerName: "Ghi chú",
           field: "note",
           width: 150,
-          editable: true,
+          editable: (params) => {
+            const field = params.colDef.field;
+
+            // ✅ TẤT CẢ ROLE đều sửa được NOTE
+            if (field === 'note') return true;
+
+            // ❌ role không có quyền → không sửa gì thêm
+            if (!canEdit) return false;
+
+            // ❌ các cột cấm sửa
+            if (['id', 'student_bonus'].includes(field)) return false;
+
+            return true;
+          },
+
           cellEditor: "agLargeTextCellEditor",
           cellEditorPopup: true,
           cellEditorParams: {
@@ -871,7 +875,7 @@
             resizable: true,
             sortable: true,
             filter: false,
-            editable: true, // Cho phép sửa tất cả các cột
+            editable: false,
             cellStyle: {
               fontSize: "14px", // Giảm cỡ chữ
               whiteSpace: "normal", // Cho phép xuống dòng

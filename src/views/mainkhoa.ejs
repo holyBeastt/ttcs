@@ -794,45 +794,42 @@
         });
 
         async function preloadHeDaoTao() {
-          console.log('Preload hệ đào tạo');
-
           const CACHE_KEY = 'HE_DAO_TAO_CACHE';
+          const CACHE_TIME_KEY = 'HE_DAO_TAO_CACHE_TIME';
           const TTL = 24 * 60 * 60 * 1000; // 24h
 
           const cached = localStorage.getItem(CACHE_KEY);
-          if (cached) {
+          const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+
+          // ✅ DÙNG CACHE (TRẢ VỀ MẢNG)
+          if (cached && cachedTime && Date.now() - Number(cachedTime) < TTL) {
+            console.log('Hệ đào tạo: dùng cache');
             try {
-              const { data, timestamp } = JSON.parse(cached);
-              if (Date.now() - timestamp < TTL) {
-                console.log('Hệ đào tạo: dùng cache');
-                return data;
-              }
+              return JSON.parse(cached); // 🔥 MẢNG THUẦN
             } catch (e) {
               console.warn('Cache lỗi, gọi lại API');
             }
           }
 
+          // ✅ GỌI API
           console.log('Hệ đào tạo: gọi API');
           const res = await fetch('/api/gvm/v1/he-dao-tao');
           const json = await res.json();
 
-          if (!json.success) {
-            console.error('API lỗi');
+          if (!json.success || !Array.isArray(json.data)) {
+            console.error('API lỗi hoặc data không hợp lệ');
             return [];
           }
 
+          // ✅ CHUẨN HÓA DATA
           const formattedData = json.data.map(item => ({
             id: item.id,
             tenHe: item.he_dao_tao
           }));
 
-          localStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify({
-              data: formattedData,
-              timestamp: Date.now()
-            })
-          );
+          // ✅ LƯU CACHE (CHỈ LƯU MẢNG)
+          localStorage.setItem(CACHE_KEY, JSON.stringify(formattedData));
+          localStorage.setItem(CACHE_TIME_KEY, Date.now());
 
           return formattedData;
         }
