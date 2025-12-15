@@ -614,6 +614,9 @@
 
         let tableHtml = "";
 
+        // Thêm cột STT đầu tiên
+        tableHtml += `<th style="width: 3%;">STT</th>`;
+
         // Tạo header với width được chỉ định
         columnsWithWidth.forEach((col) => {
           const newHeaderName = headersMap[col.name] || col.name;
@@ -626,8 +629,11 @@
 
         // Render các dòng dữ liệu vào bảng
         const tableRows = data
-          .map((item) => {
-            let rowHtml = columnsToDisplay
+          .map((item, index) => {
+            // Thêm cột STT vào đầu mỗi dòng
+            let rowHtml = `<td style="text-align: center;">${index + 1}</td>`;
+            
+            rowHtml += columnsToDisplay
               .map((key) => {
                 let cellValue = item[key] !== null ? item[key] : "";
 
@@ -643,7 +649,9 @@
 
                 // Hiển thị tenHe của hệ đào tạo thay vì id
                 if (key === "he_dao_tao" && cellValue && heDaoTaoList.length > 0) {
-                  const found = heDaoTaoList.find(item => item.id === cellValue);
+                  // Convert cellValue to number to ensure proper comparison
+                  const idValue = typeof cellValue === 'string' ? parseInt(cellValue, 10) : cellValue;
+                  const found = heDaoTaoList.find(item => item.id === idValue);
                   cellValue = found ? found.tenHe : cellValue;
                 }
 

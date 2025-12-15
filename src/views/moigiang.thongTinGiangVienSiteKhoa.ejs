@@ -573,10 +573,33 @@
     var boMon = [];
     let phongBanList = [];
     let tongTiet;
+    let heDaoTaoList = []; // Biến toàn cục để lưu danh sách hệ đào tạo
 
     //  Hàm khởi động ứng dụng
     function init() {
       document.getElementById("infoGvm").addEventListener("click", loadData);
+      
+      // Lấy dữ liệu hệ đào tạo từ localStorage
+      const heDaoTaoCache = localStorage.getItem("HE_DAO_TAO_CACHE");
+      if (heDaoTaoCache) {
+        try {
+          const parsedData = JSON.parse(heDaoTaoCache);
+          heDaoTaoList = parsedData.heDaoTaoList || [];
+        } catch (error) {
+          console.error("Lỗi khi parse HE_DAO_TAO_CACHE:", error);
+          heDaoTaoList = [];
+        }
+      }
+    }
+
+    // Hàm mapping ID hệ đào tạo sang tên hệ
+    function getHeDaoTaoName(id) {
+      if (!id || !heDaoTaoList || heDaoTaoList.length === 0) {
+        return id || "";
+      }
+      
+      const heDaoTao = heDaoTaoList.find(item => item.id === parseInt(id));
+      return heDaoTao ? heDaoTao.tenHe : id;
     }
 
     async function loadData() {
@@ -815,7 +838,7 @@
 
         const he_dao_taoTd = document.createElement("td"); // Tạo ô Bộ môn
         const he_dao_taoInput = document.createElement("span"); // Tạo span cho Bộ môn
-        he_dao_taoInput.textContent = row.he_dao_tao || ""; // Lấy giá trị từ row
+        he_dao_taoInput.textContent = getHeDaoTaoName(row.he_dao_tao); // Map ID sang tên hệ
         he_dao_taoInput.name = "he_dao_tao"; // Lấy giá trị từ row
         he_dao_taoTd.appendChild(he_dao_taoInput); // Thêm span vào ô
         tableRow.appendChild(he_dao_taoTd);

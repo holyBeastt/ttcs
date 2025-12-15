@@ -405,6 +405,7 @@
           <table class="text-center">
             <thead>
               <tr>
+                <th style="width: 30px;">STT</th>
                 <th style="width: 150px;">Học phần</th>
                 <th style="width: 30px;">Số TC</th>
                 <th style="width: 130px;">
@@ -629,8 +630,21 @@
       var totalQC;
       var globalData = [];
       let tongTiet;
+      let heDaoTaoList = []; // Biến toàn cục để lưu danh sách hệ đào tạo
 
       document.addEventListener('DOMContentLoaded', function () {
+
+        // Lấy dữ liệu hệ đào tạo từ localStorage
+        const heDaoTaoCache = localStorage.getItem("HE_DAO_TAO_CACHE");
+        if (heDaoTaoCache) {
+          try {
+            const parsedData = JSON.parse(heDaoTaoCache);
+            heDaoTaoList = parsedData.heDaoTaoList || [];
+          } catch (error) {
+            console.error("Lỗi khi parse HE_DAO_TAO_CACHE:", error);
+            heDaoTaoList = [];
+          }
+        }
 
         // sự kiện click chèn ngày
         document.getElementById('fillDay').addEventListener('click', function () {
@@ -1033,6 +1047,12 @@
             // Gán ID trong csdl thành attribute của từng hàng
             tableRow.setAttribute("data-id", row.ID);
 
+            // Thêm cột STT
+            const sttTd = document.createElement('td');
+            sttTd.textContent = id + 1;
+            sttTd.style.textAlign = 'center';
+            tableRow.appendChild(sttTd);
+
             const lopHocPhanTd = document.createElement('td');
             lopHocPhanTd.textContent = `${row.LopHocPhan} (${row.TenLop})` || '';
             tableRow.appendChild(lopHocPhanTd);
@@ -1109,20 +1129,23 @@
             he_dao_taoSelect = document.createElement('select');
             he_dao_taoSelect.name = 'he_dao_tao';
 
-            // Tạo các tùy chọn cho select (có thể thay đổi tùy theo yêu cầu)
-            const options = [
-              { value: 'Đại học (Mật mã)', text: 'Đại học (Mật mã)' },
-              { value: 'Đại học (Đóng học phí)', text: 'Đại học (Đóng học phí)' },
-              { value: 'Cao học (Đóng học phí)', text: 'Cao học (Đóng học phí)' },
-              { value: 'Nghiên cứu sinh (Đóng học phí)', text: 'Nghiên cứu sinh (Đóng học phí)' },
-            ];
+            // Lấy danh sách hệ đào tạo từ localStorage hoặc dùng mặc định
+            const options = heDaoTaoList.length > 0 
+              ? heDaoTaoList.map(item => ({ value: item.id, text: item.tenHe }))
+              : [
+                  { value: '1', text: 'Đại học (Đóng học phí)' },
+                  { value: '2', text: 'Đại học (Mật mã Việt Nam)' },
+                  { value: '3', text: 'Đại học (Mật mã Lào)' },
+                  { value: '4', text: 'Đại học (Mật mã Cuba)' },
+                ];
 
             // Thêm các tùy chọn vào select
             options.forEach(optionData => {
               const option = document.createElement('option');
               option.value = optionData.value;
               option.textContent = optionData.text;
-              if (row.he_dao_tao === optionData.value) {
+              // So sánh ID (server trả về số)
+              if (parseInt(row.he_dao_tao) === parseInt(optionData.value)) {
                 option.selected = true;
               }
               he_dao_taoSelect.appendChild(option);
@@ -1497,9 +1520,9 @@
             return;
           }
 
-          // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-          const LLCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột LL
-          const QuyChuanCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột QuyChuan
+          // Sau khi thêm cột STT, cột LL là cột thứ 10 và cột QuyChuan là cột thứ 11
+          const LLCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột LL
+          const QuyChuanCell = row.querySelector('td:nth-child(11)'); // Lấy ô của cột QuyChuan
 
           // Chuyển đổi giá trị của các ô thành số và cộng dồn
           const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0

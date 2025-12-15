@@ -682,8 +682,6 @@ const importTableQC = async (jsonData, req) => {
 
   // Mảng để lưu tất cả giá trị cần chèn
   const allValues = [];
-  const query = `SELECT * FROM kitubatdau`;
-  const [rows] = await connection.query(query);
 
   // Chuẩn bị dữ liệu cho mỗi item trong jsonData
   jsonData.forEach((item, index) => {
@@ -710,18 +708,9 @@ const importTableQC = async (jsonData, req) => {
 
     // console.log("Giảng Viên Giảng Dạy:", giangVienGiangDay);
 
-    // Biến để kiểm tra nếu "hệ đóng học phí" đã được tìm thấy
-    let he_dao_tao = "Đại học (Mật mã)"; // Mặc định là "chuyên ngành Kỹ thuật mật mã"
-    let doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
-
-    for (const row of rows) {
-      const prefix = row.viet_tat; // Lấy giá trị viet_tat
-      // Kiểm tra chuỗi bắt đầu bằng prefix và ký tự tiếp theo là số
-      if (Lop.startsWith(prefix) && Lop[prefix.length]?.match(/^\d$/)) {
-        he_dao_tao = row.gia_tri_so_sanh;
-        doi_tuong = row.doi_tuong;
-      }
-    }
+    // Lấy hệ đào tạo từ dữ liệu gốc
+    const he_dao_tao = item["he_dao_tao"] || item["Hệ đào tạo"] || null;
+    const doi_tuong = "Việt Nam"; // Mặc định là "Việt Nam"
 
     // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu (hỗ trợ nhiều format key)
     const ngayBatDau = item["NgayBatDau"] || item["Ngày bắt đầu"] || null;

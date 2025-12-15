@@ -44,7 +44,7 @@ const getHomeMainDaoTao = (req, res) => {
   res.render("maindt.ejs");
 };
 const getTeachingInfo = (req, res) => {
-  res.render("teachingInfo.ejs");
+  res.render("moigiang.thongTinGiangVienSiteKhoa.ejs");
 };
 const getXemBangQC = (req, res) => {
   res.render("quychuan.bangQuyChuanChinhThuc.ejs");

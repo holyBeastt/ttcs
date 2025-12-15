@@ -496,13 +496,13 @@ const getKhoaAndNameGvmOfKhoa = async (req, res) => {
 };
 
 const getTeachingInfo1 = (req, res) => {
-  res.render("teachingInfo.ejs");
+  res.render("moigiang.thongTinGiangVienSiteKhoa.ejs");
 };
 
 const getTeachingInfo2 = async (req, res) => {
   try {
 
-    res.render("teachingInfo2.ejs");
+    res.render("moigiang.thongTinGiangVienSiteDaoTao.ejs");
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).send("Internal Server Error");
