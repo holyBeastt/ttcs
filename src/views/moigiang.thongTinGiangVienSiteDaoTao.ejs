@@ -428,6 +428,7 @@
         <table class="text-center" style="width: 100%">
           <thead>
             <tr>
+              <th style="width: 20px;">STT</th>
               <th style="width: 200px">Học phần</th>
               <th style="width: 50px">Số TC</th>
               <th style="width: 200px">GV theo TKB</th>
@@ -815,9 +816,15 @@
       const tableBody = document.getElementById("tableBody");
       tableBody.innerHTML = ""; // Xóa nội dung cũ
 
+      let STT = 1; // Biến đếm số thứ tự
+
       data.forEach((row) => {
         const tableRow = document.createElement("tr");
         tableRow.setAttribute("data-id", row.ID);
+
+        const sttTd = document.createElement("td");
+        sttTd.textContent = STT++;
+        tableRow.appendChild(sttTd);
 
         const lopHocPhanTd = document.createElement("td");
         lopHocPhanTd.textContent = `${row.LopHocPhan} (${row.TenLop})` || "";

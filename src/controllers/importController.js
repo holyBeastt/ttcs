@@ -609,6 +609,60 @@ const tongHopDuLieuGiangVien = async () => {
   }
 };
 
+const formatDateValue = (dateValue) => {
+  if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
+    return null;
+  }
+
+  let date = null;
+
+  // Nếu đã là Date object
+  if (dateValue instanceof Date) {
+    date = new Date(dateValue);
+  }
+  // Nếu là string, thử parse
+  else if (typeof dateValue === 'string') {
+    // Format dd/mm/yyyy
+    const parts = dateValue.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+      const year = parseInt(parts[2], 10);
+      date = new Date(year, month, day);
+      if (isNaN(date.getTime())) {
+        date = null;
+      }
+    }
+
+    // Nếu chưa parse được, thử parse ISO format hoặc các format khác
+    if (!date) {
+      date = new Date(dateValue);
+      if (isNaN(date.getTime())) {
+        date = null;
+      }
+    }
+  }
+
+  // Nếu không parse được date hợp lệ
+  if (!date) {
+    return null;
+  }
+
+  // Kiểm tra và điều chỉnh nếu rơi vào cuối tuần
+  const dayOfWeek = date.getDay(); // 0 = Chủ nhật, 6 = Thứ 7
+
+  if (dayOfWeek === 0) {
+    // Chủ nhật -> lùi 2 ngày về Thứ 6
+    date.setDate(date.getDate() - 2);
+
+  } else if (dayOfWeek === 6) {
+    // Thứ 7 -> lùi 1 ngày về Thứ 6
+    date.setDate(date.getDate() - 1);
+  }
+
+  return date;
+};
+
 const importTableQC = async (jsonData, req) => {
   const tableName = process.env.DB_TABLE_QC; // Giả sử biến này có giá trị là "quychuan"
 
@@ -618,39 +672,39 @@ const importTableQC = async (jsonData, req) => {
   const connection = await createPoolConnection();
 
   // Hàm format ngày từ string sang Date object hoặc null
-  const formatDateValue = (dateValue) => {
-    if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
-      return null;
-    }
+  // const formatDateValue = (dateValue) => {
+  //   if (!dateValue || dateValue === '' || dateValue === null || dateValue === undefined) {
+  //     return null;
+  //   }
 
-    // Nếu đã là Date object
-    if (dateValue instanceof Date) {
-      return dateValue;
-    }
+  //   // Nếu đã là Date object
+  //   if (dateValue instanceof Date) {
+  //     return dateValue;
+  //   }
 
-    // Nếu là string, thử parse
-    if (typeof dateValue === 'string') {
-      // Format dd/mm/yyyy
-      const parts = dateValue.split('/');
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-        const year = parseInt(parts[2], 10);
-        const date = new Date(year, month, day);
-        if (!isNaN(date.getTime())) {
-          return date;
-        }
-      }
+  //   // Nếu là string, thử parse
+  //   if (typeof dateValue === 'string') {
+  //     // Format dd/mm/yyyy
+  //     const parts = dateValue.split('/');
+  //     if (parts.length === 3) {
+  //       const day = parseInt(parts[0], 10);
+  //       const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+  //       const year = parseInt(parts[2], 10);
+  //       const date = new Date(year, month, day);
+  //       if (!isNaN(date.getTime())) {
+  //         return date;
+  //       }
+  //     }
 
-      // Thử parse ISO format hoặc các format khác
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
-    }
+  //     // Thử parse ISO format hoặc các format khác
+  //     const date = new Date(dateValue);
+  //     if (!isNaN(date.getTime())) {
+  //       return date;
+  //     }
+  //   }
 
-    return null;
-  };
+  //   return null;
+  // };
 
   // Câu lệnh INSERT với các cột cần thiết
   const queryInsert = `INSERT INTO ${tableName} (

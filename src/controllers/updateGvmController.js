@@ -7,6 +7,7 @@ const appRoot = require("app-root-path");
 
 const createPoolConnection = require("../config/databasePool");
 const pool = require("../config/Pool");
+const { Integer } = require("read-excel-file");
 
 const getUpdateGvm = async (req, res) => {
   const id_Gvm = parseInt(req.params.id);
@@ -62,7 +63,13 @@ const getViewGvm = async (req, res) => {
     connection = await createPoolConnection();
 
     // Lấy dữ liệu
-    const query = "SELECT * FROM `gvmoi` WHERE id_Gvm = ?";
+    const query = `
+    SELECT 
+    *,
+    cd.chuc_danh as chuc_danh_text
+    FROM gvmoi 
+    LEFT JOIN chuc_danh_nghe_nghiep cd ON gvmoi.chuc_danh = cd.id
+    WHERE id_Gvm = ?`;
     const [results] = await connection.query(query, [id_Gvm]);
 
     const query1 = `SELECT * FROM phongban`;
@@ -107,6 +114,7 @@ const postUpdateGvm = async (req, res) => {
   let BangTotNghiepLoai = req.body.BangTotNghiepLoai;
   let MonGiangDayChinh = req.body.monGiangDayChinh;
   let QrCode = req.body.QrCode;
+  let chuc_danh = req.body.ChucDanhNgheNghiep;
 
   let oldHoTen = req.body.oldHoTen;
   let oldMaPhongBan = req.body.oldMaPhongBan;
@@ -305,6 +313,7 @@ const postUpdateGvm = async (req, res) => {
       MaPhongBan = ?,
       TinhTrangGiangDay = ?, 
       MonGiangDayChinh = ?,
+      chuc_danh = ?,
       isQuanDoi = ?,
       isNghiHuu = ?,
       fileBoSung = ?,
@@ -338,6 +347,7 @@ const postUpdateGvm = async (req, res) => {
         MaPhongBan,
         tinhTrangGiangDay,
         MonGiangDayChinh,
+        chuc_danh,
         isQuanDoi || 0,
         isNghiHuu,
         fileBoSung,

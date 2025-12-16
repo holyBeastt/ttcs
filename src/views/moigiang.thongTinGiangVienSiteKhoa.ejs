@@ -405,6 +405,7 @@
           <table class="text-center">
             <thead>
               <tr>
+                <th style="width: 20px;">STT</th>
                 <th style="width: 150px;">Học phần</th>
                 <th style="width: 30px;">Số TC</th>
                 <th style="width: 130px;">
@@ -1068,6 +1069,8 @@
           const isKhoa = parseInt(localStorage.getItem("isKhoa"), 10); // Chuyển đổi isKhoa thành số
           const MaPhongBan = localStorage.getItem("MaPhongBan")
 
+          let stt = 1;
+
           // id truyền vào để đánh dấu mỗi dòng, mục đích lấy phần tử và so sánh với bảng trong localStorage
           data.forEach((row, id) => {
             const tableRow = document.createElement('tr');
@@ -1075,6 +1078,10 @@
 
             // Gán ID trong csdl thành attribute của từng hàng
             tableRow.setAttribute("data-id", row.ID);
+
+            const sttTd = document.createElement('td');
+            sttTd.textContent = stt++;
+            tableRow.appendChild(sttTd);
 
             const lopHocPhanTd = document.createElement('td');
             lopHocPhanTd.textContent = `${row.LopHocPhan} (${row.TenLop})` || '';

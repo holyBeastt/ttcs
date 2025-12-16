@@ -266,11 +266,21 @@
               <div class="row">
                 <p></p>
                 <!-- Đã nghỉ hưu -->
-                <div style="width: 30%; padding-right: 0px" class="thuocQuanDoiBox">
+                <div style="width: 20%; padding-right: 0px" class="thuocQuanDoiBox">
                   <label for="isNghiHuu" class="thuocQuanDoi-label">Đã nghỉ hưu:</label>
                   <input type="checkbox" class="thuocQuanDoi-input" id="isNghiHuu" name="isNghiHuu" value="1" <%
                     if (value.isNghiHuu===1 || value.isNghiHuu===true) { %> checked <% } %>
                     />
+                </div>
+
+                <div style="width: 50%; padding-right: 0px">
+                  <label for="ChucDanhNgheNghiep">Hạng chức danh nghề nghiệp:</label>
+                  <select class="form-control" name="ChucDanhNgheNghiep" id="ChucDanhNgheNghiep">
+                    <input
+                      type="hidden"
+                      id="currentChucDanhNgheNghiep"
+                      value="<%= value.chuc_danh %>"
+                    >
                 </div>
               </div>
 
@@ -414,8 +424,46 @@
         maPhongBanSelect.addEventListener("change", function () {
           loadBoMonTheoPhongBan(this.value);
         });
+
+        loadChucDanhToSelect();
       });
-    
+
+      async function loadChucDanhToSelect() {
+        try {
+          const currentId = document.getElementById(
+            'currentChucDanhNgheNghiep'
+          )?.value;
+
+          const res = await fetch('/api/gvm/v1/chuc-danh-nghe-nghiep');
+          const json = await res.json();
+
+          if (!json.success) {
+            console.error('API lỗi');
+            return;
+          }
+
+          const select = document.getElementById('ChucDanhNgheNghiep');
+          if (!select) return;
+
+          select.innerHTML = '';
+
+          json.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.chuc_danh;
+            select.appendChild(option);
+          });
+
+          // 🔥 TỰ ĐỘNG CHỌN THEO DỮ LIỆU RENDER
+          if (currentId) {
+            select.value = String(currentId);
+          }
+
+        } catch (err) {
+          console.error('Lỗi load chức danh:', err);
+        }
+      }
+
       // Load danh sách phòng ban như cũ
       $(document).ready(function () {
         const selectedMaPhongBan = $("#maPhongBan").data("selected");
