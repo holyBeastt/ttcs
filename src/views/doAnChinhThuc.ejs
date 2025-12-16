@@ -126,8 +126,6 @@
           </select>
 
           <select class="mx-1 selectop" id="he_dao_tao">
-            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
-            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
           </select>
 
           <button class="btn mx-1" id="render" style="margin-bottom: 0px; height: 45px;">Hiển thị</button>
@@ -176,7 +174,38 @@
 
         // hideButton2 ẩn các chức năng thêm sửa xóa
         unhideButton2(role, MaPhongBan);
+
+        // Load hệ đào tạo vào select
+        loadHeDoAnToSelect();
       });
+
+      async function loadHeDoAnToSelect() {
+        try {
+          const res = await fetch('/api/gvm/v1/he-do-an');
+          const json = await res.json();
+
+          if (!json.success) {
+            console.error('API lỗi');
+            return;
+          }
+
+          const select = document.getElementById('he_dao_tao');
+          if (!select) return;
+
+          // clear option cũ (nếu cần reload)
+          select.innerHTML = '';
+
+          json.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.he_dao_tao;
+            select.appendChild(option);
+          });
+
+        } catch (err) {
+          console.error('Lỗi load hệ đồ án:', err);
+        }
+      }
 
       function unhideButton2(role, MaPhongBan) {
         if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao
