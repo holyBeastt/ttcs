@@ -335,7 +335,7 @@
               <div class="row">
                 <p></p>
                 <div
-                  style="width: 30%; padding-right: 0px"
+                  style="width: 20%; padding-right: 0px"
                   class="thuocQuanDoiBox"
                 >
                   <div class="form-group">
@@ -350,6 +350,16 @@
                       value="1"
                     />
                   </div>
+                </div>
+
+                <div style="width: 50%; padding-right: 0px">
+                  <label for="ChucDanhNgheNghiep">Hạng chức danh nghề nghiệp:</label>
+                  <select
+                    class="form-control"
+                    name="ChucDanhNgheNghiep"
+                    id="ChucDanhNgheNghiep"
+                  >
+                  </select>
                 </div>
               </div>
               <!-- Dòng 4 -->
@@ -452,7 +462,40 @@
             }
           })
           .catch((error) => console.error("Error:", error));
+
+        // Load chức danh nghề nghiệp vào select
+        loadChucDanhToSelect();
       });
+
+      async function loadChucDanhToSelect() {
+        try {
+          const res = await fetch('/api/gvm/v1/chuc-danh-nghe-nghiep');
+          const json = await res.json();
+          debugger
+          if (!json.success) {
+            console.error('API lỗi');
+            return;
+          }
+
+          console.log('Chức danh nghề nghiệp:', json.data);
+
+          const select = document.getElementById('ChucDanhNgheNghiep');
+          if (!select) return;
+
+          // clear option cũ (nếu cần reload)
+          select.innerHTML = '';
+
+          json.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.chuc_danh;
+            select.appendChild(option);
+          });
+
+        } catch (err) {
+          console.error('Lỗi load chức danh:', err);
+        }
+      }
     </script>
     <script>
       // Lấy query string từ URL

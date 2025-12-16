@@ -70,11 +70,30 @@ const getHeDoAnLists = async (req, res) => {
   }
 };
 
+// Lấy hạng chức danh nghề nghiệp
+const getChucDanhNgheNghiep = async (req, res) => {
+  try {
+    const query = "SELECT id, chuc_danh FROM chuc_danh_nghe_nghiep";
+    const [results] = await pool.query(query);
+    return res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error("Error fetching Chuc Danh Nghe Nghiep:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getGvmLists,
   getHeDaoTaoLists,
   getHeMoiGiangLists,
-  getHeDoAnLists
+  getHeDoAnLists,
+  getChucDanhNgheNghiep
 };
