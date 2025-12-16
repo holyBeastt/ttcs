@@ -200,21 +200,21 @@ const getExportPhuLucDAPath = async (
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`); // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên
-      const earliestDate = giangVienData.reduce((minDate, item) => {
-        const currentStartDate = new Date(item.NgayBatDau);
-        return currentStartDate < minDate ? currentStartDate : minDate;
-      }, new Date(giangVienData[0].NgayBatDau));
+      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`); // Tìm ngày kết thúc muộn nhất từ dữ liệu giảng viên
+      const latestDate = giangVienData.reduce((maxDate, item) => {
+        const currentEndDate = new Date(item.NgayKetThuc);
+        return currentEndDate > maxDate ? currentEndDate : maxDate;
+      }, new Date(giangVienData[0].NgayKetThuc));
 
-      // Định dạng ngày bắt đầu sớm nhất thành chuỗi
-      const formattedEarliestDate = formatVietnameseDate(earliestDate); // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
+      // Định dạng ngày kết thúc muộn nhất thành chuỗi
+      const formattedLatestDate = formatVietnameseDate(latestDate); // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
       const soHopDong = giangVienData[0]?.SoHopDong || "";
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
       const contractNumber =
         soHopDong && soHopDong.trim() !== ""
-          ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
-          : `Hợp đồng số:      /HĐ-ĐT ${formattedEarliestDate}`;
+          ? `Hợp đồng số: ${soHopDong} ${formattedLatestDate}`
+          : `Hợp đồng số:      /HĐ-ĐT ${formattedLatestDate}`;
 
       const titleRow3 = worksheet.addRow([contractNumber]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
@@ -528,8 +528,8 @@ const getExportPhuLucDAPath = async (
       // Xử lý soThanhLyHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
       const verificationContractNumber =
         soThanhLyHopDong && soThanhLyHopDong.trim() !== ""
-          ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong} ${formattedEarliestDate}`
-          : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT ${formattedEarliestDate}`;
+          ? `Kèm theo biên bản nghiệm thu Hợp đồng số: ${soThanhLyHopDong} ${formattedLatestDate}`
+          : `Kèm theo biên bản nghiệm thu Hợp đồng số:             /HĐNT-ĐT ${formattedLatestDate}`;
 
       const titleRow4_2 = worksheet2.addRow([verificationContractNumber]);
       titleRow4_2.font = { name: "Times New Roman", bold: true, size: 16 };
