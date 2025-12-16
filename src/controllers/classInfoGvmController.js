@@ -137,7 +137,7 @@ const getClassInfoGvmData = async (req, res) => {
   `;
 
   // Thêm điều kiện lọc theo hệ đào tạo nếu không phải "ALL"
-  if (he_dao_tao !== "ALL") {
+  if (he_dao_tao !== "0") {
     query += ` AND he_dao_tao = ?`;
   }
 
@@ -145,24 +145,10 @@ const getClassInfoGvmData = async (req, res) => {
     query += ` AND KiHoc = ?`;
   }
 
-  // Phần comment này là phần truy vấn phân loại theo Khoa, nhưng k hiển thị được nếu có một gv dạy ở 2 Khoa
-  // console.log("derpartment " + department + " MaPhongBan " + MaPhongBan);
-  // if (isKhoa == 0) {
-  //   if (department != "ALL") {
-  //     query += ` AND Khoa LIKE '%${department}%'`;
-  //   }
-  // } else {
-  //   query += ` AND Khoa LIKE '%${MaPhongBan}%'`;
-  // }
-  // Cách hoạt động mới sẽ như sau :
-  // Nếu department là ALL => cho hiển thị ALL data. Ngược lại chỉ hiển thị của Khoa đó.
-  // Truy vấn luôn trả về data của ALL khoa.
-  // Tìm lọc các trường hợp lớp thuộc 2 khoa mà có tên giảng viên giống nhau, gộp vào và trả cho res.
-
   try {
     connection = await createPoolConnection();
     const queryParams = [dot, nam];
-    if (he_dao_tao !== "ALL") {
+    if (he_dao_tao !== "0") {
       queryParams.push(he_dao_tao);
     }
     if (ki != "ALL") {

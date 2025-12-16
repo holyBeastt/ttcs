@@ -12,6 +12,6 @@ router.get("/classInfoGvm", getClassInfoGvm);
 
 router.get("/api/classInfoGvm", getGvm);
 
-router.post("/api/getClassInfoGvmData", getClassInfoGvmData);
+router.post("/api/moi-giang/v1/getClassInfoGvmData", getClassInfoGvmData);
 
 module.exports = router;

@@ -255,15 +255,6 @@
                     name="he_dao_tao"
                     class="w-200px mx-2 selectop"
                   >
-                    <option value="ALL">Tất cả hệ</option>
-                    <option value="Đại học (Đóng học phí)">
-                      Đại học (Đóng học phí)
-                    </option>
-                    <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
-                    <option value="Cao học (Đóng học phí)">Cao học</option>
-                    <option value="Nghiên cứu sinh (Đóng học phí)">
-                      Nghiên cứu sinh
-                    </option>
                   </select>
 
                   <button
@@ -448,7 +439,42 @@
         if (!MaPhongBan.includes(APP_DEPARTMENTS.daoTao) && !MaPhongBan.includes(APP_DEPARTMENTS.vanPhong)) {
           departmentFilter.style.display = "none";
         }
+
+        loadHeDoAnToSelect();
       });
+
+      async function loadHeDoAnToSelect() {
+        try {
+          const res = await fetch('/api/gvm/v1/he-moi-giang');
+          const json = await res.json();
+
+          if (!json.success) {
+            console.error('API lỗi');
+            return;
+          }
+
+          const select = document.getElementById('he_dao_tao');
+          if (!select) return;
+
+          // clear option cũ (nếu cần reload)
+          select.innerHTML = '';
+
+          const allOption = document.createElement('option');
+          allOption.value = '0';   // hoặc '' hoặc -1 tuỳ backend m xử lý
+          allOption.textContent = 'Tất cả hệ';
+          select.appendChild(allOption);
+
+          json.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.he_dao_tao;
+            select.appendChild(option);
+          });
+
+        } catch (err) {
+          console.error('Lỗi load hệ đồ án:', err);
+        }
+      }
     </script>
 
     <script>
@@ -477,7 +503,7 @@
         };
 
         // Gửi request tới server để lấy dữ liệu lọc
-        fetch("/api/getClassInfoGvmData", {
+        fetch("/api/moi-giang/v1/getClassInfoGvmData", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
