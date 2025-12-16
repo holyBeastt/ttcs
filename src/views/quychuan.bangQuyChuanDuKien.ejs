@@ -18,9 +18,15 @@
   <!-- SweetAlert2 JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
 
-  <!-- Link thư viện tabulator -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+  <!-- AG Grid Styles -->
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css" />
+  <!-- AG Grid Script -->
+  <script src="/js/TKB/ag-grid-community.min.js"></script>
+
+  <!-- Toastify -->
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
   <style>
     .spinner-border {
@@ -33,13 +39,9 @@
 
     .header-actions {
       display: flex;
-      /* Flexbox container */
       flex-wrap: wrap;
-      /* Wrap items if they don't fit in one line */
       align-items: center;
-      /* Vertically center items */
       gap: 10px;
-      /* Space between the elements */
       justify-content: space-between;
     }
 
@@ -50,9 +52,6 @@
     .left {
       display: flex;
       align-items: center;
-      /* Căn giữa theo chiều dọc */
-      /* gap: 10px; */
-      /* Khoảng cách giữa các phần tử */
     }
 
     .btn {
@@ -63,13 +62,10 @@
     /* cảnh báo khi thiếu dữ liệu */
     .warning-row {
       background-color: #ffe6e6;
-      /* Màu nền cảnh báo nhạt */
       color: #ff0000;
-      /* Màu chữ cảnh báo */
     }
 
     /* nút xuất file */
-    /* Định dạng cho dropdown */
     #file-format-menu {
       background-color: white;
       border: 1px solid #ddd;
@@ -89,53 +85,23 @@
     }
   </style>
   <style>
-    /* fixed header nhưng chưa được */
-    .tabulator>.tabulator-header>.tabulator-col {
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 10000 !important;
-    }
-
-    /* phần header */
-    .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
-      /* Ghi đè với thư viện cho đẹp */
-      padding: 10px 5px 0px 5px !important;
-
-      text-align: center !important;
-      /* Canh giữa văn bản */
-      white-space: normal !important;
-      /* Cho phép nội dung xuống dòng */
-      word-wrap: break-word !important;
-      /* Ngắt từ nếu cần */
-      overflow: visible !important;
-      /* Hiển thị hết nội dung, không cắt */
-      word-break: break-word !important;
-      /* Ngắt từ dài thành dòng mới */
-    }
-
-    /* Đảm bảo bảng có chiều rộng 100% */
+    /* AG Grid container styles */
     #table-container {
       width: 100% !important;
-      font-size: 12px !important;
-      /* Thêm style cho bảng nếu cần */
+      height: 550px;
+      font-size: 14px !important;
     }
 
-    /* Thay đổi chiều rộng của tiêu đề cột nếu cần */
-    .tabulator-col .tabulator-sortable .tabulator-col-sorter-element {
-      display: flex !important;
-      flex-wrap: wrap !important;
+    .custom-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center !important;
     }
 
-    .wrap-cell {
-      white-space: normal;
-      word-wrap: break-word;
-    }
-  </style>
-  <style>
-    /* phần css cho label tổng số tiết ki*/
+    /* phần css cho label tổng số tiết */
     #total-label {
       margin-left: auto;
-      /* Căn phải cho thẻ total-label */
       margin-right: 0;
       font-family: Arial, sans-serif;
       font-size: 16px;
@@ -145,39 +111,48 @@
       width: fit-content;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: block;
-      /* Đảm bảo thẻ div là khối để căn phải hoạt động */
     }
 
     #total-label label {
       font-weight: bold;
-      /* Giữ chữ in đậm */
       color: #000;
-      /* Màu chữ đen */
       margin-right: 8px;
-      /* Thêm khoảng cách bên phải */
       cursor: pointer;
-      /* Tạo hiệu ứng chuyển màu nền và màu chữ mềm mại */
       padding: 5px 10px;
-      /* Thêm padding cho label để tạo không gian */
       border: 1px solid #ccc;
-      /* Khung cho label */
       border-radius: 4px;
-      /* Bo góc cho khung */
     }
 
     #total-label label,
     #total-label label span {
       background-color: #007BFF;
-      /* Màu nền khi hover */
       color: #fff;
-      /* Màu chữ trắng khi hover */
     }
 
     .total-label span {
       font-weight: bold;
-      /* Giữ chữ trong span cũng in đậm */
       color: #333;
-      /* Màu chữ đậm cho giá trị */
+    }
+
+    .search-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 300px;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
     }
   </style>
 </head>
@@ -191,16 +166,18 @@
       <div class="flex-grow-1">
         <div class="header-actions">
           <div class="left">
-            <button class="btn text-nowrap" id="quychuandukien"
-              style="width: max-content; margin-bottom: 0px; display: none">
-              Thêm file quy chuẩn
-            </button>
             <button class="btn text-nowrap" id="export-file-btn"
               style="width: max-content; margin-bottom: 0px; display: none">
               Xuất file
             </button>
             <button class="btn" id="ban-hanh" style="margin-bottom: 0px; display: none">
               Ban Hành
+            </button>
+            <button class="btn" id="xoa-qc-du-kien" style="margin-bottom: 0px; display: none">
+              Xóa
+            </button>
+            <button class="btn" style="margin-bottom: 0px; display: none" id="add-row-btn" onclick="addRow()">
+              Thêm dòng mới
             </button>
             <div id="file-format-menu" class="dropdown-menu" aria-labelledby="export-file-btn"
               style="display: none; position: absolute">
@@ -234,24 +211,26 @@
           </div>
         </div>
 
-        <div class="left">
-          <button class="btn" id="xoa-qc-du-kien" style="display: none">
-            Xóa bảng
-          </button>
-          <button class="btn" style="display: none" id="add-row-btn" onclick="addRow()">
-            Thêm dòng mới
-          </button>
-          <button class="btn" id="save-btn" style="display: none" onclick="updateDataInServer()">
-            Cập nhật
-          </button>
+        <div class="search-container">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên giảng viên..."
+            class="search-input"
+            id="search-by-teacher"
+          />
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo lớp học phần..."
+            class="search-input"
+            id="search-by-course"
+          />
         </div>
-        <table class="table table-bordered">
-          <div id="table-container"></div>
-          <div id="total-label" style="display: none;">
-            <label>Tổng số tiết Lên Lớp (dự kiến): <span class="value" id="totalLL">0</span></label>
-            <label>Tổng số tiết Quy Chuẩn (dự kiến): <span class="value" id="totalQC">0</span></label>
-          </div>
-        </table>
+
+        <div id="table-container" class="ag-theme-alpine"></div>
+        <div id="total-label" style="display: none;">
+          <label>Tổng số tiết Lên Lớp (dự kiến): <span class="value" id="totalLL">0</span></label>
+          <label>Tổng số tiết Quy Chuẩn (dự kiến): <span class="value" id="totalQC">0</span></label>
+        </div>
       </div>
     </div>
     <!-- hiện các chức năng theo role của site qc dự kiến -->
@@ -272,16 +251,12 @@
         if ((role == APP_ROLES.troLy_phong || role == APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
           const addBtn = document.getElementById("add-row-btn");
           const exportBtn = document.getElementById("export-file-btn");
-          const saveBtn = document.getElementById("save-btn");
           const banHanhBtn = document.getElementById("ban-hanh");
-          const toggleSiteBtn = document.getElementById("quychuandukien");
           const deleteQcdkBtn = document.getElementById("xoa-qc-du-kien");
 
-          addBtn.style.display = "block"; //
-          exportBtn.style.display = "block"; //
-          saveBtn.style.display = "block";
+          addBtn.style.display = "block";
+          exportBtn.style.display = "block";
           banHanhBtn.style.display = "block";
-          toggleSiteBtn.style.display = "block";
           deleteQcdkBtn.style.display = "block";
         }
       }
@@ -421,10 +396,12 @@
       var localData = [];
       // Mảng khoa ( để validate bảng)
       var khoaArray = [];
-      // Khởi tạo table
-      var table;
+      // AG Grid API
+      var gridApi;
+      var gridOptions;
       // Danh sách hệ đào tạo từ API
       var heDaoTaoList = [];
+      var heDaoTaoMap = {};
 
       // Hàm load danh sách hệ đào tạo từ API
       async function loadHeDaoTaoFromAPI() {
@@ -436,14 +413,14 @@
           const result = await response.json();
           
           if (result.success && result.data) {
-            // Chuyển đổi data từ API sang format phù hợp
-            // API trả về: {id: 1, he_dao_tao: "Tên hệ"}
-            // Chuyển thành: {id: 1, tenHe: "Tên hệ"}
-            // Đảm bảo id luôn là số để so sánh chính xác
             heDaoTaoList = result.data.map(item => ({
               id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
               tenHe: item.he_dao_tao
             }));
+            // Tạo map để tra cứu nhanh
+            heDaoTaoList.forEach(item => {
+              heDaoTaoMap[item.id] = item.tenHe;
+            });
             console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
           } else {
             console.error('API không trả về dữ liệu hợp lệ');
@@ -455,7 +432,11 @@
         }
       }
 
-      // Hàm getData từ sv
+      // Biến lưu giá trị tìm kiếm
+      var searchTeacherValue = '';
+      var searchCourseValue = '';
+
+      // Hàm getData từ server
       async function getDataTable() {
         let Dot = document.getElementById("combobox-dot").value;
         let Ki = document.getElementById("comboboxki").value;
@@ -470,6 +451,8 @@
         };
 
         try {
+          if (gridApi) gridApi.showLoadingOverlay();
+
           const response = await fetch("/qcdk", {
             method: "POST",
             headers: {
@@ -488,47 +471,52 @@
               confirmButtonText: "OK",
               width: "auto",
               padding: "20px",
-              timer: 3000, // Tự động đóng sau 3 giây
-              timerProgressBar: true, // Hiển thị thanh đếm thời gian
+              timer: 3000,
+              timerProgressBar: true,
               didClose: () => {
-                location.reload(); // Reload trang khi đóng
+                location.reload();
               },
             }).then((result) => {
               if (result.isDismissed || result.isConfirmed) {
-                location.reload(); // Reload trang nếu bấm "OK" hoặc "X"
+                location.reload();
               }
             });
-
-            return; // Dừng lại nếu có lỗi
+            return;
           }
 
-          renderData = rs.data; // Lưu dữ liệu vào biến renderData
+          renderData = rs.data;
+          localData = JSON.parse(JSON.stringify(renderData));
 
-          // Gọi hàm renderTable để hiển thị dữ liệu
-          renderTable();
+          if (gridApi) {
+            // Cập nhật dữ liệu và refresh tất cả các cells
+            gridApi.setRowData(localData);
+            gridApi.refreshCells({ force: true });
+            if (localData.length === 0) {
+              gridApi.showNoRowsOverlay();
+            } else {
+              gridApi.hideOverlay();
+            }
+          } else {
+            renderTable();
+          }
+          
           calculateTotals();
         } catch (error) {
           console.error("Error fetching data:", error);
+          if (gridApi) gridApi.hideOverlay();
           alert("Có lỗi xảy ra khi gọi API: " + error.message);
         }
       }
 
       function calculateTotals() {
-        // Tính tổng bằng reduce()
         let totalLL = renderData.reduce((sum, item) => sum + (parseFloat(item.LL) || 0), 0);
         let totalQC = renderData.reduce((sum, item) => sum + (parseFloat(item.QuyChuan) || 0), 0);
 
-
         const labelTotal = document.getElementById("total-label");
-
-        // Cập nhật vào HTML
         document.getElementById('totalLL').textContent = totalLL.toFixed(2);
         document.getElementById('totalQC').textContent = totalQC.toFixed(2);
-
-
         labelTotal.style.display = "block";
       }
-
 
       // Hàm format ngày tháng năm
       function formatDate(dateValue) {
@@ -537,20 +525,15 @@
         try {
           let date;
           
-          // Nếu là string, chuyển thành Date object
           if (typeof dateValue === "string") {
-            // Xử lý các định dạng khác nhau
             if (dateValue.includes("T")) {
-              // ISO format: 2024-01-15T00:00:00.000Z
               date = new Date(dateValue);
             } else if (dateValue.includes("/")) {
-              // Format: dd/mm/yyyy hoặc mm/dd/yyyy
               const parts = dateValue.split("/");
               if (parts.length === 3) {
                 date = new Date(parts[2], parts[1] - 1, parts[0]);
               }
             } else if (dateValue.includes("-")) {
-              // Format: yyyy-mm-dd
               date = new Date(dateValue);
             } else {
               date = new Date(dateValue);
@@ -558,15 +541,13 @@
           } else if (dateValue instanceof Date) {
             date = dateValue;
           } else {
-            return dateValue; // Trả về giá trị gốc nếu không phải ngày
+            return dateValue;
           }
           
-          // Kiểm tra ngày hợp lệ
           if (isNaN(date.getTime())) {
-            return dateValue; // Trả về giá trị gốc nếu ngày không hợp lệ
+            return dateValue;
           }
           
-          // Format thành dd/mm/yyyy
           const day = String(date.getDate()).padStart(2, "0");
           const month = String(date.getMonth() + 1).padStart(2, "0");
           const year = date.getFullYear();
@@ -574,209 +555,415 @@
           return `${day}/${month}/${year}`;
         } catch (error) {
           console.error("Error formatting date:", error);
-          return dateValue; // Trả về giá trị gốc nếu có lỗi
+          return dateValue;
         }
       }
 
-      // Hàm render bảng
+      // Hàm format ngày từ DB giống TKB
+      function reFormatDateFromDB(input) {
+        if (!input) return "";
+        const date = new Date(input);
+
+        if (isNaN(date.getTime())) {
+          return input;
+        }
+
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      }
+
+      // Hàm render bảng với AG Grid
       function renderTable() {
         const role = localStorage.getItem("userRole");
         const MaPhongBan = localStorage.getItem("MaPhongBan");
+        const rowHeight = 50;
 
-        const tableBody = document.getElementById("data-table-body");
-        const tableHeader = document.getElementById("table-header");
+        if (gridApi) {
+          gridApi.setRowData(localData);
+          if (localData.length === 0) {
+            gridApi.showNoRowsOverlay();
+          } else {
+            gridApi.hideOverlay();
+          }
+          return;
+        }
 
-        // Danh sách cột cần hiển thị theo thứ tự giống tableQC.ejs
-        const columnsToDisplay = [
-          "Khoa",
-          "LopHocPhan",
-          "SoTinChi",
-          "he_dao_tao",
-          "GiaoVien",
-          "NgayBatDau",
-          "NgayKetThuc",
-          "LL",
-          "SoSinhVien",
-          "HeSoLopDong",
-          "HeSoT7CN",
-          "QuyChuan",
-          "GhiChu"
-        ];
+        if (localData.length === 0) {
+          document.getElementById("table-container").innerHTML = "<p class='text-center mt-3'>Không có dữ liệu</p>";
+          return;
+        }
 
         const headersMap = {
-          Khoa: "Khoa",
-          Dot: "Đợt",
-          Ki: "Kì",
-          Nam: "Năm",
-          LopHocPhan: "Lớp học phần",
-          GiaoVien: "Giảng viên theo TKB",
-          SoTinChi: "Số TC",
-          NgayBatDau: "Ngày bắt đầu",
-          NgayKetThuc: "Ngày kết thúc",
-          LL: "Số tiết lên lớp",
-          SoSinhVien: "Số SV",
-          // SoTietCTDT: "Số tiết theo CTĐT",
-          HeSoLopDong: "Hệ số lớp đông",
-          HeSoT7CN: "Hệ số lên lớp ngoài giờ",
-          QuyChuan: "QC",
-          he_dao_tao: "Hệ đào tạo",
-          GhiChu: "Ghi chú"
+          ID: { name: "ID", width: 70 },
+          Khoa: { name: "Khoa", width: 100 },
+          LopHocPhan: { name: "Lớp học phần", width: 250 },
+          SoTinChi: { name: "Số TC", width: 70 },
+          he_dao_tao: { name: "Hệ đào tạo", width: 150 },
+          GiaoVien: { name: "Giảng viên theo TKB", width: 180 },
+          NgayBatDau: { name: "Ngày bắt đầu", width: 110 },
+          NgayKetThuc: { name: "Ngày kết thúc", width: 110 },
+          LL: { name: "Số tiết lên lớp", width: 100 },
+          SoSinhVien: { name: "Số SV", width: 70 },
+          HeSoLopDong: { name: "Hệ số lớp đông", width: 100 },
+          HeSoT7CN: { name: "Hệ số ngoài giờ", width: 100 },
+          QuyChuan: { name: "QC", width: 70 },
+          GhiChu: { name: "Ghi chú", width: 150 }
         };
 
-        // Cột cho phép sort
-        const sortableColumns = ["SoSinhVien", "Khoa"];
+        const columnsToDisplay = [
+          "Khoa", "LopHocPhan", "SoTinChi", "he_dao_tao", "GiaoVien",
+          "NgayBatDau", "NgayKetThuc", "LL", "SoSinhVien", "HeSoLopDong",
+          "HeSoT7CN", "QuyChuan", "GhiChu"
+        ];
 
-        // Cột cho phép lọc
-        const filterTableColumns = ["LopHocPhan", "GiaoVien"];
+        // Quyền sửa tất cả các cột (trừ GhiChu)
+        let canEdit = (role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao;
+        
+        // Quyền sửa cột Ghi chú (bao gồm cả GV_CNBM và lãnh đạo khoa)
+        let canEditNote = canEdit || role === APP_ROLES.gv_cnbm || role === APP_ROLES.lanhDao_khoa;
 
-        const columns = columnsToDisplay.map((key) => {
-          const column = {
-            // headerFilterPlaceholder: "Tìm kiếm...", // Văn bản hiển thị trong ô
-            // headerFilter: filterTableColumns.includes(key) ? true : false, // Bật chức năng lọc cho tiêu đề cột
-            title: headersMap[key] || key,
+        // Cột STT
+        const columnDefs = [
+          {
+            headerName: "STT",
+            field: "stt",
+            valueGetter: (params) => params.node.rowIndex + 1,
+            width: 70,
+            editable: false,
+            cellStyle: { fontWeight: "bold", textAlign: "center" },
+          }
+        ];
+
+        // Các cột dữ liệu
+        columnsToDisplay.forEach((key) => {
+          const colDef = {
             field: key,
-            hozAlign: "center",
-            editor: false,
-            headerSort: sortableColumns.includes(key) ? true : false
+            headerName: headersMap[key]?.name || key,
+            width: headersMap[key]?.width || 100,
+            editable: canEdit && key !== "HeSoLopDong" && key !== "ID",
+            hide: key === "ID" || key === "Dot" || key === "Ki" || key === "Nam",
+            headerClass: "custom-header",
+            filter: false,
+            cellStyle: {
+              fontSize: "14px",
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+              textAlign: "center",
+            },
+            
+            // valueGetter - xử lý cách hiển thị (GIỐNG TKB)
+            valueGetter: (params) => {
+              const field = params.colDef.field;
+
+              if (field === "NgayBatDau" || field === "NgayKetThuc") {
+                const value = params.data[field];
+                if (!value) return "";
+
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+
+                return reFormatDateFromDB(value); // Luôn trả STRING
+              }
+
+              return params.data[field];
+            },
+
+            // valueSetter - xử lý khi chỉnh sửa (GIỐNG TKB)
+            valueSetter: (params) => {
+              const field = params.colDef.field;
+              const oldValue = params.data[field];
+              const rawValue = params.newValue;
+              const value = typeof rawValue === "string" ? rawValue.trim() : rawValue;
+              
+              // ✅ Xử lý riêng cho cột "NgayBatDau" và "NgayKetThuc"
+              if (field === "NgayBatDau" || field === "NgayKetThuc") {
+                if (!value) return false;
+
+                const parts = value.split("/");
+                if (parts.length === 3) {
+                  // Đảm bảo thêm số 0 ở đầu nếu người dùng nhập thiếu (vd: 9 -> 09)
+                  const day = parts[0].padStart(2, "0");
+                  const month = parts[1].padStart(2, "0");
+                  const year = parts[2];
+                  
+                  // Tạo chuỗi chuẩn ISO: yyyy-mm-dd
+                  const formattedIsoDate = `${year}-${month}-${day}`; 
+
+                  const date = new Date(formattedIsoDate);
+
+                  // Kiểm tra ngày hợp lệ
+                  if (!isNaN(date.getTime())) {
+                    console.log("✅ Valid date to save:", formattedIsoDate);
+                    
+                    // QUAN TRỌNG: Lưu chuỗi chuẩn ISO vào data, KHÔNG lưu chuỗi dd/mm/yyyy
+                    params.data[field] = formattedIsoDate; 
+                    
+                    return true;
+                  }
+                }
+                
+                Toastify({
+                  text: "❌ Ngày không hợp lệ! Vui lòng kiểm tra lại (dd/mm/yyyy)",
+                  duration: 3000,
+                  gravity: "top",
+                  position: "right",
+                  stopOnFocus: true,
+                  backgroundColor: "#FF5252",
+                }).showToast();
+
+                console.warn("❌ Invalid date format:", value);
+                params.data[field] = oldValue;
+                return false;
+              }
+
+              // ✅ Xử lý các cột khác
+              if (value !== oldValue) {
+                params.data[field] = value;
+                return true;
+              }
+
+              return false;
+            },
+
+            cellEditor: "agTextCellEditor",
+            cellEditorParams: {
+              useFormatter: true, // Giữ nguyên định dạng khi chỉnh sửa
+            },
           };
 
-          // Cấu hình dropdown cho cột hệ đào tạo
+          // Xử lý cột hệ đào tạo
           if (key === "he_dao_tao") {
-            if (heDaoTaoList.length > 0) {
-              // Tạo options cho select editor: key = id, value = tenHe để hiển thị
-              const selectOptions = {};
-              heDaoTaoList.forEach(item => {
-                selectOptions[item.id] = item.tenHe;
-              });
-              
-              column.editor = "select";
-              column.editorParams = {
-                values: selectOptions,
-                clearable: true,
-                allowEmpty: true,
-                emptyValue: null
-              };
-            }
-            
-            // Formatter để hiển thị tenHe thay vì id - luôn apply
-            column.formatter = function(cell) {
-              const id = cell.getValue();
+            colDef.cellEditor = "agSelectCellEditor";
+            colDef.cellEditorParams = {
+              values: heDaoTaoList.map(item => item.id),
+            };
+            colDef.valueFormatter = (params) => {
+              const id = params.value;
               if (!id) return "";
-              
-              // Parse id thành number để so sánh
               const numId = typeof id === 'string' ? parseInt(id, 10) : id;
-              
-              if (heDaoTaoList.length > 0) {
-                const found = heDaoTaoList.find(item => item.id === numId);
-                if (found) return found.tenHe;
-              }
-              
-              return id; // Fallback về id nếu không tìm thấy
+              return heDaoTaoMap[numId] || id;
             };
-          } else if (key === "NgayBatDau" || key === "NgayKetThuc") {
-            // Format ngày cho các cột ngày
-            column.formatter = function(cell) {
-              const value = cell.getValue();
-              const formattedDate = formatDate(value);
-              return formattedDate || "";
-            };
-          } else {
-            // Formatter mặc định cho các cột khác
-            column.formatter = "textarea";
           }
 
-          // Đặt độ rộng cho các cột cụ thể
-          if (key === "LopHocPhan" || key === "GiaoVien") {
-            column.width = "18%";
-          } else if (key === "Dot" || key === "Ki" || key === "SoTinChi") {
-            column.width = "3%";
-          } else if (key === "SoSinhVien") {
-            column.width = "3%";
+          // Xử lý cột Ghi chú - cho phép nhiều role sửa
+          if (key === "GhiChu") {
+            colDef.editable = canEditNote;
+            colDef.cellEditor = "agLargeTextCellEditor";
+            colDef.cellEditorPopup = true;
+            colDef.cellEditorParams = {
+              maxLength: 400,
+              rows: 6,
+              cols: 40,
+            };
           }
-          return column;
+
+          columnDefs.push(colDef);
         });
 
-        if ((role === APP_ROLES.troLy_phong || role === APP_ROLES.lanhDao_phong) && MaPhongBan == APP_DEPARTMENTS.daoTao) {
-          columns.push({
-            title: "Xóa",
+        // Thêm cột Xóa nếu có quyền
+        if (canEdit) {
+          columnDefs.push({
+            headerName: "Xóa",
             field: "actions",
-            hozAlign: "center",
-            headerSort: false,
-            sortable: false,
-            formatter: function (cell, formatterParams, onRendered) {
-              const id = cell.getRow().getData().ID;
-              return `<button onclick="deleteRow(${id})">Xóa</button>`;
+            editable: false,
+            width: 60,
+            cellRenderer: (params) => {
+              const id = params.data.ID;
+              const stt = params.node.rowIndex + 1;
+              return `<button onclick="deleteRow(${id}, ${stt})">Xóa</button>`;
             },
           });
+        }
 
-          const nonEditableColumns = [
-            // "Khoa",
-            // "Dot",
-            // "Ki",
-            // "Nam",
-            // "HeSoLopDong",
-          ]; // Danh sách cột không cho chỉnh sửa
+        // Xử lý khi ô được chỉnh sửa - tự động lưu lên server
+        async function onCellValueChanged(event) {
+          const { data, colDef, newValue, oldValue } = event;
+          const field = colDef.field;
 
-          columns.forEach((col) => {
-            // Giữ nguyên editor "select" cho cột he_dao_tao, không override
-            if (col.field === "he_dao_tao") {
-              return; // Bỏ qua, giữ nguyên editor đã được cấu hình
+          console.log("📝 Cell changed:", field, "Old:", oldValue, "New:", newValue);
+          console.log("📦 Data to send:", data);
+
+          // Cập nhật localData
+          const rowIndex = localData.findIndex(row => row.ID === data.ID);
+          if (rowIndex !== -1) {
+            localData[rowIndex] = { ...data };
+          }
+
+          // Gửi dữ liệu lên server ngay lập tức
+          try {
+            const response = await fetch("/update-qcdk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify([data]), // Gửi dưới dạng mảng
+            });
+
+            console.log("📡 Response status:", response.status);
+            const result = await response.json();
+            console.log("📨 Server response:", result);
+
+            if (result.success && result.data && result.data.length > 0) {
+              // Lấy dữ liệu đã được tính toán từ server
+              const updatedData = result.data[0];
+              
+              // Cập nhật renderData với dữ liệu mới từ server
+              const renderIndex = renderData.findIndex(row => row.ID === updatedData.ID);
+              if (renderIndex !== -1) {
+                renderData[renderIndex] = { ...updatedData };
+              }
+              
+              // Cập nhật localData với dữ liệu từ server
+              const localIndex = localData.findIndex(row => row.ID === updatedData.ID);
+              if (localIndex !== -1) {
+                localData[localIndex] = { ...updatedData };
+              }
+
+              // Cập nhật node trong AG Grid với dữ liệu mới
+              event.node.setData(updatedData);
+
+              // Refresh tất cả các cell trong row để hiển thị giá trị đã tính toán
+              gridApi.refreshCells({ 
+                rowNodes: [event.node], 
+                force: true 
+              });
+
+              Toastify({
+                text: "✅ Cập nhật thành công!",
+                duration: 1000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#4CAF50",
+              }).showToast();
+
+              // Cập nhật lại tổng nếu thay đổi các cột liên quan
+              if (field === "LL" || field === "QuyChuan" || field === "SoSinhVien" || field === "HeSoLopDong" || field === "HeSoT7CN") {
+                calculateTotals();
+              }
+            } else {
+              Swal.fire({
+                title: "❌ Lỗi",
+                html: result.message,
+                icon: "error",
+                confirmButtonText: "OK",
+                width: "auto",
+                padding: "20px",
+              });
+              
+              // Khôi phục giá trị cũ nếu lỗi
+              data[field] = oldValue;
+              gridApi.refreshCells({ rowNodes: [event.node], columns: [field] });
             }
-            col.editor = !nonEditableColumns.includes(col.field); // Chỉ chỉnh sửa nếu không nằm trong danh sách
-          });
-        } else {
-          columns.forEach((col) => {
-            // Giữ nguyên editor "select" cho cột he_dao_tao ngay cả khi không có quyền edit
-            if (col.field === "he_dao_tao") {
-              return;
+          } catch (error) {
+            console.error("❌ Lỗi kết nối server:", error);
+            Toastify({
+              text: "❌ Lỗi kết nối server!",
+              duration: 2000,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#FF5252",
+            }).showToast();
+            
+            // Khôi phục giá trị cũ nếu lỗi
+            data[field] = oldValue;
+            gridApi.refreshCells({ rowNodes: [event.node], columns: [field] });
+          }
+        }
+
+        // Tạo bảng AG Grid
+        gridOptions = {
+          columnDefs: columnDefs,
+          rowData: localData,
+          getRowId: params => String(params.data.ID),
+          defaultColDef: {
+            resizable: true,
+            sortable: true,
+            filter: false,
+            editable: false,
+            cellStyle: {
+              fontSize: "14px",
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+              textAlign: "center",
+            },
+          },
+          rowHeight: rowHeight,
+          onCellValueChanged: onCellValueChanged,
+          singleClickEdit: true,
+          enterMovesDownAfterEdit: true,
+          suppressClickEdit: false,
+          isExternalFilterPresent: () => {
+            return searchTeacherValue !== '' || searchCourseValue !== '';
+          },
+          doesExternalFilterPass: (node) => {
+            const data = node.data;
+            
+            // Kiểm tra filter giảng viên
+            if (searchTeacherValue) {
+              const teacher = (data.GiaoVien || '').toLowerCase();
+              if (!teacher.includes(searchTeacherValue.toLowerCase())) {
+                return false;
+              }
             }
-            col.editor = false; // Không cho phép chỉnh sửa
+            
+            // Kiểm tra filter lớp học phần
+            if (searchCourseValue) {
+              const course = (data.LopHocPhan || '').toLowerCase();
+              if (!course.includes(searchCourseValue.toLowerCase())) {
+                return false;
+              }
+            }
+            
+            return true;
+          },
+          onGridReady: (params) => {
+            gridApi = params.api;
+            params.api.sizeColumnsToFit();
+          },
+          overlayNoRowsTemplate: '<span style="padding: 10px;">Không có dữ liệu</span>',
+        };
+
+        const tableContainer = document.getElementById("table-container");
+        tableContainer.innerHTML = "";
+        new agGrid.Grid(tableContainer, gridOptions);
+
+        // Thiết lập tìm kiếm
+        setupSearch();
+      }
+
+      // Hàm thiết lập tìm kiếm
+      function setupSearch() {
+        const teacherSearch = document.getElementById("search-by-teacher");
+        const courseSearch = document.getElementById("search-by-course");
+
+        if (teacherSearch) {
+          teacherSearch.addEventListener("input", function (e) {
+            searchTeacherValue = e.target.value;
+            if (gridApi) {
+              gridApi.onFilterChanged();
+            }
           });
         }
 
-        if (table) {
-          table.destroy();
-        }
-
-        // Lưu dữ liệu renderData vào localData khi bảng được render
-        localData = JSON.parse(JSON.stringify(renderData));
-
-        table = new Tabulator("#table-container", {
-          data: localData,
-          layout: "fitColumns",
-          movableColumns: true,
-          resizableColumns: true,
-          frozen: true,
-          columns: columns,
-          index: "ID",
-          renderVertical: "virtual", // Sử dụng render dọc Virtual DOM thay vì phân trang
-          height: "550px", // Giới hạn chiều cao để virtual scroll hoạt động
-          formatterParams: {
-            cssClass: "wrap-cell"
-          },
-          resizableRows: true,
-
-          cellEdited: function (cell) {
-            const editedData = cell.getData();
-            const rowIndex = localData.findIndex(
-              (row) => row.ID === editedData.ID
-            );
-            if (rowIndex !== -1) {
-              localData[rowIndex] = editedData;
+        if (courseSearch) {
+          courseSearch.addEventListener("input", function (e) {
+            searchCourseValue = e.target.value;
+            if (gridApi) {
+              gridApi.onFilterChanged();
             }
-          },
-        });
+          });
+        }
       }
 
       // Hàm cập nhật
       async function updateDataInServer() {
         return new Promise((resolve, reject) => {
-          // So sánh localData với renderData để tìm các thay đổi
           const changes = localData.filter((localRow) => {
             const renderRow = renderData.find(
               (renderRow) => renderRow.ID === localRow.ID
             );
-            return JSON.stringify(localRow) !== JSON.stringify(renderRow); // So sánh dữ liệu giữa local và render
+            return JSON.stringify(localRow) !== JSON.stringify(renderRow);
           });
 
           if (changes.length > 0) {
@@ -799,10 +986,9 @@
                     confirmButtonText: "OK",
                     width: "auto",
                     padding: "20px",
-                    timer: 2000, // Tự động đóng sau 2 giây
-                    timerProgressBar: true, // Hiển thị thanh đếm thời gian
+                    timer: 2000,
+                    timerProgressBar: true,
                   }).then(() => {
-                    // Cập nhật renderData sau khi lưu thành công
                     getDataTable().then(() => {
                       resolve(true);
                     }).catch(reject);
@@ -841,39 +1027,48 @@
               confirmButtonText: "OK",
               width: "auto",
               padding: "20px",
-              timer: 2000, // Tự động đóng sau 2 giây
-              timerProgressBar: true, // Hiển thị thanh đếm thời gian
+              timer: 2000,
+              timerProgressBar: true,
             }).then(() => {
-              resolve(false); // Không có thay đổi
+              resolve(false);
             });
           }
         });
       }
 
       // Hàm xóa dòng
-      async function deleteRow(id) {
-        if (confirm("Bạn có chắc chắn muốn xóa dòng này?")) {
+      async function deleteRow(id, stt) {
+        if (confirm(`Bạn có chắc chắn muốn xóa dòng ${stt}?`)) {
           try {
-            // Gửi yêu cầu DELETE tới API để xóa dòng
             const response = await fetch(`/delete-row/${id}`, {
-              method: "DELETE", // Phương thức DELETE
+              method: "DELETE",
               headers: {
-                "Content-Type": "application/json", // Định dạng dữ liệu
+                "Content-Type": "application/json",
               },
             });
 
-            // Kiểm tra phản hồi từ server
             if (!response.ok) {
               throw new Error(`Xóa dòng thất bại: ${response.statusText}`);
             }
 
-            // Xóa dòng trong dữ liệu cục bộ renderData
+            // Xóa dòng trong AG Grid
+            gridOptions.api.applyTransaction({
+              remove: [{ ID: id }]
+            });
+
+            // Xóa dòng trong dữ liệu cục bộ
             localData = localData.filter((row) => row.ID !== id);
+            renderData = renderData.filter((row) => row.ID !== id);
 
-            // Cập nhật lại bảng Tabulator với dữ liệu mới
-            table.replaceData(localData);
+            Toastify({
+              text: "✅ Xóa thành công!",
+              duration: 1500,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#4CAF50",
+            }).showToast();
 
-            // Thông báo thành công (tuỳ chọn)
+            calculateTotals();
           } catch (error) {
             console.error("Lỗi khi xóa dòng:", error);
             alert(`Có lỗi xảy ra khi xóa: ${error.message}`);
@@ -888,12 +1083,11 @@
         let Nam = document.getElementById("NamHoc").value;
         let Khoa = document.getElementById("MaPhongBan").value;
 
-        // Tạo đối tượng mới với dữ liệu mặc định
         const newRow = {
-          Khoa: Khoa, // Chỉ cần gán trực tiếp giá trị của Khoa
-          Dot: Dot, // Cập nhật giá trị của Dot
-          Ki: Ki, // Cập nhật giá trị của Ki
-          Nam: Nam, // Cập nhật giá trị của Nam
+          Khoa: Khoa,
+          Dot: Dot,
+          Ki: Ki,
+          Nam: Nam,
           GiaoVien: "",
           SoTinChi: 0,
           LopHocPhan: "",
@@ -906,7 +1100,6 @@
           he_dao_tao: null,
         };
 
-        // Gửi dữ liệu lên server
         const response = await fetch("/add-row", {
           method: "POST",
           headers: {
@@ -915,26 +1108,26 @@
           body: JSON.stringify(newRow),
         });
 
-        // Kiểm tra phản hồi từ server
         if (!response.ok) {
           console.error("Lỗi khi gửi dữ liệu lên server");
           return;
         }
 
         const result = await response.json();
-        newRow.ID = result.ID; // Gán ID từ server
+        newRow.ID = result.ID;
 
-        // Lấy trang hiện tại
-        let currentPage = table.getPage();
-
-        // Thêm dòng mới vào đầu dữ liệu cục bộ (localData)
         localData.unshift(newRow);
+        renderData.unshift(newRow);
 
-        // Cập nhật lại dữ liệu trong Tabulator
-        table.addRow(newRow, true); // `true` để thêm vào đầu trang hiện tại
+        gridOptions.api.applyTransaction({ add: [newRow], addIndex: 0 });
 
-        // Giữ nguyên trạng thái phân trang
-        table.setPage(currentPage);
+        Toastify({
+          text: "✅ Thêm dòng mới thành công!",
+          duration: 1500,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#4CAF50",
+        }).showToast();
       }
     </script>
     <!-- phần xóa bảng quy chuẩn dự kiến -->
