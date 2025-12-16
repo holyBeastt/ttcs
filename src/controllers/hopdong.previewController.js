@@ -431,7 +431,7 @@ const previewContract = async (req, res) => {
       Số_hợp_đồng: "       ",
       Số_thanh_lý: "       ",
       Ngày_bắt_đầu: formatDateVietnamese(teacher.NgayBatDau),
-      Ngày_kết_thúc: formatDate(teacher.NgayKetThuc),
+      Ngày_kết_thúc: formatDateVietnamese(teacher.NgayKetThuc),
       Danh_xưng: teacher.GioiTinh === "Nam" ? "Ông" : "Bà",
       Họ_và_tên: teacher.GiangVien || teacher.HoTen,
       CCCD: teacher.CCCD || "",
@@ -462,6 +462,7 @@ const previewContract = async (req, res) => {
         teacher.NgayBatDau,
         teacher.NgayKetThuc
       ),
+      Ngày_nghiệm_thu: formatDate(teacher.NgayNghiemThu),
       Mức_tiền: tienMoiGiang.toLocaleString("vi-VN"),
       Nơi_công_tác: teacher.NoiCongTac || "",
       Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
@@ -790,8 +791,8 @@ function formatDate(date) {
 function formatDateVietnamese(date) {
   if (!date) return "";
   const d = new Date(date);
-  const day = d.getDate();
-  const month = d.getMonth() + 1;
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
   const year = d.getFullYear();
   return `ngày ${day} tháng ${month} năm ${year}`;
 }
