@@ -1,6 +1,8 @@
 require("dotenv").config();
 const path = require("path");
 const createPoolConnection = require("../config/databasePool");
+const pool = require("../config/Pool");
+const tkbServices = require("../services/tkbServices");
 const fs = require("fs");
 const {
   Document,
@@ -127,37 +129,84 @@ const deleteTableTam = async (req, res) => {
   }
 };
 
-const quyDoiHeSo = (item) => {
+// Lấy tên hệ đào tạo từ ID
+const getHeDaoTaoTexts = async (oldHeDaoTaoId, newHeDaoTaoId) => {
+  try {
+    const [[oldRow]] = await pool.query(
+      'SELECT he_dao_tao FROM he_dao_tao WHERE id = ?',
+      [oldHeDaoTaoId]
+    );
+    const [[newRow]] = await pool.query(
+      'SELECT he_dao_tao FROM he_dao_tao WHERE id = ?',
+      [newHeDaoTaoId]
+    );
+    return {
+      oldHeDaoTao: oldRow?.he_dao_tao || '',
+      newHeDaoTao: newRow?.he_dao_tao || ''
+    };
+  } catch (error) {
+    console.error('Lỗi lấy tên hệ đào tạo:', error);
+    return { oldHeDaoTao: '', newHeDaoTao: '' };
+  }
+};
+
+// Tính HeSoT7CN (bonus_time) theo hệ đào tạo
+const getBonusTimeForHeDaoTao = async (
+  oldHeDaoTaoId,
+  newHeDaoTaoId,
+  currentBonusTime
+) => {
+  const { oldHeDaoTao, newHeDaoTao } =
+    await getHeDaoTaoTexts(oldHeDaoTaoId, newHeDaoTaoId);
+
+  let tmp = 1;
+
+  // Xác định hệ số ngoài giờ cũ
+  if (oldHeDaoTao.includes("ĐH") && currentBonusTime == 1.5) {
+    tmp = 1.5;
+  }
+  if (oldHeDaoTao.includes("CH") && currentBonusTime == 2.25) {
+    tmp = 1.5;
+  }
+  if (oldHeDaoTao.includes("NCS") && currentBonusTime == 3) {
+    tmp = 1.5;
+  }
+
+  // Tính lại theo hệ đào tạo mới
+  if (newHeDaoTao.includes("ĐH")) return 1 * tmp;
+  if (newHeDaoTao.includes("CH")) return 1.5 * tmp;
+  if (newHeDaoTao.includes("NCS")) return 2.0 * tmp;
+
+  return currentBonusTime; // fallback
+};
+
+const quyDoiHeSo = async (item, bonusRules) => {
   // Biến để lưu giá trị HeSoLopDong
   let HeSoLopDong = item.HeSoLopDong;
 
-  // Trường hợp tính HeSoLopDong theo số lượng sinh viên
+  // Tính HeSoLopDong theo số lượng sinh viên từ bảng he_so_lop_dong
   const SoSinhVien = item.SoSinhVien;
-
-  // Quy đổi HeSoLopDong theo số lượng sinh viên
-  if (SoSinhVien <= 40) {
-    HeSoLopDong = 1;
-  } else if (SoSinhVien > 40 && SoSinhVien <= 50) {
-    HeSoLopDong = 1.1;
-  } else if (SoSinhVien > 50 && SoSinhVien <= 65) {
-    HeSoLopDong = 1.2;
-  } else if (SoSinhVien > 65 && SoSinhVien <= 80) {
-    HeSoLopDong = 1.3;
-  } else if (SoSinhVien > 80 && SoSinhVien <= 100) {
-    HeSoLopDong = 1.4;
-  } else if (SoSinhVien > 100) {
-    HeSoLopDong = 1.5;
+  if (SoSinhVien && bonusRules && bonusRules.length > 0) {
+    HeSoLopDong = tkbServices.calculateStudentBonus(SoSinhVien, bonusRules);
   }
 
-  // Tính QuyChuan sau khi gắn giá trị HeSoLopDong
+  // Auto-set HeSoT7CN theo he_dao_tao nếu chưa có hoặc he_dao_tao thay đổi
+  let HeSoT7CN = item.HeSoT7CN;
+  if (item.he_dao_tao && (!HeSoT7CN || HeSoT7CN === 0)) {
+    // Set giá trị mặc định theo hệ đào tạo
+    HeSoT7CN = await getBonusTimeForHeDaoTao(null, item.he_dao_tao, 1);
+  }
+
+  // Tính QuyChuan sau khi có đầy đủ các giá trị
   let QuyChuan = null;
-  if (item.LL && item.HeSoT7CN) {
-    QuyChuan = Number(item.LL) * Number(HeSoLopDong) * Number(item.HeSoT7CN);
+  if (item.LL && HeSoT7CN) {
+    QuyChuan = Number(item.LL) * Number(HeSoLopDong) * Number(HeSoT7CN);
   }
 
-  // Trả về kết quả quy đổi bao gồm cả HeSoLopDong và QuyChuan
+  // Trả về kết quả quy đổi bao gồm HeSoLopDong, HeSoT7CN và QuyChuan
   return {
     HeSoLopDong,
+    HeSoT7CN,
     QuyChuan,
   };
 };
@@ -179,13 +228,16 @@ const updateTableTam = async (req, res) => {
         .json({ message: "Dữ liệu không hợp lệ hoặc rỗng." });
     }
 
+    // Load bonus rules từ bảng he_so_lop_dong
+    const bonusRules = await tkbServices.getBonusRules();
+
     // Vòng lặp qua từng đối tượng dữ liệu trong mảng và gọi hàm quyDoiHeSo để gắn lại hệ số lớp đông
     for (const element of data) {
       const row = element;
-      const result = quyDoiHeSo(row); // Gọi hàm quyDoiHeSo để tính toán lại hệ số lớp đông và QuyChuan
-      row.HeSoLopDong = result.HeSoLopDong; // Cập nhật lại hệ số lớp đông trong đối tượng
-      // row.QuyChuan = result.QuyChuan; // Cập nhật QuyChuan trong đối tượng
-      row.QuyChuan = parseFloat(result.QuyChuan).toFixed(2);
+      const result = await quyDoiHeSo(row, bonusRules); // Gọi hàm quyDoiHeSo để tính toán (async)
+      row.HeSoLopDong = result.HeSoLopDong; // Cập nhật lại hệ số lớp đông
+      row.HeSoT7CN = result.HeSoT7CN; // Cập nhật HeSoT7CN
+      row.QuyChuan = result.QuyChuan ? parseFloat(result.QuyChuan).toFixed(2) : null;
     }
 
     // Khởi tạo mảng chứa các giá trị để thực thi truy vấn INSERT ... ON DUPLICATE KEY UPDATE
@@ -206,6 +258,8 @@ const updateTableTam = async (req, res) => {
       row.SoTinChi || null,
       row.GhiChu || null,
       row.he_dao_tao || null,
+      row.NgayBatDau || null,
+      row.NgayKetThuc || null,
     ]);
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
@@ -217,7 +271,7 @@ const updateTableTam = async (req, res) => {
 
     // Truy vấn SQL
     const insertUpdateQuery = `
-            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, GhiChu, he_dao_tao) 
+            INSERT INTO ?? (ID, Khoa, Dot, Ki, Nam, GiaoVien, HeSoLopDong, HeSoT7CN, LL, LopHocPhan, QuyChuan, SoSinhVien, SoTietCTDT, SoTinChi, GhiChu, he_dao_tao, NgayBatDau, NgayKetThuc) 
             VALUES ?
             ON DUPLICATE KEY UPDATE
                 Khoa = VALUES(Khoa),
@@ -234,7 +288,9 @@ const updateTableTam = async (req, res) => {
                 SoTietCTDT = VALUES(SoTietCTDT),
                 SoTinChi = VALUES(SoTinChi),
                 GhiChu = VALUES(GhiChu),
-                he_dao_tao = VALUES(he_dao_tao);
+                he_dao_tao = VALUES(he_dao_tao),
+                NgayBatDau = VALUES(NgayBatDau),
+                NgayKetThuc = VALUES(NgayKetThuc);
         `;
 
     // Thực thi truy vấn
@@ -275,6 +331,15 @@ const updateRow = async (req, res) => {
         .json({ message: "Dữ liệu không hợp lệ hoặc thiếu ID." });
     }
 
+    // Load bonus rules từ bảng he_so_lop_dong
+    const bonusRules = await tkbServices.getBonusRules();
+    
+    // Tính toán tự động HeSoLopDong, HeSoT7CN và QuyChuan
+    const result = await quyDoiHeSo(data, bonusRules);
+    data.HeSoLopDong = result.HeSoLopDong;
+    data.HeSoT7CN = result.HeSoT7CN;
+    data.QuyChuan = result.QuyChuan ? parseFloat(result.QuyChuan).toFixed(2) : null;
+
     // Chuẩn bị giá trị cho truy vấn UPDATE
     const updateValues = [
       data.Khoa,
@@ -291,6 +356,9 @@ const updateRow = async (req, res) => {
       data.SoTietCTDT || null,
       data.SoTinChi || null,
       data.GhiChu || null,
+      data.he_dao_tao || null,
+      data.NgayBatDau || null,
+      data.NgayKetThuc || null,
       ID, // Điều kiện WHERE sử dụng ID
     ];
 
@@ -310,15 +378,22 @@ const updateRow = async (req, res) => {
                 SoSinhVien = ?, 
                 SoTietCTDT = ?, 
                 SoTinChi = ?,
-                GhiChu = ?
+                GhiChu = ?,
+                he_dao_tao = ?,
+                NgayBatDau = ?,
+                NgayKetThuc = ?
             WHERE ID = ?
         `;
 
     // Thực thi truy vấn
     await connection.query(updateQuery, [tableTam, ...updateValues]);
 
-    // Trả về phản hồi thành công
-    return res.json({ message: "Dòng dữ liệu đã được cập nhật thành công." });
+    // Trả về phản hồi thành công với dữ liệu đã tính toán
+    return res.json({ 
+      message: "Dòng dữ liệu đã được cập nhật thành công.",
+      success: true,
+      data: data
+    });
   } catch (error) {
     console.error("Lỗi khi cập nhật dòng dữ liệu:", error);
     return res
