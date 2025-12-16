@@ -41,10 +41,27 @@ const getHeDaoTaoList = async () => {
   return rows;
 }
 
+const getMajorPrefixMap = async () => {
+  const [rows] = await pool.query(
+    `SELECT viet_tat, khoa, MaPhongBan
+    FROM kitubatdau_khoa
+    JOIN phongban ON kitubatdau_khoa.khoa = phongban.id`
+  );
+
+  const map = {};
+  rows.forEach(r => {
+    map[r.viet_tat.trim().toUpperCase()] = r.MaPhongBan;
+  });
+
+  return map;
+};
+
+
 
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   getBonusRules,
   calculateStudentBonus,
-  getHeDaoTaoList
+  getHeDaoTaoList,
+  getMajorPrefixMap,
 };

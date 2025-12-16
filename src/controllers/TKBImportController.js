@@ -42,6 +42,9 @@ const importExcelTKB = async (req, res) => {
     // Lấy bảng hệ đào tạo
     const heDaoTaoArr = await tkbServices.getHeDaoTaoList();
 
+    // Lấy bảng kí tự bắt đầu của khoa
+    const majorMap = await tkbServices.getMajorPrefixMap();
+
     const workbook = XLSX.read(req.file.buffer, {
       type: "buffer",
       cellDates: false,
@@ -142,15 +145,6 @@ const importExcelTKB = async (req, res) => {
       "Ngày KT": "end_date",
       "Giáo Viên": "lecturer",
     };
-
-    const majorMap = {
-      "B": "CB",        // Cơ bản
-      "C": "CNTT",      // Công nghệ thông tin
-      "D": "ĐTVM",      // Điện tử vi mạch
-      "A": "ATTT",      // An toàn thông tin
-      "M": "MM",        // Mật mã
-      "P": "ĐTPH",      // Địa điểm phân hiệu
-    }
 
     // Đặt lại theo tên các trường dữ liệu trong database
     const renamedData = allData.map((row, index) => {
