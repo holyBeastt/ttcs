@@ -66,6 +66,20 @@ const getTableTam = async (req, res) => {
   }
 };
 
+const updateDaLuuTKB = async (khoa, dot, ki, nam) => {
+  try {
+    if (khoa !== "ALL") {
+      const updateQuery = `UPDATE course_schedule_details SET da_luu = 0 WHERE major = ? AND dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
+      await pool.query(updateQuery, [khoa, dot, ki, nam]);
+    } else {
+      const updateQuery = `UPDATE course_schedule_details SET da_luu = 0 WHERE dot = ? AND ki_hoc = ? AND nam_hoc = ?`;
+      await pool.query(updateQuery, [dot, ki, nam]);
+    }
+  } catch (error) {
+    console.error("Lỗi khi cập nhật trạng thái đã lưu TKB:", error);
+  }
+}
+
 // xóa bảng
 const deleteTableTam = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body; // Lấy thông tin từ body
@@ -97,6 +111,8 @@ const deleteTableTam = async (req, res) => {
 
       // Kiểm tra xem có bản ghi nào bị xóa không
       if (results.affectedRows > 0) {
+        updateDaLuuTKB(Khoa, Dot, Ki, Nam);
+
         return res.json({ message: "Xóa thành công dữ liệu." });
       } else {
         return res
@@ -110,6 +126,8 @@ const deleteTableTam = async (req, res) => {
 
       // Kiểm tra xem có bản ghi nào bị xóa không
       if (results.affectedRows > 0) {
+        updateDaLuuTKB(Khoa, Dot, Ki, Nam);
+
         return res.json({
           success: "true",
           message: "Xóa thành công dữ liệu.",
@@ -333,7 +351,7 @@ const updateRow = async (req, res) => {
 
     // Load bonus rules từ bảng he_so_lop_dong
     const bonusRules = await tkbServices.getBonusRules();
-    
+
     // Tính toán tự động HeSoLopDong, HeSoT7CN và QuyChuan
     const result = await quyDoiHeSo(data, bonusRules);
     data.HeSoLopDong = result.HeSoLopDong;
@@ -389,7 +407,7 @@ const updateRow = async (req, res) => {
     await connection.query(updateQuery, [tableTam, ...updateValues]);
 
     // Trả về phản hồi thành công với dữ liệu đã tính toán
-    return res.json({ 
+    return res.json({
       message: "Dòng dữ liệu đã được cập nhật thành công.",
       success: true,
       data: data
@@ -2603,11 +2621,11 @@ const editStudentQuanity = async (req, res) => {
       if (studentQuantity !== studentQuantityUpdate) {
         console.log(
           "Update ID: " +
-            ID +
-            " số sinh viên cũ : " +
-            studentQuantity +
-            " số sinh viên mới : " +
-            studentQuantityUpdate
+          ID +
+          " số sinh viên cũ : " +
+          studentQuantity +
+          " số sinh viên mới : " +
+          studentQuantityUpdate
         );
 
         // Nếu StudentQuantityUpdate không hợp lệ (NaN), gán giá trị là 0
@@ -2656,14 +2674,14 @@ const editStudentQuanity = async (req, res) => {
             UPDATE ?? 
             SET 
                 SoSinhVien = CASE ${updateCaseStatements.SoSinhVien.join(
-                  " "
-                )} ELSE SoSinhVien END,
+      " "
+    )} ELSE SoSinhVien END,
                 HeSoLopDong = CASE ${updateCaseStatements.HeSoLopDong.join(
-                  " "
-                )} ELSE HeSoLopDong END,
+      " "
+    )} ELSE HeSoLopDong END,
                 QuyChuan = CASE ${updateCaseStatements.QuyChuan.join(
-                  " "
-                )} ELSE QuyChuan END
+      " "
+    )} ELSE QuyChuan END
             WHERE ID IN (?);
         `;
 

@@ -632,8 +632,6 @@ const getHopDongDuKienData = async (req, res) => {
     const { namHoc, dot, ki, he_dao_tao } = req.query;
     let { khoa } = req.query;
 
-    console.log("Received parameters:", { namHoc, dot, ki, he_dao_tao, khoa, isKhoa, MaPhongBan });
-
     // Nếu là tài khoản Khoa, bắt buộc lọc theo Khoa của họ
     if (isKhoa == 1) {
       khoa = MaPhongBan;
