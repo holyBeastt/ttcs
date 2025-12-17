@@ -36,7 +36,7 @@ function getLibreOfficeConverter() {
 
     return libre;
   } catch (error) {
-    console.log(
+    console.error(
       "Could not load or configure libreoffice-convert:",
       error.message
     );
@@ -49,7 +49,6 @@ function getLibreOfficeConverter() {
  */
 function checkLibreOfficeAvailability() {
   if (fs.existsSync(LIBREOFFICE_PATH)) {
-    console.log(`LibreOffice found at: ${LIBREOFFICE_PATH}`);
     return true;
   } else {
     console.warn(`LibreOffice not found at: ${LIBREOFFICE_PATH}`);
@@ -57,7 +56,6 @@ function checkLibreOfficeAvailability() {
     // Try alternative paths
     for (const altPath of ALTERNATIVE_PATHS) {
       if (fs.existsSync(altPath)) {
-        console.log(`LibreOffice found at alternative path: ${altPath}`);
         return true;
       }
     }
@@ -109,7 +107,6 @@ async function convertToPdfDirect(docxBuffer) {
 
     // Convert using LibreOffice command line
     const command = `"${usedPath}" --headless --convert-to pdf "${tempDocxPath}" --outdir "${tempDir}"`;
-    console.log(`Using LibreOffice path: ${usedPath}`);
 
     await execAsync(command, { timeout: 30000 }); // 30 second timeout
 
@@ -149,13 +146,7 @@ const showPreviewPageAPI = async (req, res) => {
     const parsedTeacherData = JSON.parse(teacherData);
     const teacherId = parsedTeacherData.GiangVien;
 
-    // Debug log received HSL data
-    console.log("[Preview Controller] Received HSL data:", {
-      teacher: teacherId,
-      HSL: parsedTeacherData.HSL,
-      hasEnhancedData: parsedTeacherData.hasEnhancedData,
-      dataKeys: Object.keys(parsedTeacherData),
-    }); // Get contract types from teacher data
+    // Get contract types from teacher data
     let contractTypes = [];
     if (
       parsedTeacherData.hasEnhancedData &&
@@ -286,8 +277,27 @@ const previewContract = async (req, res) => {
     connection = await createPoolConnection();
 
     const { teacherId, heHopDong, dot, ki, namHoc, teacherData } = req.body;
+    
+    // LOG: Request data
+    console.log('[Preview API] Request received:', {
+      teacherId,
+      heHopDong,
+      heHopDongType: typeof heHopDong,
+      dot,
+      ki,
+      namHoc,
+      hasTeacherData: !!teacherData,
+      teacherDataLength: teacherData ? teacherData.length : 0
+    });
 
     if (!teacherId || !heHopDong || !dot || !ki || !namHoc) {
+      console.error('[Preview API] Missing required fields:', {
+        teacherId: !!teacherId,
+        heHopDong: !!heHopDong,
+        dot: !!dot,
+        ki: !!ki,
+        namHoc: !!namHoc
+      });
       return res.status(400).json({
         success: false,
         message: "Thiếu thông tin bắt buộc",
@@ -298,18 +308,31 @@ const previewContract = async (req, res) => {
     let heHopDongId = heHopDong;
     let heHopDongName = heHopDong;
     
+    console.log('[Preview API] Processing heHopDong:', {
+      raw: heHopDong,
+      type: typeof heHopDong,
+      isNaN: isNaN(heHopDong)
+    });
+    
     // Check if heHopDong is a number (ID) or string (name)
     if (!isNaN(heHopDong)) {
       // It's an ID, query to get name
+      console.log('[Preview API] Querying he_dao_tao by ID:', heHopDong);
       const [heDaoTaoRows] = await connection.query(
         'SELECT id, he_dao_tao FROM he_dao_tao WHERE id = ?',
         [heHopDong]
       );
       
+      console.log('[Preview API] Query result:', {
+        found: heDaoTaoRows.length > 0,
+        data: heDaoTaoRows[0]
+      });
+      
       if (heDaoTaoRows.length > 0) {
         heHopDongId = heDaoTaoRows[0].id;
         heHopDongName = heDaoTaoRows[0].he_dao_tao;
       } else {
+        console.error('[Preview API] He dao tao not found for ID:', heHopDong);
         return res.status(404).json({
           success: false,
           message: "Không tìm thấy hệ đào tạo",
@@ -317,10 +340,16 @@ const previewContract = async (req, res) => {
       }
     } else {
       // It's a name (backward compatibility), query to get ID
+      console.log('[Preview API] Querying he_dao_tao by name:', heHopDong);
       const [heDaoTaoRows] = await connection.query(
         'SELECT id, he_dao_tao FROM he_dao_tao WHERE he_dao_tao = ?',
         [heHopDong]
       );
+      
+      console.log('[Preview API] Query result:', {
+        found: heDaoTaoRows.length > 0,
+        data: heDaoTaoRows[0]
+      });
       
       if (heDaoTaoRows.length > 0) {
         heHopDongId = heDaoTaoRows[0].id;
@@ -332,9 +361,30 @@ const previewContract = async (req, res) => {
 
     // Use provided teacherData if available, otherwise query database
     if (teacherData) {
-      teacher = JSON.parse(teacherData);
+      console.log('[Preview API] Using provided teacherData');
+      try {
+        teacher = JSON.parse(teacherData);
+        console.log('[Preview API] Teacher parsed:', {
+          name: teacher.GiangVien || teacher.HoTen,
+          hasEnhancedData: teacher.hasEnhancedData,
+          programsCount: teacher.trainingPrograms ? teacher.trainingPrograms.length : 0
+        });
+      } catch (parseError) {
+        console.error('[Preview API] Failed to parse teacherData:', parseError);
+        return res.status(400).json({
+          success: false,
+          message: "Dữ liệu giảng viên không hợp lệ",
+        });
+      }
     } else {
       // Fallback to database query
+      console.log('[Preview API] Querying teacher from database:', {
+        teacherId,
+        heHopDongId,
+        dot,
+        ki,
+        namHoc
+      });
       const teacherQuery = `
                 SELECT 
                     hd.HoTen as id_Gvm,
@@ -383,7 +433,13 @@ const previewContract = async (req, res) => {
         namHoc,
       ]);
 
+      console.log('[Preview API] Teacher query result:', {
+        found: teachers && teachers.length > 0,
+        count: teachers ? teachers.length : 0
+      });
+
       if (!teachers || teachers.length === 0) {
+        console.error('[Preview API] Teacher not found in database');
         return res.status(404).json({
           success: false,
           message: "Không tìm thấy thông tin hợp đồng cho giảng viên này",
@@ -405,14 +461,6 @@ const previewContract = async (req, res) => {
         tienThueText = programData.Thue;
         tienThucNhanText = programData.ThucNhan;
         tienMoiGiang = programData.TienMoiGiang;
-        // Debug log for enhanced data
-        console.log("Preview Contract Enhanced Data:", {
-          teacher: teacher.GiangVien || teacher.HoTen,
-          heHopDong: heHopDong,
-          tienMoiGiang: tienMoiGiang,
-          HSL: teacher.HSL,
-          programData: programData,
-        });
       } else {
         // Use total data if specific program not found
         soTiet = teacher.TongTiet || 0;
@@ -420,15 +468,6 @@ const previewContract = async (req, res) => {
         tienThueText = teacher.Thue || 0;
         tienThucNhanText = teacher.ThucNhan || 0;
         tienMoiGiang = teacher.TienMoiGiang || 0;
-        console.log("Preview Contract Total Data (program not found):", {
-          teacher: teacher.GiangVien || teacher.HoTen,
-          heHopDong: heHopDong,
-          tienMoiGiang: tienMoiGiang,
-          HSL: teacher.HSL,
-          KhoaSinhVien: teacher.KhoaSinhVien,
-          Nganh: teacher.Nganh,
-          allTeacherKeys: Object.keys(teacher)
-        });
       }
     } else {
       // Use teacher's total data
@@ -437,17 +476,6 @@ const previewContract = async (req, res) => {
       tienThueText = teacher.Thue || 0;
       tienThucNhanText = teacher.ThucNhan || 0;
       tienMoiGiang = teacher.TienMoiGiang || 0;
-      console.log("Preview Contract Regular Data:", {
-        teacher: teacher.GiangVien || teacher.HoTen,
-        heHopDong: heHopDong,
-        tienMoiGiang: tienMoiGiang,
-        teacherTienMoiGiang: teacher.TienMoiGiang,
-        HSL: teacher.HSL,
-        teacherHSL: teacher.HSL,
-        KhoaSinhVien: teacher.KhoaSinhVien,
-        Nganh: teacher.Nganh,
-        allTeacherKeys: Object.keys(teacher)
-      });
 
       // If no financial data in teacher object, calculate from tienluong table
       if (!tienText && connection) {
@@ -510,56 +538,48 @@ const previewContract = async (req, res) => {
       Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
       Khóa: teacher.KhoaSinhVien,
       Ngành: teacher.Nganh,
-    }; // Debug: Log final template data for TienMoiGiang
-    console.log("Final template data HSL and TienMoiGiang:", {
-      teacher: teacher.GiangVien || teacher.HoTen,
-      heHopDong: heHopDong,
-      rawHSL: teacher.HSL,
-      formattedHSL: data.Hệ_số_lương,
-      rawTienMoiGiang: tienMoiGiang,
-      formattedMucTien: data.Mức_tiền,
-    });
+    };
 
-    // Choose template based on contract type ID
+    // Choose template based on contract type name pattern matching
     let templateFileName;
     
-    // Map ID to template file
-    // Assuming: 1 = Đại học (Đóng học phí), 2 = Đại học (Mật mã), etc.
-    const templateMap = {
-      1: "HopDongHP.docx",      // Đại học (Đóng học phí)
-      2: "HopDongMM.docx",      // Đại học (Mật mã)
-      3: "HopDongCH.docx",      // Cao học (Đóng học phí)
-      4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
-      // Add more mappings as needed
-    };
+    console.log('[Preview API] Selecting template for:', {
+      heHopDongId,
+      heHopDongName
+    });
     
-    templateFileName = templateMap[heHopDongId];
+    // Pattern matching based on contract name
+    const nameLower = heHopDongName.toLowerCase();
     
-    // Fallback to name-based selection if ID mapping not found
-    if (!templateFileName) {
-      switch (heHopDongName) {
-        case "Đại học (Đóng học phí)":
-          templateFileName = "HopDongHP.docx";
-          break;
-        case "Đại học (Mật mã)":
-          templateFileName = "HopDongMM.docx";
-          break;
-        case "Đồ án":
-          templateFileName = "HopDongDA.docx";
-          break;
-        case "Nghiên cứu sinh (Đóng học phí)":
-          templateFileName = "HopDongNCS.docx";
-          break;
-        case "Cao học (Đóng học phí)":
-          templateFileName = "HopDongCH.docx";
-          break;
-        default:
-          return res.status(400).json({
-            success: false,
-            message: "Loại hợp đồng không hợp lệ.",
-          });
+    if (nameLower.includes("đồ án")) {
+      // Đồ án
+      if (nameLower.includes("cao học")) {
+        templateFileName = "HopDongDACaoHoc.docx";
+      } else {
+        templateFileName = "HopDongDA.docx";
       }
+    } else if (nameLower.includes("mật mã")) {
+      // Các hệ có chứa "mật mã"
+      templateFileName = "HopDongMM.docx";
+    } else if (nameLower.includes("cao học")) {
+      // Cao học
+      templateFileName = "HopDongCH.docx";
+    } else if (nameLower.includes("nghiên cứu sinh")) {
+      // Nghiên cứu sinh
+      templateFileName = "HopDongNCS.docx";
+    } else if (nameLower.includes("đóng học phí") || nameLower.includes("đại học")) {
+      // Đại học hoặc đóng học phí
+      templateFileName = "HopDongHP.docx";
+    } else {
+      // Default fallback
+      console.warn('[Preview API] No pattern matched, using default template HP');
+      templateFileName = "HopDongHP.docx";
     }
+    
+    console.log('[Preview API] Pattern matched template:', {
+      pattern: nameLower,
+      selectedTemplate: templateFileName
+    });
 
     const templatePath = path.resolve(
       __dirname,
@@ -567,7 +587,14 @@ const previewContract = async (req, res) => {
       templateFileName
     );
 
+    console.log('[Preview API] Template selected:', {
+      fileName: templateFileName,
+      path: templatePath,
+      exists: fs.existsSync(templatePath)
+    });
+
     if (!fs.existsSync(templatePath)) {
+      console.error('[Preview API] Template not found:', templatePath);
       return res.status(404).json({
         success: false,
         message: `Không tìm thấy template: ${templateFileName}`,
@@ -624,24 +651,16 @@ const previewContract = async (req, res) => {
             });
           });
 
-          // Restore console and log success
+          // Restore console
           restoreConsole(originalConsole);
-          console.log("PDF conversion successful using libreoffice-convert");
         } catch (libraryError) {
           // Restore console before handling error
           restoreConsole(originalConsole);
           throw libraryError;
         }
       } catch (libraryError) {
-        console.log(
-          "Library conversion failed, trying direct method:",
-          libraryError.message
-        );
         // Fallback to direct LibreOffice command
         pdfBuffer = await convertToPdfDirect(buf);
-        console.log(
-          "PDF conversion successful using direct LibreOffice command"
-        );
       }
 
       // Create safe filename for Vietnamese characters

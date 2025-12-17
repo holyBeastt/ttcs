@@ -296,7 +296,8 @@
         let currentContractType = '';
         let currentContractId = null;
         const teacherData = <%- JSON.stringify(teacherData || {}) %>;
-        let heDaoTaoList = []; // Danh sách hệ đào tạo từ API
+        let heDaoTaoList = []; // Danh sách hệ đào tạo từ API (tất cả)
+        const currentLoaiHopDong = '<%= loaiHopDong || "Mời giảng" %>';
         
         $(document).ready(function() {
             // Load hệ đào tạo từ API trước
@@ -306,10 +307,20 @@
             });
         });
         
-        // Hàm load danh sách hệ đào tạo từ API
+        // Hàm load danh sách hệ đào tạo từ API (chọn API dựa vào loại hợp đồng)
         async function loadHeDaoTaoFromAPI() {
             try {
-                const response = await fetch('/api/gvm/v1/he-moi-giang');
+                // Chọn API endpoint phù hợp
+                let apiEndpoint;
+                if (currentLoaiHopDong === 'Đồ án') {
+                    apiEndpoint = '/api/gvm/v1/he-do-an';
+                } else {
+                    apiEndpoint = '/api/gvm/v1/he-moi-giang';
+                }
+                
+                console.log('Loading hệ đào tạo from:', apiEndpoint, 'for:', currentLoaiHopDong);
+                
+                const response = await fetch(apiEndpoint);
                 if (!response.ok) {
                     throw new Error('Failed to fetch he dao tao list');
                 }
@@ -320,7 +331,7 @@
                         id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
                         tenHe: item.he_dao_tao
                     }));
-                    console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+                    console.log('Đã load danh sách hệ đào tạo:', heDaoTaoList);
                 } else {
                     console.error('API không trả về dữ liệu hợp lệ');
                     heDaoTaoList = [];
@@ -346,41 +357,22 @@
             const optionsContainer = $('#contract-options');
             optionsContainer.empty();
             
-            // Get current contract type from URL parameters or teacherData
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
+            // Check if teacher has training programs data
+            const isDoAn = currentLoaiHopDong === 'Đồ án';
+            const icon = isDoAn ? 'fa-file-alt' : 'fa-graduation-cap';
             
-            // Xử lý đặc biệt cho đồ án
-            if (currentLoaiHopDong === 'Đồ án') {
-                // Với đồ án, luôn hiển thị hệ đào tạo "Đồ án" (set cứng)
-                const optionHtml = `
-                    <div class="contract-option" onclick="selectContract('${encodeURIComponent('Đồ án')}')">
-                        <div class="d-flex align-items-start">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-file-alt fa-lg text-primary"></i>
-                            </div>                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-1">Đồ án</h6>
-                                <div class="contract-meta">
-                                    <div><i class="fas fa-clock me-1"></i>${teacherData.TongTiet ? formatSoTiet(teacherData.TongTiet) : '0'} tiết</div>
-                                    <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(teacherData.ThucNhan || 0)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                optionsContainer.append(optionHtml);
-                return;
-            }
-            
-            // Check if teacher has training programs data (cho các loại hợp đồng khác)
+            // Xử lý chung cho cả Đồ án và Mời giảng
             if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
                 teacherData.trainingPrograms.forEach((program, index) => {
-                    // Sử dụng id và tenHe từ program
+                    // Sử dụng id (int) và tenHe từ program
                     const heId = program.id;
                     const heTen = program.tenHe || getTenHeById(program.id) || 'Unknown';
                     
                     const optionHtml = `
-                        <div class="contract-option" data-contract-id="${heId}" onclick="selectContract(${heId}, '${heTen.replace(/'/g, "\\'")}')">
+                        <div class="contract-option" data-contract-id="${heId}" onclick="selectContract(${heId}, '${heTen.replace(/'/g, "\\'")}')">                            <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas ${icon} fa-lg text-primary"></i>
+                            </div>
                             <div class="d-flex align-items-start">
                                 <div class="flex-shrink-0">
                                     <i class="fas fa-graduation-cap fa-lg text-primary"></i>
@@ -425,6 +417,7 @@
             }
         }
         
+        // Function chung cho cả Đồ án và Mời giảng (đều dùng ID int)
         function selectContract(contractId, contractName) {
             // Remove previous selections
             $('.contract-option').removeClass('selected');
@@ -442,7 +435,7 @@
             $('#preview-header').show();
             $('#action-buttons').show();
             
-            // Generate preview
+            // Generate preview cho mời giảng
             generatePreview(currentContractId);
         }
         
@@ -484,6 +477,13 @@
                 namHoc: '<%= namHoc || "" %>',
                 teacherData: JSON.stringify(teacherData)
             };
+            
+            console.log('Generating preview:', {
+                loaiHopDong: currentLoaiHopDong,
+                heHopDongId: heHopDongId,
+                contractType: currentContractType,
+                data: previewData
+            });
             
             // Call preview API
             $.ajax({
