@@ -17,11 +17,22 @@ function getHeDaoTao(classType, heDaoTaoArr) {
   const prefix = extractPrefix(classType);
 
   const found = heDaoTaoArr.find(
-    r => r.viet_tat.toUpperCase() === prefix.toUpperCase()
+    r => r.viet_tat.toUpperCase().trim() === prefix.toUpperCase().trim()
   );
 
-  return found ? found.gia_tri_so_sanh : "1";
+  if (!found) {
+    return {
+      he_dao_tao: "1",
+      bonus_time: 1
+    };
+  }
+
+  return {
+    he_dao_tao: found.gia_tri_so_sanh,
+    bonus_time: found.he_so
+  };
 }
+
 
 const importExcelTKB = async (req, res) => {
   const semester = JSON.parse(req.body.semester);
@@ -40,7 +51,9 @@ const importExcelTKB = async (req, res) => {
     const bonusRules = await tkbServices.getBonusRules();
 
     // Lấy bảng hệ đào tạo
-    const heDaoTaoArr = await tkbServices.getHeDaoTaoList();
+    const kiTuBatDauArr = await tkbServices.getHeDaoTaoList();
+
+    // Lấy danh sách hệ đào tạo và cấp độ
 
     // Lấy bảng kí tự bắt đầu của khoa
     const majorMap = await tkbServices.getMajorPrefixMap();
@@ -221,15 +234,10 @@ const importExcelTKB = async (req, res) => {
       // Tìm hệ đào tạo của lớp học phần
       const classType = getFirstParenthesesContent(row.course_name) || "";
 
-      row.he_dao_tao = await getHeDaoTao(classType, heDaoTaoArr);
+      const { he_dao_tao, bonus_time } = getHeDaoTao(classType, kiTuBatDauArr);
 
-      row.bonus_time = 1;
-
-      if (row.he_dao_tao.includes("Cao học")) {
-        row.bonus_time = 1.5;
-      } else if (row.he_dao_tao.includes("Nghiên cứu sinh")) {
-        row.bonus_time = 2.0;
-      }
+      row.he_dao_tao = he_dao_tao;
+      row.bonus_time = bonus_time;
 
       // Thêm period_start, period_end, ll_total vào từng dòng
       let tmp = 0;

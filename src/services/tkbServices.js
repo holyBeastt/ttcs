@@ -35,7 +35,7 @@ const calculateStudentBonus = (student_quantity, bonusRules) => {
 
 const getHeDaoTaoList = async () => {
   const [rows] = await pool.query(`
-    SELECT viet_tat, gia_tri_so_sanh 
+    SELECT viet_tat, gia_tri_so_sanh, he_so
     FROM kitubatdau
   `);
   return rows;
@@ -55,8 +55,6 @@ const getMajorPrefixMap = async () => {
 
   return map;
 };
-
-
 
 // Xuất các hàm để sử dụng trong router
 module.exports = {

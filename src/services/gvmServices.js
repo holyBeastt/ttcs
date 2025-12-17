@@ -20,7 +20,7 @@ const getGvmLists = async (req, res) => {
 
 const getHeDaoTaoLists = async (req, res) => {
   try {
-    const query = "SELECT id, he_dao_tao FROM he_dao_tao";
+    const query = "SELECT * FROM he_dao_tao";
     const [results] = await pool.query(query);
 
     return res.json({
