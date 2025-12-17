@@ -295,6 +295,7 @@
     <script>
       var renderData = [];
       let SoTietDinhMuc = 0;
+      let SoTietDinhMucNghiHuu = 0;
 
       document
         .getElementById("exportHDDK")
@@ -373,6 +374,7 @@
           const data = await response.json();
           renderData = data.dataDuKien;
           SoTietDinhMuc = data.SoTietDinhMuc; // Biến global
+          SoTietDinhMucNghiHuu = data.SoTietDinhMucNghiHuu; // Biến global
 
           // 1. Phân loại dữ liệu
           const listCivilian = renderData.filter(item => item.isQuanDoi == 0 || item.isQuanDoi == "0");
@@ -422,7 +424,20 @@
                 }
                 return num.toLocaleString('vi-VN');
               };
-              const alertClass = (item.TongSoTiet > SoTietDinhMuc) ? "alert-sotiet" : "";
+
+              let isAlert = false;
+
+              if (item.isNghiHuu == 1) {
+                if (item.TongSoTiet > SoTietDinhMucNghiHuu) {
+                  isAlert = true;
+                }
+              } else {
+                if (item.TongSoTiet > SoTietDinhMuc) {
+                  isAlert = true;
+                }
+              }
+
+              const alertClass = isAlert ? "alert-sotiet" : "";
               const danhXung = item.GioiTinh.toLowerCase() === "nam" ? "Ông" : "Bà";
               const tienMoiGiang = heDaoTao === "0" ? "Tùy hệ" : fmtMoney(item.TienMoiGiang);
 

@@ -662,15 +662,16 @@ const getHopDongDuKienData = async (req, res) => {
     // 3. Thực thi song song (Parallel Execution) để nhanh hơn
     const [rowsHDK, rowsDinhMuc] = await Promise.all([
       connection.query(finalQuery, params).then(([rows]) => rows),
-      connection.query('SELECT GiangDay FROM sotietdinhmuc').then(([rows]) => rows)
+      connection.query('SELECT GiangDay, GiangDayDaNghiHuu FROM sotietdinhmuc').then(([rows]) => rows)
     ]);
 
     // 4. Xử lý kết quả
     const SoTietDinhMuc = rowsDinhMuc[0]?.GiangDay || 0;
-
+    const SoTietDinhMucNghiHuu = rowsDinhMuc[0]?.GiangDayDaNghiHuu || 0;
     res.status(200).json({
       dataDuKien: rowsHDK,
-      SoTietDinhMuc
+      SoTietDinhMuc,
+      SoTietDinhMucNghiHuu
     });
 
   } catch (error) {
@@ -733,6 +734,7 @@ const buildDynamicQuery = ({ namHoc, dot, ki, he_dao_tao, khoa }) => {
         ta.BangTotNghiepLoai,
         ta.MonGiangDayChinh,
         ta.isQuanDoi,
+        ta.isNghiHuu,
         MAX(TienMoiGiang) AS TienMoiGiang,
         SUM(ThanhTien) AS ThanhTien,
         SUM(Thue) AS Thue,
@@ -776,7 +778,7 @@ const buildDynamicQuery = ({ namHoc, dot, ki, he_dao_tao, khoa }) => {
         ta.NoiCapCCCD, ta.Email, ta.MaSoThue, ta.HocVi, ta.ChucVu, ta.HSL,
         ta.DienThoai, ta.STK, ta.NganHang, ta.MaPhongBan, ta.NgayCapCCCD,
         ta.DiaChi, ta.BangTotNghiep, ta.NoiCongTac, ta.BangTotNghiepLoai,
-        ta.isQuanDoi, ta.MonGiangDayChinh, tsgv.TongSoTiet
+        ta.isQuanDoi, ta.isNghiHuu, ta.MonGiangDayChinh, tsgv.TongSoTiet
     ORDER BY tsgv.TongSoTiet DESC;
   `;
 
