@@ -608,7 +608,9 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     
                     GROUP_CONCAT(DISTINCT dt.TenDeTai SEPARATOR ', ') as MonHoc,
                     GROUP_CONCAT(DISTINCT dt.SinhVien SEPARATOR ', ') as Lop,
-                    GROUP_CONCAT(DISTINCT dt.MaSV SEPARATOR ', ') as SiSo
+                    GROUP_CONCAT(DISTINCT dt.MaSV SEPARATOR ', ') as SiSo,
+                    GROUP_CONCAT(DISTINCT dt.khoa_sinh_vien SEPARATOR ', ') as KhoaSinhVien,
+                    GROUP_CONCAT(DISTINCT dt.nganh SEPARATOR ', ') as Nganh
 
                 FROM (
                     SELECT
