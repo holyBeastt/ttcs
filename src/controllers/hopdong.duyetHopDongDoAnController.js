@@ -157,7 +157,7 @@ const getDuyetHopDongData = async (req, res) => {
         gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD,
         gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL,
         gv.DienThoai, gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
-        da.NamHoc, da.Dot, da.ki,
+        da.NamHoc, da.Dot, da.ki, da.he_dao_tao,
         gv.NgayCapCCCD, gv.DiaChi, gv.BangTotNghiep,
         gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh,
         da.NgayBatDau, da.NgayKetThuc
