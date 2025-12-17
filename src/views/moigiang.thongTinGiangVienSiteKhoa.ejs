@@ -345,10 +345,10 @@
               const tableRows = document.querySelectorAll('#tableBody tr');
 
               tableRows.forEach(row => {
-                const nameCell = row.querySelector('td:nth-child(3)'); // Cột tên giảng viên
-                const classCell = row.querySelector('td:nth-child(1)'); // Cột học phần
-                const boMonInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Cột bộ môn
-                const nameCell1 = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Cột bộ môn
+                const nameCell = row.querySelector('td:nth-child(4)'); // Cột tên giảng viên (sau khi có STT)
+                const classCell = row.querySelector('td:nth-child(2)'); // Cột học phần (sau khi có STT)
+                const boMonInput = row.querySelector('td:nth-child(8) input[name="bomon"]'); // Cột bộ môn (sau khi có STT)
+                const nameCell1 = row.querySelector('td:nth-child(6) input[name="giaovien"]'); // Cột GV giảng dạy (sau khi có STT)
 
                 const name = nameCell ? nameCell.textContent.toLowerCase() : '';
                 const className = classCell ? classCell.textContent.toLowerCase() : '';
@@ -1568,9 +1568,9 @@
             return;
           }
 
-          // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-          const LLCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột LL
-          const QuyChuanCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột QuyChuan
+          // Giả sử cột LL là cột thứ 10 và cột QuyChuan là cột thứ 11 (sau khi có cột STT)
+          const LLCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột LL
+          const QuyChuanCell = row.querySelector('td:nth-child(11)'); // Lấy ô của cột QuyChuan
 
           // Chuyển đổi giá trị của các ô thành số và cộng dồn
           const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0
@@ -1813,7 +1813,7 @@
         const tableRows = document.querySelectorAll('#tableBody tr');
 
         tableRows.forEach(row => {
-          const nameInput = row.querySelector('td:nth-child(7) input[name="bomon"]'); // Lấy input có name="bomon" ở cột thứ 7
+          const nameInput = row.querySelector('td:nth-child(8) input[name="bomon"]'); // Cột Bộ môn (sau khi có cột STT)
           const checkbox = row.querySelector('input[type="checkbox"]');
 
           if (nameInput) {
@@ -1910,7 +1910,7 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(3)'); // Giả sử tên giảng viên nằm ở cột thứ 3
+          const nameCell = row.querySelector('td:nth-child(4)'); // Cột Giáo viên (sau khi có cột STT)
           const name = nameCell.textContent.toLowerCase();
 
           if (name.includes(filter)) {
@@ -1938,7 +1938,7 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(1)'); // Giả sử tên giảng viên nằm ở cột thứ 5
+          const nameCell = row.querySelector('td:nth-child(2)'); // Cột Lớp học phần (sau khi có cột STT)
           const name = nameCell.textContent.toLowerCase();
 
           if (name.includes(filter)) {
@@ -1964,7 +1964,7 @@
 
         // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
         tableRows.forEach(row => {
-          const nameCell = row.querySelector('td:nth-child(5) input[name="giaovien"]'); // Giả sử tên giảng viên nằm ở cột thứ 3
+          const nameInput = row.querySelector('td:nth-child(6) input[name="giaovien"]'); // Cột Giáo viên giảng dạy (sau khi có cột STT)
           const checkbox = row.querySelector('input[type="checkbox"]');
           if (nameInput) {
             const name = nameInput.value.toLowerCase(); // Lấy giá trị của input có name="bomon"

@@ -390,10 +390,10 @@
           const tableRows = document.querySelectorAll("#tableBody tr");
 
           tableRows.forEach(row => {
-            const nameCell = row.querySelector("td:nth-child(3)"); // Tên giảng viên
-            const classCell = row.querySelector("td:nth-child(1)"); // Tên học phần
-            const departmentCell = row.querySelector("td:nth-child(6)"); // Khoa
-            const boMonCell = row.querySelector("td:nth-child(7)"); // Bộ môn
+            const nameCell = row.querySelector("td:nth-child(4)"); // Tên giảng viên (sau khi có cột STT)
+            const classCell = row.querySelector("td:nth-child(2)"); // Tên học phần (sau khi có cột STT)
+            const departmentCell = row.querySelector("td:nth-child(7)"); // Khoa (sau khi có cột STT)
+            const boMonCell = row.querySelector("td:nth-child(8)"); // Bộ môn (sau khi có cột STT)
 
             // Lấy giá trị từ các ô
             const nameValue = nameCell ? nameCell.textContent.toLowerCase() : '';
@@ -1174,9 +1174,9 @@
           return;
         }
 
-        // Giả sử cột LL là cột thứ 2 và cột QuyChuan là cột thứ 3
-        const LLCell = row.querySelector('td:nth-child(9)'); // Lấy ô của cột LL
-        const QuyChuanCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột QuyChuan
+        // Cột LL và QuyChuan sau khi có cột STT
+        const LLCell = row.querySelector('td:nth-child(10)'); // Lấy ô của cột LL (sau khi có cột STT)
+        const QuyChuanCell = row.querySelector('td:nth-child(11)'); // Lấy ô của cột QuyChuan (sau khi có cột STT)
 
         // Chuyển đổi giá trị của các ô thành số và cộng dồn
         const LL = parseFloat(LLCell.textContent) || 0; // Nếu không phải số, mặc định là 0
@@ -1627,7 +1627,7 @@
 
       // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
       tableRows.forEach((row) => {
-        const nameCell = row.querySelector("td:nth-child(6)"); // Giả sử tên giảng viên nằm ở cột thứ 5
+        const nameCell = row.querySelector("td:nth-child(7)"); // Cột Khoa (sau khi có cột STT)
         const name = nameCell.textContent.toLowerCase();
 
         if (name.includes(filter)) {
@@ -1655,7 +1655,7 @@
 
       // Chỉ hiện các dòng có tên giảng viên khớp với giá trị tìm kiếm
       tableRows.forEach((row) => {
-        const nameCell = row.querySelector("td:nth-child(7)"); // Giả sử tên giảng viên nằm ở cột thứ 5
+        const nameCell = row.querySelector("td:nth-child(8)"); // Cột Bộ môn (sau khi có cột STT)
         const name = nameCell.textContent.toLowerCase();
 
         if (name.includes(filter)) {
