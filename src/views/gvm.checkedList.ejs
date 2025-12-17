@@ -173,7 +173,7 @@
         let boMonInput = document
           .getElementById("searchBoMon")
           .value.toLowerCase();
-        let nghiHuuFilter = document.getElementById("filterNghiHuu").value.trim();
+        // let nghiHuuFilter = document.getElementById("filterNghiHuu").value.trim();
 
         let table = document.getElementById("dataTable");
         let tr = table.getElementsByTagName("tr");
@@ -182,20 +182,20 @@
           // Bỏ qua hàng tiêu đề
           let nameCell = tr[i].getElementsByTagName("td")[3]; // Tên giảng viên
           let boMonCell = tr[i].getElementsByTagName("td")[11]; // Bộ môn
-          let nghiHuuCell = tr[i].getElementsByTagName("td")[16]; // isNghiHuu (hidden)
+          // let nghiHuuCell = tr[i].getElementsByTagName("td")[16]; // isNghiHuu (hidden)
 
           // Lấy giá trị từ các ô
           let nameValue = nameCell ? nameCell.textContent.toLowerCase() : "";
           let boMonValue = boMonCell ? boMonCell.textContent.toLowerCase() : "";
-          let nghiHuuValue = nghiHuuCell ? nghiHuuCell.textContent.trim() : "";
+          // let nghiHuuValue = nghiHuuCell ? nghiHuuCell.textContent.trim() : "";
 
           // Kiểm tra điều kiện lọc
           let nameMatch = nameValue.includes(nameInput);
           let boMonMatch = boMonValue.includes(boMonInput);
-          let nghiHuuMatch = (nghiHuuFilter === "ALL" || nghiHuuValue === nghiHuuFilter);
+          // let nghiHuuMatch = (nghiHuuFilter === "ALL" || nghiHuuValue === nghiHuuFilter);
 
           // Hiện hoặc ẩn hàng dựa trên các điều kiện
-          if (nameMatch && boMonMatch && nghiHuuMatch) {
+          if (nameMatch && boMonMatch) {
             tr[i].style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             tr[i].style.display = "none"; // Ẩn hàng nếu không khớp
@@ -210,9 +210,9 @@
       document
         .getElementById("searchBoMon")
         .addEventListener("keyup", filterTable);
-      document
-        .getElementById("filterNghiHuu")
-        .addEventListener("change", filterTable);
+      // document
+      //   .getElementById("filterNghiHuu")
+      //   .addEventListener("change", filterTable);
 
       $(document).ready(function () {
         // Kiểm tra xem jQuery UI có được load không
