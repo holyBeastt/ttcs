@@ -1409,7 +1409,16 @@ const AdminController = {
     let connection;
     try {
       connection = await createPoolConnection();
-      const [tienLuong] = await connection.query("SELECT * FROM tienluong");
+      const [tienLuong] = await connection.query(`
+        SELECT 
+          t.STT,
+          t.he_dao_tao,
+          h.he_dao_tao as he_dao_tao_name,
+          t.HocVi,
+          t.SoTien
+        FROM tienluong t
+        LEFT JOIN he_dao_tao h ON t.he_dao_tao = h.id
+      `);
       res.render("tienluong", {
         tienluong: tienLuong,
         message: req.query.success ? "Thêm mới thành công!" : null,
@@ -1434,12 +1443,19 @@ const AdminController = {
       `;
       await connection.execute(insertQuery, [he_dao_tao, HocVi, SoTien]);
 
+      // Lấy tên hệ đào tạo để ghi log
+      const [heDaoTao] = await connection.query(
+        "SELECT he_dao_tao FROM he_dao_tao WHERE id = ?",
+        [he_dao_tao]
+      );
+      const heDaoTaoName = heDaoTao.length > 0 ? heDaoTao[0].he_dao_tao : he_dao_tao;
+
       // Ghi log
       const logQuery = `
         INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) 
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      const logContent = `Thêm tiền lương mới: Hệ đào tạo: ${he_dao_tao}, Học vị: ${HocVi}, Số tiền: ${SoTien}`;
+      const logContent = `Thêm tiền lương mới: Hệ đào tạo: ${heDaoTaoName}, Học vị: ${HocVi}, Số tiền: ${SoTien}`;
       await connection.execute(logQuery, [1, 'ADMIN', 'DAOTAO', 'CREATE', logContent]);
 
       res.redirect("/tienluong?success=true&message=insertSuccess");
@@ -1460,7 +1476,12 @@ const AdminController = {
       connection = await createPoolConnection();
       
       // Lấy dữ liệu cũ trước khi update
-      const selectQuery = `SELECT * FROM tienluong WHERE STT = ?`;
+      const selectQuery = `
+        SELECT t.*, h.he_dao_tao as he_dao_tao_name 
+        FROM tienluong t
+        LEFT JOIN he_dao_tao h ON t.he_dao_tao = h.id
+        WHERE t.STT = ?
+      `;
       const [oldData] = await connection.execute(selectQuery, [STT]);
       
       if (oldData.length === 0) {
@@ -1471,6 +1492,13 @@ const AdminController = {
       }
 
       const oldRecord = oldData[0];
+      
+      // Lấy tên hệ đào tạo mới
+      const [newHeDaoTao] = await connection.query(
+        "SELECT he_dao_tao FROM he_dao_tao WHERE id = ?",
+        [he_dao_tao]
+      );
+      const newHeDaoTaoName = newHeDaoTao.length > 0 ? newHeDaoTao[0].he_dao_tao : he_dao_tao;
       
       const query = `
             UPDATE tienluong 
@@ -1494,8 +1522,8 @@ const AdminController = {
 
       // Ghi log cho những trường thay đổi
       let changes = [];
-      if (oldRecord.he_dao_tao !== he_dao_tao) {
-        changes.push(`Hệ đào tạo: ${oldRecord.he_dao_tao} → ${he_dao_tao}`);
+      if (oldRecord.he_dao_tao != he_dao_tao) {
+        changes.push(`Hệ đào tạo: ${oldRecord.he_dao_tao_name || oldRecord.he_dao_tao} → ${newHeDaoTaoName}`);
       }
       if (oldRecord.HocVi !== HocVi) {
         changes.push(`Học vị: ${oldRecord.HocVi} → ${HocVi}`);
@@ -1534,7 +1562,12 @@ const AdminController = {
     try {
       connection = await createPoolConnection();
       // Lấy thông tin trước khi xóa để ghi log
-      const selectQuery = `SELECT * FROM tienluong WHERE STT = ?`;
+      const selectQuery = `
+        SELECT t.*, h.he_dao_tao as he_dao_tao_name 
+        FROM tienluong t
+        LEFT JOIN he_dao_tao h ON t.he_dao_tao = h.id
+        WHERE t.STT = ?
+      `;
       const [oldData] = await connection.execute(selectQuery, [STT]);
       
       const query = `DELETE FROM tienluong WHERE STT = ?`;
@@ -1548,7 +1581,7 @@ const AdminController = {
             INSERT INTO lichsunhaplieu (id_User, TenNhanVien, Khoa, LoaiThongTin, NoiDungThayDoi, ThoiGianThayDoi) 
             VALUES (?, ?, ?, ?, ?, NOW())
           `;
-          const logContent = `Xóa tiền lương STT ${STT}: Hệ đào tạo: ${deletedRecord.he_dao_tao}, Học vị: ${deletedRecord.HocVi}, Số tiền: ${deletedRecord.SoTien}`;
+          const logContent = `Xóa tiền lương STT ${STT}: Hệ đào tạo: ${deletedRecord.he_dao_tao_name || deletedRecord.he_dao_tao}, Học vị: ${deletedRecord.HocVi}, Số tiền: ${deletedRecord.SoTien}`;
           await connection.execute(logQuery, [1, 'ADMIN', 'DAOTAO', 'DELETE', logContent]);
         }
         
@@ -1577,8 +1610,15 @@ const AdminController = {
       const [result] = await connection.execute(query, [he_dao_tao, HocVi]);
 
       if (result[0].count > 0) {
+        // Lấy tên hệ đào tạo để hiển thị
+        const [heDaoTao] = await connection.query(
+          "SELECT he_dao_tao FROM he_dao_tao WHERE id = ?",
+          [he_dao_tao]
+        );
+        const heDaoTaoName = heDaoTao.length > 0 ? heDaoTao[0].he_dao_tao : he_dao_tao;
+        
         return res.status(409).json({
-          message: `Hệ Đào Tạo và Học Vị đã chọn: ${he_dao_tao} và ${HocVi} đã tồn tại.`,
+          message: `Hệ Đào Tạo và Học Vị đã chọn: ${heDaoTaoName} và ${HocVi} đã tồn tại.`,
         });
       }
 

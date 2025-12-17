@@ -37,16 +37,7 @@
             class="form-control"
             required
           >
-            <option value="Đại học (Đóng học phí)" selected>
-              Đại học (Đóng học phí)
-            </option>
-            <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
-            <option value="Cao học (Đóng học phí)">
-              Cao học (Đóng học phí)
-            </option>
-            <option value="Nghiên cứu sinh (Đóng học phí)">
-              Nghiên cứu sinh (Đóng học phí)
-            </option>
+            <option value="">-- Chọn hệ đào tạo --</option>
           </select>
         </div>
         <div class="col-md-4" id="hocViContainer">
@@ -95,10 +86,10 @@
           <tbody id="data-table-body">
             <% if (tienluong && tienluong.length > 0) { %> <% for (var i = 0; i
             < tienluong.length; i++) { %>
-            <tr data-id="<%= tienluong[i].STT %>">
+            <tr data-id="<%= tienluong[i].STT %>" data-he-dao-tao-id="<%= tienluong[i].he_dao_tao %>">
               <td><%= i + 1 %></td>
               <td class="editable he_dao_tao-cell">
-                <%= tienluong[i].he_dao_tao %>
+                <%= tienluong[i].he_dao_tao_name || tienluong[i].he_dao_tao %>
               </td>
               <td class="editable HocVi-cell"><%= tienluong[i].HocVi %></td>
               <td class="editable SoTien-cell">
@@ -121,6 +112,36 @@
 
     <script>
       $(document).ready(function () {
+        // Load danh sách hệ đào tạo mời giảng từ API
+        $.ajax({
+          url: "/api/gvm/v1/he-moi-giang",
+          method: "GET",
+          success: function(response) {
+            if (response.success && response.data) {
+              const select = $("#he_dao_tao");
+              select.empty(); // Xóa các option cũ
+              select.append('<option value="">-- Chọn hệ đào tạo --</option>');
+              
+              response.data.forEach(function(item) {
+                select.append(`<option value="${item.id}">${item.he_dao_tao}</option>`);
+              });
+            }
+          },
+          error: function(error) {
+            console.error("Lỗi khi tải danh sách hệ đào tạo:", error);
+            Swal.fire({
+              title: "Thông báo",
+              html: "Không thể tải danh sách hệ đào tạo",
+              icon: "error",
+              width: "auto",
+              padding: "20px",
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+            });
+          }
+        });
+
         let originalValues = {};
 
         // Gán sự kiện cho nút Edit
@@ -131,38 +152,29 @@
           // Lưu giá trị gốc
           originalValues[STT] = {
             he_dao_tao: row.find(".he_dao_tao-cell").text().trim(),
+            he_dao_tao_id: row.data('he-dao-tao-id'),
             HocVi: row.find(".HocVi-cell").text().trim(),
             SoTien: row.find(".SoTien-cell").text().trim(),
           };
 
           // Chuyển text thành combobox cho he_dao_tao
-          row.find(".he_dao_tao-cell").html(`
-                <select class="form-control">
-                    <option value="Đại học (Đóng học phí)" ${
-                      originalValues[STT].he_dao_tao ===
-                      "Đại học (Đóng học phí)"
-                        ? "selected"
-                        : ""
-                    }>Đại học (Đóng học phí)</option>
-                    <option value="Đại học (Mật mã)" ${
-                      originalValues[STT].he_dao_tao === "Đại học (Mật mã)"
-                        ? "selected"
-                        : ""
-                    }>Đại học (Mật mã)</option>
-                    <option value="Cao học (Đóng học phí)" ${
-                      originalValues[STT].he_dao_tao ===
-                      "Cao học (Đóng học phí)"
-                        ? "selected"
-                        : ""
-                    }>Cao học (Đóng học phí)</option>
-                    <option value="Nghiên cứu sinh (Đóng học phí)" ${
-                      originalValues[STT].he_dao_tao ===
-                      "Nghiên cứu sinh (Đóng học phí)"
-                        ? "selected"
-                        : ""
-                    }>Nghiên cứu sinh (Đóng học phí)</option>
-                </select>
-            `);
+          $.ajax({
+            url: "/api/gvm/v1/he-moi-giang",
+            method: "GET",
+            success: function(response) {
+              if (response.success && response.data) {
+                let options = '';
+                response.data.forEach(function(item) {
+                  const selected = item.id == originalValues[STT].he_dao_tao_id ? 'selected' : '';
+                  options += `<option value="${item.id}" ${selected}>${item.he_dao_tao}</option>`;
+                });
+                row.find(".he_dao_tao-cell").html(`<select class="form-control">${options}</select>`);
+              }
+            },
+            error: function(error) {
+              console.error("Lỗi khi tải danh sách hệ đào tạo:", error);
+            }
+          });
 
           // Chuyển text thành combobox cho HocVi
           row.find(".HocVi-cell").html(`
