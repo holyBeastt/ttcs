@@ -2441,6 +2441,8 @@ const TaiChinhCheckAll = async (Dot, KiHoc, NamHoc) => {
   return kq;
 };
 
+const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
+
 const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   const { dot, ki, namHoc } = req.body;
 
@@ -2450,24 +2452,25 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
   const query2 = `
     SELECT
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
+        gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
+        gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
+        gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh AS MaBoMon,
         SUM(qc.QuyChuan) AS TongSoTiet,
         MIN(qc.NgayBatDau) AS NgayBatDau,
-        MAX(qc.NgayKetThuc) AS NgayKetThuc
+        MAX(qc.NgayKetThuc) AS NgayKetThuc,
+        ${DON_GIA_EXPR('qc', 'Khoa')} AS DonGia
     FROM
         quychuan qc
     JOIN
-        gvmoi ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gvmoi.HoTen
+        gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
     WHERE
         qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
-        AND he_dao_tao like '%Đại học%' AND qc.MoiGiang = 1 AND gvmoi.isQuanDoi != 1
+        AND qc.MoiGiang = 1 AND gv.isQuanDoi != 1 AND qc.he_dao_tao in (select id from he_dao_tao where cap_do = 1)
     GROUP BY
         qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-        gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-        gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-        gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
+        gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
+        gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
+        gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
     `;
 
   const value = [dot, ki, namHoc];
@@ -2526,6 +2529,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
             he_dao_tao,
             NoiCongTac,
             MaBoMon,
+            DonGia,
           } = item;
 
           req.session.tmp++;
@@ -2535,7 +2539,7 @@ const saveDataGvmDongHocPhi = async (req, res, daDuyetHetArray) => {
           //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
           // };
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
-          let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
+          let SoTien = (TongSoTiet || 0) * DonGia; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
 
           return [
@@ -3112,9 +3116,9 @@ const saveHopDongGvmSauDaiHoc = async (req, res, daDuyetHetArray) => {
   const query = `
 SELECT
     qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-    gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-    gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-    gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh AS MaBoMon,
+    gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
+    gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
+    gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh AS MaBoMon,
     SUM(
         ROUND(
             CASE 
@@ -3123,20 +3127,21 @@ SELECT
             END, 2)
     ) AS TongSoTiet,
     MIN(qc.NgayBatDau) AS NgayBatDau,
-    MAX(qc.NgayKetThuc) AS NgayKetThuc
+    MAX(qc.NgayKetThuc) AS NgayKetThuc,
+    ${DON_GIA_EXPR('qc', 'Khoa')} AS DonGia
 FROM
     quychuan qc
 JOIN
-    gvmoi ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gvmoi.HoTen
+    gvmoi gv ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',' , -1)) = gv.HoTen
 WHERE
     qc.DaLuu = 0 AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.MoiGiang = 1
-    AND gvmoi.isQuanDoi != 1
-    AND he_dao_tao NOT LIKE '%Đại học%'   
+    AND gv.isQuanDoi != 1
+    AND qc.he_dao_tao in (select id from he_dao_tao where cap_do > 1)  
 GROUP BY
     qc.Khoa, qc.he_dao_tao, qc.Dot, qc.KiHoc, qc.NamHoc, qc.KhoaDuyet, qc.DaoTaoDuyet, qc.TaiChinhDuyet, qc.DaLuu,
-    gvmoi.id_Gvm, gvmoi.DienThoai, gvmoi.Email, gvmoi.MaSoThue, gvmoi.HoTen, gvmoi.NgaySinh,
-    gvmoi.HocVi, gvmoi.ChucVu, gvmoi.HSL, gvmoi.CCCD, gvmoi.NgayCapCCCD, gvmoi.NoiCapCCCD,
-    gvmoi.DiaChi, gvmoi.STK, gvmoi.NganHang, gvmoi.MaPhongBan, gvmoi.GioiTinh, gvmoi.NoiCongTac, gvmoi.MonGiangDayChinh;
+    gv.id_Gvm, gv.DienThoai, gv.Email, gv.MaSoThue, gv.HoTen, gv.NgaySinh,
+    gv.HocVi, gv.ChucVu, gv.HSL, gv.CCCD, gv.NgayCapCCCD, gv.NoiCapCCCD,
+    gv.DiaChi, gv.STK, gv.NganHang, gv.MaPhongBan, gv.GioiTinh, gv.NoiCongTac, gv.MonGiangDayChinh;
 `;
 
   const value = [dot, ki, namHoc];
@@ -3190,6 +3195,7 @@ GROUP BY
             he_dao_tao,
             NoiCongTac,
             MaBoMon,
+            DonGia,
           } = item;
 
           req.session.tmp++;
@@ -3199,7 +3205,7 @@ GROUP BY
           //   return GioiTinh === "Nam" ? "Ông" : GioiTinh === "Nữ" ? "Bà" : "";
           // };
           let SoTiet = TongSoTiet || 0; // Nếu QuyChuan không có thì để 0
-          let SoTien = (TongSoTiet || 0) * 1000000; // Tính toán số tiền
+          let SoTien = (TongSoTiet || 0) * DonGia; // Tính toán số tiền
           let TruThue = 0; // Giả định không thu thuế
 
           return [

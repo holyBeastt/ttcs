@@ -562,11 +562,16 @@
               // Nếu chưa duyệt thì thêm dòng “⏳ Chưa duyệt”
               const duyetText = course.hoc_vien_duyet === 0 ? `<div title="Chưa được duyệt bởi học viện" style="font-size: 12px; margin-top: 3px; color: #8a4fff; font-weight: 600;">⏳ Chưa duyệt</div>` : "";
 
+              // Nếu đã nghỉ hưu thì thêm dòng “🏖️ Đã nghỉ hưu
+              const nghiHuuText = course.isNghiHuu == 1 ? `<div title="Giảng viên đã nghỉ hưu" style="font-size: 12px; margin-top: 3px; color: #ff4a4a; font-weight: 600;">🏖️ Đã nghỉ hưu</div>` : "";
+
+              debugger
               tr.innerHTML = `
                 <td rowspan="${courses.length - 1}">${index}</td>
                 <td rowspan="${courses.length - 1}">
                   ${course.GiangVien}<br>(GVM ${course.MaPhongBan})
                   ${duyetText}
+                  ${nghiHuuText}
                 </td>
               `;
               index++;
