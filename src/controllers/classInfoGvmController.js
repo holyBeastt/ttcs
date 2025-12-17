@@ -96,7 +96,8 @@ const getClassInfoGvmData = async (req, res) => {
         qc.KiHoc,
         qc.NamHoc,
         qc.Khoa,
-        qc.he_dao_tao
+        qc.he_dao_tao,
+        gv.isNghiHuu
     FROM quychuan qc
     JOIN gvmoi gv 
         ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
@@ -121,7 +122,8 @@ const getClassInfoGvmData = async (req, res) => {
           qc.KiHoc,
           qc.NamHoc,
           qc.Khoa,   
-          qc.he_dao_tao
+          qc.he_dao_tao,
+          gv.isNghiHuu
       FROM quychuan qc
       JOIN gvmoi gv 
           ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1)) = gv.HoTen
