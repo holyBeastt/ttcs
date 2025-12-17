@@ -540,7 +540,7 @@ const previewContract = async (req, res) => {
       Ngành: teacher.Nganh,
     };
 
-    // Choose template based on contract type ID
+    // Choose template based on contract type name pattern matching
     let templateFileName;
     
     console.log('[Preview API] Selecting template for:', {
@@ -548,43 +548,38 @@ const previewContract = async (req, res) => {
       heHopDongName
     });
     
-    // Map ID to template file
-    // Assuming: 1 = Đại học (Đóng học phí), 2 = Đại học (Mật mã), etc.
-    const templateMap = {
-      1: "HopDongHP.docx",      // Đại học (Đóng học phí)
-      2: "HopDongMM.docx",      // Đại học (Mật mã)
-      3: "HopDongCH.docx",      // Cao học (Đóng học phí)
-      4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
-      // Add more mappings as needed
-    };
+    // Pattern matching based on contract name
+    const nameLower = heHopDongName.toLowerCase();
     
-    templateFileName = templateMap[heHopDongId];
-    
-    // Fallback to name-based selection if ID mapping not found
-    if (!templateFileName) {
-      switch (heHopDongName) {
-        case "Đại học (Đóng học phí)":
-          templateFileName = "HopDongHP.docx";
-          break;
-        case "Đại học (Mật mã)":
-          templateFileName = "HopDongMM.docx";
-          break;
-        case "Đồ án":
-          templateFileName = "HopDongDA.docx";
-          break;
-        case "Nghiên cứu sinh (Đóng học phí)":
-          templateFileName = "HopDongNCS.docx";
-          break;
-        case "Cao học (Đóng học phí)":
-          templateFileName = "HopDongCH.docx";
-          break;
-        default:
-          return res.status(400).json({
-            success: false,
-            message: "Loại hợp đồng không hợp lệ.",
-          });
+    if (nameLower.includes("đồ án")) {
+      // Đồ án
+      if (nameLower.includes("cao học")) {
+        templateFileName = "HopDongDACaoHoc.docx";
+      } else {
+        templateFileName = "HopDongDA.docx";
       }
+    } else if (nameLower.includes("mật mã")) {
+      // Các hệ có chứa "mật mã"
+      templateFileName = "HopDongMM.docx";
+    } else if (nameLower.includes("cao học")) {
+      // Cao học
+      templateFileName = "HopDongCH.docx";
+    } else if (nameLower.includes("nghiên cứu sinh")) {
+      // Nghiên cứu sinh
+      templateFileName = "HopDongNCS.docx";
+    } else if (nameLower.includes("đóng học phí") || nameLower.includes("đại học")) {
+      // Đại học hoặc đóng học phí
+      templateFileName = "HopDongHP.docx";
+    } else {
+      // Default fallback
+      console.warn('[Preview API] No pattern matched, using default template HP');
+      templateFileName = "HopDongHP.docx";
     }
+    
+    console.log('[Preview API] Pattern matched template:', {
+      pattern: nameLower,
+      selectedTemplate: templateFileName
+    });
 
     const templatePath = path.resolve(
       __dirname,
