@@ -440,10 +440,10 @@
           departmentFilter.style.display = "none";
         }
 
-        loadHeDoAnToSelect();
+        loadHeMoiGiangToSelect();
       });
 
-      async function loadHeDoAnToSelect() {
+      async function loadHeMoiGiangToSelect() {
         try {
           const res = await fetch('/api/gvm/v1/he-moi-giang');
           const json = await res.json();

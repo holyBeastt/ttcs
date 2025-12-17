@@ -154,16 +154,6 @@
               name="loaiHopDong"
               class="form-select w-200px mx-2 selectop"
             >
-              <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
-              <option value="Đại học (Đóng học phí)">
-                Đại học (Đóng học phí)
-              </option>
-              <option value="Cao học (Đóng học phí)">
-                Cao học (Đóng học phí)
-              </option>
-              <option value="Nghiên cứu sinh (Đóng học phí)">
-                Nghiên cứu sinh (Đóng học phí)
-              </option>
             </select>
 
             <input
@@ -256,6 +246,38 @@
             Swal.close();
           }, 1000); // delay 1 giây (tuỳ chọn, có thể chỉnh)
         });
+
+      async function loadHeMoiGiangToSelect() {
+        try {
+          const res = await fetch('/api/gvm/v1/he-moi-giang');
+          const json = await res.json();
+
+          if (!json.success) {
+            console.error('API lỗi');
+            return;
+          }
+
+          const select = document.getElementById('loaiHopDong');
+          if (!select) return;
+
+          // clear option cũ (nếu cần reload)
+          select.innerHTML = '';
+
+          json.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.he_dao_tao;
+            select.appendChild(option);
+          });
+
+        } catch (err) {
+          console.error('Lỗi load hệ đồ án:', err);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadHeMoiGiangToSelect();
+      });
     </script>
     <script>
       // Lấy query string từ URL
