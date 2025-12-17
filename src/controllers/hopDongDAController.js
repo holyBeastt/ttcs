@@ -347,6 +347,8 @@ SELECT
   ed.NoiCongTac,
   ed.Dot,
   MAX(ed.KhoaDaoTao) AS KhoaDaoTao,
+  GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+  GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
   MIN(ed.NgayBatDau) AS NgayBatDau,
   MAX(ed.NgayKetThuc) AS NgayKetThuc,
   SUM(ed.SoTiet) AS SoTiet,
@@ -391,6 +393,8 @@ GROUP BY
     ed.NganHang,
     ed.NoiCongTac,
     ed.Dot,
+    GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+    GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
@@ -435,6 +439,8 @@ GROUP BY
     ed.NganHang,
     ed.NoiCongTac,
     ed.Dot,
+    GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+    GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
     MIN(ed.NgayBatDau) AS NgayBatDau,
     MAX(ed.NgayKetThuc) AS NgayKetThuc,
     SUM(ed.SoTiet) AS SoTiet,
@@ -483,6 +489,14 @@ GROUP BY
 
     // Lấy dữ liệu phòng ban
     const [phongBanList] = await connection.query("SELECT * FROM phongban");
+
+    // Lấy thông tin hệ đào tạo từ ID
+    const [[heDaoTaoInfo]] = await connection.query(
+      "SELECT he_dao_tao, loai_hinh FROM he_dao_tao WHERE id = ?",
+      [he_dao_tao]
+    );
+    const tenHeDaoTao = heDaoTaoInfo?.he_dao_tao || "";
+    const loaiHinh = heDaoTaoInfo?.loai_hinh || "";
 
     // Tạo hợp đồng cho từng giảng viên
     for (const teacher of teachers) {
@@ -596,27 +610,24 @@ GROUP BY
         Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
         Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
         Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-        Khóa: teacher.KhoaDaoTao,
-        Ngành: tenNganh,
+        Khóa: teacher.KhoaSinhVien || teacher.KhoaDaoTao || "",
+        Ngành: teacher.Nganh || tenNganh || "",
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
       };
-      // Chọn template dựa trên loại hợp đồng
+      // Chọn template dựa trên loại hình hệ đào tạo
       let templateFileName;
-      switch (he_dao_tao) {
-        case "Hệ học phí":
-          templateFileName = "HopDongHP.docx";
-          break;
-        case "Mật mã":
-          templateFileName = "HopDongMM.docx";
-          break;
-        case "Đồ án (Đại học)":
-          templateFileName = "HopDongDA.docx";
-          break;
-        case "Đồ án (Cao học)":
-          templateFileName = "HopDongDA.docx";
-          break;
-        default:
-          return res.status(400).send("Loại hợp đồng không hợp lệ.");
+      if (loaiHinh === "đồ án") {
+        templateFileName = "HopDongDA.docx";
+      } else if (tenHeDaoTao.includes("Mật mã")) {
+        templateFileName = "HopDongMM.docx";
+      } else if (tenHeDaoTao.includes("học phí") || tenHeDaoTao.includes("Học phí")) {
+        templateFileName = "HopDongHP.docx";
+      } else if (tenHeDaoTao.includes("Nghiên cứu sinh")) {
+        templateFileName = "HopDongNCS.docx";
+      } else if (tenHeDaoTao.includes("Cao học")) {
+        templateFileName = "HopDongCH.docx";
+      } else {
+        templateFileName = "HopDongDA.docx"; // Default cho đồ án
       }
       const templatePath = path.resolve(
         __dirname,
@@ -641,19 +652,19 @@ GROUP BY
         type: "nodebuffer",
         compression: "DEFLATE",
       });
-      const fileName = `HopDong_${he_dao_tao}_${hoTen}_${teacher.CCCD}.docx`;
+      const fileName = `HopDong_${tenHeDaoTao}_${hoTen}_${teacher.CCCD}.docx`;
       fs.writeFileSync(path.join(tempDir, fileName), buf);
     }
 
     // Tạo file thống kê chuyển khoản
-    const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - ${he_dao_tao}`;
+    const noiDung = `Đợt ${dot} - Kỳ ${ki} năm học ${namHoc} - ${tenHeDaoTao}`;
     const summaryDoc = createTransferDetailDocument(
       summaryData,
       noiDung,
       "sau thuế"
     );
     const summaryBuf = await Packer.toBuffer(summaryDoc);
-    const summaryName = `ĐATN_${he_dao_tao}_Thongke_chuyenkhoan_sauthue.docx`;
+    const summaryName = `ĐATN_${tenHeDaoTao}_Thongke_chuyenkhoan_sauthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName), summaryBuf);
 
     console.log("Tạo file thống kê chuyển khoản sau thuế thành công");
@@ -665,7 +676,7 @@ GROUP BY
       "trước thuế"
     );
     const summaryBuf2 = await Packer.toBuffer(summaryDoc2);
-    const summaryName2 = `ĐATN_${he_dao_tao}_Thongke_chuyenkhoan_truocthue.docx`;
+    const summaryName2 = `ĐATN_${tenHeDaoTao}_Thongke_chuyenkhoan_truocthue.docx`;
     fs.writeFileSync(path.join(tempDir, summaryName2), summaryBuf2);
 
     console.log("Tạo file thống kê chuyển khoản trước thuế thành công");
@@ -704,7 +715,7 @@ GROUP BY
     const zipOutputDir = path.join(__dirname, "..", "public", "tempZips");
     fs.mkdirSync(zipOutputDir, { recursive: true });
 
-    const zipName = `HopDong_${he_dao_tao}_Dot${dot}_${namHoc}_${khoa || "all"
+    const zipName = `HopDong_${tenHeDaoTao}_Dot${dot}_${namHoc}_${khoa || "all"
       }.zip`;
     const zipPath = path.join(zipOutputDir, zipName);
 
@@ -1164,8 +1175,8 @@ const generateDoAnContract = async (teacher, tempDir, phongBanList) => {
       Tiền_thực_nhận_Text1: tienThucNhanText1.toLocaleString("vi-VN"),
       Bằng_chữ_của_thực_nhận1: numberToWords(tienThucNhanText1),
       Nơi_công_tác: teacher.NoiCongTac, // Thêm trường Nơi công tác
-      Khóa: teacher.KhoaDaoTao,
-      Ngành: tenNganh,
+      Khóa: teacher.KhoaSinhVien || teacher.KhoaDaoTao || "",
+      Ngành: teacher.Nganh || tenNganh || "",
       Số_hợp_đồng: teacher.SoHopDong || "",
       Số_thanh_lý: teacher.SoThanhLyHopDong || "",
       Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
@@ -1244,6 +1255,8 @@ const getExportData = async (
       ed.NoiCongTac,
       ed.Dot,
       ed.ki,
+      GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+      GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
       MIN(ed.NgayBatDau) AS NgayBatDau,
       MAX(ed.NgayKetThuc) AS NgayKetThuc,
       SUM(ed.SoTiet) AS SoTiet,
@@ -1289,6 +1302,8 @@ const getExportData = async (
         ed.NoiCongTac,
         ed.Dot,
         ed.ki,
+        GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+        GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
         MIN(ed.NgayBatDau) AS NgayBatDau,
         MAX(ed.NgayKetThuc) AS NgayKetThuc,
         SUM(ed.SoTiet) AS SoTiet,
@@ -1334,6 +1349,8 @@ const getExportData = async (
         ed.NoiCongTac,
         ed.Dot,
         ed.ki,
+        GROUP_CONCAT(DISTINCT ed.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+        GROUP_CONCAT(DISTINCT ed.nganh SEPARATOR ', ') AS Nganh,
         MIN(ed.NgayBatDau) AS NgayBatDau,
         MAX(ed.NgayKetThuc) AS NgayKetThuc,
         SUM(ed.SoTiet) AS SoTiet,

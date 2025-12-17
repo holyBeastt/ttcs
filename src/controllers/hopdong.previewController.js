@@ -389,6 +389,9 @@ const previewContract = async (req, res) => {
           heHopDong: heHopDong,
           tienMoiGiang: tienMoiGiang,
           HSL: teacher.HSL,
+          KhoaSinhVien: teacher.KhoaSinhVien,
+          Nganh: teacher.Nganh,
+          allTeacherKeys: Object.keys(teacher)
         });
       }
     } else {
@@ -405,6 +408,9 @@ const previewContract = async (req, res) => {
         teacherTienMoiGiang: teacher.TienMoiGiang,
         HSL: teacher.HSL,
         teacherHSL: teacher.HSL,
+        KhoaSinhVien: teacher.KhoaSinhVien,
+        Nganh: teacher.Nganh,
+        allTeacherKeys: Object.keys(teacher)
       });
 
       // If no financial data in teacher object, calculate from tieuluong table
@@ -466,6 +472,8 @@ const previewContract = async (req, res) => {
       Mức_tiền: tienMoiGiang.toLocaleString("vi-VN"),
       Nơi_công_tác: teacher.NoiCongTac || "",
       Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
+      Khóa: teacher.KhoaSinhVien,
+      Ngành: teacher.Nganh,
     }; // Debug: Log final template data for TienMoiGiang
     console.log("Final template data HSL and TienMoiGiang:", {
       teacher: teacher.GiangVien || teacher.HoTen,

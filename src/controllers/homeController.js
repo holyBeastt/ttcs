@@ -157,6 +157,42 @@ const getFacultyCodeList = async (req, res) => {
   }
 };
 
+const getFacultyNameList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT TenPhongBan FROM `phongban` where isKhoa = 1";
+    const [result] = await connection.query(query);
+    res.json({
+      success: true,
+      TenPhongBan: result,
+    });
+  } catch (error) {
+    console.error("Lỗi: ", error);
+    res.status(500).send("Đã có lỗi xảy ra");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
+const getStudentCourseList = async (req, res) => {
+  let connection;
+  try {
+    connection = await createPoolConnection();
+    const query = "SELECT ten_khoa, phongban_id FROM `khoa_sinh_vien`";
+    const [result] = await connection.query(query);
+    res.json({
+      success: true,
+      KhoaSinhVien: result,
+    });
+  } catch (error) {
+    console.error("Lỗi: ", error);
+    res.status(500).send("Đã có lỗi xảy ra");
+  } finally {
+    if (connection) connection.release(); // Đảm bảo giải phóng kết nối
+  }
+};
+
 // Xuất các hàm để sử dụng trong router
 module.exports = {
   gethomePage,
@@ -185,4 +221,6 @@ module.exports = {
   getBoMonShared,
   getPhongBanInfoShared,
   getFacultyCodeList,
+  getFacultyNameList,
+  getStudentCourseList,
 };

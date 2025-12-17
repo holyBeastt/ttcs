@@ -548,7 +548,7 @@ const saveToDB = async (req, res) => {
 };
 
 const getthongTinDoAnTotNghiep = (req, res) => {
-  res.render("thongTinDoAnTotNghiep.ejs");
+  res.render("doan.thongTinDoAnTotNghiep.ejs");
 };
 
 const getInfoDoAn = async (req, res) => {
@@ -1015,7 +1015,6 @@ const saveToExportDoAn = async (req, res) => {
   const ki = req.body.ki;
   const NamHoc = req.body.NamHoc;
   const MaKhoa = req.body.MaPhongBan;
-  const he_dao_tao = req.body.he_dao_tao;
 
   let connection;
   try {
@@ -1027,28 +1026,40 @@ const saveToExportDoAn = async (req, res) => {
     const uniqueGV = gvData.uniqueGV;
     const allGV = gvData.allGV;
 
-    const daDuyetHet = await TaiChinhCheckAll(req, Dot, ki, NamHoc, he_dao_tao);
-    const daDuyetHetArray = daDuyetHet.split(",").filter((item) => item !== ""); // Chuyển đổi thành mảng và loại bỏ phần tử rỗng
-
+    // Query dữ liệu từ doantotnghiep - không cần filter he_dao_tao vì lấy tất cả
     let queryData, data;
 
     if (MaKhoa == "ALL") {
       queryData =
-        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND he_dao_tao = ?";
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ?";
 
-      [data] = await connection.query(queryData, [Dot, ki, NamHoc, he_dao_tao]);
+      [data] = await connection.query(queryData, [Dot, ki, NamHoc]);
     } else {
       queryData =
-        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ? AND he_dao_tao = ?";
+        "select * from doantotnghiep where Dot = ? AND ki = ? AND NamHoc = ? AND MaPhongBan = ?";
 
       [data] = await connection.query(queryData, [
         Dot,
         ki,
         NamHoc,
         MaKhoa,
-        he_dao_tao,
       ]);
     }
+
+    // Lấy danh sách khoa đã duyệt tài chính - nhóm theo he_dao_tao
+    const daDuyetHetQuery = `
+      SELECT DISTINCT MaPhongBan 
+      FROM doantotnghiep 
+      WHERE Dot = ? AND ki = ? AND NamHoc = ? 
+        AND TaiChinhDuyet = 1
+        ${MaKhoa !== "ALL" ? "AND MaPhongBan = ?" : ""}
+    `;
+    const daDuyetHetParams = MaKhoa !== "ALL" 
+      ? [Dot, ki, NamHoc, MaKhoa]
+      : [Dot, ki, NamHoc];
+    
+    const [daDuyetHetResult] = await connection.query(daDuyetHetQuery, daDuyetHetParams);
+    const daDuyetHetArray = daDuyetHetResult.map(row => row.MaPhongBan);
 
     // Tạo mảng 2 chiều chứa tất cả các bản ghi
     const values = [];
@@ -1165,6 +1176,8 @@ const saveToExportDoAn = async (req, res) => {
             matchedItem1.MonGiangDayChinh,
             matchedItem1.HSL,
             item.he_dao_tao,
+            item.khoa_sinh_vien || null,
+            item.nganh || null,
           ]);
           let matchedItem2;
           count++;
@@ -1256,6 +1269,8 @@ const saveToExportDoAn = async (req, res) => {
               matchedItem2.MonGiangDayChinh,
               matchedItem2.HSL,
               item.he_dao_tao,
+              item.khoa_sinh_vien || null,
+              item.nganh || null,
             ]);
           }
         })
@@ -1279,7 +1294,7 @@ const saveToExportDoAn = async (req, res) => {
     const sql = `INSERT INTO exportdoantotnghiep (SinhVien, MaSV, KhoaDaoTao, SoQD, TenDeTai, SoNguoi, 
     isHDChinh, GiangVien, CCCD, isMoiGiang, SoTiet, NgayBatDau, NgayKetThuc, MaPhongBan, NamHoc, ki, Dot, TT,
     GioiTinh, NgaySinh, NgayCapCCCD, NoiCapCCCD, DiaChi, DienThoai, Email, MaSoThue, HocVi, NoiCongTac,
-    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao)
+    ChucVu, STK, NganHang, MonGiangDayChinh, HSL, he_dao_tao, khoa_sinh_vien, nganh)
                  VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values

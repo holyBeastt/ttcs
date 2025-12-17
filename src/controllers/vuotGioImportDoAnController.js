@@ -911,6 +911,8 @@ const saveToTableDoantotnghiep = async (req, res) => {
   const Dot = req.query.Dot;
   const Ki = req.query.Ki;
   const he_dao_tao = req.query.he_dao_tao;
+  const khoa_sinh_vien = req.query.khoa_sinh_vien || null;
+  const nganh = req.query.nganh || null;
   const data = req.body;
   const defaultDate = "2000-01-01"; // hoặc ngày nào bạn muốn làm mặc định
 
@@ -983,13 +985,15 @@ const saveToTableDoantotnghiep = async (req, res) => {
         Ki,
         DoiTuong,
         he_dao_tao,
+        khoa_sinh_vien,
+        nganh,
       ];
     });
 
     // Câu lệnh SQL để chèn tất cả dữ liệu vào bảng
     const sql = `INSERT INTO doantotnghiep (TT, SinhVien, MaSV, KhoaDaoTao, TenDeTai, GiangVienDefault, 
     GiangVien1, GiangVien2, NamHoc, NgayBatDau, NgayKetThuc, MaPhongBan, SoQD, KhoaDuyet, DaoTaoDuyet, 
-    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong, he_dao_tao)
+    TaiChinhDuyet, Daluu, GiangVien1Real, GiangVien2Real, DaBanHanh, Dot, Ki, DoiTuong, he_dao_tao, khoa_sinh_vien, nganh)
     VALUES ?`;
 
     // Thực thi câu lệnh SQL với mảng values
@@ -1033,7 +1037,7 @@ const saveToTableDoantotnghiep = async (req, res) => {
 };
 
 const getImportDoAn = (req, res) => {
-  res.render("vuotGioImportDoAn.ejs");
+  res.render("doan.themFileDoAn.ejs");
 };
 
 const checkExistDataFile = async (req, res) => {

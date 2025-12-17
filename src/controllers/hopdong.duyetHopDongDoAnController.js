@@ -53,7 +53,7 @@ const getDuyetHopDongData = async (req, res) => {
         gv.isNghiHuu,
         da.MaPhongBan AS MaKhoaMonHoc,
         SUM(da.SoTiet) AS SoTiet,
-        COALESCE('Đại học','Đại học') AS he_dao_tao,
+        da.he_dao_tao,
         da.NamHoc,
         da.Dot,
         da.ki,
@@ -66,6 +66,8 @@ const getDuyetHopDongData = async (req, res) => {
         GROUP_CONCAT(DISTINCT da.TenDeTai SEPARATOR ', ') AS MonHoc,
         GROUP_CONCAT(DISTINCT da.SinhVien  SEPARATOR ', ') AS Lop,
         GROUP_CONCAT(DISTINCT da.MaSV      SEPARATOR ', ') AS SiSo,
+        GROUP_CONCAT(DISTINCT da.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+        GROUP_CONCAT(DISTINCT da.nganh SEPARATOR ', ') AS Nganh,
         100000                       AS TienMoiGiang,
         SUM(da.SoTiet)*100000         AS ThanhTien,
         SUM(da.SoTiet)*100000*0.1     AS Thue,
@@ -88,6 +90,9 @@ const getDuyetHopDongData = async (req, res) => {
           TenDeTai,
           SinhVien,
           MaSV,
+          khoa_sinh_vien,
+          nganh,
+          he_dao_tao,
           CASE
             WHEN GiangVien2='không' OR GiangVien2='' THEN 20
             ELSE 12
@@ -118,6 +123,9 @@ const getDuyetHopDongData = async (req, res) => {
           TenDeTai,
           SinhVien,
           MaSV,
+          khoa_sinh_vien,
+          nganh,
+          he_dao_tao,
           8 AS SoTiet,
           TaiChinhDuyet
         FROM doantotnghiep
@@ -201,7 +209,9 @@ const getDuyetHopDongData = async (req, res) => {
                         SoHopDong: cur.SoHopDong,
                         TrangThaiHopDong: cur.TrangThaiHopDong,
                         DaoTaoDuyet: cur.DaoTaoDuyet,
-                        TaiChinhDuyet: cur.TaiChinhDuyet
+                        TaiChinhDuyet: cur.TaiChinhDuyet,
+                        KhoaSinhVien: cur.KhoaSinhVien,
+                        Nganh: cur.Nganh
                     },
                     trainingPrograms: [],
                     totalFinancials: {
@@ -486,7 +496,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             SELECT
                 MIN(da.NgayBatDau) AS NgayBatDau,
                 MAX(da.NgayKetThuc) AS NgayKetThuc,
-                'Đại học' as he_dao_tao,  -- Default training program for thesis contracts                da.NamHoc,
+                da.he_dao_tao,
+                da.NamHoc,
                 da.Dot,
 
                 -- Tính tổng số tiết cho tất cả khoa
@@ -511,9 +522,11 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 SELECT
                     NgayBatDau,
                     NgayKetThuc,
-                    MaPhongBan,                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
+                    MaPhongBan,
+                    TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                     Dot,
                     NamHoc,
+                    he_dao_tao,
                     CASE 
                         WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
                         ELSE 12
@@ -534,6 +547,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                     Dot,
                     NamHoc,
+                    he_dao_tao,
                     8 AS SoTiet
                 FROM doantotnghiep
                 WHERE GiangVien2 IS NOT NULL 
@@ -554,8 +568,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             params.push(maPhongBan);
         } query += `
             GROUP BY
-                da.NamHoc, da.Dot
-            ORDER BY 'Đại học'
+                da.NamHoc, da.Dot, da.he_dao_tao
+            ORDER BY da.he_dao_tao
         `;
 
         const [results] = await connection.query(query, params);        // Get detailed teacher information for the "Đại học" training program

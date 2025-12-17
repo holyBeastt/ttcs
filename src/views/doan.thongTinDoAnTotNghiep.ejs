@@ -308,21 +308,42 @@
             id="filterName"
             placeholder="Tìm theo tên sinh viên"
             class="form-control m-2 search"
-            style="width: 28%"
+            style="width: 20%"
+          />
+          <input
+            type="text"
+            id="filterMaSV"
+            placeholder="Tìm theo mã SV"
+            class="form-control m-2 search"
+            style="width: 15%"
+          />
+          <input
+            type="text"
+            id="filterKhoa"
+            placeholder="Tìm theo khóa"
+            class="form-control m-2 search"
+            style="width: 10%"
+          />
+          <input
+            type="text"
+            id="filterNganh"
+            placeholder="Tìm theo ngành"
+            class="form-control m-2 search"
+            style="width: 15%"
           />
           <input
             type="text"
             id="filterClass"
             placeholder="Tìm theo tên đề tài"
             class="form-control m-2 search"
-            style="width: 30%"
+            style="width: 20%"
           />
           <input
             type="text"
             id="filterNameGV"
             placeholder="Tìm theo tên giảng viên"
             class="form-control m-2 search"
-            style="width: 30%"
+            style="width: 18%"
           />
 
           <div class="date-all-container" style="display: none; width: 100%">
@@ -367,7 +388,9 @@
                 <th style="width: 30px">TT</th>
                 <th style="width: 120px">Sinh Viên</th>
                 <th style="width: 75px">Mã SV</th>
-                <th style="width: 50px">Khoa</th>
+                <th style="width: 60px">Khóa</th>
+                <th style="width: 120px">Ngành</th>
+                <th style="display: none; width: 50px">Khoa</th>
                 <th style="width: 300px">Tên đề tài</th>
                 <th style="width: 200px">Giảng Viên Hướng Dẫn</th>
                 <th style="width: 260px">Giảng Viên Hướng Dẫn 1</th>
@@ -753,34 +776,54 @@
         const nameFilter = document
           .getElementById("filterName")
           .value.toLowerCase();
+        const maSVFilter = document
+          .getElementById("filterMaSV")
+          .value.toLowerCase();
+        const khoaFilter = document
+          .getElementById("filterKhoa")
+          .value.toLowerCase();
+        const nganhFilter = document
+          .getElementById("filterNganh")
+          .value.toLowerCase();
         const classFilter = document
           .getElementById("filterClass")
           .value.toLowerCase();
         const gvFilter = document
           .getElementById("filterNameGV")
-          .value.toLowerCase(); // Thêm lọc theo giảng viên
+          .value.toLowerCase();
 
         const tableRows = document.querySelectorAll("#tableBody tr");
 
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
-          const classCell = row.querySelector("td:nth-child(5)"); // Cột tên đề tài
-          const gvCell1 = row.querySelector("td:nth-child(7)");
-          const gvCell2 = row.querySelector("td:nth-child(8)");
+          const maSVCell = row.querySelector("td:nth-child(3)"); // Cột mã SV
+          const khoaCell = row.querySelector("td:nth-child(4)"); // Cột khóa
+          const nganhCell = row.querySelector("td:nth-child(5)"); // Cột ngành
+          const classCell = row.querySelector("td:nth-child(7)"); // Cột tên đề tài
+          const gvCell1 = row.querySelector("td:nth-child(9)"); // GVHD 1
+          const gvCell2 = row.querySelector("td:nth-child(10)"); // GVHD 2
+          
           const gvInput1 = gvCell1 ? gvCell1.querySelector("input") : null;
           const gvInput2 = gvCell2 ? gvCell2.querySelector("input") : null;
-          const name = nameCell.textContent.toLowerCase();
-          const className = classCell.textContent.toLowerCase();
-          const gv1 = gvInput1.value.toLowerCase();
-          const gv2 = gvInput2.value.toLowerCase();
+          
+          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+          const maSV = maSVCell ? maSVCell.textContent.toLowerCase() : "";
+          const khoa = khoaCell ? khoaCell.textContent.toLowerCase() : "";
+          const nganh = nganhCell ? nganhCell.textContent.toLowerCase() : "";
+          const className = classCell ? classCell.textContent.toLowerCase() : "";
+          const gv1 = gvInput1 ? gvInput1.value.toLowerCase() : "";
+          const gv2 = gvInput2 ? gvInput2.value.toLowerCase() : "";
 
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
+          const matchesMaSV = maSV.includes(maSVFilter);
+          const matchesKhoa = khoa.includes(khoaFilter);
+          const matchesNganh = nganh.includes(nganhFilter);
           const matchesClass = className.includes(classFilter);
-          const matchesGV = gv1.includes(gvFilter) || gv2.includes(gvFilter); // Nếu ô giảng viên rỗng thì bỏ qua
+          const matchesGV = gv1.includes(gvFilter) || gv2.includes(gvFilter);
 
           // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-          if (matchesName && matchesClass && matchesGV) {
+          if (matchesName && matchesMaSV && matchesKhoa && matchesNganh && matchesClass && matchesGV) {
             row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             row.style.display = "none"; // Ẩn hàng nếu không khớp
@@ -791,6 +834,15 @@
       // Gán sự kiện cho các input filter
       document
         .getElementById("filterName")
+        .addEventListener("input", filterTable);
+      document
+        .getElementById("filterMaSV")
+        .addEventListener("input", filterTable);
+      document
+        .getElementById("filterKhoa")
+        .addEventListener("input", filterTable);
+      document
+        .getElementById("filterNganh")
         .addEventListener("input", filterTable);
       document
         .getElementById("filterClass")
@@ -871,9 +923,20 @@
           maSVTd.textContent = row.MaSV || "";
           tableRow.appendChild(maSVTd);
 
+          // Khóa sinh viên
+          const khoaSinhVienTd = document.createElement("td");
+          khoaSinhVienTd.textContent = row.khoa_sinh_vien || "";
+          tableRow.appendChild(khoaSinhVienTd);
+
+          // Ngành
+          const nganhTd = document.createElement("td");
+          nganhTd.textContent = row.nganh || "";
+          tableRow.appendChild(nganhTd);
+
           // Tạo cột Khoa để kiểm tra check
           const MaPhongBanTd = document.createElement("td");
           MaPhongBanTd.textContent = row.MaPhongBan || ""; // Lấy giá trị Khoa trực tiếp từ row
+          MaPhongBanTd.style.display = "none"; // Ẩn cột này
           tableRow.appendChild(MaPhongBanTd);
 
           // Tên đề tài

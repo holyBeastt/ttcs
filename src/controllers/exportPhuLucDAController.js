@@ -1146,7 +1146,9 @@ const exportPhuLucDA = async (req, res) => {
           gv.DiaChi,
           gv.CCCD,
           edt.SoHopDong,
-          edt.SoThanhLyHopDong
+          edt.SoThanhLyHopDong,
+          GROUP_CONCAT(DISTINCT edt.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
+          GROUP_CONCAT(DISTINCT edt.nganh SEPARATOR ', ') AS Nganh
       FROM exportdoantotnghiep edt
       JOIN gvmoi gv ON edt.GiangVien = gv.HoTen
       WHERE  edt.Dot = ? AND edt.Ki=? AND edt.NamHoc = ? AND he_dao_tao = ? AND edt.isMoiGiang = 1
@@ -1163,6 +1165,9 @@ const exportPhuLucDA = async (req, res) => {
       query += ` AND gv.HoTen LIKE ?`;
       params.push(`%${teacherName}%`);
     }
+
+    query += ` GROUP BY gv.HoTen, edt.TenDeTai, edt.SinhVien, edt.SoTiet, edt.NgayBatDau, edt.NgayKetThuc, 
+               gv.HocVi, gv.HSL, gv.DiaChi, gv.CCCD, edt.SoHopDong, edt.SoThanhLyHopDong`;
 
     const [data] = await connection.execute(query, params);
 

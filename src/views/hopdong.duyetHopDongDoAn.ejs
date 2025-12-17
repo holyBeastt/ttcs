@@ -833,6 +833,8 @@
             loaiHopDong: teacherData.he_dao_tao || $('#loaiHopDong').val(),
             MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
             TenPhongBan: teacherData.TenPhongBan,
+            KhoaSinhVien: teacherData.KhoaSinhVien,
+            Nganh: teacherData.Nganh,
             // Add retirement status
             isNghiHuu: teacherData.isNghiHuu || 0,
             // Add enhanced training program data
@@ -1324,8 +1326,8 @@
           Dot: params.dot,
           ki: params.ki,
           NamHoc: params.namHoc,
-          MaPhongBan: params.maPhongBan || "ALL",
-          he_dao_tao: "Đồ án (Đại học)"
+          MaPhongBan: params.maPhongBan || "ALL"
+          // Không gửi he_dao_tao, backend sẽ lấy từ bảng doantotnghiep
         };
 
         fetch('/saveToExportDoAn', {

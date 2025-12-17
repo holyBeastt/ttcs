@@ -25,6 +25,8 @@ const {
   getBoMonShared,
   getPhongBanInfoShared,
   getFacultyCodeList,
+  getFacultyNameList,
+  getStudentCourseList,
 } = require("../controllers/homeController");
 const { route } = require("./adminRoute");
 
@@ -71,4 +73,11 @@ router.get("/api/shared/phong-ban-info", getPhongBanInfoShared);
 
 // Lấy danh sách mã khoa
 router.get("/api/shared/faculty-code-list", getFacultyCodeList);
+
+// Lấy danh sách tên khoa
+router.get("/api/shared/faculty-name-list", getFacultyNameList);
+
+// Lấy danh sách khóa sinh viên
+router.get("/api/shared/student-course-list", getStudentCourseList);
+
 module.exports = router;

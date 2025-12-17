@@ -17,6 +17,8 @@ const exportDoanToExcel = async (req, res) => {
       "TT",
       "Sinh Viên", 
       "Mã SV",
+      "Khóa",
+      "Ngành",
       "Khoa",
       "Tên đề tài",
       "Giảng Viên Hướng Dẫn",
@@ -61,7 +63,7 @@ const exportDoanToExcel = async (req, res) => {
     });
 
     // Thiết lập độ rộng cột
-    const colWidths = [5, 25, 15, 10, 50, 30, 30, 30, 15, 15];
+    const colWidths = [5, 25, 15, 10, 20, 10, 50, 30, 30, 30, 15, 15];
     worksheet.columns = headers.map((header, index) => ({
       header,
       key: header,
@@ -74,6 +76,8 @@ const exportDoanToExcel = async (req, res) => {
         index + 1, // TT
         item.SinhVien || "", // Sinh Viên
         item.MaSV || "", // Mã SV
+        item.khoa_sinh_vien || "", // Khóa
+        item.nganh || "", // Ngành
         item.MaPhongBan || "", // Khoa
         item.TenDeTai || "", // Tên đề tài
         item.GiangVienDefault || "", // Giảng Viên Hướng Dẫn

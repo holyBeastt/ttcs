@@ -131,8 +131,7 @@
           </select>
 
           <select class="form-select mx-1 selectop" id="he_dao_tao">
-            <option value="Đồ án (Đại học)">Đồ án (Đại học)</option>
-            <option value="Đồ án (Cao học)">Đồ án (Cao học)</option>
+            <option value="">Chọn hệ đào tạo...</option>
           </select>
 
           <input type="text" class="form-control w-200px mx-2" id="search-teacher" placeholder="Tìm kiếm giảng viên" />
@@ -171,6 +170,28 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 
   <script>
+    // Load danh sách hệ đào tạo đồ án từ API
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        const response = await fetch('/api/gvm/v1/he-do-an');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          const select = document.getElementById('he_dao_tao');
+          select.innerHTML = '<option value="">Chọn hệ đào tạo...</option>';
+          
+          result.data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.he_dao_tao;
+            select.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('Lỗi khi load hệ đào tạo:', error);
+      }
+    });
+
     // Trong file exportHD.ejs
     document
       .getElementById("exportButton2")

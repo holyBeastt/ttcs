@@ -159,6 +159,16 @@
             <option value="">Khoa</option>
           </select>
 
+          <!-- Combo box Ngành -->
+          <select class="selectop mx-1" id="TenPhongBan">
+            <option value="">Ngành</option>
+          </select>
+
+          <!-- Combo box Khóa -->
+          <select class="selectop mx-1" id="KhoaSinhVien">
+            <option value="">Khóa</option>
+          </select>
+
           <select class="mx-1 selectop" id="he_dao_tao">
           </select>
 
@@ -722,7 +732,9 @@
         dotValue,
         kiValue,
         namValue,
-        he_dao_tao
+        he_dao_tao,
+        khoaSinhVien,
+        nganh
       ) {
         const body = {
           Khoa: khoaValue,
@@ -746,14 +758,16 @@
           })
           .then((data) => {
             if (data.exists) {
-              showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao);
+              showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao, khoaSinhVien, nganh);
             } else {
               saveDataDoAnDuKien(
                 khoaValue,
                 dotValue,
                 kiValue,
                 namValue,
-                he_dao_tao
+                he_dao_tao,
+                khoaSinhVien,
+                nganh
               );
             }
           })
@@ -764,7 +778,7 @@
       }
 
       // Hàm hiển thị modal và xử lý sự kiện "Xóa" và "Chèn"
-      function showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao) {
+      function showModal(khoaValue, dotValue, kiValue, namValue, he_dao_tao, khoaSinhVien, nganh) {
         const modal = document.getElementById("action-modal");
         const message = `Đã tồn tại dữ liệu của Khoa ${khoaValue}, Đợt ${dotValue}, Kì ${kiValue}, Năm ${namValue}, hệ ${he_dao_tao}. Thực hiện XÓA file cũ hay CHÈN thêm file mới?
         Lưu ý : XÓA sẽ loại bỏ file cũ và chèn thêm, CHÈN sẽ không loại bỏ file cũ và chèn thêm`;
@@ -781,7 +795,9 @@
             dotValue,
             kiValue,
             namValue,
-            he_dao_tao
+            he_dao_tao,
+            khoaSinhVien,
+            nganh
           );
           //appendData(khoaValue, dotValue, namValue, dataTam);
           // alert("Xóa thành công!");
@@ -798,7 +814,9 @@
             dotValue,
             kiValue,
             namValue,
-            he_dao_tao
+            he_dao_tao,
+            khoaSinhVien,
+            nganh
           );
           //location.reload();
         };
@@ -843,7 +861,9 @@
         dotValue,
         kiValue,
         namValue,
-        he_dao_tao
+        he_dao_tao,
+        khoaSinhVien,
+        nganh
       ) {
         const namHoc = namValue;
         const MaPhongBan = khoaValue;
@@ -860,7 +880,9 @@
             MaPhongBan
           )}&Dot=${encodeURIComponent(Dot)}&Ki=${encodeURIComponent(
             Ki
-          )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}`,
+          )}&he_dao_tao=${encodeURIComponent(he_dao_tao)}&khoa_sinh_vien=${encodeURIComponent(
+            khoaSinhVien
+          )}&nganh=${encodeURIComponent(nganh)}`,
           {
             method: "POST",
             headers: {
@@ -924,6 +946,8 @@
         const kiValue = document.getElementById("combobox-ki").value;
         const namValue = document.getElementById("NamHoc").value;
         const he_dao_tao = document.getElementById("he_dao_tao").value;
+        const khoaSinhVien = document.getElementById("KhoaSinhVien").value;
+        const nganh = document.getElementById("TenPhongBan").value;
 
         if (khoaValue !== "ALL") {
           checkDataExistence(
@@ -931,7 +955,9 @@
             dotValue,
             kiValue,
             namValue,
-            he_dao_tao
+            he_dao_tao,
+            khoaSinhVien,
+            nganh
           );
         }
       });
@@ -1071,6 +1097,78 @@
           },
           error: function (error) {
             console.error("Lỗi khi lấy dữ liệu phongBan:", error);
+          },
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function () {
+        $('#TenPhongBan option[value=""]').remove();
+        // Gọi AJAX để lấy danh sách tên phòng ban
+        $.ajax({
+          url: "/api/shared/faculty-name-list", // API lấy tên phòng ban
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              // Lặp qua từng mục trong mảng TenPhongBan
+              response.TenPhongBan.forEach(function (item) {
+                console.log(item);
+                $("#TenPhongBan").append(
+                  `<option value="${item.TenPhongBan}">${item.TenPhongBan}</option>`
+                );
+              });
+
+              // Nếu không có phòng ban nào tương ứng
+              if (!$("#TenPhongBan option:selected").length) {
+                $("#TenPhongBan").prepend(
+                  '<option value="">Chọn Ngành</option>'
+                );
+              }
+            } else {
+              console.error(
+                "Không lấy được dữ liệu tên phòng ban:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu tên phòng ban:", error);
+          },
+        });
+      });
+    </script>
+    <script>
+      $(document).ready(function () {
+        $('#KhoaSinhVien option[value=""]').remove();
+        // Gọi AJAX để lấy danh sách khóa sinh viên
+        $.ajax({
+          url: "/api/shared/student-course-list", // API lấy khóa sinh viên
+          method: "GET",
+          success: function (response) {
+            if (response.success) {
+              // Lặp qua từng mục trong mảng KhoaSinhVien
+              response.KhoaSinhVien.forEach(function (item) {
+                console.log(item);
+                $("#KhoaSinhVien").append(
+                  `<option value="${item.ten_khoa}">${item.ten_khoa}</option>`
+                );
+              });
+
+              // Nếu không có khóa nào tương ứng
+              if (!$("#KhoaSinhVien option:selected").length) {
+                $("#KhoaSinhVien").prepend(
+                  '<option value="">Chọn Khóa</option>'
+                );
+              }
+            } else {
+              console.error(
+                "Không lấy được dữ liệu khóa sinh viên:",
+                response.message
+              );
+            }
+          },
+          error: function (error) {
+            console.error("Lỗi khi lấy dữ liệu khóa sinh viên:", error);
           },
         });
       });
