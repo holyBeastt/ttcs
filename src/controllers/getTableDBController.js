@@ -67,8 +67,26 @@ const getTableTam = async (req, res) => {
     // Thực hiện truy vấn
     const [results] = await connection.execute(query, queryParams);
 
+    // Format ngày tháng trước khi trả về frontend (nếu có hàm formatDateForDB)
+    const formattedResults = results.map(row => {
+      const formatted = { ...row };
+      if (row.NgayBatDau) {
+        const date = new Date(row.NgayBatDau);
+        if (!isNaN(date.getTime())) {
+          formatted.NgayBatDau = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+      }
+      if (row.NgayKetThuc) {
+        const date = new Date(row.NgayKetThuc);
+        if (!isNaN(date.getTime())) {
+          formatted.NgayKetThuc = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+      }
+      return formatted;
+    });
+
     // Trả về kết quả dưới dạng JSON
-    res.json(results); // results chứa dữ liệu trả về
+    res.json(formattedResults);
   } catch (error) {
     console.error("Lỗi trong hàm getTableTam:", error);
     res

@@ -680,7 +680,10 @@
               
               // ✅ Xử lý riêng cho cột "NgayBatDau" và "NgayKetThuc"
               if (field === "NgayBatDau" || field === "NgayKetThuc") {
-                if (!value) return false;
+                if (!value) {
+                  params.data[field] = null;
+                  return true;
+                }
 
                 const parts = value.split("/");
                 if (parts.length === 3) {
@@ -689,17 +692,20 @@
                   const month = parts[1].padStart(2, "0");
                   const year = parts[2];
                   
-                  // Tạo chuỗi chuẩn ISO: yyyy-mm-dd
-                  const formattedIsoDate = `${year}-${month}-${day}`; 
+                  // Tạo chuỗi chuẩn yyyy-mm-dd (KHÔNG tạo Date object để tránh timezone issues)
+                  const formattedDate = `${year}-${month}-${day}`;
 
-                  const date = new Date(formattedIsoDate);
-
-                  // Kiểm tra ngày hợp lệ
-                  if (!isNaN(date.getTime())) {
-                    console.log("✅ Valid date to save:", formattedIsoDate);
+                  // Kiểm tra ngày hợp lệ bằng cách tạo Date object tạm
+                  const testDate = new Date(formattedDate);
+                  if (!isNaN(testDate.getTime()) && 
+                      testDate.getFullYear() == year && 
+                      (testDate.getMonth() + 1) == parseInt(month) && 
+                      testDate.getDate() == parseInt(day)) {
                     
-                    // QUAN TRỌNG: Lưu chuỗi chuẩn ISO vào data, KHÔNG lưu chuỗi dd/mm/yyyy
-                    params.data[field] = formattedIsoDate; 
+                    console.log("✅ Valid date to save:", formattedDate);
+                    
+                    // QUAN TRỌNG: Lưu chuỗi yyyy-mm-dd, KHÔNG tạo Date object để tránh ISO string với timezone
+                    params.data[field] = formattedDate;
                     
                     return true;
                   }

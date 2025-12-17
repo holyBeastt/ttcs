@@ -19,6 +19,54 @@ const ExcelJS = require("exceljs");
 
 let tableTam = process.env.DB_TABLE_TAM;
 
+// Helper function để format ngày từ ISO string hoặc dd/mm/yyyy sang YYYY-MM-DD
+const formatDateForDB = (dateValue) => {
+  if (!dateValue) return null;
+
+  // Nếu đã là định dạng YYYY-MM-DD
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    return dateValue;
+  }
+
+  try {
+    let date;
+    
+    // Nếu là ISO string (có chứa T hoặc Z)
+    if (typeof dateValue === 'string' && (dateValue.includes('T') || dateValue.includes('Z'))) {
+      date = new Date(dateValue);
+    }
+    // Nếu là định dạng dd/mm/yyyy
+    else if (typeof dateValue === 'string' && dateValue.includes('/')) {
+      const parts = dateValue.split('/');
+      if (parts.length === 3) {
+        date = new Date(parts[2], parts[1] - 1, parts[0]);
+      }
+    }
+    // Nếu là Date object
+    else if (dateValue instanceof Date) {
+      date = dateValue;
+    }
+    // Các trường hợp khác
+    else {
+      date = new Date(dateValue);
+    }
+
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+
+    // Trả về định dạng YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return null;
+  }
+};
+
 // render bảng
 const getTableTam = async (req, res) => {
   const { Khoa, Dot, Ki, Nam } = req.body;
@@ -50,11 +98,18 @@ const getTableTam = async (req, res) => {
         message: "Không tìm thấy dữ liệu",
       });
     } else {
+      // Format ngày tháng trước khi trả về frontend
+      const formattedResults = results.map(row => ({
+        ...row,
+        NgayBatDau: formatDateForDB(row.NgayBatDau),
+        NgayKetThuc: formatDateForDB(row.NgayKetThuc)
+      }));
+
       // Trả về kết quả dưới dạng JSON
       res.json({
         success: true,
-        data: results,
-      }); // results chứa dữ liệu trả về
+        data: formattedResults,
+      });
     }
   } catch (error) {
     console.error("Lỗi trong hàm getTableTam:", error);
@@ -276,8 +331,8 @@ const updateTableTam = async (req, res) => {
       row.SoTinChi || null,
       row.GhiChu || null,
       row.he_dao_tao || null,
-      row.NgayBatDau || null,
-      row.NgayKetThuc || null,
+      formatDateForDB(row.NgayBatDau),
+      formatDateForDB(row.NgayKetThuc),
     ]);
 
     // Nếu không có dữ liệu hợp lệ, trả về lỗi
@@ -375,8 +430,8 @@ const updateRow = async (req, res) => {
       data.SoTinChi || null,
       data.GhiChu || null,
       data.he_dao_tao || null,
-      data.NgayBatDau || null,
-      data.NgayKetThuc || null,
+      formatDateForDB(data.NgayBatDau),
+      formatDateForDB(data.NgayKetThuc),
       ID, // Điều kiện WHERE sử dụng ID
     ];
 
