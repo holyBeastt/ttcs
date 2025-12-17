@@ -319,20 +319,6 @@
           />
           <input
             type="text"
-            id="filterKhoa"
-            placeholder="Tìm theo khóa"
-            class="form-control m-2 search"
-            style="width: 10%"
-          />
-          <input
-            type="text"
-            id="filterNganh"
-            placeholder="Tìm theo ngành"
-            class="form-control m-2 search"
-            style="width: 15%"
-          />
-          <input
-            type="text"
             id="filterClass"
             placeholder="Tìm theo tên đề tài"
             class="form-control m-2 search"
@@ -779,12 +765,6 @@
         const maSVFilter = document
           .getElementById("filterMaSV")
           .value.toLowerCase();
-        const khoaFilter = document
-          .getElementById("filterKhoa")
-          .value.toLowerCase();
-        const nganhFilter = document
-          .getElementById("filterNganh")
-          .value.toLowerCase();
         const classFilter = document
           .getElementById("filterClass")
           .value.toLowerCase();
@@ -797,8 +777,6 @@
         tableRows.forEach((row) => {
           const nameCell = row.querySelector("td:nth-child(2)"); // Cột tên sinh viên
           const maSVCell = row.querySelector("td:nth-child(3)"); // Cột mã SV
-          const khoaCell = row.querySelector("td:nth-child(4)"); // Cột khóa
-          const nganhCell = row.querySelector("td:nth-child(5)"); // Cột ngành
           const classCell = row.querySelector("td:nth-child(7)"); // Cột tên đề tài
           const gvCell1 = row.querySelector("td:nth-child(9)"); // GVHD 1
           const gvCell2 = row.querySelector("td:nth-child(10)"); // GVHD 2
@@ -808,8 +786,6 @@
           
           const name = nameCell ? nameCell.textContent.toLowerCase() : "";
           const maSV = maSVCell ? maSVCell.textContent.toLowerCase() : "";
-          const khoa = khoaCell ? khoaCell.textContent.toLowerCase() : "";
-          const nganh = nganhCell ? nganhCell.textContent.toLowerCase() : "";
           const className = classCell ? classCell.textContent.toLowerCase() : "";
           const gv1 = gvInput1 ? gvInput1.value.toLowerCase() : "";
           const gv2 = gvInput2 ? gvInput2.value.toLowerCase() : "";
@@ -817,13 +793,11 @@
           // Kiểm tra điều kiện lọc
           const matchesName = name.includes(nameFilter);
           const matchesMaSV = maSV.includes(maSVFilter);
-          const matchesKhoa = khoa.includes(khoaFilter);
-          const matchesNganh = nganh.includes(nganhFilter);
           const matchesClass = className.includes(classFilter);
           const matchesGV = gv1.includes(gvFilter) || gv2.includes(gvFilter);
 
           // Hiện hoặc ẩn hàng dựa trên điều kiện lọc
-          if (matchesName && matchesMaSV && matchesKhoa && matchesNganh && matchesClass && matchesGV) {
+          if (matchesName && matchesMaSV && matchesClass && matchesGV) {
             row.style.display = ""; // Hiện hàng nếu tất cả các điều kiện đều khớp
           } else {
             row.style.display = "none"; // Ẩn hàng nếu không khớp
@@ -837,12 +811,6 @@
         .addEventListener("input", filterTable);
       document
         .getElementById("filterMaSV")
-        .addEventListener("input", filterTable);
-      document
-        .getElementById("filterKhoa")
-        .addEventListener("input", filterTable);
-      document
-        .getElementById("filterNganh")
         .addEventListener("input", filterTable);
       document
         .getElementById("filterClass")

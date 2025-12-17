@@ -361,22 +361,26 @@
             const isDoAn = currentLoaiHopDong === 'Đồ án';
             const icon = isDoAn ? 'fa-file-alt' : 'fa-graduation-cap';
             
+            console.log('initializeContractOptions - teacherData:', teacherData);
+            console.log('initializeContractOptions - trainingPrograms:', teacherData.trainingPrograms);
+            
             // Xử lý chung cho cả Đồ án và Mời giảng
             if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
                 teacherData.trainingPrograms.forEach((program, index) => {
                     // Sử dụng id (int) và tenHe từ program
-                    const heId = program.id;
-                    const heTen = program.tenHe || getTenHeById(program.id) || 'Unknown';
+                    // Fallback: nếu không có tenHe, dùng he_dao_tao hoặc tìm từ heDaoTaoList
+                    const heId = program.id || 0;
+                    const heTen = program.tenHe || program.he_dao_tao || getTenHeById(program.id) || 'Chưa xác định';
+                    
+                    console.log('Program:', index, 'id:', heId, 'tenHe:', heTen, 'raw program:', program);
                     
                     const optionHtml = `
-                        <div class="contract-option" data-contract-id="${heId}" onclick="selectContract(${heId}, '${heTen.replace(/'/g, "\\'")}')">                            <div class="d-flex align-items-start">
-                            <div class="flex-shrink-0">
-                                <i class="fas ${icon} fa-lg text-primary"></i>
-                            </div>
+                        <div class="contract-option" data-contract-id="${heId}" data-contract-name="${heTen}" onclick="selectContract(${heId}, '${heTen.replace(/'/g, "\\'")}')">
                             <div class="d-flex align-items-start">
                                 <div class="flex-shrink-0">
-                                    <i class="fas fa-graduation-cap fa-lg text-primary"></i>
-                                </div>                                <div class="flex-grow-1 ms-3">
+                                    <i class="fas ${icon} fa-lg text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1">${heTen}</h6>
                                     <div class="contract-meta">
                                         <div><i class="fas fa-clock me-1"></i>${program.SoTiet ? formatSoTiet(program.SoTiet) : '0'} tiết</div>

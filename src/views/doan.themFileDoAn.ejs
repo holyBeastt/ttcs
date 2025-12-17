@@ -159,16 +159,6 @@
             <option value="">Khoa</option>
           </select>
 
-          <!-- Combo box Ngành -->
-          <select class="selectop mx-1" id="TenPhongBan">
-            <option value="">Ngành</option>
-          </select>
-
-          <!-- Combo box Khóa -->
-          <select class="selectop mx-1" id="KhoaSinhVien">
-            <option value="">Khóa</option>
-          </select>
-
           <select class="mx-1 selectop" id="he_dao_tao">
           </select>
 
@@ -190,7 +180,25 @@
             id="SoQD"
             placeholder="Số quyết định"
             class="form-control m-2 search"
-            style="width: 500px; height: 43px"
+            style="width: 300px; height: 43px"
+          />
+
+          <!-- Input Ngành -->
+          <input
+            type="text"
+            class="form-control m-2 search"
+            id="TenPhongBan"
+            placeholder="Ngành"
+            style="width: 200px; height: 43px"
+          />
+
+          <!-- Input Khóa -->
+          <input
+            type="text"
+            class="form-control m-2 search"
+            id="KhoaSinhVien"
+            placeholder="Khóa"
+            style="width: 150px; height: 43px"
           />
         </div>
 
@@ -949,17 +957,37 @@
         const khoaSinhVien = document.getElementById("KhoaSinhVien").value;
         const nganh = document.getElementById("TenPhongBan").value;
 
-        if (khoaValue !== "ALL") {
-          checkDataExistence(
-            khoaValue,
-            dotValue,
-            kiValue,
-            namValue,
-            he_dao_tao,
-            khoaSinhVien,
-            nganh
-          );
+        // Kiểm tra các trường bắt buộc
+        if (!khoaValue || khoaValue === "") {
+          alert("Vui lòng chọn Khoa!");
+          return;
         }
+        if (!dotValue || dotValue === "") {
+          alert("Vui lòng chọn Đợt!");
+          return;
+        }
+        if (!kiValue || kiValue === "") {
+          alert("Vui lòng chọn Kỳ!");
+          return;
+        }
+        if (!namValue || namValue === "") {
+          alert("Vui lòng chọn Năm học!");
+          return;
+        }
+        if (!he_dao_tao || he_dao_tao === "") {
+          alert("Vui lòng chọn Hệ đào tạo!");
+          return;
+        }
+
+        checkDataExistence(
+          khoaValue,
+          dotValue,
+          kiValue,
+          namValue,
+          he_dao_tao,
+          khoaSinhVien,
+          nganh
+        );
       });
     </script>
 
@@ -1097,78 +1125,6 @@
           },
           error: function (error) {
             console.error("Lỗi khi lấy dữ liệu phongBan:", error);
-          },
-        });
-      });
-    </script>
-    <script>
-      $(document).ready(function () {
-        $('#TenPhongBan option[value=""]').remove();
-        // Gọi AJAX để lấy danh sách tên phòng ban
-        $.ajax({
-          url: "/api/shared/faculty-name-list", // API lấy tên phòng ban
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              // Lặp qua từng mục trong mảng TenPhongBan
-              response.TenPhongBan.forEach(function (item) {
-                console.log(item);
-                $("#TenPhongBan").append(
-                  `<option value="${item.TenPhongBan}">${item.TenPhongBan}</option>`
-                );
-              });
-
-              // Nếu không có phòng ban nào tương ứng
-              if (!$("#TenPhongBan option:selected").length) {
-                $("#TenPhongBan").prepend(
-                  '<option value="">Chọn Ngành</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu tên phòng ban:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu tên phòng ban:", error);
-          },
-        });
-      });
-    </script>
-    <script>
-      $(document).ready(function () {
-        $('#KhoaSinhVien option[value=""]').remove();
-        // Gọi AJAX để lấy danh sách khóa sinh viên
-        $.ajax({
-          url: "/api/shared/student-course-list", // API lấy khóa sinh viên
-          method: "GET",
-          success: function (response) {
-            if (response.success) {
-              // Lặp qua từng mục trong mảng KhoaSinhVien
-              response.KhoaSinhVien.forEach(function (item) {
-                console.log(item);
-                $("#KhoaSinhVien").append(
-                  `<option value="${item.ten_khoa}">${item.ten_khoa}</option>`
-                );
-              });
-
-              // Nếu không có khóa nào tương ứng
-              if (!$("#KhoaSinhVien option:selected").length) {
-                $("#KhoaSinhVien").prepend(
-                  '<option value="">Chọn Khóa</option>'
-                );
-              }
-            } else {
-              console.error(
-                "Không lấy được dữ liệu khóa sinh viên:",
-                response.message
-              );
-            }
-          },
-          error: function (error) {
-            console.error("Lỗi khi lấy dữ liệu khóa sinh viên:", error);
           },
         });
       });

@@ -427,7 +427,7 @@ const previewContract = async (req, res) => {
 
       const [teachers] = await connection.execute(teacherQuery, [
         teacherId,
-        heHopDongId,  // Use ID instead of name
+        heHopDongName,  // Use name (hopdonggvmoi.he_dao_tao stores the name, not ID)
         dot,
         ki,
         namHoc,

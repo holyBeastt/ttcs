@@ -223,6 +223,7 @@ const getDuyetHopDongData = async (req, res) => {
                 };
             }
             const prog = {
+                id: cur.he_dao_tao,  // ID để preview page sử dụng
                 he_dao_tao: cur.he_dao_tao,
                 SoTiet: +cur.SoTiet,
                 TienMoiGiang: +cur.TienMoiGiang,
@@ -491,7 +492,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 message: "Loại hợp đồng không hợp lệ. Chỉ hỗ trợ 'Đồ án'",
                 receivedLoaiHopDong: loaiHopDong
             });
-        }        // Query for "Đồ án" - set default training program as "Đại học" since thesis contracts don't have separate training programs
+        }        // Query for "Đồ án" - chỉ lấy he_dao_tao (ID), frontend sẽ mapping lấy tên
         let query = `
             SELECT
                 MIN(da.NgayBatDau) AS NgayBatDau,
@@ -499,25 +500,14 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 da.he_dao_tao,
                 da.NamHoc,
                 da.Dot,
-
-                -- Tính tổng số tiết cho tất cả khoa
                 SUM(da.SoTiet) AS SoTiet,
-
-                -- Mức tiền cố định cho đồ án
                 100000 AS TienMoiGiang,
-
-                -- Tính thành tiền, thuế, thực nhận
                 SUM(da.SoTiet) * 100000 AS ThanhTien,
                 SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
                 SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
-
-                -- Thông tin trạng thái duyệt cho đồ án
-                1 AS DaoTaoDuyet,  -- Đồ án luôn được coi là đã duyệt đào tạo
-                1 AS TaiChinhDuyet, -- Placeholder
-
-                -- Số lượng giảng viên tổng cộng
+                1 AS DaoTaoDuyet,
+                1 AS TaiChinhDuyet,
                 COUNT(DISTINCT da.GiangVien) AS SoGiangVien
-
             FROM (
                 SELECT
                     NgayBatDau,
@@ -567,12 +557,22 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             query += " AND da.MaPhongBan = ?";
             params.push(maPhongBan);
         } query += `
-            GROUP BY
-                da.NamHoc, da.Dot, da.he_dao_tao
+            GROUP BY da.NamHoc, da.Dot, da.he_dao_tao
             ORDER BY da.he_dao_tao
         `;
 
-        const [results] = await connection.query(query, params);        // Get detailed teacher information for the "Đại học" training program
+        const [results] = await connection.query(query, params);
+        
+        // Debug
+        console.log('[DEBUG getDuyetHopDongTheoHeDaoTao] Results count:', results.length);
+        if (results.length > 0) {
+            console.log('[DEBUG getDuyetHopDongTheoHeDaoTao] First result:', {
+                he_dao_tao: results[0].he_dao_tao,
+                allKeys: Object.keys(results[0])
+            });
+        }
+        
+        // Get detailed teacher information for the "Đại học" training program
         const enhancedResults = [];
 
         for (const heDaoTao of results) {
