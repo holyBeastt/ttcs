@@ -334,6 +334,23 @@ const exportMultipleContracts = async (req, res) => {
     }
 
     connection = await createPoolConnection();
+
+    // Convert loaiHopDong from name to ID if it's a string
+    let loaiHopDongId = loaiHopDong;
+    if (loaiHopDong && isNaN(loaiHopDong)) {
+      // It's a name, convert to ID
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id FROM he_dao_tao WHERE he_dao_tao = ?',
+        [loaiHopDong]
+      );
+      if (heDaoTaoRows.length > 0) {
+        loaiHopDongId = heDaoTaoRows[0].id;
+      } else {
+        return res.status(404).send(
+          "<script>alert('Không tìm thấy hệ đào tạo'); window.location.href='/exportHD';</script>"
+        );
+      }
+    }
     // Truy vấn bảng tienluong để lấy mức tiền
     const tienLuongQuery = `SELECT HocVi, he_dao_tao, SoTien FROM tienluong`;
     const [tienLuongList] = await connection.execute(tienLuongQuery);
@@ -383,7 +400,7 @@ const exportMultipleContracts = async (req, res) => {
     hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
     hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
+    let params = [dot, ki, namHoc, loaiHopDongId];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
@@ -431,7 +448,7 @@ const exportMultipleContracts = async (req, res) => {
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
       hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDongId];
     }
     if (teacherName) {
       query = `SELECT
@@ -479,7 +496,7 @@ const exportMultipleContracts = async (req, res) => {
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
       hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
 
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDongId];
     }
 
     const [teachers] = await connection.execute(query, params);
@@ -516,7 +533,7 @@ const exportMultipleContracts = async (req, res) => {
 
       const tienLuong = tienLuongList.find(
         (item) =>
-          item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
+          item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
       );
 
       if (!tienLuong) {
@@ -627,27 +644,57 @@ const exportMultipleContracts = async (req, res) => {
         Nơi_công_tác: teacher.NoiCongTac,
         Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã"
       };
-      // Chọn template dựa trên loại hợp đồng
+      
+      // Chọn template dựa trên ID hệ đào tạo
       let templateFileName;
-      switch (loaiHopDong) {
-        case "Đại học (Đóng học phí)":
-          templateFileName = "HopDongHP.docx";
-          break;
-        case "Đại học (Mật mã)":
-          templateFileName = "HopDongMM.docx";
-          break;
-        case "Đồ án":
-          templateFileName = "HopDongDA.docx";
-          break;
-        case "Nghiên cứu sinh (Đóng học phí)":
-          templateFileName = "HopDongNCS.docx";
-          break;
-        case "Cao học (Đóng học phí)":
-          templateFileName = "HopDongCH.docx";
-          break;
-        default:
-          return res.status(400).send("Loại hợp đồng không hợp lệ.");
+      
+      // Map ID to template file
+      const templateMap = {
+        1: "HopDongHP.docx",      // Đại học (Đóng học phí)
+        2: "HopDongMM.docx",      // Đại học (Mật mã)
+        3: "HopDongCH.docx",      // Cao học (Đóng học phí)
+        4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
+        5: "HopDongDA.docx",      // Đồ án
+      };
+      
+      templateFileName = templateMap[loaiHopDongId];
+      
+      // Fallback to name-based selection if ID mapping not found
+      if (!templateFileName) {
+        // Try to get he_dao_tao name from database if we only have ID
+        let heHopDongName;
+        if (!isNaN(loaiHopDong)) {
+          const [heDaoTaoRows] = await connection.query(
+            'SELECT he_dao_tao FROM he_dao_tao WHERE id = ?',
+            [loaiHopDongId]
+          );
+          heHopDongName = heDaoTaoRows.length > 0 ? heDaoTaoRows[0].he_dao_tao : loaiHopDong;
+        } else {
+          heHopDongName = loaiHopDong;
+        }
+        
+        // Fallback to name-based selection
+        switch (heHopDongName) {
+          case "Đại học (Đóng học phí)":
+            templateFileName = "HopDongHP.docx";
+            break;
+          case "Đại học (Mật mã)":
+            templateFileName = "HopDongMM.docx";
+            break;
+          case "Đồ án":
+            templateFileName = "HopDongDA.docx";
+            break;
+          case "Nghiên cứu sinh (Đóng học phí)":
+            templateFileName = "HopDongNCS.docx";
+            break;
+          case "Cao học (Đóng học phí)":
+            templateFileName = "HopDongCH.docx";
+            break;
+          default:
+            return res.status(400).send("Loại hợp đồng không hợp lệ.");
+        }
       }
+      
       const templatePath = path.resolve(
         __dirname,
         "../templates",
@@ -881,6 +928,23 @@ const exportAdditionalInfoGvm = async (req, res) => {
 
     connection = await createPoolConnection();
 
+    // Convert loaiHopDong from name to ID if it's a string
+    let loaiHopDongId = loaiHopDong;
+    if (loaiHopDong && isNaN(loaiHopDong)) {
+      // It's a name, convert to ID
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id FROM he_dao_tao WHERE he_dao_tao = ?',
+        [loaiHopDong]
+      );
+      if (heDaoTaoRows.length > 0) {
+        loaiHopDongId = heDaoTaoRows[0].id;
+      } else {
+        return res.status(404).send(
+          "<script>alert('Không tìm thấy hệ đào tạo'); window.location.href='/exportHD';</script>"
+        );
+      }
+    }
+
     let query = `SELECT
     hd.id_Gvm,
     hd.DienThoai,
@@ -926,7 +990,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
     hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
     hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
+    let params = [dot, ki, namHoc, loaiHopDongId];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
@@ -974,7 +1038,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.NgayCap, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
       hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDongId];
     }
     if (teacherName) {
       query = `SELECT
@@ -1022,7 +1086,7 @@ const exportAdditionalInfoGvm = async (req, res) => {
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac,
       hd.SoHopDong, hd.SoThanhLyHopDong, hd.CoSoDaoTao`;
 
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDongId];
     }
 
     const [teachers] = await connection.execute(query, params);
@@ -1263,7 +1327,7 @@ const generateContractForTeacher = async (
   teacher.HocVi = teacher.HocVi || "Thạc sĩ";
 
   const tienLuong = tienLuongList.find(
-    (item) => item.HocVi === teacher.HocVi && item.he_dao_tao === loaiHopDong
+    (item) => item.HocVi === teacher.HocVi && item.he_dao_tao == loaiHopDongId
   );
 
   if (!tienLuong) {
@@ -1315,25 +1379,41 @@ const generateContractForTeacher = async (
     Cơ_sở_đào_tạo: teacher.CoSoDaoTao || "Học viện Kỹ thuật mật mã",
   };
 
+  // Template mapping by ID
+  const templateMap = {
+    1: "HopDongHP.docx", // Đại học (Đóng học phí)
+    2: "HopDongMM.docx", // Đại học (Mật mã)
+    3: "HopDongCH.docx", // Cao học (Đóng học phí)
+    4: "HopDongNCS.docx", // Nghiên cứu sinh (Đóng học phí)
+    5: "HopDongDA.docx", // Đồ án
+  };
+
   let templateFileName;
-  switch (loaiHopDong) {
-    case "Đại học (Đóng học phí)":
-      templateFileName = "HopDongHP.docx";
-      break;
-    case "Đại học (Mật mã)":
-      templateFileName = "HopDongMM.docx";
-      break;
-    case "Đồ án":
-      templateFileName = "HopDongDA.docx";
-      break;
-    case "Nghiên cứu sinh (Đóng học phí)":
-      templateFileName = "HopDongNCS.docx";
-      break;
-    case "Cao học (Đóng học phí)":
-      templateFileName = "HopDongCH.docx";
-      break;
-    default:
-      throw new Error("Loại hợp đồng không hợp lệ.");
+  if (templateMap[loaiHopDongId]) {
+    templateFileName = templateMap[loaiHopDongId];
+  } else if (typeof loaiHopDong === "string") {
+    // Fallback to name-based matching for backward compatibility
+    switch (loaiHopDong) {
+      case "Đại học (Đóng học phí)":
+        templateFileName = "HopDongHP.docx";
+        break;
+      case "Đại học (Mật mã)":
+        templateFileName = "HopDongMM.docx";
+        break;
+      case "Đồ án":
+        templateFileName = "HopDongDA.docx";
+        break;
+      case "Nghiên cứu sinh (Đóng học phí)":
+        templateFileName = "HopDongNCS.docx";
+        break;
+      case "Cao học (Đóng học phí)":
+        templateFileName = "HopDongCH.docx";
+        break;
+      default:
+        throw new Error("Loại hợp đồng không hợp lệ.");
+    }
+  } else {
+    throw new Error("Loại hợp đồng không hợp lệ.");
   }
 
   const templatePath = path.resolve(
@@ -1448,7 +1528,7 @@ const getAppendixData = async (
   SELECT * FROM table_ALL WHERE Dot = ? AND KiHoc = ? AND NamHoc = ?  AND he_dao_tao = ?
       `;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
+    let params = [dot, ki, namHoc, loaiHopDongId];
 
     if (khoa && khoa !== "ALL") {
       query += ` AND Khoa = ?`;
@@ -2311,7 +2391,7 @@ const exportImageDownloadData = async (req, res) => {
     hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
     hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
-    let params = [dot, ki, namHoc, loaiHopDong];
+    let params = [dot, ki, namHoc, loaiHopDongId];
 
     // Xử lý các trường hợp khác nhau
     if (khoa && khoa !== "ALL") {
@@ -2355,7 +2435,7 @@ const exportImageDownloadData = async (req, res) => {
       hd.HoTen, hd.id_Gvm, hd.DienThoai, hd.Email, hd.MaSoThue, hd.DanhXung, hd.NgaySinh, hd.HocVi, hd.ChucVu,
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
-      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${khoa}%`, loaiHopDongId];
     }
     if (teacherName) {
       query = `SELECT
@@ -2399,7 +2479,7 @@ const exportImageDownloadData = async (req, res) => {
       hd.HSL, hd.CCCD, hd.NoiCapCCCD, hd.DiaChi, hd.STK, hd.NganHang, hd.SoTien, hd.TruThue, hd.NgayCap, hd.ThucNhan, 
       hd.NgayNghiemThu, hd.Dot, hd.KiHoc, hd.NamHoc, hd.MaPhongBan, hd.MaBoMon, hd.NoiCongTac`;
 
-      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDong];
+      params = [dot, ki, namHoc, `%${teacherName}%`, loaiHopDongId];
     }
 
     const [teachers] = await connection.execute(query, params);

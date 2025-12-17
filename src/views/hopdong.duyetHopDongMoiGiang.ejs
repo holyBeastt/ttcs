@@ -998,6 +998,18 @@
 
       // Store enhanced data globally for modal access
       window.heDaoTaoDetailData = enhancedData || [];
+      
+      // Debug log to verify data structure
+      console.log('Stored heDaoTaoDetailData:', window.heDaoTaoDetailData.length > 0 ? {
+        count: window.heDaoTaoDetailData.length,
+        allIds: window.heDaoTaoDetailData.map(item => ({
+          id: item.id,
+          idType: typeof item.id,
+          idValue: JSON.stringify(item.id),
+          tenHe: item.tenHe
+        })),
+        firstItemKeys: Object.keys(window.heDaoTaoDetailData[0])
+      } : 'No data');
 
       // Create approval status display function
       const getApprovalStatus = (taiChinhDuyet) => {
@@ -1069,7 +1081,7 @@
         const groupContainer = $(`
             <div class="training-program-group">              <div class="training-program-header">
                 <i class="fas fa-graduation-cap me-2"></i>
-                ${heDaoTao.he_dao_tao}
+                ${heDaoTao.tenHe}
                 <span class="float-end">${getApprovalStatus(heDaoTao.TaiChinhDuyet)}</span>
               </div>
               
@@ -1160,14 +1172,14 @@
                 <td>${formatCurrency(gv.ThanhTien)}</td>                <td>${formatCurrency(gv.Thue || (parseFloat(gv.ThanhTien) || 0) * 0.1)}</td>
                 <td>${formatCurrency(gv.ThucNhan)}</td><td class="contract-tcduyet-cell-hedaotao">
                   ${getApprovalStatus(gv.TaiChinhDuyet)}
-                </td><td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${encodeURIComponent(heDaoTao.he_dao_tao)}">
+                </td><td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${heDaoTao.id}">
                   Đang tải...
                 </td>
                 <td class="action-col">
-                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', '${encodeURIComponent(heDaoTao.he_dao_tao)}')">
+                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.tenHe}')">
                    Xem chi tiết
                   </button>
-                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.HoTen)}', '${encodeURIComponent(heDaoTao.he_dao_tao)}')">
+                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.tenHe}')">
                     Xem trước HĐ
                   </button>
                 </td>
@@ -1254,12 +1266,11 @@
 
 
     // Function to view details of a specific training program
-    function viewHeDaoTaoDetail(heDaoTaoName) {
-      const decodedName = decodeURIComponent(heDaoTaoName);
+    function viewHeDaoTaoDetail(heDaoTaoId, heDaoTaoName) {
       const enhancedData = window.heDaoTaoDetailData || [];
 
-      // Find the training program data
-      const heDaoTaoData = enhancedData.find(item => item.he_dao_tao === decodedName);
+      // Find the training program data by ID (compare as numbers)
+      const heDaoTaoData = enhancedData.find(item => parseInt(item.id) === parseInt(heDaoTaoId));
 
       if (!heDaoTaoData || !heDaoTaoData.chiTietGiangVien || heDaoTaoData.chiTietGiangVien.length === 0) {
         showError('Không tìm thấy thông tin chi tiết giảng viên cho hệ đào tạo này');
@@ -1273,7 +1284,7 @@
               <div class="modal-content">
                 <div class="modal-header">
                   <h5 class="modal-title">
-                    Chi tiết Hệ đào tạo: ${decodedName}
+                    Chi tiết Hệ đào tạo: ${heDaoTaoName || heDaoTaoData.tenHe}
                   </h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -1354,14 +1365,32 @@
         $(this).remove();
       });
     } // Function to view teacher detail within a training program context
-    function viewTeacherDetailInHeDaoTao(teacherName, heDaoTaoName) {
+    function viewTeacherDetailInHeDaoTao(teacherName, heDaoTaoId, heDaoTaoName) {
       const decodedTeacherName = decodeURIComponent(teacherName);
-      const decodedHeDaoTaoName = decodeURIComponent(heDaoTaoName);
 
-      // Find the training program data
-      const heDaoTaoData = window.heDaoTaoDetailData.find(item => item.he_dao_tao === decodedHeDaoTaoName);
+      // Debug logging
+      console.log('viewTeacherDetailInHeDaoTao called with:', {
+        teacherName: decodedTeacherName,
+        heDaoTaoId: heDaoTaoId,
+        heDaoTaoName: heDaoTaoName,
+        heDaoTaoIdType: typeof heDaoTaoId,
+        availableData: window.heDaoTaoDetailData.map(item => ({
+          id: item.id,
+          tenHe: item.tenHe,
+          idType: typeof item.id
+        }))
+      });
+
+      // Find the training program data by ID (compare as numbers)
+      const heDaoTaoData = window.heDaoTaoDetailData.find(item => parseInt(item.id) === parseInt(heDaoTaoId));
+
+      console.log('Found heDaoTaoData:', heDaoTaoData ? 'Yes' : 'No', heDaoTaoData);
 
       if (!heDaoTaoData || !heDaoTaoData.chiTietGiangVien) {
+        console.error('Cannot find training program data:', {
+          searchId: heDaoTaoId,
+          availableIds: window.heDaoTaoDetailData.map(item => item.id)
+        });
         showError('Không tìm thấy thông tin hệ đào tạo');
         return;
       }
@@ -1400,7 +1429,7 @@
         MaPhongBan: teacherData.TenPhongBan,
         SoHopDong: teacherData.SoHopDong,
         TongTiet: teacherData.SoTiet,
-        loaiHopDong: decodedHeDaoTaoName,
+        loaiHopDong: heDaoTaoName,
         GioiTinh: teacherData.GioiTinh || 'Nam',
       };
 
@@ -1954,7 +1983,7 @@
         enhancedData.trainingPrograms.forEach(program => {
           tableHtml += `
               <tr>
-                <td><strong>${program.he_dao_tao}</strong></td>
+                <td><strong>${program.tenHe}</strong></td>
                 <td>${formatSoTiet(program.SoTiet)}</td>
                 <td>${formatCurrency(program.TienMoiGiang)}</td>
                 <td>${formatCurrency(program.ThanhTien)}</td>
@@ -2443,14 +2472,32 @@
         });
     }
 
-    function previewContractInHeDaoTao(teacherName, heDaoTaoName) {
+    function previewContractInHeDaoTao(teacherName, heDaoTaoId, heDaoTaoName) {
       const decodedTeacherName = decodeURIComponent(teacherName);
-      const decodedHeDaoTao = decodeURIComponent(heDaoTaoName);
 
-      // Find training program data
-      const trainingProgramData = window.heDaoTaoDetailData.find(tp => tp.he_dao_tao === decodedHeDaoTao);
+      // Debug logging
+      console.log('previewContractInHeDaoTao called with:', {
+        teacherName: decodedTeacherName,
+        heDaoTaoId: heDaoTaoId,
+        heDaoTaoName: heDaoTaoName,
+        heDaoTaoIdType: typeof heDaoTaoId,
+        availableData: window.heDaoTaoDetailData.map(item => ({
+          id: item.id,
+          tenHe: item.tenHe,
+          idType: typeof item.id
+        }))
+      });
+
+      // Find training program data by ID (compare as numbers)
+      const trainingProgramData = window.heDaoTaoDetailData.find(tp => parseInt(tp.id) === parseInt(heDaoTaoId));
+
+      console.log('Found trainingProgramData:', trainingProgramData ? 'Yes' : 'No', trainingProgramData);
 
       if (!trainingProgramData) {
+        console.error('Cannot find training program data:', {
+          searchId: heDaoTaoId,
+          availableIds: window.heDaoTaoDetailData.map(item => item.id)
+        });
         showError('Không tìm thấy thông tin hệ đào tạo');
         return;
       }
@@ -2475,7 +2522,7 @@
       const enhancedTeacherData = {
         ...teacherData,
         GiangVien: teacherData.HoTen,
-        loaiHopDong: decodedHeDaoTao,
+        loaiHopDong: heDaoTaoName,
         TongTiet: parseFloat(teacherData.SoTiet) || 0,
         ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
         Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
@@ -2483,7 +2530,8 @@
         HSL: teacherData.HSL || 1.0, // Add HSL with fallback
         hasEnhancedData: true,
         trainingPrograms: [{
-          he_dao_tao: decodedHeDaoTao,
+          id: heDaoTaoId,
+          tenHe: heDaoTaoName,
           SoTiet: parseFloat(teacherData.SoTiet) || 0,
           ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
           Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,

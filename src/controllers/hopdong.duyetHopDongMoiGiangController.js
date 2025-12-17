@@ -36,7 +36,7 @@ const getDuyetHopDongData = async (req, res) => {
          * 
          *  ------------------------------------------------------------------ */
         const query = `
-        /* HỆ ĐẠI HOK  */
+        /* HỆ ĐẠI HỌC  */
         WITH DaiHocData AS (
             SELECT
                 MIN(qc.NgayBatDau)                              AS NgayBatDau,
@@ -58,7 +58,8 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.MaPhongBan,          -- Khoa 
                 gv.isNghiHuu,
                 gv.MaPhongBan           AS MaKhoaMonHoc,        
-                qc.he_dao_tao,
+                qc.he_dao_tao           AS id_he_dao_tao,
+                hdt.he_dao_tao          AS ten_he_dao_tao,
                 qc.NamHoc,
                 qc.KiHoc,
                 qc.Dot,
@@ -85,6 +86,8 @@ const getDuyetHopDongData = async (req, res) => {
                 /* MATCH GIẢNG VIÊN HỆ ĐH: lấy phần trước ' - ' */
                 JOIN gvmoi gv
                     ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+                JOIN he_dao_tao hdt
+                    ON qc.he_dao_tao = hdt.id
                 LEFT JOIN tienluong tl
                     ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
                 LEFT JOIN phongban pb
@@ -94,11 +97,11 @@ const getDuyetHopDongData = async (req, res) => {
                 AND qc.NamHoc = ?
                 AND qc.Dot    = ?
                 AND qc.KiHoc  = ?
-                AND qc.he_dao_tao LIKE '%Đại học%'
+                AND hdt.cap_do = 1
                 ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
             /* Gộp THEO GIẢNG VIÊN + HỆ ĐÀO TẠO (KHÔNG gộp theo khoa học phần) */
             GROUP BY
-                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao, hdt.he_dao_tao,
                 gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
                 gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
                 gv.STK, gv.NganHang, gv.MaPhongBan,
@@ -131,7 +134,8 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.MaPhongBan,
                 gv.isNghiHuu,
                 gv.MaPhongBan           AS MaKhoaMonHoc,
-                qc.he_dao_tao,
+                qc.he_dao_tao           AS id_he_dao_tao,
+                hdt.he_dao_tao          AS ten_he_dao_tao,
                 qc.NamHoc,
                 qc.KiHoc,
                 qc.Dot,
@@ -176,6 +180,8 @@ const getDuyetHopDongData = async (req, res) => {
                 
                 JOIN gvmoi gv
                     ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
+                JOIN he_dao_tao hdt
+                    ON qc.he_dao_tao = hdt.id
                 LEFT JOIN tienluong tl
                     ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
                 LEFT JOIN phongban pb
@@ -185,10 +191,10 @@ const getDuyetHopDongData = async (req, res) => {
                 AND qc.NamHoc = ?
                 AND qc.Dot    = ?
                 AND qc.KiHoc  = ?
-                AND qc.he_dao_tao NOT LIKE '%Đại học%'
+                AND hdt.cap_do != 1
                 ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
             GROUP BY
-                gv.id_Gvm, gv.HoTen, qc.he_dao_tao,
+                gv.id_Gvm, gv.HoTen, qc.he_dao_tao, hdt.he_dao_tao,
                 gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
                 gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
                 gv.STK, gv.NganHang, gv.MaPhongBan,
@@ -203,7 +209,7 @@ const getDuyetHopDongData = async (req, res) => {
         SELECT * FROM DaiHocData
         UNION ALL
         SELECT * FROM SauDaiHocData
-        ORDER BY SoTiet DESC, HoTen, he_dao_tao
+        ORDER BY SoTiet DESC, HoTen, id_he_dao_tao
         `;
 
         /* tham số truyền vào where */
@@ -260,10 +266,11 @@ const getDuyetHopDongData = async (req, res) => {
 
             /* Gộp theo he_dao_tao (nếu trùng thì cộng dồn) */
             const tpArr = acc[teacher].trainingPrograms;
-            const existing = tpArr.find(tp => tp.he_dao_tao === cur.he_dao_tao);
+            const existing = tpArr.find(tp => tp.id === cur.id_he_dao_tao);
 
             const currProgram = {
-                he_dao_tao: cur.he_dao_tao,
+                id: cur.id_he_dao_tao,
+                tenHe: cur.ten_he_dao_tao,
                 SoTiet: parseFloat(cur.SoTiet) || 0,
                 TienMoiGiang: parseFloat(cur.TienMoiGiang) || 0,
                 ThanhTien: parseFloat(cur.ThanhTien) || 0,
@@ -628,7 +635,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             SELECT
                 MIN(qc.NgayBatDau) AS NgayBatDau,
                 MAX(qc.NgayKetThuc) AS NgayKetThuc,
-                qc.he_dao_tao,
+                qc.he_dao_tao AS id,
+                hdt.he_dao_tao AS tenHe,
                 qc.NamHoc,
                 qc.KiHoc,
                 qc.Dot,
@@ -689,6 +697,10 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             FROM 
                 quychuan qc
 
+            -- JOIN với bảng he_dao_tao để lấy tên hệ đào tạo
+            JOIN he_dao_tao hdt
+                ON qc.he_dao_tao = hdt.id
+
             -- JOIN với bảng gvmoi (INNER JOIN để chỉ lấy giảng viên tồn tại)
             JOIN gvmoi gv 
                 ON 
@@ -717,8 +729,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
 
         query += `
             GROUP BY
-                qc.he_dao_tao, qc.NamHoc, qc.KiHoc, qc.Dot
-            ORDER BY SoTiet DESC, qc.he_dao_tao
+                qc.he_dao_tao, hdt.he_dao_tao, qc.NamHoc, qc.KiHoc, qc.Dot
+            ORDER BY SoTiet DESC, hdt.he_dao_tao
         `;
 
         const [results] = await connection.query(query, params);
@@ -793,6 +805,8 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
 
     FROM 
         quychuan qc
+    JOIN he_dao_tao hdt
+        ON qc.he_dao_tao = hdt.id
     JOIN gvmoi gv 
         ON 
             IF(
@@ -811,7 +825,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         AND qc.KiHoc = ?
         AND qc.he_dao_tao = ?
 `;
-            const teacherParams = [namHoc, dot, ki, heDaoTao.he_dao_tao];
+            const teacherParams = [namHoc, dot, ki, heDaoTao.id];
 
             if (maPhongBan && maPhongBan !== "ALL") {
                 teacherQuery += " AND qc.Khoa = ?";
@@ -879,6 +893,17 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 }
             });
         }
+
+        // Debug log to verify structure
+        console.log('Enhanced Results Sample:', enhancedResults.length > 0 ? {
+            firstItem: {
+                id: enhancedResults[0].id,
+                tenHe: enhancedResults[0].tenHe,
+                hasId: !!enhancedResults[0].id,
+                hasTenHe: !!enhancedResults[0].tenHe,
+                keys: Object.keys(enhancedResults[0])
+            }
+        } : 'No data');
 
         res.json({
             success: true,

@@ -163,14 +163,16 @@ const showPreviewPageAPI = async (req, res) => {
       parsedTeacherData.trainingPrograms.length > 0
     ) {
       contractTypes = parsedTeacherData.trainingPrograms.map((program) => ({
-        he_dao_tao: program.he_dao_tao,
+        id: program.id,
+        tenHe: program.tenHe,
         TongTiet: parseFloat(program.SoTiet) || 0,
       }));
     } else {
-      // Single contract type
+      // Single contract type - fallback (should not happen with new structure)
       contractTypes = [
         {
-          he_dao_tao: parsedTeacherData.loaiHopDong || "Mời giảng",
+          id: parsedTeacherData.id_he_dao_tao || null,
+          tenHe: parsedTeacherData.ten_he_dao_tao || parsedTeacherData.loaiHopDong || "Mời giảng",
           TongTiet: parseFloat(parsedTeacherData.TongTiet) || 0,
         },
       ];
@@ -292,6 +294,40 @@ const previewContract = async (req, res) => {
       });
     }
 
+    // heHopDong now can be either ID (number/string) or name (for backward compatibility)
+    let heHopDongId = heHopDong;
+    let heHopDongName = heHopDong;
+    
+    // Check if heHopDong is a number (ID) or string (name)
+    if (!isNaN(heHopDong)) {
+      // It's an ID, query to get name
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id, he_dao_tao FROM he_dao_tao WHERE id = ?',
+        [heHopDong]
+      );
+      
+      if (heDaoTaoRows.length > 0) {
+        heHopDongId = heDaoTaoRows[0].id;
+        heHopDongName = heDaoTaoRows[0].he_dao_tao;
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy hệ đào tạo",
+        });
+      }
+    } else {
+      // It's a name (backward compatibility), query to get ID
+      const [heDaoTaoRows] = await connection.query(
+        'SELECT id, he_dao_tao FROM he_dao_tao WHERE he_dao_tao = ?',
+        [heHopDong]
+      );
+      
+      if (heDaoTaoRows.length > 0) {
+        heHopDongId = heDaoTaoRows[0].id;
+        heHopDongName = heDaoTaoRows[0].he_dao_tao;
+      }
+    }
+
     let teacher;
 
     // Use provided teacherData if available, otherwise query database
@@ -341,7 +377,7 @@ const previewContract = async (req, res) => {
 
       const [teachers] = await connection.execute(teacherQuery, [
         teacherId,
-        heHopDong,
+        heHopDongId,  // Use ID instead of name
         dot,
         ki,
         namHoc,
@@ -359,9 +395,9 @@ const previewContract = async (req, res) => {
     let soTiet, tienText, tienThueText, tienThucNhanText, tienMoiGiang;
 
     if (teacher.hasEnhancedData && teacher.trainingPrograms) {
-      // Find specific training program data
+      // Find specific training program data by ID
       const programData = teacher.trainingPrograms.find(
-        (p) => p.he_dao_tao === heHopDong
+        (p) => p.id === heHopDongId || p.id === parseInt(heHopDongId)
       );
       if (programData) {
         soTiet = programData.SoTiet;
@@ -413,13 +449,13 @@ const previewContract = async (req, res) => {
         allTeacherKeys: Object.keys(teacher)
       });
 
-      // If no financial data in teacher object, calculate from tieuluong table
+      // If no financial data in teacher object, calculate from tienluong table
       if (!tienText && connection) {
         const tienLuongQuery = `SELECT he_dao_tao, HocVi, SoTien FROM tienluong`;
         const [tienLuongList] = await connection.execute(tienLuongQuery);
 
         const tienLuong = tienLuongList.find(
-          (tl) => tl.he_dao_tao === heHopDong && tl.HocVi === teacher.HocVi
+          (tl) => tl.he_dao_tao === heHopDongId && tl.HocVi === teacher.HocVi
         );
 
         if (tienLuong) {
@@ -484,29 +520,45 @@ const previewContract = async (req, res) => {
       formattedMucTien: data.Mức_tiền,
     });
 
-    // Choose template based on contract type
+    // Choose template based on contract type ID
     let templateFileName;
-    switch (heHopDong) {
-      case "Đại học (Đóng học phí)":
-        templateFileName = "HopDongHP.docx";
-        break;
-      case "Đại học (Mật mã)":
-        templateFileName = "HopDongMM.docx";
-        break;
-      case "Đồ án":
-        templateFileName = "HopDongDA.docx";
-        break;
-      case "Nghiên cứu sinh (Đóng học phí)":
-        templateFileName = "HopDongNCS.docx";
-        break;
-      case "Cao học (Đóng học phí)":
-        templateFileName = "HopDongCH.docx";
-        break;
-      default:
-        return res.status(400).json({
-          success: false,
-          message: "Loại hợp đồng không hợp lệ.",
-        });
+    
+    // Map ID to template file
+    // Assuming: 1 = Đại học (Đóng học phí), 2 = Đại học (Mật mã), etc.
+    const templateMap = {
+      1: "HopDongHP.docx",      // Đại học (Đóng học phí)
+      2: "HopDongMM.docx",      // Đại học (Mật mã)
+      3: "HopDongCH.docx",      // Cao học (Đóng học phí)
+      4: "HopDongNCS.docx",     // Nghiên cứu sinh (Đóng học phí)
+      // Add more mappings as needed
+    };
+    
+    templateFileName = templateMap[heHopDongId];
+    
+    // Fallback to name-based selection if ID mapping not found
+    if (!templateFileName) {
+      switch (heHopDongName) {
+        case "Đại học (Đóng học phí)":
+          templateFileName = "HopDongHP.docx";
+          break;
+        case "Đại học (Mật mã)":
+          templateFileName = "HopDongMM.docx";
+          break;
+        case "Đồ án":
+          templateFileName = "HopDongDA.docx";
+          break;
+        case "Nghiên cứu sinh (Đóng học phí)":
+          templateFileName = "HopDongNCS.docx";
+          break;
+        case "Cao học (Đóng học phí)":
+          templateFileName = "HopDongCH.docx";
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: "Loại hợp đồng không hợp lệ.",
+          });
+      }
     }
 
     const templatePath = path.resolve(

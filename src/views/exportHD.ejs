@@ -160,16 +160,7 @@
               name="loaiHopDong"
               class="form-select w-200px mx-2 selectop"
             >
-              <option value="Đại học (Mật mã)">Đại học (Mật mã)</option>
-              <option value="Đại học (Đóng học phí)">
-                Đại học (Đóng học phí)
-              </option>
-              <option value="Cao học (Đóng học phí)">
-                Cao học (Đóng học phí)
-              </option>
-              <option value="Nghiên cứu sinh (Đóng học phí)">
-                Nghiên cứu sinh (Đóng học phí)
-              </option>
+              <option value="">Đang tải...</option>
             </select>
 
             <button type="button" class="btn mx-2" id="exportButton">
@@ -571,6 +562,39 @@
             alert("Không tìm thấy MaPhongBan trong localStorage.");
           }
         });
+    </script>
+
+    <script>
+      // Load hệ đào tạo từ API
+      $(document).ready(function() {
+        $.ajax({
+          url: '/api/gvm/v1/he-moi-giang',
+          method: 'GET',
+          success: function(response) {
+            if (response.success && response.data) {
+              const select = $('#loaiHopDong');
+              select.empty(); // Xóa option "Đang tải..."
+              
+              // Thêm option mặc định
+              select.append('<option value="">Chọn hệ đào tạo</option>');
+              
+              // Thêm các hệ đào tạo từ API
+              response.data.forEach(function(item) {
+                select.append(
+                  `<option value="${item.id}">${item.he_dao_tao}</option>`
+                );
+              });
+            } else {
+              console.error('Không thể lấy danh sách hệ đào tạo');
+              $('#loaiHopDong').html('<option value="">Lỗi tải dữ liệu</option>');
+            }
+          },
+          error: function(error) {
+            console.error('Lỗi khi gọi API hệ đào tạo:', error);
+            $('#loaiHopDong').html('<option value="">Lỗi kết nối</option>');
+          }
+        });
+      });
     </script>
   </body>
 </html>

@@ -294,12 +294,54 @@
     <script>
         // Global variables
         let currentContractType = '';
+        let currentContractId = null;
         const teacherData = <%- JSON.stringify(teacherData || {}) %>;
+        let heDaoTaoList = []; // Danh sách hệ đào tạo từ API
         
         $(document).ready(function() {
-            // Initialize contract options
-            initializeContractOptions();
+            // Load hệ đào tạo từ API trước
+            loadHeDaoTaoFromAPI().then(() => {
+                // Sau khi load xong mới initialize contract options
+                initializeContractOptions();
+            });
         });
+        
+        // Hàm load danh sách hệ đào tạo từ API
+        async function loadHeDaoTaoFromAPI() {
+            try {
+                const response = await fetch('/api/gvm/v1/he-moi-giang');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch he dao tao list');
+                }
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    heDaoTaoList = result.data.map(item => ({
+                        id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
+                        tenHe: item.he_dao_tao
+                    }));
+                    console.log('Đã load danh sách hệ đào tạo từ API:', heDaoTaoList);
+                } else {
+                    console.error('API không trả về dữ liệu hợp lệ');
+                    heDaoTaoList = [];
+                }
+            } catch (error) {
+                console.error('Lỗi khi gọi API hệ đào tạo:', error);
+                heDaoTaoList = [];
+            }
+        }
+        
+        // Helper function: Lấy tên hệ đào tạo từ id
+        function getTenHeById(heId) {
+            const he = heDaoTaoList.find(item => item.id === heId || item.id === parseInt(heId));
+            return he ? he.tenHe : null;
+        }
+        
+        // Helper function: Lấy id hệ đào tạo từ tên
+        function getIdByTenHe(tenHe) {
+            const he = heDaoTaoList.find(item => item.tenHe === tenHe);
+            return he ? he.id : null;
+        }
           function initializeContractOptions() {
             const optionsContainer = $('#contract-options');
             optionsContainer.empty();
@@ -333,13 +375,17 @@
             // Check if teacher has training programs data (cho các loại hợp đồng khác)
             if (teacherData.trainingPrograms && teacherData.trainingPrograms.length > 0) {
                 teacherData.trainingPrograms.forEach((program, index) => {
+                    // Sử dụng id và tenHe từ program
+                    const heId = program.id;
+                    const heTen = program.tenHe || getTenHeById(program.id) || 'Unknown';
+                    
                     const optionHtml = `
-                        <div class="contract-option" onclick="selectContract('${encodeURIComponent(program.he_dao_tao)}')">
+                        <div class="contract-option" data-contract-id="${heId}" onclick="selectContract(${heId}, '${heTen.replace(/'/g, "\\'")}')">
                             <div class="d-flex align-items-start">
                                 <div class="flex-shrink-0">
                                     <i class="fas fa-graduation-cap fa-lg text-primary"></i>
                                 </div>                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">${program.he_dao_tao}</h6>
+                                    <h6 class="mb-1">${heTen}</h6>
                                     <div class="contract-meta">
                                         <div><i class="fas fa-clock me-1"></i>${program.SoTiet ? formatSoTiet(program.SoTiet) : '0'} tiết</div>
                                         <div><i class="fas fa-money-bill-wave me-1"></i>${formatCurrency(program.ThucNhan || 0)}</div>
@@ -357,8 +403,11 @@
                     contractType = currentLoaiHopDong;
                 }
                 
+                // Try to get ID from name
+                const heId = teacherData.id_he_dao_tao || getIdByTenHe(contractType) || 0;
+                
                 const optionHtml = `
-                    <div class="contract-option" onclick="selectContract('${encodeURIComponent(contractType)}')">
+                    <div class="contract-option" data-contract-id="${heId}" onclick="selectContract(${heId}, '${contractType.replace(/'/g, "\\'")}')">
                         <div class="d-flex align-items-start">
                             <div class="flex-shrink-0">
                                 <i class="fas fa-file-contract fa-lg text-primary"></i>
@@ -376,14 +425,15 @@
             }
         }
         
-        function selectContract(contractType) {
+        function selectContract(contractId, contractName) {
             // Remove previous selections
             $('.contract-option').removeClass('selected');
             
             // Add selection to clicked option
             event.currentTarget.classList.add('selected');
             
-            currentContractType = decodeURIComponent(contractType);
+            currentContractId = contractId;
+            currentContractType = contractName;
             
             // Hide empty state
             $('#empty-state').hide();
@@ -393,7 +443,7 @@
             $('#action-buttons').show();
             
             // Generate preview
-            generatePreview(currentContractType);
+            generatePreview(currentContractId);
         }
         
         function closePreview() {
@@ -415,30 +465,20 @@
         }
         
         function retryGeneration() {
-            if (currentContractType) {
-                generatePreview(currentContractType);
+            if (currentContractId) {
+                generatePreview(currentContractId);
             }
         }
-          function generatePreview(heHopDong) {
+          function generatePreview(heHopDongId) {
             // Reset states
             $('#loading-state').show();
             $('#error-state').hide();
             $('#pdf-preview-container').hide();
             
-            // Get current contract type from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentLoaiHopDong = urlParams.get('loaiHopDong') || teacherData.loaiHopDong || '<%= loaiHopDong || "Mời giảng" %>';
-            
-            // Xử lý đặc biệt cho đồ án: luôn sử dụng tên hệ đào tạo "Đồ án"
-            let actualHeHopDong = heHopDong;
-            if (currentLoaiHopDong === 'Đồ án') {
-                actualHeHopDong = 'Đồ án';
-            }
-            
-            // Prepare data for API call - include teacherData if available
+            // Prepare data for API call - send ID instead of name
             const previewData = {
                 teacherId: '<%= teacherId || "" %>',
-                heHopDong: actualHeHopDong,
+                heHopDong: heHopDongId,  // Send ID instead of name
                 dot: '<%= dot || "" %>',
                 ki: '<%= ki || "" %>',
                 namHoc: '<%= namHoc || "" %>',
