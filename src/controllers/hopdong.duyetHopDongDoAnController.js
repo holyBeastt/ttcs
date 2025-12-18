@@ -140,7 +140,7 @@ const getDuyetHopDongData = async (req, res) => {
           AND Dot=?
           AND ki=?
       ) da
-      JOIN gvmoi gv ON da.GiangVien = gv.HoTen and gv.isQuanDoi != 1
+      JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
       LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
       WHERE 1=1
     `;
@@ -373,12 +373,26 @@ const approveContracts = async (req, res) => {
                 [facultyCode, namHoc, dot, ki]
             );
             if (checkAll.length > 0) {
+                // Update with JOIN to filter by isQuanDoi = 0
+                // For thesis, need to check both GiangVien1 and GiangVien2
                 const [updateResult] = await connection.query(
-                    `UPDATE doantotnghiep
-                     SET TaiChinhDuyet = 1
-                     WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND Ki = ?
-                       AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1
-                       AND DaLuu = 0`,
+                    `UPDATE doantotnghiep dt
+                     SET dt.TaiChinhDuyet = 1
+                     WHERE dt.MaPhongBan = ? AND dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?
+                       AND dt.DaoTaoDuyet = 1 AND dt.TaiChinhDuyet != 1
+                       AND dt.DaLuu = 0
+                       AND (
+                         EXISTS (
+                           SELECT 1 FROM gvmoi gv 
+                           WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen 
+                             AND gv.isQuanDoi = 0
+                         )
+                         OR EXISTS (
+                           SELECT 1 FROM gvmoi gv 
+                           WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen 
+                             AND gv.isQuanDoi = 0
+                         )
+                       )`,
                     [facultyCode, namHoc, dot, ki]
                 );
                 affectedRows += updateResult.affectedRows;
@@ -442,11 +456,24 @@ const unapproveContracts = async (req, res) => {
 
         let affectedRows = 0;
         for (const facultyCode of facultiesToUpdate) {
+            // Update with JOIN to filter by isQuanDoi = 0
             const [updateResult] = await connection.query(
-                `UPDATE doantotnghiep
-                 SET TaiChinhDuyet = 0
-                 WHERE MaPhongBan = ? AND NamHoc = ? AND Dot = ? AND Ki = ?
-                   AND TaiChinhDuyet = 1 AND DaLuu = 0`,
+                `UPDATE doantotnghiep dt
+                 SET dt.TaiChinhDuyet = 0
+                 WHERE dt.MaPhongBan = ? AND dt.NamHoc = ? AND dt.Dot = ? AND dt.Ki = ?
+                   AND dt.TaiChinhDuyet = 1 AND dt.DaLuu = 0
+                   AND (
+                     EXISTS (
+                       SELECT 1 FROM gvmoi gv 
+                       WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen 
+                         AND gv.isQuanDoi = 0
+                     )
+                     OR EXISTS (
+                       SELECT 1 FROM gvmoi gv 
+                       WHERE TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen 
+                         AND gv.isQuanDoi = 0
+                     )
+                   )`,
                 [facultyCode, namHoc, dot, ki]
             );
             affectedRows += updateResult.affectedRows;
@@ -547,7 +574,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     AND NamHoc = ?
                     AND Dot = ?
             ) da
-            JOIN gvmoi gv ON da.GiangVien = gv.HoTen and gv.isQuanDoi != 1
+            JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
             LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan
             WHERE 1=1
         `;
@@ -562,7 +589,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         `;
 
         const [results] = await connection.query(query, params);
-        
+
         // Debug
         console.log('[DEBUG getDuyetHopDongTheoHeDaoTao] Results count:', results.length);
         if (results.length > 0) {
@@ -571,7 +598,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 allKeys: Object.keys(results[0])
             });
         }
-        
+
         // Get detailed teacher information for the "Đại học" training program
         const enhancedResults = [];
 
@@ -640,7 +667,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                         AND NamHoc = ?
                         AND Dot = ?
                 ) da
-                JOIN gvmoi gv ON da.GiangVien = gv.HoTen
+                JOIN gvmoi gv ON da.GiangVien = gv.HoTen AND gv.isQuanDoi = 0
                 LEFT JOIN phongban pb ON da.MaPhongBan = pb.MaPhongBan                LEFT JOIN doantotnghiep dt ON (
                     (TRIM(SUBSTRING_INDEX(dt.GiangVien1, '-', 1)) = gv.HoTen OR TRIM(SUBSTRING_INDEX(dt.GiangVien2, '-', 1)) = gv.HoTen)
                     AND dt.NamHoc = ? AND dt.Dot = ?
@@ -677,7 +704,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     allKeys: Object.keys(teacherDetails[0])
                 });
             }
-            
+
             // Original HSL debug
             if (teacherDetails.length > 0) {
                 console.log('Database HSL Debug for first teacher:', {
