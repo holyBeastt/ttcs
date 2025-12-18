@@ -603,8 +603,9 @@
 
 
             // Xác định định mức cho giảng viên hiện tại
+            // Dùng courses[0] vì lastCourse là object tổng hợp do backend đẩy vào, có thể thiếu thông tin isNghiHuu
             let limit = dinhMuc.normal;
-            if (lastCourse.isNghiHuu == 1) {
+            if (courses[0] && courses[0].isNghiHuu == 1) {
                 limit = dinhMuc.nghiHuu;
             }
 
