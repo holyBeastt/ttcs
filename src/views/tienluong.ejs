@@ -224,6 +224,8 @@
             SoTien: row.find(".SoTien-cell input").val(),
           };
 
+            const he_dao_tao_text = row.find(".he_dao_tao-cell select option:selected").text();
+            
           $.ajax({
             url: `/tienluong/${STT}`,
             method: "PUT",
@@ -231,7 +233,7 @@
             data: JSON.stringify(updatedData),
             success: function (response) {
               // Cập nhật giao diện
-              row.find(".he_dao_tao-cell").text(updatedData.he_dao_tao);
+              row.find(".he_dao_tao-cell").text(he_dao_tao_text);
               row.find(".HocVi-cell").text(updatedData.HocVi);
               row.find(".SoTien-cell").text(
                 new Intl.NumberFormat("vi-VN", {
