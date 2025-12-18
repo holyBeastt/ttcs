@@ -538,7 +538,7 @@
         // Hiển thị thông tin định mức
         const limitInfoDiv = document.getElementById("limitInfo");
         if (dinhMuc.normal > 0 || dinhMuc.nghiHuu > 0) {
-            limitInfoDiv.textContent = `Định mức tiết dạy: ${dinhMuc.normal} tiết (Giảng viên cơ hữu), ${dinhMuc.nghiHuu} tiết (Giảng viên đã nghỉ hưu)`;
+            limitInfoDiv.textContent = `Định mức tiết dạy: ${dinhMuc.normal} tiết (Giảng viên chưa nghỉ hưu), ${dinhMuc.nghiHuu} tiết (Giảng viên đã nghỉ hưu)`;
             limitInfoDiv.style.display = "block";
         } else {
             limitInfoDiv.style.display = "none";
