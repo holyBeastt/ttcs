@@ -54,6 +54,37 @@ router.get('/api/gvm/v1/he-moi-giang', gvmService.getHeMoiGiangLists);
 // Lấy danh sách hệ đào tạo đồ án
 router.get('/api/gvm/v1/he-do-an', gvmService.getHeDoAnLists);
 
+/* kết quả hệ đồ án :
+
+{
+  "success": true,
+  "data": [
+    {
+      "id": 9,
+      "he_dao_tao": "Đồ án ĐH Việt Nam"
+    },
+    {
+      "id": 10,
+      "he_dao_tao": "Đồ án ĐH Lào"
+    },
+    {
+      "id": 11,
+      "he_dao_tao": "Đồ án ĐH Cuba"
+    },
+    {
+      "id": 12,
+      "he_dao_tao": "Đồ án ĐH Campuchia"
+    },
+    {
+      "id": 13,
+      "he_dao_tao": "Đồ án CH"
+    }
+  ]
+}
+
+*/
+
+
 // Lấy hạng chức danh nghề nghiệp
 router.get('/api/gvm/v1/chuc-danh-nghe-nghiep', gvmService.getChucDanhNgheNghiep);
 

@@ -2087,7 +2087,7 @@ const getBosungDownloadSite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi where id_Gvm != 1`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("doan.hopdong.fileBoSungDownload.ejs", {
+    res.render("doan.phuLucMinhChungGvm.ejs", {
       gvmoiList: gvmoiList, // Đảm bảo rằng biến này được truyền vào view
     });
   } catch (error) {
