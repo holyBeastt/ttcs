@@ -98,6 +98,7 @@ const getDuyetHopDongData = async (req, res) => {
                 AND qc.Dot    = ?
                 AND qc.KiHoc  = ?
                 AND hdt.cap_do = 1
+                AND gv.isQuanDoi = 0
                 ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
             /* Gộp THEO GIẢNG VIÊN + HỆ ĐÀO TẠO (KHÔNG gộp theo khoa học phần) */
             GROUP BY
@@ -196,6 +197,7 @@ const getDuyetHopDongData = async (req, res) => {
                 AND qc.Dot    = ?
                 AND qc.KiHoc  = ?
                 AND hdt.cap_do != 1
+                AND gv.isQuanDoi = 0
                 ${maPhongBan && maPhongBan !== 'ALL' ? 'AND gv.MaPhongBan = ?' : ''}
             GROUP BY
                 gv.id_Gvm, gv.HoTen, qc.he_dao_tao, hdt.he_dao_tao,
@@ -467,10 +469,12 @@ const approveContracts = async (req, res) => {
 
                 if (allDaoTaoApproved && check.length > 0) {
                     const [updateResult] = await connection.query(`
-                        UPDATE quychuan 
-                        SET TaiChinhDuyet = 1 
-                        WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? 
-                          AND DaoTaoDuyet = 1 AND TaiChinhDuyet != 1 AND DaLuu = 0
+                        UPDATE quychuan qc
+                        JOIN gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+                        SET qc.TaiChinhDuyet = 1 
+                        WHERE qc.Khoa = ? AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
+                          AND qc.DaoTaoDuyet = 1 AND qc.TaiChinhDuyet != 1 AND qc.DaLuu = 0
+                          AND gv.isQuanDoi = 0
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                     affectedRows += updateResult.affectedRows;
@@ -569,10 +573,12 @@ const unapproveContracts = async (req, res) => {
 
             for (const faculty of faculties) {
                 const [updateResult] = await connection.query(`
-                    UPDATE quychuan 
-                    SET TaiChinhDuyet = 0 
-                    WHERE Khoa = ? AND Dot = ? AND KiHoc = ? AND NamHoc = ? AND DaLuu = 0
-                      AND TaiChinhDuyet = 1 AND DaLuu = 0 
+                    UPDATE quychuan qc
+                    JOIN gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
+                    SET qc.TaiChinhDuyet = 0 
+                    WHERE qc.Khoa = ? AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? AND qc.DaLuu = 0
+                      AND qc.TaiChinhDuyet = 1
+                      AND gv.isQuanDoi = 0
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 affectedRows += updateResult.affectedRows;
@@ -723,6 +729,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 AND qc.NamHoc = ?
                 AND qc.Dot = ?
                 AND qc.KiHoc = ?
+                AND gv.isQuanDoi = 0
         `;
         const params = [namHoc, dot, ki];
 
@@ -828,6 +835,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         AND qc.Dot = ?
         AND qc.KiHoc = ?
         AND qc.he_dao_tao = ?
+        AND gv.isQuanDoi = 0
 `;
             const teacherParams = [namHoc, dot, ki, heDaoTao.id];
 
