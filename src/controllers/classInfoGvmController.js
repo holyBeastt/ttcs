@@ -8,7 +8,7 @@ const router = express.Router();
 
 //Lấy danh sách giảng viên mời để show chi tiết
 const getClassInfoGvm = async (req, res) => {
-  res.render("classInfoGvm.ejs");
+  res.render("moigiang.thongKeLopMoiTheoGv.ejs");
 };
 
 // fake req, res và gọi hàm getHopDongDuKienData bên infoHDGvmController 
@@ -240,8 +240,17 @@ const getClassInfoGvmData = async (req, res) => {
 
     // console.log(result2)
 
-    // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON
-    res.json(result2);
+    // Lấy thông tin định mức từ kết quả trả về của callGetHopDongDuKienData
+    const dinhMuc = {
+      normal: tongSoTietTrongNam.SoTietDinhMuc || 300,
+      nghiHuu: tongSoTietTrongNam.SoTietDinhMucNghiHuu || 100
+    };
+
+    // Trả về dữ liệu nhóm theo giảng viên dưới dạng JSON, kèm theo định mức
+    res.json({
+      data: result2,
+      dinhMuc: dinhMuc
+    });
   } catch (error) {
     console.error("Error fetching class info:", error);
     res.status(500).send("Internal Server Error");
