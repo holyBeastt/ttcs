@@ -67,17 +67,6 @@ const exportHDGvmToExcel = async (req, res) => {
   try {
     connection = await createPoolConnection();
 
-    // Lấy danh sách mức tiền từ bảng tienluong
-    const tienLuongQuery = `
-SELECT 
- he_dao_tao, 
-  HocVi, 
-  SoTien 
-FROM 
-  tienluong
-`;
-    const [tienLuongList] = await connection.execute(tienLuongQuery);
-
     const { dot, ki, namHoc, loaiHopDong, khoa } = req.query;
 
     if (!dot || !ki || !namHoc) {
@@ -112,7 +101,10 @@ FROM
       SUM(hd.SoTiet) AS SoTiet,
       hd.DiaChi,
       hd.he_dao_tao,
-      gv.NoiCongTac
+      gv.NoiCongTac,
+      SUM(hd.SoTien) as SoTien,
+      SUM(hd.TruThue) as TruThue,
+      SUM(hd.ThucNhan) as ThucNhan
     FROM
       hopdonggvmoi hd
     JOIN
@@ -201,22 +193,12 @@ FROM
       { header: "Ngày Nghiệm Thu", key: "NgayNghiemThu", width: 15 }, // Thêm cột Ngày Nghiệm Thu
     ];
 
-    function tinhSoTien(row, soTiet) {
-      const tienLuong = tienLuongList.find(
-        (tl) => tl.he_dao_tao === row.he_dao_tao && tl.HocVi === row.HocVi
-      );
-      if (tienLuong) {
-        return soTiet * tienLuong.SoTien;
-      } else {
-        return 0;
-      }
-    }
     // Thêm dữ liệu vào bảng và tính toán các cột mới
     rows.forEach((row, index) => {
       const soTiet = row.SoTiet;
-      const soTien = tinhSoTien(row, soTiet); // Tính toán soTien
-      const truThue = soTien * 0.1; // Trừ Thuế = 10% của Số Tiền
-      const thucNhan = soTien - truThue; // Thực Nhận = Số Tiền - Trừ Thuế
+      const soTien = row.SoTien; // Tính toán soTien
+      const truThue = row.TruThue; // Trừ Thuế = 10% của Số Tiền
+      const thucNhan = row.ThucNhan; // Thực Nhận = Số Tiền - Trừ Thuế
       // ...
       // Sửa lại ngày bắt đầu
       const utcBatDau = new Date(row.NgayBatDau);

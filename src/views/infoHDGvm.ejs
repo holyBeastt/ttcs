@@ -105,6 +105,7 @@
               <table class="table table-bordered" id="dataTable" class="table table-striped table-hover table-bordered">
                 <thead class="table-dark">
                   <tr>
+                    <th>STT</th>
                     <th>Ngày bắt đầu</th>
                     <th>Ngày kết thúc</th>
                     <th>Danh xưng</th>
@@ -201,23 +202,26 @@
               const tbody = dataTable.querySelector('tbody');
               tbody.innerHTML = '';
 
+              let STT = 1;
+
               // Thêm dữ liệu mới vào bảng
               data.forEach(item => {
                 const row = tbody.insertRow();
-                row.insertCell(0).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
-                row.insertCell(1).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
-                row.insertCell(2).textContent = item.DanhXung;
-                row.insertCell(3).textContent = item.HoTen;
-                row.insertCell(4).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
-                row.insertCell(5).textContent = item.CCCD;
-                row.insertCell(6).textContent = item.HocVi;
-                row.insertCell(7).textContent = item.ChucVu;
-                row.insertCell(8).textContent = item.DienThoai;
-                row.insertCell(9).textContent = item.Email;
-                row.insertCell(10).textContent = item.STK;
-                row.insertCell(11).textContent = item.NganHang;
-                row.insertCell(12).textContent = item.MaSoThue;
-                row.insertCell(13).textContent = parseFloat(item.SoTiet).toFixed(2);
+                row.insertCell(0).textContent = STT++;
+                row.insertCell(1).textContent = new Date(item.NgayBatDau).toLocaleDateString('vi-VN');
+                row.insertCell(2).textContent = new Date(item.NgayKetThuc).toLocaleDateString('vi-VN');
+                row.insertCell(3).textContent = item.DanhXung;
+                row.insertCell(4).textContent = item.HoTen;
+                row.insertCell(5).textContent = new Date(item.NgaySinh).toLocaleDateString('vi-VN');
+                row.insertCell(6).textContent = item.CCCD;
+                row.insertCell(7).textContent = item.HocVi;
+                row.insertCell(8).textContent = item.ChucVu;
+                row.insertCell(9).textContent = item.DienThoai;
+                row.insertCell(10).textContent = item.Email;
+                row.insertCell(11).textContent = item.STK;
+                row.insertCell(12).textContent = item.NganHang;
+                row.insertCell(13).textContent = item.MaSoThue;
+                row.insertCell(14).textContent = parseFloat(item.SoTiet).toFixed(2);
               });
 
               // Hiển thị bảng

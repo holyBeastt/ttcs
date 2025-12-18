@@ -2,6 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
 
+const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
+
 /**
  * Render site
  */
@@ -70,12 +72,12 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.BangTotNghiepLoai,
                 gv.MonGiangDayChinh,
 
-                /* Số tiền */
-                SUM(qc.QuyChuan)                               AS SoTiet,
-                tl.SoTien                                       AS TienMoiGiang,
-                tl.SoTien * SUM(qc.QuyChuan)                    AS ThanhTien,
-                tl.SoTien * SUM(qc.QuyChuan) * 0.1              AS Thue,
-                tl.SoTien * SUM(qc.QuyChuan) * 0.9              AS ThucNhan,
+                /* ===== TIỀN (DÙNG EXPR – KHÔNG JOIN tienluong) ===== */
+                SUM(qc.QuyChuan)                                        AS SoTiet,
+                ${DON_GIA_EXPR('qc', 'Khoa')}                           AS TienMoiGiang,
+                ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(qc.QuyChuan)        AS ThanhTien,
+                ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(qc.QuyChuan) * 0.1  AS Thue,
+                ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(qc.QuyChuan) * 0.9  AS ThucNhan,
 
                 pb.TenPhongBan,
 
@@ -88,8 +90,6 @@ const getDuyetHopDongData = async (req, res) => {
                     ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
                 JOIN he_dao_tao hdt
                     ON qc.he_dao_tao = hdt.id
-                LEFT JOIN tienluong tl
-                    ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
                 LEFT JOIN phongban pb
                     ON gv.MaPhongBan = pb.MaPhongBan
             WHERE
@@ -104,12 +104,12 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.id_Gvm, gv.HoTen, qc.he_dao_tao, hdt.he_dao_tao,
                 gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
                 gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
-                gv.STK, gv.NganHang, gv.MaPhongBan,
-                qc.NamHoc, qc.KiHoc, qc.Dot,
+                gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
+                qc.NamHoc, qc.KiHoc, qc.Dot, qc.Khoa,
                 gv.NgayCapCCCD, gv.DiaChi,
                 gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai,
                 gv.MonGiangDayChinh,
-                tl.SoTien, pb.TenPhongBan
+                pb.TenPhongBan
         ),
 
         /* SAU ĐẠI HỌC */
@@ -146,32 +146,38 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.BangTotNghiepLoai,
                 gv.MonGiangDayChinh,
 
-                /* Case tính toán số tiết */
-                SUM(
+                /* ===== TIỀN (DÙNG EXPR) ===== */
+                                SUM(
                     ROUND(
                         qc.QuyChuan *
                         CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
                     , 2)
                 )                                             AS SoTiet,
-                tl.SoTien                                       AS TienMoiGiang,
-                tl.SoTien * SUM(
+                ${DON_GIA_EXPR('qc', 'Khoa')} AS TienMoiGiang,
+
+                ${DON_GIA_EXPR('qc', 'Khoa')} *
+                SUM(
                     ROUND(
                         qc.QuyChuan *
                         CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
                     , 2)
-                )                                             AS ThanhTien,
-                tl.SoTien * SUM(
+                ) AS ThanhTien,
+
+                ${DON_GIA_EXPR('qc', 'Khoa')} *
+                SUM(
                     ROUND(
                         qc.QuyChuan *
                         CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
                     , 2)
-                ) * 0.1                                       AS Thue,
-                tl.SoTien * SUM(
+                ) * 0.1 AS Thue,
+
+                ${DON_GIA_EXPR('qc', 'Khoa')} *
+                SUM(
                     ROUND(
                         qc.QuyChuan *
                         CASE WHEN qc.GiaoVienGiangDay LIKE '%,%' THEN 0.7 ELSE 1 END
                     , 2)
-                ) * 0.9                                       AS ThucNhan,
+                ) * 0.9 AS ThucNhan,
 
                 pb.TenPhongBan,
                 MAX(qc.DaoTaoDuyet)                             AS DaoTaoDuyet,
@@ -182,8 +188,6 @@ const getDuyetHopDongData = async (req, res) => {
                     ON TRIM(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1)) = gv.HoTen
                 JOIN he_dao_tao hdt
                     ON qc.he_dao_tao = hdt.id
-                LEFT JOIN tienluong tl
-                    ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
                 LEFT JOIN phongban pb
                     ON gv.MaPhongBan = pb.MaPhongBan
             WHERE
@@ -197,12 +201,12 @@ const getDuyetHopDongData = async (req, res) => {
                 gv.id_Gvm, gv.HoTen, qc.he_dao_tao, hdt.he_dao_tao,
                 gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, gv.Email,
                 gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai,
-                gv.STK, gv.NganHang, gv.MaPhongBan,
-                qc.NamHoc, qc.KiHoc, qc.Dot,
+                gv.STK, gv.NganHang, gv.MaPhongBan, gv.isNghiHuu,
+                qc.NamHoc, qc.KiHoc, qc.Dot, qc.Khoa,
                 gv.NgayCapCCCD, gv.DiaChi,
                 gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai,
                 gv.MonGiangDayChinh,
-                tl.SoTien, pb.TenPhongBan
+                pb.TenPhongBan
         )
 
         /* UNION DATA */
@@ -443,7 +447,7 @@ const approveContracts = async (req, res) => {
         const userId = req.session.userId;
         const tenNhanVien = req.session.TenNhanVien || '';
         const khoa = req.session.MaPhongBan || '';
-        
+
         // Mảng chứa tất cả log entries
         const logEntries = [];
 
@@ -470,7 +474,7 @@ const approveContracts = async (req, res) => {
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                     affectedRows += updateResult.affectedRows;
-                    
+
                     // Ghi log cho từng khoa được cập nhật
                     if (updateResult.affectedRows > 0) {
                         const noiDungThayDoi = `Duyệt tài chính ${updateResult.affectedRows} hợp đồng mời giảng - Khoa: ${faculty.MaPhongBan}, Đợt: ${dot}, Kì: ${ki}, Năm: ${namHoc}`;
@@ -554,7 +558,7 @@ const unapproveContracts = async (req, res) => {
         const userId = req.session.userId;
         const tenNhanVien = req.session.TenNhanVien || '';
         const khoa = req.session.MaPhongBan || '';
-        
+
         // Mảng chứa tất cả log entries
         const logEntries = [];
 
@@ -572,7 +576,7 @@ const unapproveContracts = async (req, res) => {
                 `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                 affectedRows += updateResult.affectedRows;
-                
+
                 // Ghi log cho từng khoa được cập nhật
                 if (updateResult.affectedRows > 0) {
                     const noiDungThayDoi = `Bỏ duyệt tài chính ${updateResult.affectedRows} hợp đồng mời giảng - Khoa: ${faculty.MaPhongBan}, Đợt: ${dot}, Kì: ${ki}, Năm: ${namHoc}`;
