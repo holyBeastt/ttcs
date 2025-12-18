@@ -200,21 +200,30 @@ const getExportPhuLucDAPath = async (
       const titleRow2 = worksheet.addRow(["Phụ lục"]);
       titleRow2.font = { name: "Times New Roman", bold: true, size: 20 };
       titleRow2.alignment = { horizontal: "center", vertical: "middle" };
-      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`); // Tìm ngày kết thúc muộn nhất từ dữ liệu giảng viên
+      worksheet.mergeCells(`A${titleRow2.number}:L${titleRow2.number}`);
+
+      // Tìm ngày bắt đầu sớm nhất từ dữ liệu giảng viên (cho tiêu đề "Hợp đồng số:")
+      const earliestDate = giangVienData.reduce((minDate, item) => {
+        const currentStartDate = new Date(item.NgayBatDau);
+        return currentStartDate < minDate ? currentStartDate : minDate;
+      }, new Date(giangVienData[0].NgayBatDau));
+      const formattedEarliestDate = formatVietnameseDate(earliestDate);
+
+      // Tìm ngày kết thúc muộn nhất từ dữ liệu giảng viên (cho tiêu đề "Kèm theo biên bản nghiệm thu")
       const latestDate = giangVienData.reduce((maxDate, item) => {
         const currentEndDate = new Date(item.NgayKetThuc);
         return currentEndDate > maxDate ? currentEndDate : maxDate;
       }, new Date(giangVienData[0].NgayKetThuc));
+      const formattedLatestDate = formatVietnameseDate(latestDate);
 
-      // Định dạng ngày kết thúc muộn nhất thành chuỗi
-      const formattedLatestDate = formatVietnameseDate(latestDate); // Lấy SoHopDong từ dữ liệu giảng viên (vì tất cả có cùng CCCD nên SoHopDong giống nhau)
       const soHopDong = giangVienData[0]?.SoHopDong || "";
 
       // Xử lý soHopDong: nếu null, undefined, hoặc rỗng thì để trống, ngược lại giữ nguyên
+      // Tab 1: Dùng ngày bắt đầu sớm nhất (formattedEarliestDate)
       const contractNumber =
         soHopDong && soHopDong.trim() !== ""
-          ? `Hợp đồng số: ${soHopDong} ${formattedLatestDate}`
-          : `Hợp đồng số:      /HĐ-ĐT ${formattedLatestDate}`;
+          ? `Hợp đồng số: ${soHopDong} ${formattedEarliestDate}`
+          : `Hợp đồng số:      /HĐ-ĐT ${formattedEarliestDate}`;
 
       const titleRow3 = worksheet.addRow([contractNumber]);
       titleRow3.font = { name: "Times New Roman", bold: true, size: 16 };
@@ -338,6 +347,11 @@ const getExportPhuLucDAPath = async (
         const soTien = item.SoTiet * mucThanhToan;
         const truThue = soTien * 0.1;
         const thucNhan = soTien - truThue;
+
+        // DEBUG: Kiểm tra dữ liệu ngày trước khi format
+        console.log(`[Sheet1] ${hoTenTrim} - raw NgayBatDau:`, item.NgayBatDau, "| raw NgayKetThuc:", item.NgayKetThuc);
+        console.log(`[Sheet1] ${hoTenTrim} - formatted: ${formatDateDMY(item.NgayBatDau)} - ${formatDateDMY(item.NgayKetThuc)}`);
+
         const thoiGianThucHien = `${formatDateDMY(
           item.NgayBatDau
         )} - ${formatDateDMY(item.NgayKetThuc)}`;
@@ -349,8 +363,8 @@ const getExportPhuLucDAPath = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
         const row = worksheet.addRow([
           index + 1, // STT
           hoTenTrim,
@@ -647,8 +661,8 @@ const getExportPhuLucDAPath = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         const row = worksheet2.addRow([
           index + 1,
@@ -923,8 +937,8 @@ const getExportPhuLucDAPath = async (
           item.HocVi === "Tiến sĩ"
             ? "TS"
             : item.HocVi === "Thạc sĩ"
-            ? "ThS"
-            : item.HocVi;
+              ? "ThS"
+              : item.HocVi;
 
         // Thêm hàng dữ liệu vào sheet tổng hợp
         const summaryRow = summarySheet.addRow([
@@ -1139,8 +1153,8 @@ const exportPhuLucDA = async (req, res) => {
           edt.TenDeTai,
           edt.SinhVien,
           edt.SoTiet,
-          edt.NgayBatDau,
-          edt.NgayKetThuc,
+          MIN(edt.NgayBatDau) AS NgayBatDau,
+          MAX(edt.NgayKetThuc) AS NgayKetThuc,
           gv.HocVi,
           gv.HSL,
           gv.DiaChi,
@@ -1166,10 +1180,24 @@ const exportPhuLucDA = async (req, res) => {
       params.push(`%${teacherName}%`);
     }
 
-    query += ` GROUP BY gv.HoTen, edt.TenDeTai, edt.SinhVien, edt.SoTiet, edt.NgayBatDau, edt.NgayKetThuc, 
+    query += ` GROUP BY gv.HoTen, edt.TenDeTai, edt.SinhVien, edt.SoTiet, 
                gv.HocVi, gv.HSL, gv.DiaChi, gv.CCCD, edt.SoHopDong, edt.SoThanhLyHopDong`;
 
     const [data] = await connection.execute(query, params);
+
+    // DEBUG: Kiểm tra dữ liệu ngày từ truy vấn
+    console.log("=== DEBUG PHỤ LỤC ĐỒ ÁN ===");
+    console.log("Query executed:", query);
+    console.log("Params:", params);
+    if (data.length > 0) {
+      console.log("First record NgayBatDau:", data[0].NgayBatDau);
+      console.log("First record NgayKetThuc:", data[0].NgayKetThuc);
+      console.log("All records dates:");
+      data.forEach((item, idx) => {
+        console.log(`  [${idx}] ${item.GiangVien}: NgayBatDau=${item.NgayBatDau}, NgayKetThuc=${item.NgayKetThuc}`);
+      });
+    }
+    console.log("=== END DEBUG ===");
 
     if (data.length === 0) {
       return res.send(
@@ -1254,7 +1282,7 @@ const getPhuLucDASite = async (req, res) => {
     const query = `select HoTen, MaPhongBan from gvmoi`;
     const [gvmoiList] = await connection.query(query);
 
-    res.render("exportPhuLucDA.ejs", {
+    res.render("doan.phuLucDoAn.ejs", {
       gvmoiList: gvmoiList,
     });
   } catch (error) {
