@@ -662,15 +662,32 @@ const taiUyNhiemChiController = {
   },
 
   // UNC ngoài - Nhập dữ liệu - Giao diện
-  getUNCNgoaiGiaoDienPage: (req, res) => {
+  getUNCNgoaiGiaoDienPage: async (req, res) => {
+    let connection;
     try {
+      connection = await createPoolConnection();
+
+      // Lấy STT tiếp theo để hiển thị trên form
+      // Dùng MAX(stt) để lấy số thứ tự cao nhất trong bảng
+      const [rows] = await connection.execute(`
+        SELECT IFNULL(MAX(stt), 0) + 1 AS nextStt
+        FROM uncngoai
+      `);
+
+      const nextStt = rows && rows.length > 0 && rows[0].nextStt ? rows[0].nextStt : 1;
+
       res.render('uncNgoaiGiaoDien', {
         title: 'UNC ngoài - Giao diện',
-        user: req.user || {}
+        user: req.user || {},
+        nextStt
       });
     } catch (error) {
       console.error('Error rendering UNC ngoài Giao diện page:', error);
       res.status(500).send('Internal Server Error');
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
     }
   },
 
@@ -684,6 +701,170 @@ const taiUyNhiemChiController = {
     } catch (error) {
       console.error('Error rendering UNC ngoài Xem dữ liệu page:', error);
       res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // API tạo bản ghi UNC ngoài (nhập dữ liệu thủ công)
+  createUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      // Đặt tên biến và cột không dấu để đồng bộ với frontend và database
+      const { dvnt, stk, nganhang } = req.body || {};
+
+      if (!dvnt || !stk || !nganhang) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập đầy đủ Đơn vị nhận tiền, Số tài khoản và Ngân hàng'
+        });
+      }
+
+      connection = await createPoolConnection();
+
+      // Lấy STT tiếp theo từ bảng
+      const [sttRows] = await connection.execute(`
+        SELECT IFNULL(MAX(stt), 0) + 1 AS nextStt
+        FROM uncngoai
+      `);
+      const newStt = sttRows && sttRows.length > 0 && sttRows[0].nextStt ? sttRows[0].nextStt : 1;
+
+      // Insert kèm STT vào bảng
+      const [result] = await connection.execute(
+        `INSERT INTO uncngoai (stt, dvnt, stk, nganhang) VALUES (?, ?, ?, ?)`,
+        [newStt, dvnt, stk, nganhang]
+      );
+
+      return res.json({
+        success: true,
+        message: 'Đã lưu dòng UNC ngoài thành công',
+        data: {
+          stt: newStt,
+          dvnt,
+          stk,
+          nganhang
+        }
+      });
+    } catch (error) {
+      console.error('Error in createUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lưu dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API lấy danh sách UNC ngoài
+  getUNCNgoaiList: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [rows] = await connection.execute(
+        `SELECT stt, dvnt, stk, nganhang FROM uncngoai ORDER BY stt`
+      );
+
+      return res.json({
+        success: true,
+        data: rows || []
+      });
+    } catch (error) {
+      console.error('Error in getUNCNgoaiList:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi tải danh sách UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API cập nhật một bản ghi UNC ngoài
+  updateUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      const { stt, dvnt, stk, nganhang } = req.body || {};
+
+      if (!stt || !dvnt || !stk || !nganhang) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu STT hoặc thông tin Đơn vị nhận tiền, Số tài khoản, Ngân hàng'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [result] = await connection.execute(
+        `UPDATE uncngoai SET dvnt = ?, stk = ?, nganhang = ? WHERE stt = ?`,
+        [dvnt, stk, nganhang, stt]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bản ghi để cập nhật'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Đã cập nhật dòng UNC ngoài thành công'
+      });
+    } catch (error) {
+      console.error('Error in updateUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi cập nhật dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API xóa một bản ghi UNC ngoài
+  deleteUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      const { stt } = req.body || {};
+
+      if (!stt) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu STT cần xóa'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [result] = await connection.execute(
+        `DELETE FROM uncngoai WHERE stt = ?`,
+        [stt]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bản ghi để xóa'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Đã xóa dòng UNC ngoài thành công'
+      });
+    } catch (error) {
+      console.error('Error in deleteUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xóa dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
     }
   }
 };

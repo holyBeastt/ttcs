@@ -49,6 +49,10 @@ router.get('/unc-datn', taiUyNhiemChiController.getUNCDoAnPage);
 router.get('/unc-ngoai/nhap-du-lieu/import-file', taiUyNhiemChiController.getUNCNgoaiImportFilePage);
 router.get('/unc-ngoai/nhap-du-lieu/giao-dien', taiUyNhiemChiController.getUNCNgoaiGiaoDienPage);
 router.get('/unc-ngoai/xem-du-lieu', taiUyNhiemChiController.getUNCNgoaiXemDuLieuPage);
+router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/create', taiUyNhiemChiController.createUNCNgoaiRecord);
+router.get('/unc-ngoai/nhap-du-lieu/giao-dien/api/list', taiUyNhiemChiController.getUNCNgoaiList);
+router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/update', taiUyNhiemChiController.updateUNCNgoaiRecord);
+router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/delete', taiUyNhiemChiController.deleteUNCNgoaiRecord);
 
 // Routes cho Sửa mẫu ủy nhiệm (Mẫu đóng HP)
 router.get('/sua-mau-uy-nhiem', suaMauUyNhiemController.getSuaMauUyNhiemPage);
