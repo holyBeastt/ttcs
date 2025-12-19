@@ -470,11 +470,9 @@ const approveContracts = async (req, res) => {
                 if (allDaoTaoApproved && check.length > 0) {
                     const [updateResult] = await connection.query(`
                         UPDATE quychuan qc
-                        JOIN gvmoi gv ON SUBSTRING_INDEX(qc.GiaoVienGiangDay, ' - ', 1) = gv.HoTen
                         SET qc.TaiChinhDuyet = 1 
                         WHERE qc.Khoa = ? AND qc.Dot = ? AND qc.KiHoc = ? AND qc.NamHoc = ? 
                           AND qc.DaoTaoDuyet = 1 AND qc.TaiChinhDuyet != 1 AND qc.DaLuu = 0
-                          AND gv.isQuanDoi = 0
                     `, [faculty.MaPhongBan, dot, ki, namHoc]);
 
                     affectedRows += updateResult.affectedRows;

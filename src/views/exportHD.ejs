@@ -574,10 +574,7 @@
             if (response.success && response.data) {
               const select = $('#loaiHopDong');
               select.empty(); // Xóa option "Đang tải..."
-              
-              // Thêm option mặc định
-              select.append('<option value="">Chọn hệ đào tạo</option>');
-              
+                            
               // Thêm các hệ đào tạo từ API
               response.data.forEach(function(item) {
                 select.append(
