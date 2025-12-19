@@ -452,8 +452,7 @@
             </ul>
           </div>
         </div>
-        <div class="controls-container d-flex justify-content-between align-items-center">
-          <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên" class="form-control search" style="width: 300px" />
+        <div class="controls-container d-flex justify-content-end align-items-center">
           <div class="d-flex gap-2">
             <button id="approveContractBtn" class="btn btn-success" style="display: none;">
               Duyệt hợp đồng
@@ -509,7 +508,12 @@
         <!-- Data Table Section -->
         <div class="mt-4">
           <!-- Quota information -->
-          <div id="quotaInfo"></div> <!-- Results Table -->
+          <div id="quotaInfo"></div>
+          <!-- Search input - moved here below quota info -->
+          <div class="mb-3">
+            <input type="text" id="searchGiangVien" placeholder="Tìm theo tên giảng viên" class="form-control search" style="width: 300px" />
+          </div>
+          <!-- Results Table -->
           <div id="resultsDiv" style="display: none;">
             <!-- Teacher Summary Table -->
             <div class="mb-4">
@@ -983,6 +987,7 @@
       // Use server-calculated totals if available, otherwise calculate on client
       let totalSoTiet, totalThanhTien, totalThue, totalThucNhan;
 
+      // Button tổng ở dưới đáy
       if (serverTotals) {
         totalSoTiet = serverTotals.totalSoTietHeDaoTao;
         totalThanhTien = serverTotals.totalThanhTienHeDaoTao;
@@ -1002,25 +1007,28 @@
       window.heDaoTaoDetailData = enhancedData || [];
       
       // Debug log to verify data structure
-      console.log('Stored heDaoTaoDetailData:', window.heDaoTaoDetailData.length > 0 ? {
-        count: window.heDaoTaoDetailData.length,
-        allIds: window.heDaoTaoDetailData.map(item => ({
-          id: item.id,
-          idType: typeof item.id,
-          idValue: JSON.stringify(item.id),
-          tenHe: item.tenHe
-        })),
-        firstItemKeys: Object.keys(window.heDaoTaoDetailData[0])
-      } : 'No data');
+      // console.log('Stored heDaoTaoDetailData:', window.heDaoTaoDetailData.length > 0 ? {
+      //   count: window.heDaoTaoDetailData.length,
+      //   allIds: window.heDaoTaoDetailData.map(item => ({
+      //     id: item.id,
+      //     idType: typeof item.id,
+      //     idValue: JSON.stringify(item.id),
+      //     tenHe: item.tenHe
+      //   })),
+      //   firstItemKeys: Object.keys(window.heDaoTaoDetailData[0])
+      // } : 'No data');
 
-      // Create approval status display function
+      
+      // label duyệt và chưa duyệt
       const getApprovalStatus = (taiChinhDuyet) => {
         if (taiChinhDuyet == 1) {
           return 'Đã duyệt';
         } else {
           return 'Chưa duyệt';
         }
-      }; // Generate grouped display for each training program
+      }; 
+      
+      // Generate grouped display for each training program
       enhancedData.forEach((heDaoTao, groupIndex) => {
         const giangVienList = heDaoTao.chiTietGiangVien || [];
 
@@ -1040,7 +1048,7 @@
         giangVienList.forEach(gv => {
           const thanhTien = parseFloat(gv.ThanhTien) || 0;
           const thucNhan = parseFloat(gv.ThucNhan) || 0;
-          const soTiet = parseFloat(gv.SoTiet) || 0;
+          const soTiet = parseFloat(gv.TongTiet) || parseFloat(gv.SoTiet) || 0;  // TongTiet is the actual column name from query
           
           // Check if teacher belongs to ĐTPH department - using exact same data as table display
           const tenPhongBan = (gv.MaPhongBan || gv.TenPhongBan || 'N/A').toString();
@@ -1079,12 +1087,13 @@
           }
         });
 
-        // Create group container
+        // Tạo bảng 
         const groupContainer = $(`
-            <div class="training-program-group">              <div class="training-program-header">
+            <div class="training-program-group">              
+              <div class="training-program-header">
                 <i class="fas fa-graduation-cap me-2"></i>
-                ${heDaoTao.tenHe}
-                <span class="float-end">${getApprovalStatus(heDaoTao.TaiChinhDuyet)}</span>
+                ${heDaoTao.he_dao_tao}
+              <!--  <span class="float-end">${getApprovalStatus(heDaoTao.TaiChinhDuyet)}</span> -->
               </div>
               
               <div class="training-program-summary">
@@ -1093,7 +1102,7 @@
                   <span class="summary-value">${giangVienList.length}</span> giảng viên
                 </div>                <div class="summary-item">
                   <i class="fas fa-clock me-1"></i>
-                  <span class="summary-value">${formatSoTiet(heDaoTao.SoTiet)}</span> tiết
+                  <span class="summary-value">${formatSoTiet(dtphSoTiet + otherSoTiet)}</span> tiết
                 </div>
                 
                 <!-- ĐTPH Department Summary -->
@@ -1112,11 +1121,11 @@
 
                 <div class="summary-item">
                   <i class="fas fa-money-bill-wave me-1"></i>
-                  Tổng tiền: <span class="summary-value">${formatCurrency(heDaoTao.ThanhTien)}</span>
+                  Tổng tiền: <span class="summary-value">${formatCurrency(dtphThanhTien + otherThanhTien)}</span>
                 </div>
                 <div class="summary-item">
                   <i class="fas fa-hand-holding-usd me-1"></i>
-                  Tổng thực nhận: <span class="summary-value">${formatCurrency(heDaoTao.ThucNhan)}</span>
+                  Tổng thực nhận: <span class="summary-value">${formatCurrency(dtphThucNhan + otherThucNhan)}</span>
                 </div>
               </div>
               
@@ -1155,13 +1164,13 @@
           const teacherStatus = getApprovalStatus(gv.TaiChinhDuyet);
           
           // Debug: Log teacher data
-          console.log('[DEBUG View] Teacher:', gv.HoTen, 'isNghiHuu:', gv.isNghiHuu, 'SoTiet:', gv.SoTiet);
+          console.log('[DEBUG View] Teacher:', gv.HoTen, 'isNghiHuu:', gv.isNghiHuu, 'TongTiet:', gv.TongTiet);
           
           // Xác định định mức và hiển thị tên
           const isNghiHuu = gv.isNghiHuu == 1;
           const dinhMucGV = isNghiHuu ? window.SoTietDinhMucDaNghiHuu : window.SoTietDinhMucChuaNghiHuu;
           const displayName = isNghiHuu ? `${gv.GiangVien} (Đã nghỉ hưu)` : gv.GiangVien;
-          const rowClass = (parseFloat(gv.SoTiet) || 0) > dinhMucGV ? 'alert-sotiet' : '';
+          const rowClass = (parseFloat(gv.TongTiet) || parseFloat(gv.SoTiet) || 0) > dinhMucGV ? 'alert-sotiet' : '';
           
           const teacherRow = $(`
               <tr class="${rowClass}">
@@ -1170,7 +1179,7 @@
                 <td><strong>${displayName}</strong></td>
                 <td>${gv.MaPhongBan || gv.TenPhongBan || 'N/A'}</td>                <td>${gv.HocVi || 'N/A'}</td>
                 <td>${gv.TienMoiGiang ? formatCurrency(gv.TienMoiGiang) : 'N/A'}</td>
-                <td>${formatSoTiet(gv.SoTiet)}</td>
+                <td>${formatSoTiet(gv.TongTiet || gv.SoTiet)}</td>
                 <td>${formatCurrency(gv.ThanhTien)}</td>                <td>${formatCurrency(gv.Thue || (parseFloat(gv.ThanhTien) || 0) * 0.1)}</td>
                 <td>${formatCurrency(gv.ThucNhan)}</td><td class="contract-tcduyet-cell-hedaotao">
                   ${getApprovalStatus(gv.TaiChinhDuyet)}
@@ -1178,10 +1187,10 @@
                   Đang tải...
                 </td>
                 <td class="action-col">
-                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.tenHe}')">
+                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
                    Xem chi tiết
                   </button>
-                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.tenHe}')">
+                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
                     Xem trước HĐ
                   </button>
                 </td>
@@ -1253,10 +1262,8 @@
         const chuaNghiHuu = window.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
         const daNghiHuu = window.SoTietDinhMucDaNghiHuu || 560;
         $('#quotaInfo').html(`
-            <div class="alert alert-info">
-              <strong>Định mức giảng dạy:</strong><br>
-              • Giảng viên chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm<br>
-              • Giảng viên đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
+            <div class="alert alert-info mb-2" style="padding: 10px 15px;">
+              <strong>Định mức giảng dạy:</strong> Chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm | Đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
             </div>
           `);
       } // Show training program results table 
@@ -1714,10 +1721,8 @@
         const chuaNghiHuu = window.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
         const daNghiHuu = window.SoTietDinhMucDaNghiHuu || 560;
         $('#quotaInfo').html(`
-            <div class="alert alert-info">
-              <strong>Định mức giảng dạy:</strong><br>
-              • Giảng viên chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm<br>
-              • Giảng viên đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
+            <div class="alert alert-info mb-2" style="padding: 10px 15px;">
+              <strong>Định mức giảng dạy:</strong> Chưa nghỉ hưu: <strong>${chuaNghiHuu}</strong> tiết/năm | Đã nghỉ hưu: <strong>${daNghiHuu}</strong> tiết/năm
             </div>
           `);
       } // Show teacher results table and hide training program table
@@ -3006,4 +3011,4 @@
   <script src="/js/moigiang/hideBtn.js"></script>
 </body>
 
-</html>
+</html
