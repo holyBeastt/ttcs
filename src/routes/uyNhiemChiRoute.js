@@ -35,18 +35,30 @@ const upload = multer({
   }
 });
 
-// Routes cho Tải ủy nhiệm chi
+// Routes cho Tải ủy nhiệm chi (UNC hệ thống - UNC mời giảng)
 router.get('/tai-uy-nhiem-chi', taiUyNhiemChiController.getTaiUyNhiemChiPage);
 router.post('/api/download', taiUyNhiemChiController.downloadUyNhiemChi);
 router.post('/api/preview', taiUyNhiemChiController.previewUyNhiemChi);
 router.post('/api/setup', taiUyNhiemChiController.setupUyNhiemChi);
 router.get('/api/load-options', taiUyNhiemChiController.loadOptions);
 
-// Routes cho Sửa mẫu ủy nhiệm
+// Routes cho UNC ĐATN (hệ thống)
+router.get('/unc-datn', taiUyNhiemChiController.getUNCDoAnPage);
+
+// Routes cho UNC ngoài
+router.get('/unc-ngoai/nhap-du-lieu/import-file', taiUyNhiemChiController.getUNCNgoaiImportFilePage);
+router.get('/unc-ngoai/nhap-du-lieu/giao-dien', taiUyNhiemChiController.getUNCNgoaiGiaoDienPage);
+router.get('/unc-ngoai/xem-du-lieu', taiUyNhiemChiController.getUNCNgoaiXemDuLieuPage);
+
+// Routes cho Sửa mẫu ủy nhiệm (Mẫu đóng HP)
 router.get('/sua-mau-uy-nhiem', suaMauUyNhiemController.getSuaMauUyNhiemPage);
 router.get('/api/download-mau-uy-nhiem/:fileName?', suaMauUyNhiemController.downloadMauUyNhiem);
 
-// Route upload với xử lý lỗi multer
+// Route trang Mẫu mật mã
+router.get('/mau-mat-ma', suaMauUyNhiemController.getMauMatMaPage);
+router.get('/api/download-mau-uy-nhiem-mat-ma/:fileName?', suaMauUyNhiemController.downloadMauMatMa);
+
+// Route upload với xử lý lỗi multer (Mẫu đóng HP)
 router.post('/api/upload-mau-uy-nhiem', (req, res, next) => {
   upload.single('template')(req, res, (err) => {
     if (err instanceof multer.MulterError) {
@@ -69,5 +81,29 @@ router.post('/api/upload-mau-uy-nhiem', (req, res, next) => {
     next();
   });
 }, suaMauUyNhiemController.uploadMauUyNhiem);
+
+// Route upload với xử lý lỗi multer (Mẫu mật mã)
+router.post('/api/upload-mau-uy-nhiem-mat-ma', (req, res, next) => {
+  upload.single('template')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File quá lớn. Kích thước tối đa là 10MB.'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Lỗi upload file: ' + err.message
+      });
+    } else if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+    next();
+  });
+}, suaMauUyNhiemController.uploadMauMatMa);
 
 module.exports = router;

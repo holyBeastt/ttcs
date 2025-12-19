@@ -633,6 +633,58 @@ const taiUyNhiemChiController = {
         await connection.release();
       }
     }
+  },
+
+  // Trang UNC ĐATN (hệ thống)
+  getUNCDoAnPage: (req, res) => {
+    try {
+      res.render('uncDatn', {
+        title: 'UNC ĐATN',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ĐATN page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // UNC ngoài - Nhập dữ liệu - Import file
+  getUNCNgoaiImportFilePage: (req, res) => {
+    try {
+      res.render('uncNgoaiImportFile', {
+        title: 'UNC ngoài - Import file',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Import file page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // UNC ngoài - Nhập dữ liệu - Giao diện
+  getUNCNgoaiGiaoDienPage: (req, res) => {
+    try {
+      res.render('uncNgoaiGiaoDien', {
+        title: 'UNC ngoài - Giao diện',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Giao diện page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // UNC ngoài - Xem dữ liệu
+  getUNCNgoaiXemDuLieuPage: (req, res) => {
+    try {
+      res.render('uncNgoaiXemDuLieu', {
+        title: 'UNC ngoài - Xem dữ liệu',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Xem dữ liệu page:', error);
+      res.status(500).send('Internal Server Error');
+    }
   }
 };
 
@@ -693,6 +745,64 @@ const suaMauUyNhiemController = {
       res.status(500).json({ 
         success: false, 
         message: 'Có lỗi xảy ra khi upload file!' 
+      });
+    }
+  },
+
+  // Trang Mẫu mật mã
+  getMauMatMaPage: (req, res) => {
+    try {
+      res.render('mauMatMaUyNhiem', {
+        title: 'Mẫu mật mã Ủy nhiệm chi',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering Mẫu mật mã page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // Tải file mẫu ủy nhiệm mật mã
+  downloadMauMatMa: (req, res) => {
+    const fileName = req.params.fileName || 'Mẫu Ủy Nhiệm Chi Mật Mã.xlsx';
+    const filePath = path.join(TEMPLATES_DIR, fileName);
+
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        return res.status(404).send('Tệp mẫu ủy nhiệm mật mã không tìm thấy');
+      }
+
+      res.download(filePath, fileName, (err) => {
+        if (err) {
+          console.error('Lỗi khi tải xuống mẫu ủy nhiệm mật mã:', err);
+          res.status(500).send('Có lỗi xảy ra khi tải xuống');
+        }
+      });
+    });
+  },
+
+  // Upload file mẫu ủy nhiệm mật mã mới
+  uploadMauMatMa: (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Không có tệp nào được gửi!' 
+        });
+      }
+
+      console.log('Mẫu mật mã uploaded successfully:', req.file.filename);
+      
+      res.json({ 
+        success: true, 
+        message: `File mẫu mật mã "${req.file.originalname}" đã được cập nhật thành công!` 
+      });
+      
+    } catch (error) {
+      console.error('Error in uploadMauMatMa:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Có lỗi xảy ra khi upload file mẫu mật mã!' 
       });
     }
   }
