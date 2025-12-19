@@ -6,6 +6,7 @@ const mysql = require("mysql2/promise");
 const xlsx = require("xlsx");
 const path = require("path"); // Thêm dòng này
 const fs = require("fs"); // Thêm dòng này
+const gvmServices = require("../services/gvmServices");
 
 function sanitizeFileName(fileName) {
   return fileName.replace(/[^a-z0-9]/gi, "_");
@@ -622,7 +623,7 @@ const getHopDongDuKienData = async (req, res) => {
     connection = await createPoolConnection();
 
     // 2. Xây dựng Query động (Dynamic Query Building)
-    const { finalQuery, params } = buildDynamicQuery({
+    const { finalQuery, params } = gvmServices.buildDynamicQuery({
       namHoc, dot, ki, he_dao_tao, khoa
     });
 
