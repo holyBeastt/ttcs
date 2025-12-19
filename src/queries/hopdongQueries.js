@@ -1,4 +1,3 @@
-// --- HELPER FUNCTION: Tạo SQL Join giá tiền tự động ---
 const DON_GIA_EXPR = (tableAlias, khoaCol) => `
 COALESCE(
   (
@@ -6,15 +5,54 @@ COALESCE(
     FROM tienluong cfg
     WHERE 
       (cfg.he_dao_tao IS NULL OR cfg.he_dao_tao = ${tableAlias}.he_dao_tao)
-      AND (cfg.Khoa = 'ALL' OR cfg.Khoa = ${tableAlias}.${khoaCol})
       AND (cfg.HocVi IS NULL OR cfg.HocVi = gv.HocVi)
-      AND CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
-    ORDER BY cfg.do_uu_tien DESC, cfg.HSL DESC
+      AND (
+        (
+          cfg.chuc_danh_id != 0
+          AND cfg.chuc_danh_id = gv.chuc_danh
+        )
+        OR
+        (
+          cfg.chuc_danh_id = 0
+          AND CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
+        )
+      )
+    ORDER BY 
+      cfg.do_uu_tien DESC,
+      cfg.SoTien DESC,
+      cfg.HSL DESC
     LIMIT 1
   ),
   0
 )
 `;
+
+
+// const DON_GIA_EXPR = (tableAlias, khoaCol) => `
+// COALESCE(
+//   (
+//     SELECT cfg.SoTien
+//     FROM tienluong cfg
+//     WHERE 
+//       (cfg.he_dao_tao IS NULL OR cfg.he_dao_tao = ${tableAlias}.he_dao_tao)
+//       AND (cfg.HocVi IS NULL OR cfg.HocVi = gv.HocVi)
+//       AND (
+//         CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
+//         OR (
+//           cfg.chuc_danh_id != 0
+//           AND cfg.chuc_danh_id = gv.chuc_danh
+//         )
+//       )
+//     ORDER BY 
+//       cfg.do_uu_tien DESC,
+//       cfg.SoTien DESC,
+//       cfg.HSL DESC
+//     LIMIT 1
+//   ),
+//   0
+// )
+// `;
+
 
 const COL_DON_GIA = `COALESCE(bang_gia.don_gia, 0)`;
 
