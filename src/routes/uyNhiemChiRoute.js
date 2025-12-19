@@ -49,6 +49,14 @@ router.get('/unc-datn', taiUyNhiemChiController.getUNCDoAnPage);
 router.get('/unc-ngoai/nhap-du-lieu/import-file', taiUyNhiemChiController.getUNCNgoaiImportFilePage);
 router.get('/unc-ngoai/nhap-du-lieu/giao-dien', taiUyNhiemChiController.getUNCNgoaiGiaoDienPage);
 router.get('/unc-ngoai/xem-du-lieu', taiUyNhiemChiController.getUNCNgoaiXemDuLieuPage);
+
+// API cho UNC ngoài - Xem dữ liệu
+router.get('/unc-ngoai/xem-du-lieu/api/get-uncngoai-info', taiUyNhiemChiController.getUNCNgoaiInfo);
+router.post('/unc-ngoai/xem-du-lieu/api/convert-to-words', taiUyNhiemChiController.convertToWords);
+router.post('/unc-ngoai/xem-du-lieu/api/save', taiUyNhiemChiController.saveUNCNgoaiDetail);
+router.get('/unc-ngoai/xem-du-lieu/api/get-detail-list', taiUyNhiemChiController.getUNCNgoaiDetailList);
+router.post('/unc-ngoai/xem-du-lieu/api/delete-selected', taiUyNhiemChiController.deleteSelectedUNCNgoaiDetail);
+router.post('/unc-ngoai/xem-du-lieu/api/export-excel-selected', taiUyNhiemChiController.exportSelectedUNCNgoaiDetailExcel);
 router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/create', taiUyNhiemChiController.createUNCNgoaiRecord);
 router.get('/unc-ngoai/nhap-du-lieu/giao-dien/api/list', taiUyNhiemChiController.getUNCNgoaiList);
 router.post('/unc-ngoai/nhap-du-lieu/giao-dien/api/update', taiUyNhiemChiController.updateUNCNgoaiRecord);

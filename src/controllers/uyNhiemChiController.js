@@ -704,6 +704,573 @@ const taiUyNhiemChiController = {
     }
   },
 
+  // API lấy thông tin từ bảng uncngoai theo STT
+  getUNCNgoaiInfo: async (req, res) => {
+    let connection;
+    try {
+      const stt = parseInt(req.query.stt);
+      if (!stt || stt <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'STT không hợp lệ'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [rows] = await connection.execute(
+        `SELECT stt, dvnt, stk, nganhang FROM uncngoai WHERE stt = ?`,
+        [stt]
+      );
+
+      if (rows.length === 0) {
+        return res.json({
+          success: false,
+          message: 'Không tìm thấy thông tin với STT này'
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: rows[0]
+      });
+    } catch (error) {
+      console.error('Error in getUNCNgoaiInfo:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lấy thông tin UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API chuyển số tiền sang chữ
+  convertToWords: (req, res) => {
+    try {
+      const { amount } = req.body;
+      if (!amount || amount <= 0) {
+        return res.json({
+          success: true,
+          words: ''
+        });
+      }
+
+      const words = numberToWords(parseInt(amount));
+      return res.json({
+        success: true,
+        words
+      });
+    } catch (error) {
+      console.error('Error in convertToWords:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi chuyển đổi số tiền'
+      });
+    }
+  },
+
+  // API lưu vào bảng uncngoaidetail
+  saveUNCNgoaiDetail: async (req, res) => {
+    let connection;
+    try {
+      const {
+        hedaotao,
+        stt,
+        dvnt,
+        stk,
+        nganhang,
+        sotien,
+        noidung,
+        manguonns,
+        niendons,
+        diachi,
+        nguoinhantien,
+        cccd,
+        ngaycap,
+        noicap
+      } = req.body;
+
+      // Validate các trường bắt buộc
+      if (!hedaotao || !stt || !dvnt || !stk || !nganhang || !sotien || !noidung) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập đầy đủ thông tin bắt buộc'
+        });
+      }
+
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
+
+      // Lấy niên độ từ niendons hoặc lấy năm hiện tại
+      let nienDo = niendons;
+      if (!nienDo) {
+        nienDo = new Date().getFullYear().toString();
+      }
+
+      // Lấy số UNC tiếp theo theo niên độ và hệ đào tạo
+      // sounc được lưu dạng số nhưng hiển thị dạng 001, 002, ...
+      const [souncRows] = await connection.execute(`
+        SELECT IFNULL(MAX(sounc), 0) AS maxSounc
+        FROM uncngoaidetail
+        WHERE niendons = ? AND hedaotao = ?
+      `, [nienDo, hedaotao]);
+
+      const nextSounc = (souncRows[0].maxSounc || 0) + 1;
+
+      // Format ngày nhập theo YYYY-MM-DD cho MySQL DATE
+      const now = new Date();
+      const ngaynhap = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+      // Format ngày cấp nếu có (từ YYYY-MM-DD sang DATE)
+      let ngaycapFormatted = null;
+      if (ngaycap) {
+        // Nếu ngày cấp đã là format YYYY-MM-DD thì giữ nguyên, nếu không thì parse
+        ngaycapFormatted = ngaycap;
+      }
+
+      // Insert vào bảng uncngoaidetail
+      const [result] = await connection.execute(
+        `INSERT INTO uncngoaidetail (
+          stt, hedaotao, dvnt, stk, nganhang, sotien, noidung,
+          manguonns, niendons, diachi, nguoinhantien, cccd, ngaycap, noicap, ngaynhap, sounc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          parseInt(stt),
+          hedaotao,
+          dvnt,
+          stk,
+          nganhang,
+          parseInt(sotien),
+          noidung,
+          manguonns || null,
+          nienDo,
+          diachi || null,
+          nguoinhantien || null,
+          cccd || null,
+          ngaycapFormatted,
+          noicap || null,
+          ngaynhap,
+          nextSounc
+        ]
+      );
+
+      await connection.commit();
+
+      return res.json({
+        success: true,
+        message: 'Đã lưu dữ liệu UNC ngoài chi tiết thành công',
+        data: {
+          sounc: nextSounc,
+          ngaynhap
+        }
+      });
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+      console.error('Error in saveUNCNgoaiDetail:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lưu dữ liệu UNC ngoài chi tiết'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API lấy danh sách uncngoaidetail để hiển thị trong modal xuất Excel
+  getUNCNgoaiDetailList: async (req, res) => {
+    let connection;
+    try {
+      const { hedaotao, niendons } = req.query;
+
+      if (!hedaotao) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu thông tin hệ đào tạo'
+        });
+      }
+
+      connection = await createPoolConnection();
+      let query = `SELECT sounc, stt, dvnt, noidung, niendons, ngaynhap FROM uncngoaidetail WHERE hedaotao = ?`;
+      const params = [hedaotao];
+
+      if (niendons && niendons.trim() !== '') {
+        query += ` AND niendons = ?`;
+        params.push(niendons.trim());
+      }
+
+      query += ` ORDER BY niendons DESC, sounc ASC`;
+
+      const [rows] = await connection.execute(query, params);
+
+      return res.json({
+        success: true,
+        data: rows || []
+      });
+    } catch (error) {
+      console.error('Error in getUNCNgoaiDetailList:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lấy danh sách UNC ngoài chi tiết'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API xóa các bản ghi được chọn
+  deleteSelectedUNCNgoaiDetail: async (req, res) => {
+    let connection;
+    try {
+      const { ids } = req.body;
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có bản ghi nào được chọn để xóa'
+        });
+      }
+
+      connection = await createPoolConnection();
+      await connection.beginTransaction();
+
+      let deletedCount = 0;
+      for (const idObj of ids) {
+        const { sounc, stt, niendons } = idObj;
+        let query, params;
+        if (niendons) {
+          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ? AND niendons = ?`;
+          params = [sounc, stt, niendons];
+        } else {
+          query = `DELETE FROM uncngoaidetail WHERE sounc = ? AND stt = ? AND niendons IS NULL`;
+          params = [sounc, stt];
+        }
+        const [result] = await connection.execute(query, params);
+        deletedCount += result.affectedRows;
+      }
+
+      await connection.commit();
+
+      return res.json({
+        success: true,
+        message: `Đã xóa thành công ${deletedCount} bản ghi`,
+        count: deletedCount
+      });
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+      console.error('Error in deleteSelectedUNCNgoaiDetail:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xóa các bản ghi'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API xuất Excel từ template với dữ liệu từ uncngoaidetail - viết lại theo cách UNC mời giảng
+  exportSelectedUNCNgoaiDetailExcel: async (req, res) => {
+    let connection;
+    try {
+      const { hedaotao, ids, taiKhoanThanhToan } = req.body;
+
+      if (!hedaotao || !ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu thông tin hệ đào tạo hoặc danh sách bản ghi'
+        });
+      }
+
+      connection = await createPoolConnection();
+
+      // Lấy dữ liệu từ uncngoaidetail theo danh sách ids
+      const placeholders = ids.map(() => '(sounc = ? AND stt = ? AND (niendons = ? OR (niendons IS NULL AND ? IS NULL)))').join(' OR ');
+      const params = [];
+      ids.forEach(id => {
+        params.push(id.sounc, id.stt, id.niendons || null, id.niendons || null);
+      });
+
+      const [rows] = await connection.execute(
+        `SELECT * FROM uncngoaidetail WHERE hedaotao = ? AND (${placeholders}) ORDER BY niendons, sounc`,
+        [hedaotao, ...params]
+      );
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không có dữ liệu để xuất'
+        });
+      }
+
+      // Chọn template file dựa trên hedaotao
+      let templateFileName;
+      if (hedaotao === 'Đóng học phí') {
+        templateFileName = 'Mẫu ủy nhiệm chi.xlsx';
+      } else if (hedaotao === 'Mật mã') {
+        templateFileName = 'Mẫu Ủy Nhiệm Chi Mật Mã.xlsx';
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Hệ đào tạo không hợp lệ'
+        });
+      }
+
+      const templatePath = path.join(TEMPLATES_DIR, templateFileName);
+
+      if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({
+          success: false,
+          message: `File mẫu "${templateFileName}" không tồn tại`
+        });
+      }
+
+      // Kiểm tra file mẫu có đọc được không (giống UNC mời giảng)
+      try {
+        const templateStats = fs.statSync(templatePath);
+        if (templateStats.size === 0) {
+          throw new Error('File mẫu rỗng');
+        }
+        
+        const testWorkbook = new ExcelJS.Workbook();
+        await testWorkbook.xlsx.readFile(templatePath);
+        if (!testWorkbook.worksheets || testWorkbook.worksheets.length === 0) {
+          throw new Error('File mẫu không hợp lệ hoặc không có sheet nào');
+        }
+        
+        console.log('Template file is valid. Sheets:', testWorkbook.worksheets.length);
+        
+      } catch (templateError) {
+        console.error('Template file error:', templateError);
+        return res.status(500).json({
+          success: false,
+          message: 'File mẫu bị lỗi: ' + templateError.message + '. Vui lòng upload file mẫu mới.'
+        });
+      }
+
+      // Sử dụng ExcelJS để giữ nguyên format và hình ảnh (giống UNC mời giảng)
+      const templateWorkbook = new ExcelJS.Workbook();
+      await templateWorkbook.xlsx.readFile(templatePath);
+      
+      if (templateWorkbook.worksheets.length === 0) {
+        return res.status(500).json({
+          success: false,
+          message: 'File mẫu không có sheet nào'
+        });
+      }
+      
+      const templateWorksheet = templateWorkbook.worksheets[0];
+      
+      // Tạo workbook mới cho output
+      const outputWorkbook = new ExcelJS.Workbook();
+
+      // Tạo sheet cho từng bản ghi
+      for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
+        const sounc = String(row.sounc).padStart(3, '0');
+        const sheetName = sounc; // Tên sheet là sounc
+        
+        // Clone worksheet từ template để giữ nguyên toàn bộ định dạng
+        const newWorksheet = outputWorkbook.addWorksheet(sheetName);
+        
+        // Copy toàn bộ cấu trúc từ template worksheet
+        templateWorksheet.eachRow({ includeEmpty: true }, (templateRow, rowNumber) => {
+          const newRow = newWorksheet.getRow(rowNumber);
+          if (templateRow.height) newRow.height = templateRow.height;
+          
+          templateRow.eachCell({ includeEmpty: true }, (templateCell, colNumber) => {
+            const newCell = newRow.getCell(colNumber);
+            
+            // Copy value
+            if (templateCell.value !== null && templateCell.value !== undefined) {
+              newCell.value = templateCell.value;
+            }
+            
+            // Copy style hoàn chỉnh
+            if (templateCell.style) {
+              newCell.style = JSON.parse(JSON.stringify(templateCell.style));
+            }
+          });
+        });
+        
+        // Copy column properties
+        templateWorksheet.columns.forEach((col, colIndex) => {
+          const newCol = newWorksheet.getColumn(colIndex + 1);
+          if (col.width !== undefined) newCol.width = col.width;
+          if (col.hidden !== undefined) newCol.hidden = col.hidden;
+        });
+        
+        // Copy drawings/images
+        if (templateWorksheet.drawings) {
+          templateWorksheet.drawings.forEach(drawing => {
+            try {
+              newWorksheet.addImage(drawing.image, {
+                tl: drawing.range.tl,
+                br: drawing.range.br || drawing.range.tl
+              });
+            } catch (e) {
+              console.error('Error copying drawing:', e);
+            }
+          });
+        }
+        
+        // Copy merged cells
+        if (templateWorksheet.model && templateWorksheet.model.merges) {
+          templateWorksheet.model.merges.forEach(merge => {
+            try {
+              newWorksheet.mergeCells(merge);
+            } catch (e) {
+              // Ignore merge errors
+            }
+          });
+        }
+        
+        // Copy page setup
+        if (templateWorksheet.pageSetup) {
+          newWorksheet.pageSetup = JSON.parse(JSON.stringify(templateWorksheet.pageSetup));
+        }
+        
+        // Thay thế placeholder với dữ liệu từ uncngoaidetail
+        // Debug: log giá trị để kiểm tra
+        console.log(`Processing row ${index + 1}: sotien=${row.sotien}, diachi=${row.diachi}`);
+        
+        const replacements = {
+          '{{so_uy_nhiem}}': sounc,
+          '{{STT}}': row.stt || '',
+          '{{ho_ten}}': row.dvnt || '',
+          '{{don_vi_nhan}}': row.dvnt || '',
+          '{{STK}}': row.stk || '',
+          '{{tai_khoan}}': row.stk || '',
+          '{{tai_khoan_thanh_toan}}': taiKhoanThanhToan || '',
+          '{{Ngan_hang}}': row.nganhang || '',
+          '{{kho_bac}}': row.nganhang || '',
+          '{{Tien_chu}}': (row.sotien && row.sotien > 0) ? numberToWords(parseInt(row.sotien)) : '',
+          '{{tien_chu}}': (row.sotien && row.sotien > 0) ? numberToWords(parseInt(row.sotien)) : '',
+          '{{tien_so}}': (row.sotien && row.sotien > 0) ? formatCurrency(parseInt(row.sotien)) : '',
+          '{{so_tien}}': (row.sotien && row.sotien > 0) ? formatCurrency(parseInt(row.sotien)) : '',
+          '{{noidung}}': row.noidung || '',
+          '{{noi_dung}}': row.noidung || '',
+          '{{noi_dung_thanh_toan}}': row.noidung || '',
+          '{{manguonns}}': row.manguonns || '',
+          '{{nguon_ns}}': row.manguonns || '',
+          '{{niendons}}': row.niendons || '',
+          '{{nien_do}}': row.niendons || '',
+          '{{diachi}}': row.diachi || '',
+          '{{dia_chi}}': row.diachi || '',
+          '{{nguoinhantien}}': row.nguoinhantien || '',
+          '{{nguoi_nhan_tien}}': row.nguoinhantien || '',
+          '{{cccd}}': row.cccd || '',
+          '{{CCCD}}': row.cccd || '',
+          '{{ngaycap}}': row.ngaycap ? new Date(row.ngaycap).toLocaleDateString('vi-VN') : '',
+          '{{ngay_cap}}': row.ngaycap ? new Date(row.ngaycap).toLocaleDateString('vi-VN') : '',
+          '{{noicap}}': row.noicap || '',
+          '{{noi_cap}}': row.noicap || '',
+          '{{ngaynhap}}': row.ngaynhap ? new Date(row.ngaynhap).toLocaleDateString('vi-VN') : '',
+          '{{ngay_nhap}}': row.ngaynhap ? new Date(row.ngaynhap).toLocaleDateString('vi-VN') : ''
+        };
+        
+        // Thay thế placeholder trong sheet
+        newWorksheet.eachRow({ includeEmpty: true }, (worksheetRow, rowNumber) => {
+          worksheetRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            if (cell.value && typeof cell.value === 'string') {
+              let cellValue = cell.value;
+              let hasReplacement = false;
+              
+              for (let placeholder in replacements) {
+                if (cellValue.includes(placeholder)) {
+                  const replacementValue = replacements[placeholder];
+                  console.log(`Replacing ${placeholder} with: ${replacementValue}`);
+                  
+                  // Nếu là placeholder số tiền, giữ nguyên định dạng số (không in đậm)
+                  if (placeholder === '{{so_tien}}' || placeholder === '{{tien_so}}') {
+                    // Thay thế placeholder nhưng giữ nguyên style của cell
+                    cellValue = cellValue.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacementValue);
+                    hasReplacement = true;
+                    // Xóa định dạng in đậm nếu có
+                    if (cell.font && cell.font.bold) {
+                      cell.font = { ...cell.font, bold: false };
+                    }
+                  } else {
+                    cellValue = cellValue.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacementValue);
+                    hasReplacement = true;
+                  }
+                }
+              }
+              
+              if (hasReplacement) {
+                cell.value = cellValue;
+              }
+            }
+          });
+        });
+      }
+
+      // Ghi file Excel vào thư mục generated (giống UNC mời giảng)
+      const currentDate = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+      const safeHedaoTao = hedaotao
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu
+        .replace(/[^\w\s.-]/g, '') // Loại bỏ ký tự đặc biệt
+        .replace(/\s+/g, '_'); // Thay khoảng trắng bằng dấu gạch dưới
+      
+      const fileName = `UNC_ngoai_${safeHedaoTao}_${new Date().getTime()}.xlsx`;
+      const outputPath = path.join(GENERATED_DIR, fileName);
+
+      // Đảm bảo thư mục generated tồn tại
+      if (!fs.existsSync(GENERATED_DIR)) {
+        fs.mkdirSync(GENERATED_DIR, { recursive: true });
+      }
+
+      // Ghi file Excel
+      await outputWorkbook.xlsx.writeFile(outputPath);
+      
+      // Kiểm tra file đã được tạo thành công
+      const outputStats = fs.statSync(outputPath);
+      
+      if (outputStats.size === 0) {
+        throw new Error('File được tạo nhưng có kích thước 0');
+      }
+
+      // Trả về file Excel
+      res.download(outputPath, fileName, (err) => {
+        if (err) {
+          console.error('Error downloading file:', err);
+          res.status(500).json({
+            success: false,
+            message: 'Lỗi khi tải file'
+          });
+        } else {
+          // Xóa file tạm sau khi download
+          setTimeout(() => {
+            if (fs.existsSync(outputPath)) {
+              fs.unlinkSync(outputPath);
+            }
+          }, 5000);
+        }
+      });
+    } catch (error) {
+      console.error('Error in exportSelectedUNCNgoaiDetailExcel:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xuất file Excel: ' + error.message
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
   // API tạo bản ghi UNC ngoài (nhập dữ liệu thủ công)
   createUNCNgoaiRecord: async (req, res) => {
     let connection;
