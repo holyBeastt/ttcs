@@ -2,6 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const createPoolConnection = require("../config/databasePool");
 
+const { DON_GIA_EXPR } = require('../queries/hopdongQueries');
+
 /**
  * Redner site
  */
@@ -68,10 +70,10 @@ const getDuyetHopDongData = async (req, res) => {
         GROUP_CONCAT(DISTINCT da.MaSV      SEPARATOR ', ') AS SiSo,
         GROUP_CONCAT(DISTINCT da.khoa_sinh_vien SEPARATOR ', ') AS KhoaSinhVien,
         GROUP_CONCAT(DISTINCT da.nganh SEPARATOR ', ') AS Nganh,
-        100000                       AS TienMoiGiang,
-        SUM(da.SoTiet)*100000         AS ThanhTien,
-        SUM(da.SoTiet)*100000*0.1     AS Thue,
-        SUM(da.SoTiet)*100000*0.9     AS ThucNhan,
+        ${DON_GIA_EXPR('da', 'MaPhongBan')}                       AS TienMoiGiang,
+        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')}         AS ThanhTien,
+        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1   AS Thue,
+        SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9   AS ThucNhan,
         NULL                          AS SoHopDong,
         'Chưa có hợp đồng'            AS TrangThaiHopDong,
         pb.TenPhongBan,
@@ -528,10 +530,10 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 da.NamHoc,
                 da.Dot,
                 SUM(da.SoTiet) AS SoTiet,
-                100000 AS TienMoiGiang,
-                SUM(da.SoTiet) * 100000 AS ThanhTien,
-                SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
+                ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} AS ThanhTien,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
+                SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
                 1 AS DaoTaoDuyet,
                 1 AS TaiChinhDuyet,
                 COUNT(DISTINCT da.GiangVien) AS SoGiangVien
@@ -625,10 +627,10 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     pb.TenPhongBan,
                     
                     SUM(da.SoTiet) AS SoTiet,
-                    100000 AS TienMoiGiang,
-                    SUM(da.SoTiet) * 100000 AS ThanhTien,
-                    SUM(da.SoTiet) * 100000 * 0.1 AS Thue,
-                    SUM(da.SoTiet) * 100000 * 0.9 AS ThucNhan,
+                    ${DON_GIA_EXPR('da', 'MaPhongBan')} AS TienMoiGiang,
+                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} AS ThanhTien,
+                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.1 AS Thue,
+                    SUM(da.SoTiet) * ${DON_GIA_EXPR('da', 'MaPhongBan')} * 0.9 AS ThucNhan,
                     
                     1 AS DaoTaoDuyet,
                     1 AS TaiChinhDuyet,
@@ -642,6 +644,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 FROM (
                     SELECT
                         MaPhongBan,
+                        he_dao_tao,
                         TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
                         CASE 
                             WHEN GiangVien2 = 'không' OR GiangVien2 = '' THEN 20
@@ -657,6 +660,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                     
                     SELECT
                         MaPhongBan,
+                        he_dao_tao,
                         TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
                         8 AS SoTiet
                     FROM doantotnghiep

@@ -750,6 +750,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         const enhancedResults = [];
         for (const heDaoTao of results) {
             // Query to get detailed teacher info for this training program
+            // Sử dụng DON_GIA_EXPR thay vì LEFT JOIN tienluong để tránh duplicate rows
             let teacherQuery = `
     SELECT
         MIN(qc.NgayBatDau) AS NgayBatDau,         
@@ -786,8 +787,9 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             )
         ) AS SoTiet,
         
-        tl.SoTien AS TienMoiGiang,
-        tl.SoTien * SUM(
+        ${DON_GIA_EXPR('qc', 'Khoa')} AS TienMoiGiang,
+        
+        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
             IF(
                 INSTR(qc.GiaoVienGiangDay, ',') > 0,
                 0.7 * qc.QuyChuan,
@@ -795,7 +797,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             )
         ) AS ThanhTien,
         
-        tl.SoTien * SUM(
+        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
             IF(
                 INSTR(qc.GiaoVienGiangDay, ',') > 0,
                 0.7 * qc.QuyChuan,
@@ -803,13 +805,13 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
             )
         ) * 0.1 AS Thue,
         
-        tl.SoTien * SUM(
+        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
             IF(
                 INSTR(qc.GiaoVienGiangDay, ',') > 0,
                 0.7 * qc.QuyChuan,
                 qc.QuyChuan
-            ) * 0.9
-        ) AS ThucNhan,
+            )
+        ) * 0.9 AS ThucNhan,
         
         MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
         MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
@@ -825,8 +827,6 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
                 TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
             ) = gv.HoTen
-    LEFT JOIN tienluong tl 
-        ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
     LEFT JOIN phongban pb 
         ON gv.MaPhongBan = pb.MaPhongBan
     WHERE
@@ -850,7 +850,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
         gv.STK, gv.NganHang, gv.MaPhongBan, gv.NgayCapCCCD, gv.DiaChi, 
         gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh, gv.isNghiHuu,
-        pb.TenPhongBan, tl.SoTien
+        pb.TenPhongBan
     ORDER BY SoTiet DESC, gv.HoTen
             `;
 
