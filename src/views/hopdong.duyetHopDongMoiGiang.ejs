@@ -956,6 +956,8 @@
       });
     } // Function to display training program data in grouped format
     function displayHeDaoTaoData(data, enhancedData, SoTietDinhMuc, serverTotals) {
+      console.log("server total = ", serverTotals);
+      debugger
       // Lưu biến global để dùng cho các hàm khác
       window.SoTietDinhMucChuaNghiHuu = window.currentResponse?.SoTietDinhMucChuaNghiHuu || SoTietDinhMuc || 280;
       window.SoTietDinhMucDaNghiHuu = window.currentResponse?.SoTietDinhMucDaNghiHuu || 560;
@@ -1158,7 +1160,7 @@
           // Xác định định mức và hiển thị tên
           const isNghiHuu = gv.isNghiHuu == 1;
           const dinhMucGV = isNghiHuu ? window.SoTietDinhMucDaNghiHuu : window.SoTietDinhMucChuaNghiHuu;
-          const displayName = isNghiHuu ? `${gv.HoTen} (Đã nghỉ hưu)` : gv.HoTen;
+          const displayName = isNghiHuu ? `${gv.GiangVien} (Đã nghỉ hưu)` : gv.GiangVien;
           const rowClass = (parseFloat(gv.SoTiet) || 0) > dinhMucGV ? 'alert-sotiet' : '';
           
           const teacherRow = $(`

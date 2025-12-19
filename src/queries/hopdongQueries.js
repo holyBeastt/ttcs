@@ -28,32 +28,6 @@ COALESCE(
 `;
 
 
-// const DON_GIA_EXPR = (tableAlias, khoaCol) => `
-// COALESCE(
-//   (
-//     SELECT cfg.SoTien
-//     FROM tienluong cfg
-//     WHERE 
-//       (cfg.he_dao_tao IS NULL OR cfg.he_dao_tao = ${tableAlias}.he_dao_tao)
-//       AND (cfg.HocVi IS NULL OR cfg.HocVi = gv.HocVi)
-//       AND (
-//         CAST(REPLACE(gv.HSL, ',', '.') AS DECIMAL(4,2)) >= cfg.HSL
-//         OR (
-//           cfg.chuc_danh_id != 0
-//           AND cfg.chuc_danh_id = gv.chuc_danh
-//         )
-//       )
-//     ORDER BY 
-//       cfg.do_uu_tien DESC,
-//       cfg.SoTien DESC,
-//       cfg.HSL DESC
-//     LIMIT 1
-//   ),
-//   0
-// )
-// `;
-
-
 const COL_DON_GIA = `COALESCE(bang_gia.don_gia, 0)`;
 
 
@@ -194,6 +168,8 @@ DoAnHopDongDuKien AS (
     gv.NoiCongTac,
     gv.BangTotNghiepLoai,
     gv.MonGiangDayChinh,
+    Combined.DaoTaoDuyet,
+    Combined.TaiChinhDuyet,
 
     /* ================== ĐƠN GIÁ ================== */
     ${DON_GIA_EXPR('Combined', 'MaPhongBan')} AS TienMoiGiang,
@@ -232,6 +208,8 @@ DoAnHopDongDuKien AS (
       TRIM(SUBSTRING_INDEX(GiangVien1, '-', 1)) AS GiangVien,
       GiangVien2,
       'GV1' AS Nguon,
+      DaoTaoDuyet,
+      TaiChinhDuyet,
       Dot,
       ki,
       NamHoc
@@ -251,6 +229,8 @@ DoAnHopDongDuKien AS (
       TRIM(SUBSTRING_INDEX(GiangVien2, '-', 1)) AS GiangVien,
       GiangVien2,
       'GV2' AS Nguon,
+      DaoTaoDuyet,
+      TaiChinhDuyet,
       Dot,
       ki,
       NamHoc
@@ -302,6 +282,8 @@ DaiHocHopDongDuKien AS (
         gv.NoiCongTac,
         gv.BangTotNghiepLoai,
         gv.MonGiangDayChinh,
+        qc.DaoTaoDuyet,
+        qc.TaiChinhDuyet,
         ${DON_GIA_EXPR('qc', 'Khoa')} AS TienMoiGiang,
 
         ${DON_GIA_EXPR('qc', 'Khoa')} * qc.QuyChuan AS ThanhTien,
@@ -355,6 +337,8 @@ SoTietSauDaiHoc AS (
             gv.NoiCongTac,
             gv.BangTotNghiepLoai,
             gv.MonGiangDayChinh,
+            qc.DaoTaoDuyet,
+            qc.TaiChinhDuyet,
             ${DON_GIA_EXPR('qc', 'Khoa')} AS TienMoiGiang
         FROM 
             quychuan qc
@@ -408,6 +392,8 @@ tableALL AS (SELECT
         NoiCongTac,
         BangTotNghiepLoai,
         MonGiangDayChinh,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
         TienMoiGiang,
         ThanhTien,
         Thue,
@@ -448,6 +434,8 @@ tableALL AS (SELECT
         NoiCongTac,
         BangTotNghiepLoai,
         MonGiangDayChinh,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
         TienMoiGiang,
         ThanhTien,
         Thue,
@@ -488,6 +476,8 @@ tableALL AS (SELECT
         NoiCongTac,
         BangTotNghiepLoai,
         MonGiangDayChinh,
+        DaoTaoDuyet,
+        TaiChinhDuyet,
         TienMoiGiang,
         ThanhTien,
         Thue,

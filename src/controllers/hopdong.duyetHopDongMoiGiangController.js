@@ -625,6 +625,8 @@ const unapproveContracts = async (req, res) => {
 /**
  * Get contract approval data grouped by training program (he_dao_tao)
  */
+const gvmServices = require("../services/gvmServices")
+
 const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
     let connection;
     try {
@@ -639,227 +641,58 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
                 message: "Thiếu thông tin bắt buộc: Đợt, Kỳ, Năm học"
             });
         }        // Validate loaiHopDong values
-        let query = `
-            SELECT
-                MIN(qc.NgayBatDau) AS NgayBatDau,
-                MAX(qc.NgayKetThuc) AS NgayKetThuc,
-                qc.he_dao_tao AS id,
-                hdt.he_dao_tao AS tenHe,
-                qc.NamHoc,
-                qc.KiHoc,
-                qc.Dot,
 
-                -- Tính tổng số tiết theo hệ đào tạo (áp dụng 0.7 nếu nhiều giảng viên)
-                SUM(
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        0.7 * qc.QuyChuan,
-                        qc.QuyChuan
-                    )
-                ) AS SoTiet,
+        // Lấy danh sách hệ đào tạo
+        const heDaoTaoLists = await gvmServices.getHeMoiGiangData();
 
-                -- Không lấy trung bình, sẽ tính sau dựa trên từng giảng viên
-                NULL AS TienMoiGiang,
 
-                -- Tính thành tiền, thuế, thực nhận dựa trên mức tiền thực tế của từng giảng viên
-                SUM(
-                    tl.SoTien * 
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        0.7 * qc.QuyChuan,
-                        qc.QuyChuan
-                    )
-                ) AS ThanhTien,
+        let results = [];          // 👉 Tổng theo hệ đào tạo
+        let enhancedResults = [];  // 👉 Chi tiết theo hệ
 
-                SUM(
-                    tl.SoTien * 
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        0.7 * qc.QuyChuan,
-                        qc.QuyChuan
-                    ) * 0.1
-                ) AS Thue,
+        for (const heDaoTao of heDaoTaoLists) {
+            const he_dao_tao = heDaoTao.id;
+            const khoa = 'ALL';
 
-                SUM(
-                    tl.SoTien * 
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        0.7 * qc.QuyChuan,
-                        qc.QuyChuan
-                    ) * 0.9
-                ) AS ThucNhan,
+            const { finalQuery, params } = gvmServices.buildDynamicQuery({
+                namHoc,
+                dot,
+                ki,
+                he_dao_tao,
+                khoa
+            });
 
-                -- Thông tin trạng thái duyệt
-                MIN(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-                MIN(qc.TaiChinhDuyet) AS TaiChinhDuyet,
+            const [rows] = await connection.query(finalQuery, params);
 
-                -- Số lượng giảng viên trong hệ đào tạo này
-                COUNT(DISTINCT 
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                        TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-                    )
-                ) AS SoGiangVien
+            // ✅ TÍNH TỔNG: SỐ TIẾT – THÀNH TIỀN – THỰC NHẬN
+            const totals = rows.reduce((acc, gv) => {
+                acc.tongSoTiet += parseFloat(gv.SoTiet) || 0;
+                acc.tongThanhTien += parseFloat(gv.ThanhTien) || 0;
+                acc.tongThucNhan += parseFloat(gv.ThucNhan) || 0;
+                return acc;
+            }, {
+                tongSoTiet: 0,
+                tongThanhTien: 0,
+                tongThucNhan: 0
+            });
 
-            FROM 
-                quychuan qc
+            // ✅ MẢNG TỔNG RIÊNG
+            results.push({
+                heDaoTaoId: heDaoTao.id,
+                tenHeDaoTao: heDaoTao.he_dao_tao,
+                ...totals
+            });
 
-            -- JOIN với bảng he_dao_tao để lấy tên hệ đào tạo
-            JOIN he_dao_tao hdt
-                ON qc.he_dao_tao = hdt.id
-
-            -- JOIN với bảng gvmoi (INNER JOIN để chỉ lấy giảng viên tồn tại)
-            JOIN gvmoi gv 
-                ON 
-                    IF(
-                        INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                        TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                        TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-                    ) = gv.HoTen
-
-            -- JOIN với bảng tienluong để lấy mức tiền theo hệ đào tạo và học vị
-            LEFT JOIN tienluong tl 
-                ON qc.he_dao_tao = tl.he_dao_tao AND gv.HocVi = tl.HocVi
-
-            WHERE
-                qc.MoiGiang = 1 
-                AND qc.NamHoc = ?
-                AND qc.Dot = ?
-                AND qc.KiHoc = ?
-                AND gv.isQuanDoi = 0
-        `;
-        const params = [namHoc, dot, ki];
-
-        if (maPhongBan && maPhongBan !== "ALL") {
-            query += " AND qc.Khoa = ?";
-            params.push(maPhongBan);
-        }
-
-        query += `
-            GROUP BY
-                qc.he_dao_tao, hdt.he_dao_tao, qc.NamHoc, qc.KiHoc, qc.Dot
-            ORDER BY SoTiet DESC, hdt.he_dao_tao
-        `;
-
-        const [results] = await connection.query(query, params);
-
-        // Get detailed teacher information for each training program
-        const enhancedResults = [];
-        for (const heDaoTao of results) {
-            // Query to get detailed teacher info for this training program
-            // Sử dụng DON_GIA_EXPR thay vì LEFT JOIN tienluong để tránh duplicate rows
-            let teacherQuery = `
-    SELECT
-        MIN(qc.NgayBatDau) AS NgayBatDau,         
-        MAX(qc.NgayKetThuc) AS NgayKetThuc,        
-        gv.id_Gvm,
-        gv.HoTen,
-        gv.GioiTinh,
-        gv.NgaySinh,
-        gv.CCCD,
-        gv.NoiCapCCCD,
-        gv.Email,
-        gv.MaSoThue,
-        gv.HocVi,
-        gv.ChucVu,
-        gv.HSL,
-        gv.DienThoai,
-        gv.STK,
-        gv.NganHang,
-        gv.MaPhongBan,
-        gv.NgayCapCCCD,
-        gv.DiaChi,
-        gv.BangTotNghiep,
-        gv.NoiCongTac,
-        gv.BangTotNghiepLoai,
-        gv.MonGiangDayChinh,
-        gv.isNghiHuu,
-        pb.TenPhongBan,
-        
-        SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) AS SoTiet,
-        
-        ${DON_GIA_EXPR('qc', 'Khoa')} AS TienMoiGiang,
-        
-        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) AS ThanhTien,
-        
-        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) * 0.1 AS Thue,
-        
-        ${DON_GIA_EXPR('qc', 'Khoa')} * SUM(
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                0.7 * qc.QuyChuan,
-                qc.QuyChuan
-            )
-        ) * 0.9 AS ThucNhan,
-        
-        MAX(qc.DaoTaoDuyet) AS DaoTaoDuyet,
-        MAX(qc.TaiChinhDuyet) AS TaiChinhDuyet
-
-    FROM 
-        quychuan qc
-    JOIN he_dao_tao hdt
-        ON qc.he_dao_tao = hdt.id
-    JOIN gvmoi gv 
-        ON 
-            IF(
-                INSTR(qc.GiaoVienGiangDay, ',') > 0,
-                TRIM(REPLACE(SUBSTRING_INDEX(qc.GiaoVienGiangDay, ',', -1), ' (GVM)', '')),
-                TRIM(REPLACE(qc.GiaoVienGiangDay, ' (GVM)', ''))
-            ) = gv.HoTen
-    LEFT JOIN phongban pb 
-        ON gv.MaPhongBan = pb.MaPhongBan
-    WHERE
-        qc.MoiGiang = 1 
-        AND qc.NamHoc = ?
-        AND qc.Dot = ?
-        AND qc.KiHoc = ?
-        AND qc.he_dao_tao = ?
-        AND gv.isQuanDoi = 0
-`;
-            const teacherParams = [namHoc, dot, ki, heDaoTao.id];
-
-            if (maPhongBan && maPhongBan !== "ALL") {
-                teacherQuery += " AND qc.Khoa = ?";
-                teacherParams.push(maPhongBan);
-            }
-
-            teacherQuery += `
-              GROUP BY
-        gv.id_Gvm, gv.HoTen, gv.GioiTinh, gv.NgaySinh, gv.CCCD, gv.NoiCapCCCD, 
-        gv.Email, gv.MaSoThue, gv.HocVi, gv.ChucVu, gv.HSL, gv.DienThoai, 
-        gv.STK, gv.NganHang, gv.MaPhongBan, gv.NgayCapCCCD, gv.DiaChi, 
-        gv.BangTotNghiep, gv.NoiCongTac, gv.BangTotNghiepLoai, gv.MonGiangDayChinh, gv.isNghiHuu,
-        pb.TenPhongBan
-    ORDER BY SoTiet DESC, gv.HoTen
-            `;
-
-            const [teacherDetails] = await connection.query(teacherQuery, teacherParams);
-
-            // Add teacher details to the training program data
+            // ✅ MẢNG CHI TIẾT RIÊNG
             enhancedResults.push({
                 ...heDaoTao,
-                chiTietGiangVien: teacherDetails
+                chiTietGiangVien: rows
             });
-        }        // Get SoTietDinhMuc
+        }
+
+
+
+
+        // Get SoTietDinhMuc
         const sotietQuery = `SELECT GiangDay, GiangDayChuaNghiHuu, GiangDayDaNghiHuu FROM sotietdinhmuc LIMIT 1`;
         const [sotietResult] = await connection.query(sotietQuery);
         const SoTietDinhMuc = sotietResult[0]?.GiangDay || 0;
@@ -885,10 +718,12 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
         for (const heDaoTao of enhancedResults) {
             // Duyệt qua từng giảng viên trong hệ đào tạo để phân loại theo khoa
             heDaoTao.chiTietGiangVien.forEach(giangVien => {
-                const soTiet = parseFloat(giangVien.SoTiet) || 0;
+                const soTiet = parseFloat(giangVien.TongTiet) || 0;
                 const thanhTien = parseFloat(giangVien.ThanhTien) || 0;
                 const thue = parseFloat(giangVien.Thue) || 0;
                 const thucNhan = parseFloat(giangVien.ThucNhan) || 0;
+
+                console.log("tiet = ", soTiet)
 
                 if (giangVien.MaPhongBan === 'ĐTPH') {
                     totalDTPH.totalSoTietHeDaoTao += soTiet;
