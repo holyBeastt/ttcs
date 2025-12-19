@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Viện Kỹ Thuật Mật Mã - Mẫu Ủy Nhiệm Chi Mật Mã</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.16/dist/sweetalert2.all.min.js"></script>
+
+  <style>
+    .container-main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .upload-section {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .file-upload-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .file-input {
+      position: absolute;
+      left: -9999px;
+    }
+    
+    .file-upload-button {
+      cursor: pointer;
+      display: inline-block;
+      padding: 6px 12px;
+      background: #e9ecef;
+      border-right: 1px solid #ced4da;
+      margin: 0;
+      font-size: 14px;
+      color: #495057;
+      border-radius: 0;
+      transition: background 0.3s;
+    }
+    
+    .file-upload-button:hover {
+      background: #dee2e6;
+    }
+    
+    .file-name-display {
+      padding: 6px 12px;
+      flex: 1;
+      font-size: 14px;
+      color: #6c757d;
+      background: white;
+    }
+    
+    .btn-lg {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <%- include('header') %>
+
+  <div class="container-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-key me-2"></i>Mẫu Ủy Nhiệm Chi Mật Mã</h2>
+    </div>
+
+    <!-- Main content -->
+    <div class="upload-section">
+      <!-- Tải file mẫu mật mã -->
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary btn-lg w-100" id="btn-tai-mau-mat-ma">
+          Tải file mẫu mật mã
+        </button>
+      </div>
+
+      <!-- Choose File -->
+      <div class="mb-3">
+        <div class="file-upload-wrapper">
+          <input type="file" id="file-upload-mat-ma" class="file-input" accept=".xlsx,.xls" />
+          <label for="file-upload-mat-ma" class="file-upload-button">
+            Choose File
+          </label>
+          <span id="file-name-mat-ma" class="file-name-display">No file chosen</span>
+        </div>
+      </div>
+
+      <!-- Sửa file -->
+      <div class="mb-3">
+        <button type="button" class="btn btn-primary btn-lg w-100" id="btn-sua-file-mat-ma">
+          Upload / Cập nhật file mẫu mật mã
+        </button>
+      </div>
+      
+      <p class="text-danger mt-2 mb-0">
+        <strong>Ghi chú:</strong> File tải lên phải trùng tên <strong>"Mẫu Ủy Nhiệm Chi Mật Mã.xlsx"</strong> và là file Excel (.xlsx, .xls).
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Event listeners
+      document.getElementById('file-upload-mat-ma').addEventListener('change', handleFileSelectMatMa);
+      document.getElementById('btn-sua-file-mat-ma').addEventListener('click', uploadTemplateMatMa);
+      document.getElementById('btn-tai-mau-mat-ma').addEventListener('click', downloadTemplateMatMa);
+    });
+
+    // Xử lý chọn file
+    function handleFileSelectMatMa(event) {
+      const file = event.target.files[0];
+      const fileName = document.getElementById('file-name-mat-ma');
+      
+      if (file) {
+        fileName.textContent = file.name;
+      } else {
+        fileName.textContent = 'No file chosen';
+      }
+    }
+
+    // Upload mẫu mật mã
+    function uploadTemplateMatMa() {
+      const fileInput = document.getElementById('file-upload-mat-ma');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        Swal.fire({
+          title: 'Thông báo',
+          text: 'Vui lòng chọn file để upload',
+          icon: 'warning'
+        });
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('template', file);
+      
+      fetch('/uy-nhiem-chi/api/upload-mau-uy-nhiem-mat-ma', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Thành công',
+            text: data.message,
+            icon: 'success'
+          }).then(() => {
+            // Reset form
+            fileInput.value = '';
+            document.getElementById('file-name-mat-ma').textContent = 'No file chosen';
+          });
+        } else {
+          Swal.fire({
+            title: 'Lỗi',
+            text: data.message,
+            icon: 'error'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Lỗi',
+          text: 'Có lỗi xảy ra khi upload file mẫu mật mã',
+          icon: 'error'
+        });
+      });
+    }
+
+    // Tải mẫu mật mã
+    function downloadTemplateMatMa() {
+      const fileName = encodeURIComponent('Mẫu Ủy Nhiệm Chi Mật Mã.xlsx');
+      
+      fetch(`/uy-nhiem-chi/api/download-mau-uy-nhiem-mat-ma/${fileName}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Không thể tải file mẫu mật mã');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // Tạo link tạm để tải file
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Mẫu Ủy Nhiệm Chi Mật Mã.xlsx';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          Swal.fire({
+            title: 'Thành công',
+            text: 'Đã tải file mẫu mật mã thành công',
+            icon: 'success'
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Lỗi',
+            text: 'Không thể tải file mẫu mật mã. Vui lòng thử lại.',
+            icon: 'error'
+          });
+        });
+    }
+  </script>
+</body>
+
+</html>

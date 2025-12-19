@@ -231,11 +231,11 @@ body {
   z-index: 1001;
 }
 
-.dropdown-submenu:hover .dropdown-menu1 {
+.dropdown-submenu:hover > .dropdown-menu1 {
   display: block;
 }
 
-.dropdown-submenu:hover .dropdown-menu2 {
+.dropdown-submenu:hover > .dropdown-menu2 {
   display: block;
 }
 .dropdown-menu .dropdown-item1:hover {

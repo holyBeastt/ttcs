@@ -633,6 +633,239 @@ const taiUyNhiemChiController = {
         await connection.release();
       }
     }
+  },
+
+  // Trang UNC ĐATN (hệ thống)
+  getUNCDoAnPage: (req, res) => {
+    try {
+      res.render('uncDatn', {
+        title: 'UNC ĐATN',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ĐATN page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // UNC ngoài - Nhập dữ liệu - Import file
+  getUNCNgoaiImportFilePage: (req, res) => {
+    try {
+      res.render('uncNgoaiImportFile', {
+        title: 'UNC ngoài - Import file',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Import file page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // UNC ngoài - Nhập dữ liệu - Giao diện
+  getUNCNgoaiGiaoDienPage: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+
+      // Lấy STT tiếp theo để hiển thị trên form
+      // Dùng MAX(stt) để lấy số thứ tự cao nhất trong bảng
+      const [rows] = await connection.execute(`
+        SELECT IFNULL(MAX(stt), 0) + 1 AS nextStt
+        FROM uncngoai
+      `);
+
+      const nextStt = rows && rows.length > 0 && rows[0].nextStt ? rows[0].nextStt : 1;
+
+      res.render('uncNgoaiGiaoDien', {
+        title: 'UNC ngoài - Giao diện',
+        user: req.user || {},
+        nextStt
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Giao diện page:', error);
+      res.status(500).send('Internal Server Error');
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // UNC ngoài - Xem dữ liệu
+  getUNCNgoaiXemDuLieuPage: (req, res) => {
+    try {
+      res.render('uncNgoaiXemDuLieu', {
+        title: 'UNC ngoài - Xem dữ liệu',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering UNC ngoài Xem dữ liệu page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // API tạo bản ghi UNC ngoài (nhập dữ liệu thủ công)
+  createUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      // Đặt tên biến và cột không dấu để đồng bộ với frontend và database
+      const { dvnt, stk, nganhang } = req.body || {};
+
+      if (!dvnt || !stk || !nganhang) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập đầy đủ Đơn vị nhận tiền, Số tài khoản và Ngân hàng'
+        });
+      }
+
+      connection = await createPoolConnection();
+
+      // Lấy STT tiếp theo từ bảng
+      const [sttRows] = await connection.execute(`
+        SELECT IFNULL(MAX(stt), 0) + 1 AS nextStt
+        FROM uncngoai
+      `);
+      const newStt = sttRows && sttRows.length > 0 && sttRows[0].nextStt ? sttRows[0].nextStt : 1;
+
+      // Insert kèm STT vào bảng
+      const [result] = await connection.execute(
+        `INSERT INTO uncngoai (stt, dvnt, stk, nganhang) VALUES (?, ?, ?, ?)`,
+        [newStt, dvnt, stk, nganhang]
+      );
+
+      return res.json({
+        success: true,
+        message: 'Đã lưu dòng UNC ngoài thành công',
+        data: {
+          stt: newStt,
+          dvnt,
+          stk,
+          nganhang
+        }
+      });
+    } catch (error) {
+      console.error('Error in createUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi lưu dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API lấy danh sách UNC ngoài
+  getUNCNgoaiList: async (req, res) => {
+    let connection;
+    try {
+      connection = await createPoolConnection();
+      const [rows] = await connection.execute(
+        `SELECT stt, dvnt, stk, nganhang FROM uncngoai ORDER BY stt`
+      );
+
+      return res.json({
+        success: true,
+        data: rows || []
+      });
+    } catch (error) {
+      console.error('Error in getUNCNgoaiList:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi tải danh sách UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API cập nhật một bản ghi UNC ngoài
+  updateUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      const { stt, dvnt, stk, nganhang } = req.body || {};
+
+      if (!stt || !dvnt || !stk || !nganhang) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu STT hoặc thông tin Đơn vị nhận tiền, Số tài khoản, Ngân hàng'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [result] = await connection.execute(
+        `UPDATE uncngoai SET dvnt = ?, stk = ?, nganhang = ? WHERE stt = ?`,
+        [dvnt, stk, nganhang, stt]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bản ghi để cập nhật'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Đã cập nhật dòng UNC ngoài thành công'
+      });
+    } catch (error) {
+      console.error('Error in updateUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi cập nhật dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
+  },
+
+  // API xóa một bản ghi UNC ngoài
+  deleteUNCNgoaiRecord: async (req, res) => {
+    let connection;
+    try {
+      const { stt } = req.body || {};
+
+      if (!stt) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu STT cần xóa'
+        });
+      }
+
+      connection = await createPoolConnection();
+      const [result] = await connection.execute(
+        `DELETE FROM uncngoai WHERE stt = ?`,
+        [stt]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy bản ghi để xóa'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Đã xóa dòng UNC ngoài thành công'
+      });
+    } catch (error) {
+      console.error('Error in deleteUNCNgoaiRecord:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Lỗi server khi xóa dữ liệu UNC ngoài'
+      });
+    } finally {
+      if (connection) {
+        await connection.release();
+      }
+    }
   }
 };
 
@@ -693,6 +926,64 @@ const suaMauUyNhiemController = {
       res.status(500).json({ 
         success: false, 
         message: 'Có lỗi xảy ra khi upload file!' 
+      });
+    }
+  },
+
+  // Trang Mẫu mật mã
+  getMauMatMaPage: (req, res) => {
+    try {
+      res.render('mauMatMaUyNhiem', {
+        title: 'Mẫu mật mã Ủy nhiệm chi',
+        user: req.user || {}
+      });
+    } catch (error) {
+      console.error('Error rendering Mẫu mật mã page:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // Tải file mẫu ủy nhiệm mật mã
+  downloadMauMatMa: (req, res) => {
+    const fileName = req.params.fileName || 'Mẫu Ủy Nhiệm Chi Mật Mã.xlsx';
+    const filePath = path.join(TEMPLATES_DIR, fileName);
+
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        return res.status(404).send('Tệp mẫu ủy nhiệm mật mã không tìm thấy');
+      }
+
+      res.download(filePath, fileName, (err) => {
+        if (err) {
+          console.error('Lỗi khi tải xuống mẫu ủy nhiệm mật mã:', err);
+          res.status(500).send('Có lỗi xảy ra khi tải xuống');
+        }
+      });
+    });
+  },
+
+  // Upload file mẫu ủy nhiệm mật mã mới
+  uploadMauMatMa: (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Không có tệp nào được gửi!' 
+        });
+      }
+
+      console.log('Mẫu mật mã uploaded successfully:', req.file.filename);
+      
+      res.json({ 
+        success: true, 
+        message: `File mẫu mật mã "${req.file.originalname}" đã được cập nhật thành công!` 
+      });
+      
+    } catch (error) {
+      console.error('Error in uploadMauMatMa:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Có lỗi xảy ra khi upload file mẫu mật mã!' 
       });
     }
   }
