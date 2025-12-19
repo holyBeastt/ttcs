@@ -1183,14 +1183,14 @@
                 <td>${formatCurrency(gv.ThanhTien)}</td>                <td>${formatCurrency(gv.Thue || (parseFloat(gv.ThanhTien) || 0) * 0.1)}</td>
                 <td>${formatCurrency(gv.ThucNhan)}</td><td class="contract-tcduyet-cell-hedaotao">
                   ${getApprovalStatus(gv.TaiChinhDuyet)}
-                </td><td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.HoTen)}" data-hedaotao="${heDaoTao.id}">
+                </td><td class="contract-status-cell-hedaotao" data-teacher="${encodeURIComponent(gv.GiangVien)}" data-hedaotao="${heDaoTao.id}">
                   Đang tải...
                 </td>
                 <td class="action-col">
-                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
+                  <button class="btn btn-sm btn-info me-1" onclick="viewTeacherDetailInHeDaoTao('${encodeURIComponent(gv.GiangVien)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
                    Xem chi tiết
                   </button>
-                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.HoTen)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
+                  <button class="btn btn-sm btn-success" onclick="previewContractInHeDaoTao('${encodeURIComponent(gv.GiangVien)}', ${heDaoTao.id}, '${heDaoTao.he_dao_tao}')">
                     Xem trước HĐ
                   </button>
                 </td>
@@ -1404,8 +1404,8 @@
         return;
       }
 
-      // Find the specific teacher
-      const teacherData = heDaoTaoData.chiTietGiangVien.find(gv => gv.HoTen === decodedTeacherName);
+      // Find the specific teacher - use GiangVien field since that's what the query returns
+      const teacherData = heDaoTaoData.chiTietGiangVien.find(gv => gv.GiangVien === decodedTeacherName);
 
       if (!teacherData) {
         showError('Không tìm thấy thông tin giảng viên');
@@ -1414,7 +1414,7 @@
 
       // Create a temporary teacher detail data structure compatible with existing modal
       const formattedTeacherData = {
-        GiangVien: teacherData.HoTen,
+        GiangVien: teacherData.GiangVien,
         NgaySinh: teacherData.NgaySinh,
         CCCD: teacherData.CCCD,
         NgayCapCCCD: teacherData.NgayCapCCCD,
@@ -1435,9 +1435,9 @@
         DiaChi: teacherData.DiaChi,
         NoiCongTac: teacherData.NoiCongTac,
         MonGiangDayChinh: teacherData.MonGiangDayChinh,
-        MaPhongBan: teacherData.TenPhongBan,
+        MaPhongBan: teacherData.MaPhongBan || teacherData.TenPhongBan,
         SoHopDong: teacherData.SoHopDong,
-        TongTiet: teacherData.SoTiet,
+        TongTiet: teacherData.TongTiet || teacherData.SoTiet,
         loaiHopDong: heDaoTaoName,
         GioiTinh: teacherData.GioiTinh || 'Nam',
       };
@@ -2509,8 +2509,8 @@
         return;
       }
 
-      // Find specific teacher data within the training program
-      const teacherData = trainingProgramData.chiTietGiangVien.find(gv => gv.HoTen === decodedTeacherName);
+      // Find specific teacher data within the training program - use GiangVien field
+      const teacherData = trainingProgramData.chiTietGiangVien.find(gv => gv.GiangVien === decodedTeacherName);
 
       if (!teacherData) {
         showError('Không tìm thấy thông tin giảng viên trong hệ đào tạo này');
@@ -2528,9 +2528,9 @@
       } // Prepare enhanced teacher data for preview
       const enhancedTeacherData = {
         ...teacherData,
-        GiangVien: teacherData.HoTen,
+        GiangVien: teacherData.GiangVien,
         loaiHopDong: heDaoTaoName,
-        TongTiet: parseFloat(teacherData.SoTiet) || 0,
+        TongTiet: parseFloat(teacherData.TongTiet) || parseFloat(teacherData.SoTiet) || 0,
         ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
         Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
         ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
@@ -2539,7 +2539,7 @@
         trainingPrograms: [{
           id: heDaoTaoId,
           tenHe: heDaoTaoName,
-          SoTiet: parseFloat(teacherData.SoTiet) || 0,
+          SoTiet: parseFloat(teacherData.TongTiet) || parseFloat(teacherData.SoTiet) || 0,
           ThanhTien: parseFloat(teacherData.ThanhTien) || 0,
           Thue: parseFloat(teacherData.Thue) || (parseFloat(teacherData.ThanhTien) || 0) * 0.1,
           ThucNhan: parseFloat(teacherData.ThucNhan) || 0,
