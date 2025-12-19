@@ -16,6 +16,7 @@ const getDuyetHopDongPage = (req, res) => {
     }
 };
 
+// Hiển thị theo giảng viên
 const getDuyetHopDongData = async (req, res) => {
     let connection;
     try {
@@ -383,7 +384,7 @@ const getDuyetHopDongData = async (req, res) => {
 };
 
 /**
- * Approve contracts based on criteria
+ * Duyệt tài chính
  */
 const approveContracts = async (req, res) => {
     let connection;
@@ -521,7 +522,7 @@ const approveContracts = async (req, res) => {
 };
 
 /**
- * Unapprove contracts based on criteria (reverse of approval)
+ * Bỏ duyệt tài chính
  */
 const unapproveContracts = async (req, res) => {
     let connection;
@@ -623,7 +624,7 @@ const unapproveContracts = async (req, res) => {
 };
 
 /**
- * Get contract approval data grouped by training program (he_dao_tao)
+ * Hiển thị hợp đồng theo hệ đào tạo
  */
 const gvmServices = require("../services/gvmServices")
 
@@ -791,7 +792,7 @@ const getDuyetHopDongTheoHeDaoTao = async (req, res) => {
 };
 
 /**
- * Check contract save status based on filter conditions
+ * Check đã lưu
  */
 const checkContractSaveStatus = async (req, res) => {
     let connection;
@@ -903,7 +904,7 @@ const checkContractSaveStatus = async (req, res) => {
 };
 
 /**
- * Check contract finance approval status based on filter conditions
+ * check đã duyệt
  */
 const checkContractFinanceApprovalStatus = async (req, res) => {
     let connection;
